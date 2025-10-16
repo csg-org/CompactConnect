@@ -34,9 +34,8 @@ from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import UserPoolDomainTarget
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.security_profile import SecurityProfile
+from constructs import Construct
 
 
 class UserPool(CdkUserPool):
@@ -234,10 +233,11 @@ class UserPool(CdkUserPool):
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
-                # we allow this in test environments for automated testing
-                admin_user_password=self.security_profile == SecurityProfile.VULNERABLE,
+                # Admin User Password is required for AdminInitiateAuth, which we use for account recovery
+                # (and automated testing in test environments)
+                admin_user_password=True,
                 custom=False,
-                user_srp=self.security_profile == SecurityProfile.VULNERABLE,
+                user_srp=False if self.security_profile == SecurityProfile.RECOMMENDED else True,
                 user_password=False,
             ),
             o_auth=OAuthSettings(
@@ -268,19 +268,19 @@ class UserPool(CdkUserPool):
             # Applies to all clients
             client_id='ALL',
             user_pool_id=self.user_pool_id,
-            # If Cognito suspects an account take-over event, block all actions and notify the user
+            # If Cognito suspects an account take-over event, notify the user
             account_takeover_risk_configuration=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverRiskConfigurationTypeProperty(
                 actions=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionsTypeProperty(
                     high_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
+                        event_action='MFA_REQUIRED' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True,
                     ),
                     medium_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
+                        event_action='MFA_REQUIRED' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True,
                     ),
                     low_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
+                        event_action='MFA_REQUIRED' if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True,
                     ),
                 ),
@@ -292,6 +292,11 @@ class UserPool(CdkUserPool):
                                 subject='CompactConnect: Account Security Alert',
                                 text_body=blocked_notify_text,
                                 html_body=f'<p>{blocked_notify_text}</p>',
+                            ),
+                            mfa_email=CfnUserPoolRiskConfigurationAttachment.NotifyEmailTypeProperty(
+                                subject='CompactConnect: Account Security Alert',
+                                text_body=no_action_notify_text,
+                                html_body=f'<p>{no_action_notify_text}</p>',
                             ),
                             no_action_email=CfnUserPoolRiskConfigurationAttachment.NotifyEmailTypeProperty(
                                 subject='CompactConnect: Account Security Alert',

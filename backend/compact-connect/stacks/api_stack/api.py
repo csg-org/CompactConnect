@@ -4,10 +4,10 @@ import json
 from functools import cached_property
 
 from aws_cdk import ArnFormat
-from common_constructs.cc_api import CCApi
 from common_constructs.stack import Stack
 from constructs import Construct
 
+from common_constructs.cc_api import CCApi
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.provider_users import ProviderUsersStack
@@ -65,7 +65,6 @@ class LicenseApi(CCApi):
         For each supported compact in the system, return the secret arn for the payment processor credentials.
         The secret arn follows this pattern:
         compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
-
 
         This is used to scope the permissions granted to the lambda to only the secrets it needs to access.
         """

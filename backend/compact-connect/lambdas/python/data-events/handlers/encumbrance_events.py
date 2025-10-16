@@ -209,7 +209,7 @@ def license_encumbrance_listener(message: dict):
         license_type_abbreviation=license_type_abbreviation,
         effective_date=effective_date,
         adverse_action_category=adverse_action_category,
-        adverse_action_id=adverse_action_id
+        adverse_action_id=adverse_action_id,
     ):
         logger.info('Processing license encumbrance event')
 

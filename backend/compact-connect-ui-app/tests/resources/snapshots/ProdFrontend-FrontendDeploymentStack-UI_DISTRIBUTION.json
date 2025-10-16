@@ -1,0 +1,136 @@
+{
+  "UIDistribution2F12206B": {
+    "Type": "AWS::CloudFront::Distribution",
+    "Properties": {
+      "DistributionConfig": {
+        "Aliases": [
+          "app.compactconnect.org"
+        ],
+        "CacheBehaviors": [
+          {
+            "AllowedMethods": [
+              "GET",
+              "HEAD",
+              "OPTIONS"
+            ],
+            "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+            "Compress": true,
+            "PathPattern": "service-worker.js",
+            "TargetOriginId": "ProdFrontendPipelineStackProdFrontendFrontendDeploymentStackUIDistributionOrigin21EAC129C",
+            "ViewerProtocolPolicy": "redirect-to-https"
+          }
+        ],
+        "CustomErrorResponses": [
+          {
+            "ErrorCode": 404,
+            "ResponseCode": 200,
+            "ResponsePagePath": "/index.html"
+          },
+          {
+            "ErrorCode": 403,
+            "ResponseCode": 200,
+            "ResponsePagePath": "/index.html"
+          }
+        ],
+        "DefaultCacheBehavior": {
+          "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+          "Compress": true,
+          "LambdaFunctionAssociations": [
+            {
+              "EventType": "viewer-response",
+              "LambdaFunctionARN": {
+                "Ref": "CSPFunctionCurrentVersionB61A6611c49f5a41519db73b59488deeb4e8a5bc"
+              }
+            }
+          ],
+          "TargetOriginId": "ProdFrontendPipelineStackProdFrontendFrontendDeploymentStackUIDistributionOrigin1BAFC1F1E",
+          "ViewerProtocolPolicy": "redirect-to-https"
+        },
+        "DefaultRootObject": "index.html",
+        "Enabled": true,
+        "HttpVersion": "http2",
+        "IPV6Enabled": true,
+        "Logging": {
+          "Bucket": {
+            "Fn::GetAtt": [
+              "UIAccessLogsBucket83B32FFC",
+              "RegionalDomainName"
+            ]
+          },
+          "Prefix": "_logs/000011112222/us-east-1/ProdFrontendPipelineStack/ProdFrontend/FrontendDeploymentStack/UIDistribution/"
+        },
+        "Origins": [
+          {
+            "DomainName": {
+              "Fn::GetAtt": [
+                "UIBucketB980636D",
+                "RegionalDomainName"
+              ]
+            },
+            "Id": "ProdFrontendPipelineStackProdFrontendFrontendDeploymentStackUIDistributionOrigin1BAFC1F1E",
+            "OriginAccessControlId": {
+              "Fn::GetAtt": [
+                "UIDistributionOrigin1S3OriginAccessControl71BC2D71",
+                "Id"
+              ]
+            },
+            "OriginShield": {
+              "Enabled": false
+            },
+            "S3OriginConfig": {
+              "OriginAccessIdentity": ""
+            }
+          },
+          {
+            "DomainName": {
+              "Fn::GetAtt": [
+                "UIBucketB980636D",
+                "RegionalDomainName"
+              ]
+            },
+            "Id": "ProdFrontendPipelineStackProdFrontendFrontendDeploymentStackUIDistributionOrigin21EAC129C",
+            "OriginAccessControlId": {
+              "Fn::GetAtt": [
+                "UIDistributionOrigin2S3OriginAccessControl3DEC1613",
+                "Id"
+              ]
+            },
+            "OriginShield": {
+              "Enabled": false
+            },
+            "S3OriginConfig": {
+              "OriginAccessIdentity": ""
+            }
+          }
+        ],
+        "ViewerCertificate": {
+          "AcmCertificateArn": {
+            "Ref": "UICert5FB68509"
+          },
+          "MinimumProtocolVersion": "TLSv1.2_2021",
+          "SslSupportMethod": "sni-only"
+        },
+        "WebACLId": {
+          "Fn::GetAtt": [
+            "DistributionAcl2117273A",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "Metadata": {
+      "cdk_nag": {
+        "rules_to_suppress": [
+          {
+            "reason": "An ACM certificate will be added to this distribution once we have linked its domain name",
+            "id": "AwsSolutions-CFR4"
+          },
+          {
+            "reason": "Geo restrictions are not desirable at this time",
+            "id": "AwsSolutions-CFR1"
+          }
+        ]
+      }
+    }
+  }
+}

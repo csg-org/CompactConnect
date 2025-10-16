@@ -1,0 +1,35 @@
+{
+  "name": "compact-connect",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "NodeJS lambdas for Compact Connect",
+  "scripts": {
+    "build": "echo 'No build step needed for JavaScript-only project'",
+    "watch": "echo 'No watch step needed for JavaScript-only project'",
+    "test:csp": "mocha cloudfront-csp/test",
+    "lint": "eslint '**/*.js' --no-error-on-unmatched-pattern",
+    "test": "mocha cloudfront-csp/test",
+    "audit:dependencies": "yarn audit --groups dependencies --level moderate"
+  },
+  "author": "Inspiring Apps",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "aws-sdk-client-mock": "^4.1.0",
+    "aws-sdk-client-mock-jest": "^4.1.0",
+    "esbuild": "0.24.0",
+    "eslint": "^9.13.0",
+    "chai": "^4.1.2",
+    "chai-match-pattern": "^1.1.0",
+    "chalk": "^4.1.2",
+    "lambda-local": "^2.2.0",
+    "mocha": "^11.0.0"
+  },
+  "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.10.0",
+    "@aws-sdk/client-dynamodb": "^3.682.0",
+    "@aws-sdk/client-s3": "^3.682.0",
+    "@aws-sdk/util-dynamodb": "^3.682.0",
+    "aws-lambda": "1.0.7",
+    "zod": "^3.23.8"
+  }
+}

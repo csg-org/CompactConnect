@@ -215,7 +215,7 @@
             flex-direction: column;
             align-items: center;
             margin-top: 2rem;
-            padding: 2rem;
+            padding: 2rem 0;
 
             img {
                 max-width: 100%;
@@ -236,7 +236,11 @@
 
                 a {
                     font-weight: @fontWeightBold;
+                    white-space: pre-wrap;
                     text-decoration: underline;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
+                    overflow-wrap: anywhere;
                 }
             }
         }

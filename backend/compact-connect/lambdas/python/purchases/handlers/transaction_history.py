@@ -97,7 +97,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
         logger.info('Fetching privilege ids for transactions', compact=compact)
         # first we must add the associated privilege ids to each transaction so we can show the association in our
         # reports
-        transactions_with_privilege_ids = config.transaction_client.add_privilege_ids_to_transactions(
+        transactions_with_privilege_ids = config.transaction_client.add_privilege_information_to_transactions(
             compact=compact, transactions=transaction_response['transactions']
         )
         logger.info('Storing transactions in DynamoDB', compact=compact)

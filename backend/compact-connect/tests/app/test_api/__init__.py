@@ -3,8 +3,8 @@ from unittest import TestCase
 
 from aws_cdk.assertions import Template
 from aws_cdk.aws_lambda import IFunction
-from stacks.api_lambda_stack import ApiLambdaStack
 
+from stacks.api_lambda_stack import ApiLambdaStack
 from tests.app.base import TstAppABC
 
 

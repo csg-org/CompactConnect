@@ -4,7 +4,11 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
-from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema, QueryProvidersRequestSchema
+from cc_common.data_model.schema.provider.api import (
+    ProviderGeneralResponseSchema,
+    ProviderSSNResponseSchema,
+    QueryProvidersRequestSchema,
+)
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
@@ -175,10 +179,10 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         ssn = config.data_client.get_ssn_by_provider_id(compact=compact, provider_id=provider_id)
 
         metrics.add_metric(name='read-ssn', value=1, unit='Count')
-        # Return the SSN to the caller
-        return {
-            'ssn': ssn,
-        }
+
+        # Apply schema validation
+        response_schema = ProviderSSNResponseSchema()
+        return response_schema.load({'ssn': ssn})
 
 
 def _ssn_rate_limit_exceeded(context: LambdaContext, user_id: str, provider_id: str, compact: str) -> bool:

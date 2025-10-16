@@ -879,9 +879,7 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         # Enrich the privilege history
-        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
-            privilege_data
-        )
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
 
         # Define the expected issuance update
         expected_history = {
@@ -896,7 +894,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -905,8 +903,8 @@ class TestProviderRecordUtility(TstLambdas):
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
                     'note': 'test deactivation note',
-                }
-            ]
+                },
+            ],
         }
 
         # Check that the history contains exactly one update with the expected values
@@ -959,9 +957,7 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         # Enrich the privilege history
-        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
-            privilege_data
-        )
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
 
         # Define the expected issuance update
         expected_history = {
@@ -976,7 +972,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -985,8 +981,8 @@ class TestProviderRecordUtility(TstLambdas):
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
                     'note': 'Non-compliance With Requirements',
-                }
-            ]
+                },
+            ],
         }
 
         # Check that the history contains exactly one update with the expected values
@@ -1040,9 +1036,7 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         # Enrich the privilege history
-        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
-            privilege_data, False
-        )
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data, False)
 
         # Define the expected issuance update
         expected_history = {
@@ -1057,7 +1051,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -1065,13 +1059,14 @@ class TestProviderRecordUtility(TstLambdas):
                     'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
-                }
-            ]
+                },
+            ],
         }
 
         # Check that the history contains exactly one update with the expected values
         self.maxDiff = None
         self.assertEqual(expected_history, history)
+
 
 class TestProviderRecordUtilityActiveSinceCalculation(TstLambdas):
     def setUp(self):

@@ -1,25 +1,48 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { IngestEventEmailService } from '../../../lib/email';
+import { EmailTemplateCapture } from '../../utils/email-template-capture';
+import { TReaderDocument } from '@jusdino-ia/email-builder';
 import {
     SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
     SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
     SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD
 } from '../../sample-records';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as SESClient;
+    mock as unknown as SESv2Client;
 
 describe('IngestEventEmailService', () => {
     let emailService: IngestEventEmailService;
     let mockSESClient: ReturnType<typeof mockClient>;
 
+    beforeAll(() => {
+        // Mock the renderTemplate method if template capture is enabled
+        if (EmailTemplateCapture.isEnabled()) {
+            const original = (IngestEventEmailService.prototype as any).renderTemplate;
+
+            jest.spyOn(IngestEventEmailService.prototype as any, 'renderTemplate').mockImplementation(function (this: any, ...args: any[]) {
+                const [template, options] = args as [TReaderDocument, any];
+
+                EmailTemplateCapture.captureTemplate(template);
+                const html = original.apply(this, args);
+
+                EmailTemplateCapture.captureHtml(html, template, options);
+                return html;
+            });
+        }
+    });
+
+    afterAll(() => {
+        jest.restoreAllMocks();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
 
         // Reset environment variables
         process.env.FROM_ADDRESS = 'noreply@example.org';
@@ -45,7 +68,7 @@ describe('IngestEventEmailService', () => {
                 ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
                 validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
             },
-            'aslp',
+            'Audiology and Speech Language Pathology',
             'Ohio'
         );
 
@@ -60,7 +83,7 @@ describe('IngestEventEmailService', () => {
                 ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
                 validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
             },
-            'aslp',
+            'Audiology and Speech Language Pathology',
             'Ohio',
             [
                 'operations@example.com'
@@ -74,19 +97,21 @@ describe('IngestEventEmailService', () => {
                 Destination: {
                     ToAddresses: ['operations@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
+                            Data: 'License Data Error Summary: Audiology and Speech Language Pathology / Ohio'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'License Data Error Summary: aslp / Ohio'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             }
         );
     });
@@ -107,7 +132,7 @@ describe('IngestEventEmailService', () => {
 
     it('should send an alls well email', async () => {
         const messageId = await emailService.sendAllsWellEmail(
-            'aslp',
+            'Audiology and Speech Language Pathology',
             'Ohio',
             [ 'operations@example.com' ]
         );
@@ -119,26 +144,28 @@ describe('IngestEventEmailService', () => {
                 Destination: {
                     ToAddresses: ['operations@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
+                            Data: 'License Data Summary: Audiology and Speech Language Pathology / Ohio'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'License Data Summary: aslp / Ohio'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             }
         );
     });
 
     it('should send a "no license updates" email with expected image url', async () => {
         const messageId = await emailService.sendNoLicenseUpdatesEmail(
-            'aslp',
+            'Audiology and Speech Language Pathology',
             'Ohio',
             [ 'operations@example.com' ]
         );
@@ -150,19 +177,21 @@ describe('IngestEventEmailService', () => {
                 Destination: {
                     ToAddresses: ['operations@example.com']
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('src=\"https://app.test.compactconnect.org/img/email/ico-noupdates@2x.png\"')
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('src=\"https://app.test.compactconnect.org/img/email/ico-noupdates@2x.png\"')
+                            Data: 'No License Updates for Last 7 Days: Audiology and Speech Language Pathology / Ohio'
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'No License Updates for Last 7 Days: aslp / Ohio'
                     }
                 },
-                Source: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
             }
         );
     });
