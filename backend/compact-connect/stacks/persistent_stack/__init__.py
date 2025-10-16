@@ -492,7 +492,7 @@ class PersistentStack(AppStack):
 
         # Add staff user pool Cognito configuration
         frontend_app_config.set_staff_cognito_values(
-            domain_name=self.staff_users.user_pool_domain.domain_name,
+            domain_name=self.staff_users.cognito_custom_domain.domain_name,
             client_id=self.staff_users.ui_client.user_pool_client_id,
         )
 

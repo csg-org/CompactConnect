@@ -123,18 +123,6 @@ class AppStack(Stack):
             return f'app.{self.hosted_zone.zone_name}'
         return None
 
-    # @property
-    # def provider_auth_domain_name(self) -> str | None:
-    #     if self.hosted_zone is not None:
-    #         return f'auth-licensee.{self.hosted_zone.zone_name}'
-    #     return None
-    #
-    # @property
-    # def staff_auth_domain_name(self) -> str | None:
-    #     if self.hosted_zone is not None:
-    #         return f'auth-staff.{self.hosted_zone.zone_name}'
-    #     return None
-
     @property
     def allowed_origins(self) -> list[str]:
         allowed_origins = []

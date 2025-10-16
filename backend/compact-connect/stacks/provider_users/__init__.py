@@ -107,7 +107,7 @@ class ProviderUsersStack(AppStack):
 
         # Add provider user pool Cognito configuration
         provider_app_config.set_provider_cognito_values(
-            domain_name=self.provider_users.user_pool_domain.domain_name,
+            domain_name=self.provider_users.cognito_custom_domain.domain_name,
             client_id=self.provider_users.ui_client.user_pool_client_id,
         )
 
