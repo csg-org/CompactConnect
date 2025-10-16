@@ -168,7 +168,7 @@ class TestCompactConfigurationApi(TestApi):
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
                 'ParentId': {
-                    # Verify the parent id matches the expected 'public/compacts/jurisdictions' resource
+                    # Verify the parent id matches the expected 'public/jurisdictions' resource
                     'Ref': api_stack.get_logical_id(
                         api_stack.api.v1_api.public_jurisdictions_resource.node.default_child
                     ),
