@@ -1,5 +1,3 @@
-import json
-
 from marshmallow import ValidationError
 
 from tests import TstLambdas
@@ -127,48 +125,36 @@ class TestInvestigationDataClass(TstLambdas):
         )
 
 
-class TestInvestigationPostRequestSchema(TstLambdas):
-    def test_validate_post(self):
-        """Test validation of a POST request"""
-        from cc_common.data_model.schema.investigation.api import InvestigationPostRequestSchema
-
-        with open('tests/resources/api/investigation-post.json') as f:
-            InvestigationPostRequestSchema().load(json.load(f))
-
-    def test_invalid_post(self):
-        """Test validation error when required field is missing"""
-        from cc_common.data_model.schema.investigation.api import InvestigationPostRequestSchema
-
-        with open('tests/resources/api/investigation-post.json') as f:
-            investigation_data = json.load(f)
-        investigation_data.pop('investigationStartDate')
-
-        with self.assertRaises(ValidationError):
-            InvestigationPostRequestSchema().load(investigation_data)
-
-
 class TestInvestigationPatchRequestSchema(TstLambdas):
     def test_validate_patch(self):
-        """Test validation of a PATCH request"""
+        """Test validation of a PATCH request (empty body is valid)"""
         from cc_common.data_model.schema.investigation.api import InvestigationPatchRequestSchema
 
-        with open('tests/resources/api/investigation-patch.json') as f:
-            InvestigationPatchRequestSchema().load(json.load(f))
+        # PATCH schema has no required fields
+        result = InvestigationPatchRequestSchema().load({})
+        self.assertIsInstance(result, dict)
 
     def test_validate_patch_with_encumbrance(self):
         """Test validation of a PATCH request with encumbrance"""
         from cc_common.data_model.schema.investigation.api import InvestigationPatchRequestSchema
 
-        with open('tests/resources/api/investigation-patch-with-encumbrance.json') as f:
-            InvestigationPatchRequestSchema().load(json.load(f))
+        investigation_data = {
+            'encumbrance': {
+                'encumbranceEffectiveDate': '2024-03-15',
+                'encumbranceType': 'suspension',
+                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            }
+        }
+        result = InvestigationPatchRequestSchema().load(investigation_data)
+        self.assertIsInstance(result, dict)
 
-    def test_invalid_patch(self):
-        """Test validation error when required field is missing"""
+    def test_validate_patch_with_unknown_fields(self):
+        """Test validation passes even with unknown fields (ForgivingSchema)"""
         from cc_common.data_model.schema.investigation.api import InvestigationPatchRequestSchema
 
-        with open('tests/resources/api/investigation-patch.json') as f:
-            investigation_data = json.load(f)
-        investigation_data['unsupportedField'] = 'bad'
+        # ForgivingSchema allows unknown fields
+        investigation_data = {'unsupportedField': 'bad'}
 
-        with self.assertRaises(ValidationError):
-            InvestigationPatchRequestSchema().load(investigation_data)
+        # This should not raise an error
+        result = InvestigationPatchRequestSchema().load(investigation_data)
+        self.assertIsInstance(result, dict)

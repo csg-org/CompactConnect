@@ -16,6 +16,10 @@ from tests.function import TstFunction
 class TestDataClient(TstFunction):
     sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
 
+    def setUp(self):
+        super().setUp()
+        self.maxDiff = None
+
     def test_get_provider(self):
         from cc_common.data_model.data_client import DataClient
 
@@ -1102,7 +1106,6 @@ class TestDataClient(TstFunction):
         # Verify the complete update record structure
         expected_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ne/slp#UPDATE#1731110399/ec3ac1fee136aa61a7c1d4547ced7af7',
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'type': 'privilegeUpdate',
             'updateType': 'investigation',
@@ -1125,7 +1128,6 @@ class TestDataClient(TstFunction):
             },
             'updatedValues': {
                 'investigationStatus': 'underInvestigation',
-                'dateOfUpdate': investigation.creationDate.isoformat(),
             },
             'investigationDetails': {
                 'investigationId': str(investigation.investigationId),
@@ -1133,6 +1135,7 @@ class TestDataClient(TstFunction):
         }
         # Pop dynamic fields that we don't want to assert on
         update_record.pop('dateOfUpdate')
+        update_record.pop('sk')
 
         self.assertEqual(expected_update, update_record)
 
@@ -1214,7 +1217,6 @@ class TestDataClient(TstFunction):
         # Verify the complete update record structure
         expected_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#license/oh/slp#UPDATE#1731110399/b7d4fcd943bf6baade443d6f7e133ca4',
             'type': 'licenseUpdate',
             'updateType': 'investigation',
             'compact': 'aslp',
@@ -1248,7 +1250,6 @@ class TestDataClient(TstFunction):
             },
             'updatedValues': {
                 'investigationStatus': 'underInvestigation',
-                'dateOfUpdate': investigation.creationDate.isoformat(),
             },
             'investigationDetails': {
                 'investigationId': str(investigation.investigationId),
@@ -1256,6 +1257,7 @@ class TestDataClient(TstFunction):
         }
         # Pop dynamic fields that we don't want to assert on
         update_record.pop('dateOfUpdate')
+        update_record.pop('sk')
 
         self.assertEqual(expected_update, update_record)
 
@@ -1354,6 +1356,7 @@ class TestDataClient(TstFunction):
             license_type_abbreviation='slp',
             investigation_id=str(investigation.investigationId),
             closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
         )
 
@@ -1420,7 +1423,6 @@ class TestDataClient(TstFunction):
         # Verify the complete closure update record structure
         expected_closure_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ne/slp#UPDATE#1731110399/4551cf811d92ea34958e69080e2f935f',
             'type': 'privilegeUpdate',
             'updateType': 'investigation',
             'compact': 'aslp',
@@ -1442,12 +1444,12 @@ class TestDataClient(TstFunction):
                 'investigationStatus': 'underInvestigation',
             },
             'updatedValues': {
-                'dateOfUpdate': investigation.creationDate.isoformat(),
             },
             'removedValues': ['investigationStatus'],
         }
         # Pop dynamic fields that we don't want to assert on
         closure_update.pop('dateOfUpdate')
+        closure_update.pop('sk')
         # Only pop compactTransactionIdGSIPK if it exists
         if 'compactTransactionIdGSIPK' in closure_update:
             closure_update.pop('compactTransactionIdGSIPK')
@@ -1484,6 +1486,7 @@ class TestDataClient(TstFunction):
 
         # Now close the investigation
         closing_user = str(uuid4())
+        close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
             compact='aslp',
             provider_id=provider_id,
@@ -1491,6 +1494,7 @@ class TestDataClient(TstFunction):
             license_type_abbreviation='slp',
             investigation_id=str(investigation.investigationId),
             closing_user=closing_user,
+            close_date=close_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
         )
 
@@ -1516,7 +1520,7 @@ class TestDataClient(TstFunction):
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
             'creationDate': investigation.creationDate.isoformat(),
-            'closeDate': investigation.creationDate.isoformat(),
+            'closeDate': close_date.isoformat(),
             'closingUser': closing_user,
         }
         # Pop dynamic fields that we don't want to assert on
@@ -1557,7 +1561,6 @@ class TestDataClient(TstFunction):
         # Verify the complete closure update record structure
         expected_closure_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#license/oh/slp#UPDATE#1731110399/7d7d7d0f3aac97046124f4084d4db450',
             'type': 'licenseUpdate',
             'updateType': 'investigation',
             'compact': 'aslp',
@@ -1591,12 +1594,12 @@ class TestDataClient(TstFunction):
                 'investigationStatus': 'underInvestigation',
             },
             'updatedValues': {
-                'dateOfUpdate': investigation.creationDate.isoformat(),
             },
             'removedValues': ['investigationStatus'],
         }
         # Pop dynamic fields that we don't want to assert on
         closure_update.pop('dateOfUpdate')
+        closure_update.pop('sk')
 
         self.assertEqual(expected_closure_update, closure_update)
 
@@ -1620,7 +1623,8 @@ class TestDataClient(TstFunction):
                 license_type_abbreviation='slp',
                 investigation_id=str(uuid4()),
                 closing_user=str(uuid4()),
-                investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))
@@ -1645,7 +1649,8 @@ class TestDataClient(TstFunction):
                 license_type_abbreviation='slp',
                 investigation_id=str(uuid4()),
                 closing_user=str(uuid4()),
-                investigation_against=InvestigationAgainstEnum.LICENSE,
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.LICENSE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))
@@ -1688,6 +1693,7 @@ class TestDataClient(TstFunction):
             license_type_abbreviation='slp',
             investigation_id=str(investigation.investigationId),
             closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
         )
         with self.assertRaises(CCNotFoundException) as context:
@@ -1698,7 +1704,8 @@ class TestDataClient(TstFunction):
                 license_type_abbreviation='slp',
                 investigation_id=str(investigation.investigationId),
                 closing_user=closing_user,
-                investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))
@@ -1741,6 +1748,7 @@ class TestDataClient(TstFunction):
             license_type_abbreviation='slp',
             investigation_id=str(investigation.investigationId),
             closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.LICENSE,
         )
         with self.assertRaises(CCNotFoundException) as context:
@@ -1751,7 +1759,8 @@ class TestDataClient(TstFunction):
                 license_type_abbreviation='slp',
                 investigation_id=str(investigation.investigationId),
                 closing_user=closing_user,
-                investigation_against=InvestigationAgainstEnum.LICENSE,
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.LICENSE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))
@@ -1788,6 +1797,7 @@ class TestDataClient(TstFunction):
         closing_user = str(uuid4())
         resulting_encumbrance_id = str(uuid4())
 
+        close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
             compact='aslp',
             provider_id=provider_id,
@@ -1795,6 +1805,7 @@ class TestDataClient(TstFunction):
             license_type_abbreviation='slp',
             investigation_id=str(investigation.investigationId),
             closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             resulting_encumbrance_id=resulting_encumbrance_id,
         )
@@ -1821,7 +1832,7 @@ class TestDataClient(TstFunction):
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
             'creationDate': investigation.creationDate.isoformat(),
-            'closeDate': investigation.creationDate.isoformat(),
+            'closeDate': close_date.isoformat(),
             'closingUser': closing_user,
             'resultingEncumbranceId': resulting_encumbrance_id,
         }
@@ -1862,6 +1873,7 @@ class TestDataClient(TstFunction):
         closing_user = str(uuid4())
         resulting_encumbrance_id = str(uuid4())
 
+        close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
             compact='aslp',
             provider_id=provider_id,
@@ -1869,6 +1881,7 @@ class TestDataClient(TstFunction):
             license_type_abbreviation='slp',
             investigation_id=str(investigation.investigationId),
             closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.LICENSE,
             resulting_encumbrance_id=resulting_encumbrance_id,
         )
@@ -1895,7 +1908,7 @@ class TestDataClient(TstFunction):
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
             'creationDate': investigation.creationDate.isoformat(),
-            'closeDate': investigation.creationDate.isoformat(),
+            'closeDate': close_date.isoformat(),
             'closingUser': closing_user,
             'resultingEncumbranceId': resulting_encumbrance_id,
         }

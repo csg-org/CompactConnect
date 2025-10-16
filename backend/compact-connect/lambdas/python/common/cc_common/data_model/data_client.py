@@ -1646,7 +1646,6 @@ class DataClient:
                 update_data_type = LicenseUpdateData
                 update_type = 'licenseUpdate'
 
-            now = config.current_standard_datetime
             investigation_details = {
                 'investigationId': investigation.investigationId,
             }
@@ -1659,27 +1658,23 @@ class DataClient:
                     'providerId': investigation.providerId,
                     'compact': investigation.compact,
                     'jurisdiction': investigation.jurisdiction,
-                    'createDate': now,
-                    'effectiveDate': now,
+                    'createDate': investigation.creationDate,
+                    'effectiveDate': investigation.creationDate,
                     'licenseType': investigation.licenseType,
                     'previous': record_data.to_dict(),
                     'updatedValues': {
                         'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
-                        'dateOfUpdate': now,
                     },
                     'investigationDetails': investigation_details,
                 }
             )
-
-            # Create the investigation record
-            investigation_record = investigation.serialize_to_database_record()
 
             # Prepare the transaction items
             transaction_items = [
                 {
                     'Put': {
                         'TableName': self.config.provider_table.table_name,
-                        'Item': investigation_record,
+                        'Item': investigation.serialize_to_database_record(),
                     }
                 },
                 {
@@ -1701,7 +1696,7 @@ class DataClient:
                         ),
                         'ExpressionAttributeValues': {
                             ':investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION.value,
-                            ':dateOfUpdate': now.isoformat(),
+                            ':dateOfUpdate': investigation.creationDate.isoformat(),
                         },
                     }
                 },
@@ -1720,6 +1715,7 @@ class DataClient:
         license_type_abbreviation: str,
         investigation_id: str,
         closing_user: str,
+        close_date: datetime,
         investigation_against: InvestigationAgainstEnum,
         resulting_encumbrance_id: str = None,
     ) -> None:
@@ -1732,6 +1728,7 @@ class DataClient:
         :param license_type_abbreviation: The license type abbreviation
         :param investigation_id: The investigation ID
         :param closing_user: The user who closed the investigation
+        :param close_date: The date that the investigation was closed
         :param investigation_against: Whether investigating a privilege or license
         :param resulting_encumbrance_id: Optional encumbrance ID to reference in the investigation closure
         """
@@ -1766,8 +1763,6 @@ class DataClient:
                 update_data_type = LicenseUpdateData
                 update_type = 'licenseUpdate'
 
-            now = config.current_standard_datetime
-
             # Get license type from the record for the update record
             license_type = record_data.licenseType
 
@@ -1779,13 +1774,11 @@ class DataClient:
                     'providerId': provider_id,
                     'compact': compact,
                     'jurisdiction': jurisdiction,
-                    'createDate': now,
-                    'effectiveDate': now,
+                    'createDate': close_date,
+                    'effectiveDate': close_date,
                     'licenseType': license_type,
                     'previous': record_data.to_dict(),
-                    'updatedValues': {
-                        'dateOfUpdate': now,
-                    },
+                    'updatedValues': {},
                     'removedValues': ['investigationStatus'],
                 }
             )
@@ -1796,9 +1789,9 @@ class DataClient:
                 'SET closeDate = :closeDate, closingUser = :closingUser, dateOfUpdate = :dateOfUpdate'
             )
             investigation_expression_values = {
-                ':closeDate': now.isoformat(),
+                ':closeDate': close_date.isoformat(),
                 ':closingUser': closing_user,
-                ':dateOfUpdate': now.isoformat(),
+                ':dateOfUpdate': close_date.isoformat(),
             }
 
             # Add resultingEncumbranceId if an encumbrance was created
@@ -1838,7 +1831,7 @@ class DataClient:
                         'UpdateExpression': 'REMOVE investigationStatus SET dateOfUpdate = :dateOfUpdate',
                         'ConditionExpression': 'attribute_exists(pk)',
                         'ExpressionAttributeValues': {
-                            ':dateOfUpdate': now.isoformat(),
+                            ':dateOfUpdate': close_date.isoformat(),
                         },
                     }
                 },

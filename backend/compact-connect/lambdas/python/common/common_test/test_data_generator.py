@@ -168,7 +168,7 @@ class TestDataGenerator:
             'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
             'licenseType': DEFAULT_LICENSE_TYPE,
             'investigationAgainst': DEFAULT_INVESTIGATION_AGAINST_PRIVILEGE,
-            'investigationStartDate': date.fromisoformat(DEFAULT_INVESTIGATION_START_DATE),
+            'createDate': date.fromisoformat(DEFAULT_INVESTIGATION_START_DATE),
             'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
             'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
             'investigationId': DEFAULT_INVESTIGATION_ID,

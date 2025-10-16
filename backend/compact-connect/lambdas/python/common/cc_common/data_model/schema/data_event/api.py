@@ -59,7 +59,7 @@ class InvestigationEventDetailSchema(DataEventDetailBaseSchema):
     investigationId = UUID(required=False, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     investigationAgainst = String(required=True, allow_none=False)
-    investigationStartDate = Date(required=False, allow_none=False)
+    creationDate = DateTime(required=False, allow_none=False)
     effectiveDate = Date(required=False, allow_none=False)
 
 

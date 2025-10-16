@@ -10,17 +10,6 @@ from cc_common.data_model.schema.fields import (
 )
 
 
-class InvestigationPostRequestSchema(ForgivingSchema):
-    """
-    Schema for investigation POST requests.
-
-    This schema is used to validate incoming requests to the investigation POST API endpoint.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-
 class InvestigationPatchRequestSchema(ForgivingSchema):
     """
     Schema for investigation PATCH requests (investigation closing).

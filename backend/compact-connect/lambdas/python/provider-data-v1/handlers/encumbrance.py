@@ -54,70 +54,80 @@ def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
         raise CCInvalidRequestException('Invalid endpoint requested')
 
 
-def _get_submitting_user_id(event: dict):
+def _load_adverse_action_post_body(event: dict) -> dict:
+    try:
+        schema = AdverseActionPostRequestSchema()
+        return schema.loads(event['body'])
+    except ValidationError as e:
+        raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
+
+
+def _get_submitting_user_id(event: dict) -> str:
     return event['requestContext']['authorizer']['claims']['sub']
 
 
 def _generate_adverse_action_for_record_type(
-    event: dict, adverse_action_against_record_type: AdverseActionAgainstEnum
+    compact: str,
+    provider_id: str,
+    jurisdiction: str,
+    license_type_abbr: str,
+    submitting_user: str,
+    adverse_action_post_body: dict,
+    adverse_action_against_record_type: AdverseActionAgainstEnum,
 ) -> AdverseActionData:
-    # get the compact, providerId, jurisdiction, licenseType from the path parameters
-    compact = event['pathParameters']['compact']
-    provider_id = event['pathParameters']['providerId']
-    jurisdiction = event['pathParameters']['jurisdiction']
-    # the path parameter says licenseType, but it's actually the license type abbreviation
-    license_type_abbreviation_from_path_parameter = event['pathParameters']['licenseType'].lower()
-
-    body = json.loads(event['body'])
-    # validate the request body
-    try:
-        schema = AdverseActionPostRequestSchema()
-        adverse_action_request = schema.load(body)
-    except ValidationError as e:
-        raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
-
     current_date = config.expiration_resolution_date
-    encumbrance_effective_date = adverse_action_request['encumbranceEffectiveDate']
+    encumbrance_effective_date = adverse_action_post_body['encumbranceEffectiveDate']
 
     if encumbrance_effective_date > current_date:
         raise CCInvalidRequestException('The encumbrance date must not be a future date')
 
-    # populate the adverse action data to be stored in the database
-    adverse_action = AdverseActionData.create_new()
-    adverse_action.compact = compact
-    adverse_action.providerId = provider_id
-    adverse_action.jurisdiction = jurisdiction
-
-    license_type = LicenseUtility.get_license_type_by_abbreviation(
-        compact=compact, abbreviation=license_type_abbreviation_from_path_parameter
-    )
-
+    license_type = LicenseUtility.get_license_type_by_abbreviation(compact=compact, abbreviation=license_type_abbr)
     if not license_type:
         raise CCInvalidRequestException(
             f'Could not find license type information based on provided parameters '
-            f"compact: '{compact}' licenseType: '{license_type_abbreviation_from_path_parameter}'"
+            f"compact: '{compact}' licenseType: '{license_type_abbr}'"
         )
 
-    adverse_action.licenseTypeAbbreviation = license_type.abbreviation
-    adverse_action.licenseType = license_type.name
-    adverse_action.actionAgainst = adverse_action_against_record_type
-    adverse_action.encumbranceType = EncumbranceType(adverse_action_request['encumbranceType'])
-    adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
-        adverse_action_request['clinicalPrivilegeActionCategory']
+    # populate the adverse action data to be stored in the database
+    return AdverseActionData.create_new(
+        {
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseTypeAbbreviation': license_type.abbreviation,
+            'licenseType': license_type.name,
+            'actionAgainst': adverse_action_against_record_type,
+            'encumbranceType': EncumbranceType(adverse_action_post_body['encumbranceType']),
+            'effectiveStartDate': encumbrance_effective_date,
+            'submittingUser': submitting_user,
+            'creationDate': config.current_standard_datetime,
+            'adverseActionId': uuid4(),
+            'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory(
+                adverse_action_post_body['clinicalPrivilegeActionCategory']
+            ),
+        }
     )
-    adverse_action.effectiveStartDate = encumbrance_effective_date
-    adverse_action.submittingUser = _get_submitting_user_id(event)
-    adverse_action.creationDate = config.current_standard_datetime
-    adverse_action.adverseActionId = uuid4()
-
-    return adverse_action
 
 
-def handle_privilege_encumbrance(event: dict) -> dict:
-    adverse_action = _generate_adverse_action_for_record_type(
-        event=event, adverse_action_against_record_type=AdverseActionAgainstEnum.PRIVILEGE
-    )
+def _create_privilege_encumbrance_internal(
+    compact: str,
+    jurisdiction: str,
+    provider_id: str,
+    license_type_abbr: str,
+    submitting_user: str,
+    adverse_action_post_body: dict,
+) -> str:
+    """Internal handler for creating privilege encumbrances that returns the adverse action ID"""
     logger.info('Processing adverse action updates for privilege record')
+    adverse_action = _generate_adverse_action_for_record_type(
+        compact=compact,
+        jurisdiction=jurisdiction,
+        provider_id=provider_id,
+        license_type_abbr=license_type_abbr,
+        adverse_action_post_body=adverse_action_post_body,
+        adverse_action_against_record_type=AdverseActionAgainstEnum.PRIVILEGE,
+        submitting_user=submitting_user,
+    )
     config.data_client.encumber_privilege(adverse_action)
 
     # Publish privilege encumbrance event
@@ -130,17 +140,49 @@ def handle_privilege_encumbrance(event: dict) -> dict:
         effective_date=adverse_action.effectiveStartDate,
     )
 
+    return str(adverse_action.adverseActionId)
+
+
+def handle_privilege_encumbrance(event: dict) -> dict:
+    """Public API handler for creating privilege encumbrances"""
+    # Parse event parameters
+    compact = event['pathParameters']['compact']
+    jurisdiction = event['pathParameters']['jurisdiction']
+    provider_id = event['pathParameters']['providerId']
+    license_type_abbr = event['pathParameters']['licenseType'].lower()
+    submitting_user = _get_submitting_user_id(event)
+    adverse_action_post_body = _load_adverse_action_post_body(event)
+
+    _create_privilege_encumbrance_internal(
+        compact=compact,
+        jurisdiction=jurisdiction,
+        provider_id=provider_id,
+        license_type_abbr=license_type_abbr,
+        submitting_user=submitting_user,
+        adverse_action_post_body=adverse_action_post_body,
+    )
     return {'message': 'OK'}
 
 
-def handle_license_encumbrance(event: dict) -> dict:
-    adverse_action = _generate_adverse_action_for_record_type(
-        event=event, adverse_action_against_record_type=AdverseActionAgainstEnum.LICENSE
-    )
+def _create_license_encumbrance_internal(
+    compact: str,
+    jurisdiction: str,
+    provider_id: str,
+    license_type_abbr: str,
+    submitting_user: str,
+    adverse_action_post_body: dict,
+) -> str:
+    """Internal handler for creating license encumbrances that returns the adverse action ID"""
     logger.info('Processing adverse action updates for license record')
-
-    adverse_action.serialize_to_database_record()
-
+    adverse_action = _generate_adverse_action_for_record_type(
+        compact=compact,
+        jurisdiction=jurisdiction,
+        provider_id=provider_id,
+        license_type_abbr=license_type_abbr,
+        adverse_action_post_body=adverse_action_post_body,
+        adverse_action_against_record_type=AdverseActionAgainstEnum.LICENSE,
+        submitting_user=submitting_user,
+    )
     config.data_client.encumber_license(adverse_action)
 
     # Publish license encumbrance event
@@ -155,6 +197,27 @@ def handle_license_encumbrance(event: dict) -> dict:
         effective_date=adverse_action.effectiveStartDate,
     )
 
+    return str(adverse_action.adverseActionId)
+
+
+def handle_license_encumbrance(event: dict) -> dict:
+    """Public API handler for creating license encumbrances"""
+    # Parse event parameters
+    compact = event['pathParameters']['compact']
+    jurisdiction = event['pathParameters']['jurisdiction']
+    provider_id = event['pathParameters']['providerId']
+    license_type_abbr = event['pathParameters']['licenseType'].lower()
+    submitting_user = _get_submitting_user_id(event)
+    adverse_action_post_body = _load_adverse_action_post_body(event)
+
+    _create_license_encumbrance_internal(
+        compact=compact,
+        jurisdiction=jurisdiction,
+        provider_id=provider_id,
+        license_type_abbr=license_type_abbr,
+        submitting_user=submitting_user,
+        adverse_action_post_body=adverse_action_post_body,
+    )
     return {'message': 'OK'}
 
 
@@ -205,9 +268,9 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
             effective_date=lift_date,
-        )
+    )
 
-        return {'message': 'OK'}
+    return {'message': 'OK'}
 
 
 def handle_license_encumbrance_lifting(event: dict) -> dict:
@@ -257,6 +320,6 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
             effective_date=lift_date,
-        )
+    )
 
-        return {'message': 'OK'}
+    return {'message': 'OK'}

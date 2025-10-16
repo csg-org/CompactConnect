@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from cc_common.config import config
@@ -346,7 +346,7 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        investigation_start_date: date,
+        create_date: datetime,
         investigation_against: InvestigationAgainstEnum,
         investigation_id: UUID | None = None,
         event_batch_writer: EventBatchWriter | None = None,
@@ -359,7 +359,7 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the record being investigated
         :param license_type_abbreviation: The license type abbreviation
-        :param investigation_start_date: The date when the investigation started
+        :param create_date: The datetime when the investigation record was created
         :param investigation_against: The type of record being investigated (privilege or license)
         :param investigation_id: The investigation ID (optional, only for license investigations)
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
@@ -370,7 +370,7 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
             'investigationAgainst': investigation_against.value,
-            'investigationStartDate': investigation_start_date,
+            'createDate': create_date,
             'eventTime': config.current_standard_datetime,
         }
 

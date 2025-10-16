@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, datetime
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -21,7 +21,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         from cc_common.data_model.schema.common import InvestigationAgainstEnum
 
         provider_id = uuid4()
-        investigation_start_date = date.fromisoformat('2024-02-15')
+        create_date = datetime.fromisoformat('2024-02-15T12:00:00+00:00')
 
         # Call the method
         self.client.publish_investigation_event(
@@ -30,7 +30,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='slp',
-            investigation_start_date=investigation_start_date,
+            create_date=create_date,
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
         )
 
@@ -58,7 +58,6 @@ class TestInvestigationEventBusClient(TstLambdas):
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'slp',
             'investigationAgainst': 'privilege',
-            'investigationStartDate': '2024-02-15',
         }
 
         # Pop dynamic field from actual event
@@ -77,7 +76,7 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         provider_id = uuid4()
         investigation_id = uuid4()
-        investigation_start_date = date.fromisoformat('2024-02-15')
+        create_date = datetime.fromisoformat('2024-02-15T12:00:00+00:00')
 
         # Call the method
         self.client.publish_investigation_event(
@@ -86,7 +85,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='slp',
-            investigation_start_date=investigation_start_date,
+            create_date=create_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
         )
@@ -116,7 +115,6 @@ class TestInvestigationEventBusClient(TstLambdas):
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'slp',
             'investigationAgainst': 'license',
-            'investigationStartDate': '2024-02-15',
         }
 
         # Pop dynamic field from actual event
@@ -244,7 +242,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         from cc_common.data_model.schema.common import InvestigationAgainstEnum
 
         provider_id = uuid4()
-        investigation_start_date = date.fromisoformat('2024-02-15')
+        create_date = datetime.fromisoformat('2024-02-15T12:00:00+00:00')
 
         # Mock batch writer
         mock_batch_writer = MagicMock()
@@ -256,7 +254,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='slp',
-            investigation_start_date=investigation_start_date,
+            create_date=create_date,
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             event_batch_writer=mock_batch_writer,
         )
@@ -273,7 +271,7 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         provider_id = uuid4()
         investigation_id = uuid4()
-        investigation_start_date = date.fromisoformat('2024-02-15')
+        create_date = datetime.fromisoformat('2024-02-15T12:00:00+00:00')
 
         # Mock batch writer
         mock_batch_writer = MagicMock()
@@ -285,7 +283,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='slp',
-            investigation_start_date=investigation_start_date,
+            create_date=create_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
             event_batch_writer=mock_batch_writer,
