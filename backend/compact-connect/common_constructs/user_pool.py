@@ -136,7 +136,7 @@ class UserPool(CdkUserPool):
             ],
         )
 
-    def add_cognito_custom_domain(
+    def add_app_client_custom_domain(
             self,
             app_client_domain_prefix: str,
             base_domain_name: str,

@@ -67,7 +67,7 @@ class ProviderUsers(UserPool):
         )
 
         # Create a custom domain for the cognito app client
-        self.cognito_custom_domain = self.add_cognito_custom_domain(
+        self.app_client_custom_domain = self.add_app_client_custom_domain(
                 app_client_domain_prefix='Licensee',
                 scope=self,
                 base_domain_name=persistent_stack.hosted_zone.zone_name,
