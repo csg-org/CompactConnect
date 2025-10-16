@@ -132,7 +132,6 @@ class TestEncumbranceEvents(TstFunction):
         self.assertIsInstance(called_event_batch_writer_2, EventBatchWriter)
 
         # Now verify the rest with comprehensive assertion
-        # Now verify the rest with comprehensive assertion
         self.assertEqual(
             {
                 'source': 'org.compactconnect.data-events',
@@ -201,13 +200,10 @@ class TestEncumbranceEvents(TstFunction):
         # Verify no privilege encumbrance events were published since no privileges were affected
         mock_publish_event.assert_not_called()
 
-    # TODO - remove the mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_listener_handles_all_privileges_already_encumbered(
         self,
         mock_publish_event,
-        mock_flag,  # noqa: ARG002
     ):
         """Test that license encumbrance event handles case where all matching privileges are already encumbered."""
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
