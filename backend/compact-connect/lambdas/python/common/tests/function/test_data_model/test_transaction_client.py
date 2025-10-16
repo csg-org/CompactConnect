@@ -144,7 +144,7 @@ class TestTransactionClient(TstFunction):
         # This should not raise an exception even with invalid date format
         client.store_unsettled_transaction(compact='aslp', transaction_id='test-tx-123', transaction_date='invalid-date')
 
-    def test_reconcile_unsettled_transactions_no_unsettled(self):
+    def test_reconcile_unsettled_transactions_no_unsettled_passes(self):
         """Test reconciliation when there are no unsettled transactions"""
         from cc_common.data_model.transaction_client import TransactionClient
 
@@ -156,7 +156,9 @@ class TestTransactionClient(TstFunction):
         ]
 
         # Should not raise any errors
-        client.reconcile_unsettled_transactions(compact='aslp', settled_transactions=settled_transactions)
+        result = client.reconcile_unsettled_transactions(compact='aslp', settled_transactions=settled_transactions)
+
+        self.assertEqual([], result)
 
     def test_reconcile_unsettled_transactions_all_matched(self):
         """Test reconciliation when all unsettled transactions match settled ones"""
@@ -211,7 +213,7 @@ class TestTransactionClient(TstFunction):
         self.assertIn('old-tx-1', result)
         self.assertNotIn('recent-tx-1', result)
 
-    def test_reconcile_unsettled_transactions_partial_match(self):
+    def test_reconcile_unsettled_transactions_deletes_matching_record_and_returns_old_record(self):
         """Test reconciliation when some unsettled transactions match and some don't"""
         from cc_common.data_model.transaction_client import TransactionClient
 
@@ -241,4 +243,5 @@ class TestTransactionClient(TstFunction):
         # Verify matched transaction was deleted but unmatched remain
         pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
         response = self._transaction_history_table.query(KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk})
-        self.assertEqual(2, len(response['Items']))  # Two unmatched transactions remain
+        self.assertEqual(['tx-old-unmatched', 'tx-recent-unmatched'],
+                         [transaction['transactionId'] for transaction in response['Items']])  # Two unmatched transactions remain
