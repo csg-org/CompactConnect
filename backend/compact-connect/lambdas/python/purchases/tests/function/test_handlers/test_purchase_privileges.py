@@ -14,6 +14,7 @@ TEST_COMPACT = 'aslp'
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
 MOCK_TRANSACTION_ID = '1234'
+MOCK_SUBMIT_TIME = '2024-11-08T23:59:55+00:00'
 ALL_ATTESTATION_IDS = [
     'jurisprudence-confirmation',
     'scope-of-practice-attestation',
@@ -146,6 +147,7 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client.process_charge_for_licensee_privileges.return_value = {
             'transactionId': MOCK_TRANSACTION_ID,
             'lineItems': MOCK_LINE_ITEMS,
+            'submitTimeUTC': MOCK_SUBMIT_TIME,
         }
 
         return mock_purchase_client
@@ -825,7 +827,9 @@ class TestPostPurchasePrivileges(TstFunction):
         # verify that the transaction was voided
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
             compact_abbr=TEST_COMPACT,
-            order_information={'transactionId': MOCK_TRANSACTION_ID, 'lineItems': MOCK_LINE_ITEMS},
+            order_information={'transactionId': MOCK_TRANSACTION_ID,
+                               'lineItems': MOCK_LINE_ITEMS,
+                               'submitTimeUTC': MOCK_SUBMIT_TIME},
         )
 
     @patch('handlers.privileges.PurchaseClient')
@@ -1174,3 +1178,38 @@ class TestPostPurchasePrivileges(TstFunction):
         privilege_update_record = privilege_update_records[0]
         # Ensure the licenseDeactivatedStatus field is in the list of removed values
         self.assertEqual(['licenseDeactivatedStatus'], privilege_update_record.removedValues)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_stores_unsettled_transaction(self, mock_purchase_client_constructor):
+        """Test that an unsettled transaction record is stored when a purchase is successful."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date='2050-01-01')
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+        # Verify that an unsettled transaction record was stored
+        pk = f'COMPACT#{TEST_COMPACT}#UNSETTLED_TRANSACTIONS'
+        response = self._transaction_history_table.query(
+            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
+        )
+
+        # Should have exactly one unsettled transaction record
+        self.assertEqual(1, len(response['Items']))
+        unsettled_tx = response['Items'][0]
+
+        # Verify the record structure
+        self.assertEqual(TEST_COMPACT, unsettled_tx['compact'])
+        self.assertEqual(MOCK_TRANSACTION_ID, unsettled_tx['transactionId'])
+        self.assertEqual(MOCK_SUBMIT_TIME, unsettled_tx['transactionDate'])
+        self.assertIn('dateOfUpdate', unsettled_tx)
+        # Verify the SK format
+        # Convert MOCK_SUBMIT_TIME into an epoch timestamp
+        dt = datetime.fromisoformat(MOCK_SUBMIT_TIME)
+        expected_epoch = int(dt.timestamp())
+        expected_sk = f'COMPACT#{TEST_COMPACT}#TIME#{expected_epoch}#TX#{MOCK_TRANSACTION_ID}'
+        self.assertEqual(expected_sk, unsettled_tx['sk'])

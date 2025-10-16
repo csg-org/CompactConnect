@@ -92,6 +92,11 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
         processed_batch_ids=processed_batch_ids,
     )
 
+    # Reconcile unsettled transactions with settled transactions
+    reconciliation_result = config.transaction_client.reconcile_unsettled_transactions(
+        compact=compact, settled_transactions=transaction_response['transactions']
+    )
+
     # Store transactions in DynamoDB
     if transaction_response['transactions']:
         logger.info('Fetching privilege ids for transactions', compact=compact)
@@ -144,6 +149,44 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             # and we need to send an alert to the compact operations team
             logger.warning(
                 'Batch settlement error detected', batchFailureErrorMessage=response['batchFailureErrorMessage']
+            )
+            response['status'] = 'BATCH_FAILURE'
+
+    # Check for old unsettled transactions (older than 48 hours)
+    if reconciliation_result['hasOldUnsettledTransactions']:
+        old_tx_error_message = json.dumps(
+            {
+                'message': 'One or more transactions have not settled in over 48 hours.',
+                'unsettledTransactionIds': reconciliation_result['oldTransactionIds'],
+            }
+        )
+
+        # If we already have a batch failure error message, we need to merge them
+        if event.get('batchFailureErrorMessage'):
+            existing_error = json.loads(event.get('batchFailureErrorMessage'))
+            # Create a combined error message
+            response['batchFailureErrorMessage'] = json.dumps(
+                {
+                    'message': f"{existing_error.get('message', '')} {old_tx_error_message}",
+                    'failedTransactionIds': existing_error.get('failedTransactionIds', []),
+                    'unsettledTransactionIds': reconciliation_result['oldTransactionIds'],
+                }
+            )
+        elif response.get('batchFailureErrorMessage'):
+            # If we set it in the settlement error check above
+            existing_error = json.loads(response['batchFailureErrorMessage'])
+            existing_error['unsettledTransactionIds'] = reconciliation_result['oldTransactionIds']
+            existing_error['message'] = (
+                f"{existing_error['message']} One or more transactions have not settled in over 48 hours."
+            )
+            response['batchFailureErrorMessage'] = json.dumps(existing_error)
+        else:
+            response['batchFailureErrorMessage'] = old_tx_error_message
+
+        if _all_transactions_processed(transaction_response):
+            logger.error(
+                'Unsettled transactions older than 48 hours detected',
+                unsettledTransactionIds=reconciliation_result['oldTransactionIds'],
             )
             response['status'] = 'BATCH_FAILURE'
 

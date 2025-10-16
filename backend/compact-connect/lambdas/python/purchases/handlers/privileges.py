@@ -366,6 +366,13 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             user_active_military=user_active_military,
         )
 
+        # Store unsettled transaction record for reconciliation with settled transactions
+        config.transaction_client.store_unsettled_transaction(
+            compact=compact_abbr,
+            transaction_id=transaction_response['transactionId'],
+            transaction_date=transaction_response['submitTimeUTC'],
+        )
+
         # transaction was successful, now we create privilege records for the selected jurisdictions
         generated_privileges = config.data_client.create_provider_privileges(
             compact=compact_abbr,

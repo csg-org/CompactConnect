@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from boto3.dynamodb.conditions import Key
 
@@ -231,3 +231,114 @@ class TransactionClient:
                     )
 
         return transactions
+
+    def store_unsettled_transaction(self, compact: str, transaction_id: str, transaction_date: str) -> None:
+        """
+        Store an unsettled transaction record in DynamoDB.
+
+        :param compact: The compact abbreviation
+        :param transaction_id: The transaction ID from the payment processor
+        :param transaction_date: ISO datetime string of when the transaction was submitted
+        """
+        try:
+            # Convert ISO datetime to epoch timestamp for sorting
+            transaction_datetime = datetime.fromisoformat(transaction_date)
+            epoch_timestamp = int(transaction_datetime.timestamp())
+
+            pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
+            sk = f'COMPACT#{compact}#TIME#{epoch_timestamp}#TX#{transaction_id}'
+
+            record = {
+                'pk': pk,
+                'sk': sk,
+                'compact': compact,
+                'transactionId': transaction_id,
+                'transactionDate': transaction_date,
+                'dateOfUpdate': datetime.now(UTC).isoformat(),
+            }
+
+            self.config.transaction_history_table.put_item(Item=record)
+            logger.info(
+                'Stored unsettled transaction record',
+                compact=compact,
+                transaction_id=transaction_id,
+            )
+        except Exception as e:
+            # Log error but don't raise - transaction will be caught by 48hr check
+            logger.error(
+                'Failed to store unsettled transaction record',
+                compact=compact,
+                transaction_id=transaction_id,
+                error=str(e),
+            )
+
+    def reconcile_unsettled_transactions(self, compact: str, settled_transactions: list[dict]) -> dict:
+        """
+        Reconcile unsettled transactions with settled transactions and detect old unsettled transactions.
+
+        This method:
+        1. Queries all unsettled transactions for the compact
+        2. Matches them with settled transactions by transaction ID
+        3. Deletes matched unsettled transactions
+        4. Checks for unsettled transactions older than 48 hours
+
+        :param compact: The compact abbreviation
+        :param settled_transactions: List of settled transaction records
+        :return: Dictionary with hasOldUnsettledTransactions flag and list of old transaction IDs
+        """
+        # Query all unsettled transactions for this compact
+        pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
+        response = self.config.transaction_history_table.query(
+            KeyConditionExpression=Key('pk').eq(pk),
+        )
+
+        unsettled_transactions = response.get('Items', [])
+
+        if not unsettled_transactions:
+            logger.info('No unsettled transactions found for compact', compact=compact)
+            return {'hasOldUnsettledTransactions': False, 'oldTransactionIds': []}
+
+        # Create a set of settled transaction IDs for efficient lookup
+        settled_transaction_ids = {tx['transactionId'] for tx in settled_transactions}
+
+        # Separate matched and unmatched unsettled transactions
+        matched_unsettled = []
+        unmatched_unsettled = []
+
+        for unsettled_tx in unsettled_transactions:
+            if unsettled_tx['transactionId'] in settled_transaction_ids:
+                matched_unsettled.append(unsettled_tx)
+            else:
+                unmatched_unsettled.append(unsettled_tx)
+
+        # Batch delete matched unsettled transactions
+        if matched_unsettled:
+            logger.info(
+                'Deleting matched unsettled transactions',
+                compact=compact,
+                count=len(matched_unsettled),
+            )
+            with self.config.transaction_history_table.batch_writer() as batch:
+                for tx in matched_unsettled:
+                    batch.delete_item(Key={'pk': tx['pk'], 'sk': tx['sk']})
+
+        # Check for unsettled transactions older than 48 hours
+        cutoff_time = datetime.now(UTC) - timedelta(hours=48)
+        old_unsettled_transactions = []
+
+        for unsettled_tx in unmatched_unsettled:
+            transaction_date = datetime.fromisoformat(unsettled_tx['transactionDate'])
+            if transaction_date < cutoff_time:
+                old_unsettled_transactions.append(unsettled_tx['transactionId'])
+
+        if old_unsettled_transactions:
+            logger.warning(
+                'Found unsettled transactions older than 48 hours',
+                compact=compact,
+                old_transaction_ids=old_unsettled_transactions,
+            )
+
+        return {
+            'hasOldUnsettledTransactions': len(old_unsettled_transactions) > 0,
+            'oldTransactionIds': old_unsettled_transactions,
+        }
