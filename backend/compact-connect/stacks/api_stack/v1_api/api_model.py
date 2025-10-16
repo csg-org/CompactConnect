@@ -411,24 +411,7 @@ class ApiModel:
         self.api._v1_post_privilege_encumbrance_request_model = self.api.add_model(
             'V1PostPrivilegeEncumbranceRequestModel',
             description='Post privilege encumbrance request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
-                properties={
-                    'encumbranceEffectiveDate': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The effective date of the encumbrance',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'encumbranceType': self._encumbrance_type_schema,
-                    'clinicalPrivilegeActionCategory': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
-                    ),
-                },
-            ),
+            schema=self._encumbrance_request_schema,
         )
 
         return self.api._v1_post_privilege_encumbrance_request_model
@@ -441,24 +424,7 @@ class ApiModel:
         self.api._v1_post_license_encumbrance_request_model = self.api.add_model(
             'V1PostLicenseEncumbranceRequestModel',
             description='Post license encumbrance request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
-                properties={
-                    'encumbranceEffectiveDate': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The effective date of the encumbrance',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'encumbranceType': self._encumbrance_type_schema,
-                    'clinicalPrivilegeActionCategory': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
-                    ),
-                },
-            ),
+            schema=self._encumbrance_request_schema,
         )
 
         return self.api._v1_post_license_encumbrance_request_model
@@ -1417,6 +1383,29 @@ class ApiModel:
                 'licenseDeactivation',
                 'emailChange',
             ],
+        )
+
+    @property
+    def _encumbrance_request_schema(self) -> JsonSchema:
+        """Common schema for encumbrance request data used in both POST and PATCH investigation endpoints"""
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            description='Encumbrance data to create',
+            additional_properties=False,
+            required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
+            properties={
+                'encumbranceEffectiveDate': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='The effective date of the encumbrance',
+                    format='date',
+                    pattern=cc_api.YMD_FORMAT,
+                ),
+                'encumbranceType': self._encumbrance_type_schema,
+                'clinicalPrivilegeActionCategory': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='The category of clinical privilege action',
+                ),
+            },
         )
 
     @property
@@ -2761,3 +2750,39 @@ class ApiModel:
             ),
         )
         return self.api._v1_check_feature_flag_response_model
+
+    @property
+    def patch_privilege_investigation_request_model(self) -> Model:
+        """PATCH privilege investigation request model"""
+        if not hasattr(self.api, '_v1_patch_privilege_investigation_request_model'):
+            self.api._v1_patch_privilege_investigation_request_model = Model(
+                self.api,
+                'V1PatchPrivilegeInvestigationRequestModel',
+                rest_api=self.api,
+                description='Patch privilege investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={
+                        'encumbrance': self._encumbrance_request_schema,
+                    },
+                ),
+            )
+        return self.api._v1_patch_privilege_investigation_request_model
+
+    @property
+    def patch_license_investigation_request_model(self) -> Model:
+        """PATCH license investigation request model"""
+        if not hasattr(self.api, '_v1_patch_license_investigation_request_model'):
+            self.api._v1_patch_license_investigation_request_model = Model(
+                self.api,
+                'V1PatchLicenseInvestigationRequestModel',
+                rest_api=self.api,
+                description='Patch license investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={
+                        'encumbrance': self._encumbrance_request_schema,
+                    },
+                ),
+            )
+        return self.api._v1_patch_license_investigation_request_model

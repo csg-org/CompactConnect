@@ -206,6 +206,7 @@ class V1Api:
             api_model=self.api_model,
             data_event_bus=data_event_bus,
             privilege_history_function=self.privilege_history_function,
+            api_lambda_stack=api_lambda_stack,
         )
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')

@@ -23,6 +23,7 @@ from common_constructs.cc_api import CCApi
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from stacks import persistent_stack as ps
+from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.persistent_stack import ProviderTable, ProviderUsersBucket, RateLimitingTable, SSNTable, StaffUsers
 
 from .api_model import ApiModel
@@ -44,6 +45,7 @@ class ProviderManagement:
         data_event_bus: EventBus,
         api_model: ApiModel,
         privilege_history_function: PythonFunction,
+        api_lambda_stack: ApiLambdaStack,
     ):
         super().__init__()
 
@@ -126,6 +128,16 @@ class ProviderManagement:
         self._add_encumber_privilege(method_options=admin_method_options)
 
         self._add_encumber_license(method_options=admin_method_options)
+
+        self._add_investigation_privilege(
+            method_options=admin_method_options,
+            investigation_handler=api_lambda_stack.provider_management_lambdas.provider_investigation_handler,
+        )
+
+        self._add_investigation_license(
+            method_options=admin_method_options,
+            investigation_handler=api_lambda_stack.provider_management_lambdas.provider_investigation_handler,
+        )
 
         self._add_get_privilege_history(
             method_options=method_options,
@@ -693,6 +705,98 @@ class ProviderManagement:
                 ),
             ],
             integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_investigation_privilege(
+        self,
+        method_options: MethodOptions,
+        investigation_handler: PythonFunction,
+    ):
+        """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/investigation endpoint."""
+        self.investigation_privilege_resource = self.privilege_jurisdiction_license_type_resource.add_resource(
+            'investigation'
+        )
+        self.investigation_privilege_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_only_validator,
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+        # Add PATCH method for closing privilege investigations - now with investigationId in path
+        self.investigation_privilege_id_resource = self.investigation_privilege_resource.add_resource(
+            '{investigationId}'
+        )
+        self.investigation_privilege_id_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_privilege_investigation_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_investigation_license(
+        self,
+        method_options: MethodOptions,
+        investigation_handler: PythonFunction,
+    ):
+        """Add POST /providers/{providerId}/licenses/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/investigation endpoint."""
+        self.investigation_license_resource = self.license_jurisdiction_license_type_resource.add_resource(
+            'investigation'
+        )
+        self.investigation_license_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_only_validator,
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+        # Add PATCH method for closing license investigations - now with investigationId in path
+        self.investigation_license_id_resource = self.investigation_license_resource.add_resource('{investigationId}')
+        self.investigation_license_id_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_license_investigation_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,

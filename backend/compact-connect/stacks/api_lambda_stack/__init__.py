@@ -3,10 +3,12 @@ from __future__ import annotations
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 
 from .feature_flags import FeatureFlagsLambdas
+from .provider_management import ProviderManagementLambdas
 from .provider_users import ProviderUsersLambdas
 
 
@@ -46,4 +48,12 @@ class ApiLambdaStack(AppStack):
             scope=self,
             persistent_stack=persistent_stack,
             provider_users_stack=provider_users_stack,
+        )
+
+        # Provider Management related API lambdas
+        data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
+        self.provider_management_lambdas = ProviderManagementLambdas(
+            scope=self,
+            persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
         )
