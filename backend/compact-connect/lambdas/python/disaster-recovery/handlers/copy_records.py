@@ -12,6 +12,13 @@ from cc_common.config import logger
 def encrypt_pagination_key(key_data: dict, kms_key_id: str) -> str:
     """Encrypt pagination key using KMS to prevent SSN exposure in logs.
 
+    In the event that there are so many records to recover that it will take longer
+    than the 15-minute timeout period of lambdas, we paginate by sending the last
+    evaluated key in the output, looping around the step function, and then continuing
+    the process from where we left off. In the case of SSN records, we need to encrypt
+    the output of this lambda if pagination occurs so that the values are not readable
+    in the step function logs.
+
     :param dict key_data: The pagination key dictionary to encrypt.
     :param str kms_key_id: The KMS key ID to use for encryption.
     :returns: Base64-encoded encrypted pagination key.
@@ -31,8 +38,15 @@ def encrypt_pagination_key(key_data: dict, kms_key_id: str) -> str:
 def decrypt_pagination_key(encrypted_key: str, kms_key_id: str) -> dict:
     """Decrypt pagination key using KMS.
 
+    In the event that there are so many records to recover that it will take longer
+    than the 15-minute timeout period of lambdas, we paginate by sending the last
+    evaluated key in the output, looping around the step function, and then continuing
+    the process from where we left off. In the case of SSN records, we need to decrypt
+    the input of this lambda to be able to determine what was the last key we should
+    continue with.
+
     :param str encrypted_key: Base64-encoded encrypted pagination key
-    :param str kms_key_id: The KMS key ID used for encryption (for logging purposes)
+    :param str kms_key_id: The KMS key ID used for decrypting the lambda input
     :returns: Decrypted pagination key dictionary
     :rtype: dict
     :raises ClientError: If KMS decryption fails
