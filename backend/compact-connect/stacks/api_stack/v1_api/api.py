@@ -129,7 +129,7 @@ class V1Api:
         self.public_compacts_resource = self.public_resource.add_resource('compacts')
         # /v1/public/jurisdictions
         self.public_jurisdictions_resource = self.public_resource.add_resource('jurisdictions')
-        # /v1/public/compacts/jurisdictions/live
+        # /v1/public/jurisdictions/live
         self.live_jurisdictions_resource = self.public_jurisdictions_resource.add_resource('live')
         self.public_compacts_compact_resource = self.public_compacts_resource.add_resource('{compact}')
         self.public_compacts_compact_providers_resource = self.public_compacts_compact_resource.add_resource(
@@ -209,7 +209,7 @@ class V1Api:
         self.compact_configuration_api = CompactConfigurationApi(
             api=self.api,
             compact_resource=self.compact_resource,
-            live_compacts_jurisdictions_resource=self.live_jurisdictions_resource,
+            live_jurisdictions_resource=self.live_jurisdictions_resource,
             jurisdictions_resource=self.jurisdictions_resource,
             public_jurisdictions_resource=self.public_compacts_compact_jurisdictions_resource,
             jurisdiction_resource=self.jurisdiction_resource,

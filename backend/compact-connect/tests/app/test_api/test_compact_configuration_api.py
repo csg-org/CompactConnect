@@ -145,8 +145,8 @@ class TestCompactConfigurationApi(TestApi):
             overwrite_snapshot=False,
         )
 
-    def test_synth_generates_get_live_compact_jurisdictions_resource(self):
-        """Test that the GET /v1/public/compacts/jurisdictions/live
+    def test_synth_generates_get_live_jurisdictions_resource(self):
+        """Test that the GET /v1/public/jurisdictions/live
         endpoint is properly configured as a public endpoint"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
@@ -156,14 +156,14 @@ class TestCompactConfigurationApi(TestApi):
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
                 'ParentId': {
-                    # Verify the parent id matches the expected 'public/compacts' resource
-                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.public_compacts_resource.node.default_child),
+                    # Verify the parent id matches the expected 'public/' resource
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.public_resource.node.default_child),
                 },
                 'PathPart': 'jurisdictions',
             },
         )
 
-        # Ensure the /v1/public/compacts/jurisdictions/live resource is created
+        # Ensure the /v1/public/jurisdictions/live resource is created
         api_stack_template.has_resource_properties(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
@@ -177,7 +177,7 @@ class TestCompactConfigurationApi(TestApi):
             },
         )
 
-        # Get the live compacts jurisdictions resource
+        # Get the live jurisdictions resource
         live_jurisdictions_resource_id = api_stack.get_logical_id(
             api_stack.api.v1_api.live_jurisdictions_resource.node.default_child
         )

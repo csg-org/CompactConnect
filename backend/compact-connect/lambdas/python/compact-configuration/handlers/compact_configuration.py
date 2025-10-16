@@ -134,7 +134,7 @@ def _get_live_public_compact_jurisdictions(event: dict, context: LambdaContext):
     # Determine which compacts to query
     compacts_to_query = []
     if compact_filter:
-        # Validate the compact, if invalid treat as if no filter was provided
+        # Validate the compact
         if compact_filter.lower() in config.compacts:
             compacts_to_query = [compact_filter.lower()]
             logger.info('Getting live jurisdictions for specific compact', compact=compact_filter)
