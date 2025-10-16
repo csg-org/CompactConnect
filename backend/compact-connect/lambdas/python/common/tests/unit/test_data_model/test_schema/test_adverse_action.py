@@ -93,7 +93,7 @@ class TestAdverseActionDataClass(TstLambdas):
         self.assertEqual(adverse_action.licenseTypeAbbreviation, adverse_action_data['licenseTypeAbbreviation'])
         self.assertEqual(adverse_action.actionAgainst, adverse_action_data['actionAgainst'])
         self.assertEqual(
-            adverse_action.clinicalPrivilegeActionCategory, adverse_action_data['clinicalPrivilegeActionCategory']
+            adverse_action.clinicalPrivilegeActionCategories, adverse_action_data['clinicalPrivilegeActionCategories']
         )
         self.assertEqual(adverse_action.effectiveStartDate.isoformat(), adverse_action_data['effectiveStartDate'])
         self.assertEqual(str(adverse_action.submittingUser), adverse_action_data['submittingUser'])
@@ -112,7 +112,6 @@ class TestAdverseActionDataClass(TstLambdas):
                 'adverseActionId': '98765432-9876-9876-9876-987654321098',
                 'encumbranceType': 'suspension',
                 'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
-                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
                 'compact': 'aslp',
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'effectiveStartDate': '2024-02-15',

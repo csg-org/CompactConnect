@@ -97,7 +97,8 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
-    def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
+    def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
@@ -124,6 +125,8 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
             }
         )
         loaded_adverse_action = AdverseActionData.from_database_record(item)
@@ -470,7 +473,8 @@ class TestPostLicenseEncumbrance(TstFunction):
             response_body,
         )
 
-    def test_license_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
+    def test_license_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
@@ -498,6 +502,8 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
             }
         )
         loaded_adverse_action = AdverseActionData.from_database_record(item)
