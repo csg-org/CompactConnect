@@ -13,8 +13,6 @@
         "region": "us-east-1",
         "domain_name": "compactconnect.org",
         "backup_enabled": true,
-        "robots_meta": "index,follow",
-        "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
         "notifications": {
           "ses_operations_support_email": "justin@example.com",
           "email": [

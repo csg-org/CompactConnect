@@ -1,14 +1,14 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SESClient } from '@aws-sdk/client-ses';
+import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { CognitoEmailService } from '../../../lib/email';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
 import { TReaderDocument } from '@jusdino-ia/email-builder';
 import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as SESClient;
+    mock as unknown as SESv2Client;
 
 describe('CognitoEmailService', () => {
     let emailService: CognitoEmailService;
@@ -39,7 +39,7 @@ describe('CognitoEmailService', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
 
         // Reset environment variables
         process.env.FROM_ADDRESS = 'noreply@example.org';

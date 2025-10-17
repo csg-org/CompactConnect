@@ -3,7 +3,6 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from app import CompactConnectApp
 from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_cognito import (
     CfnUserPool,
@@ -14,6 +13,7 @@ from aws_cdk.aws_cognito import (
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
 from aws_cdk.aws_ssm import CfnParameter
 
+from app import CompactConnectApp
 from tests.app.base import TstAppABC
 
 
@@ -363,27 +363,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
                     f'Should have exactly one backend pipeline role with name {expected_role_name}',
                 )
 
-        # Test frontend pipeline role naming - roles are environment-specific
-        frontend_test_cases = [
-            (self.app.test_frontend_pipeline_stack, 'CompactConnect-test-Frontend-CrossAccountRole'),
-            (self.app.beta_frontend_pipeline_stack, 'CompactConnect-beta-Frontend-CrossAccountRole'),
-            (self.app.prod_frontend_pipeline_stack, 'CompactConnect-prod-Frontend-CrossAccountRole'),
-        ]
-
-        for frontend_stack, expected_role_name in frontend_test_cases:
-            with self.subTest(role=expected_role_name):
-                frontend_template = Template.from_stack(frontend_stack)
-
-                # Look for the predictable frontend pipeline role
-                frontend_roles = frontend_template.find_resources(
-                    'AWS::IAM::Role', props={'Properties': {'RoleName': expected_role_name}}
-                )
-                self.assertEqual(
-                    len(frontend_roles),
-                    1,
-                    f'Should have exactly one frontend pipeline role with name {expected_role_name}',
-                )
-
     def test_pipeline_role_trust_policies(self):
         """Test that pipeline roles have correct trust policies for CodePipeline service."""
         # Test that all pipeline roles trust the CodePipeline service
@@ -392,9 +371,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
             (self.app.test_backend_pipeline_stack, 'CompactConnect-test-Backend-CrossAccountRole'),
             (self.app.beta_backend_pipeline_stack, 'CompactConnect-beta-Backend-CrossAccountRole'),
             (self.app.prod_backend_pipeline_stack, 'CompactConnect-prod-Backend-CrossAccountRole'),
-            (self.app.test_frontend_pipeline_stack, 'CompactConnect-test-Frontend-CrossAccountRole'),
-            (self.app.beta_frontend_pipeline_stack, 'CompactConnect-beta-Frontend-CrossAccountRole'),
-            (self.app.prod_frontend_pipeline_stack, 'CompactConnect-prod-Frontend-CrossAccountRole'),
         ]
 
         for stack, expected_role_name in test_cases:
@@ -411,7 +387,12 @@ class TestBackendPipeline(TstAppABC, TestCase):
                                 [
                                     {
                                         'Effect': 'Allow',
-                                        'Principal': {'Service': 'codepipeline.amazonaws.com'},
+                                        'Principal': {
+                                            'Service': [
+                                                'codebuild.amazonaws.com',
+                                                'codepipeline.amazonaws.com',
+                                            ]
+                                        },
                                         'Action': 'sts:AssumeRole',
                                     }
                                 ]
@@ -460,40 +441,3 @@ class TestBackendPipelineVulnerable(TestCase):
 
         with self.assertRaises(ValueError):
             CompactConnectApp(context=context)
-
-
-class TestFrontendPipeline(TstAppABC, TestCase):
-    @classmethod
-    def get_context(cls):
-        with open('cdk.json') as f:
-            context = json.load(f)['context']
-        # For pipeline deployments, the pipelines pull their CDK context values from SSM Parameter Store, rather
-        # than the cdk.context.json files used in local development. We can override the context values used in the
-        # tests by adding values here.
-
-        # Suppresses lambda bundling for tests
-        context['aws:cdk:bundling-stacks'] = []
-
-        return context
-
-    def test_synth_pipeline(self):
-        """
-        Test infrastructure as deployed via the pipeline
-        """
-        # Identify any findings from our AwsSolutions rule sets
-        self._check_no_stack_annotations(self.app.deployment_resources_stack)
-        self._check_no_stack_annotations(self.app.test_frontend_pipeline_stack)
-        self._check_no_stack_annotations(self.app.prod_frontend_pipeline_stack)
-        for stage in (
-            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage,
-            self.app.beta_frontend_pipeline_stack.beta_frontend_stage,
-            self.app.prod_frontend_pipeline_stack.prod_frontend_stage,
-        ):
-            self._check_no_frontend_stage_annotations(stage)
-
-        for frontend_deployment_stack in (
-            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage.frontend_deployment_stack,
-            self.app.beta_frontend_pipeline_stack.beta_frontend_stage.frontend_deployment_stack,
-            self.app.prod_frontend_pipeline_stack.prod_frontend_stage.frontend_deployment_stack,
-        ):
-            self._inspect_frontend_deployment_stack(frontend_deployment_stack)

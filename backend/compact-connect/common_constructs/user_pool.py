@@ -30,9 +30,8 @@ from aws_cdk.aws_cognito import (
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.security_profile import SecurityProfile
+from constructs import Construct
 
 
 class UserPool(CdkUserPool):
@@ -197,7 +196,7 @@ class UserPool(CdkUserPool):
                 # (and automated testing in test environments)
                 admin_user_password=True,
                 custom=False,
-                user_srp=False,
+                user_srp=False if self.security_profile == SecurityProfile.RECOMMENDED else True,
                 user_password=False,
             ),
             o_auth=OAuthSettings(

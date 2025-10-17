@@ -6,6 +6,7 @@ from constructs import Construct
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 
+from .feature_flags import FeatureFlagsLambdas
 from .provider_users import ProviderUsersLambdas
 
 
@@ -27,6 +28,17 @@ class ApiLambdaStack(AppStack):
             environment_name=environment_name,
             environment_context=environment_context,
             **kwargs,
+        )
+
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            self.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
+
+        # Feature Flags related API lambdas
+        self.feature_flags_lambdas = FeatureFlagsLambdas(
+            scope=self,
+            persistent_stack=persistent_stack,
         )
 
         # Provider Users related API lambdas

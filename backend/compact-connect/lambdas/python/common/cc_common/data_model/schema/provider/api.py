@@ -15,6 +15,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
     NationalProviderIdentifier,
     Set,
+    SocialSecurityNumber,
 )
 from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
@@ -29,6 +30,20 @@ from cc_common.data_model.schema.privilege.api import (
     PrivilegePublicResponseSchema,
     PrivilegeReadPrivateResponseSchema,
 )
+
+
+class ProviderSSNResponseSchema(ForgivingSchema):
+    """
+    Schema for provider SSN API responses.
+
+    This schema validates the response from the provider SSN endpoint,
+    ensuring the SSN is properly formatted.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
 
 
 class ProviderReadPrivateResponseSchema(ForgivingSchema):
@@ -84,6 +99,7 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=True, allow_none=False)
     ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
+
 
 class ProviderGeneralResponseSchema(ForgivingSchema):
     """

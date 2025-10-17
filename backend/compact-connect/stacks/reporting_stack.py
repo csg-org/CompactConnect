@@ -10,11 +10,11 @@ from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
-from common_constructs.nodejs_function import NodejsFunction
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.nodejs_function import NodejsFunction
+from common_constructs.python_function import PythonFunction
 from stacks import persistent_stack as ps
 
 
@@ -86,15 +86,17 @@ class ReportingStack(AppStack):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
+        # This will report any ingest errors to the configured operational contact, every 15 minutes
         Rule(
             self,
-            'NightlyRule',
-            schedule=Schedule.cron(week_day='1-6', hour='1', minute='0', month='*', year='*'),
+            'FrequentlyRule',
+            schedule=Schedule.cron(week_day='*', hour='*', minute='*/15', month='*', year='*'),
             targets=[
-                LambdaFunction(handler=event_collector, event=RuleTargetInput.from_object({'eventType': 'nightly'}))
+                LambdaFunction(handler=event_collector, event=RuleTargetInput.from_object({'eventType': 'frequent'}))
             ],
         )
 
+        # This will send an "alls well" , a "you haven't uploaded anything" email or nothing
         Rule(
             self,
             'WeeklyRule',

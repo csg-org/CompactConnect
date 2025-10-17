@@ -49,7 +49,7 @@
                     </div>
                 </div>
             </div>
-            <div class="personal-information-section">
+            <div class="personal-information-section rr-block">
                 <div class="title-row">
                     <div class="title-info">
                         <div class="pi-logo-container">
@@ -172,6 +172,7 @@
                         <div class="title-text">
                             {{privilegesTitle}}
                         </div>
+                        <ExpirationExplanationIcon />
                     </div>
                     <CollapseCaretButton
                         @toggleCollapse="togglePrivsCollapsed"

@@ -17,6 +17,7 @@ from cc_common.data_model.schema.military_affiliation.record import MilitaryAffi
 from cc_common.data_model.schema.provider.api import (
     ProviderEmailUpdateRequestSchema,
     ProviderEmailVerificationRequestSchema,
+    ProviderReadPrivateResponseSchema,
 )
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler, get_provider_user_attributes_from_authorizer_claims
@@ -67,7 +68,12 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 u
     compact, provider_id = get_provider_user_attributes_from_authorizer_claims(event)
 
     try:
-        return get_provider_information(compact=compact, provider_id=provider_id)
+        provider_information = get_provider_information(compact=compact, provider_id=provider_id)
+
+        # Apply schema validation for provider-user response
+        # Provider-users should have access to their own private data
+        response_schema = ProviderReadPrivateResponseSchema()
+        return response_schema.load(provider_information)
     except CCNotFoundException as e:
         message = 'Failed to find provider using provided claims'
         logger.error(message, compact=compact, provider_id=provider_id)

@@ -1,13 +1,13 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SESClient } from '@aws-sdk/client-ses';
+import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
 import { BaseEmailService } from '../../../lib/email/base-email-service';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as SESClient;
+    mock as unknown as SESv2Client;
 
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
@@ -19,7 +19,7 @@ class TestEmailService extends BaseEmailService {
 
         this.insertHeader(template, 'Test Email');
         this.insertFooter(template);
-        
+
         // Return the template for inspection
         return JSON.stringify(template);
     }
@@ -32,7 +32,7 @@ describe('BaseEmailService Environment Banner', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockSESClient = mockClient(SESClient);
+        mockSESClient = mockClient(SESv2Client);
         mockS3Client = mockClient(S3Client);
 
         // Reset environment variables
@@ -58,7 +58,7 @@ describe('BaseEmailService Environment Banner', () => {
         // Find banner block (should be first element)
         const bannerBlockId = childrenIds[0];
         const bannerBlock = template[bannerBlockId];
-        
+
         expect(bannerBlock).toBeDefined();
         expect(bannerBlock.type).toBe('Text');
         expect(bannerBlock.data.style.backgroundColor).toBe('#FFA726');
@@ -68,11 +68,11 @@ describe('BaseEmailService Environment Banner', () => {
 
     const expectFooterPresent = (template: any) => {
         const childrenIds = template.root.data.childrenIds;
-        
+
         // Find footer warning block (should be last element)
         const footerWarningBlockId = childrenIds[childrenIds.length - 1];
         const footerWarningBlock = template[footerWarningBlockId];
-        
+
         expect(footerWarningBlock).toBeDefined();
         expect(footerWarningBlock.type).toBe('Text');
         expect(footerWarningBlock.data.props.text).toBe('You\'re viewing a test email.');

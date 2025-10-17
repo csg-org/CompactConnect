@@ -2,6 +2,7 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.user.api import UserMergedResponseSchema
 from cc_common.exceptions import CCInternalException
 from cc_common.utils import api_handler
 
@@ -45,4 +46,7 @@ def _merge_user_records(user_id: str, records: list) -> dict:
         merged_user['dateOfUpdate'] = max(next_user['dateOfUpdate'], merged_user['dateOfUpdate'])
         # Merge compact fields in permissions
         merged_user['permissions'].update(next_user['permissions'])
-    return merged_user
+
+    # Validate the merged user data through the response schema
+    response_schema = UserMergedResponseSchema()
+    return response_schema.load(merged_user)

@@ -235,11 +235,14 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual(1, len(privilege_update_records['Items']))
         update_record = privilege_update_records['Items'][0]
         update_encumbrance_details = update_record['encumbranceDetails']
-        self.assertEqual({
-            'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
-            'licenseJurisdiction': 'oh',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care'
-        }, update_encumbrance_details)
+        self.assertEqual(
+            {
+                'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
+                'licenseJurisdiction': 'oh',
+                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            },
+            update_encumbrance_details,
+        )
 
         # Verify one event was published for the privilege update
         mock_publish_event.assert_called_once()
