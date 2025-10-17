@@ -182,7 +182,7 @@ class ReportingStack(AppStack):
             Rule(
                 self,
                 f'{compact.capitalize()}-WeeklyTransactionReportRule',
-                # Send weekly reports every Friday at 10:00 PM UTC
+                # Send weekly reports every Sunday at 2:00 AM UTC
                 schedule=Schedule.cron(week_day='SUN', hour='2', minute='0', month='*', year='*'),
                 targets=[
                     LambdaFunction(
