@@ -129,8 +129,8 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     if report_start_override and report_end_override:
         report_window = ReportWindow(
             reporting_cycle,
-            _display_start_date=date.fromisoformat(report_start_override),
-            _display_end_date=date.fromisoformat(report_end_override),
+            display_start_date=date.fromisoformat(report_start_override),
+            display_end_date=date.fromisoformat(report_end_override),
         )
     else:
         report_window = ReportWindow(reporting_cycle)

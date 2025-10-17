@@ -18,21 +18,21 @@ class ReportWindow:
     All windows start and end at midnight.
     """
 
-    def __init__(self, report_cycle: ReportCycle, *, _display_start_date: date = None, _display_end_date: date = None):
+    def __init__(self, report_cycle: ReportCycle, *, display_start_date: date = None, display_end_date: date = None):
         """
         :param report_cycle: The ReportCycle this report will run for (weekly or monthly)
-        :param _display_start_date: Optional override of start date. Required with _display_end_date.
-        :param _display_end_date: Optional override of end date. Required with _display_start_date.
+        :param display_start_date: Optional override of start date. Required with display_end_date.
+        :param display_end_date: Optional override of end date. Required with display_start_date.
         """
         super().__init__()
         self._report_cycle = report_cycle
-        if _display_start_date and _display_end_date:
+        if display_start_date and display_end_date:
             self._start_time = datetime.combine(
-                _display_start_date, time(hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
+                display_start_date, time(hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
             )
             self._end_time = datetime.combine(
                 # Add 1 to convert display day to query datetime
-                _display_end_date + timedelta(days=1),
+                display_end_date + timedelta(days=1),
                 time(hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC),
             )
         else:

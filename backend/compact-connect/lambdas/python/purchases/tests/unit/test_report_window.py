@@ -12,7 +12,6 @@ class TestReportWindow(TstLambdas):
             self.subTest('Monday morning'),
             patch(
                 'cc_common.config._Config.current_standard_datetime',
-                # A Monday morning, UTC
                 datetime.fromisoformat('2025-10-13T06:00:00+00:00'),
             ),
         ):
@@ -38,7 +37,6 @@ class TestReportWindow(TstLambdas):
             self.subTest('Saturday, midnight'),
             patch(
                 'cc_common.config._Config.current_standard_datetime',
-                # A Monday, midnight, UTC
                 datetime.fromisoformat('2025-10-11T00:00:00+00:00'),
             ),
         ):
@@ -64,7 +62,6 @@ class TestReportWindow(TstLambdas):
             self.subTest('Friday, very late'),
             patch(
                 'cc_common.config._Config.current_standard_datetime',
-                # Just before midnight, Friday night, UTC
                 datetime.fromisoformat('2025-10-10T23:59:59.999999+00:00'),
             ),
         ):
@@ -143,7 +140,6 @@ class TestReportWindow(TstLambdas):
             self.subTest('30th, very late'),
             patch(
                 'cc_common.config._Config.current_standard_datetime',
-                # A Monday afternoon, UTC
                 datetime.fromisoformat('2025-09-30T23:59:59.999999+00:00'),
             ),
         ):
@@ -170,8 +166,8 @@ class TestReportWindow(TstLambdas):
 
         report_window = ReportWindow(
             ReportCycle.WEEKLY,
-            _display_start_date=date.fromisoformat('2025-10-04'),
-            _display_end_date=date.fromisoformat('2025-10-10'),
+            display_start_date=date.fromisoformat('2025-10-04'),
+            display_end_date=date.fromisoformat('2025-10-10'),
         )
 
         self.assertEqual(
@@ -195,8 +191,8 @@ class TestReportWindow(TstLambdas):
 
         report_window = ReportWindow(
             ReportCycle.WEEKLY,
-            _display_start_date=date.fromisoformat('2025-10-04'),
-            _display_end_date=date.fromisoformat('2025-10-10'),
+            display_start_date=date.fromisoformat('2025-10-04'),
+            display_end_date=date.fromisoformat('2025-10-10'),
         )
 
         expected_start = datetime.fromisoformat('2025-10-04T00:00:00+00:00')

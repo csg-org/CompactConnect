@@ -301,7 +301,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         # Generate the reports
         generate_transaction_reports(generate_mock_event(), self.mock_context)
@@ -389,7 +389,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-03-28')
         # the start time should be the prior Saturday
         start_date = date.fromisoformat('2025-03-22')
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         # Just check the expected emails were 'sent' with dates older than default
         self._validate_compact_email_notification(
@@ -440,7 +440,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -542,7 +542,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -648,7 +648,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -779,7 +779,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -902,7 +902,7 @@ class TestGenerateTransactionReports(TstFunction):
         # the start time should be the first day of the montn
         display_start = date.fromisoformat('2024-02-01')
         report_window = ReportWindow(
-            ReportCycle.WEEKLY, _display_start_date=display_start, _display_end_date=display_end
+            ReportCycle.WEEKLY, display_start_date=display_start, display_end_date=display_end
         )
 
         generate_transaction_reports(generate_mock_event(reporting_cycle=ReportCycle.MONTHLY), self.mock_context)
@@ -1003,7 +1003,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-03-07')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(reporting_cycle=ReportCycle.WEEKLY), self.mock_context)
 
@@ -1065,7 +1065,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -1141,7 +1141,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         with self.assertRaises(CCInternalException) as exc_info:
             generate_transaction_reports(generate_mock_event(), self.mock_context)
@@ -1224,7 +1224,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
@@ -1300,7 +1300,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_date = date.fromisoformat('2025-04-04')
         # the start time should be the prior Saturday
         start_date = end_date - timedelta(days=6)
-        report_window = ReportWindow(ReportCycle.WEEKLY, _display_start_date=start_date, _display_end_date=end_date)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
