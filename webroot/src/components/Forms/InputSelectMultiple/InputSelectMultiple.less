@@ -37,8 +37,11 @@
             min-height: @removeSize;
             margin-bottom: 1rem;
             padding: 0 @removeSize 0 0.8rem;
-            border: 1px solid @primaryColor;
-            border-radius: 8px;
+            border: 1px solid @fontColor;
+            border-radius: @borderRadiusPillShape;
+            color: @white;
+            font-size: @fontSize;
+            background-color: @fontColor;
 
             &:not(:last-child) {
                 margin-right: 1rem;
@@ -53,7 +56,7 @@
                 margin-left: auto;
                 transform: translateY(-50%);
                 cursor: pointer;
-                stroke: @primaryColor;
+                stroke: @white;
             }
         }
     }
