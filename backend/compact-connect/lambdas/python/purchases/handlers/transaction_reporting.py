@@ -13,7 +13,7 @@ from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException
-from lambdas.python.purchases.report_window import ReportCycle, ReportWindow
+from report_window import ReportCycle, ReportWindow
 
 
 class ReportableTransactionStatuses(StrEnum):

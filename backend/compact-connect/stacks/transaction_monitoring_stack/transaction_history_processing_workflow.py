@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 
 from aws_cdk import ArnFormat, Duration
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData  # noqa: F401 temporarily unused
-from aws_cdk.aws_cloudwatch_actions import SnsAction  # noqa: F401 temporarily unused
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, Schedule
 from aws_cdk.aws_events_targets import SfnStateMachine
 from aws_cdk.aws_iam import Effect, PolicyStatement
