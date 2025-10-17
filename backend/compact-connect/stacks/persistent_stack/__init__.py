@@ -7,6 +7,7 @@ from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import QueryDefinition, QueryString
+from aws_cdk.aws_route53 import CnameRecord
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
@@ -170,6 +171,15 @@ class PersistentStack(AppStack):
                 ses_verified_domain=self.hosted_zone.zone_name,
                 configuration_set_name=self.user_email_notifications.config_set.configuration_set_name,
             )
+
+            # Needed for cognito subdomains
+            CnameRecord(
+                self,
+                'BaseCNameRecord',
+                record_name='base-cname',
+                zone=self.hosted_zone,
+                domain_name=self.hosted_zone.zone_name
+            )
         else:
             # if domain name is not provided, use the default cognito email settings
             notification_from_email = None
@@ -179,6 +189,7 @@ class PersistentStack(AppStack):
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
         staff_prefix = f'{app_name}-staff'
+        non_custom_domain_prefix = staff_prefix if environment_name == 'prod' else f'{staff_prefix}-{environment_name}'
 
         self.staff_users = StaffUsers(
             self,
@@ -190,6 +201,9 @@ class PersistentStack(AppStack):
             notification_from_email=notification_from_email,
             ses_identity_arn=self.user_email_notifications.email_identity.email_identity_arn
             if self.hosted_zone
+            else None,
+            non_custom_domain_prefix=non_custom_domain_prefix
+            if not self.hosted_zone
             else None,
             security_profile=security_profile,
             removal_policy=removal_policy,

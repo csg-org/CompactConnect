@@ -1,7 +1,6 @@
 import base64
 import os
 from collections.abc import Mapping
-from typing import cast
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import (
@@ -10,9 +9,9 @@ from aws_cdk.aws_cognito import (
     AuthFlow,
     AutoVerifiedAttrs,
     CfnManagedLoginBranding,
-    CfnUserPoolDomain,
     CfnUserPoolRiskConfigurationAttachment,
     ClientAttributes,
+    CognitoDomainOptions,
     CustomDomainOptions,
     DeviceTracking,
     FeaturePlan,
@@ -137,89 +136,96 @@ class UserPool(CdkUserPool):
             ],
         )
 
-    def add_app_client_custom_domain(
+    def add_app_client_domain(
             self,
+            non_custom_domain_prefix: str,
             app_client_domain_prefix: str,
             base_domain_name: str,
             hosted_zone: IHostedZone,
             scope: Construct
     ):
 
-        domain_prefix = f'{app_client_domain_prefix.lower()}-auth'
-        domain_name = f'{domain_prefix}.{base_domain_name}'
-        cert_id = f'{app_client_domain_prefix}AuthCert'
-        cert = Certificate(
-            scope,
-            cert_id,
-            domain_name=domain_name,
-            validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
-        )
+        if non_custom_domain_prefix:
+            self.user_pool_domain = self.add_domain(
+                f'{app_client_domain_prefix}UserPoolDomain',
+                cognito_domain=CognitoDomainOptions(domain_prefix=non_custom_domain_prefix),
+                managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
+            )
+        else:
+            domain_prefix = f'{app_client_domain_prefix.lower()}-auth'
+            domain_name = f'{domain_prefix}.{base_domain_name}'
+            cert_id = f'{app_client_domain_prefix}AuthCert'
+            cert = Certificate(
+                scope,
+                cert_id,
+                domain_name=domain_name,
+                validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
+            )
+            domain = self.add_domain(
+                f'{app_client_domain_prefix}UserPoolDomain',
+                custom_domain=CustomDomainOptions(
+                    certificate=cert,
+                    domain_name=domain_name
+                ),
+                managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
+            )
 
-        domain = self.add_domain(
-            f'{app_client_domain_prefix}UserPoolDomain',
-            custom_domain=CustomDomainOptions(
-                certificate=cert,
-                domain_name=domain_name
-            ),
-            managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
-        )
+            self.record = ARecord(
+                self,
+                f'{app_client_domain_prefix}AuthDomainARecord',
+                zone=hosted_zone,
+                record_name=domain_name,
+                target=RecordTarget.from_alias(UserPoolDomainTarget(domain)),
+            )
 
-        self.record = ARecord(
-            self,
-            f'{app_client_domain_prefix}AuthDomainARecord',
-            zone=hosted_zone,
-            record_name=domain_name,
-            target=RecordTarget.from_alias(UserPoolDomainTarget(domain)),
-        )
+            CfnOutput(self, f'{app_client_domain_prefix}UserPoolDomainName', value=domain.domain_name)
 
-        CfnOutput(self, f'{app_client_domain_prefix}UserPoolDomainName', value=domain.domain_name)
+            # Add NAG suppressions for the auto-generated custom resource Lambda
+            stack = Stack.of(self)
 
-        # Add NAG suppressions for the auto-generated custom resource Lambda
-        stack = Stack.of(self)
+            # Suppress for the CustomResourcePolicy
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack,
+                f'{domain.node.path}/CloudFrontDomainName/CustomResourcePolicy/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM5',
+                        'appliesTo': ['Resource::*'],
+                        'reason': 'This is an AWS-managed custom resource Lambda that requires wildcard permissions to describe CloudFront distributions.',
+                    }
+                ],
+            )
 
-        # Suppress for the CustomResourcePolicy
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            f'{domain.node.path}/CloudFrontDomainName/CustomResourcePolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'appliesTo': ['Resource::*'],
-                    'reason': 'This is an AWS-managed custom resource Lambda that requires wildcard permissions to describe CloudFront distributions.',
-                }
-            ],
-        )
+            # Suppress for the auto-generated Lambda function
+            # The construct ID is auto-generated by CDK, so we need to suppress at the stack level
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack,
+                f'{stack.node.path}/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM4',
+                        'appliesTo': [
+                            'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                        ],
+                        'reason': 'This is an AWS-managed custom resource Lambda that uses the standard execution role.',
+                    }
+                ],
+            )
 
-        # Suppress for the auto-generated Lambda function
-        # The construct ID is auto-generated by CDK, so we need to suppress at the stack level
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            f'{stack.node.path}/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM4',
-                    'appliesTo': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-                    ],
-                    'reason': 'This is an AWS-managed custom resource Lambda that uses the standard execution role.',
-                }
-            ],
-        )
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            f'{stack.node.path}/AWS679f53fac002430cb0da5b7982bd2287/Resource',
-            suppressions=[
-                {
-                    'id': 'HIPAA.Security-LambdaDLQ',
-                    'reason': 'This is an AWS-managed custom resource Lambda used only during deployment. A DLQ is not necessary.',
-                },
-                {
-                    'id': 'HIPAA.Security-LambdaInsideVPC',
-                    'reason': 'This is an AWS-managed custom resource Lambda that needs internet access to describe CloudFront distributions.',
-                },
-            ],
-        )
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack,
+                f'{stack.node.path}/AWS679f53fac002430cb0da5b7982bd2287/Resource',
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-LambdaDLQ',
+                        'reason': 'This is an AWS-managed custom resource Lambda used only during deployment. A DLQ is not necessary.',
+                    },
+                    {
+                        'id': 'HIPAA.Security-LambdaInsideVPC',
+                        'reason': 'This is an AWS-managed custom resource Lambda that needs internet access to describe CloudFront distributions.',
+                    },
+                ],
+            )
 
         return domain
 
