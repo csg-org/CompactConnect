@@ -362,7 +362,8 @@
         "copyright": "Copyright",
         "compact": "Compact",
         "uploadDocument": "Upload document",
-        "here": "here"
+        "here": "here",
+        "notLive": "Not live"
     },
     "navigation": {
         "dashboard": "Dashboard",

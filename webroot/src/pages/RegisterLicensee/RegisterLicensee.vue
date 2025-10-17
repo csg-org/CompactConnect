@@ -45,6 +45,8 @@
                                 @keyup.enter="resetForm()"
                                 class="clear-form"
                             >{{ $t('common.clear') }}</a>
+                            <InputSelect :formInput="formData.licenseType" @change="populateStatesInput" />
+                            <InputSelect :formInput="formData.licenseState" />
                             <InputText :formInput="formData.firstName" />
                             <InputText :formInput="formData.lastName" />
                             <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />
@@ -56,8 +58,6 @@
                                 :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
                                 :startDate="new Date(1975, 0, 1)"
                             />
-                            <InputSelect :formInput="formData.licenseState" />
-                            <InputSelect :formInput="formData.licenseType" />
                             <InputText :formInput="formData.email" class="input-email-component" />
                             <div class="input-email-subtext" v-html="$t('account.requestAccountEmailSubtext')" />
                             <label ref="password">
@@ -166,7 +166,7 @@
                         </div>
                     </form>
                 </template>
-                <div v-else class="register-licensee-success-container">
+                <div v-else-if="isFormSuccessful" class="register-licensee-success-container">
                     <div class="register-licensee-icon-container">
                         <CheckCircle />
                     </div>

@@ -28,6 +28,7 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
+import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
@@ -60,14 +61,17 @@ class RegisterLicensee extends mixins(MixinForm) {
     //
     // Data
     //
+    compacts: Array<Compact> = [];
+    selectedCompactStates: Array<State> = [];
     isFinalError = false;
     isConfirmationScreen = false;
 
     //
     // Lifecycle
     //
-    created() {
+    async created() {
         this.initFormInputs();
+        await this.getCompactStates();
     }
 
     mounted() {
@@ -78,22 +82,6 @@ class RegisterLicensee extends mixins(MixinForm) {
     //
     // Computed
     //
-    get stateOptions(): Array<SelectOption> {
-        const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
-
-        stateList?.forEach((state) => {
-            const stateObject = new State({ abbrev: state });
-            const value = stateObject?.abbrev?.toLowerCase();
-            const name = stateObject?.name();
-
-            if (name && value) {
-                options.push({ value, name, isDisabled: false });
-            }
-        });
-
-        return options;
-    }
-
     get licenseTypeOptions(): Array<SelectOption> {
         const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
         const licenseTypes = this.$tm('licensing.licenseTypes') || [];
@@ -104,6 +92,32 @@ class RegisterLicensee extends mixins(MixinForm) {
                 name: licenseType.name,
                 isDisabled: false,
             });
+        });
+
+        return options;
+    }
+
+    get stateOptions(): Array<SelectOption> {
+        const { selectedCompactStates } = this;
+        const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
+
+        stateList?.forEach((state) => {
+            const stateObject = new State({ abbrev: state });
+            const value = stateObject?.abbrev?.toLowerCase();
+            let name = stateObject?.name();
+            let isDisabled = false;
+
+            if (name && value) {
+                const compactLiveState = selectedCompactStates.find((liveState) =>
+                    liveState.abbrev?.toLowerCase() === value);
+
+                if (!compactLiveState) {
+                    name += ` (${this.$t('common.notLive')})`;
+                    isDisabled = true;
+                }
+
+                options.push({ value, name, isDisabled });
+            }
         });
 
         return options;
@@ -158,6 +172,22 @@ class RegisterLicensee extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         this.formData = reactive({
+            licenseType: new FormInput({
+                id: 'license-type',
+                name: 'license-type',
+                label: computed(() => this.$t('licensing.licenseType')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.licenseTypeOptions,
+            }),
+            licenseState: new FormInput({
+                id: 'license-state',
+                name: 'license-state',
+                label: computed(() => this.$t('licensing.stateOfHomeLicense')),
+                autocomplete: 'address-level1',
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                // valueOptions: this.stateOptions,
+                isDisabled: true,
+            }),
             firstName: new FormInput({
                 id: 'first-name',
                 name: 'first-name',
@@ -189,21 +219,6 @@ class RegisterLicensee extends mixins(MixinForm) {
                     .pattern(dateFormatPatterns.MM_DD_YYYY)
                     .messages(this.joiMessages.dateWithFormat('MM/DD/YYYY')),
             }),
-            licenseState: new FormInput({
-                id: 'license-state',
-                name: 'license-state',
-                label: computed(() => this.$t('licensing.stateOfHomeLicense')),
-                autocomplete: 'address-level1',
-                validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.stateOptions,
-            }),
-            licenseType: new FormInput({
-                id: 'license-type',
-                name: 'license-type',
-                label: computed(() => this.$t('licensing.licenseType')),
-                validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.licenseTypeOptions,
-            }),
             email: new FormInput({
                 id: 'email',
                 name: 'email',
@@ -221,6 +236,32 @@ class RegisterLicensee extends mixins(MixinForm) {
             }),
         });
         this.watchFormInputs(); // Important if you want automated form validation
+    }
+
+    async getCompactStates(): Promise<void> {
+        const compacts = await this.$store.dispatch('user/getCompactStatesForRegistrationRequest').catch((err) => {
+            this.handleErrorResponse(err);
+        });
+
+        this.compacts = compacts;
+    }
+
+    populateStatesInput(): void {
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const selectedLicenseType = this.formData.licenseType.value;
+        const licenseTypeConfig = licenseTypes.find((config) => config.key === selectedLicenseType);
+        const compactType = licenseTypeConfig?.compactKey;
+        const selectedCompact = this.compacts.find((compact) => compact.type === compactType);
+        const stateInput = this.formData.licenseState;
+
+        if (selectedCompact?.memberStates) {
+            this.selectedCompactStates = selectedCompact.memberStates;
+            stateInput.valueOptions = this.stateOptions;
+            stateInput.isDisabled = false;
+        } else {
+            stateInput.valueOptions = [];
+            stateInput.isDisabled = true;
+        }
     }
 
     initExtraFields(): void { // See Auth -> Registration section of README

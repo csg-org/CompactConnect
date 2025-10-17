@@ -361,7 +361,8 @@
         "copyright": "Copyright",
         "compact": "Compacto",
         "uploadDocument": "Subir documento",
-        "here": "aquí"
+        "here": "aquí",
+        "notLive": "No disponible"
     },
     "navigation": {
         "dashboard": "Panel",

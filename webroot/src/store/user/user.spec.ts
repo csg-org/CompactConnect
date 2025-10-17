@@ -177,6 +177,31 @@ describe('Use Store Mutations', () => {
         expect(state.error).to.equal(null);
         expect(state.currentCompact.memberStates.length).to.equal(1);
     });
+    it('should successfully get compact states for registration request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_REQUEST](state);
+
+        expect(state.isLoadingCompactStates).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get compact states for registration failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_FAILURE](state, error);
+
+        expect(state.isLoadingCompactStates).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get compact states for registration success', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_SUCCESS](state);
+
+        expect(state.isLoadingCompactStates).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully update user', () => {
         const state = {};
         const user = { id: 1 };
@@ -951,6 +976,37 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_COMPACT_STATES_FAILURE, error]);
+    });
+    it('should successfully start compact states for registration request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.getCompactStatesForRegistrationRequest({ commit, dispatch }, CompactType.ASLP);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['getCompactStatesForRegistrationSuccess']);
+    });
+    it('should successfully start compact states for registration success', () => {
+        const commit = sinon.spy();
+
+        actions.getCompactStatesForRegistrationSuccess({ commit });
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args[0]).to.equal(MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_SUCCESS);
+    });
+    it('should successfully start compact states for registration failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.getCompactStatesForRegistrationFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([
+            MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_FAILURE,
+            error
+        ]);
     });
     it('should successfully set current compact (null)', async () => {
         const commit = sinon.spy();
