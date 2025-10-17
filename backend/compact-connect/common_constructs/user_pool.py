@@ -148,12 +148,12 @@ class UserPool(CdkUserPool):
         domain_prefix = f'{app_client_domain_prefix.lower()}-auth'
         domain_name = f'{domain_prefix}.{base_domain_name}'
         cert_id = f'{app_client_domain_prefix}AuthCert'
-        cert = cast(ICertificate, Certificate(
+        cert = Certificate(
             scope,
             cert_id,
             domain_name=domain_name,
             validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
-        ))
+        )
 
         domain = self.add_domain(
             f'{app_client_domain_prefix}UserPoolDomain',
