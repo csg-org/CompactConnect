@@ -1443,8 +1443,7 @@ class TestDataClient(TstFunction):
                 'privilegeId': 'SLP-NE-1',
                 'investigationStatus': 'underInvestigation',
             },
-            'updatedValues': {
-            },
+            'updatedValues': {},
             'removedValues': ['investigationStatus'],
         }
         # Pop dynamic fields that we don't want to assert on
@@ -1593,8 +1592,7 @@ class TestDataClient(TstFunction):
                 'jurisdictionUploadedCompactEligibility': 'eligible',
                 'investigationStatus': 'underInvestigation',
             },
-            'updatedValues': {
-            },
+            'updatedValues': {},
             'removedValues': ['investigationStatus'],
         }
         # Pop dynamic fields that we don't want to assert on
@@ -1624,7 +1622,7 @@ class TestDataClient(TstFunction):
                 investigation_id=str(uuid4()),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-            investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+                investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))
@@ -1650,7 +1648,7 @@ class TestDataClient(TstFunction):
                 investigation_id=str(uuid4()),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-            investigation_against=InvestigationAgainstEnum.LICENSE,
+                investigation_against=InvestigationAgainstEnum.LICENSE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))
@@ -1705,7 +1703,7 @@ class TestDataClient(TstFunction):
                 investigation_id=str(investigation.investigationId),
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-            investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+                investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))
@@ -1760,7 +1758,7 @@ class TestDataClient(TstFunction):
                 investigation_id=str(investigation.investigationId),
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-            investigation_against=InvestigationAgainstEnum.LICENSE,
+                investigation_against=InvestigationAgainstEnum.LICENSE,
             )
 
         self.assertIn('Investigation not found', str(context.exception))

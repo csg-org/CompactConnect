@@ -15,6 +15,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
     UpdateType,
 )
+from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
 
 class AttestationVersionResponseSchema(Schema):
@@ -74,6 +75,7 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased this privilege
     compactTransactionId = String(required=False, allow_none=False)
@@ -108,6 +110,7 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased this privilege
     compactTransactionId = String(required=False, allow_none=False)

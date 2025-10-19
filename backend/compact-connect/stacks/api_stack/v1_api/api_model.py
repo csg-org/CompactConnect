@@ -1172,6 +1172,10 @@ class ApiModel:
                                     },
                                 ),
                             ),
+                            'investigations': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=self._investigation_schema,
+                            ),
                             **self._common_license_properties,
                         },
                     ),
@@ -1308,6 +1312,10 @@ class ApiModel:
                                     },
                                 ),
                             ),
+                            'investigations': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=self._investigation_schema,
+                            ),
                             **self._common_privilege_properties,
                         },
                     ),
@@ -1431,6 +1439,38 @@ class ApiModel:
                 'other monitoring',
                 'other adjudicated action not listed',
             ],
+        )
+
+    @property
+    def _investigation_schema(self) -> JsonSchema:
+        """Common schema for investigation objects"""
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'type',
+                'compact',
+                'providerId',
+                'investigationId',
+                'jurisdiction',
+                'licenseType',
+                'dateOfUpdate',
+                'creationDate',
+                'submittingUser',
+            ],
+            properties={
+                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['investigation']),
+                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'investigationId': JsonSchema(type=JsonSchemaType.STRING),
+                'jurisdiction': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=self.stack.node.get_context('jurisdictions'),
+                ),
+                'licenseType': JsonSchema(type=JsonSchemaType.STRING),
+                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'submittingUser': JsonSchema(type=JsonSchemaType.STRING),
+            },
         )
 
     @property

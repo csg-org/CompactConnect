@@ -70,12 +70,10 @@ def _generate_investigation_for_record_type(
     jurisdiction: str,
     provider_id: str,
     license_type_abbr: str,
-    investigation_against_record_type: InvestigationAgainstEnum, cognito_sub: str
+    investigation_against_record_type: InvestigationAgainstEnum,
+    cognito_sub: str,
 ) -> InvestigationData:
-
-    license_type = LicenseUtility.get_license_type_by_abbreviation(
-        compact=compact, abbreviation=license_type_abbr
-    )
+    license_type = LicenseUtility.get_license_type_by_abbreviation(compact=compact, abbreviation=license_type_abbr)
 
     if not license_type:
         raise CCInvalidRequestException(
@@ -84,17 +82,18 @@ def _generate_investigation_for_record_type(
         )
 
     # populate the investigation data to be stored in the database
-    return InvestigationData.create_new({
-        'compact': compact,
-        'jurisdiction': jurisdiction,
-        'providerId': provider_id,
-        'investigationId': uuid4(),
-        'licenseTypeAbbreviation': license_type_abbr,
-        'licenseType': license_type.name,
-        'investigationAgainst': investigation_against_record_type,
-        'submittingUser': cognito_sub,
-        'creationDate': config.current_standard_datetime,
-    })
+    return InvestigationData.create_new(
+        {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'providerId': provider_id,
+            'investigationId': uuid4(),
+            'licenseType': license_type.name,
+            'investigationAgainst': investigation_against_record_type,
+            'submittingUser': cognito_sub,
+            'creationDate': config.current_standard_datetime,
+        }
+    )
 
 
 def handle_privilege_investigation(event: dict) -> dict:
@@ -112,7 +111,7 @@ def handle_privilege_investigation(event: dict) -> dict:
         provider_id=provider_id,
         license_type_abbr=license_type_abbr,
         investigation_against_record_type=InvestigationAgainstEnum.PRIVILEGE,
-        cognito_sub=cognito_sub
+        cognito_sub=cognito_sub,
     )
     logger.info('Processing investigation updates for privilege record')
     config.data_client.create_investigation(investigation)
@@ -146,7 +145,7 @@ def handle_license_investigation(event: dict) -> dict:
         provider_id=provider_id,
         license_type_abbr=license_type_abbr,
         investigation_against_record_type=InvestigationAgainstEnum.LICENSE,
-        cognito_sub=cognito_sub
+        cognito_sub=cognito_sub,
     )
     logger.info('Processing investigation updates for license record')
     config.data_client.create_investigation(investigation)
@@ -249,7 +248,6 @@ def handle_license_investigation_close(event: dict) -> dict:
             submitting_user=cognito_sub,
             adverse_action_post_body=encumbrance_data,
         )
-
 
     # Call the data client method to close the investigation
     config.data_client.close_investigation(

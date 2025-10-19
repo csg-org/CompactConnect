@@ -17,6 +17,7 @@ from cc_common.data_model.schema.common import (
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
+from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
@@ -38,6 +39,7 @@ class ProviderRecordType(StrEnum):
     PRIVILEGE_UPDATE = 'privilegeUpdate'
     MILITARY_AFFILIATION = 'militaryAffiliation'
     ADVERSE_ACTION = 'adverseAction'
+    INVESTIGATION = 'investigation'
 
 
 # The following update event types are used during events which caused
@@ -404,6 +406,7 @@ class ProviderUserRecords:
         self._privilege_records: list[PrivilegeData] = []
         self._license_records: list[LicenseData] = []
         self._adverse_action_records: list[AdverseActionData] = []
+        self._investigation_records: list[InvestigationData] = []
         self._provider_records: list[ProviderData] = []
         self._provider_update_records: list[ProviderUpdateData] = []
         self._military_affiliation_records: list[MilitaryAffiliationData] = []
@@ -419,6 +422,8 @@ class ProviderUserRecords:
                 self._license_records.append(LicenseData.from_database_record(record))
             elif record_type == ProviderRecordType.ADVERSE_ACTION:
                 self._adverse_action_records.append(AdverseActionData.from_database_record(record))
+            elif record_type == ProviderRecordType.INVESTIGATION:
+                self._investigation_records.append(InvestigationData.from_database_record(record))
             elif record_type == ProviderRecordType.PROVIDER:
                 self._provider_records.append(ProviderData.from_database_record(record))
             elif record_type == ProviderRecordType.PROVIDER_UPDATE:
@@ -576,6 +581,44 @@ class ProviderUserRecords:
             if record.actionAgainst == AdverseActionAgainstEnum.PRIVILEGE
             and record.jurisdiction == privilege_jurisdiction
             and record.licenseTypeAbbreviation == privilege_license_type_abbreviation
+            and (filter_condition is None or filter_condition(record))
+        ]
+
+    def get_investigation_records_for_privilege(
+        self,
+        privilege_jurisdiction: str,
+        privilege_license_type_abbreviation: str,
+        filter_condition: Callable[[InvestigationData], bool] | None = None,
+    ) -> list[InvestigationData]:
+        """
+        Get all investigation records for a given privilege.
+        """
+        return [
+            record
+            for record in self._investigation_records
+            if record.investigationAgainst == 'privilege'
+            and record.jurisdiction == privilege_jurisdiction
+            and record.licenseTypeAbbreviation == privilege_license_type_abbreviation
+            and record.closeDate is None  # Only return active investigations
+            and (filter_condition is None or filter_condition(record))
+        ]
+
+    def get_investigation_records_for_license(
+        self,
+        license_jurisdiction: str,
+        license_type_abbreviation: str,
+        filter_condition: Callable[[InvestigationData], bool] | None = None,
+    ) -> list[InvestigationData]:
+        """
+        Get all investigation records for a given license.
+        """
+        return [
+            record
+            for record in self._investigation_records
+            if record.investigationAgainst == 'license'
+            and record.jurisdiction == license_jurisdiction
+            and record.licenseTypeAbbreviation == license_type_abbreviation
+            and record.closeDate is None  # Only return active investigations
             and (filter_condition is None or filter_condition(record))
         ]
 
@@ -738,6 +781,12 @@ class ProviderUserRecords:
                     license_record.jurisdiction, license_record.licenseTypeAbbreviation
                 )
             ]
+            license_dict['investigations'] = [
+                rec.to_dict()
+                for rec in self.get_investigation_records_for_license(
+                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                )
+            ]
             licenses.append(license_dict)
 
         # Build privileges dict with history and adverseActions
@@ -750,6 +799,12 @@ class ProviderUserRecords:
             privilege_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_privilege(
+                    privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
+                )
+            ]
+            privilege_dict['investigations'] = [
+                rec.to_dict()
+                for rec in self.get_investigation_records_for_privilege(
                     privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
                 )
             ]

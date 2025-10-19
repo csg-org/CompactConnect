@@ -268,7 +268,7 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
             effective_date=lift_date,
-    )
+        )
 
     return {'message': 'OK'}
 
@@ -320,6 +320,6 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
             effective_date=lift_date,
-    )
+        )
 
     return {'message': 'OK'}

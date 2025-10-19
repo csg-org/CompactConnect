@@ -38,7 +38,6 @@ class InvestigationGeneralResponseSchema(ForgivingSchema):
     providerId = Raw(required=True, allow_none=False)
     investigationId = Raw(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
 

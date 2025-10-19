@@ -149,6 +149,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
     def test_privilege_investigation_handler_sets_provider_record_to_under_investigation_in_provider_data_table(self):
         from cc_common.data_model.schema.common import InvestigationStatusEnum
         from handlers.investigation import investigation_handler
+        from handlers.providers import get_provider
 
         event, test_privilege_record = self._when_testing_privilege_investigation()
 
@@ -166,6 +167,42 @@ class TestPostPrivilegeInvestigation(TstFunction):
         self.assertEqual(
             InvestigationStatusEnum.UNDER_INVESTIGATION.value, updated_privilege_record['investigationStatus']
         )
+
+        # Verify that investigation objects are included in the API response
+        api_event = self.test_data_generator.generate_test_api_event(
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.readGeneral',
+            value_overrides={
+                'httpMethod': 'GET',
+                'resource': '/v1/compacts/{compact}/providers/{providerId}',
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': str(test_privilege_record.providerId),
+                },
+            },
+        )
+
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+
+        # Verify that the privilege has investigation objects
+        privilege = provider_data['privileges'][0]
+        investigation = privilege['investigations'][0]
+
+        expected_investigation = {
+            'type': 'investigation',
+            'compact': test_privilege_record.compact,
+            'providerId': str(test_privilege_record.providerId),
+            'jurisdiction': test_privilege_record.jurisdiction,
+            'licenseType': test_privilege_record.licenseType,
+            'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
+            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'investigationId': investigation['investigationId'],  # Dynamic field
+        }
+
+        self.assertEqual(expected_investigation, investigation)
 
     def test_privilege_investigation_handler_returns_access_denied_if_compact_admin(self):
         """Verifying that only state admins are allowed to create privilege investigations"""
@@ -333,6 +370,7 @@ class TestPostLicenseInvestigation(TstFunction):
     def test_license_investigation_handler_sets_provider_record_to_under_investigation_in_provider_data_table(self):
         from cc_common.data_model.schema.common import InvestigationStatusEnum
         from handlers.investigation import investigation_handler
+        from handlers.providers import get_provider
 
         event, test_license_record = self._when_testing_valid_license_investigation()
 
@@ -350,6 +388,42 @@ class TestPostLicenseInvestigation(TstFunction):
         self.assertEqual(
             InvestigationStatusEnum.UNDER_INVESTIGATION.value, updated_license_record['investigationStatus']
         )
+
+        # Verify that investigation objects are included in the API response
+        api_event = self.test_data_generator.generate_test_api_event(
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.readGeneral',
+            value_overrides={
+                'httpMethod': 'GET',
+                'resource': '/v1/compacts/{compact}/providers/{providerId}',
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': str(test_license_record.providerId),
+                },
+            },
+        )
+
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+
+        # Verify that the license has investigation objects
+        license_obj = provider_data['licenses'][0]
+        investigation = license_obj['investigations'][0]
+
+        expected_investigation = {
+            'type': 'investigation',
+            'compact': test_license_record.compact,
+            'providerId': str(test_license_record.providerId),
+            'jurisdiction': test_license_record.jurisdiction,
+            'licenseType': test_license_record.licenseType,
+            'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
+            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'investigationId': investigation['investigationId'],  # Dynamic field
+        }
+
+        self.assertEqual(expected_investigation, investigation)
 
     def test_license_investigation_handler_returns_access_denied_if_compact_admin(self):
         """Verifying that only state admins are allowed to create license investigations"""
@@ -549,6 +623,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
 
     def test_privilege_investigation_close_handler_removes_investigation_status_from_privilege(self):
         from handlers.investigation import investigation_handler
+        from handlers.providers import get_provider
 
         event, test_privilege_record, investigation_id = self._when_testing_privilege_investigation_close()
 
@@ -564,6 +639,32 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
         )['Item']
 
         self.assertNotIn('investigationStatus', updated_privilege_record)
+
+        # Verify that investigation objects are removed from the API response
+        api_event = self.test_data_generator.generate_test_api_event(
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.readGeneral',
+            value_overrides={
+                'httpMethod': 'GET',
+                'resource': '/v1/compacts/{compact}/providers/{providerId}',
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': str(test_privilege_record.providerId),
+                },
+            },
+        )
+
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+
+        # Verify that the privilege has no investigation objects
+        privilege = provider_data['privileges'][0]
+        expected_privilege = {
+            'investigations': [],
+        }
+
+        self.assertEqual(expected_privilege['investigations'], privilege['investigations'])
 
     def test_privilege_investigation_close_with_encumbrance_creates_encumbrance(self):
         from handlers.investigation import investigation_handler
@@ -767,6 +868,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
 
     def test_license_investigation_close_handler_removes_investigation_status_from_license(self):
         from handlers.investigation import investigation_handler
+        from handlers.providers import get_provider
 
         event, test_license_record, investigation_id = self._when_testing_license_investigation_close()
 
@@ -782,6 +884,32 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         )['Item']
 
         self.assertNotIn('investigationStatus', updated_license_record)
+
+        # Verify that investigation objects are removed from the API response
+        api_event = self.test_data_generator.generate_test_api_event(
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.readGeneral',
+            value_overrides={
+                'httpMethod': 'GET',
+                'resource': '/v1/compacts/{compact}/providers/{providerId}',
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': str(test_license_record.providerId),
+                },
+            },
+        )
+
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+
+        # Verify that the license has no investigation objects
+        license_obj = provider_data['licenses'][0]
+        expected_license = {
+            'investigations': [],
+        }
+
+        self.assertEqual(expected_license['investigations'], license_obj['investigations'])
 
     def test_license_investigation_close_with_encumbrance_creates_encumbrance(self):
         from handlers.investigation import investigation_handler

@@ -26,7 +26,7 @@ class ProviderManagementLambdas:
         lambda_environment = {
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
             'STAFF_USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
-            'DATA_EVENT_BUS_NAME': data_event_bus.event_bus_name,
+            'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             **self.stack.common_env_vars,
         }
 
