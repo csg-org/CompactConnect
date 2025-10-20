@@ -142,7 +142,13 @@ class TestTransactionClient(TstFunction):
         client = TransactionClient(self.config)
 
         # This should not raise an exception even with invalid date format
+        # The schema validation will fail, but the method catches the exception and logs it
         client.store_unsettled_transaction(compact='aslp', transaction_id='test-tx-123', transaction_date='invalid-date')
+
+        # Verify the record was not stored
+        pk = f'COMPACT#aslp#UNSETTLED_TRANSACTIONS'
+        response = self._transaction_history_table.query(KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk})
+        self.assertEqual(0, len(response['Items']))
 
     def test_reconcile_unsettled_transactions_no_unsettled_passes(self):
         """Test reconciliation when there are no unsettled transactions"""

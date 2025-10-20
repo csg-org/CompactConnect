@@ -71,3 +71,32 @@ class TransactionRecordSchema(BaseRecordSchema):
             f'#TX#{in_data["transactionId"]}'
         )
         return in_data
+
+
+@BaseRecordSchema.register_schema('unsettled_transaction')
+class UnsettledTransactionRecordSchema(BaseRecordSchema):
+    """
+    Schema for unsettled transaction records in the transaction history table.
+
+    These records track transactions that have been submitted but not yet settled,
+    allowing detection of transactions that fail to settle within the expected timeframe.
+    """
+
+    _record_type = 'unsettled_transaction'
+
+    # Required fields
+    compact = Compact(required=True, allow_none=False)
+    transactionId = String(required=True, allow_none=False)
+    transactionDate = String(required=True, allow_none=False)  # ISO datetime string
+    dateOfUpdate = String(required=True, allow_none=False)  # ISO datetime string
+
+    @pre_dump
+    def generate_pk_sk(self, in_data, **kwargs):
+        """Generate the partition key and sort key for DynamoDB."""
+        transaction_time = datetime.fromisoformat(in_data['transactionDate'])
+        # Convert to epoch timestamp for sorting
+        epoch_timestamp = int(transaction_time.timestamp())
+
+        in_data['pk'] = f'COMPACT#{in_data["compact"]}#UNSETTLED_TRANSACTIONS'
+        in_data['sk'] = f'COMPACT#{in_data["compact"]}#TIME#{epoch_timestamp}#TX#{in_data["transactionId"]}'
+        return in_data

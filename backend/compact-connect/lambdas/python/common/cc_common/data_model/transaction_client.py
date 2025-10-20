@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 from boto3.dynamodb.conditions import Key
 
 from cc_common.config import _Config, logger
-from cc_common.data_model.schema.transaction.record import TransactionRecordSchema
+from cc_common.data_model.schema.transaction.record import TransactionRecordSchema, UnsettledTransactionRecordSchema
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 
@@ -241,23 +241,19 @@ class TransactionClient:
         :param transaction_date: ISO datetime string of when the transaction was submitted
         """
         try:
-            # Convert ISO datetime to epoch timestamp for sorting
-            transaction_datetime = datetime.fromisoformat(transaction_date)
-            epoch_timestamp = int(transaction_datetime.timestamp())
-
-            pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
-            sk = f'COMPACT#{compact}#TIME#{epoch_timestamp}#TX#{transaction_id}'
-
-            record = {
-                'pk': pk,
-                'sk': sk,
+            # Create the record data
+            record_data = {
                 'compact': compact,
                 'transactionId': transaction_id,
                 'transactionDate': transaction_date,
                 'dateOfUpdate': datetime.now(UTC).isoformat(),
             }
 
-            self.config.transaction_history_table.put_item(Item=record)
+            # Validate and serialize using the schema
+            unsettled_schema = UnsettledTransactionRecordSchema()
+            serialized_record = unsettled_schema.dump(record_data)
+
+            self.config.transaction_history_table.put_item(Item=serialized_record)
             logger.info(
                 'Stored unsettled transaction record',
                 compact=compact,
