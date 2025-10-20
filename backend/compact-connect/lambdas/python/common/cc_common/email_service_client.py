@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date
 from typing import Any, Protocol
 from uuid import UUID
 
@@ -144,8 +144,8 @@ class EmailServiceClient:
         compact: str,
         report_s3_path: str,
         reporting_cycle: str,
-        start_date: datetime,
-        end_date: datetime,
+        start_date: date,
+        end_date: date,
     ) -> dict[str, Any]:
         """
         Send a compact transaction report email.
@@ -153,8 +153,8 @@ class EmailServiceClient:
         :param compact: Compact name
         :param report_s3_path: S3 path to the report zip file
         :param reporting_cycle: Reporting cycle (e.g., 'weekly', 'monthly')
-        :param start_date: Start datetime of the reporting period
-        :param end_date: End datetime of the reporting period
+        :param start_date: Start date of the reporting period
+        :param end_date: End date of the reporting period
         :return: Response from the email notification service
         """
 
@@ -178,8 +178,8 @@ class EmailServiceClient:
         jurisdiction: str,
         report_s3_path: str,
         reporting_cycle: str,
-        start_date: datetime,
-        end_date: datetime,
+        start_date: date,
+        end_date: date,
     ) -> dict[str, str]:
         """
         Send a jurisdiction transaction report email.
