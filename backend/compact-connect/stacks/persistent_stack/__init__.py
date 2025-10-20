@@ -2,6 +2,7 @@ import json
 import os
 from typing import Any
 
+import boto3
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -10,7 +11,6 @@ from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_route53 import ARecord, RecordTarget
-import boto3
 from botocore.exceptions import ClientError
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket

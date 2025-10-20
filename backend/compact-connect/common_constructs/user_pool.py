@@ -3,6 +3,7 @@ import os
 from collections.abc import Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
+from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cognito import (
     AccountRecovery,
     AdvancedSecurityMode,
@@ -29,7 +30,6 @@ from aws_cdk.aws_cognito import (
     UserPoolEmail,
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
-from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import UserPoolDomainTarget
