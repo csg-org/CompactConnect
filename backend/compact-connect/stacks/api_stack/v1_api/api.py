@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-import os
-
+from aws_cdk import Stack
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
-from cdk_nag import NagSuppressions
-from common_constructs.stack import Stack
 
-from common_constructs.python_function import PythonFunction
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
@@ -17,7 +13,6 @@ from .bulk_upload_url import BulkUploadUrl
 from .compact_configuration_api import CompactConfigurationApi
 from .credentials import Credentials
 from .feature_flags import FeatureFlagsApi
-from .post_licenses import PostLicenses
 from .provider_management import ProviderManagement
 from .provider_users import ProviderUsers
 from .public_lookup_api import PublicLookupApi
@@ -98,35 +93,8 @@ class V1Api:
             authorization_scopes=read_ssn_scopes,
         )
 
-        self.privilege_history_function = PythonFunction(
-            self.resource,
-            'GetPrivilegeHistory',
-            description='Get privilege history handler',
-            lambda_dir='provider-data-v1',
-            environment={
-                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                **stack.common_env_vars,
-            },
-            index=os.path.join('handlers', 'privilege_history.py'),
-            handler='privilege_history_handler',
-            alarm_topic=self.api.alarm_topic,
-        )
-        persistent_stack.shared_encryption_key.grant_decrypt(self.privilege_history_function)
-        persistent_stack.provider_table.grant_read_data(self.privilege_history_function)
-
-        self.api.log_groups.append(self.privilege_history_function.log_group)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{self.privilege_history_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to one table and encryption key.',
-                },
-            ],
-        )
+        # Store the privilege history handler for use by multiple modules
+        privilege_history_handler = api_lambda_stack.privilege_history_handler
 
         # /v1/flags
         self.flags_resource = self.resource.add_resource('flags')
@@ -147,9 +115,9 @@ class V1Api:
         )
         self.public_lookup_api = PublicLookupApi(
             resource=self.public_compacts_compact_providers_resource,
-            persistent_stack=persistent_stack,
             api_model=self.api_model,
-            privilege_history_function=self.privilege_history_function,
+            api_lambda_stack=api_lambda_stack,
+            privilege_history_function=privilege_history_handler,
         )
 
         # /v1/provider-users
@@ -157,20 +125,13 @@ class V1Api:
         self.provider_users = ProviderUsers(
             resource=self.provider_users_resource,
             api_model=self.api_model,
-            privilege_history_function=self.privilege_history_function,
+            privilege_history_function=privilege_history_handler,
             api_lambda_stack=api_lambda_stack,
         )
 
         # /v1/purchases
         self.purchases_resource = self.resource.add_resource('purchases')
-        self.purchases = Purchases(
-            self.purchases_resource,
-            data_encryption_key=persistent_stack.shared_encryption_key,
-            compact_configuration_table=persistent_stack.compact_configuration_table,
-            provider_data_table=persistent_stack.provider_table,
-            api_model=self.api_model,
-            data_event_bus=data_event_bus,
-        )
+        self.purchases = Purchases(self.purchases_resource, api_model=self.api_model, api_lambda_stack=api_lambda_stack)
 
         # /v1/compacts
         self.compacts_resource = self.resource.add_resource('compacts')
@@ -181,8 +142,8 @@ class V1Api:
         self.attestations_resource = self.compact_resource.add_resource('attestations')
         self.attestations = Attestations(
             resource=self.attestations_resource,
-            persistent_stack=persistent_stack,
             api_model=self.api_model,
+            api_lambda_stack=api_lambda_stack,
         )
 
         # /v1/compacts/{compact}/credentials
@@ -190,8 +151,8 @@ class V1Api:
         self.credentials = Credentials(
             resource=credentials_resource,
             method_options=admin_auth_method_options,
-            persistent_stack=persistent_stack,
             api_model=self.api_model,
+            api_lambda_stack=api_lambda_stack,
         )
 
         # POST /v1/compacts/{compact}/providers/query
@@ -205,7 +166,7 @@ class V1Api:
             persistent_stack=persistent_stack,
             api_model=self.api_model,
             data_event_bus=data_event_bus,
-            privilege_history_function=self.privilege_history_function,
+            privilege_history_function=privilege_history_handler,
         )
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')
@@ -224,25 +185,17 @@ class V1Api:
             jurisdiction_resource=self.jurisdiction_resource,
             general_read_method_options=read_auth_method_options,
             admin_method_options=admin_auth_method_options,
-            persistent_stack=persistent_stack,
             api_model=self.api_model,
+            api_lambda_stack=api_lambda_stack,
         )
 
-        # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
         licenses_resource = self.jurisdiction_resource.add_resource('licenses')
-        self.post_licenses = PostLicenses(
-            resource=licenses_resource,
-            method_options=write_auth_method_options,
-            persistent_stack=persistent_stack,
-            api_model=self.api_model,
-        )
         BulkUploadUrl(
             resource=licenses_resource,
             method_options=write_auth_method_options,
-            bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
-            license_upload_role=persistent_stack.ssn_table.license_upload_role,
             api_model=self.api_model,
+            api_lambda_stack=api_lambda_stack,
         )
 
         # /v1/staff-users
@@ -258,6 +211,6 @@ class V1Api:
             admin_resource=self.staff_users_admin_resource,
             self_resource=self.staff_users_self_resource,
             admin_scopes=admin_scopes,
-            persistent_stack=persistent_stack,
             api_model=self.api_model,
+            api_lambda_stack=api_lambda_stack,
         )

@@ -66,7 +66,7 @@ class EventListenerStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{license_encumbrance_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{license_encumbrance_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -113,7 +113,7 @@ class EventListenerStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{lifting_license_encumbrance_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{lifting_license_encumbrance_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -160,7 +160,7 @@ class EventListenerStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{license_deactivation_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{license_deactivation_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

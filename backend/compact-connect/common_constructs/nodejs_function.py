@@ -1,12 +1,13 @@
 import os
 
-from aws_cdk import Duration, Stack
+from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_iam import IRole, Role, ServicePrincipal
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_nodejs import BundlingOptions, OutputFormat
 from aws_cdk.aws_lambda_nodejs import NodejsFunction as CdkNodejsFunction
-from aws_cdk.aws_logs import RetentionDays
+from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -23,6 +24,7 @@ class NodejsFunction(CdkNodejsFunction):
         lambda_dir: str,
         log_retention: RetentionDays = RetentionDays.ONE_MONTH,
         alarm_topic: ITopic = None,
+        role: IRole = None,
         **kwargs,
     ):
         defaults = {
@@ -32,6 +34,43 @@ class NodejsFunction(CdkNodejsFunction):
 
         nodejs_dir = os.path.join('lambdas', 'nodejs')
         lambda_dir = os.path.join(nodejs_dir, lambda_dir)
+
+        log_group = LogGroup(
+            scope,
+            f'{construct_id}LogGroup',
+            retention=log_retention,
+        )
+        # We can't directly grant a provided role permission to log to our log group, since that could create a
+        # circular dependency with the stack the role came from. The role creator will have to be responsible for
+        # setting its permissions.
+        if not role:
+            role = Role(
+                scope,
+                f'{construct_id}Role',
+                assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            )
+            log_group.grant_write(role)
+        NagSuppressions.add_resource_suppressions(
+            log_group,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
+                    'reason': 'We do not log sensitive data to CloudWatch, and operational visibility of system'
+                    ' logs to operators with credentials for the AWS account is desired. Encryption is not appropriate'
+                    ' here.',
+                },
+            ],
+        )
+        if log_retention == RetentionDays.INFINITE:
+            NagSuppressions.add_resource_suppressions(
+                log_group,
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-CloudWatchLogGroupRetentionPeriod',
+                        'reason': 'We are deliberately retaining logs indefinitely here.',
+                    },
+                ],
+            )
 
         super().__init__(
             scope,
@@ -45,13 +84,13 @@ class NodejsFunction(CdkNodejsFunction):
                 esbuild_args={'--log-limit': '0', '--tree-shaking': 'true'},
                 force_docker_bundling=True,
             ),
-            log_retention=log_retention,
+            log_group=log_group,
+            role=role,
             **defaults,
         )
         if alarm_topic is not None:
             self._add_alarms(alarm_topic)
 
-        stack = Stack.of(self)
         NagSuppressions.add_resource_suppressions(
             self,
             suppressions=[
@@ -62,44 +101,6 @@ class NodejsFunction(CdkNodejsFunction):
                 {
                     'id': 'HIPAA.Security-LambdaInsideVPC',
                     'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement',
-                },
-            ],
-        )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{self.node.path}/ServiceRole/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM4',
-                    'appliesTo': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
-                    ],
-                    'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
-                },
-            ],
-        )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM4',
-                    'appliesTo': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-                    ],  # noqa: E501 line-too-long
-                    'reason': 'This policy is appropriate for the log retention lambda',
-                },
-            ],
-        )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'appliesTo': ['Resource::*'],
-                    'reason': 'This lambda needs to be able to configure log groups across the account, though the'
-                    ' actions it is allowed are scoped specifically for this task.',
                 },
             ],
         )
