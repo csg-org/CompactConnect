@@ -29,7 +29,7 @@ from aws_cdk.aws_cognito import (
     UserPoolEmail,
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
-from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation, ICertificate
+from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import UserPoolDomainTarget
@@ -191,7 +191,8 @@ class UserPool(CdkUserPool):
                     {
                         'id': 'AwsSolutions-IAM5',
                         'appliesTo': ['Resource::*'],
-                        'reason': 'This is an AWS-managed custom resource Lambda that requires wildcard permissions to describe CloudFront distributions.',
+                        'reason': 'This is an AWS-managed custom resource Lambda that requires wildcard permissions'
+                                  'to describe CloudFront distributions.',
                     }
                 ],
             )
@@ -218,11 +219,13 @@ class UserPool(CdkUserPool):
                 suppressions=[
                     {
                         'id': 'HIPAA.Security-LambdaDLQ',
-                        'reason': 'This is an AWS-managed custom resource Lambda used only during deployment. A DLQ is not necessary.',
+                        'reason': 'This is an AWS-managed custom resource Lambda used only during deployment.'
+                                  'A DLQ is not necessary.',
                     },
                     {
                         'id': 'HIPAA.Security-LambdaInsideVPC',
-                        'reason': 'This is an AWS-managed custom resource Lambda that needs internet access to describe CloudFront distributions.',
+                        'reason': 'This is an AWS-managed custom resource Lambda that needs internet access to'
+                                  'describe CloudFront distributions.',
                     },
                 ],
             )
