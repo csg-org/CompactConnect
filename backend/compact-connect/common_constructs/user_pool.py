@@ -208,7 +208,7 @@ class UserPool(CdkUserPool):
                         'appliesTo': [
                             'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                         ],
-                        'reason': 'This is an AWS-managed custom resource Lambda that uses the standard execution role.',
+                        'reason': 'This is an AWS-managed custom resource Lambda that uses the standard execution role.'
                     }
                 ],
             )
