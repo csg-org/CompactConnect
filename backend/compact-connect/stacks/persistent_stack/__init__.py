@@ -1,4 +1,6 @@
+import json
 import os
+from typing import Any
 
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
@@ -7,7 +9,9 @@ from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import QueryDefinition, QueryString
-from aws_cdk.aws_route53 import CnameRecord
+from aws_cdk.aws_route53 import ARecord, RecordTarget
+import boto3
+from botocore.exceptions import ClientError
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
@@ -172,14 +176,20 @@ class PersistentStack(AppStack):
                 configuration_set_name=self.user_email_notifications.config_set.configuration_set_name,
             )
 
-            # Needed for cognito subdomains
-            CnameRecord(
-                self,
-                'BaseCNameRecord',
-                record_name='base-cname',
-                zone=self.hosted_zone,
-                domain_name=self.hosted_zone.zone_name
-            )
+            if not environment_name == 'prod':
+                # Retrieve compact connect
+                compact_connect_ip_secret_name = f'compact-connect/env/{environment_name}/compactconnectorg/ip'
+
+                compact_connect_ip_data = self._get_secret(compact_connect_ip_secret_name)
+                compact_connect_ip = compact_connect_ip_data['ip']
+
+                # Needed for cognito subdomains
+                self.record = ARecord(
+                    self,
+                    'BaseARecord',
+                    zone=self.hosted_zone,
+                    target=RecordTarget.from_ip_addresses(compact_connect_ip),
+                )
         else:
             # if domain name is not provided, use the default cognito email settings
             notification_from_email = None
@@ -400,6 +410,33 @@ class PersistentStack(AppStack):
                 },
             ],
         )
+
+    def _get_secret(self, secret_name: str) -> dict[str, Any]:
+        """
+        Retrieve a secret from AWS Secrets Manager and return it as a JSON object.
+
+        :param secret_name: Name of the secret in AWS Secrets Manager
+        :return: Dictionary containing the secret data
+        :raises ValueError if secret retrieval fails
+        """
+        try:
+            # Create a Secrets Manager client
+            session = boto3.session.Session()
+            client = session.client(service_name='secretsmanager')
+
+            # Retrieve the secret value
+            response = client.get_secret_value(SecretId=secret_name)
+
+            # Parse the secret string as JSON
+            return json.loads(response['SecretString'])
+
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            raise ValueError(f"Failed to retrieve secret '{secret_name}': {error_code}") from e
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Secret '{secret_name}' does not contain valid JSON") from e
+        except Exception as e:
+            raise ValueError(f"Unexpected error retrieving secret '{secret_name}': {e}") from e
 
     def setup_ses_permissions_for_lambda(self, lambda_function: NodejsFunction):
         """Used to allow a lambda to send emails using the user email notification SES identity."""
