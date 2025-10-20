@@ -123,6 +123,7 @@ class ApiLambdaStack(AppStack):
             scope=self,
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            api_lambda_stack=self,
         )
 
         # Public lookup lambdas

@@ -82,8 +82,6 @@ class ProviderManagement:
         self,
         method_options: MethodOptions,
     ):
-        self.api.log_groups.append(self.get_provider_handler.log_group)
-
         self.provider_resource.add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
@@ -105,8 +103,6 @@ class ProviderManagement:
         method_options: MethodOptions,
     ):
         query_resource = self.resource.add_resource('query')
-
-        self.api.log_groups.append(self.query_providers_handler.log_group)
 
         query_resource.add_method(
             'POST',
@@ -130,8 +126,6 @@ class ProviderManagement:
         method_options: MethodOptions,
     ):
         """Add GET /providers/{providerId}/ssn endpoint to retrieve a provider's SSN."""
-        self.api.log_groups.append(self.get_provider_ssn_handler.log_group)
-
         # Add the SSN endpoint as a sub-resource of the provider
         self.ssn_resource = self.provider_resource.add_resource('ssn')
         self.ssn_resource.add_method(
@@ -182,8 +176,6 @@ class ProviderManagement:
     ):
         """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
         /licenseType/{licenseType}/deactivate endpoint."""
-        self.api.log_groups.append(self.deactivate_privilege_handler.log_group)
-
         deactivate_resource = self.privilege_jurisdiction_license_type_resource.add_resource('deactivate')
 
         # Create a metric to track privilege deactivation notification failures

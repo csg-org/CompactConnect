@@ -11,6 +11,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.stack import Stack
 
 from common_constructs.python_function import PythonFunction
+from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 
 
@@ -21,6 +22,7 @@ class ProviderManagementLambdas:
         scope: Stack,
         persistent_stack: ps.PersistentStack,
         data_event_bus: EventBus,
+        api_lambda_stack: als.ApiLambdaStack,
     ) -> None:
         self.scope = scope
         self.persistent_stack = persistent_stack
@@ -44,10 +46,15 @@ class ProviderManagementLambdas:
 
         # Create all the lambda handlers
         self.get_provider_handler = self._get_provider_handler(lambda_environment)
+        api_lambda_stack.log_groups.append(self.get_provider_handler)
         self.query_providers_handler = self._query_providers_handler(lambda_environment)
+        api_lambda_stack.log_groups.append(self.query_providers_handler)
         self.get_provider_ssn_handler = self._get_provider_ssn_handler(lambda_environment)
+        api_lambda_stack.log_groups.append(self.get_provider_ssn_handler)
         self.deactivate_privilege_handler = self._deactivate_privilege_handler(lambda_environment)
+        api_lambda_stack.log_groups.append(self.deactivate_privilege_handler)
         self.provider_encumbrance_handler = self._add_provider_encumbrance_handler(lambda_environment)
+        api_lambda_stack.log_groups.append(self.provider_encumbrance_handler)
 
     def _get_provider_handler(
         self,
@@ -69,7 +76,7 @@ class ProviderManagementLambdas:
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
