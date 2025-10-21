@@ -84,7 +84,7 @@ class TestPurchasesApi(TestApi):
         policy = next(
             policy
             for policy_logical_id, policy in api_lambda_stack_template.find_resources('AWS::IAM::Policy').items()
-            if handler_role_logical_id in policy['Properties']['Roles'][0]['Ref']
+            if handler_role_logical_id in policy['Properties']['Roles'][0].get('Ref', '')
         )
 
         # We need to ensure the lambda can read these secrets, else all transactions will fail

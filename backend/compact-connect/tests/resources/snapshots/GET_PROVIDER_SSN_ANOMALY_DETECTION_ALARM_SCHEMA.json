@@ -1,6 +1,6 @@
 {
   "ActionsEnabled": true,
-  "AlarmDescription": "Sandbox/APIStack/LicenseApi read-ssn anomaly detection. The GET provider SSN endpoint has beencalled an irregular number of times. Investigation required to ensure ssn endpoint is not being abused.",
+  "AlarmDescription": "Sandbox/ApiLambdaStack/GetProviderSSNHandler read-ssn anomaly detection. The GET provider SSN endpoint has beencalled an irregular number of times. Investigation required to ensure ssn endpoint is not being abused.",
   "ComparisonOperator": "GreaterThanUpperThreshold",
   "EvaluationPeriods": 1,
   "Metrics": [
