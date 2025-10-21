@@ -141,6 +141,9 @@ class TransactionHistoryProcessingWorkflow(Construct):
                     'compact': compact,
                     'template': 'transactionBatchSettlementFailure',
                     'recipientType': 'COMPACT_OPERATIONS_TEAM',
+                    'templateVariables': {
+                        'batchFailureErrorMessage.$': '$.Payload.batchFailureErrorMessage',
+                    },
                 }
             ),
             result_path='$.notificationResult',

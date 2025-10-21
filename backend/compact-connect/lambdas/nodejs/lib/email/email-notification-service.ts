@@ -57,7 +57,8 @@ export class EmailNotificationService extends BaseEmailService {
     public async sendTransactionBatchSettlementFailureEmail(
         compact: string,
         recipientType: RecipientType,
-        specificEmails?: string[]
+        specificEmails?: string[],
+        batchFailureErrorMessage?: string
     ): Promise<void> {
         this.logger.info('Sending transaction batch settlement failure email', { compact: compact });
         const recipients = await this.getCompactRecipients(compact, recipientType, specificEmails);
@@ -69,12 +70,35 @@ export class EmailNotificationService extends BaseEmailService {
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
         const report = this.getNewEmailTemplate();
         const subject = `Transactions Failed to Settle for ${compactConfig.compactName} Payment Processor`;
-        const bodyText = 'A transaction settlement error was detected within the payment processing account for the compact. ' +
-            'Please reach out to your payment processing representative to determine the cause. ' +
-            'Transactions made in the account will not be able to be settled until the issue is addressed.';
+        
+        let bodyText = 'A transaction settlement error was detected within the payment processing account for the compact. ' +
+            'Please reach out to your payment processing representative if needed to determine the cause. ';
+
+        // Include detailed error message if provided
+        if (batchFailureErrorMessage) {
+            try {
+                const errorDetails = JSON.parse(batchFailureErrorMessage);
+                bodyText += '\n\nDetailed Error Information:\n';
+                
+                if (errorDetails.message) {
+                    bodyText += `Error Message: ${errorDetails.message}\n`;
+                }
+                
+                if (errorDetails.failedTransactionIds && errorDetails.failedTransactionIds.length > 0) {
+                    bodyText += `Failed Transaction IDs: ${errorDetails.failedTransactionIds.join(', ')}\n`;
+                }
+                
+                if (errorDetails.unsettledTransactionIds && errorDetails.unsettledTransactionIds.length > 0) {
+                    bodyText += `Unsettled Transaction IDs (older than 48 hours): ${errorDetails.unsettledTransactionIds.join(', ')}\n`;
+                }
+            } catch (parseError) {
+                // If JSON parsing fails, include the raw message
+                bodyText += `\n\nError Details: ${batchFailureErrorMessage}`;
+            }
+        }
 
         this.insertHeader(report, subject);
-        this.insertBody(report, bodyText);
+        this.insertBody(report, bodyText, "center", true);
         this.insertFooter(report);
 
         const htmlContent = this.renderTemplate(report);
