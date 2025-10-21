@@ -901,9 +901,7 @@ class TestGenerateTransactionReports(TstFunction):
         display_end = date.fromisoformat('2024-02-29')
         # the start time should be the first day of the montn
         display_start = date.fromisoformat('2024-02-01')
-        report_window = ReportWindow(
-            ReportCycle.WEEKLY, display_start_date=display_start, display_end_date=display_end
-        )
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=display_start, display_end_date=display_end)
 
         generate_transaction_reports(generate_mock_event(reporting_cycle=ReportCycle.MONTHLY), self.mock_context)
 
