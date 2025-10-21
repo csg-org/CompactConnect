@@ -24,7 +24,7 @@
                 v-html="$t('account.requestAccountSubtext')"
             />
         </template>
-        <Card class="register-licensee-card">
+        <Card class="register-licensee-card" :allowOverflow="true">
             <Transition name="fade" :mode="elementTransitionMode">
                 <template v-if="isFinalError">
                     <div class="register-licensee-error-container">

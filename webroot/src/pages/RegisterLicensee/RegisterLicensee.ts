@@ -183,9 +183,10 @@ class RegisterLicensee extends mixins(MixinForm) {
                 id: 'license-state',
                 name: 'license-state',
                 label: computed(() => this.$t('licensing.stateOfHomeLicense')),
+                labelInfo: computed(() => this.$t('account.requestAccountHomeStateInfo')),
                 autocomplete: 'address-level1',
                 validation: Joi.string().required().messages(this.joiMessages.string),
-                // valueOptions: this.stateOptions,
+                valueOptions: this.stateOptions,
                 isDisabled: true,
             }),
             firstName: new FormInput({
@@ -449,13 +450,14 @@ class RegisterLicensee extends mixins(MixinForm) {
     }
 
     resetForm(): void {
+        this.formData.licenseType.value = '';
+        this.formData.licenseState.isDisabled = true;
+        this.formData.licenseState.value = '';
         this.formData.firstName.value = '';
         this.formData.lastName.value = '';
         this.formData.email.value = '';
         this.formData.ssnLastFour.value = '';
         this.formData.dob.value = '';
-        this.formData.licenseState.value = '';
-        this.formData.licenseType.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
         this.isConfirmationScreen = false;
@@ -465,13 +467,16 @@ class RegisterLicensee extends mixins(MixinForm) {
     }
 
     async mockPopulate(): Promise<void> {
+        this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
+        await nextTick();
+        this.populateStatesInput();
+        await nextTick();
+        this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
         this.formData.firstName.value = 'Test';
         this.formData.lastName.value = 'User';
         this.formData.email.value = 'test@example.com';
         this.formData.ssnLastFour.value = '1234';
         this.formData.dob.value = '2000-01-01';
-        this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
-        this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
         await nextTick();
         this.validateAll({ asTouched: true });
     }

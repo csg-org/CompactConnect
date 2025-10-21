@@ -363,7 +363,8 @@
         "compact": "Compact",
         "uploadDocument": "Upload document",
         "here": "here",
-        "notLive": "Not live"
+        "notLive": "Not live",
+        "toggleInfoFor": "Toggle more info for"
     },
     "navigation": {
         "dashboard": "Dashboard",
@@ -921,6 +922,7 @@
         "requestAccount": "Request account",
         "requestAnAccount": "Request an account",
         "requestAccountSubtext": "The information you provide here must match <em>exactly</em> the information your home state has on file. If your information does not match, you will be unable to create an account.",
+        "requestAccountHomeStateInfo": "Not all states are live and ready for licensee account creation or issuing privileges. Please check with the compact commission for details about your state.",
         "requestAccountEmailSubtext": "This email address is where we will send information regarding your account. It <em>does not need to match</em> the information provided by your state.",
         "requestSuccessTitle": "Thanks for your request.",
         "requestSuccessSubtext": "If your information is valid you will be receiving an email to finish setting up your account.",

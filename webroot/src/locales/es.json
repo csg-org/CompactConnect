@@ -362,7 +362,8 @@
         "compact": "Compacto",
         "uploadDocument": "Subir documento",
         "here": "aquí",
-        "notLive": "No disponible"
+        "notLive": "No disponible",
+        "toggleInfoFor": "Activar más información para"
     },
     "navigation": {
         "dashboard": "Panel",
@@ -905,6 +906,7 @@
         "requestAccount": "Solicitar cuenta",
         "requestAnAccount": "Solicitar una cuenta",
         "requestAccountSubtext": "La información que proporcione aquí debe coincidir <em>exactamente</em> con la que su estado de residencia tiene registrada. Si no coincide, no podrá crear una cuenta.",
+        "requestAccountHomeStateInfo": "No todos los estados están activos y listos para la creación de cuentas de licenciatarios o la emisión de privilegios. Consulte con la comisión del pacto para obtener más información sobre su estado.",
         "requestAccountEmailSubtext": "Esta dirección de correo electrónico es donde le enviaremos información sobre su cuenta. <em>No es necesario que coincida</em> con la información proporcionada por su estado.",
         "accountSuccessTitle": "Gracias por tu solicitud.",
         "accountSuccessSubtext": "Si tu información es válida recibirás un correo electrónico para terminar de configurar tu cuenta.",
