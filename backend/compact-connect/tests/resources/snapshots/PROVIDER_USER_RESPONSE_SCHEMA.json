@@ -765,6 +765,13 @@
             },
             "type": "array"
           },
+          "investigationStatus": {
+            "description": "Status indicating if the license is under investigation",
+            "enum": [
+              "underInvestigation"
+            ],
+            "type": "string"
+          },
           "npi": {
             "pattern": "^[0-9]{10}$",
             "type": "string"
@@ -1684,6 +1691,13 @@
               "type": "object"
             },
             "type": "array"
+          },
+          "investigationStatus": {
+            "description": "Status indicating if the privilege is under investigation",
+            "enum": [
+              "underInvestigation"
+            ],
+            "type": "string"
           },
           "type": {
             "enum": [

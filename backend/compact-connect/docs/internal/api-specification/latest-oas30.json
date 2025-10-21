@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-10-18T00:04:47Z"
+    "version": "2025-10-21T17:05:28Z"
   },
   "servers": [
     {
@@ -7276,6 +7276,13 @@
               ],
               "type": "object",
               "properties": {
+                "investigationStatus": {
+                  "type": "string",
+                  "description": "Status indicating if the privilege is under investigation",
+                  "enum": [
+                    "underInvestigation"
+                  ]
+                },
                 "licenseJurisdiction": {
                   "type": "string",
                   "enum": [
@@ -8789,6 +8796,13 @@
                   "maxLength": 100,
                   "minLength": 1,
                   "type": "string"
+                },
+                "investigationStatus": {
+                  "type": "string",
+                  "description": "Status indicating if the license is under investigation",
+                  "enum": [
+                    "underInvestigation"
+                  ]
                 },
                 "npi": {
                   "pattern": "^[0-9]{10}$",

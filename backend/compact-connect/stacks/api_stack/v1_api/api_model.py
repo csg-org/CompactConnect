@@ -1176,6 +1176,11 @@ class ApiModel:
                                 type=JsonSchemaType.ARRAY,
                                 items=self._investigation_schema,
                             ),
+                            'investigationStatus': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['underInvestigation'],
+                                description='Status indicating if the license is under investigation',
+                            ),
                             **self._common_license_properties,
                         },
                     ),
@@ -1315,6 +1320,11 @@ class ApiModel:
                             'investigations': JsonSchema(
                                 type=JsonSchemaType.ARRAY,
                                 items=self._investigation_schema,
+                            ),
+                            'investigationStatus': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['underInvestigation'],
+                                description='Status indicating if the privilege is under investigation',
                             ),
                             **self._common_privilege_properties,
                         },
