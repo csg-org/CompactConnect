@@ -60,6 +60,7 @@ class EventListenerStack(AppStack):
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -108,6 +109,7 @@ class EventListenerStack(AppStack):
             timeout=Duration.minutes(2),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
