@@ -8,7 +8,7 @@ import { Context } from 'aws-lambda';
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
-import { EmailNotificationService, EncumbranceNotificationService } from '../lib/email';
+import { EmailNotificationService, EncumbranceNotificationService, InvestigationNotificationService } from '../lib/email';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
@@ -23,6 +23,7 @@ interface LambdaProperties {
 export class Lambda implements LambdaInterface {
     private readonly emailService: EmailNotificationService;
     private readonly encumbranceService: EncumbranceNotificationService;
+    private readonly investigationService: InvestigationNotificationService;
 
     constructor(props: LambdaProperties) {
         const compactConfigurationClient = new CompactConfigurationClient({
@@ -44,6 +45,14 @@ export class Lambda implements LambdaInterface {
         });
 
         this.encumbranceService = new EncumbranceNotificationService({
+            logger: logger,
+            sesClient: props.sesClient,
+            s3Client: props.s3Client,
+            compactConfigurationClient: compactConfigurationClient,
+            jurisdictionClient: jurisdictionClient
+        });
+
+        this.investigationService = new InvestigationNotificationService({
             logger: logger,
             sesClient: props.sesClient,
             s3Client: props.s3Client,
@@ -355,6 +364,166 @@ export class Lambda implements LambdaInterface {
                 event.specificEmails,
                 event.templateVariables.providerId,
                 event.templateVariables.recoveryToken
+            );
+            break;
+        case 'licenseInvestigationProviderNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for license investigation provider notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for licenseInvestigationProviderNotification template.');
+            }
+            await this.investigationService.sendLicenseInvestigationProviderNotificationEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
+            );
+            break;
+        case 'licenseInvestigationStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('No jurisdiction provided for license investigation state notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.providerId
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for licenseInvestigationStateNotification template.');
+            }
+            await this.investigationService.sendLicenseInvestigationStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
+            );
+            break;
+        case 'licenseInvestigationClosedProviderNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for license investigation closed provider notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for licenseInvestigationClosedProviderNotification template.');
+            }
+            await this.investigationService.sendLicenseInvestigationClosedProviderNotificationEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
+            );
+            break;
+        case 'licenseInvestigationClosedStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('No jurisdiction provided for license investigation closed state notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.providerId
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for licenseInvestigationClosedStateNotification template.');
+            }
+            await this.investigationService.sendLicenseInvestigationClosedStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
+            );
+            break;
+        case 'privilegeInvestigationProviderNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for privilege investigation provider notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for privilegeInvestigationProviderNotification template.');
+            }
+            await this.investigationService.sendPrivilegeInvestigationProviderNotificationEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
+            );
+            break;
+        case 'privilegeInvestigationStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('No jurisdiction provided for privilege investigation state notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.providerId
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for privilegeInvestigationStateNotification template.');
+            }
+            await this.investigationService.sendPrivilegeInvestigationStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
+            );
+            break;
+        case 'privilegeInvestigationClosedProviderNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for privilege investigation closed provider notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for privilegeInvestigationClosedProviderNotification template.');
+            }
+            await this.investigationService.sendPrivilegeInvestigationClosedProviderNotificationEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
+            );
+            break;
+        case 'privilegeInvestigationClosedStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('No jurisdiction provided for privilege investigation closed state notification email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.providerId
+                || !event.templateVariables?.investigationJurisdiction
+                || !event.templateVariables?.licenseType) {
+                throw new Error('Missing required template variables for privilegeInvestigationClosedStateNotification template.');
+            }
+            await this.investigationService.sendPrivilegeInvestigationClosedStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.investigationJurisdiction,
+                event.templateVariables.licenseType
             );
             break;
         default:
