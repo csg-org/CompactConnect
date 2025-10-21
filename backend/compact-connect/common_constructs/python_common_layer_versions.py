@@ -50,9 +50,7 @@ class PythonCommonLayerVersions(Construct):
                 # we will likely need to add a custom resource to track these versions, and clean up versions that are
                 # older than a certain date. That is out of scope for our current effort, but we're leaving this comment
                 # here to remind us that this will need to be addressed at a later date.
-                removal_policy=RemovalPolicy.RETAIN
-                if not self.node.try_get_context('sandbox')
-                else RemovalPolicy.DESTROY,
+                removal_policy=RemovalPolicy.RETAIN,
                 **kwargs,
             )
 
