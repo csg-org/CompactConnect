@@ -14,6 +14,7 @@
         "domain_name": "test.compactconnect.org",
         "backup_enabled": true,
         "allow_local_ui": true,
+        "compact_connect_org_ip": "10.0.0.1",
         "notifications": {
           "ses_operations_support_email": "justin@example.com",
           "email": [

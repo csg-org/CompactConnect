@@ -60,8 +60,8 @@ def generate_csp_lambda_code(
         '##DATA_API##': persistent_stack_values.api_domain_name,
         '##S3_UPLOAD_URL_STATE##': f'{persistent_stack_values.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##S3_UPLOAD_URL_PROVIDER##': f'{persistent_stack_values.provider_users_bucket_name}{S3_URL_SUFFIX}',
-        '##COGNITO_STAFF##': f'{persistent_stack_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
-        '##COGNITO_PROVIDER##': f'{provider_users_stack_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+        '##COGNITO_STAFF##': f'{persistent_stack_values.staff_cognito_domain}',
+        '##COGNITO_PROVIDER##': f'{provider_users_stack_values.provider_cognito_domain}',
     }
 
     for placeholder, value in replacements.items():

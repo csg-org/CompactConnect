@@ -178,10 +178,7 @@ class PersistentStack(AppStack):
 
             if not environment_name == 'prod':
                 # Retrieve compact connect
-                compact_connect_ip_secret_name = f'compact-connect/env/{environment_name}/compactconnectorg/ip'
-
-                compact_connect_ip_data = self._get_secret(compact_connect_ip_secret_name)
-                compact_connect_ip = compact_connect_ip_data['ip']
+                compact_connect_ip = environment_context.get('compact_connect_org_ip')
 
                 # Needed for cognito subdomains
                 self.record = ARecord(
@@ -410,33 +407,6 @@ class PersistentStack(AppStack):
                 },
             ],
         )
-
-    def _get_secret(self, secret_name: str) -> dict[str, Any]:
-        """
-        Retrieve a secret from AWS Secrets Manager and return it as a JSON object.
-
-        :param secret_name: Name of the secret in AWS Secrets Manager
-        :return: Dictionary containing the secret data
-        :raises ValueError if secret retrieval fails
-        """
-        try:
-            # Create a Secrets Manager client
-            session = boto3.session.Session()
-            client = session.client(service_name='secretsmanager')
-
-            # Retrieve the secret value
-            response = client.get_secret_value(SecretId=secret_name)
-
-            # Parse the secret string as JSON
-            return json.loads(response['SecretString'])
-
-        except ClientError as e:
-            error_code = e.response['Error']['Code']
-            raise ValueError(f"Failed to retrieve secret '{secret_name}': {error_code}") from e
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Secret '{secret_name}' does not contain valid JSON") from e
-        except Exception as e:
-            raise ValueError(f"Unexpected error retrieving secret '{secret_name}': {e}") from e
 
     def setup_ses_permissions_for_lambda(self, lambda_function: NodejsFunction):
         """Used to allow a lambda to send emails using the user email notification SES identity."""

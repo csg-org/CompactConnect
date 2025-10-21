@@ -13,6 +13,7 @@
         "region": "us-east-1",
         "domain_name": "beta.compactconnect.org",
         "backup_enabled": false,
+        "compact_connect_org_ip": "10.0.0.1",
         "notifications": {
           "ses_operations_support_email": "justin@example.com",
           "email": [
