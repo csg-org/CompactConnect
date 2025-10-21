@@ -490,7 +490,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                 privilegeTypeAbbrev
             } = this;
 
-            const response = await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
+            await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
                 compact: compactType,
                 licenseeId,
                 privilegeState: stateAbbrev,
@@ -509,9 +509,6 @@ class PrivilegeCard extends mixins(MixinForm) {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
             });
-
-            // @TODO
-            console.log(response);
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;

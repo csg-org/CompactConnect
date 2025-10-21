@@ -435,7 +435,7 @@ class LicenseCard extends mixins(MixinForm) {
                 licenseTypeAbbrev
             } = this;
 
-            const response = await this.$store.dispatch(`users/encumberLicenseRequest`, {
+            await this.$store.dispatch(`users/encumberLicenseRequest`, {
                 compact: compactType,
                 licenseeId,
                 licenseState: stateAbbrev,
@@ -454,9 +454,6 @@ class LicenseCard extends mixins(MixinForm) {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
             });
-
-            // @TODO
-            console.log(response);
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
