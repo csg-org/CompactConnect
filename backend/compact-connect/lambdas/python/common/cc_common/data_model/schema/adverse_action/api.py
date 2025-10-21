@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815  invalid-name
 from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import Date, List, Raw, String
-from marshmallow.validate import OneOf
+from marshmallow.validate import Length, OneOf
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import AdverseActionAgainstEnum
@@ -25,7 +25,9 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
 
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
-    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
+    clinicalPrivilegeActionCategories = List(
+        ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False, validate=Length(min=1)
+    )
     # TODO - remove this field as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
 
