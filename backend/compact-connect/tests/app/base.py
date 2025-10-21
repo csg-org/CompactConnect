@@ -23,7 +23,6 @@ from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.state_auth import StateAuthStack
 
-MOCK_COMPACT_CONNECT_IP = '0.0.0.0'
 
 class _AppSynthesizer:
     """

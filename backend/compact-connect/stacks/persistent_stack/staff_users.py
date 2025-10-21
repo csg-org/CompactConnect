@@ -74,11 +74,11 @@ class StaffUsers(UserPool, ResourceScopeMixin):
 
         # Create a custom domain for the cognito app client
         self.app_client_custom_domain = self.add_app_client_domain(
-                app_client_domain_prefix='Staff',
-                scope=self,
-                non_custom_domain_prefix=non_custom_domain_prefix,
-                base_domain_name=stack.hosted_zone.zone_name,
-                hosted_zone=stack.hosted_zone,
+            app_client_domain_prefix='Staff',
+            scope=self,
+            non_custom_domain_prefix=non_custom_domain_prefix,
+            base_domain_name=stack.hosted_zone.zone_name if stack.hosted_zone else None,
+            hosted_zone=stack.hosted_zone,
         )
 
         # Do not allow resource server scopes via the client - they are assigned via token customization

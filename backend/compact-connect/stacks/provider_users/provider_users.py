@@ -72,7 +72,9 @@ class ProviderUsers(UserPool):
             app_client_domain_prefix='Licensee',
             scope=self,
             non_custom_domain_prefix=non_custom_domain_prefix,
-            base_domain_name=persistent_stack.hosted_zone.zone_name,
+            base_domain_name=persistent_stack.hosted_zone.zone_name
+            if persistent_stack.hosted_zone
+            else None,
             hosted_zone=persistent_stack.hosted_zone,
         )
 
