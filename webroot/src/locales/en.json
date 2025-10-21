@@ -461,7 +461,8 @@
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
         "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900.",
-        "rateLimit": "You have exceeded the maximum number of attempts. Please try again later."
+        "rateLimit": "You have exceeded the maximum number of attempts. Please try again later.",
+        "compactStatesLive": "There was an error fetching the compact live states"
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Please verify your phone number by following the prompts below.",

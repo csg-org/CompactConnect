@@ -162,6 +162,7 @@ export default {
             return compacts;
         }).catch((error) => {
             dispatch('getCompactStatesForRegistrationFailure', error);
+            throw error;
         });
     },
     getCompactStatesForRegistrationSuccess: ({ commit }, states) => {

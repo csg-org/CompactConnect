@@ -240,11 +240,12 @@ class RegisterLicensee extends mixins(MixinForm) {
     }
 
     async getCompactStates(): Promise<void> {
-        const compacts = await this.$store.dispatch('user/getCompactStatesForRegistrationRequest').catch((err) => {
-            this.handleErrorResponse(err);
+        await this.$store.dispatch('user/getCompactStatesForRegistrationRequest').then((response) => {
+            this.compacts = response;
+        }).catch((err) => {
+            this.setError(`${this.$t('serverErrors.compactStatesLive')}: ${err?.message || ''}`);
+            this.isFinalError = true;
         });
-
-        this.compacts = compacts;
     }
 
     populateStatesInput(): void {
@@ -263,6 +264,8 @@ class RegisterLicensee extends mixins(MixinForm) {
             stateInput.valueOptions = [];
             stateInput.isDisabled = true;
         }
+
+        stateInput.value = '';
     }
 
     initExtraFields(): void { // See Auth -> Registration section of README
