@@ -1,15 +1,9 @@
-from aws_cdk.assertions import Capture, Template
+from aws_cdk.assertions import Capture, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
+from aws_cdk.aws_iam import CfnPolicy
 from aws_cdk.aws_lambda import CfnFunction
 
 from tests.app.test_api import TestApi
-
-
-def _generate_expected_secret_arn(compact: str) -> str:
-    return (
-        f'arn:aws:secretsmanager:us-east-1:111122223333:secret:compact-connect/env'
-        f'/justin/compact/{compact}/credentials/payment-processor-??????'
-    )
 
 
 class TestCompactsApi(TestApi):
@@ -69,15 +63,15 @@ class TestCompactsApi(TestApi):
         )
 
     def test_synth_generates_post_credentials_payment_processor_handler_with_required_secret_permissions(self):
-        api_stack = self.app.sandbox_backend_stage.api_stack
-        api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         post_credentials_payment_processor_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.credentials.post_credentials_payment_processor_handler.node.default_child
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.credentials_lambdas.credentials_handler.node.default_child
             ),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(
@@ -85,43 +79,63 @@ class TestCompactsApi(TestApi):
             'handlers.credentials.post_payment_processor_credentials',
         )
 
-        handler_role_logical_id = api_stack.get_logical_id(
-            api_stack.api.v1_api.credentials.post_credentials_payment_processor_handler.role.node.default_child
+        handler_role_logical_id = api_lambda_stack.get_logical_id(
+            api_lambda_stack.credentials_lambdas.credentials_handler.role.node.default_child
         )
 
         # get the policy attached to the role using this match
-        # "Roles": [
-        #     {
-        #         "Ref": "<role logical id>"
-        #     }
-        # ]
-        policy = next(
-            policy
-            for policy_logical_id, policy in api_stack_template.find_resources('AWS::IAM::Policy').items()
-            if handler_role_logical_id in policy['Properties']['Roles'][0]['Ref']
-        )
-
-        # We need to ensure the lambda can read these secrets, else all transactions will fail
-        self.assertIn(
+        api_lambda_stack_template.has_resource(
+            CfnPolicy.CFN_RESOURCE_TYPE_NAME,
             {
-                'Action': [
-                    'secretsmanager:CreateSecret',
-                    'secretsmanager:DescribeSecret',
-                    'secretsmanager:PutSecretValue',
-                ],
-                'Effect': 'Allow',
-                'Resource': [
-                    _generate_expected_secret_arn('aslp'),
-                    _generate_expected_secret_arn('coun'),
-                    _generate_expected_secret_arn('octp'),
-                ],
+                'Properties': {
+                    'Roles': Match.array_with(
+                        [
+                            {
+                                'Ref': handler_role_logical_id,
+                            },
+                        ]
+                    ),
+                    'PolicyDocument': {
+                        'Statement': Match.array_with(
+                            [
+                                {
+                                    'Action': Match.array_with(
+                                        [
+                                            'secretsmanager:CreateSecret',
+                                            'secretsmanager:DescribeSecret',
+                                            'secretsmanager:PutSecretValue',
+                                        ]
+                                    ),
+                                    'Effect': 'Allow',
+                                    'Resource': Match.array_with(
+                                        [
+                                            Match.string_like_regexp(
+                                                'arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:compact-connect/env'
+                                                + r'/.*/aslp/credentials/payment-processor-\?\?\?\?\?\?'
+                                            ),
+                                            Match.string_like_regexp(
+                                                'arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:compact-connect/env'
+                                                + r'/.*/coun/credentials/payment-processor-\?\?\?\?\?\?'
+                                            ),
+                                            Match.string_like_regexp(
+                                                'arn:aws:secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:compact-connect/env'
+                                                + r'/.*/octp/credentials/payment-processor-\?\?\?\?\?\?'
+                                            ),
+                                        ]
+                                    ),
+                                },
+                            ]
+                        ),
+                    },
+                }
             },
-            policy['Properties']['PolicyDocument']['Statement'],
         )
 
     def test_synth_generates_post_credentials_payment_processor_endpoint_resources(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         method_request_model_logical_id_capture = Capture()
@@ -137,10 +151,10 @@ class TestCompactsApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.credentials.post_credentials_payment_processor_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.credentials_lambdas.credentials_handler,
                 ),
                 'RequestModels': {'application/json': {'Ref': method_request_model_logical_id_capture}},
                 'MethodResponses': [

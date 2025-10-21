@@ -1,6 +1,6 @@
 # ruff: noqa: E501  line-too-long The lines displaying the csv file contents are long, but they are necessary for the test.
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from io import BytesIO
 from unittest.mock import call, patch
@@ -244,33 +244,30 @@ class TestGenerateTransactionReports(TstFunction):
                 record.update(jurisdiction)
                 self._compact_configuration_table.put_item(Item=record)
 
-    def _validate_compact_email_notification(self, mock_email_service_client, reporting_cycle, start_time, end_time):
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+    def _validate_compact_email_notification(self, mock_email_service_client, reporting_cycle, report_window):
         # Check compact report email notification
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
+            f'{report_window.display_end.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{report_window.display_text}-report.zip'
         )
         mock_email_service_client.send_compact_transaction_report_email.assert_called_once_with(
             compact=TEST_COMPACT,
             report_s3_path=expected_compact_path,
             reporting_cycle=reporting_cycle,
-            start_date=start_time,
-            end_date=end_time,
+            start_date=report_window.display_start,
+            end_date=report_window.display_end,
         )
 
         return expected_compact_path
 
     def _validate_jurisdiction_email_notification(
-        self, mock_email_service_client, jurisdiction, reporting_cycle, start_time, end_time
+        self, mock_email_service_client, jurisdiction, reporting_cycle, report_window
     ):
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
-
         expected_jurisdiction_path = (
             f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
-            f'reporting-cycle/{reporting_cycle}/{end_time.strftime("%Y/%m/%d")}/'
-            f'{jurisdiction}-{date_range}-report.zip'
+            f'reporting-cycle/{reporting_cycle}/{report_window.display_end.strftime("%Y/%m/%d")}/'
+            f'{jurisdiction}-{report_window.display_text}-report.zip'
         )
         email_service_client_calls = mock_email_service_client.send_jurisdiction_transaction_report_email.call_args_list
         expected_call = call(
@@ -278,8 +275,8 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdiction=jurisdiction,
             report_s3_path=expected_jurisdiction_path,
             reporting_cycle=reporting_cycle,
-            start_date=start_time,
-            end_date=end_time,
+            start_date=report_window.display_start,
+            end_date=report_window.display_end,
         )
         self.assertIn(expected_call, email_service_client_calls)
 
@@ -293,26 +290,26 @@ class TestGenerateTransactionReports(TstFunction):
     ):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data([OHIO_JURISDICTION])
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end time should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         # Generate the reports
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
         expected_compact_path = self._validate_compact_email_notification(
             mock_email_service_client=mock_email_service_client,
-            reporting_cycle='weekly',
-            start_time=start_time,
-            end_time=end_time,
+            reporting_cycle=ReportCycle.WEEKLY,
+            report_window=report_window,
         )
 
         # Verify S3 stored files
@@ -323,7 +320,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Ohio,0\n'
@@ -335,7 +332,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{report_window.display_text}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
@@ -347,9 +344,8 @@ class TestGenerateTransactionReports(TstFunction):
         expected_ohio_path = self._validate_jurisdiction_email_notification(
             mock_email_service_client=mock_email_service_client,
             jurisdiction='oh',
-            reporting_cycle='weekly',
-            start_time=start_time,
-            end_time=end_time,
+            reporting_cycle=ReportCycle.WEEKLY,
+            report_window=report_window,
         )
 
         # Check jurisdiction report
@@ -358,7 +354,7 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         with ZipFile(BytesIO(ohio_zip_obj['Body'].read())) as zip_file:
-            with zip_file.open(f'oh-transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'oh-transaction-detail-{report_window.display_text}.csv') as f:
                 ohio_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status\n'
@@ -372,9 +368,49 @@ class TestGenerateTransactionReports(TstFunction):
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_transaction_reports_supports_date_overrides(self, mock_email_service_client):
+        """Test successful processing of settled transactions."""
+        from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
+
+        _set_default_email_service_client_behavior(mock_email_service_client)
+
+        self._add_compact_configuration_data([OHIO_JURISDICTION])
+
+        # Generate the reports
+        event = generate_mock_event()
+        # A previous weekly report
+        event['reportStartOverride'] = '2025-03-22'
+        event['reportEndOverride'] = '2025-03-28'
+        generate_transaction_reports(event, self.mock_context)
+
+        # Calculate expected date range
+        # the end time should be Friday more than a week back
+        end_date = date.fromisoformat('2025-03-28')
+        # the start time should be the prior Saturday
+        start_date = date.fromisoformat('2025-03-22')
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
+
+        # Just check the expected emails were 'sent' with dates older than default
+        self._validate_compact_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            reporting_cycle=ReportCycle.WEEKLY,
+            report_window=report_window,
+        )
+        self._validate_jurisdiction_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            jurisdiction='oh',
+            reporting_cycle=ReportCycle.WEEKLY,
+            report_window=report_window,
+        )
+
+    # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
+    @patch('handlers.transaction_reporting.config.email_service_client')
     def test_generate_report_collects_transactions_across_two_months(self, mock_email_service_client):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -400,20 +436,19 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end time should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
         # Verify email notifications using the new pattern
         expected_compact_path = self._validate_compact_email_notification(
             mock_email_service_client=mock_email_service_client,
-            reporting_cycle='weekly',
-            start_time=start_time,
-            end_time=end_time,
+            reporting_cycle=ReportCycle.WEEKLY,
+            report_window=report_window,
         )
 
         # Check jurisdiction report emails
@@ -421,9 +456,8 @@ class TestGenerateTransactionReports(TstFunction):
             self._validate_jurisdiction_email_notification(
                 mock_email_service_client=mock_email_service_client,
                 jurisdiction=jurisdiction,
-                reporting_cycle='weekly',
-                start_time=start_time,
-                end_time=end_time,
+                reporting_cycle=ReportCycle.WEEKLY,
+                report_window=report_window,
             )
 
         # Verify S3 stored files for compact report
@@ -433,7 +467,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -447,7 +481,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{report_window.display_text}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     f'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
@@ -462,13 +496,13 @@ class TestGenerateTransactionReports(TstFunction):
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
                     f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
-                    f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
-                    f'{jurisdiction}-{date_range}-report.zip'
+                    f'reporting-cycle/weekly/{report_window.display_end.strftime("%Y/%m/%d")}/'
+                    f'{jurisdiction}-{report_window.display_text}-report.zip'
                 ),
             )
 
             with ZipFile(BytesIO(jurisdiction_zip_obj['Body'].read())) as zip_file:
-                with zip_file.open(f'{jurisdiction}-transaction-detail-{date_range}.csv') as f:
+                with zip_file.open(f'{jurisdiction}-transaction-detail-{report_window.display_text}.csv') as f:
                     content = f.read().decode('utf-8')
                     transaction_date = '03-30-2025' if jurisdiction == 'oh' else '04-01-2025'
                     self.assertEqual(
@@ -486,6 +520,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_with_multiple_privileges_in_single_transaction(self, mock_email_service_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -503,20 +538,19 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end time should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
         # Verify compact email notification
         expected_compact_path = self._validate_compact_email_notification(
             mock_email_service_client=mock_email_service_client,
-            reporting_cycle='weekly',
-            start_time=start_time,
-            end_time=end_time,
+            reporting_cycle=ReportCycle.WEEKLY,
+            report_window=report_window,
         )
 
         # Verify S3 stored files for compact report
@@ -526,7 +560,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -542,7 +576,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{report_window.display_text}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 expected_lines = [
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status'
@@ -558,9 +592,8 @@ class TestGenerateTransactionReports(TstFunction):
             expected_jurisdiction_path = self._validate_jurisdiction_email_notification(
                 mock_email_service_client=mock_email_service_client,
                 jurisdiction=jurisdiction,
-                reporting_cycle='weekly',
-                start_time=start_time,
-                end_time=end_time,
+                reporting_cycle=ReportCycle.WEEKLY,
+                report_window=report_window,
             )
             jurisdiction_zip_obj = self.config.s3_client.get_object(
                 Bucket=self.config.transaction_reports_bucket_name,
@@ -568,7 +601,7 @@ class TestGenerateTransactionReports(TstFunction):
             )
 
             with ZipFile(BytesIO(jurisdiction_zip_obj['Body'].read())) as zip_file:
-                with zip_file.open(f'{jurisdiction}-transaction-detail-{date_range}.csv') as f:
+                with zip_file.open(f'{jurisdiction}-transaction-detail-{report_window.display_text}.csv') as f:
                     content = f.read().decode('utf-8')
                     self.assertEqual(
                         'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status\n'
@@ -585,6 +618,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_with_large_number_of_transactions_and_providers(self, mock_email_service_client):
         """Test processing of a large number of transactions (>500) and providers (>100)."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -610,11 +644,11 @@ class TestGenerateTransactionReports(TstFunction):
             )
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end time should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -624,14 +658,14 @@ class TestGenerateTransactionReports(TstFunction):
             Bucket=self.config.transaction_reports_bucket_name,
             Key=(
                 f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-                f'{end_time.strftime("%Y/%m/%d")}/'
-                f'{TEST_COMPACT}-{date_range}-report.zip'
+                f'{report_window.display_end.strftime("%Y/%m/%d")}/'
+                f'{TEST_COMPACT}-{report_window.display_text}-report.zip'
             ),
         )
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,300\n'
@@ -645,7 +679,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{report_window.display_text}.csv') as f:
                 detail_content = f.read().decode('utf-8').split('\n')
                 # Verify header
                 self.assertEqual(
@@ -676,13 +710,13 @@ class TestGenerateTransactionReports(TstFunction):
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
                     f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
-                    f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
-                    f'{jurisdiction}-{date_range}-report.zip'
+                    f'reporting-cycle/weekly/{report_window.display_end.strftime("%Y/%m/%d")}/'
+                    f'{jurisdiction}-{report_window.display_text}-report.zip'
                 ),
             )
 
             with ZipFile(BytesIO(jurisdiction_zip_obj['Body'].read())) as zip_file:
-                with zip_file.open(f'{jurisdiction}-transaction-detail-{date_range}.csv') as f:
+                with zip_file.open(f'{jurisdiction}-transaction-detail-{report_window.display_text}.csv') as f:
                     content = f.read().decode('utf-8').split('\n')
 
                     # Verify header
@@ -736,15 +770,16 @@ class TestGenerateTransactionReports(TstFunction):
         This is unlikely to happen in practice, but we should handle it gracefully.
         """
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end time should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -768,14 +803,14 @@ class TestGenerateTransactionReports(TstFunction):
             Bucket=self.config.transaction_reports_bucket_name,
             Key=(
                 f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-                f'{end_time.strftime("%Y/%m/%d")}/'
-                f'{TEST_COMPACT}-{date_range}-report.zip'
+                f'{report_window.display_end.strftime("%Y/%m/%d")}/'
+                f'{TEST_COMPACT}-{report_window.display_text}-report.zip'
             ),
         )
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 # Verify compact summary includes unknown jurisdiction
                 self.assertEqual(
@@ -816,6 +851,7 @@ class TestGenerateTransactionReports(TstFunction):
     ):
         """Test processing monthly report with full month range for Feb 2024 (leap year)."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -862,19 +898,18 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Calculate expected date range
         # the display end time should be the last day of the month
-        display_end_time = datetime.fromisoformat('2024-02-29T00:00:00+00:00')
-        # the start time should be the first day of the month
-        display_start_time = datetime.fromisoformat('2024-02-01T00:00:00+00:00')
-        date_range = f'{display_start_time.strftime("%Y-%m-%d")}--{display_end_time.strftime("%Y-%m-%d")}'
+        display_end = date.fromisoformat('2024-02-29')
+        # the start time should be the first day of the montn
+        display_start = date.fromisoformat('2024-02-01')
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=display_start, display_end_date=display_end)
 
-        generate_transaction_reports(generate_mock_event(reporting_cycle='monthly'), self.mock_context)
+        generate_transaction_reports(generate_mock_event(reporting_cycle=ReportCycle.MONTHLY), self.mock_context)
 
         # Verify email notifications using the new pattern
         expected_compact_path = self._validate_compact_email_notification(
             mock_email_service_client=mock_email_service_client,
-            reporting_cycle='monthly',
-            start_time=display_start_time,
-            end_time=display_end_time,
+            reporting_cycle=ReportCycle.MONTHLY,
+            report_window=report_window,
         )
 
         # Verify S3 stored files for compact report
@@ -884,7 +919,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -907,6 +942,7 @@ class TestGenerateTransactionReports(TstFunction):
     ):
         """Test processing weekly report with full week range for Mar 2024."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -916,65 +952,64 @@ class TestGenerateTransactionReports(TstFunction):
 
         mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
 
-        # Create a transaction with a privilege which is settled the first day of the week a second after 10:00 PM UTC
+        # Create a transaction with a privilege which is settled Saturday of the report week a second after midnight UTC
         self._add_mock_transaction_to_db(
             jurisdictions=['oh'],
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',
-            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-01T22:00:01+00:00'),
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-01T00:00:01+00:00'),
         )
 
-        # Create a transaction with a privilege which is settled the first day of the week right at 10:00 PM UTC
+        # Create a transaction with a privilege which is settled Saturday of the report week right at midnight UTC
         # This transaction should be included in the weekly report
         self._add_mock_transaction_to_db(
             jurisdictions=['ky'],
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',
-            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-01T22:00:00+00:00'),
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-01T00:00:00+00:00'),
         )
 
-        # Create a transaction with a privilege which is settled the last day of the week right at 9:59:59 PM UTC
+        # Create a transaction with a privilege which is settled Friday of the report week right at 11:59:59 PM UTC
         # This transaction should be included in the weekly report
         self._add_mock_transaction_to_db(
             jurisdictions=['ne'],
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',
-            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T21:59:59+00:00'),
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-07T23:59:59+00:00'),
         )
 
-        # Create a transaction with a privilege which is settled at the end of the week at 10:00 PM UTC
+        # Create a transaction with a privilege which is settled Saturday, midnight, just after the report week
         # This transaction should NOT be included in the weekly report
         self._add_mock_transaction_to_db(
             jurisdictions=['ky'],
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',
-            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T22:00:00+00:00'),
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T00:00:00+00:00'),
         )
 
-        # Create a transaction with a privilege which is settled the last day of the week a second after 10:00 PM UTC
+        # Create a transaction with a privilege which is settled Saturday, a second after midnight, just after the week
         # This transaction should NOT be included in the weekly report
         self._add_mock_transaction_to_db(
             jurisdictions=['ne'],
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',
-            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T22:00:01+00:00'),
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T00:00:01+00:00'),
         )
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-03-08T22:00:01+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end time should be Friday
+        end_date = date.fromisoformat('2025-03-07')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
-        generate_transaction_reports(generate_mock_event(reporting_cycle='weekly'), self.mock_context)
+        generate_transaction_reports(generate_mock_event(reporting_cycle=ReportCycle.WEEKLY), self.mock_context)
 
         # Verify email notifications using the new pattern
         expected_compact_path = self._validate_compact_email_notification(
             mock_email_service_client=mock_email_service_client,
-            reporting_cycle='weekly',
-            start_time=start_time,
-            end_time=end_time,
+            reporting_cycle=ReportCycle.WEEKLY,
+            report_window=report_window,
         )
 
         # Verify S3 stored files for compact report
@@ -984,7 +1019,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1005,6 +1040,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_with_licensee_transaction_fees(self, mock_email_service_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -1023,18 +1059,18 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end time should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
+            f'{report_window.display_end.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{report_window.display_text}-report.zip'
         )
 
         # Verify S3 stored files
@@ -1045,7 +1081,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1062,7 +1098,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail
-            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{report_window.display_text}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 expected_lines = [
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status'
@@ -1079,6 +1115,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_accounts_for_unknown_line_item_fees(self, mock_email_service_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -1098,11 +1135,11 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end date should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
 
         with self.assertRaises(CCInternalException) as exc_info:
             generate_transaction_reports(generate_mock_event(), self.mock_context)
@@ -1118,8 +1155,8 @@ class TestGenerateTransactionReports(TstFunction):
 
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
+            f'{report_window.display_end.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{report_window.display_text}-report.zip'
         )
 
         # Verify S3 stored files
@@ -1130,7 +1167,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1153,6 +1190,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_does_not_include_transactions_with_settlement_errors(self, mock_email_service_client):
         """Test that transactions with settlement errors are not included in the report."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -1180,15 +1218,16 @@ class TestGenerateTransactionReports(TstFunction):
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end date should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
+
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
+            f'{report_window.display_end.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{report_window.display_text}-report.zip'
         )
 
         # Verify S3 stored files
@@ -1199,7 +1238,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary, which in this case should only include the successful transaction
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1213,7 +1252,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail, which in this case should only include the successful transaction
-            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{report_window.display_text}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
@@ -1227,6 +1266,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_does_not_include_transactions_with_declined_status(self, mock_email_service_client):
         """Test that transactions with declined status are not included in the report."""
         from handlers.transaction_reporting import generate_transaction_reports
+        from report_window import ReportCycle, ReportWindow
 
         _set_default_email_service_client_behavior(mock_email_service_client)
 
@@ -1254,15 +1294,16 @@ class TestGenerateTransactionReports(TstFunction):
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
         # Calculate expected date range
-        # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
-        # the start time should be 7 days ago at 10:00 PM UTC
-        start_time = end_time - timedelta(days=7)
-        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # the end date should be Friday
+        end_date = date.fromisoformat('2025-04-04')
+        # the start time should be the prior Saturday
+        start_date = end_date - timedelta(days=6)
+        report_window = ReportWindow(ReportCycle.WEEKLY, display_start_date=start_date, display_end_date=end_date)
+
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
+            f'{report_window.display_end.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{report_window.display_text}-report.zip'
         )
 
         # Verify S3 stored files
@@ -1273,7 +1314,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary, which in this case should only include the successful transaction
-            with zip_file.open(f'financial-summary-{date_range}.csv') as f:
+            with zip_file.open(f'financial-summary-{report_window.display_text}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Privileges purchased for Kentucky,1\n'
@@ -1287,7 +1328,7 @@ class TestGenerateTransactionReports(TstFunction):
                 )
 
             # Check transaction detail, which in this case should only include the successful transaction
-            with zip_file.open(f'transaction-detail-{date_range}.csv') as f:
+            with zip_file.open(f'transaction-detail-{report_window.display_text}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'

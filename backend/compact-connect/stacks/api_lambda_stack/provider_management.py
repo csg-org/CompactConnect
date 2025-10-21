@@ -52,7 +52,7 @@ class ProviderManagementLambdas:
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
-            path=f'{investigation_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{investigation_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
