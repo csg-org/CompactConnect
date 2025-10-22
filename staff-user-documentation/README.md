@@ -369,7 +369,7 @@ These email notifications will be sent to whichever email addresses have been se
 ### Overview
 State IT departments can set up automated license data uploads to CompactConnect through the API, eliminating the need for manual CSV uploads and ensuring timely data synchronization between state licensing systems and CompactConnect. For more information about this setup, see the following document:
 
-**[Automated License Data Upload Onboarding Instructions](../backend/compact-connect/app_clients/it_staff_onboarding_instructions/README.md)**
+**[Automated License Data Upload Onboarding Instructions](../backend/compact-connect/docs/it_staff_onboarding_instructions.md)**
 
 ---
 

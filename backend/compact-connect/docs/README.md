@@ -80,6 +80,8 @@ dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressC
 3) Navigate to the bulk-upload page to upload your exported CSV. It may take about five minutes for uploaded licenses to
    be fully ingested and appear in the system.
 
+Note that CSV uploads are an asynchronous process, meaning that **the data you upload may still have errors and will not show up in CompactConnect even if the file is uploaded successfully.** In order to receive data validation error notifications from CompactConnect, your state administrator must configure your email address as a point of contact for operation support. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration)
+
 ### Machine-to-machine automated uploads
 
 The data system API supports uploading of a large CSV file for asynchronous data ingest, as well as JSON license records
