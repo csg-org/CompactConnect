@@ -1,8 +1,5 @@
-import json
 import os
-from typing import Any
 
-import boto3
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -177,11 +174,12 @@ class PersistentStack(AppStack):
                 configuration_set_name=self.user_email_notifications.config_set.configuration_set_name,
             )
 
+            # We need an ARecord at the base domain for cognito to let us use a subdomain. We already have an ARecord
+            # at the subdomain in prod, but we do not anywhere else
             if not environment_name == 'prod':
                 # Retrieve compact connect
                 compact_connect_ip = environment_context.get('compact_connect_org_ip')
 
-                # Needed for cognito subdomains
                 self.record = ARecord(
                     self,
                     'BaseARecord',
@@ -512,7 +510,6 @@ class PersistentStack(AppStack):
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
         frontend_app_config = PersistentStackFrontendAppConfigUtility()
 
-        # TODO Here
         # Add staff user pool Cognito configuration
         staff_cognito_domain_name = ''
         if self.hosted_zone:
