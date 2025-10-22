@@ -189,8 +189,10 @@ class PersistentStackFrontendAppConfigValues:
         """
         test_config = {
             'staff_cognito_domain': 'test-staff-domain',
+            'custom_staff_cognito_domain': 'test-staff-auth.example.com',
             'staff_cognito_client_id': 'test-staff-client-id',
             'provider_cognito_domain': 'test-provider-domain',
+            'custom_provider_cognito_domain': 'test-licensee-auth.example.com',
             'provider_cognito_client_id': 'test-provider-client-id',
             'ui_domain_name': 'test-ui.example.com',
             'api_domain_name': 'test-api.example.com',
@@ -205,6 +207,11 @@ class PersistentStackFrontendAppConfigValues:
     def staff_cognito_domain(self) -> str:
         """Get the Cognito domain name for staff users."""
         return self._config['staff_cognito_domain']
+
+    @property
+    def custom_staff_cognito_domain(self) -> str:
+        """Get the Cognito custom domain name for staff users."""
+        return self._config['custom_staff_cognito_domain']
 
     @property
     def staff_cognito_client_id(self) -> str:
@@ -309,6 +316,11 @@ class ProviderUsersStackFrontendAppConfigValues:
     def provider_cognito_domain(self) -> str:
         """Get the Cognito domain name for provider users."""
         return self._config['provider_cognito_domain']
+
+    @property
+    def custom_provider_cognito_domain(self) -> str:
+        """Get the Cognito custom domain name for staff users."""
+        return self._config['custom_provider_cognito_domain']
 
     @property
     def provider_cognito_client_id(self) -> str:
