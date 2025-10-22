@@ -123,7 +123,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
 
     # here we check if there were any settlement errors in the batch or if there was a settlement failure
     # in a previous iteration, and we need to send an alert to the compact operations team
-    failed_transactions_ids = transaction_response.get('settlementErrorTransactionIds')
+    failed_transactions_ids = transaction_response.get('settlementErrorTransactionIds', [])
     if failed_transactions_ids or event.get('batchFailureErrorMessage'):
         # error message should be a json object we can load
         if event.get('batchFailureErrorMessage'):
