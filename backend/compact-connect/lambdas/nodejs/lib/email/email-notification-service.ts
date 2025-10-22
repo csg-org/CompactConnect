@@ -78,6 +78,7 @@ export class EmailNotificationService extends BaseEmailService {
         if (batchFailureErrorMessage) {
             try {
                 const errorDetails = JSON.parse(batchFailureErrorMessage);
+
                 bodyText += '\n\nDetailed Error Information:\n';
                 
                 if (errorDetails.message) {
@@ -98,7 +99,7 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, "center", true);
+        this.insertBody(report, bodyText, 'center', true);
         this.insertFooter(report);
 
         const htmlContent = this.renderTemplate(report);
