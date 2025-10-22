@@ -281,7 +281,9 @@ For ongoing license updates after the initial bulk upload, we recommend using th
 
 ## Verification that License Records are Uploaded
 
-After submitting license data to the API, you can verify that your records were successfully uploaded by checking the API response:
+After submitting license data to the JSON API, you can verify that your records were successfully uploaded by checking the API response.
+
+Note that CSV uploads, unlike the JSON API, are an asynchronous process, meaning that **there may still be validation errors in the data even if the file is uploaded successfully.** In order to receive data validation error notifications from CompactConnect, your state administrator must configure your email address as a point of contact for operation support. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration)
 
 ### 1. Successful Upload
 If the API responds with a 200 status code, your request was accepted and basic validation passed (e.g., schema and
@@ -323,7 +325,21 @@ validation errors in the response body.
 ### 3. Validation errors (400)
 - Check the error response for specific validation issues
 - Ensure all required fields are present and formatted correctly
-- Verify that `licenseType` matches exactly one of the valid types for the compact
+
+```json
+{
+  "message": "Invalid license records in request. See errors for more detail.",
+  "errors": {
+    "0": {
+      "licenseType": ["Missing data for required field."],
+    },
+    "1": {
+      "dateOfBirth": ["Not a valid date."],
+      "compactEligibility": ["Must be one of: eligible, ineligible."]
+    }
+  }
+}
+```
 
 ## Implementation Recommendations
 
