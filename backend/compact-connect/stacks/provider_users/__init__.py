@@ -1,6 +1,7 @@
 from aws_cdk import RemovalPolicy
 from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
 from aws_cdk.aws_logs import QueryDefinition, QueryString
+from common_constructs.frontend_app_config_utility import COGNITO_AUTH_DOMAIN_SUFFIX
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
@@ -99,9 +100,9 @@ class ProviderUsersStack(AppStack):
         )
 
         # Create frontend app config parameter for this stack's values
-        self._create_frontend_app_config_parameter()
+        self._create_frontend_app_config_parameter(persistent_stack=persistent_stack)
 
-    def _create_frontend_app_config_parameter(self):
+    def _create_frontend_app_config_parameter(self, persistent_stack: PersistentStack):
         """
         Creates and stores provider user pool configuration in SSM Parameter Store
         for use in the frontend deployment stack.
@@ -110,9 +111,15 @@ class ProviderUsersStack(AppStack):
 
         provider_app_config = ProviderUsersStackFrontendAppConfigUtility()
 
+        provider_cognito_domain_name = ''
+        if persistent_stack.hosted_zone:
+            provider_cognito_domain_name = self.provider_users.app_client_custom_domain.domain_name
+        else:
+            provider_cognito_domain_name = f'{self.provider_users.user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
+
         # Add provider user pool Cognito configuration
         provider_app_config.set_provider_cognito_values(
-            domain_name=self.provider_users.app_client_custom_domain.domain_name,
+            domain_name=provider_cognito_domain_name,
             client_id=self.provider_users.ui_client.user_pool_client_id,
         )
 

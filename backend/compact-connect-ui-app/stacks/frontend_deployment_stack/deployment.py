@@ -34,15 +34,6 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
         statsig_client_key = environment_context['statsig_key']
         app_env = environment_context['app_env']
 
-        staff_auth_domain = f'{persistent_stack_app_config_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
-        provider_auth_domain = f'{provider_users_stack_app_config_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
-
-        if persistent_stack_app_config_values.custom_staff_cognito_domain:
-            staff_auth_domain = persistent_stack_app_config_values.custom_staff_cognito_domain
-
-        if provider_users_stack_app_config_values.should_use_custom_cognito_domain:
-            provider_auth_domain = provider_users_stack_app_config_values.should_use_custom_cognito_domain
-
         super().__init__(
             scope,
             construct_id,
@@ -74,9 +65,9 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                                 'VUE_APP_API_LICENSE_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
                                 'VUE_APP_API_USER_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
                                 'VUE_APP_COGNITO_REGION': 'us-east-1',
-                                'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{staff_auth_domain}',
+                                'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.staff_cognito_domain}',
                                 'VUE_APP_COGNITO_CLIENT_ID_STAFF': persistent_stack_app_config_values.staff_cognito_client_id,
-                                'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE': f'{HTTPS_PREFIX}{provider_auth_domain}',
+                                'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE': f'{HTTPS_PREFIX}{provider_users_stack_app_config_values.provider_cognito_domain}',
                                 'VUE_APP_COGNITO_CLIENT_ID_LICENSEE': provider_users_stack_app_config_values.provider_cognito_client_id,
                                 'VUE_APP_RECAPTCHA_KEY': recaptcha_public_key,
                                 'VUE_APP_STATSIG_KEY': statsig_client_key,

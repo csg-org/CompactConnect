@@ -20,6 +20,7 @@ from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.frontend_app_config_utility import COGNITO_AUTH_DOMAIN_SUFFIX
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
@@ -511,9 +512,16 @@ class PersistentStack(AppStack):
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
         frontend_app_config = PersistentStackFrontendAppConfigUtility()
 
+        # TODO Here
         # Add staff user pool Cognito configuration
+        staff_cognito_domain_name = ''
+        if self.hosted_zone:
+            staff_cognito_domain_name = self.staff_users.app_client_custom_domain.domain_name
+        else:
+            staff_cognito_domain_name = f'{self.staff_users.user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
+
         frontend_app_config.set_staff_cognito_values(
-            domain_name=self.staff_users.app_client_custom_domain.domain_name,
+            domain_name=staff_cognito_domain_name,
             client_id=self.staff_users.ui_client.user_pool_client_id,
         )
 

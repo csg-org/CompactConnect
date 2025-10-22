@@ -54,23 +54,14 @@ def generate_csp_lambda_code(
     with open(template_path) as f:
         template = f.read()
 
-    staff_auth_domain = f'{persistent_stack_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
-    provider_auth_domain = f'{provider_users_stack_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
-
-    if persistent_stack_values.custom_staff_cognito_domain:
-        staff_auth_domain = persistent_stack_values.custom_staff_cognito_domain
-
-    if provider_users_stack_values.custom_provider_cognito_domain:
-        provider_auth_domain = provider_users_stack_values.custom_provider_cognito_domain
-
     # Replace placeholders with actual values
     replacements = {
         '##WEB_FRONTEND##': persistent_stack_values.ui_domain_name,
         '##DATA_API##': persistent_stack_values.api_domain_name,
         '##S3_UPLOAD_URL_STATE##': f'{persistent_stack_values.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##S3_UPLOAD_URL_PROVIDER##': f'{persistent_stack_values.provider_users_bucket_name}{S3_URL_SUFFIX}',
-        '##COGNITO_STAFF##': f'{staff_auth_domain}',
-        '##COGNITO_PROVIDER##': f'{provider_auth_domain}',
+        '##COGNITO_STAFF##': persistent_stack_values.staff_cognito_domain,
+        '##COGNITO_PROVIDER##': provider_users_stack_values.provider_cognito_domain,
     }
 
     for placeholder, value in replacements.items():
