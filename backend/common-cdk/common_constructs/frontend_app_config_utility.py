@@ -319,7 +319,7 @@ class ProviderUsersStackFrontendAppConfigValues:
 
     @property
     def custom_provider_cognito_domain(self) -> str:
-        """Get the Cognito custom domain name for staff users."""
+        """Get the Cognito custom domain name for provider users."""
         return self._config['custom_provider_cognito_domain']
 
     @property
