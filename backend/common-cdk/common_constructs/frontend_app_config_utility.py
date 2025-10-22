@@ -192,7 +192,6 @@ class PersistentStackFrontendAppConfigValues:
             'custom_staff_cognito_domain': 'test-staff-auth.example.com',
             'staff_cognito_client_id': 'test-staff-client-id',
             'provider_cognito_domain': 'test-provider-domain',
-            'custom_provider_cognito_domain': 'test-licensee-auth.example.com',
             'provider_cognito_client_id': 'test-provider-client-id',
             'ui_domain_name': 'test-ui.example.com',
             'api_domain_name': 'test-api.example.com',
@@ -307,6 +306,7 @@ class ProviderUsersStackFrontendAppConfigValues:
         :return: An instance of ProviderUsersStackFrontendAppConfigValues with default test values
         """
         test_config = {
+            'custom_provider_cognito_domain': 'test-licensee-auth.example.com',
             'provider_cognito_domain': 'test-provider-domain',
             'provider_cognito_client_id': 'test-provider-client-id',
         }
