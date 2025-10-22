@@ -346,7 +346,8 @@ class ProviderManagement:
         )
         self.investigation_privilege_resource.add_method(
             'POST',
-            request_validator=self.api.parameter_only_validator,
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_privilege_investigation_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',
@@ -393,7 +394,8 @@ class ProviderManagement:
         )
         self.investigation_license_resource.add_method(
             'POST',
-            request_validator=self.api.parameter_only_validator,
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_license_investigation_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',

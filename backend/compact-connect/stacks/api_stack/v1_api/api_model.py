@@ -2820,6 +2820,38 @@ class ApiModel:
         return self.api._v1_check_feature_flag_response_model
 
     @property
+    def post_privilege_investigation_request_model(self) -> Model:
+        """POST privilege investigation request model"""
+        if not hasattr(self.api, '_v1_post_privilege_investigation_request_model'):
+            self.api._v1_post_privilege_investigation_request_model = Model(
+                self.api,
+                'V1PostPrivilegeInvestigationRequestModel',
+                rest_api=self.api,
+                description='Post privilege investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={},
+                ),
+            )
+        return self.api._v1_post_privilege_investigation_request_model
+
+    @property
+    def post_license_investigation_request_model(self) -> Model:
+        """POST license investigation request model"""
+        if not hasattr(self.api, '_v1_post_license_investigation_request_model'):
+            self.api._v1_post_license_investigation_request_model = Model(
+                self.api,
+                'V1PostLicenseInvestigationRequestModel',
+                rest_api=self.api,
+                description='Post license investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={},
+                ),
+            )
+        return self.api._v1_post_license_investigation_request_model
+
+    @property
     def patch_privilege_investigation_request_model(self) -> Model:
         """PATCH privilege investigation request model"""
         if not hasattr(self.api, '_v1_patch_privilege_investigation_request_model'):
