@@ -245,9 +245,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
             log_group=self.transaction_processor_handler.log_group,
             metric_namespace='CompactConnect/TransactionProcessing',
             metric_name=f'{compact}/TransactionProcessorErrors',
-            filter_pattern=FilterPattern.string_value(json_field='$.level',
-                                                      comparison='=',
-                                                      value='ERROR'),
+            filter_pattern=FilterPattern.string_value(json_field='$.level', comparison='=', value='ERROR'),
             metric_value='1',
             default_value=0,
         )
@@ -261,8 +259,8 @@ class TransactionHistoryProcessingWorkflow(Construct):
             threshold=1,
             actions_enabled=True,
             alarm_description=f'The {compact} Transaction Processor Lambda logged an ERROR level message. Investigate '
-                              f'the logs for the {self.transaction_processor_handler.function_name} lambda to '
-                              f'determine the cause.',
+            f'the logs for the {self.transaction_processor_handler.function_name} lambda to '
+            f'determine the cause.',
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         )

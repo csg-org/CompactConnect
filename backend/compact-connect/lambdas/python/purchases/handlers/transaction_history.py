@@ -167,7 +167,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             # Create a combined error message
             response['batchFailureErrorMessage'] = json.dumps(
                 {
-                    'message': f"{existing_error.get('message', '')} {old_tx_error_message}",
+                    'message': f'{existing_error.get("message", "")} {old_tx_error_message}',
                     'failedTransactionIds': existing_error.get('failedTransactionIds', []),
                     'unsettledTransactionIds': old_unsettled_transaction_ids,
                 }
@@ -177,7 +177,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             existing_error = json.loads(response['batchFailureErrorMessage'])
             existing_error['unsettledTransactionIds'] = old_unsettled_transaction_ids
             existing_error['message'] = (
-                f"{existing_error['message']} One or more transactions have not settled in over 48 hours."
+                f'{existing_error["message"]} One or more transactions have not settled in over 48 hours.'
             )
             response['batchFailureErrorMessage'] = json.dumps(existing_error)
         else:

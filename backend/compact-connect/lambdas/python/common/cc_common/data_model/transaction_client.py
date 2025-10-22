@@ -259,8 +259,9 @@ class TransactionClient:
                 compact=compact,
                 transaction_id=transaction_id,
             )
-        except Exception as e:
-            # Log error but don't raise - transaction will be caught by 48hr check
+        except Exception as e:  # noqa: BLE001
+            # This record is created for monitoring unsettled transactions, not business critical
+            # If we fail to record it for whatever reason, log error but don't raise an exception
             logger.error(
                 'Failed to store unsettled transaction record',
                 compact=compact,
@@ -280,7 +281,8 @@ class TransactionClient:
 
         :param compact: The compact abbreviation
         :param settled_transactions: List of settled transaction records
-        :return: List of transaction IDs that have not been matched and are older than 48 hours (empty list if none found)
+        :return: List of transaction IDs that have not been matched and are older than 48 hours
+        (empty list if none found)
         """
         # Query all unsettled transactions for this compact
         pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'

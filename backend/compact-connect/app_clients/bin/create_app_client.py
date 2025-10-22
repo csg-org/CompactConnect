@@ -194,7 +194,13 @@ def get_user_input():
         print('Configuration cancelled.')
         sys.exit(0)
 
-    return {'environment': environment, 'clientName': client_name, 'compact': compact, 'state': state, 'scopes': deduped_scopes}
+    return {
+        'environment': environment,
+        'clientName': client_name,
+        'compact': compact,
+        'state': state,
+        'scopes': deduped_scopes,
+    }
 
 
 def create_app_client(user_pool_id, config):

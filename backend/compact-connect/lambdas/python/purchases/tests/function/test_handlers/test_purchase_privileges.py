@@ -827,9 +827,11 @@ class TestPostPurchasePrivileges(TstFunction):
         # verify that the transaction was voided
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
             compact_abbr=TEST_COMPACT,
-            order_information={'transactionId': MOCK_TRANSACTION_ID,
-                               'lineItems': MOCK_LINE_ITEMS,
-                               'submitTimeUTC': MOCK_SUBMIT_TIME},
+            order_information={
+                'transactionId': MOCK_TRANSACTION_ID,
+                'lineItems': MOCK_LINE_ITEMS,
+                'submitTimeUTC': MOCK_SUBMIT_TIME,
+            },
         )
 
     @patch('handlers.privileges.PurchaseClient')

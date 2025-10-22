@@ -125,7 +125,9 @@ class TestTransactionClient(TstFunction):
 
         # Query the transaction from DynamoDB
         pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
-        response = self._transaction_history_table.query(KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk})
+        response = self._transaction_history_table.query(
+            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
+        )
 
         # Verify the record was stored
         self.assertEqual(1, len(response['Items']))
@@ -143,11 +145,15 @@ class TestTransactionClient(TstFunction):
 
         # This should not raise an exception even with invalid date format
         # The schema validation will fail, but the method catches the exception and logs it
-        client.store_unsettled_transaction(compact='aslp', transaction_id='test-tx-123', transaction_date='invalid-date')
+        client.store_unsettled_transaction(
+            compact='aslp', transaction_id='test-tx-123', transaction_date='invalid-date'
+        )
 
         # Verify the record was not stored
-        pk = f'COMPACT#aslp#UNSETTLED_TRANSACTIONS'
-        response = self._transaction_history_table.query(KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk})
+        pk = 'COMPACT#aslp#UNSETTLED_TRANSACTIONS'
+        response = self._transaction_history_table.query(
+            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
+        )
         self.assertEqual(0, len(response['Items']))
 
     def test_reconcile_unsettled_transactions_no_unsettled_passes(self):
@@ -188,7 +194,9 @@ class TestTransactionClient(TstFunction):
 
         # Verify the unsettled transactions were deleted
         pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
-        response = self._transaction_history_table.query(KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk})
+        response = self._transaction_history_table.query(
+            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
+        )
         self.assertEqual(0, len(response['Items']))
 
     def test_reconcile_unsettled_transactions_with_old_unsettled(self):
@@ -231,7 +239,9 @@ class TestTransactionClient(TstFunction):
         old_date = (datetime.now(UTC) - timedelta(hours=50)).isoformat()
 
         client.store_unsettled_transaction(compact=compact, transaction_id='tx-matched', transaction_date=recent_date)
-        client.store_unsettled_transaction(compact=compact, transaction_id='tx-old-unmatched', transaction_date=old_date)
+        client.store_unsettled_transaction(
+            compact=compact, transaction_id='tx-old-unmatched', transaction_date=old_date
+        )
         client.store_unsettled_transaction(
             compact=compact, transaction_id='tx-recent-unmatched', transaction_date=recent_date
         )
@@ -248,6 +258,10 @@ class TestTransactionClient(TstFunction):
 
         # Verify matched transaction was deleted but unmatched remain
         pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
-        response = self._transaction_history_table.query(KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk})
-        self.assertEqual(['tx-old-unmatched', 'tx-recent-unmatched'],
-                         [transaction['transactionId'] for transaction in response['Items']])  # Two unmatched transactions remain
+        response = self._transaction_history_table.query(
+            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
+        )
+        self.assertEqual(
+            ['tx-old-unmatched', 'tx-recent-unmatched'],
+            [transaction['transactionId'] for transaction in response['Items']],
+        )  # Two unmatched transactions remain
