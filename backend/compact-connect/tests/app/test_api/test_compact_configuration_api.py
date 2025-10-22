@@ -155,6 +155,8 @@ class TestCompactConfigurationApi(TestApi):
         endpoint is properly configured as a public endpoint"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the /v1/public/jurisdictions resource is created
         api_stack_template.has_resource_properties(
@@ -194,10 +196,10 @@ class TestCompactConfigurationApi(TestApi):
                 'HttpMethod': 'GET',
                 'ResourceId': {'Ref': live_jurisdictions_resource_id},
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
                 ),
                 'MethodResponses': [
                     {

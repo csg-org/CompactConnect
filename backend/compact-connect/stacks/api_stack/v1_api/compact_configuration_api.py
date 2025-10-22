@@ -61,7 +61,7 @@ class CompactConfigurationApi:
         )
 
         self._add_get_live_jurisdictions_endpoint(
-            compact_configuration_api_handler=self.compact_configuration_api_function,
+            compact_configuration_api_handler=compact_configuration_api_function,
         )
 
         self._add_staff_users_get_compact_configuration_endpoint(
