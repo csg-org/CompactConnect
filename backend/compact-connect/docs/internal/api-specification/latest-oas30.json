@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-10-22T19:30:51Z"
+    "version": "2025-10-22T20:31:18Z"
   },
   "servers": [
     {
@@ -892,6 +892,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenZ1SdRwpLvl46"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "200 response",
@@ -1495,6 +1505,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenISmLYcqYrfLq"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "200 response",
@@ -3023,6 +3043,10 @@
             "description": "Encumbrance data to create"
           }
         }
+      },
+      "SandboLicenISmLYcqYrfLq": {
+        "type": "object",
+        "properties": {}
       },
       "SandboLicenJIK60DVCsApb": {
         "required": [
@@ -6452,6 +6476,10 @@
             }
           }
         }
+      },
+      "SandboLicenZ1SdRwpLvl46": {
+        "type": "object",
+        "properties": {}
       },
       "SandboLicenBxfAXNgCl0f1": {
         "required": [
