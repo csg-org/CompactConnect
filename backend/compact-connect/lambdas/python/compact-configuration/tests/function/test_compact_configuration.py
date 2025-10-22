@@ -289,8 +289,8 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         # Verify the live jurisdictions
         self.assertCountEqual(['ky', 'oh'], response_body['aslp'])
 
-    def test_get_public_live_compact_jurisdictions_returns_list_of_all_live_jurisdictions_if_bad_compact_param(self):
-        """Test getting list of live jurisdictions across all compacts when invalid query param provided"""
+    def test_get_public_live_compact_jurisdictions_returns_400_if_bad_compact_param(self):
+        """Test getting list of live jurisdictions across all compacts when invalid query param provided returns 400"""
         from handlers.compact_configuration import compact_configuration_api_handler
 
         # Create compact configurations
