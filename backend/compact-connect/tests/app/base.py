@@ -5,22 +5,20 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from unittest.mock import patch
 
-from app import CompactConnectApp
 from aws_cdk.assertions import Annotations, Match, Template
 from aws_cdk.aws_apigateway import CfnGatewayResponse, CfnMethod
-from aws_cdk.aws_cloudfront import CfnDistribution
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolDomain, CfnUserPoolResourceServer
 from aws_cdk.aws_dynamodb import CfnTable
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_kms import CfnKey
-from aws_cdk.aws_lambda import CfnEventSourceMapping, CfnFunction
-from aws_cdk.aws_s3 import CfnBucket
+from aws_cdk.aws_lambda import CfnEventSourceMapping
 from aws_cdk.aws_sqs import CfnQueue
-from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.stack import Stack
-from pipeline import BackendStage, FrontendStage
+
+from app import CompactConnectApp
+from common_constructs.backup_plan import CCBackupPlan
+from pipeline import BackendStage
 from stacks.api_stack import ApiStack
-from stacks.frontend_deployment_stack import FrontendDeploymentStack
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.state_auth import StateAuthStack
@@ -96,29 +94,6 @@ class TstAppABC(ABC):
             return resources[logical_id]['Properties']
         except KeyError as exc:
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
-
-    def _inspect_frontend_deployment_stack(self, ui_stack: FrontendDeploymentStack):
-        with self.subTest(ui_stack.stack_name):
-            ui_stack_template = Template.from_stack(ui_stack)
-            # Ensure we have a CloudFront distribution
-            ui_stack_template.resource_count_is('AWS::CloudFront::Distribution', 1)
-            # This stack is not anticipated to do much changing, so we'll just snapshot-test key resources
-            ui_bucket = ui_stack_template.find_resources(CfnBucket.CFN_RESOURCE_TYPE_NAME)[
-                ui_stack.get_logical_id(ui_stack.ui_bucket.node.default_child)
-            ]
-            self.compare_snapshot(ui_bucket, snapshot_name=f'{ui_stack.stack_name}-UI_BUCKET', overwrite_snapshot=False)
-            distribution = ui_stack_template.find_resources(CfnDistribution.CFN_RESOURCE_TYPE_NAME)
-            self.assertEqual(len(distribution), 1)
-            self.compare_snapshot(distribution, f'{ui_stack.stack_name}-UI_DISTRIBUTION', overwrite_snapshot=False)
-            # take a snapshot of the lambda@edge code to ensure placeholder values are being injected
-            distribution_function = ui_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME)[
-                ui_stack.get_logical_id(ui_stack.distribution.csp_function.node.default_child)
-            ]
-            self.compare_snapshot(
-                distribution_function,
-                f'{ui_stack.stack_name}-UI_DISTRIBUTION_LAMBDA_FUNCTION',
-                overwrite_snapshot=False,
-            )
 
     def _inspect_provider_users_stack(
         self,
@@ -536,16 +511,23 @@ class TstAppABC(ABC):
             )
 
     def _check_no_backend_stage_annotations(self, stage: BackendStage):
-        self._check_no_stack_annotations(stage.persistent_stack)
+        self._check_no_stack_annotations(stage.api_lambda_stack)
         self._check_no_stack_annotations(stage.api_stack)
+        self._check_no_stack_annotations(stage.disaster_recovery_stack)
+        self._check_no_stack_annotations(stage.event_listener_stack)
+        self._check_no_stack_annotations(stage.feature_flag_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
+        self._check_no_stack_annotations(stage.managed_login_stack)
+        self._check_no_stack_annotations(stage.persistent_stack)
+        self._check_no_stack_annotations(stage.provider_users_stack)
+        self._check_no_stack_annotations(stage.state_api_stack)
+        self._check_no_stack_annotations(stage.state_auth_stack)
         self._check_no_stack_annotations(stage.transaction_monitoring_stack)
-        # There is on reporting stack if no hosted zone is configured
+        # These are only present if a hosted zone is configured
         if stage.persistent_stack.hosted_zone:
+            self._check_no_stack_annotations(stage.notification_stack)
             self._check_no_stack_annotations(stage.reporting_stack)
-
-    def _check_no_frontend_stage_annotations(self, stage: FrontendStage):
-        self._check_no_stack_annotations(stage.frontend_deployment_stack)
+        # No backup stack here, because nexted stack annotations are checked in the parent stack
 
     def _count_stack_resources(self, stack: Stack) -> int:
         """
@@ -570,17 +552,31 @@ class TstAppABC(ABC):
         :param stage: The BackendStage containing stacks to check
         """
         stacks_to_check = [
-            ('persistent_stack', stage.persistent_stack),
+            ('api_lambda_stack', stage.api_lambda_stack),
             ('api_stack', stage.api_stack),
+            ('backup_infrastructure_stack', stage.backup_infrastructure_stack),
+            ('disaster_recovery_stack', stage.disaster_recovery_stack),
+            ('event_listener_stack', stage.event_listener_stack),
+            ('feature_flag_stack', stage.feature_flag_stack),
             ('ingest_stack', stage.ingest_stack),
+            ('managed_login_stack', stage.managed_login_stack),
+            ('persistent_stack', stage.persistent_stack),
+            ('provider_users_stack', stage.provider_users_stack),
+            ('state_api_stack', stage.state_api_stack),
+            ('state_auth_stack', stage.state_auth_stack),
             ('transaction_monitoring_stack', stage.transaction_monitoring_stack),
         ]
-
-        # Add reporting stack if it exists (only when hosted zone is configured)
         if stage.persistent_stack.hosted_zone:
-            stacks_to_check.append(('reporting_stack', stage.reporting_stack))
+            stacks_to_check.extend(
+                [
+                    ('notification_stack', stage.notification_stack),
+                    ('reporting_stack', stage.reporting_stack),
+                ]
+            )
 
         for _stack_name, stack in stacks_to_check:
+            if stack is None:
+                continue
             with self.subTest(f'Resource Count: {stack.stack_name}'):
                 resource_count = self._count_stack_resources(stack)
 

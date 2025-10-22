@@ -19,6 +19,10 @@ from cc_common.data_model.schema.jurisdiction import Jurisdiction
 from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus
+from cc_common.data_model.schema.purchase.api import (
+    PurchasePrivilegeOptionsResponseSchema,
+    TransactionResponseSchema,
+)
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,
@@ -110,7 +114,9 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
 
     options_response['items'] = serlialized_options
 
-    return options_response
+    # Validate the overall response structure and individual items
+    response_schema = PurchasePrivilegeOptionsResponseSchema()
+    return response_schema.load(options_response)
 
 
 def _validate_attestations(compact: str, attestations: list[dict], has_active_military_affiliation: bool = False):
@@ -434,7 +440,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
                 provider_email=provider_email,
             )
 
-        return transaction_response
+        # Validate the transaction response through the schema
+        response_schema = TransactionResponseSchema()
+        return response_schema.load(transaction_response)
 
     except CCFailedTransactionException as e:
         logger.warning(f'Failed transaction: {e}.')

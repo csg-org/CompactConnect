@@ -2,7 +2,15 @@ import os
 
 from aws_cdk import Duration, RemovalPolicy
 from aws_cdk.aws_backup import BackupResource
-from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, ProjectionType, Table, TableEncryption
+from aws_cdk.aws_dynamodb import (
+    Attribute,
+    AttributeType,
+    BillingMode,
+    PointInTimeRecoverySpecification,
+    ProjectionType,
+    Table,
+    TableEncryption,
+)
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import (
     Effect,
@@ -16,12 +24,12 @@ from aws_cdk.aws_iam import (
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
-from common_constructs.backup_plan import CCBackupPlan
-from common_constructs.python_function import PythonFunction
-from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.stack import Stack
 from constructs import Construct
 
+from common_constructs.backup_plan import CCBackupPlan
+from common_constructs.python_function import PythonFunction
+from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
@@ -58,7 +66,7 @@ class SSNTable(Table):
             encryption_key=self.key,
             billing_mode=BillingMode.PAY_PER_REQUEST,
             removal_policy=removal_policy,
-            point_in_time_recovery=True,
+            point_in_time_recovery_specification=PointInTimeRecoverySpecification(point_in_time_recovery_enabled=True),
             deletion_protection=True if removal_policy == RemovalPolicy.RETAIN else False,
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),

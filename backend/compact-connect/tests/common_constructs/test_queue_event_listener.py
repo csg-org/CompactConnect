@@ -8,6 +8,7 @@ from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import CfnEventSourceMapping, Code, Function, Runtime
 from aws_cdk.aws_sns import Topic
 from aws_cdk.aws_sqs import CfnQueue
+
 from common_constructs.queue_event_listener import QueueEventListener
 
 
@@ -24,7 +25,7 @@ class TestQueueEventListener(TestCase):
             self.stack,
             'TestFunction',
             handler='handle',
-            runtime=Runtime.PYTHON_3_12,
+            runtime=Runtime.PYTHON_3_13,
             code=Code.from_inline("""def handle(*args): return"""),
         )
 

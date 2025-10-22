@@ -6,6 +6,7 @@ from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import CfnEventSourceMapping, Code, Function, Runtime
 from aws_cdk.aws_sns import Topic
 from aws_cdk.aws_sqs import CfnQueue
+
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 
 
@@ -20,7 +21,7 @@ class TestQueuedLambdaProcessor(TestCase):
             stack,
             'Function',
             handler='handle',
-            runtime=Runtime.PYTHON_3_12,
+            runtime=Runtime.PYTHON_3_13,
             code=Code.from_inline("""def handle(*args): return"""),
         )
         processor = QueuedLambdaProcessor(

@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
+from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
 from common_constructs import cc_api
-from common_constructs.stack import AppStack
 
 
 class ApiModel:
@@ -414,7 +414,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -423,9 +423,16 @@ class ApiModel:
                         pattern=cc_api.YMD_FORMAT,
                     ),
                     'encumbranceType': self._encumbrance_type_schema,
+                    # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
+                        description='(Deprecated) The category of clinical privilege action. '
+                        'Use clinicalPrivilegeActionCategories instead.',
+                    ),
+                    'clinicalPrivilegeActionCategories': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The categories of clinical privilege action',
+                        items=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),
@@ -444,7 +451,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -453,9 +460,16 @@ class ApiModel:
                         pattern=cc_api.YMD_FORMAT,
                     ),
                     'encumbranceType': self._encumbrance_type_schema,
+                    # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
+                        description='(Deprecated) The category of clinical privilege action. '
+                        'Use clinicalPrivilegeActionCategories instead.',
+                    ),
+                    'clinicalPrivilegeActionCategories': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The categories of clinical privilege action',
+                        items=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),
@@ -1170,7 +1184,6 @@ class ApiModel:
                                         'adverseActionId',
                                         'dateOfUpdate',
                                         'encumbranceType',
-                                        'clinicalPrivilegeActionCategory',
                                     ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
@@ -1201,7 +1214,13 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
+                                        # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
+                                        'clinicalPrivilegeActionCategories': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='The categories of clinical privilege action',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
@@ -1306,7 +1325,6 @@ class ApiModel:
                                         'adverseActionId',
                                         'dateOfUpdate',
                                         'encumbranceType',
-                                        'clinicalPrivilegeActionCategory',
                                     ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
@@ -1337,7 +1355,13 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
+                                        # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
+                                        'clinicalPrivilegeActionCategories': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='The categories of clinical privilege action',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
@@ -1611,7 +1635,7 @@ class ApiModel:
                 type=JsonSchemaType.OBJECT,
                 properties={
                     'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
-                    'attestationType': JsonSchema(type=JsonSchemaType.STRING),
+                    'attestationId': JsonSchema(type=JsonSchemaType.STRING),
                     'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
                     'version': JsonSchema(type=JsonSchemaType.STRING),
                     'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
@@ -2703,3 +2727,61 @@ class ApiModel:
             ),
         )
         return self.api._v1_post_provider_email_verify_request_model
+
+    @property
+    def check_feature_flag_request_model(self) -> Model:
+        """Request model for POST /v1/flags/check"""
+        if hasattr(self.api, '_v1_check_feature_flag_request_model'):
+            return self.api._v1_check_feature_flag_request_model
+
+        self.api._v1_check_feature_flag_request_model = self.api.add_model(
+            'V1CheckFeatureFlagRequestModel',
+            description='Check feature flag request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                properties={
+                    'context': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        description='Optional context for feature flag evaluation',
+                        additional_properties=False,
+                        properties={
+                            'userId': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Optional user ID for feature flag evaluation',
+                                min_length=1,
+                                max_length=100,
+                            ),
+                            'customAttributes': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                description='Optional custom attributes for feature flag evaluation',
+                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                        },
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_check_feature_flag_request_model
+
+    @property
+    def check_feature_flag_response_model(self) -> Model:
+        """Response model for POST /v1/flags/check"""
+        if hasattr(self.api, '_v1_check_feature_flag_response_model'):
+            return self.api._v1_check_feature_flag_response_model
+
+        self.api._v1_check_feature_flag_response_model = self.api.add_model(
+            'V1CheckFeatureFlagResponseModel',
+            description='Check feature flag response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['enabled'],
+                properties={
+                    'enabled': JsonSchema(
+                        type=JsonSchemaType.BOOLEAN,
+                        description='Whether the feature flag is enabled',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_check_feature_flag_response_model

@@ -14,13 +14,13 @@ from aws_cdk.aws_cognito import (
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from constructs import Construct
+
 from common_constructs.cognito_user_backup import CognitoUserBackup
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.resource_scope_mixin import ResourceScopeMixin
 from common_constructs.user_pool import UserPool
-from constructs import Construct
-
 from stacks import persistent_stack as ps
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.users_table import UsersTable
@@ -127,7 +127,7 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         self.user_table.grant_read_write_data(scope_customization_handler)
 
         NagSuppressions.add_resource_suppressions(
-            scope_customization_handler,
+            scope_customization_handler.role,
             apply_to_children=True,
             suppressions=[
                 {

@@ -19,9 +19,10 @@ from aws_cdk.aws_stepfunctions import (
 )
 from aws_cdk.aws_stepfunctions_tasks import LambdaInvoke
 from cdk_nag import NagSuppressions
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
+
+from common_constructs.python_function import PythonFunction
 
 
 class SyncTableDataStepFunctionConstruct(Construct):
@@ -105,7 +106,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
-            path=f'{self.cleanup_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.cleanup_records_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -156,7 +157,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
-            path=f'{self.copy_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.copy_records_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

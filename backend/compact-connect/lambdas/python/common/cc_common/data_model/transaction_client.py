@@ -125,17 +125,16 @@ class TransactionClient:
             if line_item.get('itemId').lower().startswith(item_id_prefix.lower()):
                 line_item['privilegeId'] = privilege_id
 
-    def add_privilege_ids_to_transactions(self, compact: str, transactions: list[dict]) -> list[dict]:
+    def add_privilege_information_to_transactions(self, compact: str, transactions: list[dict]) -> list[dict]:
         """
-        Add privilege IDs to transaction line items based on the jurisdiction they were purchased for.
+        Add privilege and licensee IDs to transaction line items based on the jurisdiction they were purchased for.
 
         :param compact: The compact name
         :param transactions: List of transaction records to process
-        :return: Modified list of transactions with privilege IDs added to line items
+        :return: Modified list of transactions with privilege and licensee IDs added to line items
         """
         for transaction in transactions:
             line_items = transaction['lineItems']
-            licensee_id = transaction['licenseeId']
             # Extract jurisdictions from line items with format priv:{compact}-{jurisdiction}-{license type abbr}
             jurisdictions_to_process = set()
             for line_item in line_items:
@@ -152,6 +151,48 @@ class TransactionClient:
                 KeyConditionExpression=Key('compactTransactionIdGSIPK').eq(gsi_pk),
             )
 
+            # Verify that the query returned at least one record
+            records_for_transaction_id = response.get('Items', [])
+            if not records_for_transaction_id:
+                logger.error(
+                    'No privilege records found for this transaction id.',
+                    compact=compact,
+                    transaction_id=transaction['transactionId'],
+                    # attempt to grab the licensee id from the authorize.net data, which may be invalid if it was masked
+                    licensee_id=transaction['licenseeId'],
+                )
+                # We mark the data as UNKNOWN so it still shows up in the history,
+                # and move onto the next transaction
+                for jurisdiction in jurisdictions_to_process:
+                    item_id_prefix = f'priv:{compact}-{jurisdiction}'
+                    # we set the privilege id to UNKNOWN, so that it will be visible in the report
+                    self._set_privilege_id_in_line_item(
+                        line_items=line_items, item_id_prefix=item_id_prefix, privilege_id='UNKNOWN'
+                    )
+                continue
+
+            # ensure we only map to one provider for this transaction id
+            provider_ids = {
+                item['providerId']
+                for item in records_for_transaction_id
+                if item['type'] == 'privilege' or item['type'] == 'privilegeUpdate'
+            }
+            # there should only be one provider id in the set
+            if len(provider_ids) > 1:
+                logger.error(
+                    'More than one matching provider id found for a transaction id.',
+                    compact=compact,
+                    transaction_id=transaction['transactionId'],
+                    # attempt to grab the licensee id from the authorize.net data, which may be invalid if it was masked
+                    provider_ids=transaction['licenseeId'],
+                )
+
+            # The licensee id recorded in Authorize.net cannot be trusted, as Authorize.net masks any values that look
+            # like a credit card number (consecutive digits separated by dashes). We need to grab the provider id from
+            # the privileges associated with this transaction and set the licensee id on the transaction to that value
+            # to ensure it is valid.
+            transaction['licenseeId'] = provider_ids.pop()
+
             # Process each privilege record
             for jurisdiction in jurisdictions_to_process:
                 # Currently, we only support one license type per transaction when purchasing privileges
@@ -159,11 +200,7 @@ class TransactionClient:
                 item_id_prefix = f'priv:{compact}-{jurisdiction}'
                 # find the first privilege record for the jurisdiction that matches the provider ID
                 matching_privilege = next(
-                    (
-                        item
-                        for item in response.get('Items', [])
-                        if item['jurisdiction'].lower() == jurisdiction and item['providerId'] == licensee_id
-                    ),
+                    (item for item in records_for_transaction_id if item['jurisdiction'].lower() == jurisdiction),
                     None,
                 )
                 if matching_privilege:
@@ -185,7 +222,7 @@ class TransactionClient:
                         compact=compact,
                         transactionId=transaction['transactionId'],
                         jurisdiction=jurisdiction,
-                        provider_id=licensee_id,
+                        provider_id=transaction['licenseeId'],
                         matching_privilege_records=response.get('Items', []),
                     )
                     # we set the privilege id to UNKNOWN, so that it will be visible in the report

@@ -1,11 +1,3 @@
-//
-//  eslint.config.mjs
-//  Adapted from IA Website (all vue-related stuff removed):
-//      https://github.com/InspiringApps/IA-Website/blob/cfbaf96be5841cb762a7dcd00a4ccca10fafa672/2021v2/webroot/.eslintrc.js
-//
-//  Created by InspiringApps on 10/18/2024.
-//  Copyright © 2024. All rights reserved.
-//
 import typescriptParser from '@typescript-eslint/parser';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 

@@ -3,7 +3,6 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from app import CompactConnectApp
 from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_cognito import (
     CfnUserPool,
@@ -14,6 +13,7 @@ from aws_cdk.aws_cognito import (
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
 from aws_cdk.aws_ssm import CfnParameter
 
+from app import CompactConnectApp
 from tests.app.base import TstAppABC
 
 
@@ -282,22 +282,23 @@ class TestBackendPipeline(TstAppABC, TestCase):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
-        # Ensure our provider user pool is created with expected custom attributes
-        lambda_layer_parameter_properties = self.get_resource_properties_by_logical_id(
-            persistent_stack.get_logical_id(persistent_stack.lambda_layer_ssm_parameter.node.default_child),
-            persistent_stack_template.find_resources(CfnParameter.CFN_RESOURCE_TYPE_NAME),
-        )
-
-        # assert that the parameter name matches expected
-        self.assertEqual('/deployment/lambda/layers/common-python-layer-arn', lambda_layer_parameter_properties['Name'])
-
-        lambda_layer_parameter_properties = self.get_resource_properties_by_logical_id(
-            lambda_layer_parameter_properties['Value']['Ref'],
-            persistent_stack_template.find_resources(CfnLayerVersion.CFN_RESOURCE_TYPE_NAME),
-        )
-
-        # the other properties are dynamic, so here we just check to make sure it exists
-        self.assertEqual(['python3.12'], lambda_layer_parameter_properties['CompatibleRuntimes'])
+        # Ensure we have a layer and parameter referencing that layer for each expected runtime
+        for runtime in ['python3.12', 'python3.13']:
+            layers = persistent_stack_template.find_resources(
+                type=CfnLayerVersion.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {
+                        'Description': 'A layer for common code shared between python lambdas',
+                        'CompatibleRuntimes': [runtime],
+                    }
+                },
+            )
+            # We expect exactly one for each runtime
+            self.assertEqual(1, len(layers))
+            persistent_stack_template.has_resource_properties(
+                type=CfnParameter.CFN_RESOURCE_TYPE_NAME,
+                props={'Value': {'Ref': list(layers.keys())[0]}},
+            )
 
     def test_synth_generates_provider_users_bucket_with_event_handler(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
@@ -363,27 +364,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
                     f'Should have exactly one backend pipeline role with name {expected_role_name}',
                 )
 
-        # Test frontend pipeline role naming - roles are environment-specific
-        frontend_test_cases = [
-            (self.app.test_frontend_pipeline_stack, 'CompactConnect-test-Frontend-CrossAccountRole'),
-            (self.app.beta_frontend_pipeline_stack, 'CompactConnect-beta-Frontend-CrossAccountRole'),
-            (self.app.prod_frontend_pipeline_stack, 'CompactConnect-prod-Frontend-CrossAccountRole'),
-        ]
-
-        for frontend_stack, expected_role_name in frontend_test_cases:
-            with self.subTest(role=expected_role_name):
-                frontend_template = Template.from_stack(frontend_stack)
-
-                # Look for the predictable frontend pipeline role
-                frontend_roles = frontend_template.find_resources(
-                    'AWS::IAM::Role', props={'Properties': {'RoleName': expected_role_name}}
-                )
-                self.assertEqual(
-                    len(frontend_roles),
-                    1,
-                    f'Should have exactly one frontend pipeline role with name {expected_role_name}',
-                )
-
     def test_pipeline_role_trust_policies(self):
         """Test that pipeline roles have correct trust policies for CodePipeline service."""
         # Test that all pipeline roles trust the CodePipeline service
@@ -392,9 +372,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
             (self.app.test_backend_pipeline_stack, 'CompactConnect-test-Backend-CrossAccountRole'),
             (self.app.beta_backend_pipeline_stack, 'CompactConnect-beta-Backend-CrossAccountRole'),
             (self.app.prod_backend_pipeline_stack, 'CompactConnect-prod-Backend-CrossAccountRole'),
-            (self.app.test_frontend_pipeline_stack, 'CompactConnect-test-Frontend-CrossAccountRole'),
-            (self.app.beta_frontend_pipeline_stack, 'CompactConnect-beta-Frontend-CrossAccountRole'),
-            (self.app.prod_frontend_pipeline_stack, 'CompactConnect-prod-Frontend-CrossAccountRole'),
         ]
 
         for stack, expected_role_name in test_cases:
@@ -411,7 +388,12 @@ class TestBackendPipeline(TstAppABC, TestCase):
                                 [
                                     {
                                         'Effect': 'Allow',
-                                        'Principal': {'Service': 'codepipeline.amazonaws.com'},
+                                        'Principal': {
+                                            'Service': [
+                                                'codebuild.amazonaws.com',
+                                                'codepipeline.amazonaws.com',
+                                            ]
+                                        },
                                         'Action': 'sts:AssumeRole',
                                     }
                                 ]
@@ -460,40 +442,3 @@ class TestBackendPipelineVulnerable(TestCase):
 
         with self.assertRaises(ValueError):
             CompactConnectApp(context=context)
-
-
-class TestFrontendPipeline(TstAppABC, TestCase):
-    @classmethod
-    def get_context(cls):
-        with open('cdk.json') as f:
-            context = json.load(f)['context']
-        # For pipeline deployments, the pipelines pull their CDK context values from SSM Parameter Store, rather
-        # than the cdk.context.json files used in local development. We can override the context values used in the
-        # tests by adding values here.
-
-        # Suppresses lambda bundling for tests
-        context['aws:cdk:bundling-stacks'] = []
-
-        return context
-
-    def test_synth_pipeline(self):
-        """
-        Test infrastructure as deployed via the pipeline
-        """
-        # Identify any findings from our AwsSolutions rule sets
-        self._check_no_stack_annotations(self.app.deployment_resources_stack)
-        self._check_no_stack_annotations(self.app.test_frontend_pipeline_stack)
-        self._check_no_stack_annotations(self.app.prod_frontend_pipeline_stack)
-        for stage in (
-            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage,
-            self.app.beta_frontend_pipeline_stack.beta_frontend_stage,
-            self.app.prod_frontend_pipeline_stack.prod_frontend_stage,
-        ):
-            self._check_no_frontend_stage_annotations(stage)
-
-        for frontend_deployment_stack in (
-            self.app.test_frontend_pipeline_stack.pre_prod_frontend_stage.frontend_deployment_stack,
-            self.app.beta_frontend_pipeline_stack.beta_frontend_stage.frontend_deployment_stack,
-            self.app.prod_frontend_pipeline_stack.prod_frontend_stage.frontend_deployment_stack,
-        ):
-            self._inspect_frontend_deployment_stack(frontend_deployment_stack)

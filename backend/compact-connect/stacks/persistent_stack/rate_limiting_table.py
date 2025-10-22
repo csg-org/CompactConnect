@@ -1,5 +1,5 @@
 from aws_cdk import RemovalPolicy
-from aws_cdk.aws_dynamodb import AttributeType, BillingMode, Table
+from aws_cdk.aws_dynamodb import AttributeType, BillingMode, PointInTimeRecoverySpecification, Table
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -22,7 +22,7 @@ class RateLimitingTable(Table):
             encryption_key=encryption_key,
             partition_key={'name': 'pk', 'type': AttributeType.STRING},
             sort_key={'name': 'sk', 'type': AttributeType.STRING},
-            point_in_time_recovery=False,
+            point_in_time_recovery_specification=PointInTimeRecoverySpecification(point_in_time_recovery_enabled=False),
             removal_policy=removal_policy,
             time_to_live_attribute='ttl',
         )

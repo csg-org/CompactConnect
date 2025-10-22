@@ -24,7 +24,7 @@ const populateComponentStorePagingKeys = (component) => {
 
 describe('LicenseeList component', async () => {
     it('should mount the component', async () => {
-        const wrapper = await mountFull(LicenseeList); // mounting full here to get ahead of some vue-test-utils oddities in fast local environments
+        const wrapper = await mountShallow(LicenseeList);
 
         expect(wrapper.exists()).to.equal(true);
         expect(wrapper.findComponent(LicenseeList).exists()).to.equal(true);

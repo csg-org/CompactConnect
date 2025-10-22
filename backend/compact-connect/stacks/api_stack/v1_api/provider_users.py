@@ -3,10 +3,10 @@ from __future__ import annotations
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from cdk_nag import NagSuppressions
-from common_constructs.cc_api import CCApi
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
+from common_constructs.cc_api import CCApi
+from common_constructs.python_function import PythonFunction
 from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
@@ -186,8 +186,6 @@ class ProviderUsers:
         api_lambda_stack: ApiLambdaStack,
     ):
         stack = Stack.of(self.provider_users_resource)
-
-        self.api.log_groups.append(api_lambda_stack.provider_users_lambdas.provider_registration_handler.log_group)
 
         registration_method = self.provider_users_registration_resource.add_method(
             'POST',

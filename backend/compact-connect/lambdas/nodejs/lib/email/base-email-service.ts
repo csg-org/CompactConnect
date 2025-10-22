@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SendEmailCommand, SendRawEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
 import { TReaderDocument, renderToStaticMarkup } from '@jusdino-ia/email-builder';
 import { CompactConfigurationClient } from '../compact-configuration-client';
@@ -14,7 +14,7 @@ const environmentVariableService = new EnvironmentVariablesService();
 
 interface EmailServiceProperties {
     logger: Logger;
-    sesClient: SESClient;
+    sesClient: SESv2Client;
     s3Client: S3Client;
     compactConfigurationClient: CompactConfigurationClient;
     jurisdictionClient: JurisdictionClient;
@@ -31,7 +31,7 @@ interface StyledBlockOptions {
  */
 export abstract class BaseEmailService {
     protected readonly logger: Logger;
-    protected readonly sesClient: SESClient;
+    protected readonly sesClient: SESv2Client;
     protected readonly s3Client: S3Client;
     protected readonly compactConfigurationClient: CompactConfigurationClient;
     protected readonly jurisdictionClient: JurisdictionClient;
@@ -75,20 +75,22 @@ export abstract class BaseEmailService {
                 Destination: {
                     ToAddresses: recipients,
                 },
-                Message: {
-                    Body: {
-                        Html: {
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: htmlContent
+                            }
+                        },
+                        Subject: {
                             Charset: 'UTF-8',
-                            Data: htmlContent
+                            Data: subject
                         }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: subject
                     }
                 },
                 // We're required by the IAM policy to use this display name
-                Source: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
+                FromEmailAddress: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
             });
 
             return (await this.sesClient.send(command)).MessageId;
@@ -114,7 +116,7 @@ export abstract class BaseEmailService {
         try {
             // Create a nodemailer transport that generates raw MIME messages
             const transport = nodemailer.createTransport({
-                SES: { ses: this.sesClient, aws: { SendRawEmailCommand }}
+                SES: { sesClient: this.sesClient, SendEmailCommand },
             });
 
             // Create the email message

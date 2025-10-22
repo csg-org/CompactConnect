@@ -4,10 +4,10 @@
 from __future__ import annotations
 
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
+from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
 from common_constructs import cc_api
-from common_constructs.stack import AppStack
 
 
 class ApiModel:

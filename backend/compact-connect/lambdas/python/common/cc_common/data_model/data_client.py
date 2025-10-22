@@ -1427,10 +1427,19 @@ class DataClient:
                 )
 
             now = config.current_standard_datetime
-            encumbrance_details = {
-                'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
-                'adverseActionId': adverse_action.adverseActionId,
-            }
+            # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+            from cc_common.feature_flag_client import is_feature_enabled
+
+            if is_feature_enabled('encumbrance-multi-category-flag'):
+                encumbrance_details = {
+                    'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
+                    'adverseActionId': adverse_action.adverseActionId,
+                }
+            else:
+                encumbrance_details = {
+                    'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
+                    'adverseActionId': adverse_action.adverseActionId,
+                }
 
             # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
             # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
@@ -2604,7 +2613,6 @@ class DataClient:
         compact: str,
         provider_id: str,
         jurisdiction: str,
-        adverse_action_category: str,
         adverse_action_id: str,
         license_type_abbreviation: str,
         effective_date: date,
@@ -2618,10 +2626,9 @@ class DataClient:
         :param str compact: The compact name.
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
-        :param adverse_action_category: The type of adverse action perpetrated
-        :param adverse_action_id: The ID of the adverse action
-        :param str license_type_abbreviation: The license type abbreviation
-        :param str effective_date: effective date of the encumbrance on the license and therefore privilege
+        :param adverse_action_id: The ID of the adverse action.
+        :param str license_type_abbreviation: The license type abbreviation.
+        :param date effective_date: effective date of the encumbrance on the license and therefore privilege.
         :return: List of privileges that were encumbered
         """
         # Get all provider records
@@ -2631,6 +2638,19 @@ class DataClient:
 
         # Validate the license type abbreviation
         self._validate_license_type_abbreviation(compact, license_type_abbreviation)
+
+        # get the adverse_action record based on the id
+        adverse_action = provider_user_records.get_adverse_action_by_id(adverse_action_id)
+
+        if not adverse_action:
+            logger.error(
+                'Adverse Action not found by id',
+                provider_id=provider_id,
+                encumbered_license_jurisdiction=jurisdiction,
+                encumbered_license_type=license_type_abbreviation,
+                adverse_action_id=adverse_action_id,
+            )
+            raise CCInternalException('Adverse Action not found by id')
 
         # Find privileges associated with the license that which was encumbered, which themselves are not currently
         # encumbered
@@ -2653,12 +2673,21 @@ class DataClient:
         logger.info(
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
         )
+        # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+        from cc_common.feature_flag_client import is_feature_enabled
 
-        encumbrance_details = {
-            'clinicalPrivilegeActionCategory': adverse_action_category,
-            'licenseJurisdiction': jurisdiction,
-            'adverseActionId': adverse_action_id,
-        }
+        if is_feature_enabled('encumbrance-multi-category-flag'):
+            encumbrance_details = {
+                'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
+                'licenseJurisdiction': jurisdiction,
+                'adverseActionId': adverse_action_id,
+            }
+        else:
+            encumbrance_details = {
+                'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
+                'licenseJurisdiction': jurisdiction,
+                'adverseActionId': adverse_action_id,
+            }
 
         # Build transaction items for all privileges
         transaction_items = []
@@ -2726,7 +2755,6 @@ class DataClient:
             # Add PUT transaction for privilege update record
             transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
 
-
         # Execute transactions in batches of 100 (DynamoDB limit)
         batch_size = 100
         while transaction_items:
@@ -2742,9 +2770,9 @@ class DataClient:
 
         logger.info('Successfully encumbered associated privileges for license')
 
-        return (unencumbered_privileges_associated_with_license
-                + previously_encumbered_privileges_associated_with_license)
-
+        return (
+            unencumbered_privileges_associated_with_license + previously_encumbered_privileges_associated_with_license
+        )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbreviation')
     def lift_home_jurisdiction_license_privilege_encumbrances(

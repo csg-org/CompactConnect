@@ -9,6 +9,7 @@ import { Component, Vue } from 'vue-facing-decorator';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
+import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License } from '@models/License/License.model';
 
@@ -18,6 +19,7 @@ import { License } from '@models/License/License.model';
         LoadingSpinner,
         PrivilegeCard,
         CollapseCaretButton,
+        ExpirationExplanationIcon
     }
 })
 export default class PublicLicensingDetail extends Vue {

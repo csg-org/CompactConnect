@@ -7,10 +7,10 @@ from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodRespo
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
-from common_constructs.cc_api import CCApi
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
+from common_constructs.cc_api import CCApi
+from common_constructs.python_function import PythonFunction
 from stacks import persistent_stack as ps
 from stacks.persistent_stack import ProviderTable
 
@@ -168,7 +168,7 @@ class ProviderManagement:
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

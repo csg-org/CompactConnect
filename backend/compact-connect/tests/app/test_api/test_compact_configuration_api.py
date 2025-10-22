@@ -39,12 +39,15 @@ class TestCompactConfigurationApi(TestApi):
             api_stack.api.v1_api.jurisdictions_resource.node.default_child
         )
 
-        # Ensure the lambda is created with expected code path
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+
         compact_configuration_api_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler.node.default_child
             ),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(
@@ -66,10 +69,10 @@ class TestCompactConfigurationApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -95,6 +98,8 @@ class TestCompactConfigurationApi(TestApi):
     def test_synth_generates_get_public_compact_jurisdictions_resource(self):
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -119,10 +124,10 @@ class TestCompactConfigurationApi(TestApi):
             props={
                 'HttpMethod': 'GET',
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -206,6 +211,8 @@ class TestCompactConfigurationApi(TestApi):
         """Test that the GET /v1/compacts/{compact} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Get the compact resource
         compact_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.compact_resource.node.default_child)
@@ -224,10 +231,10 @@ class TestCompactConfigurationApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -254,6 +261,8 @@ class TestCompactConfigurationApi(TestApi):
         """Test that the PUT /v1/compacts/{compact} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Get the compact resource
         compact_resource_id = api_stack.get_logical_id(api_stack.api.v1_api.compact_resource.node.default_child)
@@ -273,10 +282,10 @@ class TestCompactConfigurationApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
                 ),
                 'RequestModels': {'application/json': {'Ref': request_model_logical_id_capture}},
                 'MethodResponses': [
@@ -316,6 +325,8 @@ class TestCompactConfigurationApi(TestApi):
         """Test that the GET /v1/compacts/{compact}/jurisdictions/{jurisdiction} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Get the jurisdiction resource
         jurisdiction_resource_id = api_stack.get_logical_id(
@@ -336,10 +347,10 @@ class TestCompactConfigurationApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -366,6 +377,8 @@ class TestCompactConfigurationApi(TestApi):
         """Test that the PUT /v1/compacts/{compact}/jurisdictions/{jurisdiction} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Get the jurisdiction resource
         jurisdiction_resource_id = api_stack.get_logical_id(
@@ -386,10 +399,10 @@ class TestCompactConfigurationApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.compact_configuration_api.compact_configuration_api_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
                 ),
                 'RequestModels': {'application/json': {'Ref': request_model_logical_id_capture}},
                 'MethodResponses': [

@@ -1,10 +1,12 @@
 from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
 from constructs import Construct
+
 from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
+from stacks.feature_flag_stack import FeatureFlagStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
 from stacks.notification_stack import NotificationStack
@@ -178,4 +180,14 @@ class BackendStage(Stage):
             environment_context=environment_context,
             standard_tags=standard_tags,
             persistent_stack=self.persistent_stack,
+        )
+
+        # Stack to create and manage feature flags
+        self.feature_flag_stack = FeatureFlagStack(
+            self,
+            'FeatureFlagStack',
+            env=environment,
+            environment_name=environment_name,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
         )

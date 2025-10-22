@@ -4,12 +4,13 @@ import os
 import yaml
 from aws_cdk import CustomResource, Duration
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_logs import RetentionDays
+from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
+
+from common_constructs.python_function import PythonFunction
 
 from .compact_configuration_table import CompactConfigurationTable
 
@@ -48,7 +49,7 @@ class CompactConfigurationUpload(Construct):
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(scope),
-            path=f'{self.compact_configuration_upload_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.compact_configuration_upload_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -58,11 +59,27 @@ class CompactConfigurationUpload(Construct):
             ],
         )
 
+        compact_configuration_upload_provider_log_group = LogGroup(
+            scope,
+            'CompactConfigurationUploadProviderLogGroup',
+            retention=RetentionDays.ONE_DAY,
+        )
+        NagSuppressions.add_resource_suppressions(
+            compact_configuration_upload_provider_log_group,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
+                    'reason': 'We do not log sensitive data to CloudWatch, and operational visibility of system'
+                    ' logs to operators with credentials for the AWS account is desired. Encryption is not appropriate'
+                    ' here.',
+                },
+            ],
+        )
         self.compact_configuration_upload_provider = Provider(
             scope,
             'CompactConfigurationUploadProvider',
             on_event_handler=self.compact_configuration_upload_function,
-            log_retention=RetentionDays.ONE_DAY,
+            log_group=compact_configuration_upload_provider_log_group,
         )
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(scope),

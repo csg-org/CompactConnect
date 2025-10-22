@@ -5,12 +5,12 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_events import EventBus
 from cdk_nag import NagSuppressions
-from common_constructs.python_function import PythonFunction
-from common_constructs.queue_event_listener import QueueEventListener
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.python_function import PythonFunction
+from common_constructs.queue_event_listener import QueueEventListener
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 
 
@@ -35,6 +35,11 @@ class EventListenerStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            self.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
+
         self.event_processors = {}
         self._add_license_encumbrance_listener(persistent_stack, data_event_bus)
         self._add_lifting_license_encumbrance_listener(persistent_stack, data_event_bus)
@@ -66,7 +71,7 @@ class EventListenerStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{license_encumbrance_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{license_encumbrance_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -113,7 +118,7 @@ class EventListenerStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{lifting_license_encumbrance_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{lifting_license_encumbrance_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -160,7 +165,7 @@ class EventListenerStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{license_deactivation_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{license_deactivation_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

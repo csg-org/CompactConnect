@@ -8,13 +8,14 @@ from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissin
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
+from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
-from common_constructs.nodejs_function import NodejsFunction
-from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.nodejs_function import NodejsFunction
+from common_constructs.python_function import PythonFunction
 from stacks import persistent_stack as ps
 
 
@@ -62,7 +63,7 @@ class ReportingStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{event_collector.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{event_collector.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -86,15 +87,17 @@ class ReportingStack(AppStack):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
+        # This will report any ingest errors to the configured operational contact, every 15 minutes
         Rule(
             self,
-            'NightlyRule',
-            schedule=Schedule.cron(week_day='1-6', hour='1', minute='0', month='*', year='*'),
+            'FrequentlyRule',
+            schedule=Schedule.cron(week_day='*', hour='*', minute='*/15', month='*', year='*'),
             targets=[
-                LambdaFunction(handler=event_collector, event=RuleTargetInput.from_object({'eventType': 'nightly'}))
+                LambdaFunction(handler=event_collector, event=RuleTargetInput.from_object({'eventType': 'frequent'}))
             ],
         )
 
+        # This will send an "alls well" , a "you haven't uploaded anything" email or nothing
         Rule(
             self,
             'WeeklyRule',
@@ -136,6 +139,7 @@ class ReportingStack(AppStack):
             'TransactionReporter',
             description='Transaction report generator',
             handler='generate_transaction_reports',
+            runtime=Runtime.PYTHON_3_12,
             lambda_dir='purchases',
             index=os.path.join('handlers', 'transaction_reporting.py'),
             timeout=Duration.minutes(15),
@@ -154,6 +158,15 @@ class ReportingStack(AppStack):
                 **self.common_env_vars,
             },
         )
+        NagSuppressions.add_resource_suppressions(
+            self.transaction_reporter,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'Our Authorize.Net dependency is not yet compatible with Python 3.13',
+                },
+            ],
+        )
 
         # Grant necessary permissions
         persistent_stack.transaction_history_table.grant_read_data(self.transaction_reporter)
@@ -164,7 +177,7 @@ class ReportingStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{self.transaction_reporter.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{self.transaction_reporter.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -182,8 +195,8 @@ class ReportingStack(AppStack):
             Rule(
                 self,
                 f'{compact.capitalize()}-WeeklyTransactionReportRule',
-                # Send weekly reports every Friday at 10:00 PM UTC
-                schedule=Schedule.cron(week_day='FRI', hour='22', minute='0', month='*', year='*'),
+                # Send weekly reports every Sunday at 2:00 AM UTC
+                schedule=Schedule.cron(week_day='SUN', hour='2', minute='0', month='*', year='*'),
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,
@@ -198,7 +211,7 @@ class ReportingStack(AppStack):
             Rule(
                 self,
                 f'{compact.capitalize()}-MonthlyTransactionReportRule',
-                schedule=Schedule.cron(day='1', hour='8', minute='0', month='*', year='*'),
+                schedule=Schedule.cron(day='3', hour='2', minute='0', month='*', year='*'),
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,

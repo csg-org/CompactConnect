@@ -879,9 +879,7 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         # Enrich the privilege history
-        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
-            privilege_data
-        )
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
 
         # Define the expected issuance update
         expected_history = {
@@ -896,7 +894,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -905,15 +903,17 @@ class TestProviderRecordUtility(TstLambdas):
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
                     'note': 'test deactivation note',
-                }
-            ]
+                },
+            ],
         }
 
         # Check that the history contains exactly one update with the expected values
         self.maxDiff = None
         self.assertEqual(expected_history, history)
 
-    def test_construct_simplified_privilege_history_object_returns_encumbrance_notes_if_requested(self):
+    # TODO - remove mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
+    def test_construct_simplified_privilege_history_object_returns_encumbrance_notes_if_requested(self, mock_flag):  # noqa: ARG002
         """Test that construct_simplified_privilege_history_object extracts the encumbrance notes successfully"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
@@ -959,9 +959,7 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         # Enrich the privilege history
-        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
-            privilege_data
-        )
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data)
 
         # Define the expected issuance update
         expected_history = {
@@ -976,7 +974,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -985,15 +983,20 @@ class TestProviderRecordUtility(TstLambdas):
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
                     'note': 'Non-compliance With Requirements',
-                }
-            ]
+                },
+            ],
         }
 
         # Check that the history contains exactly one update with the expected values
         self.maxDiff = None
         self.assertEqual(expected_history, history)
 
-    def test_construct_simplified_privilege_history_object_does_not_return_encumbrance_notes_if_not_requested(self):
+    # TODO - remove mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
+    def test_construct_simplified_privilege_history_object_does_not_return_encumbrance_notes_if_not_requested(
+        self,
+        mock_flag,  # noqa: ARG002
+    ):
         """Test that construct_simplified_privilege_history_object does not extract the encumbrance notes if
         it should not"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
@@ -1040,9 +1043,7 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         # Enrich the privilege history
-        history = ProviderRecordUtility.construct_simplified_privilege_history_object(
-            privilege_data, False
-        )
+        history = ProviderRecordUtility.construct_simplified_privilege_history_object(privilege_data, False)
 
         # Define the expected issuance update
         expected_history = {
@@ -1057,7 +1058,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                     'type': 'privilegeUpdate',
-                    'updateType': 'issuance'
+                    'updateType': 'issuance',
                 },
                 {
                     'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -1065,13 +1066,14 @@ class TestProviderRecordUtility(TstLambdas):
                     'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
-                }
-            ]
+                },
+            ],
         }
 
         # Check that the history contains exactly one update with the expected values
         self.maxDiff = None
         self.assertEqual(expected_history, history)
+
 
 class TestProviderRecordUtilityActiveSinceCalculation(TstLambdas):
     def setUp(self):

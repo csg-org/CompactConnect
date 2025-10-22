@@ -26,12 +26,12 @@ from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDa
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
-from constructs import IConstruct
-from stacks import persistent_stack as ps
-
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
+from constructs import Construct
+
+from stacks import persistent_stack as ps
 
 MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 YMD_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
@@ -66,7 +66,7 @@ class NagSuppressOptionsNotAuthorized:
 class CCApi(RestApi):
     def __init__(
         self,
-        scope: IConstruct,
+        scope: Construct,
         construct_id: str,
         *,
         environment_name: str,
@@ -162,15 +162,12 @@ class CCApi(RestApi):
                 api_domain_name=domain_name,
             )
 
-        self.log_groups = [access_log_group]
-
         self.alarm_topic = persistent_stack.alarm_topic
 
         self._persistent_stack = persistent_stack
 
         self.web_acl = WebACL(self, 'WebACL', acl_scope=WebACLScope.REGIONAL, security_profile=security_profile)
         self.web_acl.associate_stage(self.deployment_stage)
-        self.log_groups.append(self.web_acl.log_group)
         self._configure_alarms()
 
         # These canned Gateway Response headers do not support dynamic values, so we have to set a static value for the
@@ -225,6 +222,18 @@ class CCApi(RestApi):
                     'HTTP requests to backend systems.',
                 },
             ],
+        )
+
+        QueryDefinition(
+            self,
+            'APILogs',
+            query_definition_name=f'{self.node.id}/API',
+            query_string=QueryString(
+                fields=['@timestamp', 'level', 'status', 'message', 'method', 'path', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=[access_log_group, self.web_acl.log_group],
         )
 
     @cached_property
@@ -310,17 +319,3 @@ class CCApi(RestApi):
             evaluate_low_sample_count_percentile='evaluate',
         )
         latency_alarm.add_alarm_action(SnsAction(self.alarm_topic))
-
-    def create_runtime_query_definition(self):
-        """Create the QueryDefinition for runtime logs after all API modules have been initialized."""
-        QueryDefinition(
-            self,
-            'RuntimeQuery',
-            query_definition_name=f'{self.node.id}/Lambdas',
-            query_string=QueryString(
-                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
-                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
-                sort='@timestamp desc',
-            ),
-            log_groups=self.log_groups,
-        )
