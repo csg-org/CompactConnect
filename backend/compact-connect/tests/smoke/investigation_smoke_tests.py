@@ -241,10 +241,11 @@ def test_create_privilege_investigation(auth_headers):
 
     _verify_no_investigation_exists('privilege', jurisdiction, license_type)
 
-    # Create investigation (no body required)
+    # Create investigation (empty body required)
     response = requests.post(
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}/privileges/jurisdiction/{jurisdiction}'
         f'/licenseType/{license_type_abbreviation}/investigation',
+        json={},
         headers=auth_headers,
         timeout=30,
     )
@@ -275,10 +276,11 @@ def test_create_license_investigation(auth_headers):
 
     _verify_no_investigation_exists('license', jurisdiction, license_type)
 
-    # Create investigation (no body required)
+    # Create investigation (empty body required)
     response = requests.post(
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}/licenses/jurisdiction/{jurisdiction}'
         f'/licenseType/{license_type_abbreviation}/investigation',
+        json={},
         headers=auth_headers,
         timeout=30,
     )
