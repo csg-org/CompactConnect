@@ -3,7 +3,6 @@ from __future__ import annotations
 from aws_cdk import Stack
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
 
@@ -37,7 +36,6 @@ class V1Api:
         self.api: LicenseApi = root.api
         self.api_model = ApiModel(api=self.api)
         stack: Stack = Stack.of(self.resource)
-        data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(stack)
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
         # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
@@ -163,9 +161,7 @@ class V1Api:
             method_options=read_auth_method_options,
             admin_method_options=admin_auth_method_options,
             ssn_method_options=read_ssn_auth_method_options,
-            persistent_stack=persistent_stack,
             api_model=self.api_model,
-            data_event_bus=data_event_bus,
             api_lambda_stack=api_lambda_stack,
             privilege_history_function=privilege_history_handler,
         )

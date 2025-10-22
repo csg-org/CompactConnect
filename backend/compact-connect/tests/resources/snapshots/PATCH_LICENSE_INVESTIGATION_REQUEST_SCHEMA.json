@@ -32,14 +32,20 @@
           "type": "string"
         },
         "clinicalPrivilegeActionCategory": {
-          "description": "The category of clinical privilege action",
+          "description": "(Deprecated) The category of clinical privilege action. Use clinicalPrivilegeActionCategories instead.",
           "type": "string"
+        },
+        "clinicalPrivilegeActionCategories": {
+          "description": "The categories of clinical privilege action",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "required": [
         "encumbranceEffectiveDate",
-        "encumbranceType",
-        "clinicalPrivilegeActionCategory"
+        "encumbranceType"
       ],
       "type": "object"
     }

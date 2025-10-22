@@ -81,32 +81,50 @@ def _generate_adverse_action_for_record_type(
     if encumbrance_effective_date > current_date:
         raise CCInvalidRequestException('The encumbrance date must not be a future date')
 
+    # populate the adverse action data to be stored in the database
+    adverse_action = AdverseActionData.create_new()
+    adverse_action.compact = compact
+    adverse_action.providerId = provider_id
+    adverse_action.jurisdiction = jurisdiction
+
     license_type = LicenseUtility.get_license_type_by_abbreviation(compact=compact, abbreviation=license_type_abbr)
+
     if not license_type:
         raise CCInvalidRequestException(
             f'Could not find license type information based on provided parameters '
             f"compact: '{compact}' licenseType: '{license_type_abbr}'"
         )
 
-    # populate the adverse action data to be stored in the database
-    return AdverseActionData.create_new(
-        {
-            'compact': compact,
-            'providerId': provider_id,
-            'jurisdiction': jurisdiction,
-            'licenseTypeAbbreviation': license_type.abbreviation,
-            'licenseType': license_type.name,
-            'actionAgainst': adverse_action_against_record_type,
-            'encumbranceType': EncumbranceType(adverse_action_post_body['encumbranceType']),
-            'effectiveStartDate': encumbrance_effective_date,
-            'submittingUser': submitting_user,
-            'creationDate': config.current_standard_datetime,
-            'adverseActionId': uuid4(),
-            'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory(
+    adverse_action.licenseTypeAbbreviation = license_type.abbreviation
+    adverse_action.licenseType = license_type.name
+    adverse_action.actionAgainst = adverse_action_against_record_type
+    adverse_action.encumbranceType = EncumbranceType(adverse_action_post_body['encumbranceType'])
+    # TODO - remove the flag conditions as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+    from cc_common.feature_flag_client import is_feature_enabled
+
+    if is_feature_enabled('encumbrance-multi-category-flag'):
+        if 'clinicalPrivilegeActionCategory' in adverse_action_post_body:
+            # replicate data to both the deprecated and new fields
+            adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
                 adverse_action_post_body['clinicalPrivilegeActionCategory']
-            ),
-        }
-    )
+            )
+            adverse_action.clinicalPrivilegeActionCategories = [
+                ClinicalPrivilegeActionCategory(adverse_action_post_body['clinicalPrivilegeActionCategory'])
+            ]
+        else:
+            adverse_action.clinicalPrivilegeActionCategories = adverse_action_post_body[
+                'clinicalPrivilegeActionCategories'
+            ]
+    else:
+        adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
+            adverse_action_post_body['clinicalPrivilegeActionCategory']
+        )
+    adverse_action.effectiveStartDate = encumbrance_effective_date
+    adverse_action.submittingUser = submitting_user
+    adverse_action.creationDate = config.current_standard_datetime
+    adverse_action.adverseActionId = uuid4()
+
+    return adverse_action
 
 
 def _create_privilege_encumbrance_internal(
@@ -192,7 +210,6 @@ def _create_license_encumbrance_internal(
         provider_id=adverse_action.providerId,
         adverse_action_id=adverse_action.adverseActionId,
         jurisdiction=adverse_action.jurisdiction,
-        adverse_action_category=adverse_action.clinicalPrivilegeActionCategory,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         effective_date=adverse_action.effectiveStartDate,
     )

@@ -35,6 +35,11 @@ class EventListenerStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            self.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
+
         self.event_processors = {}
         self._add_license_encumbrance_listener(persistent_stack, data_event_bus)
         self._add_lifting_license_encumbrance_listener(persistent_stack, data_event_bus)

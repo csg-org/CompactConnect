@@ -110,18 +110,19 @@ class ApiLambdaStack(AppStack):
             api_lambda_stack=self,
         )
 
-        # Provider Management lambdas
-        self.provider_management_lambdas = ProviderManagementLambdas(
-            scope=self,
-            persistent_stack=persistent_stack,
-            data_event_bus=data_event_bus,
-        )
-
         # Provider Users lambdas
         self.provider_users_lambdas = ProviderUsersLambdas(
             scope=self,
             persistent_stack=persistent_stack,
             provider_users_stack=provider_users_stack,
+            api_lambda_stack=self,
+        )
+
+        # Provider Management lambdas
+        self.provider_management_lambdas = ProviderManagementLambdas(
+            scope=self,
+            persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
             api_lambda_stack=self,
         )
 
