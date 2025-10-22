@@ -57,11 +57,11 @@ def generate_csp_lambda_code(
     staff_auth_domain = f'{persistent_stack_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
     provider_auth_domain = f'{provider_users_stack_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
 
-    if persistent_stack_values.get('custom_staff_cognito_domain'):
-        staff_auth_domain = persistent_stack_values.get('custom_staff_cognito_domain')
+    if persistent_stack_values.custom_staff_cognito_domain:
+        staff_auth_domain = persistent_stack_values.custom_staff_cognito_domain
 
-    if provider_users_stack_values.get('custom_provider_cognito_domain'):
-        provider_auth_domain = provider_users_stack_values.get('custom_provider_cognito_domain')
+    if provider_users_stack_values.custom_provider_cognito_domain:
+        provider_auth_domain = provider_users_stack_values.custom_provider_cognito_domain
 
     # Replace placeholders with actual values
     replacements = {

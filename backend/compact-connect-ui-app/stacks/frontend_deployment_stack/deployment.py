@@ -37,11 +37,11 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
         staff_auth_domain = f'{persistent_stack_app_config_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
         provider_auth_domain = f'{provider_users_stack_app_config_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}'
 
-        if persistent_stack_app_config_values.get('custom_staff_cognito_domain'):
-            staff_auth_domain = persistent_stack_app_config_values.get('custom_staff_cognito_domain')
+        if persistent_stack_app_config_values.custom_staff_cognito_domain:
+            staff_auth_domain = persistent_stack_app_config_values.custom_staff_cognito_domain
 
-        if provider_users_stack_app_config_values.get('should_use_custom_cognito_domain'):
-            provider_auth_domain = provider_users_stack_app_config_values.get('should_use_custom_cognito_domain')
+        if provider_users_stack_app_config_values.should_use_custom_cognito_domain:
+            provider_auth_domain = provider_users_stack_app_config_values.should_use_custom_cognito_domain
 
         super().__init__(
             scope,
