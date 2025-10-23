@@ -237,7 +237,8 @@ class UserPool(CdkUserPool):
                 ],
             )
 
-        return domain
+            return domain
+        return None
 
 
     def add_ui_client(
