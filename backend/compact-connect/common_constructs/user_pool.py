@@ -151,6 +151,8 @@ class UserPool(CdkUserPool):
             non_custom_domain_prefix: str | None = None,
             app_client_domain_prefix: str | None = None,
     ):
+        if non_custom_domain_prefix is None and app_client_domain_prefix and hosted_zone is None:
+            raise ValueError('Cannot create custom Cognito domain without a hosted zone')
 
         if non_custom_domain_prefix:
             self.user_pool_domain = self.add_domain(

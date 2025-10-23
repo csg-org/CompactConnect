@@ -151,7 +151,12 @@ class PersistentStack(AppStack):
                 # Retrieve compact connect
                 compact_connect_ip = environment_context.get('compact_connect_org_ip')
 
-                self.record = ARecord(
+                if not compact_connect_ip:
+                    raise ValueError(
+                        "Missing required context value 'compact_connect_org_ip' for non-production apex A record."
+                    )
+
+                self.auth_domain_record = ARecord(
                     self,
                     'BaseARecord',
                     zone=self.hosted_zone,
