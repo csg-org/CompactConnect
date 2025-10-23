@@ -145,11 +145,11 @@ class UserPool(CdkUserPool):
 
     def add_app_client_domain(
             self,
-            non_custom_domain_prefix: str,
-            app_client_domain_prefix: str,
             base_domain_name: str,
             hosted_zone: IHostedZone,
-            scope: Construct
+            scope: Construct,
+            non_custom_domain_prefix: str | None = None,
+            app_client_domain_prefix: str | None = None,
     ):
 
         if non_custom_domain_prefix:
@@ -237,8 +237,7 @@ class UserPool(CdkUserPool):
                 ],
             )
 
-            return domain
-        return None
+            self.app_client_custom_domain = domain
 
 
     def add_ui_client(

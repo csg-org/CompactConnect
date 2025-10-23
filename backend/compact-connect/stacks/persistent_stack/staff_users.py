@@ -73,7 +73,7 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         self._add_custom_message_lambda(stack=stack)
 
         # Create a custom domain for the cognito app client
-        self.app_client_custom_domain = self.add_app_client_domain(
+        self.add_app_client_domain(
             app_client_domain_prefix='Staff',
             scope=self,
             non_custom_domain_prefix=non_custom_domain_prefix,
