@@ -15,6 +15,7 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.queue_event_listener import QueueEventListener
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
+from stacks import event_state_stack as ess
 from stacks import persistent_stack as ps
 
 
@@ -34,11 +35,13 @@ class NotificationStack(AppStack):
         *,
         environment_name: str,
         persistent_stack: ps.PersistentStack,
+        event_state_stack: ess.EventStateStack,
         **kwargs,
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
         self.event_processors = {}
+        self.event_state_stack = event_state_stack
         self._add_privilege_purchase_notification_chain(persistent_stack, data_event_bus)
         self._add_license_encumbrance_notification_listener(persistent_stack, data_event_bus)
         self._add_license_encumbrance_lifting_notification_listener(persistent_stack, data_event_bus)
@@ -176,6 +179,7 @@ class NotificationStack(AppStack):
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
+                'EVENT_STATE_TABLE_NAME': self.event_state_stack.event_state_table.table_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -184,6 +188,7 @@ class NotificationStack(AppStack):
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_data(emailer_event_listener_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(emailer_event_listener_handler)
+        self.event_state_stack.event_state_table.grant_read_write_data(emailer_event_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
@@ -193,7 +198,7 @@ class NotificationStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                     This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key, Table, and Email Service Lambda that this lambda specifically
+                    specific actions, KMS key, Tables, and Email Service Lambda that this lambda specifically
                     needs access to.
                     """,
                 },
