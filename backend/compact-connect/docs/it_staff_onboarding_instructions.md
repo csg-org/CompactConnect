@@ -19,7 +19,7 @@ By automating license data uploads, your state will:
 - **Meet Compact Obligations**: Fulfill your state's requirements as a compact member
 
 This document outlines the technical process for setting up machine-to-machine authentication and automated license data
-uploads to CompactConnect's API, as well as recommended processes for uploading data into the system. 
+uploads to CompactConnect's API, as well as common strategies for uploading data into the system. 
 Following these instructions will help you establish a secure, reliable connection
 between your licensing systems and the CompactConnect platform.
 
@@ -155,7 +155,7 @@ Replace:
 
 Note: The URL was provided during onboarding and is already configured for your jurisdiction and compact.
 
-> **Recommendation**: While the JSON API accepts arrays of up to 100 records, we recommend sending **one license record per request** for production implementations. This approach provides better error handling, easier debugging, and more reliable processing. See the [Recommended Upload Strategies](#recommended-upload-strategies-json-vs-csv) section below for detailed guidance.
+> **Note**: While the JSON API accepts arrays of up to 100 records, some states have found it's easier to send one license record per request. See the [Common Upload Strategies](#common-upload-strategies-json-vs-csv) section below for detailed guidance.
 
 ### Step 2 Alternative: Upload License Data via CSV File
 
@@ -241,49 +241,34 @@ For your convenience, use of this feature is included in the [Postman Collection
 - All date fields must use the `YYYY-MM-DD` format
 - The API does not accept `null` values. For optional fields with no value, omit the field or leave it empty in CSV.
 
-## Recommended Upload Strategies: JSON vs CSV
+## Common Upload Strategies: JSON vs CSV
 
-Based on feedback from state IT departments that have successfully integrated with CompactConnect, we recommend the following approaches for different use cases:
+Based on feedback from state IT departments that have successfully integrated with CompactConnect, the following approaches have been used for different use cases:
 
 ### Bulk Uploads: CSV Methods
 
-For states that need to upload a large number of existing license records (typically during initial onboarding), or systems that are set up to primarily export data in CSV formats, CSV upload is the recommended approach. 
+For states that need to upload a large number of existing license records (typically during initial onboarding), or systems that are set up to primarily export data in CSV formats, CSV upload has been the preferred approach. 
 
 Note that CSV uploads are an asynchronous process, meaning that **there may still be validation errors in the data even if the file is uploaded successfully.** In order to receive data validation error notifications from CompactConnect, your state administrator must configure your email address as a point of contact for operation support. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration)
 
 #### Manual CSV uploads
-If a state IT department intends to use the CSV upload process only once for the initial upload, or their system is not able to process automated uploads, we recommend using the **web-based CSV upload interface**. Your compact state administrator will need to create a staff user account for you with **Write permissions**, which you will use to access the application and upload the data, see [Data Upload section of the Staff User Documentation](../../../staff-user-documentation/README.md#data-upload)
+If a state IT department intends to use the CSV upload process only once for the initial upload, or their system is not able to process automated uploads, consider using the **web-based CSV upload interface**. Your compact state administrator will need to create a staff user account for you with **Write permissions**, which you will use to access the application and upload the data, see [Data Upload section of the Staff User Documentation](../../../staff-user-documentation/README.md#data-upload)
 
 #### API CSV uploads
-If a state IT department intends to use the CSV upload process continuously for every upload of new and updated data into the system, we recommend you integrate your system with the CSV Bulk Upload API as described above.
+If a state IT department intends to use the CSV upload process continuously for every upload of new and updated data into the system, consider integrating your system with the CSV Bulk Upload API as described above.
 
-### Ongoing Updates: JSON Method (Single Record per Request)
+### Ongoing Updates: JSON Method
 
-For ongoing license updates after the initial bulk upload, we recommend using the **JSON API with one license record per request**. We've found that sending one license record per JSON request (rather than batching multiple records) provides several operational benefits:
+For ongoing license updates after the initial bulk upload, consider using the **JSON API**. The JSON API supports processing up to 100 license records per request, but if any records within the batch are invalid, **the entire batch will be rejected**. Some states have found that sending one license record per JSON request (rather than batching multiple records) makes it easier to track issues within their data.
 
-1. **Granular Error Handling**: If one record has validation issues, it doesn't affect other records in the batch
-2. **Easier Debugging**: States can immediately identify which specific license record needs attention
-3. **Audit Trail**: Better tracking of individual record processing for compliance and troubleshooting
-
-**Advantages:**
-- Immediate validation feedback for each record
-- Easier error handling and troubleshooting
-- Precise tracking of which records succeed or fail
-- Real-time processing and response
-- Better integration with event-driven systems
-
-**Best suited for:**
-- Daily or real-time license updates
-- Individual license status changes
-- New license issuances
-- Address or contact information updates
+The JSON API is not recommended for performing initial massive bulk uploads, as there are rate limits in place that will throttle high volumes of requests from the same IT department.
 
 
 ## Verification that License Records are Uploaded
 
-After submitting license data to the JSON API, you can verify that your records were successfully uploaded by checking the API response.
+After submitting license data to the JSON API, you can verify that your records were successfully uploaded by checking the API response. See [Troubleshooting Common Issues](it_staff_onboarding_instructions.md#troubleshooting-common-issues)
 
-Note that CSV uploads, unlike the JSON API, are an asynchronous process, meaning that **there may still be validation errors in the data even if the file is uploaded successfully.** In order to receive data validation error notifications from CompactConnect, your state administrator must configure your email address as a point of contact for operation support. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration)
+For CSV uploads, if your email address is configured to recieve the upload error reports, you will receive an email in the event that the license data had any errors. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration) for setting up contacts to receive these error notifications.
 
 ### 1. Successful Upload
 If the API responds with a 200 status code, your request was accepted and basic validation passed (e.g., schema and
