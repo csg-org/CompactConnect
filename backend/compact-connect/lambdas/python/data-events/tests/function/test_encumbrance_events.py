@@ -3031,3 +3031,152 @@ class TestEncumbranceEvents(TstFunction):
         # Verify NO notifications were sent because license is still encumbered
         mock_provider_email.assert_not_called()
         mock_state_email.assert_not_called()
+
+
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
+    def test_license_encumbrance_notification_listener_skips_already_sent_notifications_and_retries_failed(
+            self, mock_provider_email, mock_state_email
+    ):
+        """
+        Test that license encumbrance notification listener skips notifications that were already sent successfully
+        and only retries notifications that failed in a previous attempt.
+
+        This test simulates a scenario where:
+        - Provider notification was sent successfully in previous attempt
+        - Primary state (oh) notification was sent successfully in previous attempt
+        - Additional state (ne) notification FAILED in previous attempt
+        - Additional state (ky) notification was never attempted (new in this retry)
+
+        Expected behavior:
+        - Provider notification should be skipped (already successful)
+        - Primary state (oh) notification should be skipped (already successful)
+        - Additional state (ne) notification should be retried (previously failed)
+        - Additional state (ky) notification should be sent (not yet attempted)
+        """
+        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
+        from handlers.encumbrance_events import license_encumbrance_notification_listener
+
+        # Set up test data with registered provider
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
+        )
+
+        # Add the license that is being encumbered (in DEFAULT_LICENSE_JURISDICTION = 'oh')
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        # Create licenses in multiple jurisdictions for state notifications
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': 'ne',
+                'jurisdictionUploadedLicenseStatus': 'active',
+            }
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'jurisdiction': 'ky',
+                'jurisdictionUploadedLicenseStatus': 'active',
+            }
+        )
+
+        # Set up notification tracking records in rate limiting table
+        # Simulate previous attempt where some notifications succeeded and one failed
+
+        # Build the PK for this encumbrance event
+        event_time = DEFAULT_DATE_OF_UPDATE_TIMESTAMP
+        pk = (
+            f"ENCUMBRANCE_NOTIFICATION#{DEFAULT_COMPACT}#{DEFAULT_PROVIDER_ID}"
+            f"#{DEFAULT_LICENSE_JURISDICTION}#{DEFAULT_LICENSE_TYPE_ABBREVIATION}"
+            f"#license.encumbrance#{event_time}"
+        )
+
+        import time
+        from datetime import timedelta
+        ttl = int(time.time()) + int(timedelta(days=7).total_seconds())
+
+        # Provider notification - SUCCESS (should be skipped)
+        self._rate_limiting_table.put_item(
+            Item={
+                'pk': pk,
+                'sk': 'NOTIFICATION#PROVIDER#provider@example.com',
+                'status': 'SUCCESS',
+                'ttl': ttl
+            }
+        )
+
+        # Primary state notification (oh) - SUCCESS (should be skipped)
+        self._rate_limiting_table.put_item(
+            Item={
+                'pk': pk,
+                'sk': f'NOTIFICATION#STATE_PRIMARY#{DEFAULT_LICENSE_JURISDICTION}',
+                'status': 'SUCCESS',
+                'ttl': ttl
+            }
+        )
+
+        # Additional state notification (ne) - FAILED (should be retried)
+        self._rate_limiting_table.put_item(
+            Item={
+                'pk': pk,
+                'sk': 'NOTIFICATION#STATE_ADDITIONAL#ne',
+                'status': 'FAILED',
+                'ttl': ttl
+            }
+        )
+
+        # Additional state notification (ky) - No record (should be sent)
+        # (intentionally not creating a record for ky to simulate it being new)
+
+        message = self._generate_license_encumbrance_message()
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        result = license_encumbrance_notification_listener(event, self.mock_context)
+
+        # Should succeed with no batch failures
+        self.assertEqual({'batchItemFailures': []}, result)
+
+        # Verify provider notification was NOT called (already successful)
+        mock_provider_email.assert_not_called()
+
+        # Verify state notifications - should only be called for 'ne' (failed) and 'ky' (new)
+        self.assertEqual(2, mock_state_email.call_count)
+
+        # Extract the calls and verify they're for the correct jurisdictions
+        calls = mock_state_email.call_args_list
+        call_jurisdictions = sorted([call.kwargs['jurisdiction'] for call in calls])
+        self.assertEqual(['ky', 'ne'], call_jurisdictions)
+
+        # Verify the call arguments for each notification
+        for call in calls:
+            self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
+            self.assertEqual(
+                call.kwargs['template_variables'],
+                EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
+                    license_type='speech-language pathologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
+
+        # Verify that notification tracking records were updated in the rate limiting table
+        # Check that 'ne' and 'ky' now have SUCCESS status
+        response = self._rate_limiting_table.query(
+            KeyConditionExpression='pk = :pk',
+            ExpressionAttributeValues={':pk': pk}
+        )
+
+        notification_records = {item['sk']: item['status'] for item in response['Items']}
+
+        # Verify all expected records exist with SUCCESS status
+        expected_records = {
+            'NOTIFICATION#PROVIDER#provider@example.com': 'SUCCESS',
+            f'NOTIFICATION#STATE_PRIMARY#{DEFAULT_LICENSE_JURISDICTION}': 'SUCCESS',
+            'NOTIFICATION#STATE_ADDITIONAL#ne': 'SUCCESS',  # Updated from FAILED
+            'NOTIFICATION#STATE_ADDITIONAL#ky': 'SUCCESS',  # Newly created
+        }
+
+        self.assertEqual(expected_records, notification_records)
