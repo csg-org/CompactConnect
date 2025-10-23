@@ -138,7 +138,7 @@ class CompactConfigurationApi:
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={'application/json': self.api_model.get_live_jurisdiction_model},
+                    response_models={'application/json': self.api_model.get_live_jurisdictions_model},
                 ),
             ],
             request_parameters={
