@@ -21,7 +21,6 @@ from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.frontend_app_config_utility import (
-    COGNITO_AUTH_DOMAIN_SUFFIX,
     PersistentStackFrontendAppConfigValues,
     ProviderUsersStackFrontendAppConfigValues,
 )

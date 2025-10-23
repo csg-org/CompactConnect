@@ -8,7 +8,6 @@ from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_s3_deployment import BucketDeployment, Source
 from cdk_nag import NagSuppressions
 from common_constructs.frontend_app_config_utility import (
-    COGNITO_AUTH_DOMAIN_SUFFIX,
     HTTPS_PREFIX,
     PersistentStackFrontendAppConfigValues,
     ProviderUsersStackFrontendAppConfigValues,
