@@ -135,7 +135,7 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         self.user_table.grant_read_write_data(scope_customization_handler)
 
         NagSuppressions.add_resource_suppressions(
-            scope_customization_handler,
+            scope_customization_handler.role,
             apply_to_children=True,
             suppressions=[
                 {

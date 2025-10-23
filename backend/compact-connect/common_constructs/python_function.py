@@ -2,20 +2,18 @@ from __future__ import annotations
 
 import os
 
-from aws_cdk import Duration, Stack
+from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_iam import IRole
+from aws_cdk.aws_iam import IRole, Role, ServicePrincipal
 from aws_cdk.aws_lambda import ILayerVersion, Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
-from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
-from aws_cdk.aws_logs import RetentionDays
+from aws_cdk.aws_logs import ILogGroup, LogGroup, RetentionDays
 from aws_cdk.aws_sns import ITopic
-from aws_cdk.aws_ssm import StringParameter
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
-COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME = '/deployment/lambda/layers/common-python-layer-arn'
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 
 
 class PythonFunction(CdkPythonFunction):
@@ -23,28 +21,76 @@ class PythonFunction(CdkPythonFunction):
     Standard Python lambda function.
     """
 
+    _common_layer_versions = None
+
     def __init__(
         self,
         scope: Construct,
         construct_id: str,
         *,
         lambda_dir: str,
+        runtime: Runtime = Runtime.PYTHON_3_13,
         log_retention: RetentionDays = RetentionDays.INFINITE,
         alarm_topic: ITopic = None,
         role: IRole = None,
+        log_group: ILogGroup = None,
         **kwargs,
     ):
+        if self._common_layer_versions is None:
+            raise RuntimeError(
+                'The PythonCommonLayerVersions construct must be declared before these lambdas can be built'
+            )
+
         defaults = {
             'timeout': Duration.seconds(28),
         }
         defaults.update(kwargs)
 
+        if not log_group:
+            log_group = LogGroup(
+                scope,
+                f'{construct_id}LogGroup',
+                retention=log_retention,
+            )
+            NagSuppressions.add_resource_suppressions(
+                log_group,
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
+                        'reason': 'We do not log sensitive data to CloudWatch, and operational visibility of system'
+                        ' logs to operators with credentials for the AWS account is desired. Encryption is not'
+                        ' appropriate here.',
+                    },
+                ],
+            )
+            if log_retention == RetentionDays.INFINITE:
+                NagSuppressions.add_resource_suppressions(
+                    log_group,
+                    suppressions=[
+                        {
+                            'id': 'HIPAA.Security-CloudWatchLogGroupRetentionPeriod',
+                            'reason': 'We are deliberately retaining logs indefinitely here.',
+                        },
+                    ],
+                )
+
+        if not role:
+            role = Role(
+                scope,
+                f'{construct_id}Role',
+                assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            )
+            log_group.grant_write(role)
+        # We can't directly grant a provided role permission to log to our log group, since that could create a
+        # circular dependency with the stack the role came from. The role creator will have to be responsible for
+        # setting its permissions.
+
         super().__init__(
             scope,
             construct_id,
             entry=os.path.join('lambdas', 'python', lambda_dir),
-            runtime=Runtime.PYTHON_3_12,
-            log_retention=log_retention,
+            runtime=runtime,
+            log_group=log_group,
             role=role,
             **defaults,
         )
@@ -53,7 +99,6 @@ class PythonFunction(CdkPythonFunction):
         if alarm_topic is not None:
             self._add_alarms(alarm_topic)
 
-        stack = Stack.of(self)
         NagSuppressions.add_resource_suppressions(
             self,
             suppressions=[
@@ -64,53 +109,6 @@ class PythonFunction(CdkPythonFunction):
                 {
                     'id': 'HIPAA.Security-LambdaInsideVPC',
                     'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement',
-                },
-                {
-                    'id': 'AwsSolutions-L1',
-                    'reason': 'We will assess migrating to the 3.13 runtime '
-                    'after the runtime has had time to stabilize',
-                },
-            ],
-        )
-
-        # If a role is provided from elsewhere for this lambda (role is not None), we don't need to run suppressions for
-        # the role that this construct normally creates.
-        if role is None:
-            NagSuppressions.add_resource_suppressions_by_path(
-                stack,
-                path=f'{self.node.path}/ServiceRole/Resource',
-                suppressions=[
-                    {
-                        'id': 'AwsSolutions-IAM4',
-                        'appliesTo': [
-                            'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
-                        ],
-                        'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
-                    },
-                ],
-            )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM4',
-                    'appliesTo': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-                    ],  # noqa: E501 line-too-long
-                    'reason': 'This policy is appropriate for the log retention lambda',
-                },
-            ],
-        )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'appliesTo': ['Resource::*'],
-                    'reason': 'This lambda needs to be able to configure log groups across the account, though the'
-                    ' actions it is allowed are scoped specifically for this task.',
                 },
             ],
         )
@@ -130,26 +128,11 @@ class PythonFunction(CdkPythonFunction):
         throttle_alarm.add_alarm_action(SnsAction(alarm_topic))
 
     def _get_common_layer(self) -> ILayerVersion:
-        # Move to local import to avoid circular import
-        from stacks import persistent_stack as ps
+        return self._common_layer_versions.get_common_layer(for_function=self)
 
-        common_layer_construct_id = 'CommonPythonLayer'
-        stack = Stack.of(self)
-        # Outside the Persistent stack, we look up the layer via an SSM parameter to avoid cross-stack references in
-        # this case.
-        if isinstance(stack, ps.PersistentStack):
-            return stack.common_python_lambda_layer
-        # We only want to do this look-up once per stack, so we'll first check if it's already been done for the
-        # stack before creating a new one
-        common_layer_version: ILayerVersion = stack.node.try_find_child(common_layer_construct_id)
-        if common_layer_version is not None:
-            return common_layer_version
-        # Fetch the value from SSM parameter
-        common_python_lambda_layer_parameter = StringParameter.from_string_parameter_name(
-            stack,
-            'CommonPythonLayerParameter',
-            string_parameter_name=COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME,
-        )
-        return PythonLayerVersion.from_layer_version_arn(
-            stack, common_layer_construct_id, common_python_lambda_layer_parameter.string_value
-        )
+    @classmethod
+    def register_layer_versions(cls, versions: PythonCommonLayerVersions):
+        """
+        Register the single PythonCommonLayerVersions object to use for referencing and attaching the common layer
+        """
+        cls._common_layer_versions = versions

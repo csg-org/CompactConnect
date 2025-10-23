@@ -1,11 +1,8 @@
-import os
-
-from aws_cdk import Duration, RemovalPolicy, aws_ssm
+from aws_cdk import Duration, RemovalPolicy
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
-from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_route53 import ARecord, RecordTarget
 from botocore.exceptions import ClientError
@@ -19,7 +16,7 @@ from constructs import Construct
 
 from common_constructs.frontend_app_config_utility import COGNITO_AUTH_DOMAIN_SUFFIX
 from common_constructs.nodejs_function import NodejsFunction
-from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
@@ -61,38 +58,11 @@ class PersistentStack(AppStack):
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
-        # Add the common python lambda layer for use in all python lambdas
-        # NOTE: this is to only be referenced directly in this stack!
-        # All external references should use the ssm parameter to get the value of the layer arn.
-        # attempting to reference this layer directly in another stack will cause this stack
-        # to be stuck in an UPDATE_ROLLBACK_FAILED state which will require DELETION of stacks
-        # that reference the layer directly. See https://github.com/aws/aws-cdk/issues/1972
-        self.common_python_lambda_layer = PythonLayerVersion(
+        # Keep this first in the stack - it needs to be in place before we build any PythonFunctions
+        self.python_common_layer_versions = PythonCommonLayerVersions(
             self,
-            'CompactConnectCommonPythonLayer',
-            entry=os.path.join('lambdas', 'python', 'common'),
-            compatible_runtimes=[Runtime.PYTHON_3_12],
-            description='A layer for common code shared between python lambdas',
-            # We retain the layer versions in our environments, to avoid a situation where a consuming stack is unable
-            # to roll back because old versions are destroyed. This means that over time, these versions
-            # will accumulate in prod, and given the AWS limit of 75 GB for all layer and lambda code storage
-            # we will likely need to add a custom resource to track these versions, and clean up versions that are
-            # older than a certain date. That is out of scope for our current effort, but we're leaving this comment
-            # here to remind us that this will need to be addressed at a later date.
-            removal_policy=removal_policy.RETAIN
-            if not self.node.try_get_context('sandbox')
-            else removal_policy.DESTROY,
-        )
-
-        # We Store the layer ARN in SSM Parameter Store
-        # since lambda layers can't be shared across stacks
-        # directly due to the fact that you can't update a CloudFormation
-        # exported value that is being referenced by a resource in another stack
-        self.lambda_layer_ssm_parameter = aws_ssm.StringParameter(
-            self,
-            'CommonPythonLayerArnParameter',
-            parameter_name=COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME,
-            string_value=self.common_python_lambda_layer.layer_version_arn,
+            'PythonCommonLayerVersions',
+            compatible_runtimes=[Runtime.PYTHON_3_12, Runtime.PYTHON_3_13],
         )
 
         self.shared_encryption_key = Key(
@@ -394,7 +364,7 @@ class PersistentStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{self.email_notification_service_lambda.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{self.email_notification_service_lambda.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

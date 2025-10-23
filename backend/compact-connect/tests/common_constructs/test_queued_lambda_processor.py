@@ -21,7 +21,7 @@ class TestQueuedLambdaProcessor(TestCase):
             stack,
             'Function',
             handler='handle',
-            runtime=Runtime.PYTHON_3_12,
+            runtime=Runtime.PYTHON_3_13,
             code=Code.from_inline("""def handle(*args): return"""),
         )
         processor = QueuedLambdaProcessor(

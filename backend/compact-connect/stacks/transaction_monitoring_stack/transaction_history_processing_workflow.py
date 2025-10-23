@@ -3,11 +3,12 @@ from __future__ import annotations
 import os
 
 from aws_cdk import ArnFormat, Duration
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData  # noqa: F401 temporarily unused
-from aws_cdk.aws_cloudwatch_actions import SnsAction  # noqa: F401 temporarily unused
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, Schedule
 from aws_cdk.aws_events_targets import SfnStateMachine
 from aws_cdk.aws_iam import Effect, PolicyStatement
+from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_stepfunctions import (
     Choice,
@@ -49,6 +50,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
             self,
             f'{compact}-TransactionHistoryProcessor',
             description=f'Processes transaction history records for {compact} compact',
+            runtime=Runtime.PYTHON_3_12,
             lambda_dir='purchases',
             index=os.path.join('handlers', 'transaction_history.py'),
             handler='process_settled_transactions',
@@ -64,6 +66,15 @@ class TransactionHistoryProcessingWorkflow(Construct):
             # Setting this memory size higher than others because it can potentially pull in a lot of data from
             # DynamoDB and authorize.net, and we want to ensure it has enough memory to handle that.
             memory_size=3008,
+        )
+        NagSuppressions.add_resource_suppressions(
+            self.transaction_processor_handler,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'Our Authorize.Net dependency is not yet compatible with Python 3.13',
+                },
+            ],
         )
         persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
         persistent_stack.provider_table.grant_read_data(self.transaction_processor_handler)
@@ -86,7 +97,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
-            path=f'{self.transaction_processor_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.transaction_processor_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

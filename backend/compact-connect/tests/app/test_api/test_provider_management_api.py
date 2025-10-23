@@ -198,6 +198,8 @@ class TestProviderManagementApi(TestApi):
         """Test that the GET /providers/{providerId} endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -213,12 +215,10 @@ class TestProviderManagementApi(TestApi):
         )
 
         # Ensure the lambda is created with expected code path
-        get_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.provider_management.get_provider_handler.node.default_child),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        api_lambda_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.providers.get_provider'},
         )
-
-        self.assertEqual(get_handler['Handler'], 'handlers.providers.get_provider')
 
         # Capture model logical ID for verification
         response_model_logical_id_capture = Capture()
@@ -231,10 +231,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.get_provider_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.get_provider_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -260,6 +260,8 @@ class TestProviderManagementApi(TestApi):
         """Test that the POST /providers/query endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -276,14 +278,10 @@ class TestProviderManagementApi(TestApi):
         )
 
         # Ensure the lambda is created with expected code path
-        query_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.provider_management.query_providers_handler.node.default_child
-            ),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        api_lambda_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.providers.query_providers'},
         )
-
-        self.assertEqual(query_handler['Handler'], 'handlers.providers.query_providers')
 
         # Capture model logical IDs for verification
         request_model_logical_id_capture = Capture()
@@ -297,10 +295,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.query_providers_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.query_providers_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},
@@ -340,6 +338,8 @@ class TestProviderManagementApi(TestApi):
         """Test that the GET /providers/{providerId}/ssn endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -355,14 +355,10 @@ class TestProviderManagementApi(TestApi):
         )
 
         # Ensure the lambda is created with expected code path
-        ssn_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.provider_management.get_provider_ssn_handler.node.default_child
-            ),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        api_lambda_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.providers.get_provider_ssn'},
         )
-
-        self.assertEqual(ssn_handler['Handler'], 'handlers.providers.get_provider_ssn')
 
         # Capture model logical ID for verification
         response_model_logical_id_capture = Capture()
@@ -375,10 +371,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.get_provider_ssn_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.get_provider_ssn_handler,
                 ),
                 'MethodResponses': [
                     {
@@ -404,11 +400,13 @@ class TestProviderManagementApi(TestApi):
         """Test that the GET /providers/{providerId}/ssn alarms are configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the anomaly detection alarm is created
-        alarms = api_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
+        alarms = api_lambda_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
         anomaly_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.provider_management.ssn_anomaly_detection_alarm),
+            api_lambda_stack.get_logical_id(api_lambda_stack.provider_management_lambdas.ssn_anomaly_detection_alarm),
             alarms,
         )
 
@@ -425,8 +423,8 @@ class TestProviderManagementApi(TestApi):
 
         # Ensure the ssn read rate-limited alarm is created
         ssn_read_rate_limited_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.provider_management.ssn_rate_limited_alarm.node.default_child
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.provider_management_lambdas.ssn_rate_limited_alarm.node.default_child
             ),
             alarms,
         )
@@ -442,8 +440,8 @@ class TestProviderManagementApi(TestApi):
 
         # Ensure the ssn endpoint disabled alarm is created
         ssn_endpoint_disabled_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.provider_management.ssn_endpoint_disabled_alarm.node.default_child
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.provider_management_lambdas.ssn_endpoint_disabled_alarm.node.default_child
             ),
             alarms,
         )
@@ -457,12 +455,13 @@ class TestProviderManagementApi(TestApi):
             overwrite_snapshot=False,
         )
 
-        # Ensure the 4xx API alarm is created
+        # Ensure the 4xx API alarm is created (still in api_stack)
+        api_stack_alarms = api_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
         throttling_alarm = TestApi.get_resource_properties_by_logical_id(
             api_stack.get_logical_id(
                 api_stack.api.v1_api.provider_management.ssn_api_throttling_alarm.node.default_child
             ),
-            alarms,
+            api_stack_alarms,
         )
 
         actions = throttling_alarm.pop('AlarmActions', [])
@@ -479,16 +478,14 @@ class TestProviderManagementApi(TestApi):
         /licenseType/{licenseType}/deactivate endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the lambda is created with expected code path
-        deactivate_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.provider_management.deactivate_privilege_handler.node.default_child
-            ),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        api_lambda_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.privileges.deactivate_privilege'},
         )
-
-        self.assertEqual(deactivate_handler['Handler'], 'handlers.privileges.deactivate_privilege')
 
         request_model_logical_id_capture = Capture()
 
@@ -500,10 +497,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.deactivate_privilege_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.deactivate_privilege_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},
@@ -576,16 +573,14 @@ class TestProviderManagementApi(TestApi):
         /licenseType/{licenseType}/encumbrance endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Ensure the lambda is created with expected code path
-        encumbrance_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(
-                api_stack.api.v1_api.provider_management.provider_encumbrance_handler.node.default_child
-            ),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        api_lambda_stack_template.has_resource_properties(
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.encumbrance.encumbrance_handler'},
         )
-
-        self.assertEqual(encumbrance_handler['Handler'], 'handlers.encumbrance.encumbrance_handler')
 
         # Verify the privilege encumbrance resource path is created correctly
         encumbrance_resource_logical_id = self._get_privilege_encumbrance_resource_id(api_stack_template, api_stack)
@@ -600,10 +595,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.provider_encumbrance_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.provider_encumbrance_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},
@@ -639,6 +634,8 @@ class TestProviderManagementApi(TestApi):
         /licenseType/{licenseType}/encumbrance endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Verify the license encumbrance resource path is created correctly
         encumbrance_resource_logical_id = self._get_license_encumbrance_resource_id(api_stack_template, api_stack)
@@ -653,10 +650,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.provider_encumbrance_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.provider_encumbrance_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},
@@ -692,6 +689,8 @@ class TestProviderManagementApi(TestApi):
         /licenseType/{licenseType}/encumbrance/{encumbranceId} endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Get the encumbrance resource logical ID
         encumbrance_resource_logical_id = self._get_privilege_encumbrance_resource_id(api_stack_template, api_stack)
@@ -719,10 +718,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.provider_encumbrance_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.provider_encumbrance_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},
@@ -758,6 +757,8 @@ class TestProviderManagementApi(TestApi):
         /licenseType/{licenseType}/encumbrance/{encumbranceId} endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
 
         # Find the license encumbrance resource
         encumbrance_resource_logical_id = self._get_license_encumbrance_resource_id(api_stack_template, api_stack)
@@ -785,10 +786,10 @@ class TestProviderManagementApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_management.provider_encumbrance_handler.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.provider_management_lambdas.provider_encumbrance_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},

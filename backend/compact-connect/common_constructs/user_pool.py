@@ -6,7 +6,6 @@ from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cognito import (
     AccountRecovery,
-    AdvancedSecurityMode,
     AuthFlow,
     AutoVerifiedAttrs,
     CfnManagedLoginBranding,
@@ -14,6 +13,7 @@ from aws_cdk.aws_cognito import (
     ClientAttributes,
     CognitoDomainOptions,
     CustomDomainOptions,
+    CustomThreatProtectionMode,
     DeviceTracking,
     FeaturePlan,
     ICustomAttribute,
@@ -26,6 +26,7 @@ from aws_cdk.aws_cognito import (
     PasswordPolicy,
     SignInAliases,
     StandardAttributes,
+    StandardThreatProtectionMode,
     UserPoolClient,
     UserPoolEmail,
 )
@@ -70,10 +71,16 @@ class UserPool(CdkUserPool):
             email=email,
             account_recovery=AccountRecovery.EMAIL_ONLY,
             auto_verify=AutoVerifiedAttrs(email=True),
-            advanced_security_mode=AdvancedSecurityMode.ENFORCED
+            standard_threat_protection_mode=StandardThreatProtectionMode.FULL_FUNCTION
             if security_profile == SecurityProfile.RECOMMENDED
-            else AdvancedSecurityMode.AUDIT,
-            # required for advanced security mode
+            else StandardThreatProtectionMode.AUDIT_ONLY,
+            # Custom threat protection mode is only for custom authentication flows
+            # which we don't currently have in this project. We'll keep this in place
+            # anyway, for future-proofing, since it is harmless to leave it in place.
+            custom_threat_protection_mode=CustomThreatProtectionMode.FULL_FUNCTION
+            if security_profile == SecurityProfile.RECOMMENDED
+            else CustomThreatProtectionMode.AUDIT_ONLY,
+            # required for threat protection modes
             feature_plan=FeaturePlan.PLUS,
             custom_sender_kms_key=encryption_key,
             device_tracking=DeviceTracking(
@@ -115,13 +122,13 @@ class UserPool(CdkUserPool):
                 suppressions=[
                     {
                         'id': 'AwsSolutions-COG2',
-                        'reason': 'MFA is disabled to facilitate automated security testing in some pre-production '
-                        'environments.',
+                        'reason': 'MFA is disabled to facilitate automated security testing in some pre-production'
+                        ' environments.',
                     },
                     {
                         'id': 'AwsSolutions-COG3',
-                        'reason': 'Advanced security mode is not enforced in some pre-production environments to'
-                        'facilitate automated security testing.',
+                        'reason': 'Threat protection mode is not enforced in some pre-production environments to'
+                        ' facilitate automated security testing.',
                     },
                 ],
             )

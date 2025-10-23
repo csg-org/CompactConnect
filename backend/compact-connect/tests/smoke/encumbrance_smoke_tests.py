@@ -17,8 +17,8 @@ from smoke_common import (
     create_test_staff_user,
     delete_test_staff_user,
     get_all_provider_database_records,
-    get_license_type_abbreviation,
     get_provider_user_dynamodb_table,
+    get_provider_user_records,
     get_staff_user_auth_headers,
     load_smoke_test_env,
     logger,
@@ -89,25 +89,6 @@ def setup_test_environment():
     logger.info('Test environment setup complete')
 
 
-def _get_license_data_from_provider_response(provider_data: dict, jurisdiction: str, license_type: str):
-    return next(
-        (
-            lic
-            for lic in provider_data['licenses']
-            if lic['jurisdiction'] == jurisdiction and lic['licenseType'] == license_type
-        ),
-        None,
-    )
-
-
-def _get_privilege_data_from_provider_response(provider_data: dict, jurisdiction: str):
-    privileges = provider_data.get('privileges', [])
-    if not privileges:
-        raise SmokeTestFailureException('No privileges found for provider')
-
-    return next((privilege for privilege in privileges if privilege['jurisdiction'] == jurisdiction), None)
-
-
 class EncumbranceTestHelper:
     """Helper class to manage encumbrance test operations with pre-configured staff users and URLs."""
 
@@ -122,14 +103,22 @@ class EncumbranceTestHelper:
         self.provider_id = provider_data['providerId']
 
         # Get jurisdiction information from Nebraska privilege (smoke tests purchase privilege in NE)
-        privilege_record = _get_privilege_data_from_provider_response(provider_data, jurisdiction='ne')
-        if not privilege_record:
+        # Query database directly for privilege records
+        provider_user_records = get_provider_user_records(self.compact, self.provider_id)
+
+        # Find the Nebraska privilege
+        ne_privileges = provider_user_records.get_privilege_records(
+            filter_condition=lambda priv: priv.jurisdiction == 'ne'
+        )
+
+        if not ne_privileges:
             raise SmokeTestFailureException('Nebraska privilege not found for provider')
 
-        self.privilege_jurisdiction = privilege_record['jurisdiction']
-        self.license_jurisdiction = privilege_record['licenseJurisdiction']
-        self.license_type = privilege_record['licenseType']
-        self.license_type_abbreviation = get_license_type_abbreviation(self.license_type)
+        privilege_record = ne_privileges[0]
+        self.privilege_jurisdiction = privilege_record.jurisdiction
+        self.license_jurisdiction = privilege_record.licenseJurisdiction
+        self.license_type = privilege_record.licenseType
+        self.license_type_abbreviation = privilege_record.licenseTypeAbbreviation
 
         # Track created users for cleanup
         self.created_staff_users = []
@@ -250,21 +239,24 @@ class EncumbranceTestHelper:
 
     def validate_license_encumbered_state(self, expected_status: str = 'encumbered'):
         """Validate license encumbered status and related fields."""
-        provider_data = call_provider_users_me_endpoint()
-        updated_license = _get_license_data_from_provider_response(
-            provider_data, self.license_jurisdiction, self.license_type
+        # Get all provider records directly from DynamoDB
+        provider_user_records = get_provider_user_records(self.compact, self.provider_id)
+
+        # Get the specific license record
+        license_record = provider_user_records.get_specific_license_record(
+            self.license_jurisdiction, self.license_type_abbreviation
         )
 
-        if not updated_license:
+        if not license_record:
             raise SmokeTestFailureException('License not found after encumbrance operation')
 
-        actual_status = updated_license.get('encumberedStatus')
+        actual_status = license_record.encumberedStatus
         if actual_status != expected_status:
             raise SmokeTestFailureException(
                 f"License encumberedStatus should be '{expected_status}', got: {actual_status}"
             )
 
-        return updated_license
+        return license_record
 
     def validate_privilege_encumbered_state(
         self, expected_status: str = 'encumbered', max_wait_time: int = 60, check_interval: int = 10
@@ -272,7 +264,7 @@ class EncumbranceTestHelper:
         """
         Validate that the privilege encumberedStatus matches the expected value.
 
-        This method will poll the provider me endpoint every check_interval seconds
+        This method will poll the provider records every check_interval seconds
         for up to max_wait_time seconds, checking if the privilege has the expected
         encumberedStatus. This accounts for eventual consistency in downstream processing.
 
@@ -296,29 +288,22 @@ class EncumbranceTestHelper:
             attempts += 1
 
             try:
-                # Get current provider data
-                provider_data = call_provider_users_me_endpoint()
+                # Get current provider records directly from DynamoDB
+                provider_user_records = get_provider_user_records(self.compact, self.provider_id)
 
                 # Find the privilege that matches the license jurisdiction and type
-                privileges = provider_data.get('privileges', [])
-                matching_privilege = None
-
-                for privilege in privileges:
-                    # Match by license jurisdiction and license type
-                    if (
-                        privilege.get('licenseJurisdiction') == self.license_jurisdiction
-                        and privilege.get('licenseType') == self.license_type
-                    ):
-                        matching_privilege = privilege
-                        break
+                matching_privilege = provider_user_records.get_specific_privilege_record(
+                    self.privilege_jurisdiction, self.license_type_abbreviation
+                )
 
                 if not matching_privilege:
                     logger.warning(
-                        f'Attempt {attempts}/{max_attempts}: No privilege found matching license jurisdiction '
-                        f'"{self.license_jurisdiction}" and license type "{self.license_type}"'
+                        f'Attempt {attempts}/{max_attempts}: No privilege found matching jurisdiction '
+                        f'"{self.privilege_jurisdiction}" and license type "{self.license_type_abbreviation}"'
                     )
                 else:
-                    actual_status = matching_privilege.get('encumberedStatus')
+                    logger.info('matching privilege found', matching_privilege=matching_privilege)
+                    actual_status = matching_privilege.encumberedStatus
                     logger.info(
                         f'Attempt {attempts}/{max_attempts}: Privilege encumberedStatus is "{actual_status}", '
                         f'expecting "{expected_status}"'
@@ -351,43 +336,98 @@ class EncumbranceTestHelper:
 
     def validate_provider_encumbered_state(self, expected_status: str = 'encumbered'):
         """Validate provider encumbered status."""
-        provider_data = call_provider_users_me_endpoint()
-        if provider_data.get('encumberedStatus') != expected_status:
+        # Get all provider records directly from DynamoDB
+        provider_user_records = get_provider_user_records(self.compact, self.provider_id)
+        provider_record = provider_user_records.get_provider_record()
+
+        if provider_record.encumberedStatus != expected_status:
             raise SmokeTestFailureException(
-                f"Provider encumberedStatus should be '{expected_status}', got: {provider_data.get('encumberedStatus')}"
+                f"Provider encumberedStatus should be '{expected_status}', got: {provider_record.encumberedStatus}"
             )
 
     def get_license_adverse_actions(self):
         """Get all license adverse actions for this provider."""
-        provider_data = call_provider_users_me_endpoint()
-        updated_license = _get_license_data_from_provider_response(
-            provider_data, self.license_jurisdiction, self.license_type
+        # Get all provider records directly from DynamoDB
+        provider_user_records = get_provider_user_records(self.compact, self.provider_id)
+
+        # Get adverse actions for this specific license
+        adverse_actions = provider_user_records.get_adverse_action_records_for_license(
+            self.license_jurisdiction, self.license_type_abbreviation
         )
 
-        if not updated_license:
-            return []
-
-        adverse_actions = updated_license.get('adverseActions', [])
-        return [
-            aa
-            for aa in adverse_actions
-            if aa.get('actionAgainst') == 'license' and aa.get('jurisdiction') == self.license_jurisdiction
-        ]
+        # Convert to dict format for compatibility with existing code
+        return [aa.to_dict() for aa in adverse_actions]
 
     def get_privilege_adverse_actions(self):
         """Get all privilege adverse actions for this provider."""
-        provider_data = call_provider_users_me_endpoint()
-        updated_privilege = _get_privilege_data_from_provider_response(provider_data, self.privilege_jurisdiction)
+        # Get all provider records directly from DynamoDB
+        provider_user_records = get_provider_user_records(self.compact, self.provider_id)
 
-        if not updated_privilege:
-            return []
+        # Get adverse actions for this specific privilege
+        adverse_actions = provider_user_records.get_adverse_action_records_for_privilege(
+            self.privilege_jurisdiction, self.license_type_abbreviation
+        )
 
-        adverse_actions = updated_privilege.get('adverseActions', [])
-        return [
-            aa
-            for aa in adverse_actions
-            if aa.get('actionAgainst') == 'privilege' and aa.get('jurisdiction') == self.privilege_jurisdiction
-        ]
+        # Convert to dict format for compatibility with existing code
+        return [aa.to_dict() for aa in adverse_actions]
+
+    @staticmethod
+    def verify_adverse_action_matches_request(adverse_actions: list[dict], request_payload: dict) -> dict:
+        """
+        Verify that at least one adverse action matches the request payload.
+
+        :param adverse_actions: List of adverse action records
+        :param request_payload: The request payload that was sent (containing encumbranceType and
+                                clinicalPrivilegeActionCategories)
+        :return: The matching adverse action record
+        :raises SmokeTestFailureException: If no matching adverse action is found
+        """
+        expected_encumbrance_type = request_payload.get('encumbranceType')
+        expected_categories = set(request_payload.get('clinicalPrivilegeActionCategories', []))
+
+        logger.info(
+            f'Verifying adverse action matches request: encumbranceType={expected_encumbrance_type}, '
+            f'categories={expected_categories}'
+        )
+
+        matching_actions = []
+        for adverse_action in adverse_actions:
+            action_type = adverse_action.get('encumbranceType')
+            action_categories = set(adverse_action.get('clinicalPrivilegeActionCategories', []))
+
+            if action_type == expected_encumbrance_type and action_categories == expected_categories:
+                matching_actions.append(adverse_action)
+
+        if not matching_actions:
+            raise SmokeTestFailureException(
+                f'No adverse action found matching request payload. '
+                f'Expected encumbranceType="{expected_encumbrance_type}" and '
+                f'categories={expected_categories}. '
+                f'Found adverse actions: {adverse_actions}'
+            )
+
+        logger.info(f'✅ Found {len(matching_actions)} matching adverse action(s)')
+        return matching_actions[0]
+
+    def verify_license_adverse_action_matches_request(self, request_payload: dict) -> dict:
+        """
+        Verify that a license adverse action matches the request payload.
+
+        :param request_payload: The request payload that was sent
+        :return: The matching adverse action record
+        """
+        license_adverse_actions = self.get_license_adverse_actions()
+        return self.verify_adverse_action_matches_request(license_adverse_actions, request_payload)
+
+    def verify_privilege_adverse_action_matches_request(self, request_payload: dict) -> dict:
+        """
+        Verify that a privilege adverse action matches the request payload.
+
+        :param request_payload: The request payload that was sent
+        :return: The matching adverse action record
+        """
+        privilege_adverse_actions = self.get_privilege_adverse_actions()
+        return self.verify_adverse_action_matches_request(privilege_adverse_actions, request_payload)
 
     def _generate_license_encumbrance_url(self, encumbrance_id: str = None):
         """Generate license encumbrance URL."""
@@ -461,7 +501,8 @@ def test_license_encumbrance_workflow():
 
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-11-11',
-            'clinicalPrivilegeActionCategory': 'Fraud, Deception, or Misrepresentation',
+            'encumbranceType': 'surrender of license',
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
         }
 
         # First encumbrance
@@ -469,37 +510,38 @@ def test_license_encumbrance_workflow():
         logger.info('First license encumbrance created successfully')
 
         # Verify provider state after first encumbrance
-        provider_data = call_provider_users_me_endpoint()
-        updated_license = _get_license_data_from_provider_response(
-            provider_data, helper.license_jurisdiction, helper.license_type
+        provider_user_records = get_provider_user_records(helper.compact, helper.provider_id)
+        updated_license = provider_user_records.get_specific_license_record(
+            helper.license_jurisdiction, helper.license_type_abbreviation
         )
         if not updated_license:
             raise SmokeTestFailureException('License not found after encumbrance')
 
-        if updated_license.get('encumberedStatus') != 'encumbered':
+        if updated_license.encumberedStatus != 'encumbered':
             raise SmokeTestFailureException(
-                f"License encumberedStatus should be 'encumbered', got: {updated_license.get('encumberedStatus')}"
+                f"License encumberedStatus should be 'encumbered', got: {updated_license.encumberedStatus}"
             )
 
-        if updated_license.get('compactEligibility') != 'ineligible':
+        if updated_license.compactEligibility != 'ineligible':
             raise SmokeTestFailureException(
-                f"License compactEligibility should be 'ineligible', got: {updated_license.get('compactEligibility')}"
+                f"License compactEligibility should be 'ineligible', got: {updated_license.compactEligibility}"
             )
 
-        if updated_license.get('licenseStatus') != 'inactive':
+        if updated_license.licenseStatus != 'inactive':
             raise SmokeTestFailureException(
-                f"License licenseStatus should be 'inactive', got: {updated_license.get('licenseStatus')}"
+                f"License licenseStatus should be 'inactive', got: {updated_license.licenseStatus}"
             )
 
         # Check provider status
-        if provider_data.get('encumberedStatus') != 'encumbered':
+        provider_record = provider_user_records.get_provider_record()
+        if provider_record.encumberedStatus != 'encumbered':
             raise SmokeTestFailureException(
-                f"Provider encumberedStatus should be 'encumbered', got: {provider_data.get('encumberedStatus')}"
+                f"Provider encumberedStatus should be 'encumbered', got: {provider_record.encumberedStatus}"
             )
 
-        if provider_data.get('compactEligibility') != 'ineligible':
+        if provider_record.compactEligibility != 'ineligible':
             raise SmokeTestFailureException(
-                f"Provider compactEligibility should be 'ineligible', got: {provider_data.get('compactEligibility')}"
+                f"Provider compactEligibility should be 'ineligible', got: {provider_record.compactEligibility}"
             )
 
         # Verify adverse action exists
@@ -508,6 +550,9 @@ def test_license_encumbrance_workflow():
             raise SmokeTestFailureException(f'Expected 1 license adverse action, found: {len(license_adverse_actions)}')
 
         first_adverse_action_id = license_adverse_actions[0]['adverseActionId']
+
+        # Verify the adverse action matches the request payload
+        helper.verify_license_adverse_action_matches_request(encumbrance_body)
         logger.info('First license encumbrance verified successfully')
 
         # Step 2: Verify that the associated privilege is also encumbered with 'licenseEncumbered' status
@@ -518,7 +563,8 @@ def test_license_encumbrance_workflow():
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-01-01',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'encumbranceType': 'denial',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
         helper.encumber_license(second_encumbrance_body)
         logger.info('Second license encumbrance created successfully')
@@ -534,10 +580,15 @@ def test_license_encumbrance_workflow():
             aa['adverseActionId'] for aa in license_adverse_actions if aa['adverseActionId'] != first_adverse_action_id
         )
 
+        # Verify the second adverse action matches the request payload
+        helper.verify_license_adverse_action_matches_request(second_encumbrance_body)
+        logger.info('Second license encumbrance verified successfully')
+
         # Step 3: Encumber Privilege
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-05-09',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'encumbranceType': 'reprimand',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care', 'Misconduct or Abuse'],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -550,6 +601,10 @@ def test_license_encumbrance_workflow():
             max_wait_time=1,
             check_interval=1,
         )
+
+        # Verify the privilege adverse action matches the request payload
+        helper.verify_privilege_adverse_action_matches_request(privilege_encumbrance_body)
+        logger.info('Privilege encumbrance verified successfully')
 
         # Step 4: Lift first encumbrance (license should remain encumbered)
         logger.info('Step 4: Lifting first license encumbrance...')
@@ -653,7 +708,8 @@ def test_privilege_encumbrance_workflow():
 
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-12-12',
-            'clinicalPrivilegeActionCategory': 'Fraud, Deception, or Misrepresentation',
+            'encumbranceType': 'fine',
+            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
         }
 
         # First encumbrance
@@ -679,12 +735,16 @@ def test_privilege_encumbrance_workflow():
             )
 
         first_adverse_action_id = privilege_adverse_actions[0]['adverseActionId']
+
+        # Verify the adverse action matches the request payload
+        helper.verify_privilege_adverse_action_matches_request(encumbrance_body)
         logger.info('First privilege encumbrance verified successfully')
 
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-02-02',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'encumbranceType': 'completion of continuing education',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         }
         helper.encumber_privilege(second_encumbrance_body)
         logger.info('Second privilege encumbrance created successfully')
@@ -701,6 +761,10 @@ def test_privilege_encumbrance_workflow():
             for aa in privilege_adverse_actions
             if aa['adverseActionId'] != first_adverse_action_id
         )
+
+        # Verify the second adverse action matches the request payload
+        helper.verify_privilege_adverse_action_matches_request(second_encumbrance_body)
+        logger.info('Second privilege encumbrance verified successfully')
 
         # Step 2: Lift first encumbrance (privilege should remain encumbered)
         logger.info('Step 2: Lifting first privilege encumbrance...')
@@ -768,7 +832,12 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         logger.info('Step 1: Creating privilege encumbrance...')
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2024-01-15',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'encumbranceType': 'probation',
+            'clinicalPrivilegeActionCategories': [
+                'Unsafe Practice or Substandard Care',
+                'Non-compliance With Requirements',
+                'Fraud, Deception, or Misrepresentation',
+            ],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -781,17 +850,28 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
             max_wait_time=1,
             check_interval=1,
         )
+
+        # Verify the privilege adverse action matches the request payload
+        helper.verify_privilege_adverse_action_matches_request(privilege_encumbrance_body)
         logger.info('Verified privilege is directly encumbered')
 
         # Step 2: Encumber the associated license
         logger.info('Step 2: Creating license encumbrance...')
         license_encumbrance_body = {
             'encumbranceEffectiveDate': '2024-01-20',
-            'clinicalPrivilegeActionCategory': 'Criminal Conviction or Adjudication',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': [
+                'Criminal Conviction or Adjudication',
+                'Improper Supervision or Allowing Unlicensed Practice',
+                'Other',
+            ],
         }
 
         helper.encumber_license(license_encumbrance_body)
         logger.info('License encumbrance created successfully')
+
+        # Verify the license adverse action matches the request payload
+        helper.verify_license_adverse_action_matches_request(license_encumbrance_body)
 
         # wait 1 minute for downstream processing to complete
         # to ensure it doesn't change the privilege record
@@ -853,15 +933,17 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         logger.info('Verified privilege is now fully unencumbered')
 
         # Final verification: Check that provider is also unencumbered
-        provider_data = call_provider_users_me_endpoint()
-        if provider_data.get('encumberedStatus') != 'unencumbered':
+        provider_user_records = get_provider_user_records(helper.compact, helper.provider_id)
+        provider_record = provider_user_records.get_provider_record()
+
+        if provider_record.encumberedStatus != 'unencumbered':
             raise SmokeTestFailureException(
-                f"Provider encumberedStatus should be 'unencumbered', got: {provider_data.get('encumberedStatus')}"
+                f"Provider encumberedStatus should be 'unencumbered', got: {provider_record.encumberedStatus}"
             )
 
-        if provider_data.get('compactEligibility') != 'eligible':
+        if provider_record.compactEligibility != 'eligible':
             raise SmokeTestFailureException(
-                f"Provider compactEligibility should be 'eligible', got: {provider_data.get('compactEligibility')}"
+                f"Provider compactEligibility should be 'eligible', got: {provider_record.compactEligibility}"
             )
 
         logger.info('Complex privilege and license encumbrance workflow test completed successfully')
