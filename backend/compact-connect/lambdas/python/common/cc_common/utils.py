@@ -449,6 +449,8 @@ def sqs_handler(fn: Callable):
         for record in records:
             try:
                 message = json.loads(record['body'])
+                # Add SQS metadata to message for handler access
+                message['AWSSQSMessageId'] = record['messageId']
                 logger.info(
                     'Processing message',
                     message_id=record['messageId'],

@@ -34,9 +34,7 @@ class EventStateTable(Table):
             encryption_key=encryption_key,
             partition_key={'name': 'pk', 'type': AttributeType.STRING},
             sort_key={'name': 'sk', 'type': AttributeType.STRING},
-            point_in_time_recovery_specification=PointInTimeRecoverySpecification(
-                point_in_time_recovery_enabled=True
-            ),
+            point_in_time_recovery_specification=PointInTimeRecoverySpecification(point_in_time_recovery_enabled=True),
             removal_policy=removal_policy,
             time_to_live_attribute='ttl',
             global_secondary_indexes=[
@@ -48,4 +46,3 @@ class EventStateTable(Table):
                 )
             ],
         )
-

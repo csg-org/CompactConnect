@@ -34,4 +34,3 @@ class EventStateStack(AppStack):
             encryption_key=persistent_stack.shared_encryption_key,
             removal_policy=removal_policy,
         )
-

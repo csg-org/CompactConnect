@@ -20,6 +20,7 @@ class TstLambdas(TestCase):
                 'EVENT_BUS_NAME': 'license-data-events',
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
+                'EVENT_STATE_TABLE_NAME': 'event-state-table',
                 'SSN_TABLE_NAME': 'ssn-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'ENVIRONMENT_NAME': 'test',

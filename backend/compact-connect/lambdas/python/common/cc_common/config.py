@@ -282,6 +282,20 @@ class _Config:
     def rate_limiting_table(self):
         return boto3.resource('dynamodb').Table(self.rate_limiting_table_name)
 
+    @property
+    def event_state_table_name(self):
+        return os.environ['EVENT_STATE_TABLE_NAME']
+
+    @property
+    def event_state_table(self):
+        return boto3.resource('dynamodb').Table(self.event_state_table_name)
+
+    @cached_property
+    def event_state_client(self):
+        from cc_common.event_state_client import EventStateClient
+
+        return EventStateClient(self)
+
     @cached_property
     def allowed_origins(self):
         return json.loads(os.environ['ALLOWED_ORIGINS'])
