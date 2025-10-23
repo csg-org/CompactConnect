@@ -2361,6 +2361,30 @@ class ApiModel:
         return self.api._v1_public_provider_response_model
 
     @property
+    def get_live_jurisdiction_model(self) -> Model:
+        """Return the get live jurisdiction response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_get_live_jurisdiction_response_model'):
+            return self.api._v1_get_live_jurisdiction_response_model
+
+        # Shape: { "<compact>": ["ky", "oh", ...], ... }
+        # Keys are dynamic compact abbreviations; values are arrays of jurisdiction abbreviations
+        self.api._v1_get_live_jurisdiction_response_model = self.api.add_model(
+            'V1GetLiveJurisdictionsResponseModel',
+            description='Dictionary keyed by compact abbreviations with arrays of live jurisdiction abbreviations',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    items=JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=self.api.node.get_context('jurisdictions'),
+                    ),
+                ),
+            ),
+        )
+        return self.api._v1_get_live_jurisdiction_response_model
+
+    @property
     def _public_provider_detailed_response_schema(self):
         """Schema for public provider responses based on ProviderPublicResponseSchema"""
         return JsonSchema(

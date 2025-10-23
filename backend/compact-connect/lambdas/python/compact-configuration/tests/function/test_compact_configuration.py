@@ -320,8 +320,8 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
-        # Verify the live jurisdictions
-        self.assertCountEqual({'message': 'Invalid request query param: invalid_compact'}, response_body)
+        # Verify the error message
+        self.assertEqual({'message': 'Invalid request query param: invalid_compact'}, response_body)
 
 
 @mock_aws
