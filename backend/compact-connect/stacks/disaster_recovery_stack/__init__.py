@@ -74,7 +74,7 @@ class DisasterRecoveryStack(AppStack):
 
         # Enable DR for the SSN table with special handling for security
         self.dr_workflows[persistent_stack.ssn_table.table_name] = (
-            self._create_ssn_dynamodb_table_dr_recovery_workflow(ssn_table=persistent_stack.ssn_table),
+            self._create_ssn_dynamodb_table_dr_recovery_workflow(ssn_table=persistent_stack.ssn_table)
         )
 
     def _create_dynamodb_table_dr_recovery_workflow(self, table: Table, shared_persistent_stack_key: Key):
