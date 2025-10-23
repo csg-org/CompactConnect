@@ -5,16 +5,17 @@ from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_route53 import ARecord, RecordTarget
-from botocore.exceptions import ClientError
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
-from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigUtility
+from common_constructs.frontend_app_config_utility import (
+    COGNITO_AUTH_DOMAIN_SUFFIX,
+    PersistentStackFrontendAppConfigUtility,
+)
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.frontend_app_config_utility import COGNITO_AUTH_DOMAIN_SUFFIX
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
