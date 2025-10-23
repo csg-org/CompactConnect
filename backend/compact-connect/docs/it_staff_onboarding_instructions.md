@@ -268,7 +268,7 @@ The JSON API is not recommended for performing initial massive bulk uploads, as 
 
 After submitting license data to the JSON API, you can verify that your records were successfully uploaded by checking the API response. See [Troubleshooting Common Issues](it_staff_onboarding_instructions.md#troubleshooting-common-issues)
 
-For CSV uploads, if your email address is configured to recieve the upload error reports, you will receive an email in the event that the license data had any errors. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration) for setting up contacts to receive these error notifications.
+For CSV uploads, if your email address is configured to receive the upload error reports, you will receive an email in the event that the license data had any errors. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration) for setting up contacts to receive these error notifications.
 
 ### 1. Successful Upload
 If the API responds with a 200 status code, your request was accepted and basic validation passed (e.g., schema and
