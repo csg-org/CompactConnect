@@ -1,7 +1,32 @@
 import time
 from datetime import timedelta
+from enum import StrEnum
+from uuid import UUID
 
 from cc_common.config import _Config, logger
+
+
+class RecipientType(StrEnum):
+    """Enum for notification recipient types."""
+
+    PROVIDER = 'provider'
+    STATE = 'state'
+
+
+class NotificationStatus(StrEnum):
+    """Enum for notification delivery status."""
+
+    SUCCESS = 'SUCCESS'
+    FAILED = 'FAILED'
+
+
+class EventType(StrEnum):
+    """Enum for encumbrance event types."""
+
+    LICENSE_ENCUMBRANCE = 'license.encumbrance'
+    LICENSE_ENCUMBRANCE_LIFTED = 'license.encumbranceLifted'
+    PRIVILEGE_ENCUMBRANCE = 'privilege.encumbrance'
+    PRIVILEGE_ENCUMBRANCE_LIFTED = 'privilege.encumbranceLifted'
 
 
 class EventStateClient:
@@ -15,13 +40,11 @@ class EventStateClient:
         *,
         compact: str,
         message_id: str,
-        recipient_type: str,
-        recipient_identifier: str,
-        status: str,
+        recipient_type: RecipientType,
+        status: NotificationStatus,
         provider_id: str,
-        event_type: str,
+        event_type: EventType,
         event_time: str,
-        attempt_count: int,
         jurisdiction: str | None = None,
         error_message: str | None = None,
         ttl_weeks: int = 4,
@@ -31,13 +54,11 @@ class EventStateClient:
 
         :param compact: The compact identifier
         :param message_id: SQS message ID
-        :param recipient_type: 'provider' or 'state'
-        :param recipient_identifier: Email address for provider or jurisdiction code for state
-        :param status: 'SUCCESS' or 'FAILED'
+        :param recipient_type: RecipientType enum or string ('provider' or 'state')
+        :param status: NotificationStatus enum or string ('SUCCESS' or 'FAILED')
         :param provider_id: Provider ID
-        :param event_type: Event type (e.g., 'license.encumbrance')
+        :param event_type: EventType enum or string (e.g., 'license.encumbrance')
         :param event_time: Event timestamp
-        :param attempt_count: Number of attempts made
         :param jurisdiction: Jurisdiction code (for state notifications)
         :param error_message: Error message if failed
         :param ttl_weeks: TTL in weeks (default 4 weeks)
@@ -45,10 +66,7 @@ class EventStateClient:
         # Build partition and sort keys
         pk = f'COMPACT#{compact}#SQS_MESSAGE#{message_id}'
 
-        if recipient_type == 'provider':
-            sk = 'ENCUMBRANCE_NOTIFICATION#provider'
-        else:
-            sk = f'ENCUMBRANCE_NOTIFICATION#state#{recipient_identifier}'
+        sk = f'ENCUMBRANCE_NOTIFICATION#{recipient_type}#{jurisdiction or ""}'
 
         # Calculate TTL
         ttl = int(time.time()) + int(timedelta(weeks=ttl_weeks).total_seconds())
@@ -61,14 +79,12 @@ class EventStateClient:
             'providerId': str(provider_id),  # Convert UUID to string for DynamoDB
             'eventType': event_type,
             'eventTime': str(event_time),  # Convert datetime to ISO format string
-            'attemptCount': attempt_count,
             'ttl': ttl,
         }
 
         # Add optional fields
         if jurisdiction:
             item['jurisdiction'] = jurisdiction
-            item['recipientType'] = 'STATE_PRIMARY' if recipient_type == 'state' else recipient_type
 
         if error_message:
             item['errorMessage'] = error_message
@@ -77,7 +93,7 @@ class EventStateClient:
         self.config.event_state_table.put_item(Item=item)
         logger.debug('Recorded notification attempt', pk=pk, sk=sk, status=status)
 
-    def get_notification_attempts(self, *, compact: str, message_id: str) -> dict[str, dict]:
+    def _get_notification_attempts(self, *, compact: str, message_id: str) -> dict[str, dict]:
         """
         Query all notification attempts for a message.
 
@@ -109,7 +125,9 @@ class NotificationTracker:
         self.compact = compact
         self.message_id = message_id
         self.event_state_client = config.event_state_client
-        self._attempts = self.event_state_client.get_notification_attempts(compact=compact, message_id=message_id)
+        self._attempts = self.event_state_client._get_notification_attempts(  # noqa: SLF001 meant for use within the notification tracker
+            compact=compact, message_id=message_id
+        )
 
     def should_send_provider_notification(self) -> bool:
         """
@@ -117,7 +135,7 @@ class NotificationTracker:
 
         :return: True if notification should be sent, False otherwise
         """
-        sk = 'ENCUMBRANCE_NOTIFICATION#provider'
+        sk = f'ENCUMBRANCE_NOTIFICATION#{RecipientType.PROVIDER}#'
         return self._attempts.get(sk, {}).get('status') != 'SUCCESS'
 
     def should_send_state_notification(self, jurisdiction: str) -> bool:
@@ -127,64 +145,44 @@ class NotificationTracker:
         :param jurisdiction: Jurisdiction code
         :return: True if notification should be sent, False otherwise
         """
-        sk = f'ENCUMBRANCE_NOTIFICATION#state#{jurisdiction}'
+        sk = f'ENCUMBRANCE_NOTIFICATION#{RecipientType.STATE}#{jurisdiction}'
         return self._attempts.get(sk, {}).get('status') != 'SUCCESS'
-
-    def _get_attempt_count(self, recipient_type: str, recipient_identifier: str) -> int:
-        """
-        Get the current attempt count for a notification.
-
-        :param recipient_type: 'provider' or 'state'
-        :param recipient_identifier: Email or jurisdiction code
-        :return: Current attempt count
-        """
-        if recipient_type == 'provider':
-            sk = 'ENCUMBRANCE_NOTIFICATION#provider'
-        else:
-            sk = f'ENCUMBRANCE_NOTIFICATION#state#{recipient_identifier}'
-        return self._attempts.get(sk, {}).get('attemptCount', 0)
 
     def record_success(
         self,
         *,
-        recipient_type: str,
-        recipient_identifier: str,
-        provider_id: str,
-        event_type: str,
+        recipient_type: RecipientType,
+        provider_id: UUID,
+        event_type: EventType,
         event_time: str,
         jurisdiction: str | None = None,
     ) -> None:
         """
         Record a successful notification.
 
-        :param recipient_type: 'provider' or 'state'
-        :param recipient_identifier: Email or jurisdiction code
+        :param recipient_type: RecipientType enum or string ('provider' or 'state')
         :param provider_id: Provider ID
-        :param event_type: Event type
+        :param event_type: EventType enum or string
         :param event_time: Event timestamp
         :param jurisdiction: Jurisdiction code (for state notifications)
         """
-        attempt_count = self._get_attempt_count(recipient_type, recipient_identifier) + 1
         self.event_state_client.record_notification_attempt(
             compact=self.compact,
             message_id=self.message_id,
             recipient_type=recipient_type,
-            recipient_identifier=recipient_identifier,
-            status='SUCCESS',
+            status=NotificationStatus.SUCCESS,
             provider_id=provider_id,
             event_type=event_type,
             event_time=event_time,
-            attempt_count=attempt_count,
             jurisdiction=jurisdiction,
         )
 
     def record_failure(
         self,
         *,
-        recipient_type: str,
-        recipient_identifier: str,
-        provider_id: str,
-        event_type: str,
+        recipient_type: RecipientType,
+        provider_id: UUID,
+        event_type: EventType,
         event_time: str,
         error_message: str,
         jurisdiction: str | None = None,
@@ -192,25 +190,34 @@ class NotificationTracker:
         """
         Record a failed notification.
 
-        :param recipient_type: 'provider' or 'state'
-        :param recipient_identifier: Email or jurisdiction code
+        :param recipient_type: RecipientType enum or string ('provider' or 'state')
         :param provider_id: Provider ID
-        :param event_type: Event type
+        :param event_type: EventType enum or string
         :param event_time: Event timestamp
         :param error_message: Error message describing the failure
         :param jurisdiction: Jurisdiction code (for state notifications)
         """
-        attempt_count = self._get_attempt_count(recipient_type, recipient_identifier) + 1
-        self.event_state_client.record_notification_attempt(
-            compact=self.compact,
-            message_id=self.message_id,
-            recipient_type=recipient_type,
-            recipient_identifier=recipient_identifier,
-            status='FAILED',
-            provider_id=provider_id,
-            event_type=event_type,
-            event_time=event_time,
-            attempt_count=attempt_count,
-            jurisdiction=jurisdiction,
-            error_message=error_message,
-        )
+        try:
+            self.event_state_client.record_notification_attempt(
+                compact=self.compact,
+                message_id=self.message_id,
+                recipient_type=recipient_type,
+                status=NotificationStatus.FAILED,
+                provider_id=provider_id,
+                event_type=event_type,
+                event_time=event_time,
+                jurisdiction=jurisdiction,
+                error_message=error_message,
+            )
+        except Exception as e:  # noqa: BLE001
+            # If this cannot be written, we swallow the error as the lambda will automatically retry and
+            # attempt to send out the notification again. Just log the error and move on.
+            logger.error(
+                'Unable to record notification failure.',
+                compact=self.compact,
+                recipient_type=recipient_type,
+                provider_id=provider_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction or 'None',
+                error=str(e),
+            )

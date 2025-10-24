@@ -6,10 +6,14 @@ from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum, Priv
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
-from cc_common.email_service_client import EncumbranceNotificationTemplateVariables, ProviderNotificationMethod
+from cc_common.email_service_client import (
+    EncumbranceNotificationTemplateVariables,
+    JurisdictionNotificationMethod,
+    ProviderNotificationMethod,
+)
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.event_bus_client import EventBusClient
-from cc_common.event_state_client import NotificationTracker
+from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
 from cc_common.exceptions import CCInternalException
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler
@@ -54,7 +58,7 @@ def _send_provider_notification(
     provider_record: ProviderData,
     compact: str,
     provider_id: UUID,
-    event_type: str,
+    event_type: EventType,
     event_time: str,
     tracker: NotificationTracker,
     **notification_kwargs,
@@ -87,8 +91,7 @@ def _send_provider_notification(
                     ),
                 )
                 tracker.record_success(
-                    recipient_type='provider',
-                    recipient_identifier=provider_email,
+                    recipient_type=RecipientType.PROVIDER,
                     provider_id=provider_id,
                     event_type=event_type,
                     event_time=event_time,
@@ -96,8 +99,7 @@ def _send_provider_notification(
             except Exception as e:
                 logger.error('Failed to send provider notification', exception=str(e))
                 tracker.record_failure(
-                    recipient_type='provider',
-                    recipient_identifier=provider_email,
+                    recipient_type=RecipientType.PROVIDER,
                     provider_id=provider_id,
                     event_type=event_type,
                     event_time=event_time,
@@ -111,13 +113,13 @@ def _send_provider_notification(
 
 
 def _send_primary_state_notification(
-    notification_method: ProviderNotificationMethod,
+    notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
     provider_record: ProviderData,
     jurisdiction: str,
     compact: str,
-    event_type: str,
+    event_type: EventType,
     event_time: str,
     tracker: NotificationTracker,
     provider_id: UUID,
@@ -151,8 +153,7 @@ def _send_primary_state_notification(
                 ),
             )
             tracker.record_success(
-                recipient_type='state',
-                recipient_identifier=jurisdiction,
+                recipient_type=RecipientType.STATE,
                 provider_id=provider_id,
                 event_type=event_type,
                 event_time=event_time,
@@ -161,8 +162,7 @@ def _send_primary_state_notification(
         except Exception as e:
             logger.error('Failed to send state notification', jurisdiction=jurisdiction, exception=str(e))
             tracker.record_failure(
-                recipient_type='state',
-                recipient_identifier=jurisdiction,
+                recipient_type=RecipientType.STATE,
                 provider_id=provider_id,
                 event_type=event_type,
                 event_time=event_time,
@@ -177,14 +177,14 @@ def _send_primary_state_notification(
 
 
 def _send_additional_state_notifications(
-    notification_method: ProviderNotificationMethod,
+    notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
     provider_records: ProviderUserRecords,
     provider_record: ProviderData,
     excluded_jurisdiction: str,
     compact: str,
-    event_type: str,
+    event_type: EventType,
     event_time: str,
     tracker: NotificationTracker,
     provider_id: UUID,
@@ -238,8 +238,7 @@ def _send_additional_state_notifications(
                     template_variables=template_variables,
                 )
                 tracker.record_success(
-                    recipient_type='state',
-                    recipient_identifier=notification_jurisdiction,
+                    recipient_type=RecipientType.STATE,
                     provider_id=provider_id,
                     event_type=event_type,
                     event_time=event_time,
@@ -252,8 +251,7 @@ def _send_additional_state_notifications(
                     exception=str(e),
                 )
                 tracker.record_failure(
-                    recipient_type='state',
-                    recipient_identifier=notification_jurisdiction,
+                    recipient_type=RecipientType.STATE,
                     provider_id=provider_id,
                     event_type=event_type,
                     event_time=event_time,
@@ -441,7 +439,7 @@ def privilege_encumbrance_notification_listener(message: dict):
             provider_record=provider_record,
             compact=compact,
             provider_id=provider_id,
-            event_type='privilege.encumbrance',
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -458,7 +456,7 @@ def privilege_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
-            event_type='privilege.encumbrance',
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -475,7 +473,7 @@ def privilege_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
-            event_type='privilege.encumbrance',
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -579,7 +577,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             provider_record=provider_record,
             compact=compact,
             provider_id=provider_id,
-            event_type='privilege.encumbranceLifted',
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -596,7 +594,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
-            event_type='privilege.encumbranceLifted',
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -613,7 +611,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
-            event_type='privilege.encumbranceLifted',
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -672,7 +670,7 @@ def license_encumbrance_notification_listener(message: dict):
             provider_record=provider_record,
             compact=compact,
             provider_id=provider_id,
-            event_type='license.encumbrance',
+            event_type=EventType.LICENSE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -689,7 +687,7 @@ def license_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
-            event_type='license.encumbrance',
+            event_type=EventType.LICENSE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -706,7 +704,7 @@ def license_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
-            event_type='license.encumbrance',
+            event_type=EventType.LICENSE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -790,7 +788,7 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             provider_record=provider_record,
             compact=compact,
             provider_id=provider_id,
-            event_type='license.encumbranceLifted',
+            event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -807,7 +805,7 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
-            event_type='license.encumbranceLifted',
+            event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
@@ -824,7 +822,7 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
-            event_type='license.encumbranceLifted',
+            event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
             encumbered_jurisdiction=jurisdiction,

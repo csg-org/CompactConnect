@@ -45,6 +45,14 @@ class ProviderNotificationMethod(Protocol):
     ) -> dict[str, Any]: ...
 
 
+class JurisdictionNotificationMethod(Protocol):
+    """Protocol for Jurisdiction encumbrance notification methods."""
+
+    def __call__(
+        self, *, compact: str, jurisdiction: str, template_variables: EncumbranceNotificationTemplateVariables
+    ) -> dict[str, Any]: ...
+
+
 class EmailServiceClient:
     """
     Client for sending email notifications through the email notification service lambda.
