@@ -302,6 +302,34 @@ In addition to uploading license data, state IT departments can retrieve privile
 
 > **Important**: Data retrieval endpoints require additional security through request signature authentication. Please see the [Client Signature Authentication documentation](./client_signature_auth.md) for detailed information about implementing request signing before attempting to use these endpoints.
 
+### Required OAuth Scope for Data Retrieval
+
+To retrieve data from the CompactConnect API, you must request the `<compact>/readGeneral` OAuth scope when generating your access token. This scope grants read access to provider and privilege data for your jurisdiction.
+
+If your integration needs both to upload license data AND retrieve privilege data within the same access token, you can request multiple OAuth scopes at the same time by separating them with a space in the scope parameter:
+
+```bash
+curl --location --request POST '<authUrl>' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--header 'Accept: application/json' \
+--data-urlencode 'grant_type=client_credentials' \
+--data-urlencode 'client_id=<clientId>' \
+--data-urlencode 'client_secret=<clientSecret>' \
+--data-urlencode 'scope=<jurisdiction>/<compact>.write <compact>/readGeneral'
+```
+
+Replace:
+- `<clientId>` with your client ID
+- `<clientSecret>` with your client secret
+- `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`)
+- `<compact>` with the lower-cased compact abbreviation (`aslp`, `octp`, or `coun`)
+
+**OAuth Scope Reference**:
+- `<jurisdiction>/<compact>.write` - Required for uploading license data
+- `<compact>/readGeneral` - Required for retrieving provider and privilege data
+
+The access token you receive will be authorized for both operations. If this request fails, your credentials may have not been granted the ability to grant the read scope for the specific compact when they were created. Reach out to your CompactConnect representative to request this permission if needed.
+
 ### Query Providers Endpoint
 
 The query endpoint allows you to retrieve a list of providers who have privileges in your jurisdiction, filtered by when their records were last updated. This is useful for identifying which providers have had changes that need to be synchronized to your systems.
