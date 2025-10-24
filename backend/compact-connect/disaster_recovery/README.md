@@ -95,7 +95,7 @@ When you are ready to perform a rollback, find the step function for the specifi
 ```json
 {
   "incidentId": "<YOUR INCIDENT ID HERE>",
-  "pitrBackupTime": "<ISO 8601 UTC datetime string>",
+  "pitrBackupTime": "<UTC datetime string>",
   "tableNameRecoveryConfirmation": "<TABLE NAME YOU ARE TRYING TO RECOVER>"
 }
 ```
@@ -110,8 +110,8 @@ When you are ready to perform a rollback, find the step function for the specifi
 
 - **`pitrBackupTime`** (required)
   - Purpose: The timestamp to restore the table to
-  - Format: ISO 8601 UTC datetime string
-  - Example: `"2030-01-15T12:39:46+00:00"`
+  - Format: UTC datetime string
+  - Example: `"2030-01-15T12:39:46Z"`
   - Constraints: Must be within the PITR retention window (35 days)
 
 - **`tableNameRecoveryConfirmation`** (required)
@@ -124,7 +124,7 @@ example:
 ```json
 {
   "incidentId": "transaction-corruption-20250115",
-  "pitrBackupTime": "2025-01-15T09:00:00+00:00",
+  "pitrBackupTime": "2025-01-15T09:00:00Z",
   "tableNameRecoveryConfirmation": "Prod-PersistentStack-TransactionHistoryTable00A96798-C6VX9JVDOYGN"
 }
 ```
