@@ -42,7 +42,7 @@ class EventStateClient:
         message_id: str,
         recipient_type: RecipientType,
         status: NotificationStatus,
-        provider_id: str,
+        provider_id: UUID,
         event_type: EventType,
         event_time: str,
         jurisdiction: str | None = None,
@@ -78,7 +78,7 @@ class EventStateClient:
             'status': status,
             'providerId': str(provider_id),  # Convert UUID to string for DynamoDB
             'eventType': event_type,
-            'eventTime': str(event_time),  # Convert datetime to ISO format string
+            'eventTime': str(event_time),  # Ensure string format for DynamoDB
             'ttl': ttl,
         }
 

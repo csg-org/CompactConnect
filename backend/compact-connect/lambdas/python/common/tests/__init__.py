@@ -18,6 +18,7 @@ class TstLambdas(TestCase):
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
+                'EVENT_STATE_TABLE_NAME': 'event-state-table',
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': 'email-notification-service',
