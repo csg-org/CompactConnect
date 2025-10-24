@@ -126,7 +126,7 @@ The following license fields are publicly visible through CompactConnect's publi
 
 ### What if I want to receive CompactConnect data back to my state IT system?
 State IT systems can retrieve data via the CompactConnect State-API, which provides HTTP endpoints for querying the 
-system for compact privilege data for a respective state.
+system for compact privilege data for a respective state. See [Retrieving Data from CompactConnect](it_staff_onboarding_instructions.md#retrieving-data-from-compactconnect)
 
 Note that CompactConnect has additional security requirements for automatic API retrieval of data from the system. Please see the [Client Signature Authentication documentation](./client_signature_auth.md) for detailed information about implementing request signing for secure data retrieval.
 
