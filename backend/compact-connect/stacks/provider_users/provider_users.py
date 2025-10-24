@@ -30,10 +30,10 @@ class ProviderUsers(UserPool):
         scope: Construct,
         construct_id: str,
         *,
+        app_name: str,
         environment_name: str,
         environment_context: dict,
         encryption_key: IKey,
-        non_custom_domain_prefix: str | None,
         sign_in_aliases: SignInAliases,
         user_pool_email: UserPoolEmail,
         removal_policy,
@@ -67,16 +67,18 @@ class ProviderUsers(UserPool):
             **kwargs,
         )
 
-        # Create a custom domain for the cognito app client
-        self.add_app_client_domain(
-            app_client_domain_prefix='Licensee',
-            scope=self,
-            non_custom_domain_prefix=non_custom_domain_prefix,
-            base_domain_name=persistent_stack.hosted_zone.zone_name
-            if persistent_stack.hosted_zone
-            else None,
-            hosted_zone=persistent_stack.hosted_zone,
-        )
+        if persistent_stack.hosted_zone:
+            self.add_custom_app_client_domain(
+                app_client_domain_prefix='Licensee',
+                scope=self,
+                base_domain_name=persistent_stack.hosted_zone.zone_name,
+                hosted_zone=persistent_stack.hosted_zone
+            )
+        else:
+            provider_prefix = f'{app_name}-provider'
+            default_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
+
+            self.add_default_app_client_domain(non_custom_domain_prefix=default_prefix)
 
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(

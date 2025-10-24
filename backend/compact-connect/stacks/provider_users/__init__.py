@@ -55,21 +55,17 @@ class ProviderUsersStack(AppStack):
         # Get security profile from environment context
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 
-        # Set up provider domain prefix
-        provider_prefix = f'{app_name}-provider'
-        default_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-
         # Create the new green provider user pool
         self.provider_users = ProviderUsers(
             self,
             'ProviderUsersGreen',
+            app_name=app_name,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=persistent_stack.shared_encryption_key,
             sign_in_aliases=SignInAliases(email=True, username=False),
             user_pool_email=user_pool_email_settings,
             notification_from_email=notification_from_email,
-            non_custom_domain_prefix=default_prefix if not persistent_stack.hosted_zone else None,
             ses_identity_arn=ses_identity_arn,
             security_profile=security_profile,
             removal_policy=removal_policy,

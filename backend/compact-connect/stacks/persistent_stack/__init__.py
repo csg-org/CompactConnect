@@ -144,24 +144,6 @@ class PersistentStack(AppStack):
                 ses_verified_domain=self.hosted_zone.zone_name,
                 configuration_set_name=self.user_email_notifications.config_set.configuration_set_name,
             )
-
-            # We need an ARecord at the base domain for cognito to let us use a subdomain. We already have an ARecord
-            # at the subdomain in prod, but we do not anywhere else
-            if not environment_name == 'prod':
-                # Retrieve compact connect
-                compact_connect_ip = environment_context.get('compact_connect_org_ip')
-
-                if not compact_connect_ip:
-                    raise ValueError(
-                        "Missing required context value 'compact_connect_org_ip' for non-production apex A record."
-                    )
-
-                self.auth_domain_record = ARecord(
-                    self,
-                    'BaseARecord',
-                    zone=self.hosted_zone,
-                    target=RecordTarget.from_ip_addresses(compact_connect_ip),
-                )
         else:
             # if domain name is not provided, use the default cognito email settings
             notification_from_email = None
@@ -170,12 +152,13 @@ class PersistentStack(AppStack):
         self._create_email_notification_service()
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
-        staff_prefix = f'{app_name}-staff'
-        non_custom_domain_prefix = staff_prefix if environment_name == 'prod' else f'{staff_prefix}-{environment_name}'
+        # staff_prefix = f'{app_name}-staff'
+        # non_custom_domain_prefix = staff_prefix if environment_name == 'prod' else f'{staff_prefix}-{environment_name}'
 
         self.staff_users = StaffUsers(
             self,
             'StaffUsersGreen',
+            app_name=app_name,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
@@ -183,9 +166,6 @@ class PersistentStack(AppStack):
             notification_from_email=notification_from_email,
             ses_identity_arn=self.user_email_notifications.email_identity.email_identity_arn
             if self.hosted_zone
-            else None,
-            non_custom_domain_prefix=non_custom_domain_prefix
-            if not self.hosted_zone
             else None,
             security_profile=security_profile,
             removal_policy=removal_policy,
