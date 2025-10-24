@@ -4,7 +4,6 @@ from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_logs import QueryDefinition, QueryString
-from aws_cdk.aws_route53 import ARecord, RecordTarget
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
@@ -152,8 +151,6 @@ class PersistentStack(AppStack):
         self._create_email_notification_service()
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
-        # staff_prefix = f'{app_name}-staff'
-        # non_custom_domain_prefix = staff_prefix if environment_name == 'prod' else f'{staff_prefix}-{environment_name}'
 
         self.staff_users = StaffUsers(
             self,
@@ -471,7 +468,7 @@ class PersistentStack(AppStack):
         if self.hosted_zone:
             staff_cognito_domain_name = self.staff_users.app_client_custom_domain.domain_name
         else:
-            staff_cognito_domain_name = f'{self.staff_users.user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
+            staff_cognito_domain_name = f'{self.staff_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
 
         frontend_app_config.set_staff_cognito_values(
             domain_name=staff_cognito_domain_name,
