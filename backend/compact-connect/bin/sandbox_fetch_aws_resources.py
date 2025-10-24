@@ -8,16 +8,21 @@ To display in human-readable format:
 To output in .env format:
     python fetch_aws_resources.py --as-env
 
+To output in smoke test config format:
+    python fetch_aws_resources.py --as-smoke-test-config
+
 The CLI must also be configured with AWS credentials that have appropriate access to Cognito and DynamoDB
 """
 
 import argparse
+import json
 
 import boto3.session
 
 # Initialize AWS clients
 cognito_client = boto3.client('cognito-idp')
 cloudformation_client = boto3.client('cloudformation')
+lambda_client = boto3.client('lambda')
 
 # Fetch the AWS region
 aws_region = boto3.session.Session().region_name
@@ -28,6 +33,8 @@ STACK_NAMES = [
     'Sandbox-APIStack',
     'Sandbox-IngestStack',
     'Sandbox-PersistentStack',
+    'Sandbox-StateAuthStack',
+    'Sandbox-ProviderUsersStack',
 ]
 
 
@@ -75,11 +82,22 @@ def extract_table_name(value):
     return value
 
 
+def get_lambda_function_name(function_arn):
+    """Extract Lambda function name from ARN"""
+    if function_arn.startswith('arn:aws:lambda:'):
+        return function_arn.split(':')[-1]
+    return function_arn
+
+
 def fetch_resources():
     """Fetch all required AWS resources"""
     api_gateway_url = None
+    state_api_gateway_url = None
     provider_details = {}
     staff_details = {}
+    dynamodb_tables = {}
+    lambda_functions = {}
+    state_auth_details = {}
 
     for stack in STACK_NAMES:
         outputs = get_stack_outputs(stack)
@@ -88,7 +106,10 @@ def fetch_resources():
             # API Gateway Endpoint
             if 'ApiGateway' in key or 'Endpoint' in key:
                 if value.startswith('https://') and 'execute-api' in value:
-                    api_gateway_url = value
+                    if 'State' in key:
+                        state_api_gateway_url = value
+                    else:
+                        api_gateway_url = value
 
             # Provider Users (Cognito + DynamoDB)
             if 'ProviderUsers' in key:
@@ -106,23 +127,50 @@ def fetch_resources():
                 elif 'UsersDomain' in key:
                     staff_details['login_url'] = get_cognito_login_url(value)
 
-            # Find associated DynamoDB tables
+            # State Auth (Cognito)
+            if 'StateAuth' in key:
+                if 'UserPoolId' in key:
+                    state_auth_details['user_pool_id'] = value
+                    state_auth_details['user_pool_name'], state_auth_details['client_id'] = get_cognito_details(value)
+                elif 'AuthUrl' in key:
+                    state_auth_details['auth_url'] = value
+
+            # DynamoDB Tables
             if 'Table' in key:
+                table_name = extract_table_name(value)
                 if 'ProviderTable' in value:
-                    provider_details['dynamodb_table'] = extract_table_name(value)
-                if 'StaffUsersGreen' in value:
-                    staff_details['dynamodb_table'] = extract_table_name(value)
+                    dynamodb_tables['provider'] = table_name
+                    provider_details['dynamodb_table'] = table_name
+                elif 'StaffUsersGreen' in value:
+                    dynamodb_tables['staff_users'] = table_name
+                    staff_details['dynamodb_table'] = table_name
+                elif 'CompactConfig' in value:
+                    dynamodb_tables['compact_configuration'] = table_name
+                elif 'RateLimiting' in value:
+                    dynamodb_tables['rate_limiting'] = table_name
+                elif 'SSN' in value:
+                    dynamodb_tables['ssn'] = table_name
+                elif 'DataEvent' in value:
+                    dynamodb_tables['data_events'] = table_name
 
-    return api_gateway_url, provider_details, staff_details
+            # Lambda Functions
+            if 'Lambda' in key and 'Function' in key:
+                function_name = get_lambda_function_name(value)
+                if 'GetProviderSSN' in key:
+                    lambda_functions['get_provider_ssn'] = function_name
+
+    return api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details
 
 
-def print_human_readable(api_gateway_url, provider_details, staff_details):
+def print_human_readable(api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details):
     """Prints data in a human-readable format"""
     print('\n\033[1;34m=== AWS Resource Information ===\033[0m\n')  # Blue header
 
-    # Print API Gateway URL
+    # Print API Gateway URLs
     if api_gateway_url:
         print(f'\033[1;32mAPI Gateway Endpoint:\033[0m {api_gateway_url}\n')  # Green header
+    if state_api_gateway_url:
+        print(f'\033[1;32mState API Gateway Endpoint:\033[0m {state_api_gateway_url}\n')  # Green header
 
     # Print Provider User Pool Details
     print('\033[1;36m=== Provider Users ===\033[0m')  # Cyan header
@@ -146,8 +194,30 @@ def print_human_readable(api_gateway_url, provider_details, staff_details):
     else:
         print('No Staff user pool found.\n')
 
+    # Print State Auth Details
+    print('\033[1;36m=== State Auth ===\033[0m')  # Cyan header
+    if state_auth_details:
+        print(f'\033[1mAuth URL:\033[0m {state_auth_details.get("auth_url", "N/A")}')
+        print(f'\033[1mCognito User Pool Name:\033[0m {state_auth_details.get("user_pool_name", "N/A")}')
+        print(f'\033[1mCognito User Pool ID:\033[0m {state_auth_details.get("user_pool_id", "N/A")}')
+        print(f'\033[1mClient ID:\033[0m {state_auth_details.get("client_id", "N/A")}\n')
+    else:
+        print('No State Auth user pool found.\n')
 
-def print_env_format(api_gateway_url, provider_details, staff_details):
+    # Print DynamoDB Tables
+    print('\033[1;36m=== DynamoDB Tables ===\033[0m')  # Cyan header
+    for table_type, table_name in dynamodb_tables.items():
+        print(f'\033[1m{table_type.replace("_", " ").title()}:\033[0m {table_name}')
+    print()
+
+    # Print Lambda Functions
+    print('\033[1;36m=== Lambda Functions ===\033[0m')  # Cyan header
+    for func_type, func_name in lambda_functions.items():
+        print(f'\033[1m{func_type.replace("_", " ").title()}:\033[0m {func_name}')
+    print()
+
+
+def print_env_format(api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details):
     """Prints data in .env format"""
     provider_login_url = provider_details.get('login_url', 'N/A').removesuffix('/login')
     staff_login_url = staff_details.get('login_url', 'N/A').removesuffix('/login')
@@ -168,17 +238,48 @@ def print_env_format(api_gateway_url, provider_details, staff_details):
     print(f'VUE_APP_DYNAMO_TABLE_STAFF={staff_table}')
 
 
+def print_smoke_test_config(api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details):
+    """Prints data in smoke test config format"""
+    config = {
+        "CC_TEST_API_BASE_URL": api_gateway_url or "https://api.test.compactconnect.org",
+        "CC_TEST_STATE_API_BASE_URL": state_api_gateway_url or "https://state-api.test.compactconnect.org",
+        "CC_TEST_STATE_AUTH_URL": state_auth_details.get('auth_url', "N/A"),
+        "CC_TEST_COGNITO_STATE_AUTH_USER_POOL_ID": state_auth_details.get('user_pool_id', "N/A"),
+        "CC_TEST_PROVIDER_DYNAMO_TABLE_NAME": dynamodb_tables.get('provider', "N/A"),
+        "CC_TEST_COMPACT_CONFIGURATION_DYNAMO_TABLE_NAME": dynamodb_tables.get('compact_configuration', "N/A"),
+        "CC_TEST_RATE_LIMITING_DYNAMO_TABLE_NAME": dynamodb_tables.get('rate_limiting', "N/A"),
+        "CC_TEST_GET_PROVIDER_SSN_LAMBDA_NAME": lambda_functions.get('get_provider_ssn', "N/A"),
+        "CC_TEST_SSN_DYNAMO_TABLE_NAME": dynamodb_tables.get('ssn', "N/A"),
+        "CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME": dynamodb_tables.get('data_events', "N/A"),
+        "CC_TEST_STAFF_USER_DYNAMO_TABLE_NAME": dynamodb_tables.get('staff_users', "N/A"),
+        "CC_TEST_COGNITO_STAFF_USER_POOL_ID": staff_details.get('user_pool_id', "N/A"),
+        "CC_TEST_COGNITO_STAFF_USER_POOL_CLIENT_ID": staff_details.get('client_id', "N/A"),
+        "CC_TEST_COGNITO_PROVIDER_USER_POOL_ID": provider_details.get('user_pool_id', "N/A"),
+        "CC_TEST_COGNITO_PROVIDER_USER_POOL_CLIENT_ID": provider_details.get('client_id', "N/A"),
+        "CC_TEST_PROVIDER_USER_USERNAME": "example@example.com",
+        "CC_TEST_PROVIDER_USER_PASSWORD": "examplePassword",
+        "ENVIRONMENT_NAME": "your_environment_name",
+        "SANDBOX_AUTHORIZE_NET_API_LOGIN_ID": "your_sandbox_api_login_id",
+        "SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY": "your_sandbox_transaction_key",
+    }
+
+    print(json.dumps(config, indent=2))
+
+
 if __name__ == '__main__':
-    # Argument parser for --as-env flag
+    # Argument parser for output format flags
     parser = argparse.ArgumentParser(description='Fetch AWS resource details.')
     parser.add_argument('--as-env', action='store_true', help='Output in .env format')
+    parser.add_argument('--as-smoke-test-config', action='store_true', help='Output in smoke test config format')
     args = parser.parse_args()
 
     # Fetch resources
-    api_gateway_url, provider_details, staff_details = fetch_resources()
+    api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details = fetch_resources()
 
     # Output in the requested format
     if args.as_env:
-        print_env_format(api_gateway_url, provider_details, staff_details)
+        print_env_format(api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details)
+    elif args.as_smoke_test_config:
+        print_smoke_test_config(api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details)
     else:
-        print_human_readable(api_gateway_url, provider_details, staff_details)
+        print_human_readable(api_gateway_url, state_api_gateway_url, provider_details, staff_details, dynamodb_tables, lambda_functions, state_auth_details)
