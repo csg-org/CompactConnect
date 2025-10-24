@@ -25,7 +25,7 @@ between your licensing systems and the CompactConnect platform.
 
 ## Credential Security
 
-You have received a one-time use link to access your API credentials, along with an email containing contextual
+This article assumes you have received a one-time use link to access your API credentials, along with an email containing contextual
 information about your integration. After retrieving the credentials, please:
 
 1. Store the credentials securely in a password manager or secrets management system
@@ -114,7 +114,7 @@ specific compact. See the
 [Technical User Guide](./README.md) for more details about API use:
 
 ```bash
-curl --location --request POST 'https://api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses' \
+curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses' \
 --header 'Authorization: Bearer <access_token>' \
 --header 'Content-Type: application/json' \
 --header 'User-Agent: <your-app-name>/<version> (<contact-email-or-url>)' \
@@ -171,7 +171,7 @@ The CSV upload process involves two steps:
 First, obtain the upload URL and required form fields:
 
 ```bash
-curl --location --request GET 'https://api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses/bulk-upload' \
+curl --location --request GET 'https://state-api.beta.compactconnect.org/v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses/bulk-upload' \
 --header 'Authorization: Bearer <access_token>' \
 --header 'Accept: application/json' \
 --header 'User-Agent: <your-app-name>/<version> (<contact-email-or-url>)'
@@ -249,7 +249,7 @@ Based on feedback from state IT departments that have successfully integrated wi
 
 For states that need to upload a large number of existing license records (typically during initial onboarding), or systems that are set up to primarily export data in CSV formats, CSV upload has been the preferred approach. 
 
-Note that CSV uploads are an asynchronous process, meaning that **there may still be validation errors in the data even if the file is uploaded successfully.** In order to receive data validation error notifications from CompactConnect, your state administrator must configure your email address as a point of contact for operation support. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration)
+Note that CSV uploads are an asynchronous process, meaning that **there may still be validation errors in the data even if the file is uploaded successfully.** CompactConnect will process all the valid records in the CSV file, and will report on any licenses in the file that could not be processed due to validation error. In order to receive data validation error notifications from CompactConnect, your state administrator must configure your email address as a point of contact for operation support. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration)
 
 #### Manual CSV uploads
 If a state IT department intends to use the CSV upload process only once for the initial upload, or their system is not able to process automated uploads, consider using the **web-based CSV upload interface**. Your compact state administrator will need to create a staff user account for you with **Write permissions**, which you will use to access the application and upload the data, see [Data Upload section of the Staff User Documentation](../../../staff-user-documentation/README.md#data-upload)
