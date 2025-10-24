@@ -1,5 +1,5 @@
 # ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
-from datetime import date, datetime
+from datetime import datetime
 from uuid import UUID
 
 from cc_common.data_model.schema.common import (
@@ -86,11 +86,11 @@ class InvestigationData(CCDataClass):
         self._data['creationDate'] = value
 
     @property
-    def closeDate(self) -> date | None:
+    def closeDate(self) -> datetime | None:
         return self._data.get('closeDate')
 
     @closeDate.setter
-    def closeDate(self, value: date) -> None:
+    def closeDate(self, value: datetime) -> None:
         self._data['closeDate'] = value
 
     @property

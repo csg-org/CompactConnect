@@ -301,6 +301,7 @@ class UpdateCategory(CCEnum):
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
     INVESTIGATION = 'investigation'
+    CLOSING_INVESTIGATION = 'closingInvestigation'
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
     REGISTRATION = 'registration'
     LIFTING_ENCUMBRANCE = 'lifting_encumbrance'

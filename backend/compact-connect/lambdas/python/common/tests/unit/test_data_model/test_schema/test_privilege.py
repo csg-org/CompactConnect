@@ -191,6 +191,22 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
             context.exception.messages,
         )
 
+    def test_invalid_if_missing_investigation_details_when_update_type_is_investigation(self):
+        from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+
+        with open('tests/resources/dynamo/privilege-update.json') as f:
+            privilege_data = json.load(f)
+        # Privilege investigation updates require an 'investigationDetails' fields
+        privilege_data['updateType'] = 'investigation'
+
+        with self.assertRaises(ValidationError) as context:
+            PrivilegeUpdateRecordSchema().load(privilege_data)
+
+        self.assertEqual(
+            {'investigationDetails': ['This field is required when update was investigation type']},
+            context.exception.messages,
+        )
+
     def test_valid_if_deactivation_details_present_when_update_type_is_deactivation(self):
         from cc_common.data_model.schema.common import UpdateCategory
         from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema

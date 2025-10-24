@@ -70,34 +70,28 @@ class TestInvestigationDataClass(TstLambdas):
     def test_investigation_data_class_getters_return_expected_values(self):
         from cc_common.data_model.schema.investigation import InvestigationData
 
-        investigation_data = self.test_data_generator.generate_default_investigation().serialize_to_database_record()
+        investigation_data = self.test_data_generator.generate_default_investigation()
 
-        investigation = InvestigationData.from_database_record(investigation_data)
+        investigation = InvestigationData.from_database_record(investigation_data.serialize_to_database_record())
 
         # Use to_dict() method to get expected values
         expected_investigation = investigation.to_dict()
 
         # Create actual object with all fields from database record
         actual_investigation = {
-            'providerId': investigation_data['providerId'],
-            'jurisdiction': investigation_data['jurisdiction'],
-            'investigationAgainst': investigation_data['investigationAgainst'],
-            'submittingUser': investigation_data['submittingUser'],
-            'investigationId': investigation_data['investigationId'],
-            'compact': investigation_data['compact'],
-            'creationDate': investigation_data['creationDate'],
-            'licenseType': investigation_data['licenseType'],
-            'type': investigation_data['type'],
+            'providerId': investigation_data.providerId,
+            'jurisdiction': investigation_data.jurisdiction,
+            'investigationAgainst': investigation_data.investigationAgainst,
+            'submittingUser': investigation_data.submittingUser,
+            'investigationId': investigation_data.investigationId,
+            'compact': investigation_data.compact,
+            'creationDate': investigation_data.creationDate,
+            'licenseType': investigation_data.licenseType,
+            'type': investigation_data.type,
         }
 
         # Pop dynamic fields from expected object
         expected_investigation.pop('dateOfUpdate')
-
-        # Convert expected values to strings to match database record format
-        expected_investigation['providerId'] = str(expected_investigation['providerId'])
-        expected_investigation['investigationId'] = str(expected_investigation['investigationId'])
-        expected_investigation['submittingUser'] = str(expected_investigation['submittingUser'])
-        expected_investigation['creationDate'] = expected_investigation['creationDate'].isoformat()
 
         self.assertEqual(expected_investigation, actual_investigation)
 

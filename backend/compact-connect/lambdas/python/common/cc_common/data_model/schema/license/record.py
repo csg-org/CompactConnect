@@ -16,6 +16,7 @@ from cc_common.data_model.schema.common import (
     ChangeHashMixin,
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
+    UpdateCategory,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -232,3 +233,13 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+
+    @validates_schema
+    def validate_investigation_details_present_if_investigation_status_updated(self, data, **kwargs):  # noqa: ARG002
+        """
+        Require investigationDetails whenever update type is investigation
+        """
+        if data['updateType'] == UpdateCategory.INVESTIGATION and not data.get('investigationDetails'):
+            raise ValidationError({
+                'investigationDetails': ['This field is required when update was investigation type']
+            })

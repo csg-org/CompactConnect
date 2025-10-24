@@ -1,7 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
-from marshmallow import pre_dump
+from marshmallow import ValidationError, pre_dump
 from marshmallow.fields import UUID, DateTime, String
-from marshmallow.validate import ValidationError
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema

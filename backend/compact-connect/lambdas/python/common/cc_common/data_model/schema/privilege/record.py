@@ -255,8 +255,21 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
 
     @validates_schema
     def validate_deactivation_details_present_if_deactivation_update(self, data, **kwargs):  # noqa: ARG002 unused-argument
+        """
+        Require deactivationDetails whenever update type is deactivation
+        """
         if data['updateType'] == UpdateCategory.DEACTIVATION and not data.get('deactivationDetails'):
             raise ValidationError({'deactivationDetails': ['This field is required when update was deactivation type']})
+
+    @validates_schema
+    def validate_investigation_details_present_if_investigation_status_updated(self, data, **kwargs):  # noqa: ARG002
+        """
+        Require investigationDetails whenever update type is investigation
+        """
+        if data['updateType'] == UpdateCategory.INVESTIGATION and not data.get('investigationDetails'):
+            raise ValidationError({
+                'investigationDetails': ['This field is required when update was investigation type']
+            })
 
     @pre_dump
     def generate_compact_transaction_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

@@ -257,7 +257,14 @@ class ProviderRecordUtility:
         :param history: The raw history records we intend to extrapolate from
         :return: The enriched privilege history
         """
-        create_date_sorted_original_history = sorted(history, key=lambda x: x['createDate'])
+
+        # We don't ever serve investigation updates via the API - they're only for internal change history tracking
+        history_without_investigations = [
+            update for update in history if update['updateType'] not in (
+                UpdateCategory.INVESTIGATION, UpdateCategory.CLOSING_INVESTIGATION
+            )
+        ]
+        create_date_sorted_original_history = sorted(history_without_investigations, key=lambda x: x['createDate'])
 
         # Inject issuance event
         enriched_history = [
@@ -786,7 +793,7 @@ class ProviderUserRecords:
         privileges = []
         military_affiliations = [record.to_dict() for record in self._military_affiliation_records]
 
-        # Build licenses dict with history and adverseActions
+        # Build licenses dict with investigations and adverseActions
         for license_record in self._license_records:
             license_dict = license_record.to_dict()
             # Note that we do not add synthetic expiration events for license records like we do privileges.
@@ -812,7 +819,7 @@ class ProviderUserRecords:
             ]
             licenses.append(license_dict)
 
-        # Build privileges dict with history and adverseActions
+        # Build privileges dict with investigations and adverseActions
         for privilege_record in self._privilege_records:
             privilege_dict = privilege_record.to_dict()
             privilege_updates = self.get_update_records_for_privilege(

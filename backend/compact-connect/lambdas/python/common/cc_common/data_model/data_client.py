@@ -1769,7 +1769,7 @@ class DataClient:
             update_record = update_data_type.create_new(
                 {
                     'type': update_type,
-                    'updateType': UpdateCategory.INVESTIGATION,
+                    'updateType': UpdateCategory.CLOSING_INVESTIGATION,
                     'providerId': provider_id,
                     'compact': compact,
                     'jurisdiction': jurisdiction,
