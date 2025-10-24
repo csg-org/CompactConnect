@@ -209,6 +209,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
                 'licenseTypeAbbreviation': test_privilege_record.licenseTypeAbbreviation,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
+                'investigationId': call_args['detail']['investigationId'],  # Dynamic field
             },
         }
         self.assertEqual(expected_event_args, call_args)
@@ -411,7 +412,7 @@ class TestPostLicenseInvestigation(TstFunction):
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'license',
-                'investigationId': call_args['detail']['investigationId'],
+                'investigationId': call_args['detail']['investigationId'],  # Dynamic field
             },
         }
         self.assertEqual(expected_event_args, call_args)
@@ -628,7 +629,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
                 'licenseTypeAbbreviation': test_privilege_record.licenseTypeAbbreviation,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
-                'effectiveDate': '2024-11-08',  # Date portion of DEFAULT_DATE_OF_UPDATE_TIMESTAMP
+                'investigationId': call_args['detail']['investigationId'],  # Dynamic field
             },
         }
         self.assertEqual(expected_event_args, call_args)
@@ -848,7 +849,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'license',
-                'effectiveDate': '2024-11-08',  # Date portion of DEFAULT_DATE_OF_UPDATE_TIMESTAMP
+                'investigationId': call_args['detail']['investigationId'],  # Dynamic field
             },
         }
         self.assertEqual(expected_event_args, call_args)

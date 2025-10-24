@@ -1,5 +1,5 @@
 import json
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -125,6 +125,7 @@ def handle_privilege_investigation(event: dict) -> dict:
         create_date=investigation.creationDate,
         license_type_abbreviation=investigation.licenseTypeAbbreviation,
         investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+        investigation_id=investigation.investigationId,
     )
 
     return {'message': 'OK'}
@@ -172,7 +173,10 @@ def handle_privilege_investigation_close(event: dict) -> dict:
     jurisdiction = event['pathParameters']['jurisdiction']
     provider_id = event['pathParameters']['providerId']
     license_type_abbr = event['pathParameters']['licenseType'].lower()
-    investigation_id = event['pathParameters']['investigationId']
+    try:
+        investigation_id = UUID(event['pathParameters']['investigationId'])
+    except ValueError as e:
+        raise CCInvalidRequestException('Invalid investigationId provided') from e
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
     investigation_patch_body = _load_investigation_patch_body(event)
 
@@ -199,7 +203,7 @@ def handle_privilege_investigation_close(event: dict) -> dict:
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
-        investigation_id=investigation_id,
+        investigation_id=str(investigation_id),
         closing_user=cognito_sub,
         close_date=now,
         investigation_against=InvestigationAgainstEnum.PRIVILEGE,
@@ -213,8 +217,9 @@ def handle_privilege_investigation_close(event: dict) -> dict:
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
-        effective_date=now,
+        close_date=now,
         investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+        investigation_id=investigation_id,
     )
 
     return {'message': 'OK'}
@@ -227,7 +232,10 @@ def handle_license_investigation_close(event: dict) -> dict:
     jurisdiction = event['pathParameters']['jurisdiction']
     provider_id = event['pathParameters']['providerId']
     license_type_abbr = event['pathParameters']['licenseType'].lower()
-    investigation_id = event['pathParameters']['investigationId']
+    try:
+        investigation_id = UUID(event['pathParameters']['investigationId'])
+    except ValueError as e:
+        raise CCInvalidRequestException('Invalid investigationId provided') from e
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
     investigation_patch_body = _load_investigation_patch_body(event)
 
@@ -255,7 +263,7 @@ def handle_license_investigation_close(event: dict) -> dict:
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
-        investigation_id=investigation_id,
+        investigation_id=str(investigation_id),
         closing_user=cognito_sub,
         close_date=now,
         investigation_against=InvestigationAgainstEnum.LICENSE,
@@ -269,8 +277,9 @@ def handle_license_investigation_close(event: dict) -> dict:
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
-        effective_date=now,
+        close_date=now,
         investigation_against=InvestigationAgainstEnum.LICENSE,
+        investigation_id=investigation_id,
     )
 
     return {'message': 'OK'}

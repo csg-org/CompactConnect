@@ -345,7 +345,7 @@ class EventBusClient:
         license_type_abbreviation: str,
         create_date: datetime,
         investigation_against: InvestigationAgainstEnum,
-        investigation_id: UUID | None = None,
+        investigation_id: UUID,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -358,7 +358,7 @@ class EventBusClient:
         :param license_type_abbreviation: The license type abbreviation
         :param create_date: The datetime when the investigation record was created
         :param investigation_against: The type of record being investigated (privilege or license)
-        :param investigation_id: The investigation ID (optional, only for license investigations)
+        :param investigation_id: The investigation ID
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         event_detail = {
@@ -367,13 +367,9 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
             'investigationAgainst': investigation_against.value,
-            'createDate': create_date,
-            'eventTime': config.current_standard_datetime,
+            'investigationId': investigation_id,
+            'eventTime': create_date,
         }
-
-        # Add investigation_id if provided (for license investigations)
-        if investigation_id is not None:
-            event_detail['investigationId'] = investigation_id
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)
@@ -395,8 +391,9 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        effective_date: date,
+        close_date: datetime,
         investigation_against: InvestigationAgainstEnum,
+        investigation_id: UUID,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -407,8 +404,9 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the record being investigated
         :param license_type_abbreviation: The license type abbreviation
-        :param effective_date: The date when the investigation was closed
+        :param close_date: The datetime when the investigation record was closed
         :param investigation_against: The type of record being investigated (privilege or license)
+        :param investigation_id: The id of the investigation closed
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         event_detail = {
@@ -417,8 +415,8 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
             'investigationAgainst': investigation_against.value,
-            'effectiveDate': effective_date,
-            'eventTime': config.current_standard_datetime,
+            'investigationId': investigation_id,
+            'eventTime': close_date,
         }
 
         investigation_detail_schema = InvestigationEventDetailSchema()

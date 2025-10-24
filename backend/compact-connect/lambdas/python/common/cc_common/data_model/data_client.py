@@ -1743,8 +1743,6 @@ class DataClient:
             record_type = investigation_against.value
 
             # Query for the record (privilege or license) and all its investigations in a single query
-            from boto3.dynamodb.conditions import Key
-
             query_results = self.config.provider_table.query(
                 KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
                 & Key('sk').begins_with(

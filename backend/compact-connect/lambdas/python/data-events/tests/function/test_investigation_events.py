@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from common_test.test_constants import (
     DEFAULT_COMPACT,
@@ -31,7 +31,7 @@ class TestInvestigationEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'license',
-                'createDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                'investigationId': str(uuid4()),
             }
         }
         if message_overrides:
@@ -48,7 +48,7 @@ class TestInvestigationEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'license',
-                'effectiveDate': '2024-01-15',
+                'investigationId': str(uuid4()),
             }
         }
         if message_overrides:
@@ -65,7 +65,7 @@ class TestInvestigationEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
-                'createDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+                'investigationId': str(uuid4()),
             }
         }
         if message_overrides:
@@ -82,7 +82,7 @@ class TestInvestigationEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
-                'effectiveDate': '2024-01-15',
+                'investigationId': str(uuid4()),
             }
         }
         if message_overrides:
