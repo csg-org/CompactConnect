@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, MagicMock, patch
 
@@ -720,3 +720,100 @@ class TestProcessSettledTransactions(TstFunction):
 
         # The purchase client should not be called since we exit early
         mock_purchase_client_constructor.assert_not_called()
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    def test_process_settled_transactions_detects_old_unsettled_transactions(self, mock_purchase_client_constructor):
+        """Test that old unsettled transactions (>48 hours) are detected and reported as BATCH_FAILURE."""
+        from cc_common.config import config
+        from handlers.transaction_history import process_settled_transactions
+
+        # Add compact configuration data
+        self._add_compact_configuration_data()
+
+        # Create an old unsettled transaction (50 hours ago)
+        old_transaction_date = (datetime.now(UTC) - timedelta(hours=50)).isoformat()
+        config.transaction_client.store_unsettled_transaction(
+            compact=TEST_COMPACT, transaction_id='old-unsettled-tx', transaction_date=old_transaction_date
+        )
+
+        # Create a recent unsettled transaction (1 hour ago) that will be matched
+        recent_transaction_date = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+        config.transaction_client.store_unsettled_transaction(
+            compact=TEST_COMPACT, transaction_id=MOCK_TRANSACTION_ID, transaction_date=recent_transaction_date
+        )
+
+        # Mock the purchase client to return a transaction that matches the recent unsettled one
+        mock_purchase_client = MagicMock()
+        mock_purchase_client.get_settled_transactions.return_value = {
+            'transactions': [_generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions=['oh'])],
+            'processedBatchIds': [],
+            'settlementErrorTransactionIds': [],
+        }
+        mock_purchase_client_constructor.return_value = mock_purchase_client
+
+        # Add privilege record for privilege id lookup
+        self._add_mock_privilege_to_database(
+            jurisdiction='oh',
+            licensee_id=MOCK_LICENSEE_ID,
+            transaction_id=MOCK_TRANSACTION_ID,
+            privilege_id=MOCK_PRIVILEGE_ID,
+        )
+
+        event = self._when_testing_non_paginated_event()
+        resp = process_settled_transactions(event, self.mock_context)
+
+        # Should return BATCH_FAILURE status with old unsettled transaction details
+        self.assertEqual('BATCH_FAILURE', resp['status'])
+        self.assertIn('batchFailureErrorMessage', resp)
+
+        # Parse the error message
+        error_message = json.loads(resp['batchFailureErrorMessage'])
+        self.assertIn('One or more transactions have not settled in over 48 hours', error_message['message'])
+        self.assertIn('old-unsettled-tx', error_message['unsettledTransactionIds'])
+        self.assertNotIn(MOCK_TRANSACTION_ID, error_message.get('unsettledTransactionIds', []))
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    def test_process_settled_transactions_reconciles_unsettled_transactions(self, mock_purchase_client_constructor):
+        """Test that matched unsettled transactions are deleted from the database."""
+        from cc_common.config import config
+        from handlers.transaction_history import process_settled_transactions
+
+        # Add compact configuration data
+        self._add_compact_configuration_data()
+
+        # Create an unsettled transaction
+        transaction_date = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+        config.transaction_client.store_unsettled_transaction(
+            compact=TEST_COMPACT, transaction_id=MOCK_TRANSACTION_ID, transaction_date=transaction_date
+        )
+
+        # Mock the purchase client to return a matching settled transaction
+        mock_purchase_client = MagicMock()
+        mock_purchase_client.get_settled_transactions.return_value = {
+            'transactions': [_generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions=['oh'])],
+            'processedBatchIds': [],
+            'settlementErrorTransactionIds': [],
+        }
+        mock_purchase_client_constructor.return_value = mock_purchase_client
+
+        # Add privilege record for privilege id lookup
+        self._add_mock_privilege_to_database(
+            jurisdiction='oh',
+            licensee_id=MOCK_LICENSEE_ID,
+            transaction_id=MOCK_TRANSACTION_ID,
+            privilege_id=MOCK_PRIVILEGE_ID,
+        )
+
+        event = self._when_testing_non_paginated_event()
+        resp = process_settled_transactions(event, self.mock_context)
+
+        # Should return COMPLETE status
+        self.assertEqual('COMPLETE', resp['status'])
+        self.assertNotIn('batchFailureErrorMessage', resp)
+
+        # Verify the unsettled transaction was deleted
+        pk = f'COMPACT#{TEST_COMPACT}#UNSETTLED_TRANSACTIONS'
+        response = self._transaction_history_table.query(
+            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
+        )
+        self.assertEqual(0, len(response['Items']))

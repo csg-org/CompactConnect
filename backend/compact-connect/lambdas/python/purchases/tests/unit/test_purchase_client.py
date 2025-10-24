@@ -1,6 +1,7 @@
 # ruff: noqa: ARG001 unused-argument
 import json
 import os
+from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
@@ -18,6 +19,8 @@ MOCK_ASLP_SECRET = {
     'api_login_id': MOCK_LOGIN_ID,
     'transaction_key': MOCK_TRANSACTION_KEY,
 }
+
+MOCK_CURRENT_DATETIME = '2024-11-08T23:59:59+00:00'
 
 MOCK_TRANSACTION_ID = '123456'
 
@@ -132,6 +135,7 @@ def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
 
 
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_DATETIME))
 class TestAuthorizeDotNetPurchaseClient(TstLambdas):
     """Testing that the purchase client works with authorize.net SDK as expected."""
 
@@ -287,7 +291,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         return mock_transaction_controller
 
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_returns_transaction_id_in_response(self, mock_create_transaction_controller):
+    def test_purchase_client_returns_expected_response(self, mock_create_transaction_controller):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -306,7 +310,32 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             user_active_military=False,
         )
 
-        self.assertEqual(MOCK_TRANSACTION_ID, response['transactionId'])
+        self.assertEqual(
+            {
+                'transactionId': MOCK_TRANSACTION_ID,
+                'lineItems': [
+                    {
+                        'description': 'Compact Privilege for Ohio',
+                        'itemId': 'priv:aslp-oh-slp',
+                        'name': 'Ohio Compact Privilege',
+                        'quantity': '1',
+                        'taxable': 'None',
+                        'unitPrice': '100',
+                    },
+                    {
+                        'description': 'Compact fee applied for each privilege purchased',
+                        'itemId': 'aslp-compact-fee',
+                        'name': 'ASLP Compact Fee',
+                        'quantity': '1',
+                        'taxable': 'None',
+                        'unitPrice': '50.5',
+                    },
+                ],
+                'message': 'Successfully processed charge',
+                'submitTimeUTC': MOCK_CURRENT_DATETIME,
+            },
+            response,
+        )
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_returns_expected_line_items_in_response(self, mock_create_transaction_controller):
