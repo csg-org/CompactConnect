@@ -166,16 +166,30 @@ class NotificationTracker:
         :param event_time: Event timestamp
         :param jurisdiction: Jurisdiction code (for state notifications)
         """
-        self.event_state_client.record_notification_attempt(
-            compact=self.compact,
-            message_id=self.message_id,
-            recipient_type=recipient_type,
-            status=NotificationStatus.SUCCESS,
-            provider_id=provider_id,
-            event_type=event_type,
-            event_time=event_time,
-            jurisdiction=jurisdiction,
-        )
+        try:
+            self.event_state_client.record_notification_attempt(
+                compact=self.compact,
+                message_id=self.message_id,
+                recipient_type=recipient_type,
+                status=NotificationStatus.SUCCESS,
+                provider_id=provider_id,
+                event_type=event_type,
+                event_time=event_time,
+                jurisdiction=jurisdiction,
+            )
+        except Exception as e:  # noqa: BLE001
+            # If this cannot be written for whatever reason, we swallow the error since the notification itself was
+            # sent, and this step is just another layer of system redundancy, not business critical. Just log the error
+            # and move on.
+            logger.error(
+                'Unable to record notification success.',
+                compact=self.compact,
+                recipient_type=recipient_type,
+                provider_id=provider_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction or 'None',
+                error=str(e),
+            )
 
     def record_failure(
         self,

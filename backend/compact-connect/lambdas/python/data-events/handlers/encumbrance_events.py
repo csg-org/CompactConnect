@@ -90,6 +90,11 @@ def _send_provider_notification(
                         **notification_kwargs,
                     ),
                 )
+                logger.info(
+                    'Successfully called email service client for provider notification. Calling Notification Tracker.',
+                    provider_id=provider_id,
+                    event_type=event_type,
+                )
                 tracker.record_success(
                     recipient_type=RecipientType.PROVIDER,
                     provider_id=provider_id,
@@ -151,6 +156,12 @@ def _send_primary_state_notification(
                     provider_id=provider_id,
                     **notification_kwargs,
                 ),
+            )
+            logger.info(
+                'Successfully called email service client for state notification. Calling Notification Tracker.',
+                provider_id=provider_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction,
             )
             tracker.record_success(
                 recipient_type=RecipientType.STATE,
@@ -236,6 +247,12 @@ def _send_additional_state_notifications(
                     compact=compact,
                     jurisdiction=notification_jurisdiction,
                     template_variables=template_variables,
+                )
+                logger.info(
+                    'Successfully called email service client for state notification. Calling Notification Tracker.',
+                    provider_id=provider_id,
+                    event_type=event_type,
+                    jurisdiction=notification_jurisdiction,
                 )
                 tracker.record_success(
                     recipient_type=RecipientType.STATE,
