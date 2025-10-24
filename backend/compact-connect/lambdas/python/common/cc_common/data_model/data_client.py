@@ -1719,7 +1719,9 @@ class DataClient:
         resulting_encumbrance_id: str = None,
     ) -> None:
         """
-        Closes an investigation by updating the investigation record and removing the investigation status.
+        Closes an investigation by updating the investigation record.
+
+        Only removes the investigation status and creates an update record if this is the last open investigation.
 
         :param compact: The compact name
         :param provider_id: The provider ID
@@ -1740,18 +1742,31 @@ class DataClient:
         ):
             record_type = investigation_against.value
 
-            # Get the record (privilege or license)
-            try:
-                record = self.config.provider_table.get_item(
-                    Key={
-                        'pk': f'{compact}#PROVIDER#{provider_id}',
-                        'sk': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#',
-                    },
-                )['Item']
-            except KeyError as e:
+            # Query for the record (privilege or license) and all its investigations in a single query
+            from boto3.dynamodb.conditions import Key
+
+            query_results = self.config.provider_table.query(
+                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+                & Key('sk').begins_with(
+                    f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#'
+                )
+            )['Items']
+
+            # Separate the main record from investigation records
+            record = None
+            investigation_records = []
+            record_sk = f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#'
+
+            for item in query_results:
+                if item['sk'] == record_sk:
+                    record = item
+                elif '#INVESTIGATION#' in item['sk']:
+                    investigation_records.append(item)
+
+            if not record:
                 message = f'{record_type.title()} not found for jurisdiction'
                 logger.info(message)
-                raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}') from e
+                raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
 
             if investigation_against == InvestigationAgainstEnum.PRIVILEGE:
                 record_data = PrivilegeData.from_database_record(record)
@@ -1765,22 +1780,15 @@ class DataClient:
             # Get license type from the record for the update record
             license_type = record_data.licenseType
 
-            # Create the update record for investigation closure
-            update_record = update_data_type.create_new(
-                {
-                    'type': update_type,
-                    'updateType': UpdateCategory.CLOSING_INVESTIGATION,
-                    'providerId': provider_id,
-                    'compact': compact,
-                    'jurisdiction': jurisdiction,
-                    'createDate': close_date,
-                    'effectiveDate': close_date,
-                    'licenseType': license_type,
-                    'previous': record_data.to_dict(),
-                    'updatedValues': {},
-                    'removedValues': ['investigationStatus'],
-                }
-            )
+            # Count open investigations (those without closeDate), excluding the one we're closing
+            open_investigations = [
+                inv
+                for inv in investigation_records
+                if 'closeDate' not in inv and inv.get('investigationId') != investigation_id
+            ]
+
+            # Determine if this is the last open investigation
+            is_last_open_investigation = len(open_investigations) == 0
 
             # Prepare the transaction items
             # Build the investigation update expression and values
@@ -1798,6 +1806,7 @@ class DataClient:
                 investigation_update_expression += ', resultingEncumbranceId = :resultingEncumbranceId'
                 investigation_expression_values[':resultingEncumbranceId'] = {'S': str(resulting_encumbrance_id)}
 
+            # Always update the investigation record itself
             transaction_items = [
                 {
                     'Update': {
@@ -1814,24 +1823,49 @@ class DataClient:
                         'ExpressionAttributeValues': investigation_expression_values,
                     }
                 },
-                self._generate_put_transaction_item(update_record.serialize_to_database_record()),
-                {
-                    'Update': {
-                        'TableName': self.config.provider_table.table_name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {
-                                'S': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#'
-                            },
-                        },
-                        'UpdateExpression': 'REMOVE investigationStatus SET dateOfUpdate = :dateOfUpdate',
-                        'ConditionExpression': 'attribute_exists(pk)',
-                        'ExpressionAttributeValues': {
-                            ':dateOfUpdate': {'S': close_date.isoformat()},
-                        },
-                    }
-                },
             ]
+
+            # Only create update record and remove status if this is the last open investigation
+            if is_last_open_investigation:
+                # Create the update record for investigation closure
+                update_record = update_data_type.create_new(
+                    {
+                        'type': update_type,
+                        'updateType': UpdateCategory.CLOSING_INVESTIGATION,
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': jurisdiction,
+                        'createDate': close_date,
+                        'effectiveDate': close_date,
+                        'licenseType': license_type,
+                        'previous': record_data.to_dict(),
+                        'updatedValues': {},
+                        'removedValues': ['investigationStatus'],
+                    }
+                )
+
+                transaction_items.extend(
+                    [
+                        self._generate_put_transaction_item(update_record.serialize_to_database_record()),
+                        {
+                            'Update': {
+                                'TableName': self.config.provider_table.table_name,
+                                'Key': {
+                                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                                    'sk': {
+                                        'S': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/'
+                                        f'{license_type_abbreviation}#'
+                                    },
+                                },
+                                'UpdateExpression': 'REMOVE investigationStatus SET dateOfUpdate = :dateOfUpdate',
+                                'ConditionExpression': 'attribute_exists(pk)',
+                                'ExpressionAttributeValues': {
+                                    ':dateOfUpdate': {'S': close_date.isoformat()},
+                                },
+                            }
+                        },
+                    ]
+                )
 
             # Execute the transaction
             try:

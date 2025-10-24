@@ -1412,11 +1412,9 @@ class TestDataClient(TstFunction):
         # Find the closure update record
         closure_update = None
         for update_record in update_records:
-            if update_record.get('updateType') == 'investigation':
-                # Check if this is the closure update (has removedValues)
-                if 'removedValues' in update_record and 'investigationStatus' in update_record['removedValues']:
-                    closure_update = update_record
-                    break
+            if update_record.get('updateType') == 'closingInvestigation':
+                closure_update = update_record
+                break
 
         self.assertIsNotNone(closure_update, 'Closure update record not found!')
 
@@ -1424,7 +1422,7 @@ class TestDataClient(TstFunction):
         expected_closure_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
             'type': 'privilegeUpdate',
-            'updateType': 'investigation',
+            'updateType': 'closingInvestigation',
             'compact': 'aslp',
             'providerId': provider_id,
             'jurisdiction': 'ne',
@@ -1549,11 +1547,9 @@ class TestDataClient(TstFunction):
         # Find the closure update record
         closure_update = None
         for update_record in update_records:
-            if update_record.get('updateType') == 'investigation':
-                # Check if this is the closure update (has removedValues)
-                if 'removedValues' in update_record and 'investigationStatus' in update_record['removedValues']:
-                    closure_update = update_record
-                    break
+            if update_record.get('updateType') == 'closingInvestigation':
+                closure_update = update_record
+                break
 
         self.assertIsNotNone(closure_update, 'Closure update not found!')
 
@@ -1561,7 +1557,7 @@ class TestDataClient(TstFunction):
         expected_closure_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
             'type': 'licenseUpdate',
-            'updateType': 'investigation',
+            'updateType': 'closingInvestigation',
             'compact': 'aslp',
             'providerId': provider_id,
             'jurisdiction': 'oh',

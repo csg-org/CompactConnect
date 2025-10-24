@@ -885,3 +885,495 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         )['Item']
 
         self.assertIn('resultingEncumbranceId', investigation_record)
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
+class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
+    """Test suite for multiple simultaneous privilege investigations."""
+
+    def _load_privilege_data(self):
+        """Load privilege test data from JSON file"""
+        import json
+        from decimal import Decimal
+
+        # Load provider record first
+        with open('../common/tests/resources/dynamo/provider.json') as f:
+            provider_record = json.load(f, parse_float=Decimal)
+        self._provider_table.put_item(Item=provider_record)
+
+        # Load privilege record
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
+            privilege_record = json.load(f, parse_float=Decimal)
+        self._provider_table.put_item(Item=privilege_record)
+
+        # Return the privilege data as a data class
+        from cc_common.data_model.schema.privilege import PrivilegeData
+
+        return PrivilegeData.from_database_record(privilege_record)
+
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_closing_one_of_multiple_investigations_maintains_investigation_status(self, mock_publish_event):
+        """Test that closing one investigation while another is open maintains investigation status."""
+        from cc_common.data_model.schema.common import InvestigationStatusEnum, UpdateCategory
+        from handlers.investigation import investigation_handler
+        from handlers.providers import get_provider
+
+        test_privilege_record = self._load_privilege_data()
+
+        # Create first investigation
+        first_investigation_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'POST',
+                'resource': PRIVILEGE_INVESTIGATION_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': str(test_privilege_record.providerId),
+                    'jurisdiction': test_privilege_record.jurisdiction,
+                    'licenseType': test_privilege_record.licenseTypeAbbreviation,
+                },
+            },
+        )
+
+        response = investigation_handler(first_investigation_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Get the first investigation ID
+        investigation_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#INVESTIGATION'
+            ),
+        )
+        first_investigation_id = investigation_records['Items'][0]['investigationId']
+
+        # Create second investigation
+        second_investigation_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'POST',
+                'resource': PRIVILEGE_INVESTIGATION_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': str(test_privilege_record.providerId),
+                    'jurisdiction': test_privilege_record.jurisdiction,
+                    'licenseType': test_privilege_record.licenseTypeAbbreviation,
+                },
+            },
+        )
+
+        response = investigation_handler(second_investigation_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Get the second investigation ID
+        investigation_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#INVESTIGATION'
+            ),
+        )
+        self.assertEqual(2, len(investigation_records['Items']))
+        second_investigation_id = [
+            item['investigationId']
+            for item in investigation_records['Items']
+            if item['investigationId'] != first_investigation_id
+        ][0]
+
+        # Close the second investigation
+        close_second_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': PRIVILEGE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': str(test_privilege_record.providerId),
+                    'jurisdiction': test_privilege_record.jurisdiction,
+                    'licenseType': test_privilege_record.licenseTypeAbbreviation,
+                    'investigationId': second_investigation_id,
+                },
+                'body': json.dumps({}),
+            },
+        )
+
+        response = investigation_handler(close_second_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify that the privilege record still shows under investigation
+        updated_privilege_record = self._provider_table.get_item(
+            Key={
+                'pk': test_privilege_record.serialize_to_database_record()['pk'],
+                'sk': test_privilege_record.serialize_to_database_record()['sk'],
+            }
+        )['Item']
+
+        self.assertEqual(
+            InvestigationStatusEnum.UNDER_INVESTIGATION.value,
+            updated_privilege_record['investigationStatus'],
+        )
+
+        # Verify that one investigation is still visible in the API response
+        api_event = self.test_data_generator.generate_test_api_event(
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.readGeneral',
+            value_overrides={
+                'httpMethod': 'GET',
+                'resource': '/v1/compacts/{compact}/providers/{providerId}',
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': str(test_privilege_record.providerId),
+                },
+            },
+        )
+
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+        privilege = provider_data['privileges'][0]
+
+        self.assertEqual(1, len(privilege['investigations']))
+        self.assertEqual(first_investigation_id, privilege['investigations'][0]['investigationId'])
+
+        # Verify that there are two INVESTIGATION update records in the DB
+        update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE#'
+            ),
+        )['Items']
+
+        investigation_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+        ]
+        self.assertEqual(2, len(investigation_update_records))
+
+        # Verify that there are no CLOSING_INVESTIGATION update records
+        closing_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+        ]
+        self.assertEqual(0, len(closing_update_records))
+
+        # Verify that investigation closed event WAS published (should be 3 calls: 2 creation + 1 closure)
+        self.assertEqual(3, mock_publish_event.call_count)
+        call_types = [call[1]['detail_type'] for call in mock_publish_event.call_args_list]
+        self.assertEqual(2, call_types.count('privilege.investigation'))
+        self.assertEqual(1, call_types.count('privilege.investigationClosed'))
+
+        # Now close the first investigation
+        close_first_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': PRIVILEGE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_privilege_record.compact,
+                    'providerId': str(test_privilege_record.providerId),
+                    'jurisdiction': test_privilege_record.jurisdiction,
+                    'licenseType': test_privilege_record.licenseTypeAbbreviation,
+                    'investigationId': first_investigation_id,
+                },
+                'body': json.dumps({}),
+            },
+        )
+
+        response = investigation_handler(close_first_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify that the privilege record no longer has investigation status
+        updated_privilege_record = self._provider_table.get_item(
+            Key={
+                'pk': test_privilege_record.serialize_to_database_record()['pk'],
+                'sk': test_privilege_record.serialize_to_database_record()['sk'],
+            }
+        )['Item']
+
+        self.assertNotIn('investigationStatus', updated_privilege_record)
+
+        # Verify that there are no investigations visible in the API response
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+        privilege = provider_data['privileges'][0]
+
+        self.assertEqual(0, len(privilege['investigations']))
+
+        # Verify that there are still two INVESTIGATION update records in the DB
+        update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE#'
+            ),
+        )['Items']
+
+        investigation_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+        ]
+        self.assertEqual(2, len(investigation_update_records))
+
+        # Verify that there is one CLOSING_INVESTIGATION update record in the DB
+        closing_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+        ]
+        self.assertEqual(1, len(closing_update_records))
+
+        # Verify that investigation closed events were published (should be 4 calls total: 2 creation + 2 closure)
+        self.assertEqual(4, mock_publish_event.call_count)
+        call_types = [call[1]['detail_type'] for call in mock_publish_event.call_args_list]
+        self.assertEqual(2, call_types.count('privilege.investigation'))
+        self.assertEqual(2, call_types.count('privilege.investigationClosed'))
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
+class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
+    """Test suite for multiple simultaneous license investigations."""
+
+    def _load_license_data(self):
+        """Load license test data from JSON file"""
+        import json
+        from decimal import Decimal
+
+        # Load provider record first
+        with open('../common/tests/resources/dynamo/provider.json') as f:
+            provider_record = json.load(f, parse_float=Decimal)
+        self._provider_table.put_item(Item=provider_record)
+
+        # Load license record
+        with open('../common/tests/resources/dynamo/license.json') as f:
+            license_record = json.load(f, parse_float=Decimal)
+        self._provider_table.put_item(Item=license_record)
+
+        # Return the license data as a data class
+        from cc_common.data_model.schema.license import LicenseData
+
+        return LicenseData.from_database_record(license_record)
+
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_closing_one_of_multiple_investigations_maintains_investigation_status(self, mock_publish_event):
+        """Test that closing one investigation while another is open maintains investigation status."""
+        from cc_common.data_model.schema.common import InvestigationStatusEnum, UpdateCategory
+        from handlers.investigation import investigation_handler
+        from handlers.providers import get_provider
+
+        test_license_record = self._load_license_data()
+
+        # Create first investigation
+        first_investigation_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'POST',
+                'resource': LICENSE_INVESTIGATION_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': str(test_license_record.providerId),
+                    'jurisdiction': test_license_record.jurisdiction,
+                    'licenseType': test_license_record.licenseTypeAbbreviation,
+                },
+            },
+        )
+
+        response = investigation_handler(first_investigation_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Get the first investigation ID
+        investigation_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#INVESTIGATION'
+            ),
+        )
+        first_investigation_id = investigation_records['Items'][0]['investigationId']
+
+        # Create second investigation
+        second_investigation_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'POST',
+                'resource': LICENSE_INVESTIGATION_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': str(test_license_record.providerId),
+                    'jurisdiction': test_license_record.jurisdiction,
+                    'licenseType': test_license_record.licenseTypeAbbreviation,
+                },
+            },
+        )
+
+        response = investigation_handler(second_investigation_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Get the second investigation ID
+        investigation_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#INVESTIGATION'
+            ),
+        )
+        self.assertEqual(2, len(investigation_records['Items']))
+        second_investigation_id = [
+            item['investigationId']
+            for item in investigation_records['Items']
+            if item['investigationId'] != first_investigation_id
+        ][0]
+
+        # Close the second investigation
+        close_second_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': LICENSE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': str(test_license_record.providerId),
+                    'jurisdiction': test_license_record.jurisdiction,
+                    'licenseType': test_license_record.licenseTypeAbbreviation,
+                    'investigationId': second_investigation_id,
+                },
+                'body': json.dumps({}),
+            },
+        )
+
+        response = investigation_handler(close_second_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify that the license record still shows under investigation
+        updated_license_record = self._provider_table.get_item(
+            Key={
+                'pk': test_license_record.serialize_to_database_record()['pk'],
+                'sk': test_license_record.serialize_to_database_record()['sk'],
+            }
+        )['Item']
+
+        self.assertEqual(
+            InvestigationStatusEnum.UNDER_INVESTIGATION,
+            updated_license_record['investigationStatus'],
+        )
+
+        # Verify that one investigation is still visible in the API response
+        api_event = self.test_data_generator.generate_test_api_event(
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.readGeneral',
+            value_overrides={
+                'httpMethod': 'GET',
+                'resource': '/v1/compacts/{compact}/providers/{providerId}',
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': str(test_license_record.providerId),
+                },
+            },
+        )
+
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+        license_obj = provider_data['licenses'][0]
+
+        self.assertEqual(1, len(license_obj['investigations']))
+        self.assertEqual(first_investigation_id, license_obj['investigations'][0]['investigationId'])
+
+        # Verify that there are two INVESTIGATION update records in the DB
+        update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE#'
+            ),
+        )['Items']
+
+        investigation_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+        ]
+        self.assertEqual(2, len(investigation_update_records))
+
+        # Verify that there are no CLOSING_INVESTIGATION update records
+        closing_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+        ]
+        self.assertEqual(0, len(closing_update_records))
+
+        # Verify that investigation closed event WAS published (should be 3 calls: 2 creation + 1 closure)
+        self.assertEqual(3, mock_publish_event.call_count)
+        call_types = [call[1]['detail_type'] for call in mock_publish_event.call_args_list]
+        self.assertEqual(2, call_types.count('license.investigation'))
+        self.assertEqual(1, call_types.count('license.investigationClosed'))
+
+        # Now close the first investigation
+        close_first_event = self.test_data_generator.generate_test_api_event(
+            sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
+            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            value_overrides={
+                'httpMethod': 'PATCH',
+                'resource': LICENSE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
+                'pathParameters': {
+                    'compact': test_license_record.compact,
+                    'providerId': str(test_license_record.providerId),
+                    'jurisdiction': test_license_record.jurisdiction,
+                    'licenseType': test_license_record.licenseTypeAbbreviation,
+                    'investigationId': first_investigation_id,
+                },
+                'body': json.dumps({}),
+            },
+        )
+
+        response = investigation_handler(close_first_event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify that the license record no longer has investigation status
+        updated_license_record = self._provider_table.get_item(
+            Key={
+                'pk': test_license_record.serialize_to_database_record()['pk'],
+                'sk': test_license_record.serialize_to_database_record()['sk'],
+            }
+        )['Item']
+
+        self.assertNotIn('investigationStatus', updated_license_record)
+
+        # Verify that there are no investigations visible in the API response
+        api_response = get_provider(api_event, self.mock_context)
+        self.assertEqual(200, api_response['statusCode'])
+
+        provider_data = json.loads(api_response['body'])
+        license_obj = provider_data['licenses'][0]
+
+        self.assertEqual(0, len(license_obj['investigations']))
+
+        # Verify that there are still two INVESTIGATION update records in the DB
+        update_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
+            & Key('sk').begins_with(
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE#'
+            ),
+        )['Items']
+
+        investigation_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+        ]
+        self.assertEqual(2, len(investigation_update_records))
+
+        # Verify that there is one CLOSING_INVESTIGATION update record in the DB
+        closing_update_records = [
+            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+        ]
+        self.assertEqual(1, len(closing_update_records))
+
+        # Verify that investigation closed events were published (should be 4 calls total: 2 creation + 2 closure)
+        self.assertEqual(4, mock_publish_event.call_count)
+        call_types = [call[1]['detail_type'] for call in mock_publish_event.call_args_list]
+        self.assertEqual(2, call_types.count('license.investigation'))
+        self.assertEqual(2, call_types.count('license.investigationClosed'))
