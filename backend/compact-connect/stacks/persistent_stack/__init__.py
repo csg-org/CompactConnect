@@ -464,14 +464,14 @@ class PersistentStack(AppStack):
         frontend_app_config = PersistentStackFrontendAppConfigUtility()
 
         # Add staff user pool Cognito configuration
-        staff_cognito_domain_name = ''
+        auth_domain_name = ''
         if self.hosted_zone:
-            staff_cognito_domain_name = self.staff_users.app_client_custom_domain.domain_name
+            auth_domain_name = self.staff_users.app_client_custom_domain.domain_name
         else:
-            staff_cognito_domain_name = f'{self.staff_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
+            auth_domain_name = f'{self.staff_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
 
         frontend_app_config.set_staff_cognito_values(
-            domain_name=staff_cognito_domain_name,
+            domain_name=auth_domain_name,
             client_id=self.staff_users.ui_client.user_pool_client_id,
         )
 

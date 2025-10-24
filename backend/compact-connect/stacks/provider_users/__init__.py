@@ -107,15 +107,15 @@ class ProviderUsersStack(AppStack):
 
         provider_app_config = ProviderUsersStackFrontendAppConfigUtility()
 
-        cognito_domain_name = ''
+        auth_domain_name = ''
         if persistent_stack.hosted_zone:
-            cognito_domain_name = self.provider_users.app_client_custom_domain.domain_name
+            auth_domain_name = self.provider_users.app_client_custom_domain.domain_name
         else:
-            cognito_domain_name = f'{self.provider_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
+            auth_domain_name = f'{self.provider_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
 
         # Add provider user pool Cognito configuration
         provider_app_config.set_provider_cognito_values(
-            domain_name=cognito_domain_name,
+            domain_name=auth_domain_name,
             client_id=self.provider_users.ui_client.user_pool_client_id,
         )
 
