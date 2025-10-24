@@ -53,7 +53,7 @@ class MockCompactConfigurationClient extends CompactConfigurationClient {
         });
     }
 
-    public async getCompactConfiguration(compact: string): Promise<Compact> {
+    public async getCompactConfiguration(_compact: string): Promise<Compact> {
         return SAMPLE_COMPACT_CONFIG;
     }
 }

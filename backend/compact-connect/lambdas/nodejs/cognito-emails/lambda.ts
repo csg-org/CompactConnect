@@ -81,7 +81,7 @@ export class Lambda implements LambdaInterface {
      * @returns Modified event with custom email message and subject
      */
     @logger.injectLambdaContext({ resetKeys: true })
-    public async handler(event: CognitoCustomMessageEvent, context: Context): Promise<CognitoCustomMessageEvent> {
+    public async handler(event: CognitoCustomMessageEvent, _context: Context): Promise<CognitoCustomMessageEvent> {
         logger.info('Processing Cognito custom message event', {
             triggerSource: event.triggerSource,
             userPoolId: event.userPoolId,

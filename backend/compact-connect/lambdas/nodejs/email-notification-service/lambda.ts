@@ -72,7 +72,7 @@ export class Lambda implements LambdaInterface {
      * @returns Email notification response
      */
     @logger.injectLambdaContext({ resetKeys: true })
-    public async handler(event: EmailNotificationEvent, context: Context): Promise<EmailNotificationResponse> {
+    public async handler(event: EmailNotificationEvent, _context: Context): Promise<EmailNotificationResponse> {
         logger.info('Processing event', { template: event.template, compact: event.compact, jurisdiction: event.jurisdiction });
 
         // Check if FROM_ADDRESS is configured

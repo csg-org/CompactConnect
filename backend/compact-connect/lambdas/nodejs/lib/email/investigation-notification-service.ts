@@ -1,8 +1,6 @@
 import { BaseEmailService } from './base-email-service';
-import { EnvironmentVariablesService } from '../environment-variables-service';
 import { IJurisdiction } from 'lib/models/jurisdiction';
 
-const environmentVariableService = new EnvironmentVariablesService();
 
 /**
  * Service for handling investigation-related email notifications
@@ -101,7 +99,6 @@ export class InvestigationNotificationService extends BaseEmailService {
         const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
             compact, investigationJurisdiction
         );
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
         const subject = `Your ${licenseType} license in ${investigationJurisdictionConfig.jurisdictionName} is under investigation`;
@@ -197,7 +194,6 @@ export class InvestigationNotificationService extends BaseEmailService {
         const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
             compact, investigationJurisdiction
         );
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
         const subject = `The investigation on your ${licenseType} license in ${investigationJurisdictionConfig.jurisdictionName} has been closed`;
@@ -293,7 +289,6 @@ export class InvestigationNotificationService extends BaseEmailService {
         const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
             compact, investigationJurisdiction
         );
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
         const subject = `Your ${licenseType} privilege in ${investigationJurisdictionConfig.jurisdictionName} is under investigation`;
@@ -389,7 +384,6 @@ export class InvestigationNotificationService extends BaseEmailService {
         const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
             compact, investigationJurisdiction
         );
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
 
         const report = this.getNewEmailTemplate();
         const subject = `The investigation on your ${licenseType} privilege in ${investigationJurisdictionConfig.jurisdictionName} has been closed`;
