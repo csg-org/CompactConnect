@@ -1680,39 +1680,29 @@ class DataClient:
 
             # Prepare the transaction items
             transaction_items = [
-                {
-                    'Put': {
-                        'TableName': self.config.provider_table.table_name,
-                        'Item': investigation.serialize_to_database_record(),
-                    }
-                },
-                {
-                    'Put': {
-                        'TableName': self.config.provider_table.table_name,
-                        'Item': update_record.serialize_to_database_record(),
-                    }
-                },
+                self._generate_put_transaction_item(investigation.serialize_to_database_record()),
+                self._generate_put_transaction_item(update_record.serialize_to_database_record()),
                 {
                     'Update': {
                         'TableName': self.config.provider_table.table_name,
                         'Key': {
-                            'pk': f'{investigation.compact}#PROVIDER#{investigation.providerId}',
-                            'sk': f'{investigation.compact}#PROVIDER#{record_type}/'
-                            f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#',
+                            'pk': {'S': f'{investigation.compact}#PROVIDER#{investigation.providerId}'},
+                            'sk': {'S': f'{investigation.compact}#PROVIDER#{record_type}/'
+                            f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#'},
                         },
                         'UpdateExpression': (
                             'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
                         ),
                         'ExpressionAttributeValues': {
-                            ':investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION.value,
-                            ':dateOfUpdate': investigation.creationDate.isoformat(),
+                            ':investigationStatus': {'S': InvestigationStatusEnum.UNDER_INVESTIGATION},
+                            ':dateOfUpdate': {'S': investigation.creationDate.isoformat()},
                         },
                     }
                 },
             ]
 
             # Execute the transaction
-            self.config.provider_table.meta.client.transact_write_items(TransactItems=transaction_items)
+            self.config.dynamodb_client.transact_write_items(TransactItems=transaction_items)
 
             logger.info(f'Set investigation for {record_type} record')
 
@@ -1798,49 +1788,46 @@ class DataClient:
                 'SET closeDate = :closeDate, closingUser = :closingUser, dateOfUpdate = :dateOfUpdate'
             )
             investigation_expression_values = {
-                ':closeDate': close_date.isoformat(),
-                ':closingUser': closing_user,
-                ':dateOfUpdate': close_date.isoformat(),
+                ':closeDate': {'S': close_date.isoformat()},
+                ':closingUser': {'S': closing_user},
+                ':dateOfUpdate': {'S': close_date.isoformat()},
             }
 
             # Add resultingEncumbranceId if an encumbrance was created
             if resulting_encumbrance_id:
                 investigation_update_expression += ', resultingEncumbranceId = :resultingEncumbranceId'
-                investigation_expression_values[':resultingEncumbranceId'] = str(resulting_encumbrance_id)
+                investigation_expression_values[':resultingEncumbranceId'] = {'S': str(resulting_encumbrance_id)}
 
             transaction_items = [
                 {
                     'Update': {
                         'TableName': self.config.provider_table.table_name,
                         'Key': {
-                            'pk': f'{compact}#PROVIDER#{provider_id}',
-                            'sk': (
-                                f'{compact}#PROVIDER#{record_type}/{jurisdiction}/'
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {
+                                'S': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/'
                                 f'{license_type_abbreviation}#INVESTIGATION#{investigation_id}'
-                            ),
+                            },
                         },
                         'UpdateExpression': investigation_update_expression,
                         'ConditionExpression': 'attribute_exists(pk) AND attribute_not_exists(closeDate)',
                         'ExpressionAttributeValues': investigation_expression_values,
                     }
                 },
-                {
-                    'Put': {
-                        'TableName': self.config.provider_table.table_name,
-                        'Item': update_record.serialize_to_database_record(),
-                    }
-                },
+                self._generate_put_transaction_item(update_record.serialize_to_database_record()),
                 {
                     'Update': {
                         'TableName': self.config.provider_table.table_name,
                         'Key': {
-                            'pk': f'{compact}#PROVIDER#{provider_id}',
-                            'sk': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#',
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {
+                                'S': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#'
+                            },
                         },
                         'UpdateExpression': 'REMOVE investigationStatus SET dateOfUpdate = :dateOfUpdate',
                         'ConditionExpression': 'attribute_exists(pk)',
                         'ExpressionAttributeValues': {
-                            ':dateOfUpdate': close_date.isoformat(),
+                            ':dateOfUpdate': {'S': close_date.isoformat()},
                         },
                     }
                 },
@@ -1848,7 +1835,7 @@ class DataClient:
 
             # Execute the transaction
             try:
-                self.config.provider_table.meta.client.transact_write_items(TransactItems=transaction_items)
+                self.config.dynamodb_client.transact_write_items(TransactItems=transaction_items)
             except Exception as e:
                 # Check if this is a TransactionCanceledException with ConditionalCheckFailed
                 if hasattr(e, 'response') and e.response.get('CancellationReasons'):

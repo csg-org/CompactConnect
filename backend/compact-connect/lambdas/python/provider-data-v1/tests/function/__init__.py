@@ -22,6 +22,13 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else
 class TstFunction(TstLambdas):
     """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
+    def assertDictFieldsMatch(self, expected: dict, actual: dict):  # noqa: N802 emulating TestCase style here
+        for key, value in expected.items():
+            try:
+                self.assertEqual(value, actual[key], f'Expected {key}: {value} but got {key}: {actual[key]}')
+            except KeyError:
+                self.fail(f'Missing expected key, {key}')
+
     def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
 
