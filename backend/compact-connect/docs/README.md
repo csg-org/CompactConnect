@@ -106,7 +106,7 @@ If data is not available for a required field, that particular license record ca
 
 ### Can we upload the same licenses multiple times? What if their information changes?
 
-Yes. CompactConnect is designed to automatically detect and track changes to license records over time. When you upload a license record, CompactConnect will determine if the record currently exists in the CompactConnect database, and create the record if not found. If the license record already exists, CompactConnect will check the differences between the existing record in the system and changes uploaded by the state, and apply the changes accordingly.
+Yes. CompactConnect is designed to automatically detect and track changes to license records over time. When you upload a license record, CompactConnect will determine if the record currently exists in the CompactConnect database using the provided SSN to match with any existing licensee in the system, and create the record if not found. If the license record already exists, CompactConnect will check the differences between the existing record in the system and changes uploaded by the state, and apply the changes accordingly.
 
 ### Which of these license values is going to be publicly visible?
 
