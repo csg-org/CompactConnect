@@ -139,7 +139,7 @@ Before creating a new SIGNATURE public key, ensure you have:
 - Validated the identity of the individual providing the public key to you
 - Jurisdiction and compact information confirmed
 - Contact information for the state IT representative
-- The public key file (`.pub` format) from the state IT representative
+- The public key file (`.pub` format) from the state IT representative (copy it to the same directory you are running the script from). The name of the file must match the key id.
 - AWS credentials configured with permissions to write to the compact configuration table
 - Python 3.10+ installed with boto3 dependency (`pip install boto3`)
 
@@ -173,6 +173,9 @@ The script will:
 - Validate the PEM format of the public key
 - Check for existing keys with the same ID
 - Write the key to the compact configuration database
+
+**⚠️NOTICE:** Once the public key has been successfully stored, remove the `.pub` file from the directory to ensure it
+is never accidentally checked into the project.
 
 #### 4. Database Schema
 

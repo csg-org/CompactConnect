@@ -296,6 +296,9 @@ Follow this link to your API credentials as soon as you are ready to securely st
 once:
 <insert one-time link here>
 
+**Please respond to this email to confirm that you have received and securely stored the credentials. This link will
+expire in 7 days.**
+
 For more information on CompactConnect and how to integrate your state IT system with ours, see the documentation
 here:
 https://github.com/csg-org/CompactConnect/blob/development/backend/compact-connect/docs/it_staff_onboarding_instructions.md

@@ -12,6 +12,7 @@ in their respective occupational licensure compacts. To date, this system is sol
 
 ## Table of Contents
 - **[How to use the API bulk-upload feature](#how-to-use-the-api-bulk-upload-feature)**
+- **[Frequently Asked Questions](#frequently-asked-questions)**
 - **[Open API Specification](#open-api-specification)**
 
 ## How to use the API bulk-upload feature
@@ -79,10 +80,55 @@ dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressC
 3) Navigate to the bulk-upload page to upload your exported CSV. It may take about five minutes for uploaded licenses to
    be fully ingested and appear in the system.
 
+Note that CSV uploads are an asynchronous process, meaning that **the data you upload may still have errors and will not show up in CompactConnect even if the file is uploaded successfully.** CompactConnect will process all the valid records in the CSV file, and will report on any licenses in the file that could not be processed due to validation error. In order to receive data validation error notifications from CompactConnect, your state administrator must configure your email address as a point of contact for operation support. See [System Configuration section of the Staff User Documentation](../../../staff-user-documentation/README.md#system-configuration)
+
 ### Machine-to-machine automated uploads
 
 The data system API supports uploading of a large CSV file for asynchronous data ingest, as well as JSON license records
 for synchronous data ingest. See the [CompactConnect Automated License Data Upload Instructions](./it_staff_onboarding_instructions.md) for more information.
+
+## Frequently Asked Questions
+[Back to top](#compact-connect---technical-user-guide)
+
+### What if we don't have data for an optional field?
+
+If data is not available for an optional field, it must be left empty in the case of CSV data (or omit the CSV column entirely if none of the license records contain that field). In the case of JSON uploads, the key must be excluded from the object. Please do not include NULL or similar N/A type values for missing data.
+
+**CSV Example with missing optional fields:**
+```csv
+dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
+2024-06-30,,,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
+```
+
+### What if we don't have data for a required field?
+
+If data is not available for a required field, that particular license record cannot be uploaded into CompactConnect. Required fields must be included or the record will not be accepted. Please do not include NULL or empty values for required fields.
+
+### Can we upload the same licenses multiple times? What if their information changes?
+
+Yes. CompactConnect is designed to automatically detect and track changes to license records over time. When you upload a license record, CompactConnect will determine if the record currently exists in the CompactConnect database using the provided SSN to match with any existing licensee in the system, and create the record if not found. If the license record already exists, CompactConnect will check the differences between the existing record in the system and changes uploaded by the state, and apply the changes accordingly.
+
+### Which of these license values will be publicly visible?
+
+The following license fields are publicly visible through CompactConnect's public lookup endpoints:
+
+- Licensee name (given, middle, family, suffix).
+- The jurisdiction and compact their license is associated with.
+- License status and compact eligibility.
+- National Provider Identifier (NPI), if available.
+
+**Fields that are NOT publicly visible include:**
+- Social Security Numbers
+- Full addresses (street, city, state, postal code)
+- Email addresses
+- Phone numbers
+- Date of birth
+
+### What if I want to receive CompactConnect data back to my state IT system?
+State IT systems can retrieve data via the CompactConnect State-API, which provides HTTP endpoints for querying the 
+system for compact privilege data for a respective state. See [Retrieving Data from CompactConnect](it_staff_onboarding_instructions.md#retrieving-data-from-compactconnect)
+
+Note that CompactConnect has additional security requirements for automatic API retrieval of data from the system. Please see the [Client Signature Authentication documentation](./client_signature_auth.md) for detailed information about implementing request signing for secure data retrieval.
 
 ## Open API Specification
 [Back to top](#compact-connect---technical-user-guide)
