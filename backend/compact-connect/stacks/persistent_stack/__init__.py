@@ -1,4 +1,6 @@
 from aws_cdk import Duration, RemovalPolicy
+from aws_cdk.aws_cloudwatch import Alarm, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
@@ -335,6 +337,16 @@ class PersistentStack(AppStack):
                 **self.common_env_vars,
             },
         )
+        self.email_notification_service_failure_alarm = Alarm(
+            self,
+            'EmailNotificationServiceFailureAlarm',
+            alarm_name='EmailNotificationServiceFailureAlarm',
+            metric=self.email_notification_service_lambda.metric_errors(),
+            evaluation_periods=1,
+            threshold=1,
+            alarm_description='Email notification service has failed to send an email.',
+        )
+        self.email_notification_service_failure_alarm.add_alarm_action(SnsAction(self.alarm_topic))
 
         # Grant permissions to read compact configurations
         self.compact_configuration_table.grant_read_data(self.email_notification_service_lambda)
