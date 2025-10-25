@@ -1,10 +1,10 @@
 from aws_cdk import RemovalPolicy
 from aws_cdk.aws_dynamodb import (
+    Attribute,
     AttributeType,
     BillingMode,
-    GlobalSecondaryIndex,
     PointInTimeRecoverySpecification,
-    Projection,
+    ProjectionType,
     Table,
 )
 from aws_cdk.aws_kms import IKey
@@ -37,12 +37,12 @@ class EventStateTable(Table):
             point_in_time_recovery_specification=PointInTimeRecoverySpecification(point_in_time_recovery_enabled=True),
             removal_policy=removal_policy,
             time_to_live_attribute='ttl',
-            global_secondary_indexes=[
-                GlobalSecondaryIndex(
-                    index_name='providerId-eventTime-index',
-                    partition_key={'name': 'providerId', 'type': AttributeType.STRING},
-                    sort_key={'name': 'eventTime', 'type': AttributeType.STRING},
-                    projection=Projection.all(),
-                )
-            ],
+        )
+
+        self.provider_event_time_index_name = 'providerId-eventTime-index'
+        self.add_global_secondary_index(
+            index_name=self.provider_event_time_index_name,
+            partition_key=Attribute(name='providerId', type=AttributeType.STRING),
+            sort_key=Attribute(name='eventTime', type=AttributeType.STRING),
+            projection_type=ProjectionType.ALL,
         )
