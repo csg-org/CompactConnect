@@ -1,5 +1,5 @@
 from aws_cdk import Duration, RemovalPolicy
-from aws_cdk.aws_cloudwatch import Alarm, TreatMissingData
+from aws_cdk.aws_cloudwatch import Alarm
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
