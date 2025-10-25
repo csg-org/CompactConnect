@@ -43,7 +43,7 @@ def clean_investigation_records():
                 dynamodb_table = get_provider_user_dynamodb_table()
                 dynamodb_table.update_item(
                     Key={'pk': record['pk'], 'sk': record['sk']},
-                    UpdateExpression='REMOVE investigationStatus, REMOVE encumbranceStatus',
+                    UpdateExpression='REMOVE investigationStatus, encumbranceStatus',
                 )
 
     # Filter for investigation and encumbrance records

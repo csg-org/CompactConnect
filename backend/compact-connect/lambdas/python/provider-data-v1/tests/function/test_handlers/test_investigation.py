@@ -189,7 +189,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
                     'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                     'investigationId': privilege['investigations'][0]['investigationId'],  # Dynamic field
                 }
-            ]
+            ],
         }
 
         self.assertDictFieldsMatch(expected_privilege, privilege)
@@ -351,9 +351,7 @@ class TestPostLicenseInvestigation(TstFunction):
             }
         )['Item']
 
-        self.assertEqual(
-            InvestigationStatusEnum.UNDER_INVESTIGATION, updated_license_record['investigationStatus']
-        )
+        self.assertEqual(InvestigationStatusEnum.UNDER_INVESTIGATION, updated_license_record['investigationStatus'])
 
         # Verify that investigation objects are included in the API response
         api_event = self.test_data_generator.generate_test_api_event(
@@ -392,7 +390,7 @@ class TestPostLicenseInvestigation(TstFunction):
                     'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                     'investigationId': investigation['investigationId'],  # Dynamic field
                 }
-            ]
+            ],
         }
 
         self.assertDictFieldsMatch(expected_license, license_obj)
@@ -416,7 +414,6 @@ class TestPostLicenseInvestigation(TstFunction):
             },
         }
         self.assertEqual(expected_event_args, call_args)
-
 
     def test_license_investigation_handler_returns_access_denied_if_compact_admin(self):
         """Verifying that only state admins are allowed to create license investigations"""

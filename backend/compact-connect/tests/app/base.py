@@ -65,8 +65,22 @@ class TstAppABC(ABC):
         """
         We build the app once per TestCase, to save compute time in the test suite
         """
+        cls._overwrite_snapshots = False
+        cls.set_overwrite_snapshots()
+
         cls.context = cls.get_context()
         cls.app = _app_synthesizer.get_app(cls.context)
+
+    @classmethod
+    def set_overwrite_snapshots(cls):
+        """
+        Allow environment variable to force snapshot comparisons to overwrite the snapshot
+
+        ```
+        OVERWRITE_SNAPSHOTS=true pytest tests
+        ```
+        """
+        cls._overwrite_snapshots = os.environ.get('OVERWRITE_SNAPSHOTS', 'false').lower() == 'true'
 
     def test_no_compact_jurisdiction_name_clash(self):
         """
@@ -599,6 +613,9 @@ class TstAppABC(ABC):
         Compare the actual dictionary to the snapshot with the given name.
         If overwrite_snapshot is True, overwrite the snapshot with the actual data.
         """
+        # Let class attribute force true
+        overwrite_snapshot = overwrite_snapshot or self._overwrite_snapshots
+
         snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
 
         if os.path.exists(snapshot_path):

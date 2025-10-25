@@ -1,10 +1,9 @@
 from uuid import UUID
 
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
-from cc_common.data_model.schema.data_event.api import (
-    InvestigationEventDetailSchema,
-)
+from cc_common.data_model.provider_record_util import ProviderUserRecords
+from cc_common.data_model.schema.data_event.api import InvestigationEventDetailSchema
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.email_service_client import InvestigationNotificationTemplateVariables, ProviderNotificationMethod
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler

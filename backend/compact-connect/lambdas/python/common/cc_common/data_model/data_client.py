@@ -1687,8 +1687,10 @@ class DataClient:
                         'TableName': self.config.provider_table.table_name,
                         'Key': {
                             'pk': {'S': f'{investigation.compact}#PROVIDER#{investigation.providerId}'},
-                            'sk': {'S': f'{investigation.compact}#PROVIDER#{record_type}/'
-                            f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#'},
+                            'sk': {
+                                'S': f'{investigation.compact}#PROVIDER#{record_type}/'
+                                f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#'
+                            },
                         },
                         'UpdateExpression': (
                             'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
@@ -1745,9 +1747,7 @@ class DataClient:
             # Query for the record (privilege or license) and all its investigations in a single query
             query_results = self.config.provider_table.query(
                 KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-                & Key('sk').begins_with(
-                    f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#'
-                )
+                & Key('sk').begins_with(f'{compact}#PROVIDER#{record_type}/{jurisdiction}/{license_type_abbreviation}#')
             )['Items']
 
             # Separate the main record from investigation records

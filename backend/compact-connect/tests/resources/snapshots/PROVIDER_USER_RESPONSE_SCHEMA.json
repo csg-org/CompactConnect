@@ -90,8 +90,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "format": "date-time",
             "type": "string"
           },
           "licenseStatus": {
@@ -228,8 +227,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "previous": {
@@ -618,8 +616,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "encumbranceType": {
@@ -743,13 +740,11 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "creationDate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "submittingUser": {
@@ -1001,8 +996,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "previous": {
@@ -1099,8 +1093,7 @@
                       "type": "string"
                     },
                     "dateOfUpdate": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "format": "date-time",
                       "type": "string"
                     },
                     "compactTransactionId": {
@@ -1309,8 +1302,7 @@
                       "type": "string"
                     },
                     "dateOfUpdate": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "format": "date-time",
                       "type": "string"
                     },
                     "compactTransactionId": {
@@ -1551,8 +1543,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "encumbranceType": {
@@ -1676,13 +1667,11 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "creationDate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "submittingUser": {
@@ -1803,8 +1792,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "format": "date-time",
             "type": "string"
           },
           "compactTransactionId": {
@@ -1938,8 +1926,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "format": "date-time",
             "type": "string"
           },
           "providerId": {
@@ -2288,8 +2275,7 @@
       "type": "string"
     },
     "dateOfUpdate": {
-      "format": "date",
-      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+      "format": "date-time",
       "type": "string"
     }
   },

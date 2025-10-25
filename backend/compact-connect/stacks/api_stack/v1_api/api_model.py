@@ -559,8 +559,7 @@ class ApiModel:
                     'dateOfUpdate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The date the document was last updated',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
+                        format='date-time',
                     ),
                     'documentUploadFields': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -1029,8 +1028,7 @@ class ApiModel:
                             'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                             'dateOfUpdate': JsonSchema(
                                 type=JsonSchemaType.STRING,
-                                format='date',
-                                pattern=cc_api.YMD_FORMAT,
+                                format='date-time',
                             ),
                             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                             'compactEligibility': JsonSchema(
@@ -1068,9 +1066,7 @@ class ApiModel:
                                         'licenseType': JsonSchema(
                                             type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'previous': JsonSchema(
                                             type=JsonSchemaType.OBJECT,
                                             required=[
@@ -1162,9 +1158,7 @@ class ApiModel:
                                         'effectiveLiftDate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                                         # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
@@ -1238,9 +1232,7 @@ class ApiModel:
                                         'licenseType': JsonSchema(
                                             type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'previous': JsonSchema(
                                             type=JsonSchemaType.OBJECT,
                                             required=[
@@ -1312,9 +1304,7 @@ class ApiModel:
                                         'effectiveLiftDate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                                         # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
@@ -1356,9 +1346,7 @@ class ApiModel:
                         ],
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['militaryAffiliation']),
-                            'dateOfUpdate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
+                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
                             'compact': JsonSchema(
                                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
@@ -1495,8 +1483,8 @@ class ApiModel:
                     enum=self.stack.node.get_context('jurisdictions'),
                 ),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'submittingUser': JsonSchema(type=JsonSchemaType.STRING),
             },
         )
@@ -1575,7 +1563,7 @@ class ApiModel:
                 max_length=100,
             ),
             'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
 
     @property
@@ -1588,7 +1576,7 @@ class ApiModel:
             'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
             'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
             'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
             'licenseJurisdiction': JsonSchema(
@@ -2362,15 +2350,11 @@ class ApiModel:
                             properties={
                                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
                                 'updateType': self._update_type_schema,
-                                'dateOfUpdate': JsonSchema(
-                                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                ),
+                                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                 'effectiveDate': JsonSchema(
                                     type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                 ),
-                                'createDate': JsonSchema(
-                                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                ),
+                                'createDate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                 'note': JsonSchema(type=JsonSchemaType.STRING),
                             },
                         ),
@@ -2454,7 +2438,7 @@ class ApiModel:
                 'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
@@ -2483,9 +2467,7 @@ class ApiModel:
                                 enum=stack.node.get_context('jurisdictions'),
                             ),
                             'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
-                            'dateOfUpdate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
+                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                             'previous': JsonSchema(
                                 type=JsonSchemaType.OBJECT,
                                 required=[
@@ -2510,9 +2492,7 @@ class ApiModel:
                                     'dateOfRenewal': JsonSchema(
                                         type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                     ),
-                                    'dateOfUpdate': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
+                                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                     'licenseJurisdiction': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         enum=stack.node.get_context('jurisdictions'),
@@ -2535,9 +2515,7 @@ class ApiModel:
                                     'dateOfRenewal': JsonSchema(
                                         type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                     ),
-                                    'dateOfUpdate': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
+                                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                     'licenseJurisdiction': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         enum=stack.node.get_context('jurisdictions'),
@@ -2585,9 +2563,7 @@ class ApiModel:
                             'effectiveLiftDate': JsonSchema(
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
-                            'dateOfUpdate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
+                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                         },
                     ),
                 ),
@@ -2710,7 +2686,7 @@ class ApiModel:
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             ),
             'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
 
     @property

@@ -300,6 +300,7 @@ class TestInvestigationApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
+                'ResourceId': {'Ref': self._get_privilege_investigation_resource_id(api_stack_template, api_stack)},
                 'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
                     api_lambda_stack,
                     api_lambda_stack_template,
@@ -338,6 +339,7 @@ class TestInvestigationApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
+                'ResourceId': {'Ref': self._get_privilege_investigation_id_resource_id(api_stack_template, api_stack)},
                 'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
                     api_lambda_stack,
                     api_lambda_stack_template,
@@ -387,6 +389,7 @@ class TestInvestigationApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
+                'ResourceId': {'Ref': self._get_license_investigation_resource_id(api_stack_template, api_stack)},
                 'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
                     api_lambda_stack,
                     api_lambda_stack_template,
@@ -425,6 +428,7 @@ class TestInvestigationApi(TestApi):
                 'AuthorizerId': {
                     'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
                 },
+                'ResourceId': {'Ref': self._get_license_investigation_id_resource_id(api_stack_template, api_stack)},
                 'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
                     api_lambda_stack,
                     api_lambda_stack_template,
@@ -455,5 +459,5 @@ class TestInvestigationApi(TestApi):
         self.compare_snapshot(
             patch_license_investigation_request_model['Schema'],
             'PATCH_LICENSE_INVESTIGATION_REQUEST_SCHEMA',
-            overwrite_snapshot=True,
+            overwrite_snapshot=False,
         )

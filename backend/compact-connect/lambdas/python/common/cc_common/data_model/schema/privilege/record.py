@@ -267,9 +267,9 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
         Require investigationDetails whenever update type is investigation
         """
         if data['updateType'] == UpdateCategory.INVESTIGATION and not data.get('investigationDetails'):
-            raise ValidationError({
-                'investigationDetails': ['This field is required when update was investigation type']
-            })
+            raise ValidationError(
+                {'investigationDetails': ['This field is required when update was investigation type']}
+            )
 
     @pre_dump
     def generate_compact_transaction_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

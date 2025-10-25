@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-10-22T20:31:18Z"
+    "version": "2025-10-25T20:22:36Z"
   },
   "servers": [
     {
@@ -3305,10 +3305,9 @@
             }
           },
           "dateOfUpdate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
             "description": "The date the document was last updated",
-            "format": "date"
+            "format": "date-time"
           },
           "status": {
             "type": "string",
@@ -3999,9 +3998,8 @@
                   ]
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 }
               }
             }
@@ -4520,9 +4518,8 @@
                             "format": "date"
                           },
                           "dateOfUpdate": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
-                            "format": "date"
+                            "format": "date-time"
                           }
                         }
                       },
@@ -4675,9 +4672,8 @@
                             "format": "date"
                           },
                           "dateOfUpdate": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
-                            "format": "date"
+                            "format": "date-time"
                           }
                         }
                       },
@@ -4688,9 +4684,8 @@
                         ]
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       },
                       "updateType": {
                         "type": "string",
@@ -4878,17 +4873,15 @@
                         "type": "string"
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       }
                     }
                   }
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 },
                 "status": {
                   "type": "string",
@@ -5123,9 +5116,8 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
-            "format": "date"
+            "format": "date-time"
           }
         }
       },
@@ -5876,9 +5868,8 @@
                   ]
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 },
                 "effectiveDate": {
                   "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
@@ -5902,9 +5893,8 @@
                   ]
                 },
                 "createDate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 }
               }
             }
@@ -7006,9 +6996,8 @@
                   "format": "email"
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 }
               }
             }
@@ -7467,14 +7456,12 @@
                         ]
                       },
                       "creationDate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       }
                     }
                   }
@@ -7714,9 +7701,8 @@
                             "format": "date"
                           },
                           "dateOfUpdate": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "status": {
                             "type": "string",
@@ -7971,9 +7957,8 @@
                             "format": "date"
                           },
                           "dateOfUpdate": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                             "type": "string",
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "status": {
                             "type": "string",
@@ -7991,9 +7976,8 @@
                         ]
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       },
                       "updateType": {
                         "type": "string",
@@ -8201,17 +8185,15 @@
                         "type": "string"
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       }
                     }
                   }
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 },
                 "status": {
                   "type": "string",
@@ -8663,14 +8645,12 @@
                         ]
                       },
                       "creationDate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       }
                     }
                   }
@@ -9149,9 +9129,8 @@
                         ]
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       },
                       "updateType": {
                         "type": "string",
@@ -9336,17 +9315,15 @@
                         "type": "string"
                       },
                       "dateOfUpdate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                         "type": "string",
-                        "format": "date"
+                        "format": "date-time"
                       }
                     }
                   }
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 }
               }
             }
@@ -9424,9 +9401,8 @@
                   ]
                 },
                 "dateOfUpdate": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
-                  "format": "date"
+                  "format": "date-time"
                 },
                 "fileNames": {
                   "type": "array",
@@ -9477,9 +9453,8 @@
             "format": "email"
           },
           "dateOfUpdate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string",
-            "format": "date"
+            "format": "date-time"
           }
         }
       }

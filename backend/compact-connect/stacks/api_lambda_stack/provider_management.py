@@ -31,7 +31,6 @@ class ProviderManagementLambdas:
         self.stack: Stack = Stack.of(scope)
         lambda_environment = {
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-            'STAFF_USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
             'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
             'PROV_DATE_OF_UPDATE_INDEX_NAME': persistent_stack.provider_table.provider_date_of_update_index_name,
@@ -84,7 +83,7 @@ class ProviderManagementLambdas:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to one table and encryption key.',
+                    'and is scoped to tables and an event bus.',
                 },
             ],
         )

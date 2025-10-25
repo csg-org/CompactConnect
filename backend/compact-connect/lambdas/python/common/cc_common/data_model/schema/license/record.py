@@ -240,6 +240,6 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         Require investigationDetails whenever update type is investigation
         """
         if data['updateType'] == UpdateCategory.INVESTIGATION and not data.get('investigationDetails'):
-            raise ValidationError({
-                'investigationDetails': ['This field is required when update was investigation type']
-            })
+            raise ValidationError(
+                {'investigationDetails': ['This field is required when update was investigation type']}
+            )

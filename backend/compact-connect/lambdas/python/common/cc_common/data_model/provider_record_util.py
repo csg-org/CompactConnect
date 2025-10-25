@@ -260,9 +260,9 @@ class ProviderRecordUtility:
 
         # We don't ever serve investigation updates via the API - they're only for internal change history tracking
         history_without_investigations = [
-            update for update in history if update['updateType'] not in (
-                UpdateCategory.INVESTIGATION, UpdateCategory.CLOSING_INVESTIGATION
-            )
+            update
+            for update in history
+            if update['updateType'] not in (UpdateCategory.INVESTIGATION, UpdateCategory.CLOSING_INVESTIGATION)
         ]
         create_date_sorted_original_history = sorted(history_without_investigations, key=lambda x: x['createDate'])
 
