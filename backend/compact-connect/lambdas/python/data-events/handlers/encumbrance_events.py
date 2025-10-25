@@ -16,7 +16,7 @@ from cc_common.event_bus_client import EventBusClient
 from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
 from cc_common.exceptions import CCInternalException
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import sqs_handler
+from cc_common.utils import sqs_handler, sqs_handler_with_message_id
 
 
 def _get_license_type_name(compact: str, license_type_abbreviation: str) -> str:
@@ -408,8 +408,8 @@ def license_encumbrance_lifted_listener(message: dict):
         )
 
 
-@sqs_handler
-def privilege_encumbrance_notification_listener(message: dict):
+@sqs_handler_with_message_id
+def privilege_encumbrance_notification_listener(message: dict, message_id: str):
     """
     Handle privilege encumbrance events by sending notifications.
 
@@ -426,9 +426,6 @@ def privilege_encumbrance_notification_listener(message: dict):
     license_type_abbreviation = detail['licenseTypeAbbreviation']
     effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
-
-    # Get message ID for tracking
-    message_id = message.get('AWSSQSMessageId', 'unknown')
 
     with logger.append_context_keys(
         compact=compact,
@@ -501,8 +498,8 @@ def privilege_encumbrance_notification_listener(message: dict):
         logger.info('Successfully processed privilege encumbrance event')
 
 
-@sqs_handler
-def privilege_encumbrance_lifting_notification_listener(message: dict):
+@sqs_handler_with_message_id
+def privilege_encumbrance_lifting_notification_listener(message: dict, message_id: str):
     """
     Handle privilege encumbrance lifting events by sending notifications.
 
@@ -518,9 +515,6 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
     event_time = detail['eventTime']
-
-    # Get message ID for tracking
-    message_id = message.get('AWSSQSMessageId', 'unknown')
 
     with logger.append_context_keys(
         compact=compact,
@@ -639,8 +633,8 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
         logger.info('Successfully processed privilege encumbrance lifting event')
 
 
-@sqs_handler
-def license_encumbrance_notification_listener(message: dict):
+@sqs_handler_with_message_id
+def license_encumbrance_notification_listener(message: dict, message_id: str):
     """
     Handle license encumbrance events by sending notifications only.
 
@@ -657,9 +651,6 @@ def license_encumbrance_notification_listener(message: dict):
     license_type_abbreviation = detail['licenseTypeAbbreviation']
     effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
-
-    # Get message ID for tracking
-    message_id = message.get('AWSSQSMessageId', 'unknown')
 
     with logger.append_context_keys(
         compact=compact,
@@ -732,8 +723,8 @@ def license_encumbrance_notification_listener(message: dict):
         logger.info('Successfully processed license encumbrance notification event')
 
 
-@sqs_handler
-def license_encumbrance_lifting_notification_listener(message: dict):
+@sqs_handler_with_message_id
+def license_encumbrance_lifting_notification_listener(message: dict, message_id: str):
     """
     Handle license encumbrance lifting events by sending notifications only.
 
@@ -749,9 +740,6 @@ def license_encumbrance_lifting_notification_listener(message: dict):
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
     event_time = detail['eventTime']
-
-    # Get message ID for tracking
-    message_id = message.get('AWSSQSMessageId', 'unknown')
 
     with logger.append_context_keys(
         compact=compact,
