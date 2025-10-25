@@ -174,6 +174,64 @@ describe('EmailNotificationServiceLambda', () => {
         });
     });
 
+    it('should include detailed error information for failed transactions', async () => {
+        const eventWithFailedTransactions: EmailNotificationEvent = {
+            ...SAMPLE_EVENT,
+            templateVariables: {
+                batchFailureErrorMessage: JSON.stringify({
+                    message: 'Settlement errors detected in one or more transactions.',
+                    failedTransactionIds: ['tx-123', 'tx-456', 'tx-789']
+                })
+            }
+        };
+
+        const response = await lambda.handler(eventWithFailedTransactions, {} as any);
+
+        expect(response).toEqual({
+            message: 'Email message sent'
+        });
+
+        // Get the actual HTML content for detailed validation
+        const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+        const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+        expect(htmlContent).toBeDefined();
+        expect(htmlContent).toContain('A transaction settlement error was detected within the payment processing account for the compact.');
+        expect(htmlContent).toContain('Please reach out to your payment processing representative if needed to determine the cause.');
+        expect(htmlContent).toContain('Detailed Error Information:');
+        expect(htmlContent).toContain('Error Message: Settlement errors detected in one or more transactions.');
+        expect(htmlContent).toContain('Failed Transaction IDs: tx-123, tx-456, tx-789');
+    });
+
+    it('should include detailed error information for unsettled transactions', async () => {
+        const eventWithUnsettledTransactions: EmailNotificationEvent = {
+            ...SAMPLE_EVENT,
+            templateVariables: {
+                batchFailureErrorMessage: JSON.stringify({
+                    message: 'One or more transactions have not settled in over 48 hours.',
+                    unsettledTransactionIds: ['unsettled-tx-001', 'unsettled-tx-002']
+                })
+            }
+        };
+
+        const response = await lambda.handler(eventWithUnsettledTransactions, {} as any);
+
+        expect(response).toEqual({
+            message: 'Email message sent'
+        });
+
+        // Get the actual HTML content for detailed validation
+        const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+        const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+        expect(htmlContent).toBeDefined();
+        expect(htmlContent).toContain('A transaction settlement error was detected within the payment processing account for the compact.');
+        expect(htmlContent).toContain('Please reach out to your payment processing representative if needed to determine the cause.');
+        expect(htmlContent).toContain('Detailed Error Information:');
+        expect(htmlContent).toContain('Error Message: One or more transactions have not settled in over 48 hours.');
+        expect(htmlContent).toContain('Unsettled Transaction IDs (older than 48 hours): unsettled-tx-001, unsettled-tx-002');
+    });
+
     it('should throw error for unsupported template', async () => {
         const event: EmailNotificationEvent = {
             ...SAMPLE_EVENT,

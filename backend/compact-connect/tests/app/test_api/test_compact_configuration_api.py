@@ -150,6 +150,65 @@ class TestCompactConfigurationApi(TestApi):
             overwrite_snapshot=False,
         )
 
+    def test_synth_generates_get_live_jurisdictions_resource(self):
+        """Test that the GET /v1/public/jurisdictions/live
+        endpoint is properly configured as a public endpoint"""
+        api_stack = self.app.sandbox_backend_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+
+        # Ensure the /v1/public/jurisdictions resource is created
+        api_stack_template.has_resource_properties(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ParentId': {
+                    # Verify the parent id matches the expected 'public/' resource
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.public_resource.node.default_child),
+                },
+                'PathPart': 'jurisdictions',
+            },
+        )
+
+        # Ensure the /v1/public/jurisdictions/live resource is created
+        api_stack_template.has_resource_properties(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ParentId': {
+                    # Verify the parent id matches the expected 'public/jurisdictions' resource
+                    'Ref': api_stack.get_logical_id(
+                        api_stack.api.v1_api.public_jurisdictions_resource.node.default_child
+                    ),
+                },
+                'PathPart': 'live',
+            },
+        )
+
+        # Get the live jurisdictions resource
+        live_jurisdictions_resource_id = api_stack.get_logical_id(
+            api_stack.api.v1_api.live_jurisdictions_resource.node.default_child
+        )
+
+        # Ensure the GET method is configured with the lambda integration (no authorizer since it's public)
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'GET',
+                'ResourceId': {'Ref': live_jurisdictions_resource_id},
+                # ensure the lambda integration is configured with the expected handler
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.compact_configuration_lambdas.compact_configuration_api_handler,
+                ),
+                'MethodResponses': [
+                    {
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
     def test_synth_generates_get_compact_configuration_endpoint(self):
         """Test that the GET /v1/compacts/{compact} endpoint is properly configured"""
         api_stack = self.app.sandbox_backend_stage.api_stack

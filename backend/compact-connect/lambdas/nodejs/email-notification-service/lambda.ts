@@ -88,7 +88,8 @@ export class Lambda implements LambdaInterface {
             await this.emailService.sendTransactionBatchSettlementFailureEmail(
                 event.compact,
                 event.recipientType,
-                event.specificEmails
+                event.specificEmails,
+                event.templateVariables.batchFailureErrorMessage
             );
             break;
         case 'privilegeDeactivationJurisdictionNotification':

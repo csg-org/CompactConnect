@@ -13,7 +13,7 @@ from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
 from stacks import api_lambda_stack as als
-from stacks.persistent_stack import CompactConfigurationTable, PersistentStack, ProviderTable
+from stacks.persistent_stack import CompactConfigurationTable, PersistentStack, ProviderTable, TransactionHistoryTable
 
 
 class PurchasesLambdas:
@@ -31,12 +31,14 @@ class PurchasesLambdas:
         data_encryption_key = persistent_stack.shared_encryption_key
         compact_configuration_table = persistent_stack.compact_configuration_table
         provider_data_table = persistent_stack.provider_table
+        transaction_history_table = persistent_stack.transaction_history_table
         alarm_topic = persistent_stack.alarm_topic
 
         lambda_environment = {
             'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
             'PROVIDER_TABLE_NAME': provider_data_table.table_name,
             'EVENT_BUS_NAME': data_event_bus.event_bus_name,
+            'TRANSACTION_HISTORY_TABLE_NAME': transaction_history_table.table_name,
             **stack.common_env_vars,
         }
 
@@ -45,6 +47,7 @@ class PurchasesLambdas:
             data_encryption_key=data_encryption_key,
             compact_configuration_table=compact_configuration_table,
             provider_data_table=provider_data_table,
+            transaction_history_table=transaction_history_table,
             data_event_bus=data_event_bus,
             compact_payment_processor_secrets=compact_payment_processor_secrets,
             alarm_topic=alarm_topic,
@@ -67,6 +70,7 @@ class PurchasesLambdas:
         data_encryption_key: IKey,
         compact_configuration_table: CompactConfigurationTable,
         provider_data_table: ProviderTable,
+        transaction_history_table: TransactionHistoryTable,
         data_event_bus: EventBus,
         compact_payment_processor_secrets: list[ISecret],
         lambda_environment: dict,
@@ -100,6 +104,8 @@ class PurchasesLambdas:
         compact_configuration_table.grant_read_data(handler)
         # This lambda is responsible for adding privilege records to a provider after they have purchased them.
         provider_data_table.grant_read_write_data(handler)
+        # allow lambda to track unsettled transactions in the transaction history table
+        transaction_history_table.grant_read_write_data(handler)
         data_event_bus.grant_put_events_to(handler)
 
         # grant access to secrets manager secrets following this namespace pattern

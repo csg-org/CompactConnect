@@ -60,6 +60,7 @@ class EventListenerStack(AppStack):
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -68,6 +69,7 @@ class EventListenerStack(AppStack):
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_write_data(license_encumbrance_listener_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(license_encumbrance_listener_handler)
+        data_event_bus.grant_put_events_to(license_encumbrance_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
@@ -108,6 +110,7 @@ class EventListenerStack(AppStack):
             timeout=Duration.minutes(2),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -115,6 +118,7 @@ class EventListenerStack(AppStack):
 
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_write_data(lifting_license_encumbrance_listener_handler)
+        data_event_bus.grant_put_events_to(lifting_license_encumbrance_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
