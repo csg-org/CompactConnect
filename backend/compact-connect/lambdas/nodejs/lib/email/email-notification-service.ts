@@ -92,7 +92,7 @@ export class EmailNotificationService extends BaseEmailService {
                 if (errorDetails.unsettledTransactionIds && errorDetails.unsettledTransactionIds.length > 0) {
                     bodyText += `Unsettled Transaction IDs (older than 48 hours): ${errorDetails.unsettledTransactionIds.join(', ')}\n`;
                 }
-            } catch (parseError) {
+            } catch {
                 // If JSON parsing fails, include the raw message
                 bodyText += `\n\nError Details: ${batchFailureErrorMessage}`;
             }
