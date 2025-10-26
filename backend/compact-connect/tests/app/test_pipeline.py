@@ -415,6 +415,54 @@ class TestBackendPipeline(TstAppABC, TestCase):
             {'RoleArn': {'Fn::GetAtt': [Match.string_like_regexp('.*BackendCrossAccountRole.*'), 'Arn']}},
         )
 
+    def test_pipeline_git_tag_triggers(self):
+        """Test that pipelines are configured with git tag triggers."""
+        test_cases = [
+            (self.app.test_backend_pipeline_stack, 'test-*'),
+            (self.app.beta_backend_pipeline_stack, 'beta-*'),
+            (self.app.prod_backend_pipeline_stack, 'prod-*'),
+        ]
+
+        for stack, expected_pattern in test_cases:
+            with self.subTest(stack=stack.stack_name):
+                template = Template.from_stack(stack)
+
+                # Verify all git tag trigger properties in a single call
+                template.has_resource_properties(
+                    'AWS::CodePipeline::Pipeline',
+                    {
+                        'Triggers': [
+                            {
+                                'ProviderType': 'CodeStarSourceConnection',
+                                'GitConfiguration': {
+                                    'SourceActionName': 'csg-org_CompactConnect',
+                                    'Push': [{'Tags': {'Includes': [expected_pattern]}}],
+                                },
+                            }
+                        ],
+                        'Stages': Match.array_with(
+                            [
+                                Match.object_like(
+                                    {
+                                        'Name': 'Source',
+                                        'Actions': Match.array_with(
+                                            [
+                                                Match.object_like(
+                                                    {
+                                                        'Configuration': Match.object_like(
+                                                            {'DetectChanges': False, 'BranchName': Match.any_value()}
+                                                        )
+                                                    }
+                                                )
+                                            ]
+                                        ),
+                                    }
+                                )
+                            ]
+                        ),
+                    },
+                )
+
 
 class TestBackendPipelineVulnerable(TestCase):
     @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
