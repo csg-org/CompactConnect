@@ -51,10 +51,15 @@ class TestAttestationsApi(TestApi):
             },
         )
 
-        # Ensure the lambda is created with expected code path
+        # Ensure the lambda is created with expected code path in the ApiLambdaStack
+        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
+        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+
         attestation_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.attestations.attestations_function.node.default_child),
-            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            api_lambda_stack.get_logical_id(
+                api_lambda_stack.attestations_lambdas.attestations_handler.node.default_child
+            ),
+            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(attestation_handler['Handler'], 'handlers.attestations.attestations')
@@ -72,10 +77,10 @@ class TestAttestationsApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi.generate_expected_integration_object(
-                    api_stack.get_logical_id(
-                        api_stack.api.v1_api.attestations.attestations_function.node.default_child,
-                    ),
+                'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
+                    api_lambda_stack,
+                    api_lambda_stack_template,
+                    api_lambda_stack.attestations_lambdas.attestations_handler,
                 ),
                 'MethodResponses': [
                     {

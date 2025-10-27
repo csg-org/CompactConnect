@@ -11,7 +11,7 @@ import PrivilegesIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import UserIcon from '@components/Icons/User/User.vue';
 import { Compact } from '@models/Compact/Compact.model';
-import { License, LicenseStatus } from '@models/License/License.model';
+import { License, LicenseStatus, LicenseType } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
@@ -88,10 +88,37 @@ export default class LicenseeProof extends Vue {
             .filter((privilege: License) =>
                 privilege.status === LicenseStatus.ACTIVE)
             .sort((a: License, b: License) => {
-                const dateA = moment(a.activeFromDate);
-                const dateB = moment(b.activeFromDate);
+                const stateA = a.issueState?.name() ?? '';
+                const stateB = b.issueState?.name() ?? '';
+                let sort = 0;
 
-                return dateB.valueOf() - dateA.valueOf(); // Most recent activeFromDate first
+                // Primary sort — by state name
+                if (stateA < stateB) {
+                    sort = -1;
+                } else if (stateA > stateB) {
+                    sort = 1;
+                }
+
+                // Secondary sort — by license type (custom order: OT, OTA, AUD, SLP)
+                if (sort === 0) {
+                    const typeA = a.licenseType ?? '';
+                    const typeB = b.licenseType ?? '';
+                    const typeOrder: Record<string, number> = {
+                        [LicenseType.OCCUPATIONAL_THERAPIST]: 1,
+                        [LicenseType.OCCUPATIONAL_THERAPY_ASSISTANT]: 2,
+                        [LicenseType.AUDIOLOGIST]: 3,
+                        [LicenseType.SPEECH_LANGUAGE_PATHOLOGIST]: 4,
+                    };
+
+                    // Unordered types sort after all custom ordered types
+                    const customOrderCount = Object.keys(typeOrder).length;
+                    const orderA = typeOrder[typeA] ?? customOrderCount + 1;
+                    const orderB = typeOrder[typeB] ?? customOrderCount + 1;
+
+                    sort = orderA - orderB;
+                }
+
+                return sort;
             });
 
         return sortedPrivileges;

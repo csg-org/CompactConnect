@@ -229,6 +229,12 @@ class TstAppABC(ABC):
         api_query_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.api_query_role.node.default_child
         )
+        disaster_recovery_lambda_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.disaster_recovery_lambda_role.node.default_child
+        )
+        disaster_recovery_step_function_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.disaster_recovery_step_function_role.node.default_child
+        )
         ssn_table_template = self.get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(persistent_stack.ssn_table.node.default_child),
             persistent_stack_template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME),
@@ -256,6 +262,8 @@ class TstAppABC(ABC):
                                 {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
                                 {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
                                 {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
+                                {'Fn::GetAtt': [disaster_recovery_lambda_role_logical_id, 'Arn']},
+                                {'Fn::GetAtt': [disaster_recovery_step_function_role_logical_id, 'Arn']},
                                 Match.any_value(),  # SSN backup role reference (may be nested stack output)
                             ],
                             'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
@@ -289,9 +297,9 @@ class TstAppABC(ABC):
         if persistent_stack.environment_context['backup_enabled']:
             # if backup is enabled, we add an additional principle arn for the backup role to the SSN policy to
             # perform backups on data
-            self.assertEqual(4, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
+            self.assertEqual(6, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         else:
-            self.assertEqual(3, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
+            self.assertEqual(5, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
         self.assertEqual(
             expected_policy['Statement'][1]['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
             actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
@@ -511,13 +519,23 @@ class TstAppABC(ABC):
             )
 
     def _check_no_backend_stage_annotations(self, stage: BackendStage):
-        self._check_no_stack_annotations(stage.persistent_stack)
+        self._check_no_stack_annotations(stage.api_lambda_stack)
         self._check_no_stack_annotations(stage.api_stack)
+        self._check_no_stack_annotations(stage.disaster_recovery_stack)
+        self._check_no_stack_annotations(stage.event_listener_stack)
+        self._check_no_stack_annotations(stage.feature_flag_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
+        self._check_no_stack_annotations(stage.managed_login_stack)
+        self._check_no_stack_annotations(stage.persistent_stack)
+        self._check_no_stack_annotations(stage.provider_users_stack)
+        self._check_no_stack_annotations(stage.state_api_stack)
+        self._check_no_stack_annotations(stage.state_auth_stack)
         self._check_no_stack_annotations(stage.transaction_monitoring_stack)
-        # There is on reporting stack if no hosted zone is configured
+        # These are only present if a hosted zone is configured
         if stage.persistent_stack.hosted_zone:
+            self._check_no_stack_annotations(stage.notification_stack)
             self._check_no_stack_annotations(stage.reporting_stack)
+        # No backup stack here, because nexted stack annotations are checked in the parent stack
 
     def _count_stack_resources(self, stack: Stack) -> int:
         """
@@ -542,17 +560,31 @@ class TstAppABC(ABC):
         :param stage: The BackendStage containing stacks to check
         """
         stacks_to_check = [
-            ('persistent_stack', stage.persistent_stack),
+            ('api_lambda_stack', stage.api_lambda_stack),
             ('api_stack', stage.api_stack),
+            ('backup_infrastructure_stack', stage.backup_infrastructure_stack),
+            ('disaster_recovery_stack', stage.disaster_recovery_stack),
+            ('event_listener_stack', stage.event_listener_stack),
+            ('feature_flag_stack', stage.feature_flag_stack),
             ('ingest_stack', stage.ingest_stack),
+            ('managed_login_stack', stage.managed_login_stack),
+            ('persistent_stack', stage.persistent_stack),
+            ('provider_users_stack', stage.provider_users_stack),
+            ('state_api_stack', stage.state_api_stack),
+            ('state_auth_stack', stage.state_auth_stack),
             ('transaction_monitoring_stack', stage.transaction_monitoring_stack),
         ]
-
-        # Add reporting stack if it exists (only when hosted zone is configured)
         if stage.persistent_stack.hosted_zone:
-            stacks_to_check.append(('reporting_stack', stage.reporting_stack))
+            stacks_to_check.extend(
+                [
+                    ('notification_stack', stage.notification_stack),
+                    ('reporting_stack', stage.reporting_stack),
+                ]
+            )
 
         for _stack_name, stack in stacks_to_check:
+            if stack is None:
+                continue
             with self.subTest(f'Resource Count: {stack.stack_name}'):
                 resource_count = self._count_stack_resources(stack)
 

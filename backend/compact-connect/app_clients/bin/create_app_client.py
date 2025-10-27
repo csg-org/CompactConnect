@@ -125,6 +125,17 @@ def get_user_input():
     """Get user input for app client configuration."""
     print('=== App Client Configuration ===\n')
 
+    # Get environment
+    while True:
+        try:
+            print('Valid environments: test, beta, prod')
+            environment = input('Enter the environment: ').strip().lower()
+            if environment not in ['test', 'beta', 'prod']:
+                raise ValueError('Invalid environment. Must be one of: test, beta, prod')
+            break
+        except ValueError as e:
+            print(f'Error: {e}')
+
     # Get client name
     client_name = input("Enter the app client name (e.g., 'example-ky-app-client-v1'): ").strip()
     if not client_name:
@@ -183,7 +194,13 @@ def get_user_input():
         print('Configuration cancelled.')
         sys.exit(0)
 
-    return {'clientName': client_name, 'compact': compact, 'state': state, 'scopes': deduped_scopes}
+    return {
+        'environment': environment,
+        'clientName': client_name,
+        'compact': compact,
+        'state': state,
+        'scopes': deduped_scopes,
+    }
 
 
 def create_app_client(user_pool_id, config):
@@ -279,6 +296,9 @@ Follow this link to your API credentials as soon as you are ready to securely st
 once:
 <insert one-time link here>
 
+**Please respond to this email to confirm that you have received and securely stored the credentials. This link will
+expire in 7 days.**
+
 For more information on CompactConnect and how to integrate your state IT system with ours, see the documentation
 here:
 https://github.com/csg-org/CompactConnect/blob/development/backend/compact-connect/docs/it_staff_onboarding_instructions.md
@@ -293,19 +313,17 @@ https://github.com/csg-org/CompactConnect/blob/development/backend/compact-conne
 
 def main():
     parser = argparse.ArgumentParser(description='Create AWS Cognito app client interactively')
-    parser.add_argument(
-        '-e', '--environment', required=True, choices=['test', 'beta', 'prod'], help='Environment (test, beta, or prod)'
-    )
     parser.add_argument('-u', '--user-pool-id', required=True, help='AWS Cognito User Pool ID')
 
     args = parser.parse_args()
 
     try:
-        print(f'Creating app client for {args.environment} environment...')
         print(f'User Pool ID: {args.user_pool_id}\n')
 
-        # Get configuration from user input
+        # Get configuration from user input (including environment)
         config = get_user_input()
+
+        print(f'\nCreating app client for {config["environment"]} environment...')
 
         # Create the app client
         response = create_app_client(args.user_pool_id, config)
@@ -328,7 +346,7 @@ def main():
         print_credentials(client_id, client_secret)
 
         # Print email template
-        print_email_template(args.environment, config['compact'], config['state'])
+        print_email_template(config['environment'], config['compact'], config['state'])
 
         print('\n📝 Remember to add this app client to your external registry!')
 

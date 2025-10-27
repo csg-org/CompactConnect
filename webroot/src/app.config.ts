@@ -289,6 +289,7 @@ export const compacts = {
 // =     Feature gate IDs      =
 // =============================
 export enum FeatureGates {
+    ENCUMBER_MULTI_CATEGORY = 'encumbrance-multi-category-flag',
     EXAMPLE_FEATURE_1 = 'test-feature-1', // Keep this ID in place for examples & tests
 }
 

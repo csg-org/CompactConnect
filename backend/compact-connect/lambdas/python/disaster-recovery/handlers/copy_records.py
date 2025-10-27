@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from base64 import b64decode, b64encode
 
@@ -6,6 +7,59 @@ import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import logger
+
+
+def encrypt_pagination_key(key_data: dict, kms_key_id: str) -> str:
+    """Encrypt pagination key using KMS to prevent SSN exposure in logs.
+
+    In the event that there are so many records to recover that it will take longer
+    than the 15-minute timeout period of lambdas, we paginate by sending the last
+    evaluated key in the output, looping around the step function, and then continuing
+    the process from where we left off. In the case of SSN records, we need to encrypt
+    the output of this lambda if pagination occurs so that the values are not readable
+    in the step function logs.
+
+    :param dict key_data: The pagination key dictionary to encrypt.
+    :param str kms_key_id: The KMS key ID to use for encryption.
+    :returns: Base64-encoded encrypted pagination key.
+    :rtype: str
+    :raises ClientError: If KMS encryption fails.
+    """
+    try:
+        kms_client = boto3.client('kms')
+        plaintext = json.dumps(key_data).encode('utf-8')
+        response = kms_client.encrypt(KeyId=kms_key_id, Plaintext=plaintext)
+        return b64encode(response['CiphertextBlob']).decode('utf-8')
+    except ClientError as e:
+        logger.error(f'Failed to encrypt pagination key: {str(e)}')
+        raise
+
+
+def decrypt_pagination_key(encrypted_key: str, kms_key_id: str) -> dict:
+    """Decrypt pagination key using KMS.
+
+    In the event that there are so many records to recover that it will take longer
+    than the 15-minute timeout period of lambdas, we paginate by sending the last
+    evaluated key in the output, looping around the step function, and then continuing
+    the process from where we left off. In the case of SSN records, we need to decrypt
+    the input of this lambda to be able to determine what was the last key we should
+    continue with.
+
+    :param str encrypted_key: Base64-encoded encrypted pagination key
+    :param str kms_key_id: The KMS key ID used for decrypting the lambda input
+    :returns: Decrypted pagination key dictionary
+    :rtype: dict
+    :raises ClientError: If KMS decryption fails
+    :raises ValueError: If decrypted data is not valid JSON
+    """
+    try:
+        kms_client = boto3.client('kms')
+        ciphertext = b64decode(encrypted_key.encode('utf-8'))
+        response = kms_client.decrypt(CiphertextBlob=ciphertext, KeyId=kms_key_id)
+        return json.loads(response['Plaintext'].decode('utf-8'))
+    except ClientError as e:
+        logger.error(f'Failed to decrypt pagination key with KMS key {kms_key_id}: {str(e)}')
+        raise
 
 
 def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -21,6 +75,13 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     """
     start_time = time.time()
     max_execution_time = 12 * 60  # 12 minutes in seconds
+
+    # Check if SSN encryption is enabled via environment variable
+    ssn_encryption_key_id = os.environ.get('SSN_ENCRYPTION_KMS_KEY_ID')
+    is_ssn_table = ssn_encryption_key_id is not None
+
+    if is_ssn_table:
+        logger.info('SSN encryption enabled for disaster recovery')
 
     # Get source and destination table ARNs from event
     source_table_arn = event['sourceTableArn']
@@ -43,11 +104,23 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     # Get any pagination key from previous execution
     last_evaluated_key = event.get('copyLastEvaluatedKey')
     if last_evaluated_key is not None:
-        last_evaluated_key = json.loads(b64decode(last_evaluated_key).decode('utf-8'))
+        try:
+            if is_ssn_table:
+                # Decrypt the pagination key for SSN tables
+                last_evaluated_key = decrypt_pagination_key(last_evaluated_key, ssn_encryption_key_id)
+            else:
+                # Use existing base64 decoding for non-SSN tables
+                last_evaluated_key = json.loads(b64decode(last_evaluated_key).decode('utf-8'))
+        except (ClientError, ValueError) as e:
+            logger.error(f'Failed to process pagination key: {str(e)}')
+            return {
+                'copyStatus': 'FAILED',
+                'error': f'Failed to process pagination key: {str(e)}',
+            }
 
     logger.info(f'Starting copy of records from {source_table_name} to {destination_table_name}')
     if last_evaluated_key:
-        logger.info(f'Continuing from last evaluated key: {last_evaluated_key}')
+        logger.info('Last evaluated key found. Continuing copy from last evaluated key.')
 
     # Initialize DynamoDB resource
     dynamodb = boto3.resource('dynamodb')
@@ -64,9 +137,16 @@ def copy_records(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
             if elapsed_time > max_execution_time:
                 logger.info(f'Approaching time limit after {elapsed_time:.2f} seconds. Returning IN_PROGRESS status.')
+
+                # Encrypt pagination key for SSN tables, use base64 encoding for others
+                if is_ssn_table and last_evaluated_key:
+                    encrypted_key = encrypt_pagination_key(last_evaluated_key, ssn_encryption_key_id)
+                else:
+                    encrypted_key = b64encode(json.dumps(last_evaluated_key).encode('utf-8')).decode('utf-8')
+
                 return {
                     'copyStatus': 'IN_PROGRESS',
-                    'copyLastEvaluatedKey': b64encode(json.dumps(last_evaluated_key).encode('utf-8')).decode('utf-8'),
+                    'copyLastEvaluatedKey': encrypted_key,
                     'copiedCount': total_copied,
                     'sourceTableArn': source_table_arn,
                     'destinationTableArn': destination_table_arn,

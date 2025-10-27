@@ -70,7 +70,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_logs import RetentionDays
+from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_secretsmanager import Secret
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
@@ -113,6 +113,17 @@ class FeatureFlagStack(AppStack):
             environment_name=environment_name,
         )
 
+        self.encumbrance_multiple_category_flag = FeatureFlagResource(
+            self,
+            'EncumbranceMultiCategoryFlag',
+            provider=self.provider,
+            flag_name='encumbrance-multi-category-flag',
+            auto_enable_envs=[
+                FeatureFlagEnvironmentName.TEST,
+            ],
+            environment_name=environment_name,
+        )
+
     def _create_common_provider(self, environment_name: str) -> Provider:
         # Create shared Lambda function for managing all feature flags
         # This function is reused across all FeatureFlagResource instances
@@ -139,7 +150,7 @@ class FeatureFlagStack(AppStack):
         # Add CDK Nag suppressions for the Lambda function
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            path=f'{self.manage_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.manage_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -149,10 +160,30 @@ class FeatureFlagStack(AppStack):
             ],
         )
 
+        provider_log_group = LogGroup(
+            self,
+            'ProviderLogGroup',
+            retention=RetentionDays.ONE_DAY,
+        )
+        NagSuppressions.add_resource_suppressions(
+            provider_log_group,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
+                    'reason': 'We do not log sensitive data to CloudWatch, and operational visibility of system'
+                    ' logs to operators with credentials for the AWS account is desired. Encryption is not'
+                    ' appropriate here.',
+                },
+            ],
+        )
+
         # Create shared custom resource provider
         # This provider is reused across all FeatureFlagResource instances
         provider = Provider(
-            self, 'Provider', on_event_handler=self.manage_function, log_retention=RetentionDays.ONE_DAY
+            self,
+            'Provider',
+            on_event_handler=self.manage_function,
+            log_group=provider_log_group,
         )
 
         # Add CDK Nag suppressions for the provider framework

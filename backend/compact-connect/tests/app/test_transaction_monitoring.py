@@ -213,6 +213,7 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
                         'compact': 'aslp',
                         'recipientType': 'COMPACT_OPERATIONS_TEAM',
                         'template': 'transactionBatchSettlementFailure',
+                        'templateVariables': {'batchFailureErrorMessage.$': '$.Payload.batchFailureErrorMessage'},
                     },
                 },
                 'Resource': 'arn:${Token[AWS.Partition]}:states:::lambda:invoke',

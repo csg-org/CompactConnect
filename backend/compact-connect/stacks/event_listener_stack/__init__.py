@@ -35,6 +35,11 @@ class EventListenerStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
+        # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
+        # this is because the API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if persistent_stack.api_domain_name:
+            self.common_env_vars.update({'API_BASE_URL': f'https://{persistent_stack.api_domain_name}'})
+
         self.event_processors = {}
         self._add_license_encumbrance_listener(persistent_stack, data_event_bus)
         self._add_lifting_license_encumbrance_listener(persistent_stack, data_event_bus)
@@ -55,6 +60,7 @@ class EventListenerStack(AppStack):
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -63,10 +69,11 @@ class EventListenerStack(AppStack):
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_write_data(license_encumbrance_listener_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(license_encumbrance_listener_handler)
+        data_event_bus.grant_put_events_to(license_encumbrance_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{license_encumbrance_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{license_encumbrance_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -103,6 +110,7 @@ class EventListenerStack(AppStack):
             timeout=Duration.minutes(2),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -110,10 +118,11 @@ class EventListenerStack(AppStack):
 
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_write_data(lifting_license_encumbrance_listener_handler)
+        data_event_bus.grant_put_events_to(lifting_license_encumbrance_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{lifting_license_encumbrance_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{lifting_license_encumbrance_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -160,7 +169,7 @@ class EventListenerStack(AppStack):
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{license_deactivation_listener_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{license_deactivation_listener_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

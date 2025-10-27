@@ -224,7 +224,18 @@ export class DataApi {
     }
 
     // Encumber License for a licensee.
-    public encumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceType, npdbCategory, startDate) {
+    public encumberLicense(
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+        encumbranceType,
+        npdbCategory,
+        npdbCategories,
+        startDate
+    ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
+
         if (!compact) {
             return Promise.reject(new Error('failed license encumber'));
         }
@@ -236,7 +247,14 @@ export class DataApi {
             licenseState,
             licenseType,
             encumbranceType,
-            npdbCategory,
+            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                ? {
+                    npdbCategories,
+                }
+                : {
+                    npdbCategory,
+                }
+            ),
             startDate,
         }));
     }
@@ -281,8 +299,11 @@ export class DataApi {
         licenseType,
         encumbranceType,
         npdbCategory,
+        npdbCategories,
         startDate
     ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
+
         if (!compact) {
             return Promise.reject(new Error('failed privilege encumber'));
         }
@@ -294,7 +315,14 @@ export class DataApi {
             privilegeState,
             licenseType,
             encumbranceType,
-            npdbCategory,
+            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                ? {
+                    npdbCategories,
+                }
+                : {
+                    npdbCategory,
+                }
+            ),
             startDate,
         }));
     }
