@@ -99,7 +99,7 @@ class BackendPipeline(CdkCodePipeline):
                 input=CodePipelineSource.connection(
                     repo_string=github_repo_string,
                     branch=default_branch,
-                    trigger_on_push=True,
+                    trigger_on_push=False,
                     # Arn format:
                     # arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
                     connection_arn=connection_arn,
@@ -328,4 +328,6 @@ class BackendPipeline(CdkCodePipeline):
 
         # Set DetectChanges to false in the source action
         # The source action is in Stages[0].Actions[0] (first action of Source stage)
+        # This functionally overrides the corresponding `trigger_on_push=True` setting in the
+        # CodePipelineSource.connection() call.
         cfn_pipeline.add_property_override('Stages.0.Actions.0.Configuration.DetectChanges', False)

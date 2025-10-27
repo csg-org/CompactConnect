@@ -210,12 +210,12 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
         )
 
         # Add a post step to trigger the frontend pipeline
-        trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
-        self.pre_prod_pipeline.add_stage(self.test_stage, post=[trigger_frontend_pipeline_step])
+        # trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
+        self.pre_prod_pipeline.add_stage(self.test_stage)  # , post=[trigger_frontend_pipeline_step])
         self.pre_prod_pipeline.build_pipeline()
         self._add_pipeline_cdk_assume_role_policy(self.pre_prod_pipeline)
         # the following must be called after the pipeline is built
-        self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
+        # self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
 
 
 class BetaBackendPipelineStack(BaseBackendPipelineStack):
@@ -273,12 +273,12 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
         )
 
         # Add a post step to trigger the frontend pipeline
-        trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
-        self.beta_backend_pipeline.add_stage(self.beta_backend_stage, post=[trigger_frontend_pipeline_step])
+        # trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
+        self.beta_backend_pipeline.add_stage(self.beta_backend_stage)  # , post=[trigger_frontend_pipeline_step])
         self.beta_backend_pipeline.build_pipeline()
         # the following must be called after the pipeline is built
         self._add_pipeline_cdk_assume_role_policy(self.beta_backend_pipeline)
-        self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
+        # self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
 
 
 class ProdBackendPipelineStack(BaseBackendPipelineStack):
@@ -339,9 +339,9 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
         )
 
         # Add a post step to trigger the frontend pipeline
-        trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
-        self.prod_pipeline.add_stage(self.prod_stage, post=[trigger_frontend_pipeline_step])
+        # trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
+        self.prod_pipeline.add_stage(self.prod_stage)  #, post=[trigger_frontend_pipeline_step])
         self.prod_pipeline.build_pipeline()
         # the following must be called after the pipeline is built
         self._add_pipeline_cdk_assume_role_policy(self.prod_pipeline)
-        self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
+        # self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
