@@ -6,6 +6,7 @@ from aws_cdk.aws_dynamodb import (
     PointInTimeRecoverySpecification,
     ProjectionType,
     Table,
+    TableEncryption,
 )
 from aws_cdk.aws_kms import IKey
 from constructs import Construct
@@ -31,11 +32,13 @@ class EventStateTable(Table):
             scope,
             construct_id,
             billing_mode=BillingMode.PAY_PER_REQUEST,
+            encryption=TableEncryption.CUSTOMER_MANAGED,
             encryption_key=encryption_key,
             partition_key={'name': 'pk', 'type': AttributeType.STRING},
             sort_key={'name': 'sk', 'type': AttributeType.STRING},
             point_in_time_recovery_specification=PointInTimeRecoverySpecification(point_in_time_recovery_enabled=True),
             removal_policy=removal_policy,
+            deletion_protection=True if removal_policy == RemovalPolicy.RETAIN else False,
             time_to_live_attribute='ttl',
         )
 

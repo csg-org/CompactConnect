@@ -340,7 +340,6 @@ class PersistentStack(AppStack):
         self.email_notification_service_failure_alarm = Alarm(
             self,
             'EmailNotificationServiceFailureAlarm',
-            alarm_name='EmailNotificationServiceFailureAlarm',
             metric=self.email_notification_service_lambda.metric_errors(),
             evaluation_periods=1,
             threshold=1,
