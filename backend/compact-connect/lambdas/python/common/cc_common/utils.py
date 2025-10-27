@@ -430,17 +430,13 @@ class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
         return authorized
 
 
-def _process_sqs_batch(fn: Callable, include_message_id: bool = False):
-    """
-    Shared SQS batch processing logic.
+def sqs_handler(fn: Callable):
+    """Process messages from an SQS queue.
 
     This handler uses batch item failure reporting:
     https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html
     This allows the queue to continue to scale under load, even if a number of the messages are failing. It
     also improves efficiency, as we don't have to throw away the entire batch for a single failure.
-
-    :param fn: The handler function to process each message
-    :param include_message_id: If True, inject the SQS messageId into the message body as 'AWSSQSMessageId'
     """
 
     @wraps(fn)
@@ -459,12 +455,7 @@ def _process_sqs_batch(fn: Callable, include_message_id: bool = False):
                     message_attributes=record.get('messageAttributes'),
                 )
                 # No exception here means success
-                if include_message_id:
-                    # Add SQS message id for handler access
-                    fn(message, record['messageId'])
-                else:
-                    # Just pass in the message body
-                    fn(message)
+                fn(message)
             # When we receive a batch of messages from SQS, letting an exception escape all the way back to AWS is
             # really undesirable. Instead, we're going to catch _almost_ any exception raised, note what message we
             # were processing, and report those item failures back to AWS.
@@ -475,33 +466,6 @@ def _process_sqs_batch(fn: Callable, include_message_id: bool = False):
         return {'batchItemFailures': batch_failures}
 
     return process_messages
-
-
-def sqs_handler(fn: Callable):
-    """
-    Process messages from an SQS queue.
-
-    This handler uses batch item failure reporting:
-    https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html
-    This allows the queue to continue to scale under load, even if a number of the messages are failing. It
-    also improves efficiency, as we don't have to throw away the entire batch for a single failure.
-    """
-    return _process_sqs_batch(fn, include_message_id=False)
-
-
-def sqs_handler_with_message_id(fn: Callable):
-    """
-    Process messages from the ingest queue with SQS message ID injected into the message body.
-
-    The message ID is added as 'AWSSQSMessageId' field in the message dict, allowing handlers
-    to track individual message retries for idempotency purposes.
-
-    This handler uses batch item failure reporting:
-    https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html
-    This allows the queue to continue to scale under load, even if a number of the messages are failing. It
-    also improves efficiency, as we don't have to throw away the entire batch for a single failure.
-    """
-    return _process_sqs_batch(fn, include_message_id=True)
 
 
 def sqs_handler_with_notification_tracking(fn: Callable):
@@ -549,7 +513,10 @@ def sqs_handler_with_notification_tracking(fn: Callable):
                 )
                 fn(message, tracker)
 
-            except Exception as e:  # noqa: BLE001
+            # When we receive a batch of messages from SQS, letting an exception escape all the way back to AWS is
+            # really undesirable. Instead, we're going to catch _almost_ any exception raised, note what message we
+            # were processing, and report those item failures back to AWS.
+            except Exception as e:  # noqa: BLE001 broad-exception-caught
                 logger.error(
                     'Failed to process message with notification tracking',
                     exception=str(e),
@@ -557,6 +524,7 @@ def sqs_handler_with_notification_tracking(fn: Callable):
                 )
                 batch_failures.append({'itemIdentifier': record['messageId']})
 
+        logger.info('Completed batch', batch_failures=len(batch_failures))
         return {'batchItemFailures': batch_failures}
 
     return process_messages
