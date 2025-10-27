@@ -112,7 +112,7 @@ def _send_provider_notification(
                 )
                 raise
         else:
-            logger.info('Skipping provider notification (already sent successfully)', provider_email=provider_email)
+            logger.info('Skipping provider notification (already sent successfully)', provider_id=provider_id)
     else:
         logger.info('Provider not registered in system, skipping provider notification')
 

@@ -9,6 +9,7 @@ from aws_cdk.aws_dynamodb import (
     TableEncryption,
 )
 from aws_cdk.aws_kms import IKey
+from cdk_nag import NagSuppressions
 from constructs import Construct
 
 
@@ -48,4 +49,15 @@ class EventStateTable(Table):
             partition_key=Attribute(name='providerId', type=AttributeType.STRING),
             sort_key=Attribute(name='eventTime', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
+        )
+
+        NagSuppressions.add_resource_suppressions(
+            self,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-DynamoDBInBackupPlan',
+                    'reason': 'These records are not intended to be backed up. This table is only for temporary event'
+                              'state tracking for retries and all records expire after several weeks.',
+                },
+            ],
         )
