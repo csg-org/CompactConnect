@@ -96,9 +96,9 @@ class ProviderUsersStack(AppStack):
         )
 
         # Create frontend app config parameter for this stack's values
-        self._create_frontend_app_config_parameter(persistent_stack=persistent_stack)
+        self._create_frontend_app_config_parameter()
 
-    def _create_frontend_app_config_parameter(self, persistent_stack: PersistentStack):
+    def _create_frontend_app_config_parameter(self):
         """
         Creates and stores provider user pool configuration in SSM Parameter Store
         for use in the frontend deployment stack.
@@ -108,7 +108,7 @@ class ProviderUsersStack(AppStack):
         provider_app_config = ProviderUsersStackFrontendAppConfigUtility()
 
         auth_domain_name = ''
-        if persistent_stack.hosted_zone:
+        if self.persistent_stack.hosted_zone:
             auth_domain_name = self.provider_users.app_client_custom_domain.domain_name
         else:
             auth_domain_name = f'{self.provider_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'

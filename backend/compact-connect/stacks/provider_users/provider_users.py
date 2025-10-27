@@ -71,7 +71,6 @@ class ProviderUsers(UserPool):
             self.add_custom_app_client_domain(
                 app_client_domain_prefix='Licensee',
                 scope=self,
-                base_domain_name=persistent_stack.hosted_zone.zone_name,
                 hosted_zone=persistent_stack.hosted_zone
             )
         else:

@@ -78,7 +78,6 @@ class StaffUsers(UserPool, ResourceScopeMixin):
             self.add_custom_app_client_domain(
                 app_client_domain_prefix='Staff',
                 scope=self,
-                base_domain_name=stack.hosted_zone.zone_name,
                 hosted_zone=stack.hosted_zone,
             )
         else:

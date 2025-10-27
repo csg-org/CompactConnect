@@ -145,14 +145,18 @@ class UserPool(CdkUserPool):
 
     def add_custom_app_client_domain(
             self,
-            base_domain_name: str,
             hosted_zone: IHostedZone,
             scope: Construct,
             app_client_domain_prefix: str,
     ):
-
+        """
+        Creates a custom subdomain for the cognito app client in the form of:
+        {app_client_domain_prefix}-auth.{base_domain_name}
+        :param hosted_zone: The hosted zone the domain will use
+        :param scope: The CDK construct scope
+        """
         domain_prefix = f'{app_client_domain_prefix.lower()}-auth'
-        domain_name = f'{domain_prefix}.{base_domain_name}'
+        domain_name = f'{domain_prefix}.{hosted_zone.zone_name}'
         cert_id = f'{app_client_domain_prefix}AuthCert'
         cert = Certificate(
             scope,
@@ -235,6 +239,11 @@ class UserPool(CdkUserPool):
             self,
             non_custom_domain_prefix: str,
     ):
+        """
+        Creates a cognito based sub domain in the form of:
+        {non_custom_domain_prefix}.auth.us-east-1.amazoncognito.com
+        :param non_custom_domain_prefix: The prefix to put on the cognito based app client domain
+        """
         self.default_user_pool_domain = self.add_domain(
             f'{non_custom_domain_prefix}UserPoolDomain',
             cognito_domain=CognitoDomainOptions(domain_prefix=non_custom_domain_prefix),
