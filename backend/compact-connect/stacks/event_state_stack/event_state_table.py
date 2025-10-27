@@ -56,7 +56,7 @@ class EventStateTable(Table):
             suppressions=[
                 {
                     'id': 'HIPAA.Security-DynamoDBInBackupPlan',
-                    'reason': 'These records are not intended to be backed up. This table is only for temporary event'
+                    'reason': 'These records are not intended to be backed up. This table is only for temporary event '
                               'state tracking for retries and all records expire after several weeks.',
                 },
             ],
