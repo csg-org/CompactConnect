@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 6/18/24.
 //
 
-import { authStorage, tokens } from '@/app.config';
+import { authStorage, tokens, FeatureGates } from '@/app.config';
 import axios, { AxiosInstance } from 'axios';
 import {
     requestError,
@@ -260,6 +260,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           licenseType     The license type.
      * @param  {string}           encumbranceType The discipline action type.
      * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
      * @return {Promise<object>}                  The server response.
      */
@@ -270,11 +271,20 @@ export class LicenseDataApi implements DataApiInterface {
         licenseType: string,
         encumbranceType: string,
         npdbCategory: string,
+        npdbCategories: Array<string>,
         startDate: string
     ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            clinicalPrivilegeActionCategory: npdbCategory,
+            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                ? {
+                    clinicalPrivilegeActionCategories: npdbCategories,
+                }
+                : {
+                    clinicalPrivilegeActionCategory: npdbCategory,
+                }
+            ),
             encumbranceEffectiveDate: startDate,
         });
 
@@ -337,6 +347,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           licenseType     The license type.
      * @param  {string}           encumbranceType The discipline action type.
      * @param  {string}           npdbCategory    The NPDB category name.
+     * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
      * @return {Promise<object>}                  The server response.
      */
@@ -347,11 +358,20 @@ export class LicenseDataApi implements DataApiInterface {
         licenseType: string,
         encumbranceType: string,
         npdbCategory: string,
+        npdbCategories: Array<string>,
         startDate: string
     ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            clinicalPrivilegeActionCategory: npdbCategory,
+            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                ? {
+                    clinicalPrivilegeActionCategories: npdbCategories,
+                }
+                : {
+                    clinicalPrivilegeActionCategory: npdbCategory,
+                }
+            ),
             encumbranceEffectiveDate: startDate,
         });
 

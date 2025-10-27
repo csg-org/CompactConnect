@@ -91,6 +91,22 @@ const htmlPlugin = (args) => {
 };
 
 /**
+ * extract-css-plugin configuration (https://github.com/webpack/mini-css-extract-plugin)
+ * Included with Vue CLI, so we are just chaining
+ * @param  {array} args The webpack plugin options array.
+ * @return {array}      The webpack plugin options array (updated by reference).
+ */
+const extractCssPlugin = (args) => {
+    const opts = args[0];
+
+    // Suppress CSS order warnings from mini-css-extract-plugin
+    // These warnings do not affect functionality and are common in apps that use code splitting / chunking
+    opts.ignoreOrder = true;
+
+    return args;
+};
+
+/**
  * fork-ts-checker-webpack-plugin (https://github.com/TypeStrong/fork-ts-checker-webpack-plugin)
  * Included with Vue CLI, so we are just chaining
  * @param  {array} args The webpack plugin options array.
@@ -276,6 +292,11 @@ module.exports = {
 
         // Update the Typescript-Checker plugin settings
         config.plugin('fork-ts-checker').tap(forkTsCheckerWebpackPlugin);
+
+        // Update the CSS-Build plugin settings (only exists for builds)
+        if (env === ENV_PRODUCTION) {
+            config.plugin('extract-css').tap(extractCssPlugin);
+        }
 
         // Inject common LESS styles into each module
         // https://cli.vuejs.org/guide/css.html#automatic-imports
