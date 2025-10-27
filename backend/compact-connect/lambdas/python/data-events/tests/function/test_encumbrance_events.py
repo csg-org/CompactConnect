@@ -3096,7 +3096,7 @@ class TestEncumbranceEvents(TstFunction):
         notification_records = updated_tracker._attempts  # noqa: SLF001
 
         # ky should now be SUCCESS
-        self.assertEqual('SUCCESS', notification_records['ENCUMBRANCE_NOTIFICATION#state#ky']['status'])
+        self.assertEqual('SUCCESS', notification_records['NOTIFICATION#state#ky']['status'])
 
         # verify only the email to ky was sent
         mock_provider_email.assert_not_called()
@@ -3140,10 +3140,10 @@ class TestEncumbranceEvents(TstFunction):
         notification_records = updated_tracker._attempts  # noqa: SLF001
 
         expected_sks = [
-            'ENCUMBRANCE_NOTIFICATION#provider#',
-            'ENCUMBRANCE_NOTIFICATION#state#ky',
-            'ENCUMBRANCE_NOTIFICATION#state#ne',
-            'ENCUMBRANCE_NOTIFICATION#state#oh',
+            'NOTIFICATION#provider#',
+            'NOTIFICATION#state#ky',
+            'NOTIFICATION#state#ne',
+            'NOTIFICATION#state#oh',
         ]
 
         self.assertEqual(expected_sks, list(notification_records.keys()))

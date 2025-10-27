@@ -56,7 +56,7 @@ class TestEventStateClient(TstFunction):
                 'jurisdiction': 'oh',
                 'pk': 'COMPACT#aslp#SQS_MESSAGE#test-message-123',
                 'providerId': '12345678-1234-1234-1234-123456789abc',
-                'sk': 'ENCUMBRANCE_NOTIFICATION#state#oh',
+                'sk': 'NOTIFICATION#state#oh',
                 'status': 'SUCCESS',
                 'ttl': ANY,
             },
@@ -93,7 +93,7 @@ class TestEventStateClient(TstFunction):
         item = response['Items'][0]
 
         # Verify SK format for provider notification (trailing empty string)
-        self.assertEqual(f'ENCUMBRANCE_NOTIFICATION#{RecipientType.PROVIDER}#', item['sk'])
+        self.assertEqual(f'NOTIFICATION#{RecipientType.PROVIDER}#', item['sk'])
         self.assertNotIn('jurisdiction', item)
 
     def test_record_notification_attempt_failed_status_includes_error_message(self):
@@ -183,22 +183,16 @@ class TestEventStateClient(TstFunction):
 
         # Verify keys
         expected_keys = {
-            f'ENCUMBRANCE_NOTIFICATION#{RecipientType.PROVIDER}#',
-            f'ENCUMBRANCE_NOTIFICATION#{RecipientType.STATE}#oh',
-            f'ENCUMBRANCE_NOTIFICATION#{RecipientType.STATE}#ne',
+            f'NOTIFICATION#{RecipientType.PROVIDER}#',
+            f'NOTIFICATION#{RecipientType.STATE}#oh',
+            f'NOTIFICATION#{RecipientType.STATE}#ne',
         }
         self.assertEqual(expected_keys, set(attempts.keys()))
 
         # Verify statuses
-        self.assertEqual(
-            NotificationStatus.SUCCESS, attempts[f'ENCUMBRANCE_NOTIFICATION#{RecipientType.PROVIDER}#']['status']
-        )
-        self.assertEqual(
-            NotificationStatus.SUCCESS, attempts[f'ENCUMBRANCE_NOTIFICATION#{RecipientType.STATE}#oh']['status']
-        )
-        self.assertEqual(
-            NotificationStatus.FAILED, attempts[f'ENCUMBRANCE_NOTIFICATION#{RecipientType.STATE}#ne']['status']
-        )
+        self.assertEqual(NotificationStatus.SUCCESS, attempts[f'NOTIFICATION#{RecipientType.PROVIDER}#']['status'])
+        self.assertEqual(NotificationStatus.SUCCESS, attempts[f'NOTIFICATION#{RecipientType.STATE}#oh']['status'])
+        self.assertEqual(NotificationStatus.FAILED, attempts[f'NOTIFICATION#{RecipientType.STATE}#ne']['status'])
 
 
 @mock_aws

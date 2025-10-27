@@ -66,7 +66,7 @@ class EventStateClient:
         # Build partition and sort keys
         pk = f'COMPACT#{compact}#SQS_MESSAGE#{message_id}'
 
-        sk = f'ENCUMBRANCE_NOTIFICATION#{recipient_type}#{jurisdiction or ""}'
+        sk = f'NOTIFICATION#{recipient_type}#{jurisdiction or ""}'
 
         # Calculate TTL
         ttl = int(time.time()) + int(timedelta(weeks=ttl_weeks).total_seconds())
@@ -135,7 +135,7 @@ class NotificationTracker:
 
         :return: True if notification should be sent, False otherwise
         """
-        sk = f'ENCUMBRANCE_NOTIFICATION#{RecipientType.PROVIDER}#'
+        sk = f'NOTIFICATION#{RecipientType.PROVIDER}#'
         return self._attempts.get(sk, {}).get('status') != 'SUCCESS'
 
     def should_send_state_notification(self, jurisdiction: str) -> bool:
@@ -145,7 +145,7 @@ class NotificationTracker:
         :param jurisdiction: Jurisdiction code
         :return: True if notification should be sent, False otherwise
         """
-        sk = f'ENCUMBRANCE_NOTIFICATION#{RecipientType.STATE}#{jurisdiction}'
+        sk = f'NOTIFICATION#{RecipientType.STATE}#{jurisdiction}'
         return self._attempts.get(sk, {}).get('status') != 'SUCCESS'
 
     def record_success(

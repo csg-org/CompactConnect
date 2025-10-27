@@ -16,7 +16,7 @@ from cc_common.event_bus_client import EventBusClient
 from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
 from cc_common.exceptions import CCInternalException
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import sqs_handler, sqs_handler_with_message_id
+from cc_common.utils import sqs_handler, sqs_handler_with_notification_tracking
 
 
 def _get_license_type_name(compact: str, license_type_abbreviation: str) -> str:
@@ -408,8 +408,8 @@ def license_encumbrance_lifted_listener(message: dict):
         )
 
 
-@sqs_handler_with_message_id
-def privilege_encumbrance_notification_listener(message: dict, message_id: str):
+@sqs_handler_with_notification_tracking
+def privilege_encumbrance_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle privilege encumbrance events by sending notifications.
 
@@ -433,12 +433,8 @@ def privilege_encumbrance_notification_listener(message: dict, message_id: str):
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         event_time=event_time,
-        message_id=message_id,
     ):
         logger.info('Processing privilege encumbrance event')
-
-        # Initialize notification tracker for idempotency
-        tracker = NotificationTracker(compact=compact, message_id=message_id)
 
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
@@ -498,8 +494,8 @@ def privilege_encumbrance_notification_listener(message: dict, message_id: str):
         logger.info('Successfully processed privilege encumbrance event')
 
 
-@sqs_handler_with_message_id
-def privilege_encumbrance_lifting_notification_listener(message: dict, message_id: str):
+@sqs_handler_with_notification_tracking
+def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle privilege encumbrance lifting events by sending notifications.
 
@@ -522,7 +518,6 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, message_i
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         event_time=event_time,
-        message_id=message_id,
     ):
         logger.info('Processing privilege encumbrance lifting event')
 
@@ -578,9 +573,6 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, message_i
         else:
             latest_effective_lift_date = max(latest_license_lift_date, latest_privilege_lift_date)
 
-        # Initialize notification tracker for idempotency
-        tracker = NotificationTracker(compact=compact, message_id=message_id)
-
         # Provider Notification
         _send_provider_notification(
             config.email_service_client.send_privilege_encumbrance_lifting_provider_notification_email,
@@ -633,8 +625,8 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, message_i
         logger.info('Successfully processed privilege encumbrance lifting event')
 
 
-@sqs_handler_with_message_id
-def license_encumbrance_notification_listener(message: dict, message_id: str):
+@sqs_handler_with_notification_tracking
+def license_encumbrance_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle license encumbrance events by sending notifications only.
 
@@ -658,12 +650,8 @@ def license_encumbrance_notification_listener(message: dict, message_id: str):
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         event_time=event_time,
-        message_id=message_id,
     ):
         logger.info('Processing license encumbrance notification event')
-
-        # Initialize notification tracker for idempotency
-        tracker = NotificationTracker(compact=compact, message_id=message_id)
 
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
@@ -723,8 +711,8 @@ def license_encumbrance_notification_listener(message: dict, message_id: str):
         logger.info('Successfully processed license encumbrance notification event')
 
 
-@sqs_handler_with_message_id
-def license_encumbrance_lifting_notification_listener(message: dict, message_id: str):
+@sqs_handler_with_notification_tracking
+def license_encumbrance_lifting_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle license encumbrance lifting events by sending notifications only.
 
@@ -747,7 +735,6 @@ def license_encumbrance_lifting_notification_listener(message: dict, message_id:
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         event_time=event_time,
-        message_id=message_id,
     ):
         logger.info('Processing license encumbrance lifting notification event')
 
@@ -782,9 +769,6 @@ def license_encumbrance_lifting_notification_listener(message: dict, message_id:
             license_jurisdiction=target_license.jurisdiction,
             license_type_abbreviation=target_license.licenseTypeAbbreviation,
         )
-
-        # Initialize notification tracker for idempotency
-        tracker = NotificationTracker(compact=compact, message_id=message_id)
 
         # Provider Notification
         _send_provider_notification(
