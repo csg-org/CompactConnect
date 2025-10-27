@@ -363,7 +363,9 @@
         "copyright": "Copyright",
         "compact": "Compacto",
         "uploadDocument": "Subir documento",
-        "here": "aquí"
+        "here": "aquí",
+        "notLive": "No disponible",
+        "toggleInfoFor": "Activar más información para"
     },
     "navigation": {
         "dashboard": "Panel",
@@ -445,7 +447,8 @@
         "dobFormat": "La fecha de nacimiento debe estar en el formato MM/DD/AAAA y debe ser una fecha real que existió.",
         "dobMaxDate": "La fecha de nacimiento debe ser anterior o igual al día de hoy.",
         "dobMinDate": "La fecha de nacimiento debe ser posterior o igual al 01/01/1900.",
-        "rateLimit": "Has superado el número máximo de intentos. Vuelve a intentarlo más tarde."
+        "rateLimit": "Has superado el número máximo de intentos. Vuelve a intentarlo más tarde.",
+        "compactStatesLive": "Se produjo un error al obtener los estados activos compactos"
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Verifique su número de teléfono siguiendo las indicaciones a continuación.",
@@ -906,6 +909,7 @@
         "requestAccount": "Solicitar cuenta",
         "requestAnAccount": "Solicitar una cuenta",
         "requestAccountSubtext": "La información que proporcione aquí debe coincidir <em>exactamente</em> con la que su estado de residencia tiene registrada. Si no coincide, no podrá crear una cuenta.",
+        "requestAccountHomeStateInfo": "No todos los estados están activos y listos para la creación de cuentas de licenciatarios o la emisión de privilegios. Consulte con la comisión del pacto para obtener más información sobre su estado.",
         "requestAccountEmailSubtext": "Esta dirección de correo electrónico es donde le enviaremos información sobre su cuenta. <em>No es necesario que coincida</em> con la información proporcionada por su estado.",
         "accountSuccessTitle": "Gracias por tu solicitud.",
         "accountSuccessSubtext": "Si tu información es válida recibirás un correo electrónico para terminar de configurar tu cuenta.",

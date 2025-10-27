@@ -11,9 +11,13 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
+import InputLabel from '@components/Forms/InputLabel/InputLabel.vue';
 
 @Component({
     name: 'InputSelect',
+    components: {
+        InputLabel,
+    },
 })
 class InputSelect extends mixins(MixinInput) {
 }

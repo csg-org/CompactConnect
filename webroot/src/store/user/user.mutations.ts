@@ -27,6 +27,9 @@ export enum MutationTypes {
     GET_COMPACT_STATES_REQUEST = '[User] Get Compact States Request',
     GET_COMPACT_STATES_FAILURE = '[User] Get Compact States Failure',
     GET_COMPACT_STATES_SUCCESS = '[User] Get Compact States Success',
+    GET_COMPACT_STATES_FOR_REGISTRATION_REQUEST = '[User] Get Compact States for Registration Request',
+    GET_COMPACT_STATES_FOR_REGISTRATION_FAILURE = '[User] Get Compact States for Registration Failure',
+    GET_COMPACT_STATES_FOR_REGISTRATION_SUCCESS = '[User] Get Compact States for Registration Success',
     STORE_UPDATE_CURRENT_COMPACT = '[User] Updated current compact',
     STORE_UPDATE_USER = '[User] Updated user in store',
     STORE_RESET_USER = '[User] Reset user in store',
@@ -133,6 +136,18 @@ export default {
         if (state.currentCompact) {
             state.currentCompact.memberStates = compactStates;
         }
+    },
+    [MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_REQUEST]: (state: any) => {
+        state.isLoadingCompactStates = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingCompactStates = false;
+        state.error = error;
+    },
+    [MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_SUCCESS]: (state: any) => {
+        state.isLoadingCompactStates = false;
+        state.error = null;
     },
     [MutationTypes.STORE_UPDATE_CURRENT_COMPACT]: (state: any, compact: Compact | null) => {
         state.currentCompact = compact;

@@ -364,7 +364,9 @@
         "copyright": "Copyright",
         "compact": "Compact",
         "uploadDocument": "Upload document",
-        "here": "here"
+        "here": "here",
+        "notLive": "Not live",
+        "toggleInfoFor": "Toggle more info for"
     },
     "navigation": {
         "dashboard": "Dashboard",
@@ -461,7 +463,8 @@
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
         "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900.",
-        "rateLimit": "You have exceeded the maximum number of attempts. Please try again later."
+        "rateLimit": "You have exceeded the maximum number of attempts. Please try again later.",
+        "compactStatesLive": "There was an error fetching the compact live states"
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Please verify your phone number by following the prompts below.",
@@ -922,6 +925,7 @@
         "requestAccount": "Request account",
         "requestAnAccount": "Request an account",
         "requestAccountSubtext": "The information you provide here must match <em>exactly</em> the information your home state has on file. If your information does not match, you will be unable to create an account.",
+        "requestAccountHomeStateInfo": "Not all states are live and ready for licensee account creation or issuing privileges. Please check with the compact commission for details about your state.",
         "requestAccountEmailSubtext": "This email address is where we will send information regarding your account. It <em>does not need to match</em> the information provided by your state.",
         "requestSuccessTitle": "Thanks for your request.",
         "requestSuccessSubtext": "If your information is valid you will be receiving an email to finish setting up your account.",

@@ -441,6 +441,14 @@ export class DataApi {
     }
 
     /**
+     * GET Compact State Lists for Registration (Public).
+     * @return {Promise<Array<Compact>>} A list of Compact instances.
+     */
+    public getCompactStatesForRegistrationPublic() {
+        return userDataApi.getCompactStatesForRegistrationPublic();
+    }
+
+    /**
      * GET Privilege Purchase Information for Authenticated Licensee user.
      * @return {Promise<object>} List of privilege purchase options and compact purchase info.
      */
