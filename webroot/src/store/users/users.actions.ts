@@ -132,6 +132,7 @@ export default {
         licenseType,
         encumbranceType,
         npdbCategory,
+        npdbCategories,
         startDate
     }: any) => {
         commit(MutationTypes.ENCUMBER_LICENSE_REQUEST);
@@ -142,6 +143,7 @@ export default {
             licenseType,
             encumbranceType,
             npdbCategory,
+            npdbCategories,
             startDate
         ).then(async (response) => {
             dispatch('encumberLicenseSuccess');
@@ -228,6 +230,7 @@ export default {
         licenseType,
         encumbranceType,
         npdbCategory,
+        npdbCategories,
         startDate
     }: any) => {
         commit(MutationTypes.ENCUMBER_PRIVILEGE_REQUEST);
@@ -238,6 +241,7 @@ export default {
             licenseType,
             encumbranceType,
             npdbCategory,
+            npdbCategories,
             startDate
         ).then(async (response) => {
             dispatch('encumberPrivilegeSuccess');

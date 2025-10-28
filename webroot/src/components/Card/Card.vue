@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="card">
+    <div class="card" :class="{ 'allow-overflow': allowOverflow }">
         <slot></slot>
     </div>
 </template>
