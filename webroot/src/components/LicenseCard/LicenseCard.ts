@@ -217,8 +217,20 @@ class LicenseCard extends mixins(MixinForm) {
         return this.license?.isEncumbered() || false;
     }
 
+    get isUnderInvestigation(): boolean {
+        return this.license?.isUnderInvestigation() || false;
+    }
+
     get disciplineContent(): string {
-        return (this.isEncumbered) ? this.$t('licensing.encumbered') : this.$t('licensing.noDiscipline');
+        let content = this.$t('licensing.noDiscipline');
+
+        if (this.isEncumbered) {
+            content = this.$t('licensing.encumbered');
+        } else if (this.isUnderInvestigation) {
+            content = this.$t('licensing.underInvestigationStatus');
+        }
+
+        return content;
     }
 
     get adverseActions(): Array<AdverseAction> {

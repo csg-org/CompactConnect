@@ -68,8 +68,11 @@ class PrivilegeCard extends mixins(MixinForm) {
     isEncumberPrivilegeModalSuccess = false;
     isUnencumberPrivilegeModalDisplayed = false;
     isUnencumberPrivilegeModalSuccess = false;
+    isInvestigationLicenseModalDisplayed = false;
+    isInvestigationLicenseModalSuccess = false;
     encumbranceInputs: Array<FormInput> = [];
     selectedEncumbrances: Array<AdverseAction> = [];
+    selectedInvestigationId: string | null = null;
     modalErrorMessage = '';
 
     //
@@ -186,8 +189,20 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.isEncumbered() || false;
     }
 
+    get isUnderInvestigation(): boolean {
+        return this.privilege?.isUnderInvestigation() || false;
+    }
+
     get disciplineContent(): string {
-        return (this.isEncumbered) ? this.$t('licensing.encumbered') : this.$t('licensing.noDiscipline');
+        let content = this.$t('licensing.noDiscipline');
+
+        if (this.isEncumbered) {
+            content = this.$t('licensing.encumbered');
+        } else if (this.isUnderInvestigation) {
+            content = this.$t('licensing.underInvestigationStatus');
+        }
+
+        return content;
     }
 
     get adverseActions(): Array<AdverseAction> {

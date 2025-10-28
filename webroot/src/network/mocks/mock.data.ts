@@ -911,6 +911,35 @@ export const licensees = {
                         },
                     ],
                 },
+                {
+                    privilegeId: 'OTA-WY-1',
+                    providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                    compact: 'octp',
+                    compactTransactionId: '120060086502',
+                    type: 'privilege',
+                    jurisdiction: 'wy',
+                    licenseJurisdiction: 'co',
+                    licenseType: 'occupational therapy assistant',
+                    persistedStatus: 'active',
+                    status: 'active',
+                    dateOfIssuance: '2024-03-19T21:30:27+00:00',
+                    dateOfUpdate: '2025-03-26T15:56:58+00:00',
+                    dateOfRenewal: moment().subtract(11, 'months').format(serverDateFormat),
+                    dateOfExpiration: moment().add(1, 'month').format(serverDateFormat),
+                    attestations: attestationResponses.map((response) => ({ ...response })),
+                    investigations: [
+                        {
+                            investigationId: '12345-ABC',
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            jurisdiction: 'wy',
+                            licenseType: 'occupational therapy assistant',
+                            type: 'investigation',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            dateOfUpdate: null,
+                        },
+                    ],
+                },
             ],
         },
         {
@@ -1833,6 +1862,33 @@ export const mockPrivilegeHistoryResponses = [
                 effectiveDate: '2025-03-26T15:56:58+00:00',
                 createDate: '2025-03-26T15:56:58+00:00',
                 note: 'Privilege deactivated'
+            }
+        ]
+    },
+    {
+        // ================================================================
+        //                         JANET DOE (WY OTA)
+        // ================================================================
+        providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+        compact: 'octp',
+        jurisdiction: 'wy',
+        licenseType: 'occupational therapy assistant',
+        privilegeId: 'OTA-WY-1',
+        events: [
+            {
+                type: 'privilegeUpdate',
+                updateType: 'issuance',
+                dateOfUpdate: '2024-03-19T21:30:27+00:00',
+                effectiveDate: '2024-03-19T21:30:27+00:00',
+                createDate: '2024-03-19T21:30:27+00:00'
+            },
+            {
+                type: 'privilegeUpdate',
+                updateType: 'investigation',
+                dateOfUpdate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                effectiveDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                createDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                note: '',
             }
         ]
     },
