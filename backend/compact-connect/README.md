@@ -168,9 +168,7 @@ its environment:
    not be able to log in to the UI hosted in CloudFront. The Oauth2 authentication process requires a predictable
    callback url to be pre-configured, which the domain name provides. You can still run a local UI against this app,
    so long as you leave the `allow_local_ui` context value set to `true` and remove the `domain_name` param in your
-   environment's context. If you are setting up a Route53 HostedZone, you need to add an A record at your HostedZone's
-   base domain. The target of the A record is actually not important, we simply need an A record at the base domain to
-   prove that we own it. This is necessary to create auth subdomains for the user pools.
+   environment's context.
 2) *Optional if testing SES email notifications with custom domain:* By default, AWS does not allow sending emails to
    unverified email
    addresses. If you need to test SES email notifications and do not want to request AWS to remove your account from
@@ -408,6 +406,11 @@ Copy those name server values and, back in your production hosted zone, create a
 one, with the same value (i.e. Record Name: `test.compcatconnect.org`, Type: `NS`, Value: `<same as above>`). Once that
 is done, your test hosted zone is ready for use by the app. You will need to perform this action for your beta
 environment as well, should you choose to deploy one.
+
+Additionally, If you are setting up a Route53 HostedZone, you need to add an A record at your environment's HostedZone's
+base domain (i.e. `compcatconnect.org` for prod and `test.compcatconnect.org` for test) if there is not one already
+there. The target of the A record is actually not important, we simply need an A record at the base domain to
+prove that we own it. This is necessary to create auth subdomains for the user pools.
 
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
