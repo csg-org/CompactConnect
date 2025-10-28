@@ -407,10 +407,11 @@ one, with the same value (i.e. Record Name: `test.compcatconnect.org`, Type: `NS
 is done, your test hosted zone is ready for use by the app. You will need to perform this action for your beta
 environment as well, should you choose to deploy one.
 
-Additionally, If you are setting up a Route53 HostedZone, you need to add an A record at your environment's HostedZone's
-base domain (i.e. `compcatconnect.org` for prod and `test.compcatconnect.org` for test) if there is not one already
-there. The target of the A record is actually not important, we simply need an A record at the base domain to
-prove that we own it. This is necessary to create auth subdomains for the user pools.
+> [!WARNING]
+> Additionally, If you are setting up a Route53 HostedZone, you need to add an A record at your environment's HostedZone's
+> base domain (i.e. `compcatconnect.org` for prod and `test.compcatconnect.org` for test) if there is not one already
+> there. The target of the A record is actually not important, we simply need an A record at the base domain to
+> prove that we own it. This is necessary to create auth subdomains for the user pools.
 
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
