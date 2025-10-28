@@ -73,8 +73,11 @@ class LicenseCard extends mixins(MixinForm) {
     isEncumberLicenseModalSuccess = false;
     isUnencumberLicenseModalDisplayed = false;
     isUnencumberLicenseModalSuccess = false;
+    isInvestigationLicenseModalDisplayed = false;
+    isInvestigationLicenseModalSuccess = false;
     encumbranceInputs: Array<FormInput> = [];
     selectedEncumbrances: Array<AdverseAction> = [];
+    selectedInvestigationId: string | null = null;
     modalErrorMessage = '';
 
     //

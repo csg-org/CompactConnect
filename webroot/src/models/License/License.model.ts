@@ -13,6 +13,7 @@ import { State } from '@models/State/State.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
+import { Investigation, InvestigationSerializer } from '@models/Investigation/Investigation.model';
 import moment from 'moment';
 import { StatsigClient } from '@statsig/js-client';
 
@@ -63,6 +64,7 @@ export interface InterfaceLicense {
     statusDescription?: string | null,
     eligibility?: EligibilityStatus,
     adverseActions?: Array<AdverseAction>,
+    investigations?: Array<Investigation>,
 }
 
 // ========================================================
@@ -91,6 +93,7 @@ export class License implements InterfaceLicense {
     public statusDescription? = null;
     public eligibility? = EligibilityStatus.INELIGIBLE;
     public adverseActions? = [];
+    public investigations? = [];
 
     constructor(data?: InterfaceLicense) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -183,6 +186,10 @@ export class License implements InterfaceLicense {
 
         return isWithinWaitPeriod;
     }
+
+    public isUnderInvestigation(): boolean {
+        return this.investigations?.some((investigation: Investigation) => investigation.isActive()) || false;
+    }
 }
 
 // ========================================================
@@ -217,11 +224,18 @@ export class LicenseSerializer {
                 ? json.compactEligibility
                 : EligibilityStatus.NA,
             adverseActions: [] as Array<AdverseAction>,
+            investigations: [] as Array<Investigation>,
         };
 
         if (Array.isArray(json.adverseActions)) {
             json.adverseActions.forEach((serverAdverseAction) => {
                 licenseData.adverseActions.push(AdverseActionSerializer.fromServer(serverAdverseAction));
+            });
+        }
+
+        if (Array.isArray(json.investigations)) {
+            json.investigations.forEach((serverInvestigation) => {
+                licenseData.investigations.push(InvestigationSerializer.fromServer(serverInvestigation));
             });
         }
 

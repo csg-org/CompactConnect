@@ -34,6 +34,12 @@ export enum MutationTypes {
     UNENCUMBER_LICENSE_REQUEST = '[Users] Unencumber License Request',
     UNENCUMBER_LICENSE_FAILURE = '[Users] Unencumber License Failure',
     UNENCUMBER_LICENSE_SUCCESS = '[Users] Unencumber License Success',
+    CREATE_INVESTIGATION_LICENSE_REQUEST = '[Users] Create Investigation License Request',
+    CREATE_INVESTIGATION_LICENSE_FAILURE = '[Users] Create Investigation License Failure',
+    CREATE_INVESTIGATION_LICENSE_SUCCESS = '[Users] Create Investigation License Success',
+    UPDATE_INVESTIGATION_LICENSE_REQUEST = '[Users] Update Investigation License Request',
+    UPDATE_INVESTIGATION_LICENSE_FAILURE = '[Users] Update Investigation License Failure',
+    UPDATE_INVESTIGATION_LICENSE_SUCCESS = '[Users] Update Investigation License Success',
     DELETE_PRIVILEGE_REQUEST = '[Users] Delete Privilege Request',
     DELETE_PRIVILEGE_FAILURE = '[Users] Delete Privilege Failure',
     DELETE_PRIVILEGE_SUCCESS = '[Users] Delete Privilege Success',
@@ -43,6 +49,12 @@ export enum MutationTypes {
     UNENCUMBER_PRIVILEGE_REQUEST = '[Users] Unencumber Privilege Request',
     UNENCUMBER_PRIVILEGE_FAILURE = '[Users] Unencumber Privilege Failure',
     UNENCUMBER_PRIVILEGE_SUCCESS = '[Users] Unencumber Privilege Success',
+    CREATE_INVESTIGATION_PRIVILEGE_REQUEST = '[Users] Create Investigation Privilege Request',
+    CREATE_INVESTIGATION_PRIVILEGE_FAILURE = '[Users] Create Investigation Privilege Failure',
+    CREATE_INVESTIGATION_PRIVILEGE_SUCCESS = '[Users] Create Investigation Privilege Success',
+    UPDATE_INVESTIGATION_PRIVILEGE_REQUEST = '[Users] Update Investigation Privilege Request',
+    UPDATE_INVESTIGATION_PRIVILEGE_FAILURE = '[Users] Update Investigation Privilege Failure',
+    UPDATE_INVESTIGATION_PRIVILEGE_SUCCESS = '[Users] Update Investigation Privilege Success',
     STORE_UPDATE_USER = '[Users] Updated User in store',
     STORE_REMOVE_USER = '[Users] Remove User from store',
     STORE_RESET_USERS = '[Users] Reset users store',
@@ -157,6 +169,30 @@ export default {
         state.isLoading = false;
         state.error = null;
     },
+    [MutationTypes.CREATE_INVESTIGATION_LICENSE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_INVESTIGATION_LICENSE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.CREATE_INVESTIGATION_LICENSE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_INVESTIGATION_LICENSE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_INVESTIGATION_LICENSE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UPDATE_INVESTIGATION_LICENSE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
     [MutationTypes.DELETE_PRIVILEGE_REQUEST]: (state: any) => {
         state.isLoading = true;
         state.error = null;
@@ -190,6 +226,30 @@ export default {
         state.error = error;
     },
     [MutationTypes.UNENCUMBER_PRIVILEGE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
     },
