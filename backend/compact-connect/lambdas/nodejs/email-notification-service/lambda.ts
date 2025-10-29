@@ -367,25 +367,6 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.recoveryToken
             );
             break;
-        case 'licenseInvestigationProviderNotification':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for license investigation provider notification email');
-            }
-            if (!event.templateVariables?.providerFirstName
-                || !event.templateVariables?.providerLastName
-                || !event.templateVariables?.investigationJurisdiction
-                || !event.templateVariables?.licenseType) {
-                throw new Error('Missing required template variables for licenseInvestigationProviderNotification template.');
-            }
-            await this.investigationService.sendLicenseInvestigationProviderNotificationEmail(
-                event.compact,
-                event.specificEmails,
-                event.templateVariables.providerFirstName,
-                event.templateVariables.providerLastName,
-                event.templateVariables.investigationJurisdiction,
-                event.templateVariables.licenseType
-            );
-            break;
         case 'licenseInvestigationStateNotification':
             if (!event.jurisdiction) {
                 throw new Error('No jurisdiction provided for license investigation state notification email');
@@ -403,25 +384,6 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.providerFirstName,
                 event.templateVariables.providerLastName,
                 event.templateVariables.providerId,
-                event.templateVariables.investigationJurisdiction,
-                event.templateVariables.licenseType
-            );
-            break;
-        case 'licenseInvestigationClosedProviderNotification':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for license investigation closed provider notification email');
-            }
-            if (!event.templateVariables?.providerFirstName
-                || !event.templateVariables?.providerLastName
-                || !event.templateVariables?.investigationJurisdiction
-                || !event.templateVariables?.licenseType) {
-                throw new Error('Missing required template variables for licenseInvestigationClosedProviderNotification template.');
-            }
-            await this.investigationService.sendLicenseInvestigationClosedProviderNotificationEmail(
-                event.compact,
-                event.specificEmails,
-                event.templateVariables.providerFirstName,
-                event.templateVariables.providerLastName,
                 event.templateVariables.investigationJurisdiction,
                 event.templateVariables.licenseType
             );
@@ -447,25 +409,6 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.licenseType
             );
             break;
-        case 'privilegeInvestigationProviderNotification':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for privilege investigation provider notification email');
-            }
-            if (!event.templateVariables?.providerFirstName
-                || !event.templateVariables?.providerLastName
-                || !event.templateVariables?.investigationJurisdiction
-                || !event.templateVariables?.licenseType) {
-                throw new Error('Missing required template variables for privilegeInvestigationProviderNotification template.');
-            }
-            await this.investigationService.sendPrivilegeInvestigationProviderNotificationEmail(
-                event.compact,
-                event.specificEmails,
-                event.templateVariables.providerFirstName,
-                event.templateVariables.providerLastName,
-                event.templateVariables.investigationJurisdiction,
-                event.templateVariables.licenseType
-            );
-            break;
         case 'privilegeInvestigationStateNotification':
             if (!event.jurisdiction) {
                 throw new Error('No jurisdiction provided for privilege investigation state notification email');
@@ -483,25 +426,6 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.providerFirstName,
                 event.templateVariables.providerLastName,
                 event.templateVariables.providerId,
-                event.templateVariables.investigationJurisdiction,
-                event.templateVariables.licenseType
-            );
-            break;
-        case 'privilegeInvestigationClosedProviderNotification':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for privilege investigation closed provider notification email');
-            }
-            if (!event.templateVariables?.providerFirstName
-                || !event.templateVariables?.providerLastName
-                || !event.templateVariables?.investigationJurisdiction
-                || !event.templateVariables?.licenseType) {
-                throw new Error('Missing required template variables for privilegeInvestigationClosedProviderNotification template.');
-            }
-            await this.investigationService.sendPrivilegeInvestigationClosedProviderNotificationEmail(
-                event.compact,
-                event.specificEmails,
-                event.templateVariables.providerFirstName,
-                event.templateVariables.providerLastName,
                 event.templateVariables.investigationJurisdiction,
                 event.templateVariables.licenseType
             );

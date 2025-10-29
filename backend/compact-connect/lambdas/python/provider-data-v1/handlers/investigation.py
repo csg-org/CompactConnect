@@ -220,6 +220,7 @@ def handle_privilege_investigation_close(event: dict) -> dict:
         close_date=now,
         investigation_against=InvestigationAgainstEnum.PRIVILEGE,
         investigation_id=investigation_id,
+        adverse_action_id=resulting_encumbrance_id,
     )
 
     return {'message': 'OK'}
@@ -280,6 +281,7 @@ def handle_license_investigation_close(event: dict) -> dict:
         close_date=now,
         investigation_against=InvestigationAgainstEnum.LICENSE,
         investigation_id=investigation_id,
+        adverse_action_id=resulting_encumbrance_id,
     )
 
     return {'message': 'OK'}

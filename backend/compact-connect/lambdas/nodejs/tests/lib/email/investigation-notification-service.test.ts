@@ -116,53 +116,6 @@ describe('InvestigationNotificationService', () => {
         });
     });
 
-    describe('License Investigation Provider Notification', () => {
-        it('should send license investigation provider notification email', async () => {
-            await investigationService.sendLicenseInvestigationProviderNotificationEmail(
-                'aslp',
-                ['provider@example.com'],
-                'John',
-                'Doe',
-                'OH',
-                'Audiologist'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                Destination: {
-                    ToAddresses: ['provider@example.com']
-                },
-                Content: {
-                    Simple: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist license in Ohio is under investigation')
-                            }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Your Audiologist license in Ohio is under investigation'
-                        }
-                    }
-                },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
-            });
-        });
-
-        it('should throw error when no recipients provided', async () => {
-            await expect(
-                investigationService.sendLicenseInvestigationProviderNotificationEmail(
-                    'aslp',
-                    [],
-                    'John',
-                    'Doe',
-                    'OH',
-                    'Audiologist'
-                )
-            ).rejects.toThrow('No recipients specified for provider license investigation notification email');
-        });
-    });
-
     describe('License Investigation State Notification', () => {
         it('should send license investigation state notification email', async () => {
             await investigationService.sendLicenseInvestigationStateNotificationEmail(
@@ -215,53 +168,6 @@ describe('InvestigationNotificationService', () => {
         });
     });
 
-    describe('License Investigation Closed Provider Notification', () => {
-        it('should send license investigation closed provider notification email', async () => {
-            await investigationService.sendLicenseInvestigationClosedProviderNotificationEmail(
-                'aslp',
-                ['provider@example.com'],
-                'John',
-                'Doe',
-                'OH',
-                'Audiologist'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                Destination: {
-                    ToAddresses: ['provider@example.com']
-                },
-                Content: {
-                    Simple: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('The investigation on your Audiologist license in Ohio has been closed')
-                            }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'The investigation on your Audiologist license in Ohio has been closed'
-                        }
-                    }
-                },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
-            });
-        });
-
-        it('should throw error when no recipients provided', async () => {
-            await expect(
-                investigationService.sendLicenseInvestigationClosedProviderNotificationEmail(
-                    'aslp',
-                    [],
-                    'John',
-                    'Doe',
-                    'OH',
-                    'Audiologist'
-                )
-            ).rejects.toThrow('No recipients specified for provider license investigation closed notification email');
-        });
-    });
-
     describe('License Investigation Closed State Notification', () => {
         it('should send license investigation closed state notification email', async () => {
             await investigationService.sendLicenseInvestigationClosedStateNotificationEmail(
@@ -297,53 +203,6 @@ describe('InvestigationNotificationService', () => {
         });
     });
 
-    describe('Privilege Investigation Provider Notification', () => {
-        it('should send privilege investigation provider notification email', async () => {
-            await investigationService.sendPrivilegeInvestigationProviderNotificationEmail(
-                'aslp',
-                ['provider@example.com'],
-                'John',
-                'Doe',
-                'OH',
-                'Audiologist'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                Destination: {
-                    ToAddresses: ['provider@example.com']
-                },
-                Content: {
-                    Simple: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('Your Audiologist privilege in Ohio is under investigation')
-                            }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'Your Audiologist privilege in Ohio is under investigation'
-                        }
-                    }
-                },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
-            });
-        });
-
-        it('should throw error when no recipients provided', async () => {
-            await expect(
-                investigationService.sendPrivilegeInvestigationProviderNotificationEmail(
-                    'aslp',
-                    [],
-                    'John',
-                    'Doe',
-                    'OH',
-                    'Audiologist'
-                )
-            ).rejects.toThrow('No recipients specified for provider privilege investigation notification email');
-        });
-    });
-
     describe('Privilege Investigation State Notification', () => {
         it('should send privilege investigation state notification email', async () => {
             await investigationService.sendPrivilegeInvestigationStateNotificationEmail(
@@ -376,53 +235,6 @@ describe('InvestigationNotificationService', () => {
                 },
                 FromEmailAddress: 'Compact Connect <noreply@example.org>'
             });
-        });
-    });
-
-    describe('Privilege Investigation Closed Provider Notification', () => {
-        it('should send privilege investigation closed provider notification email', async () => {
-            await investigationService.sendPrivilegeInvestigationClosedProviderNotificationEmail(
-                'aslp',
-                ['provider@example.com'],
-                'John',
-                'Doe',
-                'OH',
-                'Audiologist'
-            );
-
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                Destination: {
-                    ToAddresses: ['provider@example.com']
-                },
-                Content: {
-                    Simple: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('The investigation on your Audiologist privilege in Ohio has been closed')
-                            }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'The investigation on your Audiologist privilege in Ohio has been closed'
-                        }
-                    }
-                },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
-            });
-        });
-
-        it('should throw error when no recipients provided', async () => {
-            await expect(
-                investigationService.sendPrivilegeInvestigationClosedProviderNotificationEmail(
-                    'aslp',
-                    [],
-                    'John',
-                    'Doe',
-                    'OH',
-                    'Audiologist'
-                )
-            ).rejects.toThrow('No recipients specified for provider privilege investigation closed notification email');
         });
     });
 
@@ -466,11 +278,12 @@ describe('InvestigationNotificationService', () => {
             mockSESClient.on(SendEmailCommand).rejects(new Error('SES service error'));
 
             await expect(
-                investigationService.sendLicenseInvestigationProviderNotificationEmail(
+                investigationService.sendLicenseInvestigationStateNotificationEmail(
                     'aslp',
-                    ['provider@example.com'],
+                    'OH',
                     'John',
                     'Doe',
+                    'provider-123',
                     'OH',
                     'Audiologist'
                 )

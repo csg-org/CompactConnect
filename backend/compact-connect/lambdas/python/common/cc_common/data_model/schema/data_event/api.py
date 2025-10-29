@@ -59,6 +59,8 @@ class InvestigationEventDetailSchema(DataEventDetailBaseSchema):
     investigationId = UUID(required=True, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     investigationAgainst = String(required=True, allow_none=False)
+    # Only present for investigationClosed events with encumbrance
+    adverseActionId = UUID(required=False, allow_none=False)
 
 
 class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):

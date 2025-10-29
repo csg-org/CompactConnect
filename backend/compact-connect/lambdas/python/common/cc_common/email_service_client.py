@@ -621,35 +621,6 @@ class EmailServiceClient:
 
         return self._invoke_lambda(payload)
 
-    def send_license_investigation_provider_notification_email(
-        self,
-        *,
-        compact: str,
-        provider_email: str,
-        template_variables: InvestigationNotificationTemplateVariables,
-    ) -> dict[str, str]:
-        """
-        Send a license investigation notification email to a provider.
-
-        :param compact: Compact name
-        :param provider_email: Email address of the provider
-        :param template_variables: Template variables for the email
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'licenseInvestigationProviderNotification',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [provider_email],
-            'templateVariables': {
-                'providerFirstName': template_variables.provider_first_name,
-                'providerLastName': template_variables.provider_last_name,
-                'investigationJurisdiction': template_variables.investigation_jurisdiction,
-                'licenseType': template_variables.license_type,
-            },
-        }
-        return self._invoke_lambda(payload)
-
     def send_license_investigation_state_notification_email(
         self,
         *,
@@ -677,35 +648,6 @@ class EmailServiceClient:
                 'providerFirstName': template_variables.provider_first_name,
                 'providerLastName': template_variables.provider_last_name,
                 'providerId': str(template_variables.provider_id),
-                'investigationJurisdiction': template_variables.investigation_jurisdiction,
-                'licenseType': template_variables.license_type,
-            },
-        }
-        return self._invoke_lambda(payload)
-
-    def send_license_investigation_closed_provider_notification_email(
-        self,
-        *,
-        compact: str,
-        provider_email: str,
-        template_variables: InvestigationNotificationTemplateVariables,
-    ) -> dict[str, str]:
-        """
-        Send a license investigation closed notification email to a provider.
-
-        :param compact: Compact name
-        :param provider_email: Email address of the provider
-        :param template_variables: Template variables for the email
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'licenseInvestigationClosedProviderNotification',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [provider_email],
-            'templateVariables': {
-                'providerFirstName': template_variables.provider_first_name,
-                'providerLastName': template_variables.provider_last_name,
                 'investigationJurisdiction': template_variables.investigation_jurisdiction,
                 'licenseType': template_variables.license_type,
             },
@@ -745,35 +687,6 @@ class EmailServiceClient:
         }
         return self._invoke_lambda(payload)
 
-    def send_privilege_investigation_provider_notification_email(
-        self,
-        *,
-        compact: str,
-        provider_email: str,
-        template_variables: InvestigationNotificationTemplateVariables,
-    ) -> dict[str, str]:
-        """
-        Send a privilege investigation notification email to a provider.
-
-        :param compact: Compact name
-        :param provider_email: Email address of the provider
-        :param template_variables: Template variables for the email
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'privilegeInvestigationProviderNotification',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [provider_email],
-            'templateVariables': {
-                'providerFirstName': template_variables.provider_first_name,
-                'providerLastName': template_variables.provider_last_name,
-                'investigationJurisdiction': template_variables.investigation_jurisdiction,
-                'licenseType': template_variables.license_type,
-            },
-        }
-        return self._invoke_lambda(payload)
-
     def send_privilege_investigation_state_notification_email(
         self,
         *,
@@ -801,35 +714,6 @@ class EmailServiceClient:
                 'providerFirstName': template_variables.provider_first_name,
                 'providerLastName': template_variables.provider_last_name,
                 'providerId': str(template_variables.provider_id),
-                'investigationJurisdiction': template_variables.investigation_jurisdiction,
-                'licenseType': template_variables.license_type,
-            },
-        }
-        return self._invoke_lambda(payload)
-
-    def send_privilege_investigation_closed_provider_notification_email(
-        self,
-        *,
-        compact: str,
-        provider_email: str,
-        template_variables: InvestigationNotificationTemplateVariables,
-    ) -> dict[str, str]:
-        """
-        Send a privilege investigation closed notification email to a provider.
-
-        :param compact: Compact name
-        :param provider_email: Email address of the provider
-        :param template_variables: Template variables for the email
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'privilegeInvestigationClosedProviderNotification',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [provider_email],
-            'templateVariables': {
-                'providerFirstName': template_variables.provider_first_name,
-                'providerLastName': template_variables.provider_last_name,
                 'investigationJurisdiction': template_variables.investigation_jurisdiction,
                 'licenseType': template_variables.license_type,
             },

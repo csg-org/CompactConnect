@@ -74,48 +74,6 @@ export class InvestigationNotificationService extends BaseEmailService {
     }
 
     /**
-     * Sends a license investigation notification email to the provider
-     * @param compact - The compact name
-     * @param specificEmails - The provider's email address
-     * @param providerFirstName - The provider's first name
-     * @param providerLastName - The provider's last name
-     * @param jurisdiction - The jurisdiction where the license is under investigation
-     * @param licenseType - The license type that is under investigation
-     */
-    public async sendLicenseInvestigationProviderNotificationEmail(
-        compact: string,
-        specificEmails: string[],
-        providerFirstName: string,
-        providerLastName: string,
-        investigationJurisdiction: string,
-        licenseType: string
-    ): Promise<void> {
-        this.logger.info('Sending license investigation provider notification email', { compact: compact });
-
-        if (specificEmails.length === 0) {
-            throw new Error('No recipients specified for provider license investigation notification email');
-        }
-
-        const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-            compact, investigationJurisdiction
-        );
-
-        const report = this.getNewEmailTemplate();
-        const subject = `Your ${licenseType} license in ${investigationJurisdictionConfig.jurisdictionName} is under investigation`;
-        const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that your *${licenseType}* license in ${investigationJurisdictionConfig.jurisdictionName} is under investigation. ` +
-            `Please contact the licensing board in ${investigationJurisdictionConfig.jurisdictionName} for more information about this investigation.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = this.renderTemplate(report);
-
-        await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider license investigation notification email' });
-    }
-
-    /**
      * Sends a license investigation notification email to state authorities
      * @param compact - The compact name
      * @param jurisdiction - The jurisdiction to notify
@@ -166,48 +124,6 @@ export class InvestigationNotificationService extends BaseEmailService {
         const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send license investigation state notification email' });
-    }
-
-    /**
-     * Sends a license investigation closed notification email to the provider
-     * @param compact - The compact name
-     * @param specificEmails - The provider's email address
-     * @param providerFirstName - The provider's first name
-     * @param providerLastName - The provider's last name
-     * @param jurisdiction - The jurisdiction where the license investigation was closed
-     * @param licenseType - The license type that was under investigation
-     */
-    public async sendLicenseInvestigationClosedProviderNotificationEmail(
-        compact: string,
-        specificEmails: string[],
-        providerFirstName: string,
-        providerLastName: string,
-        investigationJurisdiction: string,
-        licenseType: string
-    ): Promise<void> {
-        this.logger.info('Sending license investigation closed provider notification email', { compact: compact });
-
-        if (specificEmails.length === 0) {
-            throw new Error('No recipients specified for provider license investigation closed notification email');
-        }
-
-        const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-            compact, investigationJurisdiction
-        );
-
-        const report = this.getNewEmailTemplate();
-        const subject = `The investigation on your ${licenseType} license in ${investigationJurisdictionConfig.jurisdictionName} has been closed`;
-        const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that the investigation on your *${licenseType}* license in ${investigationJurisdictionConfig.jurisdictionName} has been closed. ` +
-            `Please contact the licensing board in ${investigationJurisdictionConfig.jurisdictionName} for more information about this investigation closure.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = this.renderTemplate(report);
-
-        await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider license investigation closed notification email' });
     }
 
     /**
@@ -264,48 +180,6 @@ export class InvestigationNotificationService extends BaseEmailService {
     }
 
     /**
-     * Sends a privilege investigation notification email to the provider
-     * @param compact - The compact name
-     * @param specificEmails - The provider's email address
-     * @param providerFirstName - The provider's first name
-     * @param providerLastName - The provider's last name
-     * @param jurisdiction - The jurisdiction where the privilege is under investigation
-     * @param licenseType - The license type that is under investigation
-     */
-    public async sendPrivilegeInvestigationProviderNotificationEmail(
-        compact: string,
-        specificEmails: string[],
-        providerFirstName: string,
-        providerLastName: string,
-        investigationJurisdiction: string,
-        licenseType: string
-    ): Promise<void> {
-        this.logger.info('Sending privilege investigation provider notification email', { compact: compact });
-
-        if (specificEmails.length === 0) {
-            throw new Error('No recipients specified for provider privilege investigation notification email');
-        }
-
-        const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-            compact, investigationJurisdiction
-        );
-
-        const report = this.getNewEmailTemplate();
-        const subject = `Your ${licenseType} privilege in ${investigationJurisdictionConfig.jurisdictionName} is under investigation`;
-        const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that your *${licenseType}* privilege in ${investigationJurisdictionConfig.jurisdictionName} is under investigation. ` +
-            `Please contact the licensing board in ${investigationJurisdictionConfig.jurisdictionName} for more information about this investigation.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = this.renderTemplate(report);
-
-        await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider privilege investigation notification email' });
-    }
-
-    /**
      * Sends a privilege investigation notification email to state authorities
      * @param compact - The compact name
      * @param jurisdiction - The jurisdiction to notify
@@ -356,48 +230,6 @@ export class InvestigationNotificationService extends BaseEmailService {
         const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send privilege investigation state notification email' });
-    }
-
-    /**
-     * Sends a privilege investigation closed notification email to the provider
-     * @param compact - The compact name
-     * @param specificEmails - The provider's email address
-     * @param providerFirstName - The provider's first name
-     * @param providerLastName - The provider's last name
-     * @param jurisdiction - The jurisdiction where the privilege investigation was closed
-     * @param licenseType - The license type that was under investigation
-     */
-    public async sendPrivilegeInvestigationClosedProviderNotificationEmail(
-        compact: string,
-        specificEmails: string[],
-        providerFirstName: string,
-        providerLastName: string,
-        investigationJurisdiction: string,
-        licenseType: string
-    ): Promise<void> {
-        this.logger.info('Sending privilege investigation closed provider notification email', { compact: compact });
-
-        if (specificEmails.length === 0) {
-            throw new Error('No recipients specified for provider privilege investigation closed notification email');
-        }
-
-        const investigationJurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(
-            compact, investigationJurisdiction
-        );
-
-        const report = this.getNewEmailTemplate();
-        const subject = `The investigation on your ${licenseType} privilege in ${investigationJurisdictionConfig.jurisdictionName} has been closed`;
-        const bodyText = `${providerFirstName} ${providerLastName},\n\n` +
-            `This message is to notify you that the investigation on your *${licenseType}* privilege in ${investigationJurisdictionConfig.jurisdictionName} has been closed. ` +
-            `Please contact the licensing board in ${investigationJurisdictionConfig.jurisdictionName} for more information about this investigation closure.`;
-
-        this.insertHeader(report, subject);
-        this.insertBody(report, bodyText, 'center', true);
-        this.insertFooter(report);
-
-        const htmlContent = this.renderTemplate(report);
-
-        await this.sendEmail({ htmlContent, subject, recipients: specificEmails, errorMessage: 'Unable to send provider privilege investigation closed notification email' });
     }
 
     /**

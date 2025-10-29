@@ -94,9 +94,8 @@ class TestInvestigationEvents(TstFunction):
         return {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_state_notification_email')
-    @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_provider_notification_email')
     def test_license_investigation_listener_processes_event_with_registered_provider(
-        self, mock_provider_email, mock_state_email
+        self, mock_state_email
     ):
         """Test that license investigation listener processes events for registered providers."""
         from cc_common.email_service_client import InvestigationNotificationTemplateVariables
@@ -133,20 +132,8 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
-            template_variables=InvestigationNotificationTemplateVariables(
-                provider_first_name='Björk',
-                provider_last_name='Guðmundsdóttir',
-                investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-                license_type='speech-language pathologist',
-                provider_id=None,
-            ),
-        )
-
         # Verify state notifications (investigation state + other states with active licenses/privileges)
+        # Note: We do NOT send provider notifications for investigations
         expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -200,9 +187,8 @@ class TestInvestigationEvents(TstFunction):
         self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_state_notification_email')
-    @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_provider_notification_email')
     def test_license_investigation_listener_processes_event_with_unregistered_provider(
-        self, mock_provider_email, mock_state_email
+        self, mock_state_email
     ):
         """
         Test that license investigation listener handles unregistered providers.
@@ -228,10 +214,8 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify no provider notification was sent
-        mock_provider_email.assert_not_called()
-
         # Verify state notification was still sent
+        # Note: We do NOT send provider notifications for investigations
         mock_state_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
             jurisdiction=DEFAULT_LICENSE_JURISDICTION,
@@ -247,11 +231,8 @@ class TestInvestigationEvents(TstFunction):
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_investigation_closed_state_notification_email'
     )
-    @patch(
-        'cc_common.email_service_client.EmailServiceClient.send_license_investigation_closed_provider_notification_email'
-    )
     def test_license_investigation_closed_listener_processes_event_with_registered_provider(
-        self, mock_provider_email, mock_state_email
+        self, mock_state_email
     ):
         """Test that license investigation closed listener processes events for registered providers."""
         from cc_common.email_service_client import InvestigationNotificationTemplateVariables
@@ -288,20 +269,8 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
-            template_variables=InvestigationNotificationTemplateVariables(
-                provider_first_name='Björk',
-                provider_last_name='Guðmundsdóttir',
-                investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-                license_type='speech-language pathologist',
-                provider_id=None,
-            ),
-        )
-
         # Verify state notifications (investigation state + other states with active licenses/privileges)
+        # Note: We do NOT send provider notifications for investigations
         expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -355,9 +324,8 @@ class TestInvestigationEvents(TstFunction):
         self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_state_notification_email')
-    @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_provider_notification_email')
     def test_privilege_investigation_listener_processes_event_with_registered_provider(
-        self, mock_provider_email, mock_state_email
+        self, mock_state_email
     ):
         """Test that privilege investigation listener processes events for registered providers."""
         from cc_common.email_service_client import InvestigationNotificationTemplateVariables
@@ -394,20 +362,8 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
-            template_variables=InvestigationNotificationTemplateVariables(
-                provider_first_name='Björk',
-                provider_last_name='Guðmundsdóttir',
-                investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-                license_type='speech-language pathologist',
-                provider_id=None,
-            ),
-        )
-
         # Verify state notifications (investigation state + other states with active licenses/privileges)
+        # Note: We do NOT send provider notifications for investigations
         expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -463,11 +419,8 @@ class TestInvestigationEvents(TstFunction):
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_closed_state_notification_email'
     )
-    @patch(
-        'cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_closed_provider_notification_email'
-    )
     def test_privilege_investigation_closed_listener_processes_event_with_registered_provider(
-        self, mock_provider_email, mock_state_email
+        self, mock_state_email
     ):
         """Test that privilege investigation closed listener processes events for registered providers."""
         from cc_common.email_service_client import InvestigationNotificationTemplateVariables
@@ -504,20 +457,8 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify provider notification
-        mock_provider_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            provider_email='provider@example.com',
-            template_variables=InvestigationNotificationTemplateVariables(
-                provider_first_name='Björk',
-                provider_last_name='Guðmundsdóttir',
-                investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-                license_type='speech-language pathologist',
-                provider_id=None,
-            ),
-        )
-
         # Verify state notifications (investigation state + other states with active licenses/privileges)
+        # Note: We do NOT send provider notifications for investigations
         expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -598,8 +539,8 @@ class TestInvestigationEvents(TstFunction):
         # Should return batch item failure for the message
         self.assertEqual(result['batchItemFailures'][0]['itemIdentifier'], '123')
 
-    @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_provider_notification_email')
-    def test_license_investigation_listener_handles_email_service_failure(self, mock_provider_email):
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_state_notification_email')
+    def test_license_investigation_listener_handles_email_service_failure(self, mock_state_email):
         """Test that license investigation listener handles email service failures gracefully."""
         from handlers.investigation_events import license_investigation_notification_listener
 
@@ -610,7 +551,7 @@ class TestInvestigationEvents(TstFunction):
         self.test_data_generator.put_default_license_record_in_provider_table()
 
         # Make the email service raise an exception
-        mock_provider_email.side_effect = Exception('Email service failure')
+        mock_state_email.side_effect = Exception('Email service failure')
 
         message = self._generate_license_investigation_message()
         event = self._create_sqs_event(message)
@@ -621,8 +562,8 @@ class TestInvestigationEvents(TstFunction):
         # Should return batch item failure for the message
         self.assertEqual(result['batchItemFailures'][0]['itemIdentifier'], '123')
 
-    @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_provider_notification_email')
-    def test_privilege_investigation_listener_handles_email_service_failure(self, mock_provider_email):
+    @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_state_notification_email')
+    def test_privilege_investigation_listener_handles_email_service_failure(self, mock_state_email):
         """Test that privilege investigation listener handles email service failures gracefully."""
         from handlers.investigation_events import privilege_investigation_notification_listener
 
@@ -633,7 +574,7 @@ class TestInvestigationEvents(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table()
 
         # Make the email service raise an exception
-        mock_provider_email.side_effect = Exception('Email service failure')
+        mock_state_email.side_effect = Exception('Email service failure')
 
         message = self._generate_privilege_investigation_message()
         event = self._create_sqs_event(message)
@@ -643,3 +584,61 @@ class TestInvestigationEvents(TstFunction):
 
         # Should return batch item failure for the message
         self.assertEqual(result['batchItemFailures'][0]['itemIdentifier'], '123')
+
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_closed_state_notification_email')
+    def test_license_investigation_closed_listener_skips_notifications_when_encumbrance_exists(self, mock_state_email):
+        """
+        Test that license investigation closed listener does NOT send notifications when adverseActionId is present.
+        When an investigation closes with an encumbrance, we rely on the encumbrance notification instead.
+        """
+        from handlers.investigation_events import license_investigation_closed_notification_listener
+
+        # Set up test data with registered provider
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        # Create message with adverseActionId (indicating an encumbrance was created)
+        message = self._generate_license_investigation_closed_message()
+        message['detail']['adverseActionId'] = str(uuid4())
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        result = license_investigation_closed_notification_listener(event, self.mock_context)
+
+        # Should succeed with no batch failures
+        self.assertEqual({'batchItemFailures': []}, result)
+
+        # Verify NO notifications were sent (encumbrance notification will handle it)
+        mock_state_email.assert_not_called()
+
+    @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_closed_state_notification_email')
+    def test_privilege_investigation_closed_listener_skips_notifications_when_encumbrance_exists(
+        self, mock_state_email
+    ):
+        """
+        Test that privilege investigation closed listener does NOT send notifications when adverseActionId is present.
+        When an investigation closes with an encumbrance, we rely on the encumbrance notification instead.
+        """
+        from handlers.investigation_events import privilege_investigation_closed_notification_listener
+
+        # Set up test data with registered provider
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
+        )
+        self.test_data_generator.put_default_privilege_record_in_provider_table()
+
+        # Create message with adverseActionId (indicating an encumbrance was created)
+        message = self._generate_privilege_investigation_closed_message()
+        message['detail']['adverseActionId'] = str(uuid4())
+        event = self._create_sqs_event(message)
+
+        # Execute the handler
+        result = privilege_investigation_closed_notification_listener(event, self.mock_context)
+
+        # Should succeed with no batch failures
+        self.assertEqual({'batchItemFailures': []}, result)
+
+        # Verify NO notifications were sent (encumbrance notification will handle it)
+        mock_state_email.assert_not_called()

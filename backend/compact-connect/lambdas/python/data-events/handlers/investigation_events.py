@@ -208,17 +208,8 @@ def license_investigation_notification_listener(message: dict):
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_license_investigation_provider_notification_email,
-            'license investigation',
-            provider_record=provider_record,
-            compact=compact,
-            investigation_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-        )
-
         # State Notifications
+        # Note: We do NOT send notifications to providers for investigations
         # Send notification to the state where the license is under investigation
         _send_primary_state_notification(
             config.email_service_client.send_license_investigation_state_notification_email,
@@ -273,23 +264,20 @@ def license_investigation_closed_notification_listener(message: dict):
     ):
         logger.info('Processing license investigation closed event')
 
+        # If an encumbrance resulted from the investigation, we will let the encumbrance notification suffice.
+        # This is determined by the presence of an 'adverseActionId' in the event detail.
+        if detail.get('adverseActionId'):
+            logger.info('Investigation closed with an encumbrance, skipping investigation closed notifications.')
+            return
+
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_license_investigation_closed_provider_notification_email,
-            'license investigation closed',
-            provider_record=provider_record,
-            compact=compact,
-            investigation_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-        )
-
         # State Notifications
+        # Note: We do NOT send notifications to providers for investigations
         # Send notification to the state where the license investigation was closed
         _send_primary_state_notification(
             config.email_service_client.send_license_investigation_closed_state_notification_email,
@@ -350,17 +338,8 @@ def privilege_investigation_notification_listener(message: dict):
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_privilege_investigation_provider_notification_email,
-            'privilege investigation',
-            provider_record=provider_record,
-            compact=compact,
-            investigation_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-        )
-
         # State Notifications
+        # Note: We do NOT send notifications to providers for investigations
         # Send notification to the state where the privilege is under investigation
         _send_primary_state_notification(
             config.email_service_client.send_privilege_investigation_state_notification_email,
@@ -415,23 +394,20 @@ def privilege_investigation_closed_notification_listener(message: dict):
     ):
         logger.info('Processing privilege investigation closed event')
 
+        # If an encumbrance resulted from the investigation, we will let the encumbrance notification suffice.
+        # This is determined by the presence of an 'adverseActionId' in the event detail.
+        if detail.get('adverseActionId'):
+            logger.info('Investigation closed with an encumbrance, skipping investigation closed notifications.')
+            return
+
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = _get_license_type_name(compact, license_type_abbreviation)
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_privilege_investigation_closed_provider_notification_email,
-            'privilege investigation closed',
-            provider_record=provider_record,
-            compact=compact,
-            investigation_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-        )
-
         # State Notifications
+        # Note: We do NOT send notifications to providers for investigations
         # Send notification to the state where the privilege investigation was closed
         _send_primary_state_notification(
             config.email_service_client.send_privilege_investigation_closed_state_notification_email,

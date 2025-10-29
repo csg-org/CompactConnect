@@ -394,6 +394,7 @@ class EventBusClient:
         close_date: datetime,
         investigation_against: InvestigationAgainstEnum,
         investigation_id: UUID,
+        adverse_action_id: UUID | None = None,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -407,6 +408,7 @@ class EventBusClient:
         :param close_date: The datetime when the investigation record was closed
         :param investigation_against: The type of record being investigated (privilege or license)
         :param investigation_id: The id of the investigation closed
+        :param adverse_action_id: Optional adverse action ID if an encumbrance resulted from the investigation
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         event_detail = {
@@ -418,6 +420,10 @@ class EventBusClient:
             'investigationId': investigation_id,
             'eventTime': close_date,
         }
+
+        # Include adverseActionId if an encumbrance resulted from the investigation
+        if adverse_action_id is not None:
+            event_detail['adverseActionId'] = adverse_action_id
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)
