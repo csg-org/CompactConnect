@@ -365,6 +365,35 @@ class TestLicenses(TstFunction):
             json.loads(resp['body']),
         )
 
+    def test_post_licenses_returns_400_if_repeated_ssns_detected(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        event['body'] = json.dumps([license_data, license_data])
+
+        # Add signature authentication headers
+        event = self._create_signed_event(event)
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                'message': 'Invalid license records in request. See errors for more detail.',
+                'errors': {
+                    'SSN': 'Same SSN detected on multiple rows. Every record must have a unique SSN within the same request.',
+                },
+            },
+            json.loads(resp['body']),
+        )
+
     def test_post_licenses_strips_whitespace_from_string_fields(self):
         """Test that whitespace is stripped from all string fields in license data."""
         from handlers.licenses import post_licenses

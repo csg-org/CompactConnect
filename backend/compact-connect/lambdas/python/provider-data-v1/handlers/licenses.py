@@ -64,6 +64,18 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
             }
         )
 
+    # verify that none of the SSNs are repeats within the same batch
+    license_ssns = [license_record['ssn'] for license_record in licenses]
+    if len(set(license_ssns)) < len(license_ssns):
+        raise CCInvalidRequestCustomResponseException(
+            response_body={
+                'message': 'Invalid license records in request. See errors for more detail.',
+                'errors': {
+                    'SSN': 'Same SSN detected on multiple rows. Every record must have a unique SSN within the same request.'
+                },
+            }
+        )
+
     event_time = config.current_standard_datetime
 
     logger.info('Sending license records to preprocessing queue', compact=compact, jurisdiction=jurisdiction)
