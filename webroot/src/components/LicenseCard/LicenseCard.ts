@@ -37,6 +37,7 @@ import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { AdverseAction } from '@/models/AdverseAction/AdverseAction.model';
+import { Investigation } from '@/models/Investigation/Investigation.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import Joi from 'joi';
 import moment from 'moment';
@@ -73,11 +74,13 @@ class LicenseCard extends mixins(MixinForm) {
     isEncumberLicenseModalSuccess = false;
     isUnencumberLicenseModalDisplayed = false;
     isUnencumberLicenseModalSuccess = false;
-    isInvestigationLicenseModalDisplayed = false;
-    isInvestigationLicenseModalSuccess = false;
+    isAddInvestigationModalDisplayed = false;
+    isAddInvestigationModalSuccess = false;
+    isEndInvestigationModalDisplayed = false;
+    isEndInvestigationModalSuccess = false;
     encumbranceInputs: Array<FormInput> = [];
     selectedEncumbrances: Array<AdverseAction> = [];
-    selectedInvestigationId: string | null = null;
+    selectedInvestigationId: Investigation | null = null;
     modalErrorMessage = '';
 
     //
@@ -283,6 +286,8 @@ class LicenseCard extends mixins(MixinForm) {
             this.initFormInputsEncumberLicense();
         } else if (this.isUnencumberLicenseModalDisplayed) {
             this.initFormInputsUnencumberLicense();
+        } else if (this.isAddInvestigationModalDisplayed) {
+            this.initFormInputsAddInvestigation();
         }
     }
 
@@ -354,6 +359,16 @@ class LicenseCard extends mixins(MixinForm) {
             this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
             this.encumbranceInputs.push(adverseActionInput);
         });
+    }
+
+    initFormInputsAddInvestigation(): void {
+        this.formData = reactive({
+            addInvestigationModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+        this.watchFormInputs();
     }
 
     resetForm(): void {
@@ -633,6 +648,77 @@ class LicenseCard extends mixins(MixinForm) {
                 this.isFormSuccessful = true;
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isUnencumberLicenseModalSuccess = true;
+            }
+
+            this.endFormLoading();
+        }
+    }
+
+    // =======================================================
+    //                    ADD INVESTIGATION
+    // =======================================================
+    async toggleAddInvestigationModal(): Promise<void> {
+        this.resetForm();
+        this.isAddInvestigationModalDisplayed = !this.isAddInvestigationModalDisplayed;
+
+        if (this.isAddInvestigationModalDisplayed) {
+            this.initFormInputs();
+        }
+    }
+
+    closeAddInvestigationModal(event?: Event): void {
+        event?.preventDefault();
+        this.isAddInvestigationModalDisplayed = false;
+        this.isAddInvestigationModalSuccess = false;
+    }
+
+    focusTrapAddInvestigationModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('add-investigation-modal-cancel-button');
+        const lastTabIndex = (this.isFormValid && !this.isFormLoading && !this.isAddInvestigationModalSuccess)
+            ? document.getElementById(this.formData.addInvestigationModalContinue.id)
+            : document.getElementById('add-investigation-modal-cancel-button');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitAddInvestigation(): Promise<void> {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.modalErrorMessage = '';
+
+            const {
+                currentCompactType: compactType,
+                licenseeId,
+                stateAbbrev,
+                licenseTypeAbbrev
+            } = this;
+
+            await this.$store.dispatch(`users/createInvestigationLicenseRequest`, {
+                compact: compactType,
+                licenseeId,
+                licenseState: stateAbbrev,
+                licenseType: licenseTypeAbbrev.toLowerCase(),
+            }).catch((err) => {
+                this.modalErrorMessage = err?.message || this.$t('common.error');
+                this.isFormError = true;
+            });
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+                await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
+                this.isAddInvestigationModalSuccess = true;
             }
 
             this.endFormLoading();
