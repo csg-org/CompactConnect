@@ -31,6 +31,7 @@ Export your license data to a CSV file, formatted as follows:
    - String lengths are enforced - exceeding them will cause validation errors
    - Some fields have a set list of allowed values. For those fields, make sure to enter the value exactly, including
      spacing and capitalization
+   - SSNs must be unique within a single CSV upload file. Do not include multiple rows with the same `ssn` in one file
 
 #### Field Descriptions
 
