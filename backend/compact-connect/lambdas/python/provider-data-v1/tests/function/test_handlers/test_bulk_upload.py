@@ -13,7 +13,6 @@ mock_flag_client.return_value = True
 
 
 @mock_aws
-@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
 class TestBulkUpload(TstFunction):
     def test_get_bulk_upload_url(self):
         from handlers.bulk_upload import bulk_upload_url_handler
@@ -44,6 +43,7 @@ class TestBulkUpload(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
 class TestProcessObjects(TstFunction):
     def test_uploaded_csv(self):
         from handlers.bulk_upload import parse_bulk_upload_file
@@ -272,7 +272,7 @@ class TestProcessObjects(TstFunction):
             self.assertEqual(expected_entry, call_args)
 
     def test_bulk_upload_prevents_repeated_ssns_within_the_same_file_upload(self):
-        """Test that CSV compact/jurisdiction fields cannot overwrite URL path values."""
+        """Test that duplicate SSNs within a CSV upload are detected and rejected."""
         from handlers.bulk_upload import parse_bulk_upload_file
 
         # Create CSV content that includes duplicate SSNs
