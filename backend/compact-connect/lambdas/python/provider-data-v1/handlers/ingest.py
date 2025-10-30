@@ -297,7 +297,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
         update_type = UpdateCategory.DEACTIVATION
         logger.info('License deactivation detected')
     if update_type is None:
-        update_type = UpdateCategory.OTHER
+        update_type = UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER
         logger.info('License update detected')
 
     now = config.current_standard_datetime
