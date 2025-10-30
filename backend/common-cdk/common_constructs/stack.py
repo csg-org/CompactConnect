@@ -97,6 +97,10 @@ class AppStack(Stack):
 
         self.environment_context = environment_context
         self.environment_name = environment_name
+        # We only set the API_BASE_URL common env var if the API_DOMAIN_NAME is set
+        # The API_BASE_URL is used by the feature flag client to call the flag check endpoint
+        if self.api_domain_name:
+            self.common_env_vars.update({'API_BASE_URL': f'https://{self.api_domain_name}'})
 
     @cached_property
     def hosted_zone(self) -> IHostedZone | None:
