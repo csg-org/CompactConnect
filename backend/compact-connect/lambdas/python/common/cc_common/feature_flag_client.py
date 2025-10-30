@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import requests
+
 from cc_common.config import config, logger
 from cc_common.feature_flag_enum import FeatureFlagEnum
 
@@ -43,7 +44,9 @@ class FeatureFlagContext:
         return result
 
 
-def is_feature_enabled(flag_name: FeatureFlagEnum, context: FeatureFlagContext | None = None, fail_default: bool = False) -> bool:
+def is_feature_enabled(
+    flag_name: FeatureFlagEnum, context: FeatureFlagContext | None = None, fail_default: bool = False
+) -> bool:
     """
     Check if a feature flag is enabled.
 
