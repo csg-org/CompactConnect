@@ -10,6 +10,11 @@ from marshmallow import ValidationError
 
 schema = LicensePostRequestSchema()
 
+# initialize flag outside of handler so the flag is cached for the lifecycle of the container
+from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
+
+duplicate_ssn_check_flag_enabled = is_feature_enabled(FeatureFlagEnum.DUPLICATE_SSN_UPLOAD_CHECK_FLAG)
+
 
 @api_handler
 @optional_signature_auth
@@ -63,19 +68,19 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
                 'errors': invalid_records,
             }
         )
-
-    # verify that none of the SSNs are repeats within the same batch
-    license_ssns = [license_record['ssn'] for license_record in licenses]
-    if len(set(license_ssns)) < len(license_ssns):
-        raise CCInvalidRequestCustomResponseException(
-            response_body={
-                'message': 'Invalid license records in request. See errors for more detail.',
-                'errors': {
-                    'SSN': 'Same SSN detected on multiple rows. '
-                    'Every record must have a unique SSN within the same request.'
-                },
-            }
-        )
+    if duplicate_ssn_check_flag_enabled:
+        # verify that none of the SSNs are repeats within the same batch
+        license_ssns = [license_record['ssn'] for license_record in licenses]
+        if len(set(license_ssns)) < len(license_ssns):
+            raise CCInvalidRequestCustomResponseException(
+                response_body={
+                    'message': 'Invalid license records in request. See errors for more detail.',
+                    'errors': {
+                        'SSN': 'Same SSN detected on multiple rows. '
+                        'Every record must have a unique SSN within the same request.'
+                    },
+                }
+            )
 
     event_time = config.current_standard_datetime
 
