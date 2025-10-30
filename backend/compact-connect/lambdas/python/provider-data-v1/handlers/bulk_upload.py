@@ -139,6 +139,9 @@ def process_bulk_upload_file(
     current_batch = []
     total_processed = 0
     failed_validation_count = 0
+    # track which ssns were included in this file to detect duplicates,
+    # which are not allowed within the same file upload
+    ssns_in_file_upload = []
 
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
@@ -148,6 +151,15 @@ def process_bulk_upload_file(
                     # dict() here, because it prevents `compact` and `jurisdiction` from being allowed in the
                     # raw_license
                     validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
+                    # verify that this ssn has not been used previously in the same batch
+                    license_ssn = validated_license['ssn']
+                    for index, record_ssn in enumerate(ssns_in_file_upload):
+                        if license_ssn == record_ssn:
+                            raise ValidationError(
+                                message=f'Duplicate License SSN detected. SSN matches with record {index + 1}. '
+                                        f'Every record must have a unique SSN within the same file.'
+                            )
+                    ssns_in_file_upload.append(license_ssn)
                 except TypeError as e:
                     # This will be raised, if `raw_license` includes compact and/or jurisdiction fields
                     logger.error('License contains unsupported fields', fields=list(raw_license.keys()), exc_info=e)

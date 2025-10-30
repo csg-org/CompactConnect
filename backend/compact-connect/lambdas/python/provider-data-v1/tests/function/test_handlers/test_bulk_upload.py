@@ -267,6 +267,87 @@ class TestProcessObjects(TstFunction):
 
             self.assertEqual(expected_entry, call_args)
 
+
+    def test_bulk_upload_prevents_repeated_ssns_within_the_same_file_upload(self):
+        """Test that CSV compact/jurisdiction fields cannot overwrite URL path values."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        # Create CSV content that includes duplicate SSNs
+        # Rows that duplicate the same SSN will be considered an error and not processed
+        csv_content = (
+            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
+            ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
+            ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
+            '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active\n'
+            '123-45-6789,1234567890,LICENSE456,Jane,Middle,Smith,,1995-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active'
+        )
+
+        # Upload the CSV content directly to the mock S3 bucket
+        # URL path indicates aslp/oh, but CSV contains malicious_compact/malicious_jurisdiction
+        object_key = f'aslp/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        # Simulate the s3 bucket event
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        # Mock EventBatchWriter to capture put_event calls
+        with patch('handlers.bulk_upload.EventBatchWriter') as mock_event_writer_class:
+            mock_event_writer = mock_event_writer_class.return_value.__enter__.return_value
+            # Mock the failed_entry_count attribute to return 0
+            mock_event_writer.failed_entry_count = 0
+
+            # Process the file - should not raise an exception
+            parse_bulk_upload_file(event, self.mock_context)
+
+            # Verify that put_event was called for the validation error
+            mock_event_writer.put_event.assert_called_once()
+
+            # Get the call arguments to verify the event details
+            call_args = mock_event_writer.put_event.call_args[1]['Entry']
+
+            # Verify the complete event structure
+            expected_entry = {
+                'Source': f'org.compactconnect.bulk-ingest.{object_key}',
+                'DetailType': 'license.validation-error',
+                'Detail': json.dumps(
+                    {
+                        'eventTime': '1970-01-01T00:00:00+00:00',
+                        'compact': 'aslp',
+                        'jurisdiction': 'oh',
+                        'recordNumber': 2,
+                        'validData': {
+                            'licenseType': 'audiologist',
+                            'licenseStatusName': 'Active',
+                            'licenseStatus': 'active',
+                            'compactEligibility': 'eligible',
+                            'npi': '1234567890',
+                            'licenseNumber': 'LICENSE456',
+                            'givenName': 'Jane',
+                            'middleName': 'Middle',
+                            'familyName': 'Smith',
+                            'dateOfIssuance': '2023-01-01',
+                            'dateOfRenewal': '2025-01-01',
+                            'dateOfExpiration': '2026-01-01',
+                        },
+                        'errors': ['Duplicate License SSN detected. SSN matches with record 1. Every record must have a unique SSN within the same file.'],
+                    }
+                ),
+                'EventBusName': 'license-data-events',
+            }
+
+            self.assertEqual(expected_entry, call_args)
+
     def test_bulk_upload_handles_bom_character(self):
         """Test that CSV files with BOM characters are handled correctly."""
         from handlers.bulk_upload import parse_bulk_upload_file
