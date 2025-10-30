@@ -13,7 +13,10 @@ schema = LicensePostRequestSchema()
 # initialize flag outside of handler so the flag is cached for the lifecycle of the container
 from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
 
-duplicate_ssn_check_flag_enabled = is_feature_enabled(FeatureFlagEnum.DUPLICATE_SSN_UPLOAD_CHECK_FLAG)
+# low risk flag, so we default to enabled if failure detected
+duplicate_ssn_check_flag_enabled = is_feature_enabled(
+    FeatureFlagEnum.DUPLICATE_SSN_UPLOAD_CHECK_FLAG, fail_default=True
+)
 
 
 @api_handler
