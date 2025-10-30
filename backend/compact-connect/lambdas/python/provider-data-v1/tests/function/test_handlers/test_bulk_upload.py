@@ -289,7 +289,6 @@ class TestProcessObjects(TstFunction):
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        # URL path indicates aslp/oh, but CSV contains malicious_compact/malicious_jurisdiction
         object_key = f'aslp/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
