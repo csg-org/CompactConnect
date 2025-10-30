@@ -267,7 +267,6 @@ class TestProcessObjects(TstFunction):
 
             self.assertEqual(expected_entry, call_args)
 
-
     def test_bulk_upload_prevents_repeated_ssns_within_the_same_file_upload(self):
         """Test that CSV compact/jurisdiction fields cannot overwrite URL path values."""
         from handlers.bulk_upload import parse_bulk_upload_file
@@ -340,7 +339,10 @@ class TestProcessObjects(TstFunction):
                             'dateOfRenewal': '2025-01-01',
                             'dateOfExpiration': '2026-01-01',
                         },
-                        'errors': ['Duplicate License SSN detected. SSN matches with record 1. Every record must have a unique SSN within the same file.'],
+                        'errors': [
+                            'Duplicate License SSN detected. SSN matches with record 1. '
+                            'Every record must have a unique SSN within the same file.'
+                        ],
                     }
                 ),
                 'EventBusName': 'license-data-events',

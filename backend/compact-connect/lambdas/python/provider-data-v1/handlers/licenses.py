@@ -71,7 +71,8 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
             response_body={
                 'message': 'Invalid license records in request. See errors for more detail.',
                 'errors': {
-                    'SSN': 'Same SSN detected on multiple rows. Every record must have a unique SSN within the same request.'
+                    'SSN': 'Same SSN detected on multiple rows. '
+                    'Every record must have a unique SSN within the same request.'
                 },
             }
         )

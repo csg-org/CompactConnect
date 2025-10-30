@@ -157,7 +157,7 @@ def process_bulk_upload_file(
                         if license_ssn == record_ssn:
                             raise ValidationError(
                                 message=f'Duplicate License SSN detected. SSN matches with record {index + 1}. '
-                                        f'Every record must have a unique SSN within the same file.'
+                                f'Every record must have a unique SSN within the same file.'
                             )
                     ssns_in_file_upload.append(license_ssn)
                 except TypeError as e:

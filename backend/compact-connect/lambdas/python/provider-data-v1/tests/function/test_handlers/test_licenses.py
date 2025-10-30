@@ -388,7 +388,8 @@ class TestLicenses(TstFunction):
             {
                 'message': 'Invalid license records in request. See errors for more detail.',
                 'errors': {
-                    'SSN': 'Same SSN detected on multiple rows. Every record must have a unique SSN within the same request.',
+                    'SSN': 'Same SSN detected on multiple rows. '
+                    'Every record must have a unique SSN within the same request.',
                 },
             },
             json.loads(resp['body']),
