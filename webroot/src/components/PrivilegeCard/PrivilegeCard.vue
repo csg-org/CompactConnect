@@ -419,17 +419,35 @@
                 @keyup.esc="closeAddInvestigationModal"
             >
                 <template v-slot:content>
-                    <div v-if="!isAddInvestigationModalSuccess" class="modal-content add-investigation-modal-content">
+                    <div
+                        v-if="!isAddInvestigationModalSuccess"
+                        class="modal-content add-investigation-modal-content"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
                         {{ $t('licensing.confirmPrivilegeInvestigationStartSubtext') }}
                         <form class="privilege-edit-form" @submit.prevent="submitAddInvestigation">
                             <div class="add-investigation-form-input-container">
-                            <div class="form-row input-container static-input">
-                                <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
-                                <div class="static-value">{{ licenseeName }}</div>
+                            <div class="form-row static-container">
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
+                                    <div class="static-value">{{ licenseeName }}</div>
+                                </div>
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('common.state') }}</div>
+                                    <div class="static-value">{{ stateContent }}</div>
+                                </div>
                             </div>
-                            <div class="form-row input-container static-input">
-                                <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
-                                <div class="static-value">{{ privilegeId }}</div>
+                            <div class="form-row static-container">
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
+                                    <div class="static-value">{{ privilegeId }}</div>
+                                </div>
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.privilegeType') }}</div>
+                                    <div class="static-value">{{ privilegeTypeAbbrev }}</div>
+                                </div>
                             </div>
                             </div>
                             <div
@@ -492,6 +510,9 @@
                 <template v-slot:content>
                     <div v-if="!isEndInvestigationModalConfirm && !isEndInvestigationModalSuccess"
                         class="modal-content end-investigation-modal-content"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
                     >
                         <form
                             id="end-investigation-modal-form"
@@ -567,6 +588,9 @@
                     <div
                         v-else-if="isEndInvestigationModalConfirm && !isEndInvestigationModalSuccess"
                         class="modal-content end-investigation-modal-content"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
                     >
                         <p class="info-block">
                             {{ $t('licensing.confirmPrivilegeInvestigationEndSubtext1', {
@@ -583,12 +607,14 @@
                                 :label="$t('common.cancel')"
                                 :isTransparent="true"
                                 :onClick="closeEndInvestigationModal"
+                                :isEnabled="!isFormLoading"
                             />
                             <InputButton
                                 id="end-investigation-modal-no-encumbrance"
                                 class="action-button end-investigation-modal-no-encumbrance"
                                 :label="$t('licensing.confirmPrivilegeInvestigationEndSubmit1')"
                                 :onClick="submitEndInvestigationWithoutEncumbrance"
+                                :isEnabled="!isFormLoading"
                             />
                             <InputButton
                                 id="submit-modal-continue"
@@ -596,6 +622,7 @@
                                 :label="$t('licensing.confirmPrivilegeInvestigationEndSubmit2')"
                                 :isWarning="true"
                                 :onClick="submitEndInvestigationWithEncumbrance"
+                                :isEnabled="!isFormLoading"
                             />
                         </div>
                     </div>

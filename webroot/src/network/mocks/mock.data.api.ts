@@ -387,7 +387,7 @@ export class DataApi {
     public createPrivilegeInvestigation(
         compact,
         licenseeId,
-        licenseState,
+        privilegeState,
         licenseType
     ) {
         if (!compact) {
@@ -398,13 +398,20 @@ export class DataApi {
             message: 'success',
             compact,
             licenseeId,
-            licenseState,
+            privilegeState,
             licenseType,
         }));
     }
 
     // Update Privilege Investigation for a licensee.
-    public updatePrivilegeInvestigation(compact, licenseeId, licenseState, licenseType, investigationId, encumbrance) {
+    public updatePrivilegeInvestigation(
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        investigationId,
+        encumbrance
+    ) {
         if (!compact) {
             return Promise.reject(new Error('failed privilege investigation update'));
         }
@@ -413,7 +420,7 @@ export class DataApi {
             message: 'success',
             compact,
             licenseeId,
-            licenseState,
+            privilegeState,
             licenseType,
             investigationId,
             encumbrance,

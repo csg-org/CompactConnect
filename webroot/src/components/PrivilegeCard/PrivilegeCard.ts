@@ -567,25 +567,54 @@ class PrivilegeCard extends mixins(MixinForm) {
                 privilegeTypeAbbrev
             } = this;
 
-            await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
-                compact: compactType,
-                licenseeId,
-                privilegeState: stateAbbrev,
-                licenseType: privilegeTypeAbbrev.toLowerCase(),
-                encumbranceType: this.formData.encumberModalDisciplineAction.value,
-                ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                    ? {
-                        npdbCategories: this.formData.encumberModalNpdbCategories.value,
-                    }
-                    : {
-                        npdbCategory: this.formData.encumberModalNpdbCategory.value,
-                    }
-                ),
-                startDate: this.formData.encumberModalStartDate.value,
-            }).catch((err) => {
-                this.modalErrorMessage = err?.message || this.$t('common.error');
-                this.isFormError = true;
-            });
+            if (this.selectedInvestigation) {
+                // Submit the encumbrance as part of a selected investigation update
+                const investigationId = this.selectedInvestigation?.id;
+
+                await this.$store.dispatch(`users/updateInvestigationPrivilegeRequest`, {
+                    compact: compactType,
+                    licenseeId,
+                    privilegeState: stateAbbrev,
+                    licenseType: privilegeTypeAbbrev.toLowerCase(),
+                    investigationId,
+                    encumbrance: {
+                        encumbranceType: this.formData.encumberModalDisciplineAction.value,
+                        ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                            ? {
+                                npdbCategories: this.formData.encumberModalNpdbCategories.value,
+                            }
+                            : {
+                                npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                            }
+                        ),
+                        startDate: this.formData.encumberModalStartDate.value,
+                    },
+                }).catch((err) => {
+                    this.modalErrorMessage = err?.message || this.$t('common.error');
+                    this.isFormError = true;
+                });
+            } else {
+                // Submit the encumbrance on its own
+                await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
+                    compact: compactType,
+                    licenseeId,
+                    privilegeState: stateAbbrev,
+                    licenseType: privilegeTypeAbbrev.toLowerCase(),
+                    encumbranceType: this.formData.encumberModalDisciplineAction.value,
+                    ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                        ? {
+                            npdbCategories: this.formData.encumberModalNpdbCategories.value,
+                        }
+                        : {
+                            npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                        }
+                    ),
+                    startDate: this.formData.encumberModalStartDate.value,
+                }).catch((err) => {
+                    this.modalErrorMessage = err?.message || this.$t('common.error');
+                    this.isFormError = true;
+                });
+            }
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
@@ -962,22 +991,17 @@ class PrivilegeCard extends mixins(MixinForm) {
                 privilegeTypeAbbrev,
             } = this;
             const investigationId = this.selectedInvestigation?.id;
-            const errorMessages: Array<string> = [];
 
-            await this.$store.dispatch(`users/updateInvestigationLicenseRequest`, {
+            await this.$store.dispatch(`users/updateInvestigationPrivilegeRequest`, {
                 compact: compactType,
                 licenseeId,
                 privilegeState: stateAbbrev,
                 licenseType: privilegeTypeAbbrev.toLowerCase(),
                 investigationId,
             }).catch((err) => {
-                errorMessages.push(err?.message || this.$t('common.error'));
-            });
-
-            if (errorMessages.length) {
-                this.modalErrorMessage = errorMessages.join('; ');
+                this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
-            }
+            });
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;

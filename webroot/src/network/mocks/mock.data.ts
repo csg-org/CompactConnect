@@ -769,6 +769,28 @@ export const licensees = {
                             liftingUser: null,
                         },
                     ],
+                    investigations: [
+                        {
+                            investigationId: '12345-ABC',
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            jurisdiction: 'wy',
+                            licenseType: 'occupational therapy assistant',
+                            type: 'investigation',
+                            creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            dateOfUpdate: null,
+                        },
+                        {
+                            investigationId: '12345-DEF',
+                            providerId: 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
+                            compact: 'octp',
+                            jurisdiction: 'wy',
+                            licenseType: 'occupational therapy assistant',
+                            type: 'investigation',
+                            creationDate: moment().subtract(1, 'month').format(serverDatetimeFormat),
+                            dateOfUpdate: moment().subtract(3, 'weeks').format(serverDatetimeFormat),
+                        },
+                    ],
                 },
             ],
             privilegeJurisdictions: [

@@ -472,41 +472,41 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * POST Create Privilege Investigation for a licensee.
-     * @param  {string}           compact      The compact string ID (aslp, octp, coun).
-     * @param  {string}           licenseeId   The Licensee ID.
-     * @param  {string}           licenseState The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType  The license type.
-     * @return {Promise<object>}               The server response.
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType    The license type.
+     * @return {Promise<object>}                 The server response.
      */
     public async createPrivilegeInvestigation(
         compact: string,
         licenseeId: string,
-        licenseState: string,
+        privilegeState: string,
         licenseType: string
     ) {
-        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation`, {});
+        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/investigation`, {});
 
         return serverResponse;
     }
 
     /**
      * PATCH Update Privilege Investigation for a licensee.
-     * @param  {string}           compact         The compact string ID (aslp, octp, coun).
-     * @param  {string}           licenseeId      The Licensee ID.
-     * @param  {string}           licenseState    The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType     The license type.
-     * @param  {string}           investigationId The Investigation ID.
-     * @param  {object}           [encumbrance]   Optional encumbrance config to add to the privilege.
-     *   @param  {string}           encumbranceType The discipline action type.
-     *   @param  {string}           npdbCategory    The NPDB category name.
-     *   @param  {Array<string>}    npdbCategories  The NPDB category list.
-     *   @param  {string}           startDate       The encumber start date.
-     * @return {Promise<object>}                  The server response.
+     * @param  {string}          compact         The compact string ID (aslp, octp, coun).
+     * @param  {string}          licenseeId      The Licensee ID.
+     * @param  {string}          privilegeState  The 2-character state abbreviation for the Privilege.
+     * @param  {string}          licenseType     The license type.
+     * @param  {string}          investigationId The Investigation ID.
+     * @param  {object}          [encumbrance]   Optional encumbrance config to add to the privilege.
+     *   @param  {string}          encumbranceType The discipline action type.
+     *   @param  {string}          npdbCategory    The NPDB category name.
+     *   @param  {Array<string>}   npdbCategories  The NPDB category list.
+     *   @param  {string}          startDate       The encumber start date.
+     * @return {Promise<object>}                 The server response.
      */
     public async updatePrivilegeInvestigation(
         compact: string,
         licenseeId: string,
-        licenseState: string,
+        privilegeState: string,
         licenseType: string,
         investigationId: string,
         encumbrance?: {
@@ -517,7 +517,7 @@ export class LicenseDataApi implements DataApiInterface {
         }
     ) {
         const { $features } = (window as any).Vue?.config?.globalProperties || {};
-        const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation/${investigationId}`, {
+        const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/investigation/${investigationId}`, {
             ...(encumbrance
                 ? {
                     encumbranceType: encumbrance.encumbranceType,

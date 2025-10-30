@@ -354,14 +354,14 @@ export default {
     createInvestigationPrivilegeRequest: async ({ commit, dispatch }, {
         compact,
         licenseeId,
-        licenseState,
+        privilegeState,
         licenseType,
     }: any) => {
         commit(MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_REQUEST);
         return dataApi.createPrivilegeInvestigation(
             compact,
             licenseeId,
-            licenseState,
+            privilegeState,
             licenseType
         ).then(async (response) => {
             dispatch('createInvestigationPrivilegeSuccess');
@@ -382,7 +382,7 @@ export default {
     updateInvestigationPrivilegeRequest: async ({ commit, dispatch }, {
         compact,
         licenseeId,
-        licenseState,
+        privilegeState,
         licenseType,
         investigationId,
         encumbrance
@@ -391,7 +391,7 @@ export default {
         return dataApi.updatePrivilegeInvestigation(
             compact,
             licenseeId,
-            licenseState,
+            privilegeState,
             licenseType,
             investigationId,
             encumbrance

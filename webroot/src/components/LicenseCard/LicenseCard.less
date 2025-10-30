@@ -260,6 +260,16 @@
 
                     .form-row {
                         margin-bottom: 1.6rem;
+
+                        &.static-container {
+                            display: flex;
+                            flex-direction: column;
+
+                            @media @desktopWidth {
+                                flex-direction: row;
+                                margin-bottom: 0.2rem;
+                            }
+                        }
                     }
 
                     #notes {
@@ -274,10 +284,15 @@
                         background-color: @veryLightGrey;
                     }
 
-                    .unencumber-row {
+                    .unencumber-row,
+                    .end-investigation-row {
                         display: flex;
                         flex-direction: column;
                         margin-bottom: 3.2rem;
+
+                        &.end-investigation-row {
+                            margin-bottom: 1.2rem;
+                        }
 
                         @media @desktopWidth {
                             flex-direction: row;
@@ -289,14 +304,29 @@
                             margin: 0;
                         }
 
-                        .unencumber-select {
+                        .unencumber-select,
+                        .end-investigation-select {
                             display: flex;
                             flex-direction: column;
-                            margin-bottom: 0.4rem;
                             padding: 1rem 0.6rem;
                             border: 1px solid @midGrey;
                             border-radius: 12px;
                             cursor: pointer;
+
+                            &.end-investigation-select {
+                                width: 100%;
+                                padding-top: 1.4rem;
+                                padding-bottom: 1rem;
+                            }
+
+                            &.unencumber-select {
+                                margin-bottom: 0.4rem;
+
+                                @media @desktopWidth {
+                                    width: 65%;
+                                    margin-bottom: 0;
+                                }
+                            }
 
                             &.selected {
                                 border-color: @fontColor;
@@ -306,11 +336,6 @@
                             &.inactive {
                                 background-color: @veryLightGrey;
                                 cursor: auto;
-                            }
-
-                            @media @desktopWidth {
-                                width: 65%;
-                                margin-bottom: 0;
                             }
 
                             .inactive-category {
@@ -324,7 +349,8 @@
                                 padding-left: 3rem;
                             }
 
-                            .encumbrance-dates {
+                            .encumbrance-dates,
+                            .investigation-dates {
                                 padding-left: 3rem;
                                 color: darken(@darkGrey, 10%);
                                 font-size: @fontSize;
@@ -340,13 +366,34 @@
                     }
                 }
 
-                .static-label {
-                    margin-bottom: 0.2rem;
-                    font-weight: @fontWeightBold;
+                .static-input {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+
+                    &:not(:last-child) {
+                        margin-bottom: 1.2rem;
+                    }
+
+                    @media @desktopWidth {
+                        width: 50%;
+                    }
+
+                    .static-label {
+                        margin-bottom: 0.2rem;
+                        font-weight: @fontWeightBold;
+                        font-size: @fontSize;
+                    }
+
+                    .static-value {
+                        overflow: hidden;
+                        font-size: @fontSize;
+                        text-overflow: ellipsis;
+                    }
                 }
 
-                .static-value {
-                    font-size: 1.7rem;
+                .info-block {
+                    margin-bottom: 2rem;
                 }
 
                 .form-field-error {
