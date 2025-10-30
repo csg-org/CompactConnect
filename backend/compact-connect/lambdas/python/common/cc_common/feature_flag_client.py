@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from typing import Any
 
 import requests
-
 from cc_common.config import config, logger
+from cc_common.feature_flag_enum import FeatureFlagEnum
 
 
 @dataclass
@@ -43,14 +43,14 @@ class FeatureFlagContext:
         return result
 
 
-def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None, fail_default: bool = False) -> bool:
+def is_feature_enabled(flag_name: FeatureFlagEnum, context: FeatureFlagContext | None = None, fail_default: bool = False) -> bool:
     """
     Check if a feature flag is enabled.
 
     This function calls the internal feature flag API endpoint to determine
     if a feature flag is enabled for the given context.
 
-    :param flag_name: The name of the feature flag to check
+    :param flag_name: The name of the feature flag to check.
     :param context: Optional FeatureFlagContext for feature flag evaluation
     :param fail_default: If True, return True on errors; if False, return False on errors (default: False)
     :return: True if the feature flag is enabled, False otherwise (or fail_default value on error)

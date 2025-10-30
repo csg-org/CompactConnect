@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+from cc_common.feature_flag_enum import FeatureFlagEnum
+
 from tests import TstLambdas
 
 
@@ -13,7 +15,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.json.return_value = {'enabled': True}
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response) as mock_post:
-            result = is_feature_enabled('test-flag')
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG)
 
             # Verify the result
             self.assertTrue(result)
@@ -35,7 +37,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.json.return_value = {'enabled': False}
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response):
-            result = is_feature_enabled('test-flag')
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG)
 
             # Verify the result
             self.assertFalse(result)
@@ -51,7 +53,7 @@ class TestFeatureFlagClient(TstLambdas):
         context = FeatureFlagContext(user_id='user123', custom_attributes={'licenseType': 'lpc'})
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response) as mock_post:
-            result = is_feature_enabled('test-flag', context=context)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, context=context)
 
             # Verify the result
             self.assertTrue(result)
@@ -71,7 +73,7 @@ class TestFeatureFlagClient(TstLambdas):
         from cc_common.feature_flag_client import is_feature_enabled
 
         with patch('cc_common.feature_flag_client.requests.post', side_effect=Exception('Timeout')):
-            result = is_feature_enabled('test-flag', fail_default=False)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=False)
 
             # Verify it fails closed (returns False)
             self.assertFalse(result)
@@ -81,7 +83,7 @@ class TestFeatureFlagClient(TstLambdas):
         from cc_common.feature_flag_client import is_feature_enabled
 
         with patch('cc_common.feature_flag_client.requests.post', side_effect=Exception('Timeout')):
-            result = is_feature_enabled('test-flag', fail_default=True)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=True)
 
             # Verify it fails open (returns True)
             self.assertTrue(result)
@@ -95,7 +97,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.raise_for_status.side_effect = Exception('500 Server Error')
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response):
-            result = is_feature_enabled('test-flag', fail_default=False)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=False)
 
             # Verify it fails closed (returns False)
             self.assertFalse(result)
@@ -109,7 +111,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.raise_for_status.side_effect = Exception('500 Server Error')
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response):
-            result = is_feature_enabled('test-flag', fail_default=True)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=True)
 
             # Verify it fails open (returns True)
             self.assertTrue(result)
@@ -124,7 +126,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.raise_for_status = MagicMock()
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response):
-            result = is_feature_enabled('test-flag', fail_default=False)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=False)
 
             # Verify it fails closed (returns False)
             self.assertFalse(result)
@@ -139,7 +141,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.raise_for_status = MagicMock()
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response):
-            result = is_feature_enabled('test-flag', fail_default=True)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=True)
 
             # Verify it fails open (returns True)
             self.assertTrue(result)
@@ -154,7 +156,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.raise_for_status = MagicMock()
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response):
-            result = is_feature_enabled('test-flag', fail_default=False)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=False)
 
             # Verify it fails closed (returns False)
             self.assertFalse(result)
@@ -168,7 +170,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response.json.side_effect = ValueError('Invalid JSON')
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response):
-            result = is_feature_enabled('test-flag', fail_default=True)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, fail_default=True)
 
             # Verify it fails open (returns True)
             self.assertTrue(result)
@@ -220,7 +222,7 @@ class TestFeatureFlagClient(TstLambdas):
         context = FeatureFlagContext(user_id='user789')
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response) as mock_post:
-            result = is_feature_enabled('test-flag', context=context)
+            result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, context=context)
 
             # Verify the result
             self.assertTrue(result)
