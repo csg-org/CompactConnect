@@ -1012,6 +1012,9 @@ class DataClient:
         This should be used when it is undesirable to get all provider update records and
         filter for the specific privilege update records.
 
+        During migration period, this method queries both the new and old SK patterns to ensure
+        no records are missed.
+
         :param str compact: The compact of the privilege
         :param str provider_id: The provider of the privilege
         :param str jurisdiction: The jurisdiction of the privilege
@@ -1020,26 +1023,36 @@ class DataClient:
         :return: List of privilege update records
         """
         pk = f'{compact}#PROVIDER#{provider_id}'
-        sk_prefix = f'{compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/'
+
+        # SK prefixes to query (new pattern and old pattern for migration support)
+        # TODO - remove old pattern once migration is complete  # noqa: FIX002
+        sk_prefixes = [
+            # New pattern: {compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/
+            f'{compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/',
+            # Old pattern: {compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE
+            f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE',
+        ]
 
         response_items = []
-        last_evaluated_key = None
 
-        while True:
-            pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+        # Query for records using each SK prefix pattern
+        for sk_prefix in sk_prefixes:
+            last_evaluated_key = None
+            while True:
+                pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
 
-            query_resp = self.config.provider_table.query(
-                Select='ALL_ATTRIBUTES',
-                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
-                ConsistentRead=consistent_read,
-                **pagination,
-            )
+                query_resp = self.config.provider_table.query(
+                    Select='ALL_ATTRIBUTES',
+                    KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
+                    ConsistentRead=consistent_read,
+                    **pagination,
+                )
 
-            response_items.extend(query_resp.get('Items', []))
+                response_items.extend(query_resp.get('Items', []))
 
-            last_evaluated_key = query_resp.get('LastEvaluatedKey')
-            if not last_evaluated_key:
-                break
+                last_evaluated_key = query_resp.get('LastEvaluatedKey')
+                if not last_evaluated_key:
+                    break
 
         return [PrivilegeUpdateData.from_database_record(item) for item in response_items]
 
