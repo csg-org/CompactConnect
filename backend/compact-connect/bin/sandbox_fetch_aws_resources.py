@@ -89,7 +89,7 @@ def fetch_resources():
                     provider_details['user_pool_id'] = value
                     provider_details['user_pool_name'], provider_details['client_id'] = get_cognito_details(value)
                 elif 'ProviderUsersGreenLicenseeUserPoolDomainName' in key:
-                    value['login_url'] = value
+                    provider_details['login_url'] = value
 
             # Staff Users (Cognito + DynamoDB)
             if 'StaffUsersGreen' in key:
