@@ -1014,30 +1014,6 @@ class DataClient:
         return result
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
-    def get_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str) -> dict:
-        """
-        Get a privilege for a provider in a jurisdiction of the license type
-
-        :param str compact: The compact of the privilege
-        :param str provider_id: The provider of the privilege
-        :param str jurisdiction: The jurisdiction of the privilege
-        :param str license_type_abbr: The license type abbreviation of the privilege
-        :raises CCNotFoundException: If the privilege record is not found
-        """
-        # Get the privilege record
-        try:
-            privilege_record = self.config.provider_table.get_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#',
-                },
-            )['Item']
-        except KeyError as e:
-            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
-
-        return privilege_record
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
         self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str, deactivation_details: dict
     ) -> None:
