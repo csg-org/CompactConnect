@@ -137,7 +137,8 @@ class TestTransformations(TstFunction):
 
         # Get the provider straight from the table, to inspect them
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_updates=True)
+            compact='aslp', provider_id=provider_id, include_updates=True
+        )
 
         # One record for each of: provider, providerUpdate, license,
         # privilege, and militaryAffiliation

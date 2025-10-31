@@ -213,7 +213,7 @@ class TestEncumbranceEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
         # Create privileges that are already encumbered
-        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
@@ -242,7 +242,6 @@ class TestEncumbranceEvents(TstFunction):
         privileges = provider_records.get_privilege_records()
         self.assertEqual(1, len(privileges))
 
-        serialized_privilege = privilege.serialize_to_database_record()
         self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privileges[0].encumberedStatus)
 
         # Get update records using ProviderUserRecords
@@ -279,7 +278,7 @@ class TestEncumbranceEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
         # Create privileges that are already encumbered
-        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
@@ -311,7 +310,6 @@ class TestEncumbranceEvents(TstFunction):
         privileges = provider_records.get_privilege_records()
         self.assertEqual(1, len(privileges))
 
-        serialized_privilege = privilege.serialize_to_database_record()
         self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privileges[0].encumberedStatus)
 
         # Get update records using ProviderUserRecords
@@ -323,7 +321,7 @@ class TestEncumbranceEvents(TstFunction):
         update_encumbrance_details = update_record.encumbranceDetails
         self.assertEqual(
             {
-                'adverseActionId':  UUID(DEFAULT_ADVERSE_ACTION_ID),
+                'adverseActionId': UUID(DEFAULT_ADVERSE_ACTION_ID),
                 'licenseJurisdiction': 'oh',
                 'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
             },
@@ -342,7 +340,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table()
         # add adverse action item for license
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={'actionAgainst': 'license'}
@@ -525,7 +523,7 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,

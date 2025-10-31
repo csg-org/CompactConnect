@@ -227,8 +227,8 @@ class TestDataClient(TstFunction):
         referenced nor updated in any way as part of this purchase.
         """
         from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.schema.privilege import PrivilegeData
         from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.privilege import PrivilegeData
 
         # Imagine that there have been 123 privileges issued for the compact
         # and that the next privilege number will be 124
@@ -317,7 +317,8 @@ class TestDataClient(TstFunction):
 
         # Verify that the audiologist privilege update record was created for ky
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_uuid, include_updates=True)
+            compact='aslp', provider_id=provider_uuid, include_updates=True
+        )
 
         new_aud_ky_privilege = provider_user_records.get_specific_privilege_record(
             jurisdiction='ky', license_abbreviation='aud'
@@ -346,12 +347,11 @@ class TestDataClient(TstFunction):
                 # Should remain the same, since we're renewing the same privilege
                 'privilegeId': 'AUD-KY-1',
             },
-            new_aud_ky_privilege.serialize_to_database_record()
+            new_aud_ky_privilege.serialize_to_database_record(),
         )
 
         ky_aud_update_record = provider_user_records.get_update_records_for_privilege(
-            jurisdiction=new_aud_ky_privilege.jurisdiction,
-            license_type=new_aud_ky_privilege.licenseType
+            jurisdiction=new_aud_ky_privilege.jurisdiction, license_type=new_aud_ky_privilege.licenseType
         )[0]
 
         self.assertEqual(
@@ -396,37 +396,35 @@ class TestDataClient(TstFunction):
             jurisdiction='ne', license_abbreviation='aud'
         )
         self.assertEqual(
-                # Primary record
-                {
-                    'pk': f'aslp#PROVIDER#{provider_uuid}',
-                    'sk': 'aslp#PROVIDER#privilege/ne/aud#',
-                    'type': 'privilege',
-                    'providerId': provider_uuid,
-                    'compact': 'aslp',
-                    'jurisdiction': 'ne',
-                    'licenseJurisdiction': 'oh',
-                    'licenseType': 'audiologist',
-                    'administratorSetStatus': 'active',
-                    # issuance and renewal dates should be the same
-                    'dateOfIssuance': '2024-11-08T23:59:59+00:00',
-                    'dateOfRenewal': '2024-11-08T23:59:59+00:00',
-                    'dateOfExpiration': '2025-10-31',
-                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                    'compactTransactionId': 'test_transaction_id',
-                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
-                    'attestations': self.sample_privilege_attestations,
-                    # Should remain the same, since we're renewing the same privilege
-                    'privilegeId': 'AUD-NE-124',
+            # Primary record
+            {
+                'pk': f'aslp#PROVIDER#{provider_uuid}',
+                'sk': 'aslp#PROVIDER#privilege/ne/aud#',
+                'type': 'privilege',
+                'providerId': provider_uuid,
+                'compact': 'aslp',
+                'jurisdiction': 'ne',
+                'licenseJurisdiction': 'oh',
+                'licenseType': 'audiologist',
+                'administratorSetStatus': 'active',
+                # issuance and renewal dates should be the same
+                'dateOfIssuance': '2024-11-08T23:59:59+00:00',
+                'dateOfRenewal': '2024-11-08T23:59:59+00:00',
+                'dateOfExpiration': '2025-10-31',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                'compactTransactionId': 'test_transaction_id',
+                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
+                'attestations': self.sample_privilege_attestations,
+                # Should remain the same, since we're renewing the same privilege
+                'privilegeId': 'AUD-NE-124',
             },
             new_aud_ne_privilege.serialize_to_database_record(),
         )
         # assert there are no update records for this privilege
         ne_aud_update_records = provider_user_records.get_update_records_for_privilege(
-            jurisdiction=new_aud_ne_privilege.jurisdiction,
-            license_type=new_aud_ne_privilege.licenseType
+            jurisdiction=new_aud_ne_privilege.jurisdiction, license_type=new_aud_ne_privilege.licenseType
         )
         self.assertEqual([], ne_aud_update_records)
-
 
         # ensure that slp privilege was not updated with an update record
         slp_privilege = self._provider_table.query(

@@ -48,7 +48,7 @@ from cc_common.exceptions import (
     CCNotFoundException,
 )
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import load_records_into_schemas, logger_inject_kwargs
+from cc_common.utils import logger_inject_kwargs
 
 
 class DataClient:
@@ -1009,7 +1009,6 @@ class DataClient:
                 license_type=privilege.licenseType,
             )
             result.extend([update.to_dict() for update in privilege_updates])
-
 
         return result
 
