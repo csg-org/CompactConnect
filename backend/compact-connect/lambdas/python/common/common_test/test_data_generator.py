@@ -101,14 +101,19 @@ class TestDataGenerator:
         """
         Helper method to query update records from the database using the provider data class instance.
 
-        All of our update records use the same pk as the actual record that is being updated. The sk of the actual
-        record is the prefix for all the update records. Using this pattern, we can query for all of the update records
-        that have been written for the given record.
+        All of our update records use the same pk as the actual record that is being updated. The new pattern
+        for privilege updates is {compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/
         """
         serialized_record = privilege_data.serialize_to_database_record()
+        from cc_common.config import config
+
+        license_type_abbr = config.license_type_abbreviations[privilege_data.compact][privilege_data.licenseType]
+        sk_prefix = (
+            f'{privilege_data.compact}#PROV_UPDATE#privilege/{privilege_data.jurisdiction}/{license_type_abbr}/'
+        )
 
         privilege_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
-            serialized_record['pk'], f'{serialized_record["sk"]}UPDATE'
+            serialized_record['pk'], sk_prefix
         )
 
         return [PrivilegeUpdateData.from_database_record(update_record) for update_record in privilege_update_records]
@@ -124,8 +129,12 @@ class TestDataGenerator:
         """
         serialized_record = provider_record.serialize_to_database_record()
 
+        sk_prefix = (
+            f'{provider_record.compact}#PROV_UPDATE#provider'
+        )
+
         return TestDataGenerator._query_records_by_pk_and_sk_prefix(
-            serialized_record['pk'], f'{serialized_record["sk"]}#UPDATE'
+            serialized_record['pk'], sk_prefix
         )
 
     @staticmethod

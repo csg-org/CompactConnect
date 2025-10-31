@@ -302,7 +302,7 @@ class TestLicenseDeactivationEvents(TstFunction):
             privilege_update_records = self._provider_table.query(
                 Select='ALL_ATTRIBUTES',
                 KeyConditionExpression=Key('pk').eq(privilege.serialize_to_database_record()['pk'])
-                & Key('sk').begins_with(f'{privilege.compact}#PROVIDER#privilege/{privilege.jurisdiction}/slp#UPDATE'),
+                & Key('sk').begins_with(f'{privilege.compact}#PROV_UPDATE#privilege/{privilege.jurisdiction}/slp'),
             )
 
             self.assertEqual(1, len(privilege_update_records['Items']))

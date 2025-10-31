@@ -179,8 +179,14 @@ class DataClient:
         compact: str,
         provider_id: UUID,
         consistent_read: bool = True,
+        include_updates: bool = False,
     ) -> ProviderUserRecords:
         logger.info('Getting provider')
+
+        # Determine SK prefix based on include_updates parameter
+        # When include_updates=False, use begins_with({compact}#PROVIDER#) to exclude update records
+        # When include_updates=True, use begins_with({compact}#PROVIDER) to include both main records and update records
+        sk_prefix = f'{compact}#PROVIDER' if not include_updates else f'{compact}#PROV'
 
         resp = {'Items': []}
         last_evaluated_key = None
@@ -191,7 +197,7 @@ class DataClient:
             query_resp = self.config.provider_table.query(
                 Select='ALL_ATTRIBUTES',
                 KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-                & Key('sk').begins_with(f'{compact}#PROVIDER'),
+                & Key('sk').begins_with(sk_prefix),
                 ConsistentRead=consistent_read,
                 **pagination,
             )
@@ -971,26 +977,41 @@ class DataClient:
         :param str provider_id: The provider of the privilege
         :param str jurisdiction: The jurisdiction of the privilege
         :param str license_type_abbr: The license type abbreviation of the privilege
+        :param bool consistent_read: If true, performs a consistent read of the records
         :param bool detail: Boolean determining whether we include associated records or just privilege record itself
         :raises CCNotFoundException: If the privilege record is not found
         :return If detail = False list of length one containing privilege item, if detail = True list containing,
         privilege record, privilege update records and privilege adverse action records
         """
-        # Get the privilege record
-        if detail:
-            sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#')
-        else:
-            sk_condition = Key('sk').eq(f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#')
-
-        resp = self.config.provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
-            ConsistentRead=consistent_read,
+        # Get all provider records (with updates if detail=True)
+        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
+            compact=compact,
+            provider_id=provider_id,
+            consistent_read=consistent_read,
+            include_updates=detail,  # Only include updates if detail=True
         )
-        if not resp['Items'] or not len(resp['Items']):
+
+        # Get the specific privilege record
+        privilege = provider_user_records.get_specific_privilege_record(
+            jurisdiction=jurisdiction,
+            license_abbreviation=license_type_abbr,
+        )
+
+        if privilege is None:
             raise CCNotFoundException('Privilege not found')
 
-        return load_records_into_schemas(resp['Items'])
+        # Build return list in the same format as before
+        result = [privilege.to_dict()]
+        if detail:
+            # Add update records
+            privilege_updates = provider_user_records.get_update_records_for_privilege(
+                jurisdiction=jurisdiction,
+                license_type=privilege.licenseType,
+            )
+            result.extend([update.to_dict() for update in privilege_updates])
+
+
+        return result
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def get_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str) -> dict:

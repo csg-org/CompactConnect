@@ -215,7 +215,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         change_hash = self.hash_changes(in_data)
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         in_data['sk'] = (
-            f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}/{license_type_abbr}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#PROV_UPDATE#license/{in_data["jurisdiction"]}/{license_type_abbr}/{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
 

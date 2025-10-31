@@ -153,7 +153,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'
+                f'{test_privilege_record.compact}#PROV_UPDATE#privilege/{test_privilege_record.jurisdiction}/slp'
             ),
         )
         self.assertEqual(1, len(privilege_update_records['Items']))
@@ -200,7 +200,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'
+                f'{test_privilege_record.compact}#PROV_UPDATE#privilege/{test_privilege_record.jurisdiction}/slp'
             ),
         )
         self.assertEqual(1, len(privilege_update_records['Items']))
@@ -528,7 +528,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE'
+                f'{test_license_record.compact}#PROV_UPDATE#license/{test_license_record.jurisdiction}/slp'
             ),
         )
         self.assertEqual(1, len(license_update_records['Items']))

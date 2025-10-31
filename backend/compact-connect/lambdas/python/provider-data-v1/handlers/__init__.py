@@ -13,5 +13,7 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
     :param provider_id: The provider's unique identifier.
     :return: Provider profile information.
     """
-    provider_user_records = config.data_client.get_provider_user_records(compact=compact, provider_id=provider_id)
+    provider_user_records = config.data_client.get_provider_user_records(
+        compact=compact, provider_id=provider_id, include_updates=True
+    )
     return provider_user_records.generate_api_response_object()

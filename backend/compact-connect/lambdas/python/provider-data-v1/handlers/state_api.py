@@ -147,7 +147,9 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
         raise CCInvalidRequestException('Missing required field') from e
 
     with logger.append_context_keys(compact=compact, provider_id=provider_id, jurisdiction=jurisdiction):
-        provider_user_records = config.data_client.get_provider_user_records(compact=compact, provider_id=provider_id)
+        provider_user_records = config.data_client.get_provider_user_records(
+            compact=compact, provider_id=provider_id, include_updates=True
+        )
 
         # Get caller's scopes to determine private data access
         scopes = get_event_scopes(event)

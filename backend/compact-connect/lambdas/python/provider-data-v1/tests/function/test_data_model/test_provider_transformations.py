@@ -2,7 +2,6 @@ import json
 from datetime import date, datetime
 from unittest.mock import patch
 
-from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
 from .. import TstFunction
@@ -98,6 +97,9 @@ class TestTransformations(TstFunction):
             expected_provider = json.load(f)
             # this should be set during the registration flow
             expected_provider['currentHomeJurisdiction'] = 'oh'
+            # provider should be active and compact eligible
+            expected_provider['licenseStatus'] = 'active'
+            expected_provider['compactEligibility'] = 'eligible'
 
         # register the provider in the system
         client.process_registration_values(
@@ -134,23 +136,26 @@ class TestTransformations(TstFunction):
         )
 
         # Get the provider straight from the table, to inspect them
-        resp = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER'),
-        )
+        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_updates=True)
+
         # One record for each of: provider, providerUpdate, license,
         # privilege, and militaryAffiliation
-        self.assertEqual(5, len(resp['Items']))
-        records = {item['type']: item for item in resp['Items']}
+        self.assertEqual(5, len(provider_user_records.provider_records))
+        records = {item['type']: item for item in provider_user_records.provider_records}
 
         # Convert this to the data type expected from DynamoDB
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
         with open('../common/tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
+            # license should be active and compact eligible
+            expected_license['licenseStatus'] = 'active'
+            expected_license['compactEligibility'] = 'eligible'
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
+            # privilege status should be active
+            expected_privilege['status'] = 'active'
         with open('../common/tests/resources/dynamo/military-affiliation.json') as f:
             expected_military_affiliation = json.load(f)
             # in this case, the status will be initializing, since it is not set to active until
