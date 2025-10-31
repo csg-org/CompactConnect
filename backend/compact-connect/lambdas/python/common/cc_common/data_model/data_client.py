@@ -959,6 +959,90 @@ class DataClient:
                 ]
             )
 
+    def _get_privilege_record_directly(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbr: str,
+        consistent_read: bool = False,
+    ) -> PrivilegeData:
+        """
+        Query for a single privilege record directly from DynamoDB.
+
+        This should be used when it is undesirable to get all provider records and
+        filter for the specific privilege record.
+
+        :param str compact: The compact of the privilege
+        :param str provider_id: The provider of the privilege
+        :param str jurisdiction: The jurisdiction of the privilege
+        :param str license_type_abbr: The license type abbreviation of the privilege
+        :param bool consistent_read: If true, performs a consistent read of the record
+        :raises CCNotFoundException: If the privilege record is not found
+        :return: The privilege record as PrivilegeData
+        """
+        pk = f'{compact}#PROVIDER#{provider_id}'
+        sk = f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#'
+
+        try:
+            response = self.config.provider_table.get_item(
+                Key={'pk': pk, 'sk': sk},
+                ConsistentRead=consistent_read,
+            )
+            if 'Item' not in response:
+                raise CCNotFoundException('Privilege not found')
+
+            return PrivilegeData.from_database_record(response['Item'])
+        except KeyError as e:
+            raise CCNotFoundException('Privilege not found') from e
+
+    def _get_privilege_update_records_directly(
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbr: str,
+        consistent_read: bool = False,
+    ) -> list[PrivilegeUpdateData]:
+        """
+        Query for all privilege update records for a specific privilege directly from DynamoDB.
+
+        This should be used when it is undesirable to get all provider update records and
+        filter for the specific privilege update records.
+
+        :param str compact: The compact of the privilege
+        :param str provider_id: The provider of the privilege
+        :param str jurisdiction: The jurisdiction of the privilege
+        :param str license_type_abbr: The license type abbreviation of the privilege
+        :param bool consistent_read: If true, performs a consistent read of the records
+        :return: List of privilege update records
+        """
+        pk = f'{compact}#PROVIDER#{provider_id}'
+        sk_prefix = f'{compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/'
+
+        response_items = []
+        last_evaluated_key = None
+
+        while True:
+            pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+
+            query_resp = self.config.provider_table.query(
+                Select='ALL_ATTRIBUTES',
+                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
+                ConsistentRead=consistent_read,
+                **pagination,
+            )
+
+            response_items.extend(query_resp.get('Items', []))
+
+            last_evaluated_key = query_resp.get('LastEvaluatedKey')
+            if not last_evaluated_key:
+                break
+
+        return [PrivilegeUpdateData.from_database_record(item) for item in response_items]
+
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type')
     def get_privilege_data(
         self,
@@ -971,7 +1055,10 @@ class DataClient:
         detail: bool = False,
     ) -> list[dict]:
         """
-        Get a privilege for a provider in a jurisdiction of the license type
+        Get a privilege for a provider in a jurisdiction of the license type.
+
+        This should be used when it is undesirable to pull all provider records and
+        filter for the specific privilege record and associated update records.
 
         :param str compact: The compact of the privilege
         :param str provider_id: The provider of the privilege
@@ -983,30 +1070,26 @@ class DataClient:
         :return If detail = False list of length one containing privilege item, if detail = True list containing,
         privilege record, privilege update records and privilege adverse action records
         """
-        # Get all provider records (with updates if detail=True)
-        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
+        # Query directly for the privilege record
+        privilege = self._get_privilege_record_directly(
             compact=compact,
             provider_id=provider_id,
-            consistent_read=consistent_read,
-            include_updates=detail,  # Only include updates if detail=True
-        )
-
-        # Get the specific privilege record
-        privilege = provider_user_records.get_specific_privilege_record(
             jurisdiction=jurisdiction,
-            license_abbreviation=license_type_abbr,
+            license_type_abbr=license_type_abbr,
+            consistent_read=consistent_read,
         )
-
-        if privilege is None:
-            raise CCNotFoundException('Privilege not found')
 
         # Build return list in the same format as before
         result = [privilege.to_dict()]
+
         if detail:
-            # Add update records
-            privilege_updates = provider_user_records.get_update_records_for_privilege(
+            # Query directly for privilege update records
+            privilege_updates = self._get_privilege_update_records_directly(
+                compact=compact,
+                provider_id=provider_id,
                 jurisdiction=jurisdiction,
-                license_type=privilege.licenseType,
+                license_type_abbr=license_type_abbr,
+                consistent_read=consistent_read,
             )
             result.extend([update.to_dict() for update in privilege_updates])
 
