@@ -10,7 +10,7 @@ from marshmallow import ValidationError
 
 schema = LicensePostRequestSchema()
 
-# initialize flag outside of handler so the flag is cached for the lifecycle of the container
+# initialize flag outside of handler so the flag is cached for the lifecycle of the execution environment
 from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
 
 # low risk flag, so we default to enabled if failure detected
