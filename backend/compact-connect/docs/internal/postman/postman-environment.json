@@ -4,7 +4,7 @@
 	"values": [
 		{
 			"key": "boardUserPoolUrl",
-			"value": "https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com",
+			"value": "https://staff-auth.test.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},
