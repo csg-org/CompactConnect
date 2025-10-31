@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from moto import mock_aws
 
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from .. import TstFunction
 
 
@@ -135,9 +136,9 @@ class TestTransformations(TstFunction):
             ],
         )
 
-        # Get the provider straight from the table, to inspect them
+        # Get the provider and all update records straight from the table, to inspect them
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_updates=True
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
         # One record for each of: provider, providerUpdate, license,

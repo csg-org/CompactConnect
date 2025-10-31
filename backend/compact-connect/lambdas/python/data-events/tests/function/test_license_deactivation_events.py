@@ -299,16 +299,15 @@ class TestLicenseDeactivationEvents(TstFunction):
 
         # Verify privilege update records were created for both privileges
         for privilege in [privilege1, privilege2]:
-            privilege_update_records = self._provider_table.query(
-                Select='ALL_ATTRIBUTES',
-                KeyConditionExpression=Key('pk').eq(privilege.serialize_to_database_record()['pk'])
-                & Key('sk').begins_with(f'{privilege.compact}#PROV_UPDATE#privilege/{privilege.jurisdiction}/slp'),
-            )
+            privilege_update_records = (
+                self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                privilege
+            ))
 
-            self.assertEqual(1, len(privilege_update_records['Items']))
-            update_record = privilege_update_records['Items'][0]
-            self.assertEqual('licenseDeactivation', update_record['updateType'])
-            self.assertEqual({'licenseDeactivatedStatus': 'licenseDeactivated'}, update_record['updatedValues'])
+            self.assertEqual(1, len(privilege_update_records))
+            update_record = privilege_update_records[0]
+            self.assertEqual('licenseDeactivation', update_record.updateType)
+            self.assertEqual({'licenseDeactivatedStatus': 'licenseDeactivated'}, update_record.updatedValues)
 
     def test_license_deactivation_listener_fails_with_missing_required_fields(self):
         """Test that license deactivation event handler fails when required fields are missing."""

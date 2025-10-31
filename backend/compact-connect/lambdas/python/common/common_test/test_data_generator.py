@@ -100,15 +100,12 @@ class TestDataGenerator:
     ) -> list[PrivilegeUpdateData]:
         """
         Helper method to query update records from the database using the provider data class instance.
-
-        All of our update records use the same pk as the actual record that is being updated. The new pattern
-        for privilege updates is {compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/
         """
         serialized_record = privilege_data.serialize_to_database_record()
         from cc_common.config import config
 
         license_type_abbr = config.license_type_abbreviations[privilege_data.compact][privilege_data.licenseType]
-        sk_prefix = f'{privilege_data.compact}#PROV_UPDATE#privilege/{privilege_data.jurisdiction}/{license_type_abbr}/'
+        sk_prefix = f'{privilege_data.compact}#UPDATE#1#privilege/{privilege_data.jurisdiction}/{license_type_abbr}/'
 
         privilege_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
             serialized_record['pk'], sk_prefix
@@ -127,9 +124,31 @@ class TestDataGenerator:
         """
         serialized_record = provider_record.serialize_to_database_record()
 
-        sk_prefix = f'{provider_record.compact}#PROV_UPDATE#provider'
+        sk_prefix = f'{provider_record.compact}#UPDATE#2#provider'
 
         return TestDataGenerator._query_records_by_pk_and_sk_prefix(serialized_record['pk'], sk_prefix)
+
+    @staticmethod
+    def query_license_update_records_for_given_record_from_database(
+        license_data: LicenseData,
+    ) -> list[LicenseUpdateData]:
+        """
+        Helper method to query update records from the database using the license data class instance.
+
+        All of our update records use the same pk as the actual record that is being updated. The sk prefix
+        for license updates follows the tier pattern: {compact}#UPDATE#3#license/{jurisdiction}/{license_type_abbr}/
+        """
+        serialized_record = license_data.serialize_to_database_record()
+        from cc_common.config import config
+
+        license_type_abbr = config.license_type_abbreviations[license_data.compact][license_data.licenseType]
+        sk_prefix = f'{license_data.compact}#UPDATE#3#license/{license_data.jurisdiction}/{license_type_abbr}/'
+
+        license_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
+            serialized_record['pk'], sk_prefix
+        )
+
+        return [LicenseUpdateData.from_database_record(update_record) for update_record in license_update_records]
 
     @staticmethod
     def generate_default_adverse_action(value_overrides: dict | None = None) -> AdverseActionData:

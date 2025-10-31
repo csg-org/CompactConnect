@@ -317,7 +317,7 @@ class TestDataClient(TstFunction):
 
         # Verify that the audiologist privilege update record was created for ky
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_uuid, include_updates=True
+            compact='aslp', provider_id=provider_uuid
         )
 
         new_aud_ky_privilege = provider_user_records.get_specific_privilege_record(
@@ -350,15 +350,18 @@ class TestDataClient(TstFunction):
             new_aud_ky_privilege.serialize_to_database_record(),
         )
 
-        ky_aud_update_record = provider_user_records.get_update_records_for_privilege(
-            jurisdiction=new_aud_ky_privilege.jurisdiction, license_type=new_aud_ky_privilege.licenseType
-        )[0]
+        # Get update records using test_data_generator
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            new_aud_ky_privilege
+        )
+        self.assertEqual(1, len(update_records))
+        ky_aud_update_record = update_records[0]
 
         self.assertEqual(
             # A new history record
             {
                 'pk': f'aslp#PROVIDER#{provider_uuid}',
-                'sk': 'aslp#PROV_UPDATE#privilege/ky/aud/1731110399/f61e34798e1775ff6230d1187d444146',
+                'sk': 'aslp#UPDATE#1#privilege/ky/aud/1731110399/f61e34798e1775ff6230d1187d444146',
                 'type': 'privilegeUpdate',
                 'updateType': 'renewal',
                 'providerId': provider_uuid,
@@ -420,9 +423,9 @@ class TestDataClient(TstFunction):
             },
             new_aud_ne_privilege.serialize_to_database_record(),
         )
-        # assert there are no update records for this privilege
-        ne_aud_update_records = provider_user_records.get_update_records_for_privilege(
-            jurisdiction=new_aud_ne_privilege.jurisdiction, license_type=new_aud_ne_privilege.licenseType
+        # assert there are no update records for this privilege using test_data_generator
+        ne_aud_update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            new_aud_ne_privilege
         )
         self.assertEqual([], ne_aud_update_records)
 
@@ -516,7 +519,7 @@ class TestDataClient(TstFunction):
 
         # Verify that all privileges were updated
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_uuid, include_updates=True
+            compact='aslp', provider_id=provider_uuid
         )
 
         for jurisdiction in jurisdictions:
@@ -528,9 +531,9 @@ class TestDataClient(TstFunction):
             self.assertEqual('2025-10-31', privilege_record.dateOfExpiration.isoformat())
             self.assertEqual('test_transaction_id', privilege_record.compactTransactionId)
 
-            # Get the update record using ProviderUserRecords
-            update_records = provider_user_records.get_update_records_for_privilege(
-                jurisdiction=jurisdiction, license_type=privilege_record.licenseType
+            # Get the update record using test_data_generator
+            update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                privilege_record
             )
             self.assertEqual(1, len(update_records), f'Expected 1 update record for jurisdiction {jurisdiction}')
             update_record = update_records[0]
@@ -782,7 +785,7 @@ class TestDataClient(TstFunction):
 
         # Verify that the privilege record was updated
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_updates=True
+            compact='aslp', provider_id=provider_id
         )
 
         new_privilege = provider_user_records.get_specific_privilege_record(
@@ -813,9 +816,9 @@ class TestDataClient(TstFunction):
             new_privilege.serialize_to_database_record(),
         )
 
-        # Get the update record
-        update_records = provider_user_records.get_update_records_for_privilege(
-            jurisdiction='ne', license_type=new_privilege.licenseType
+        # Get the update record using test_data_generator
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            new_privilege
         )
         self.assertEqual(1, len(update_records), 'Expected 1 update record')
         update_record = update_records[0]
@@ -823,7 +826,7 @@ class TestDataClient(TstFunction):
         self.assertEqual(
             {
                 'pk': f'aslp#PROVIDER#{provider_id}',
-                'sk': 'aslp#PROV_UPDATE#privilege/ne/aud/1731110399/aac682a76e1182a641a1b40dd606ae51',
+                'sk': 'aslp#UPDATE#1#privilege/ne/aud/1731110399/aac682a76e1182a641a1b40dd606ae51',
                 'type': 'privilegeUpdate',
                 'updateType': 'deactivation',
                 'providerId': str(provider_id),
@@ -921,7 +924,7 @@ class TestDataClient(TstFunction):
         # We'll create it as if it were already deactivated
         original_history = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROV_UPDATE#privilege/ne/aud/1731110399/4ebb3dc8f1ffcc30fe7aad5ec49d0ca6',
+            'sk': 'aslp#UPDATE#1#privilege/ne/aud/1731110399/4ebb3dc8f1ffcc30fe7aad5ec49d0ca6',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': str(provider_id),
@@ -967,7 +970,7 @@ class TestDataClient(TstFunction):
 
         # Verify that the privilege record was unchanged
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_updates=True
+            compact='aslp', provider_id=provider_id
         )
 
         new_privilege = provider_user_records.get_specific_privilege_record(
@@ -980,9 +983,9 @@ class TestDataClient(TstFunction):
         serialized_record['dateOfUpdate'] = original_privilege['dateOfUpdate']
         self.assertEqual(original_privilege, serialized_record)
 
-        # Verify the update record is unchanged
-        update_records = provider_user_records.get_update_records_for_privilege(
-            jurisdiction='ne', license_type=new_privilege.licenseType
+        # Verify the update record is unchanged using test_data_generator
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            new_privilege
         )
         self.assertEqual(1, len(update_records), 'Expected 1 update record')
         self.assertEqual(original_history, update_records[0].serialize_to_database_record())

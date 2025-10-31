@@ -41,6 +41,7 @@ from cc_common.data_model.schema.military_affiliation.record import MilitaryAffi
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCInternalException,
@@ -179,14 +180,21 @@ class DataClient:
         compact: str,
         provider_id: UUID,
         consistent_read: bool = True,
-        include_updates: bool = False,
+        include_update_tier: UpdateTierEnum | None = None,
     ) -> ProviderUserRecords:
         logger.info('Getting provider')
 
-        # Determine SK prefix based on include_updates parameter
-        # When include_updates=False, use begins_with({compact}#PROVIDER#) to exclude update records
-        # When include_updates=True, use begins_with({compact}#PROVIDER) to include both main records and update records
-        sk_prefix = f'{compact}#PROVIDER' if not include_updates else f'{compact}#PROV'
+        # Determine SK condition based on include_update_tier parameter
+        # When include_update_tier=None, use begins_with to get only main records (provider, licenses, privileges)
+        # When include_update_tier is set, use lt (less than) to get main records plus updates up to that tier
+        if include_update_tier is None:
+            # Get only main records: {compact}#PROVIDER prefix
+            sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER')
+        else:
+            # Get main records and updates up to specified tier using lt (less than)
+            # This fetches all SKs less than {compact}#UPDATE#{next_tier}
+            next_tier = int(include_update_tier) + 1
+            sk_condition = Key('sk').lt(f'{compact}#UPDATE#{next_tier}')
 
         resp = {'Items': []}
         last_evaluated_key = None
@@ -196,8 +204,7 @@ class DataClient:
 
             query_resp = self.config.provider_table.query(
                 Select='ALL_ATTRIBUTES',
-                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-                & Key('sk').begins_with(sk_prefix),
+                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
                 ConsistentRead=consistent_read,
                 **pagination,
             )
@@ -1027,9 +1034,9 @@ class DataClient:
         # SK prefixes to query (new pattern and old pattern for migration support)
         # TODO - remove old pattern once migration is complete  # noqa: FIX002
         sk_prefixes = [
-            # New pattern: {compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/
-            f'{compact}#PROV_UPDATE#privilege/{jurisdiction}/{license_type_abbr}/',
-            # Old pattern: {compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE
+            # New pattern
+            f'{compact}#UPDATE#1#privilege/{jurisdiction}/{license_type_abbr}/',
+            # Old pattern
             f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE',
         ]
 

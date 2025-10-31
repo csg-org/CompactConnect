@@ -2,6 +2,7 @@ from functools import partial
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.privilege import PrivilegeData
@@ -147,8 +148,9 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
         raise CCInvalidRequestException('Missing required field') from e
 
     with logger.append_context_keys(compact=compact, provider_id=provider_id, jurisdiction=jurisdiction):
+        # Collect all main provider records and privilege update records, which are included in tier one.
         provider_user_records = config.data_client.get_provider_user_records(
-            compact=compact, provider_id=provider_id, include_updates=True
+            compact=compact, provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_ONE
         )
 
         # Get caller's scopes to determine private data access

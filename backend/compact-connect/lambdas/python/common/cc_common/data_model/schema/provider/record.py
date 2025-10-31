@@ -238,6 +238,6 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # field for this.
         change_hash = self.hash_changes(in_data)
         in_data['sk'] = (
-            f'{in_data["compact"]}#PROV_UPDATE#provider/{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#UPDATE#2#provider/{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
