@@ -14,7 +14,7 @@ from cc_common.data_model.schema.license.api import (
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException
 
-# initialize flag outside of handler so the flag is cached for the lifecycle of the container
+# initialize flag outside of handler so the flag is cached for the lifecycle of the lambda execution environment
 from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
 from cc_common.utils import (
     ResponseEncoder,
