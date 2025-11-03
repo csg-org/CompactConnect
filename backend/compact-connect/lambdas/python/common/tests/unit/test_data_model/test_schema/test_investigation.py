@@ -97,7 +97,10 @@ class TestInvestigationDataClass(TstLambdas):
 
     def test_investigation_data_class_outputs_expected_database_object(self):
         # check final snapshot of expected data
-        investigation_data = self.test_data_generator.generate_default_investigation().serialize_to_database_record()
+        investigation = self.test_data_generator.generate_default_investigation()
+        investigation_data = investigation.serialize_to_database_record()
+        pk = 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570'
+        sk = 'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#98765432-9876-9876-9876-987654321098'
         # Pop dynamic field
         investigation_data.pop('dateOfUpdate')
 
@@ -109,14 +112,18 @@ class TestInvestigationDataClass(TstLambdas):
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'jurisdiction': 'ne',
                 'licenseType': 'speech-language pathologist',
-                'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'pk': pk,
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                'sk': 'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#98765432-9876-9876-9876-987654321098',
+                'sk': sk,
                 'submittingUser': '12a6377e-c3a5-40e5-bca5-317ec854c556',
                 'type': 'investigation',
             },
             investigation_data,
         )
+
+        # Properties should be consistent with db record
+        self.assertEqual(pk, investigation.pk)
+        self.assertEqual(sk, investigation.sk)
 
 
 class TestInvestigationPatchRequestSchema(TstLambdas):

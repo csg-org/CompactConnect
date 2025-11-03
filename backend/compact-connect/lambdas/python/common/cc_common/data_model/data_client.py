@@ -1627,29 +1627,39 @@ class DataClient:
         ):
             # Get the record (privilege or license)
             record_type = investigation.investigationAgainst
-            try:
-                record = self.config.provider_table.get_item(
-                    Key={
-                        'pk': f'{investigation.compact}#PROVIDER#{investigation.providerId}',
-                        'sk': f'{investigation.compact}#PROVIDER#{record_type}/'
-                        f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#',
-                    },
-                )['Item']
-            except KeyError as e:
-                message = f'{record_type.title()} not found for jurisdiction'
-                logger.info(message)
-                raise CCNotFoundException(
-                    f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
-                ) from e
 
-            if investigation.investigationAgainst == InvestigationAgainstEnum.PRIVILEGE:
-                record_data = PrivilegeData.from_database_record(record)
-                update_data_type = PrivilegeUpdateData
-                update_type = ProviderRecordType.PRIVILEGE_UPDATE
-            else:
-                record_data = LicenseData.from_database_record(record)
+            # Query for the record (privilege or license) and all its investigations in a single query
+            provider_records = self.get_provider_user_records(
+                compact=investigation.compact, provider_id=investigation.providerId, consistent_read=True
+            )
+
+            # Separate the main record from investigation records
+            if investigation.investigationAgainst == InvestigationAgainstEnum.LICENSE:
+                record = provider_records.get_specific_license_record(
+                    investigation.jurisdiction, investigation.licenseTypeAbbreviation
+                )
+                if not record:
+                    message = f'{record_type.title()} not found for jurisdiction'
+                    logger.info(message)
+                    raise CCNotFoundException(
+                        f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
+                    )
+
                 update_data_type = LicenseUpdateData
                 update_type = ProviderRecordType.LICENSE_UPDATE
+            else:
+                record = provider_records.get_specific_privilege_record(
+                    investigation.jurisdiction, investigation.licenseTypeAbbreviation
+                )
+                if not record:
+                    message = f'{record_type.title()} not found for jurisdiction'
+                    logger.info(message)
+                    raise CCNotFoundException(
+                        f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
+                    )
+
+                update_data_type = PrivilegeUpdateData
+                update_type = ProviderRecordType.PRIVILEGE_UPDATE
 
             investigation_details = {
                 'investigationId': investigation.investigationId,
@@ -1666,7 +1676,7 @@ class DataClient:
                     'createDate': investigation.creationDate,
                     'effectiveDate': investigation.creationDate,
                     'licenseType': investigation.licenseType,
-                    'previous': record_data.to_dict(),
+                    'previous': record.to_dict(),
                     'updatedValues': {
                         'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
                     },
@@ -1675,6 +1685,7 @@ class DataClient:
             )
 
             # Prepare the transaction items
+            serialized_record = record.serialize_to_database_record()
             transaction_items = [
                 self._generate_put_transaction_item(investigation.serialize_to_database_record()),
                 self._generate_put_transaction_item(update_record.serialize_to_database_record()),
@@ -1682,11 +1693,8 @@ class DataClient:
                     'Update': {
                         'TableName': self.config.provider_table.table_name,
                         'Key': {
-                            'pk': {'S': f'{investigation.compact}#PROVIDER#{investigation.providerId}'},
-                            'sk': {
-                                'S': f'{investigation.compact}#PROVIDER#{record_type}/'
-                                f'{investigation.jurisdiction}/{investigation.licenseTypeAbbreviation}#'
-                            },
+                            'pk': {'S': serialized_record['pk']},
+                            'sk': {'S': serialized_record['sk']},
                         },
                         'UpdateExpression': (
                             'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
@@ -1757,8 +1765,18 @@ class DataClient:
                 update_type = ProviderRecordType.LICENSE_UPDATE
                 # Count open investigations (those without closeDate), excluding the one we're closing
                 open_investigations = provider_records.get_investigation_records_for_license(
-                    jurisdiction, license_type_abbreviation,
-                    lambda inv: inv.closeDate is None and inv.investigationId != investigation_id
+                    jurisdiction,
+                    license_type_abbreviation,
+                    lambda inv: inv.closeDate is None and inv.investigationId != investigation_id,
+                )
+                investigation = next(
+                    (
+                        inv
+                        for inv in provider_records.get_investigation_records_for_license(
+                            jurisdiction, license_type_abbreviation, lambda inv: inv.investigationId == investigation_id
+                        )
+                    ),
+                    None,
                 )
             else:
                 record = provider_records.get_specific_privilege_record(jurisdiction, license_type_abbreviation)
@@ -1771,14 +1789,22 @@ class DataClient:
                 update_type = ProviderRecordType.PRIVILEGE_UPDATE
                 # Count open investigations (those without closeDate), excluding the one we're closing
                 open_investigations = provider_records.get_investigation_records_for_privilege(
-                    jurisdiction, license_type_abbreviation,
-                    lambda inv: inv.closeDate is None and inv.investigationId != investigation_id
+                    jurisdiction,
+                    license_type_abbreviation,
+                    lambda inv: inv.closeDate is None and inv.investigationId != investigation_id,
+                )
+                investigation = next(
+                    (
+                        inv
+                        for inv in provider_records.get_investigation_records_for_privilege(
+                            jurisdiction, license_type_abbreviation, lambda inv: inv.investigationId == investigation_id
+                        )
+                    ),
+                    None,
                 )
 
-            if not record:
-                message = f'{record_type.title()} not found for jurisdiction'
-                logger.info(message)
-                raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
+            if investigation is None:
+                raise CCNotFoundException('Investigation not found')
 
             # Determine if this is the last open investigation
             is_last_open_investigation = len(open_investigations) == 0
@@ -1805,11 +1831,8 @@ class DataClient:
                     'Update': {
                         'TableName': self.config.provider_table.table_name,
                         'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {
-                                'S': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/'
-                                f'{license_type_abbreviation}#INVESTIGATION#{investigation_id}'
-                            },
+                            'pk': {'S': investigation.pk},
+                            'sk': {'S': investigation.sk},
                         },
                         'UpdateExpression': investigation_update_expression,
                         'ConditionExpression': 'attribute_exists(pk) AND attribute_not_exists(closeDate)',
@@ -1837,18 +1860,17 @@ class DataClient:
                     }
                 )
 
+                serialized_record = record.serialize_to_database_record()
                 transaction_items.extend(
                     [
                         self._generate_put_transaction_item(update_record.serialize_to_database_record()),
+                        # Remove investigationStatus from the license/privilege record
                         {
                             'Update': {
                                 'TableName': self.config.provider_table.table_name,
                                 'Key': {
-                                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                                    'sk': {
-                                        'S': f'{compact}#PROVIDER#{record_type}/{jurisdiction}/'
-                                        f'{license_type_abbreviation}#'
-                                    },
+                                    'pk': {'S': serialized_record['pk']},
+                                    'sk': {'S': serialized_record['sk']},
                                 },
                                 'UpdateExpression': 'REMOVE investigationStatus SET dateOfUpdate = :dateOfUpdate',
                                 'ConditionExpression': 'attribute_exists(pk)',

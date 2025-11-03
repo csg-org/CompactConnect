@@ -21,6 +21,52 @@ class InvestigationData(CCDataClass):
     # Can use setters to set field data
     _requires_data_at_construction = False
 
+    @staticmethod
+    def generate_pk(compact: str, provider_id: UUID):
+        return f'{compact}#PROVIDER#{provider_id}'
+
+    @staticmethod
+    def generate_sk(
+        compact: str,
+        investigation_against: InvestigationAgainstEnum,
+        jurisdiction: str,
+        license_type_abbr: str,
+        investigation_id: UUID,
+    ):
+        return (
+            f'{compact}#PROVIDER#{investigation_against}/{jurisdiction}/{license_type_abbr}#'
+            f'INVESTIGATION#{investigation_id}'
+        )
+
+    @property
+    def pk(self):
+        if self.compact is None:
+            raise ValueError('Cannot calculate pk if compact is not set')
+        if self.providerId is None:
+            raise ValueError('Cannot calculate pk if providerId is not set')
+
+        return self.generate_pk(self.compact, self.providerId)
+
+    @property
+    def sk(self):
+        if self.compact is None:
+            raise ValueError('Cannot calculate sk if compact is not set')
+        if self.investigationAgainst is None:
+            raise ValueError('Cannot calculate sk if investigationAgainst is not set')
+        if self.jurisdiction is None:
+            raise ValueError('Cannot calculate sk if jurisdiction is not set')
+        if self.licenseTypeAbbreviation is None:
+            raise ValueError('Cannot calculate sk if licenseType is not set')
+        if self.investigationId is None:
+            raise ValueError('Cannot calculate sk if investigationId is not set')
+        return self.generate_sk(
+            compact=self.compact,
+            investigation_against=self.investigationAgainst,
+            jurisdiction=self.jurisdiction,
+            license_type_abbr=self.licenseTypeAbbreviation,
+            investigation_id=self.investigationId,
+        )
+
     @property
     def compact(self) -> str:
         return self._data['compact']

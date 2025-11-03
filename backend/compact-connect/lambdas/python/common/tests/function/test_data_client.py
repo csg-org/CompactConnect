@@ -1267,14 +1267,17 @@ class TestDataClient(TstFunction):
         from cc_common.data_model.schema.investigation import InvestigationData
         from cc_common.exceptions import CCNotFoundException
 
+        # Load test data, privilege in Nebraska, license in Ohio
+        provider_id = self._load_provider_data()
+
         client = DataClient(self.config)
 
-        # Create investigation data for non-existent privilege
+        # Create investigation data for non-existent privilege (no privilege in Ohio)
         investigation = InvestigationData.create_new(
             {
-                'providerId': str(uuid4()),
+                'providerId': str(provider_id),
                 'compact': 'aslp',
-                'jurisdiction': 'ne',
+                'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'slp',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'privilege',
@@ -1296,14 +1299,17 @@ class TestDataClient(TstFunction):
         from cc_common.data_model.schema.investigation import InvestigationData
         from cc_common.exceptions import CCNotFoundException
 
+        # Load test data, privilege in Nebraska, license in Ohio
+        provider_id = self._load_provider_data()
+
         client = DataClient(self.config)
 
-        # Create investigation data for non-existent license
+        # Create investigation data for non-existent license (no license in Nebraska)
         investigation = InvestigationData.create_new(
             {
-                'providerId': str(uuid4()),
+                'providerId': str(provider_id),
                 'compact': 'aslp',
-                'jurisdiction': 'oh',
+                'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'slp',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'license',
@@ -1685,7 +1691,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='slp',
-            investigation_id=str(investigation.investigationId),
+            investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
@@ -1696,7 +1702,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='ne',
                 license_type_abbreviation='slp',
-                investigation_id=str(investigation.investigationId),
+                investigation_id=investigation.investigationId,
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
                 investigation_against=InvestigationAgainstEnum.PRIVILEGE,
@@ -1727,7 +1733,7 @@ class TestDataClient(TstFunction):
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                'investigationId': str(uuid4()),
+                'investigationId': uuid4(),
             }
         )
 
@@ -1740,7 +1746,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='slp',
-            investigation_id=str(investigation.investigationId),
+            investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.LICENSE,
@@ -1751,7 +1757,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='oh',
                 license_type_abbreviation='slp',
-                investigation_id=str(investigation.investigationId),
+                investigation_id=investigation.investigationId,
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
                 investigation_against=InvestigationAgainstEnum.LICENSE,
