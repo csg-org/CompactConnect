@@ -61,13 +61,6 @@ def get_cognito_details(user_pool_id):
         return 'Unknown', 'Unknown'
 
 
-def get_cognito_login_url(user_pool_domain):
-    """Construct Cognito Hosted UI Login URL"""
-    if user_pool_domain:
-        return f'https://{user_pool_domain}.auth.{aws_region}.amazoncognito.com/login'
-    return None
-
-
 def extract_table_name(value):
     """Extracts the actual DynamoDB table name from an ARN"""
     if value.startswith('arn:aws:dynamodb:'):
@@ -91,20 +84,20 @@ def fetch_resources():
                     api_gateway_url = value
 
             # Provider Users (Cognito + DynamoDB)
-            if 'ProviderUsers' in key:
+            if 'ProviderUsersGreen' in key:
                 if 'UserPoolId' in key:
                     provider_details['user_pool_id'] = value
                     provider_details['user_pool_name'], provider_details['client_id'] = get_cognito_details(value)
-                elif 'UsersDomain' in key:
-                    provider_details['login_url'] = get_cognito_login_url(value)
+                elif 'ProviderUsersGreenLicenseeUserPoolDomainName' in key:
+                    provider_details['login_url'] = value
 
             # Staff Users (Cognito + DynamoDB)
             if 'StaffUsersGreen' in key:
                 if 'UserPoolId' in key:
                     staff_details['user_pool_id'] = value
                     staff_details['user_pool_name'], staff_details['client_id'] = get_cognito_details(value)
-                elif 'UsersDomain' in key:
-                    staff_details['login_url'] = get_cognito_login_url(value)
+                elif 'StaffUsersGreenStaffUserPoolDomainName' in key:
+                    staff_details['login_url'] = value
 
             # Find associated DynamoDB tables
             if 'Table' in key:

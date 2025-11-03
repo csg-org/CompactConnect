@@ -297,7 +297,6 @@ class UpdateCategory(CCEnum):
     DEACTIVATION = 'deactivation'
     EXPIRATION = 'expiration'
     ISSUANCE = 'issuance'
-    OTHER = 'other'
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
     INVESTIGATION = 'investigation'
@@ -308,6 +307,9 @@ class UpdateCategory(CCEnum):
     # this is specific to privileges that are deactivated due to a state license deactivation
     LICENSE_DEACTIVATION = 'licenseDeactivation'
     EMAIL_CHANGE = 'emailChange'
+    # NOTE: this value should explicitly be used for license upload updates, not anywhere else
+    # it is referenced in the event that an invalid license upload needs to be reverted.
+    LICENSE_UPLOAD_UPDATE_OTHER = 'other'
 
 
 class ActiveInactiveStatus(CCEnum):

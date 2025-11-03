@@ -16,10 +16,11 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { dateFormatPatterns } from '@/app.config';
+import { dateFormatPatterns, FeatureGates } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
+import InputSelectMultiple from '@components/Forms/InputSelectMultiple/InputSelectMultiple.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
@@ -46,6 +47,7 @@ import moment from 'moment';
         MockPopulate,
         InputDate,
         InputSelect,
+        InputSelectMultiple,
         InputCheckbox,
         InputButton,
         InputSubmit,
@@ -89,6 +91,10 @@ class LicenseCard extends mixins(MixinForm) {
     //
     // Computed
     //
+    get featureGates(): typeof FeatureGates {
+        return FeatureGates;
+    }
+
     get userStore() {
         return this.$store.state.user;
     }
@@ -236,10 +242,12 @@ class LicenseCard extends mixins(MixinForm) {
             name: npdbType.name,
         }));
 
-        options.unshift({
-            value: '',
-            name: computed(() => this.$t('common.selectOption')),
-        });
+        if (!this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)) {
+            options.unshift({
+                value: '',
+                name: computed(() => this.$t('common.selectOption')),
+            });
+        }
 
         return options;
     }
@@ -272,13 +280,27 @@ class LicenseCard extends mixins(MixinForm) {
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.encumberDisciplineOptions,
             }),
-            encumberModalNpdbCategory: new FormInput({
-                id: 'npdb-category',
-                name: 'npdb-category',
-                label: computed(() => this.$t('licensing.npdbCategoryLabel')),
-                validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.npdbCategoryOptions,
-            }),
+            ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                ? {
+                    encumberModalNpdbCategories: new FormInput({
+                        id: 'npdb-categories',
+                        name: 'npdb-categories',
+                        label: computed(() => this.$t('licensing.npdbCategoryLabel')),
+                        validation: Joi.array().min(1).messages(this.joiMessages.array),
+                        valueOptions: this.npdbCategoryOptions,
+                        value: [],
+                    }),
+                }
+                : {
+                    encumberModalNpdbCategory: new FormInput({
+                        id: 'npdb-category',
+                        name: 'npdb-category',
+                        label: computed(() => this.$t('licensing.npdbCategoryLabel')),
+                        validation: Joi.string().required().messages(this.joiMessages.string),
+                        valueOptions: this.npdbCategoryOptions,
+                    }),
+                }
+            ),
             encumberModalStartDate: new FormInput({
                 id: 'encumber-start',
                 name: 'encumber-start',
@@ -310,7 +332,7 @@ class LicenseCard extends mixins(MixinForm) {
             const adverseActionInput = new FormInput({
                 id: `adverse-action-data-${adverseActionId}`,
                 name: `adverse-action-data-${adverseActionId}`,
-                label: adverseAction.npdbTypeName(),
+                label: adverseAction.encumbranceTypeName(),
                 isDisabled: Boolean(adverseAction.endDate),
             });
 
@@ -419,7 +441,14 @@ class LicenseCard extends mixins(MixinForm) {
                 licenseState: stateAbbrev,
                 licenseType: licenseTypeAbbrev.toLowerCase(),
                 encumbranceType: this.formData.encumberModalDisciplineAction.value,
-                npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                    ? {
+                        npdbCategories: this.formData.encumberModalNpdbCategories.value,
+                    }
+                    : {
+                        npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                    }
+                ),
                 startDate: this.formData.encumberModalStartDate.value,
             }).catch((err) => {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
@@ -619,7 +648,11 @@ class LicenseCard extends mixins(MixinForm) {
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberLicenseModalDisplayed) {
             this.formData.encumberModalDisciplineAction.value = this.encumberDisciplineOptions[1]?.value;
-            this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
+            if (this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)) {
+                this.formData.encumberModalNpdbCategories.value = [this.npdbCategoryOptions[1]?.value];
+            } else {
+                this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
+            }
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
             await nextTick();
             this.validateAll({ asTouched: true });

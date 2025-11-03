@@ -7,7 +7,10 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
-from common_constructs.frontend_app_config_utility import PersistentStackFrontendAppConfigUtility
+from common_constructs.frontend_app_config_utility import (
+    COGNITO_AUTH_DOMAIN_SUFFIX,
+    PersistentStackFrontendAppConfigUtility,
+)
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
@@ -148,12 +151,11 @@ class PersistentStack(AppStack):
         self._create_email_notification_service()
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
-        staff_prefix = f'{app_name}-staff'
 
         self.staff_users = StaffUsers(
             self,
             'StaffUsersGreen',
-            cognito_domain_prefix=staff_prefix if environment_name == 'prod' else f'{staff_prefix}-{environment_name}',
+            app_name=app_name,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
@@ -462,8 +464,14 @@ class PersistentStack(AppStack):
         frontend_app_config = PersistentStackFrontendAppConfigUtility()
 
         # Add staff user pool Cognito configuration
+        auth_domain_name = ''
+        if self.hosted_zone:
+            auth_domain_name = self.staff_users.app_client_custom_domain.domain_name
+        else:
+            auth_domain_name = f'{self.staff_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
+
         frontend_app_config.set_staff_cognito_values(
-            domain_name=self.staff_users.user_pool_domain.domain_name,
+            domain_name=auth_domain_name,
             client_id=self.staff_users.ui_client.user_pool_client_id,
         )
 

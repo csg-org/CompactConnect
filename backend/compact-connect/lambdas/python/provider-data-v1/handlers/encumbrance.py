@@ -100,10 +100,10 @@ def _generate_adverse_action_for_record_type(
     adverse_action.actionAgainst = adverse_action_against_record_type
     adverse_action.encumbranceType = EncumbranceType(adverse_action_post_body['encumbranceType'])
     # TODO - remove the flag conditions as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    from cc_common.feature_flag_client import is_feature_enabled
+    from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
 
-    if is_feature_enabled('encumbrance-multi-category-flag'):
-        if 'clinicalPrivilegeActionCategory' in adverse_action_post_body:
+    if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
+        if 'clinicalPrivilegeActionCategory' in adverse_action_request:
             # replicate data to both the deprecated and new fields
             adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
                 adverse_action_post_body['clinicalPrivilegeActionCategory']

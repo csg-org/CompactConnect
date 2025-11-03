@@ -384,9 +384,9 @@ class ProviderRecordUtility:
             ):
                 # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
                 # as well as check for deprecated field
-                from cc_common.feature_flag_client import is_feature_enabled
+                from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
 
-                if is_feature_enabled('encumbrance-multi-category-flag'):
+                if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
                     if 'clinicalPrivilegeActionCategory' in event['encumbranceDetails']:
                         event['note'] = event['encumbranceDetails'].get('clinicalPrivilegeActionCategory')
                     else:

@@ -1,8 +1,8 @@
 <!--
-    InputSelect.vue
-    inHere
+    InputSelectMultiple.vue
+    CompactConnect
 
-    Created by InspiringApps on 5/28/2020.
+    Created by InspiringApps on 10/2/2025.
 -->
 
 <template>
@@ -14,8 +14,16 @@
             'has-error': !!formInput.errorMessage
         }"
     >
-        <InputLabel :formInput="formInput" :isRequired="isRequired"/>
+        <label
+            v-if="!formInput.shouldHideLabel"
+            :for="formInput.id"
+        >
+            {{ formInput.label }}
+            <span v-if="isRequired" class="required-indicator">*</span>
+        </label>
+        <div class="multi-select-description">{{ $t('common.selectMultipleKeys') }}</div>
         <select
+            multiple="multiple"
             :id="formInput.id"
             :name="formInput.name"
             v-model="formInput.value"
@@ -50,8 +58,27 @@
         >
             {{ formInput.errorMessage }}
         </span>
+        <div class="selected-container">
+            <div
+                v-for="(value, index) in formInput.value"
+                :key="index"
+                class="selected-value"
+            >
+                {{ getValueDisplay(value) }}
+                <div
+                    class="remove"
+                    :aria-label="`${$t('common.remove')} ${getValueDisplay(value)}`"
+                    role="button"
+                    @click="removeSelectedValue(value)"
+                    @keyup.enter="removeSelectedValue(value)"
+                    tabindex="0"
+                >
+                    <CloseXIcon />
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
-<script lang="ts" src="./InputSelect.ts"></script>
-<style scoped lang="less" src="./InputSelect.less"></style>
+<script lang="ts" src="./InputSelectMultiple.ts"></script>
+<style scoped lang="less" src="./InputSelectMultiple.less"></style>
