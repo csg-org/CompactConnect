@@ -86,12 +86,12 @@
             - `us-east-1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com`
-            - CSG Test: `https://compact-connect-provider-test.auth.us-east-1.amazoncognito.com`
-            - Beta: `https://compact-connect-provider-beta.auth.us-east-1.amazoncognito.com`
-            - Prod: `https://compact-connect-provider.auth.us-east-1.amazoncognito.com`
+            - IA Test: `https://licensee-auth.test.jcc.iaapi.io`
+            - CSG Test: `https://licensee-auth.test.compactconnect.org`
+            - Beta: `https://licensee-auth.beta.compactconnect.org`
+            - Prod: `https://licensee-auth.compactconnect.org`
         - _Local_ :arrow_heading_down:
-            - `https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com`
+            - `https://licensee-auth.test.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE`**
         - _Server_ :arrow_heading_up:
             - IA Test: `topd4vhftng5cfm3ccgkb6ejd`
@@ -102,12 +102,12 @@
             - `topd4vhftng5cfm3ccgkb6ejd`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF`**
         - _Server_ :arrow_heading_up:
-            - IA Test: `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
-            - CSG Test: `https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com`
-            - Beta: `https://compact-connect-staff-beta.auth.us-east-1.amazoncognito.com`
-            - Prod: `https://compact-connect-staff.auth.us-east-1.amazoncognito.com`
+            - IA Test: `https://staff-auth.test.jcc.iaapi.io`
+            - CSG Test: `https://staff-auth.test.compactconnect.org`
+            - Beta: `https://staff-auth.beta.compactconnect.org`
+            - Prod: `https://staff-auth.compactconnect.org`
         - _Local_ :arrow_heading_down:
-            - `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
+            - `https://staff-auth.test.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_CLIENT_ID_STAFF`**
         - _Server_ :arrow_heading_up:
             - IA Test: `15mh24ea4af3of8jcnv8h2ic10`

@@ -30,7 +30,7 @@ class ProviderUsers(UserPool):
         scope: Construct,
         construct_id: str,
         *,
-        cognito_domain_prefix: str,
+        app_name: str,
         environment_name: str,
         environment_context: dict,
         encryption_key: IKey,
@@ -43,7 +43,6 @@ class ProviderUsers(UserPool):
         super().__init__(
             scope,
             construct_id,
-            cognito_domain_prefix=cognito_domain_prefix,
             environment_name=environment_name,
             encryption_key=encryption_key,
             removal_policy=removal_policy,
@@ -67,6 +66,18 @@ class ProviderUsers(UserPool):
             ),
             **kwargs,
         )
+
+        if persistent_stack.hosted_zone:
+            self.add_custom_app_client_domain(
+                app_client_domain_prefix='Licensee',
+                scope=self,
+                hosted_zone=persistent_stack.hosted_zone
+            )
+        else:
+            provider_prefix = f'{app_name}-provider'
+            default_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
+
+            self.add_default_app_client_domain(non_custom_domain_prefix=default_prefix)
 
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(

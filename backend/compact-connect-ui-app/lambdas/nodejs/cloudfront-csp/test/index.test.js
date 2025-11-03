@@ -22,8 +22,8 @@ const environmentValues = {
     dataApi: 'api.compactconnect.org',
     s3UploadUrlState: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com',
     s3UploadUrlProvider: 'prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwk.s3.amazonaws.com',
-    cognitoStaff: 'compact-connect-staff.auth.us-east-1.amazoncognito.com',
-    cognitoProvider: 'compact-connect-provider.auth.us-east-1.amazoncognito.com',
+    cognitoStaff: 'staff-auth.compactconnect.org',
+    cognitoProvider: 'licensee-auth.compactconnect.org',
 };
 
 /**

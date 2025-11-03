@@ -98,7 +98,11 @@ class ProviderUsersStackFrontendAppConfigUtility:
     def __init__(self):
         self._config: dict[str, str] = {}
 
-    def set_provider_cognito_values(self, domain_name: str, client_id: str) -> None:
+    def set_provider_cognito_values(
+            self,
+            domain_name: str,
+            client_id: str
+    ) -> None:
         """
         Set Cognito configuration values for provider users.
 
