@@ -79,7 +79,7 @@ def _send_provider_notification(
     provider_email = provider_record.compactConnectRegisteredEmailAddress
     if provider_email:
         if tracker.should_send_provider_notification():
-            logger.info(f'Sending {notification_type} notification to provider',  provider_id=provider_id)
+            logger.info(f'Sending {notification_type} notification to provider', provider_id=provider_id)
             try:
                 notification_method(
                     compact=compact,

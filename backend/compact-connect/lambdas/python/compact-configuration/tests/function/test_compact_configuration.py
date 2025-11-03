@@ -216,7 +216,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
                 'configuredStates': [
                     {'postalAbbreviation': 'ne', 'isLive': True},
                     {'postalAbbreviation': 'oh', 'isLive': False},
-                ]
+                ],
             },
         )
 
