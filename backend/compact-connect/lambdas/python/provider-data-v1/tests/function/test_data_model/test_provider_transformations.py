@@ -2,9 +2,9 @@ import json
 from datetime import date, datetime
 from unittest.mock import patch
 
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from moto import mock_aws
 
-from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from .. import TstFunction
 
 

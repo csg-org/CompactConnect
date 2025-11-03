@@ -1999,7 +1999,8 @@ class TestDataClient(TstFunction):
         # Manually create a privilege update record with the old SK pattern
         old_sk_update_record = {
             'pk': f'{compact}#PROVIDER#{provider_uuid}',
-            'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE/1731110399/939a3c350708e34875f0a652bf7d7454',
+            'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}'
+            f'#UPDATE/1731110399/939a3c350708e34875f0a652bf7d7454',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': provider_uuid,
@@ -2010,18 +2011,16 @@ class TestDataClient(TstFunction):
             'effectiveDate': '2024-11-08T23:59:59+00:00',
             'dateOfUpdate': '2024-11-08T23:59:59+00:00',
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
-            "previous": {
-                "attestations": [
-                    {"attestationId": "jurisprudence-confirmation", "version": "1"}
-                ],
-                "dateOfIssuance": "2016-05-05T12:59:59+00:00",
-                "dateOfRenewal": "2016-05-05T12:59:59+00:00",
-                "dateOfExpiration": "2020-06-06",
-                "dateOfUpdate": "2016-05-05T12:59:59+00:00",
-                "compactTransactionId": "0123456789",
-                "privilegeId": "SLP-NE-1",
-                "administratorSetStatus": "active",
-                "licenseJurisdiction": "oh"
+            'previous': {
+                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                'dateOfIssuance': '2016-05-05T12:59:59+00:00',
+                'dateOfRenewal': '2016-05-05T12:59:59+00:00',
+                'dateOfExpiration': '2020-06-06',
+                'dateOfUpdate': '2016-05-05T12:59:59+00:00',
+                'compactTransactionId': '0123456789',
+                'privilegeId': 'SLP-NE-1',
+                'administratorSetStatus': 'active',
+                'licenseJurisdiction': 'oh',
             },
             'updatedValues': {
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -2076,7 +2075,8 @@ class TestDataClient(TstFunction):
         # Manually create a privilege update record with the old SK pattern
         old_sk_update_record = {
             'pk': f'{compact}#PROVIDER#{provider_uuid}',
-            'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE/1731110399/939a3c350708e34875f0a652bf7d7454',
+            'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}'
+            f'#UPDATE/1731110399/939a3c350708e34875f0a652bf7d7454',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': provider_uuid,
@@ -2087,18 +2087,16 @@ class TestDataClient(TstFunction):
             'effectiveDate': '2024-11-08T23:59:59+00:00',
             'dateOfUpdate': '2024-11-08T23:59:59+00:00',
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
-            "previous": {
-                "attestations": [
-                    {"attestationId": "jurisprudence-confirmation", "version": "1"}
-                ],
-                "dateOfIssuance": "2016-05-05T12:59:59+00:00",
-                "dateOfRenewal": "2016-05-05T12:59:59+00:00",
-                "dateOfExpiration": "2020-06-06",
-                "dateOfUpdate": "2016-05-05T12:59:59+00:00",
-                "compactTransactionId": "0123456789",
-                "privilegeId": "SLP-NE-1",
-                "administratorSetStatus": "active",
-                "licenseJurisdiction": "oh"
+            'previous': {
+                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                'dateOfIssuance': '2016-05-05T12:59:59+00:00',
+                'dateOfRenewal': '2016-05-05T12:59:59+00:00',
+                'dateOfExpiration': '2020-06-06',
+                'dateOfUpdate': '2016-05-05T12:59:59+00:00',
+                'compactTransactionId': '0123456789',
+                'privilegeId': 'SLP-NE-1',
+                'administratorSetStatus': 'active',
+                'licenseJurisdiction': 'oh',
             },
             'updatedValues': {
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',

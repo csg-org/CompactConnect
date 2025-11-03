@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
-from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
     DEFAULT_COMPACT,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
@@ -300,9 +299,8 @@ class TestLicenseDeactivationEvents(TstFunction):
         # Verify privilege update records were created for both privileges
         for privilege in [privilege1, privilege2]:
             privilege_update_records = (
-                self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-                privilege
-            ))
+                self.test_data_generator.query_privilege_update_records_for_given_record_from_database(privilege)
+            )
 
             self.assertEqual(1, len(privilege_update_records))
             update_record = privilege_update_records[0]
