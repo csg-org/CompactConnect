@@ -47,6 +47,11 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseGSIPK = String(required=True, allow_none=False)
     licenseGSISK = String(required=True, allow_none=False)
+    licenseUploadDateGSIPK = String(required=False, allow_none=False)
+    licenseUploadDateGSISK = String(required=False, allow_none=False)
+    
+    # Optional field for tracking when the license upload caused this record to be created
+    uploadDate = DateTime(required=False, allow_none=False)
 
     # Provided fields
     npi = NationalProviderIdentifier(required=False, allow_none=False)
@@ -124,12 +129,34 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
         in_data['licenseGSISK'] = f'FN#{quote(in_data["familyName"].lower())}#GN#{quote(in_data["givenName"].lower())}'
         return in_data
 
+    @pre_dump
+    def generate_license_upload_date_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """Generate GSI fields for license upload date tracking (only if uploadDate is present)"""
+        if 'uploadDate' in in_data and in_data['uploadDate'] is not None:
+            # Extract YYYY-MM from uploadDate
+            upload_date = in_data['uploadDate']
+            year_month = upload_date.strftime('%Y-%m')
+            
+            # Generate GSI PK: C#{compact}#J#{jurisdiction}#D#{YYYY-MM}
+            in_data['licenseUploadDateGSIPK'] = (
+                f'C#{in_data["compact"].lower()}#J#{in_data["jurisdiction"].lower()}#D#{year_month}'
+            )
+            # Generate GSI SK: TIME#{epoch_timestamp}#LT#{licenseType}#PID#{providerId}
+            upload_epoch_time = int(upload_date.timestamp())
+            license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+            in_data['licenseUploadDateGSISK'] = (
+                f'TIME#{upload_epoch_time}#LT#{license_type_abbr}#PID#{in_data["providerId"]}'
+            )
+        return in_data
+
     @post_load
     def drop_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Drop the db-specific license GSI fields before returning loaded data"""
         # only drop the field if it's present, else continue on
         in_data.pop('licenseGSIPK', None)
         in_data.pop('licenseGSISK', None)
+        in_data.pop('licenseUploadDateGSIPK', None)
+        in_data.pop('licenseUploadDateGSISK', None)
         return in_data
 
 
@@ -198,6 +225,13 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     investigationDetails = Nested(InvestigationDetailsSchema(), required=False, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
+    
+    # Optional GSI fields for license upload date tracking
+    licenseUploadDateGSIPK = String(required=False, allow_none=False)
+    licenseUploadDateGSISK = String(required=False, allow_none=False)
+    
+    # Optional field for tracking when the license upload caused this update record to be created
+    uploadDate = DateTime(required=False, allow_none=False)
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -217,6 +251,35 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         in_data['sk'] = (
             f'{in_data["compact"]}#UPDATE#3#license/{in_data["jurisdiction"]}/{license_type_abbr}/{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
+        return in_data
+
+    @pre_dump
+    def generate_license_upload_date_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """Generate GSI fields for license upload date tracking (only if uploadDate is present)"""
+        if 'uploadDate' in in_data and in_data['uploadDate'] is not None:
+            # Extract YYYY-MM from uploadDate
+            upload_date = in_data['uploadDate']
+            year_month = upload_date.strftime('%Y-%m')
+
+            # Generate GSI PK: C#{compact}#J#{jurisdiction}#D#{YYYY-MM}
+            in_data['licenseUploadDateGSIPK'] = (
+                f'C#{in_data["compact"].lower()}#J#{in_data["jurisdiction"].lower()}#D#{year_month}'
+            )
+
+            # Generate GSI SK: TIME#{epoch_timestamp}#LT#{licenseType}#PID#{providerId}
+            upload_epoch_time = int(upload_date.timestamp())
+            license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+            in_data['licenseUploadDateGSISK'] = (
+                f'TIME#{upload_epoch_time}#LT#{in_data["licenseType"]}#PID#{in_data["providerId"]}'
+            )
+        return in_data
+
+    @post_load
+    def drop_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """Drop the db-specific license GSI fields before returning loaded data"""
+        # only drop the field if it's present, else continue on
+        in_data.pop('licenseUploadDateGSIPK', None)
+        in_data.pop('licenseUploadDateGSISK', None)
         return in_data
 
     @validates_schema

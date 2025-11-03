@@ -105,6 +105,9 @@ def ingest_license_message(message: dict):
             # Start preparing our db transactions
             data_events = []
 
+            # Set the uploadDate to the current time for GSI tracking
+            license_ingest_message['uploadDate'] = config.current_standard_datetime
+
             license_record_schema = LicenseRecordSchema()
             dumped_license = license_record_schema.dumps(license_ingest_message)
 
@@ -312,6 +315,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             'licenseType': existing_license['licenseType'],
             'createDate': now,
             'effectiveDate': now,
+            'uploadDate': now,  # Track when this update was created during upload
             'previous': existing_license,
             'updatedValues': updated_values,
             # We'll only include the removed values field if there are some

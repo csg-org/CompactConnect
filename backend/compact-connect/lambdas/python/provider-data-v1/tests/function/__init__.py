@@ -129,6 +129,8 @@ class TstFunction(TstLambdas):
                 {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseGSIPK', 'AttributeType': 'S'},
                 {'AttributeName': 'licenseGSISK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseUploadDateGSIPK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseUploadDateGSISK', 'AttributeType': 'S'},
             ],
             TableName=os.environ['PROVIDER_TABLE_NAME'],
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
@@ -157,6 +159,14 @@ class TstFunction(TstLambdas):
                         {'AttributeName': 'licenseGSISK', 'KeyType': 'RANGE'},
                     ],
                     'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': 'licenseUploadDateGSI',
+                    'KeySchema': [
+                        {'AttributeName': 'licenseUploadDateGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseUploadDateGSISK', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'KEYS_ONLY'},
                 },
             ],
         )

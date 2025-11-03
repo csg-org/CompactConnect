@@ -48,6 +48,7 @@ class ProviderTable(Table):
         self.provider_date_of_update_index_name = 'providerDateOfUpdate'
         self.license_gsi_name = 'licenseGSI'
         self.compact_transaction_gsi_name = 'compactTransactionIdGSI'
+        self.license_upload_date_gsi_name = 'licenseUploadDateGSI'
 
         self.add_global_secondary_index(
             index_name=self.provider_fam_giv_mid_index_name,
@@ -82,6 +83,12 @@ class ProviderTable(Table):
                 'compactTransactionId',
                 'providerId',
             ],
+        )
+        self.add_global_secondary_index(
+            index_name=self.license_upload_date_gsi_name,
+            partition_key=Attribute(name='licenseUploadDateGSIPK', type=AttributeType.STRING),
+            sort_key=Attribute(name='licenseUploadDateGSISK', type=AttributeType.STRING),
+            projection_type=ProjectionType.KEYS_ONLY
         )
         # Set up backup plan
         backup_enabled = environment_context['backup_enabled']
