@@ -1,7 +1,7 @@
 import json
 from datetime import UTC, date, datetime
 from unittest.mock import patch
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException
@@ -65,10 +65,10 @@ class TestDataClient(TstFunction):
         for item in resp['items']:
             self.assertNotIn('something_unexpected', item)
 
-    def _load_provider_data(self) -> str:
+    def _load_provider_data(self) -> UUID:
         with open('tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)
-        provider_id = provider_record['providerId']
+        provider_id = UUID(provider_record['providerId'])
         provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
         self._provider_table.put_item(Item=provider_record)
 
@@ -729,7 +729,7 @@ class TestDataClient(TstFunction):
             'pk': f'aslp#PROVIDER#{provider_id}',
             'sk': 'aslp#PROVIDER#privilege/ne/aud#',
             'type': 'privilege',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'compact': 'aslp',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
@@ -773,7 +773,7 @@ class TestDataClient(TstFunction):
                     'pk': f'aslp#PROVIDER#{provider_id}',
                     'sk': 'aslp#PROVIDER#privilege/ne/aud#',
                     'type': 'privilege',
-                    'providerId': provider_id,
+                    'providerId': str(provider_id),
                     'compact': 'aslp',
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
@@ -794,7 +794,7 @@ class TestDataClient(TstFunction):
                     'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/aac682a76e1182a641a1b40dd606ae51',
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
-                    'providerId': provider_id,
+                    'providerId': str(provider_id),
                     'compact': 'aslp',
                     'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ne',
@@ -870,7 +870,7 @@ class TestDataClient(TstFunction):
             'pk': f'aslp#PROVIDER#{provider_id}',
             'sk': 'aslp#PROVIDER#privilege/ne/aud#',
             'type': 'privilege',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'compact': 'aslp',
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
@@ -892,7 +892,7 @@ class TestDataClient(TstFunction):
             'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'compact': 'aslp',
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'jurisdiction': 'ne',
@@ -1071,7 +1071,7 @@ class TestDataClient(TstFunction):
             'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'privilege',
@@ -1110,7 +1110,7 @@ class TestDataClient(TstFunction):
             'type': 'privilegeUpdate',
             'updateType': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
             'createDate': investigation.creationDate.isoformat(),
@@ -1182,7 +1182,7 @@ class TestDataClient(TstFunction):
             'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'license',
@@ -1220,7 +1220,7 @@ class TestDataClient(TstFunction):
             'type': 'licenseUpdate',
             'updateType': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
             'createDate': investigation.creationDate.isoformat(),
@@ -1341,7 +1341,7 @@ class TestDataClient(TstFunction):
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                'investigationId': str(uuid4()),
+                'investigationId': uuid4(),
             }
         )
 
@@ -1354,7 +1354,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='slp',
-            investigation_id=str(investigation.investigationId),
+            investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
@@ -1375,7 +1375,7 @@ class TestDataClient(TstFunction):
             'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'privilege',
@@ -1424,7 +1424,7 @@ class TestDataClient(TstFunction):
             'type': 'privilegeUpdate',
             'updateType': 'closingInvestigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
             'createDate': investigation.creationDate.isoformat(),
@@ -1489,7 +1489,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='slp',
-            investigation_id=str(investigation.investigationId),
+            investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=close_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
@@ -1510,7 +1510,7 @@ class TestDataClient(TstFunction):
             'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'license',
@@ -1559,7 +1559,7 @@ class TestDataClient(TstFunction):
             'type': 'licenseUpdate',
             'updateType': 'closingInvestigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
             'createDate': investigation.creationDate.isoformat(),
@@ -1789,7 +1789,7 @@ class TestDataClient(TstFunction):
 
         # Now close the investigation with encumbrance creation
         closing_user = str(uuid4())
-        resulting_encumbrance_id = str(uuid4())
+        resulting_encumbrance_id = uuid4()
 
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
@@ -1797,7 +1797,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='slp',
-            investigation_id=str(investigation.investigationId),
+            investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
@@ -1819,7 +1819,7 @@ class TestDataClient(TstFunction):
             'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'privilege',
@@ -1828,7 +1828,7 @@ class TestDataClient(TstFunction):
             'creationDate': investigation.creationDate.isoformat(),
             'closeDate': close_date.isoformat(),
             'closingUser': closing_user,
-            'resultingEncumbranceId': resulting_encumbrance_id,
+            'resultingEncumbranceId': str(resulting_encumbrance_id),
         }
         # Pop dynamic fields that we don't want to assert on
         investigation_record.pop('dateOfUpdate')
@@ -1865,7 +1865,7 @@ class TestDataClient(TstFunction):
 
         # Now close the investigation with encumbrance creation
         closing_user = str(uuid4())
-        resulting_encumbrance_id = str(uuid4())
+        resulting_encumbrance_id = uuid4()
 
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
@@ -1873,7 +1873,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='slp',
-            investigation_id=str(investigation.investigationId),
+            investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
             investigation_against=InvestigationAgainstEnum.LICENSE,
@@ -1895,7 +1895,7 @@ class TestDataClient(TstFunction):
             'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'aslp',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'license',
@@ -1904,7 +1904,7 @@ class TestDataClient(TstFunction):
             'creationDate': investigation.creationDate.isoformat(),
             'closeDate': close_date.isoformat(),
             'closingUser': closing_user,
-            'resultingEncumbranceId': resulting_encumbrance_id,
+            'resultingEncumbranceId': str(resulting_encumbrance_id),
         }
         # Pop dynamic fields that we don't want to assert on
         investigation_record.pop('dateOfUpdate')

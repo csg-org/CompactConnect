@@ -26,6 +26,7 @@ from cc_common.data_model.schema.fields import (
     PrivilegeEncumberedStatusField,
     UpdateType,
 )
+from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
 
 
 class AttestationVersionRecordSchema(Schema):
@@ -64,16 +65,6 @@ class EncumbranceDetailsSchema(Schema):
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
     # TODO - remove this field as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
     clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
-
-
-class InvestigationDetailsSchema(Schema):
-    """
-    Schema for tracking details about an investigation.
-    """
-
-    investigationId = UUID(required=True, allow_none=False)
-    # present if update is created by upstream license investigation
-    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilege')

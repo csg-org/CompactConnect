@@ -1,9 +1,10 @@
 # ruff: noqa: N801, N815  invalid-name
-from marshmallow import ValidationError, pre_dump
+from marshmallow import Schema, ValidationError, pre_dump
 from marshmallow.fields import UUID, DateTime, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.common import ValidatesLicenseTypeMixin
 from cc_common.data_model.schema.fields import (
     Compact,
     InvestigationAgainstField,
@@ -12,7 +13,7 @@ from cc_common.data_model.schema.fields import (
 
 
 @BaseRecordSchema.register_schema('investigation')
-class InvestigationRecordSchema(BaseRecordSchema):
+class InvestigationRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     """
     Schema for investigation records in the provider data table
 
@@ -53,3 +54,13 @@ class InvestigationRecordSchema(BaseRecordSchema):
             f'{in_data["compact"]}#PROVIDER#{in_data["investigationAgainst"]}/{in_data["jurisdiction"]}/{license_type_abbr}#INVESTIGATION#{in_data["investigationId"]}'
         )
         return in_data
+
+
+class InvestigationDetailsSchema(Schema):
+    """
+    Schema for tracking details about an investigation.
+    """
+
+    investigationId = UUID(required=True, allow_none=False)
+    # present if update is created by upstream license investigation
+    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)

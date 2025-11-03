@@ -13,7 +13,7 @@ from cc_common.data_model.schema.investigation.api import (
 )
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import api_handler, authorize_state_level_only_action
+from cc_common.utils import api_handler, authorize_state_level_only_action, to_uuid
 from marshmallow import ValidationError
 
 from .encumbrance import _create_license_encumbrance_internal, _create_privilege_encumbrance_internal
@@ -68,7 +68,7 @@ def _load_investigation_patch_body(event: dict) -> dict:
 def _generate_investigation_for_record_type(
     compact: str,
     jurisdiction: str,
-    provider_id: str,
+    provider_id: UUID,
     license_type_abbr: str,
     investigation_against_record_type: InvestigationAgainstEnum,
     cognito_sub: str,
@@ -101,7 +101,7 @@ def handle_privilege_investigation(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    provider_id = event['pathParameters']['providerId']
+    provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
 
@@ -136,7 +136,7 @@ def handle_license_investigation(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    provider_id = event['pathParameters']['providerId']
+    provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
 
@@ -171,12 +171,9 @@ def handle_privilege_investigation_close(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    provider_id = event['pathParameters']['providerId']
+    provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
-    try:
-        investigation_id = UUID(event['pathParameters']['investigationId'])
-    except ValueError as e:
-        raise CCInvalidRequestException('Invalid investigationId provided') from e
+    investigation_id = to_uuid(event['pathParameters']['investigationId'], 'Invalid investigationId provided')
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
     investigation_patch_body = _load_investigation_patch_body(event)
 
@@ -203,7 +200,7 @@ def handle_privilege_investigation_close(event: dict) -> dict:
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
-        investigation_id=str(investigation_id),
+        investigation_id=investigation_id,
         closing_user=cognito_sub,
         close_date=now,
         investigation_against=InvestigationAgainstEnum.PRIVILEGE,
@@ -231,12 +228,9 @@ def handle_license_investigation_close(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    provider_id = event['pathParameters']['providerId']
+    provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
-    try:
-        investigation_id = UUID(event['pathParameters']['investigationId'])
-    except ValueError as e:
-        raise CCInvalidRequestException('Invalid investigationId provided') from e
+    investigation_id = to_uuid(event['pathParameters']['investigationId'], 'Invalid investigationId provided')
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
     investigation_patch_body = _load_investigation_patch_body(event)
 
@@ -264,7 +258,7 @@ def handle_license_investigation_close(event: dict) -> dict:
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
-        investigation_id=str(investigation_id),
+        investigation_id=investigation_id,
         closing_user=cognito_sub,
         close_date=now,
         investigation_against=InvestigationAgainstEnum.LICENSE,

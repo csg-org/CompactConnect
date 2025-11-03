@@ -911,3 +911,10 @@ def verify_password(hashed_password: str, password: str) -> bool:
     except Exception as e:
         logger.error('Failed to verify password', error=str(e))
         raise CCInternalException('Failed to verify password') from e
+
+
+def to_uuid(uuid: str, on_error: str) -> UUID:
+    try:
+        return UUID(uuid)
+    except ValueError as e:
+        raise CCInvalidRequestException(on_error) from e

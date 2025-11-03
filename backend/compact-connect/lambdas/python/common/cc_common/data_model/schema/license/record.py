@@ -2,7 +2,7 @@
 from datetime import date
 from urllib.parse import quote
 
-from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
+from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
@@ -29,17 +29,8 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     UpdateType,
 )
+from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
-
-
-class InvestigationDetailsSchema(Schema):
-    """
-    Schema for tracking details about an investigation.
-    """
-
-    investigationId = UUID(required=True, allow_none=False)
-    # present if update is created by upstream license investigation
-    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('license')

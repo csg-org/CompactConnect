@@ -1,5 +1,5 @@
 import json
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -16,7 +16,7 @@ from cc_common.data_model.schema.common import (
 )
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import api_handler, authorize_state_level_only_action
+from cc_common.utils import api_handler, authorize_state_level_only_action, to_uuid
 from marshmallow import ValidationError
 
 PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE = (
@@ -68,7 +68,7 @@ def _get_submitting_user_id(event: dict) -> str:
 
 def _generate_adverse_action_for_record_type(
     compact: str,
-    provider_id: str,
+    provider_id: UUID,
     jurisdiction: str,
     license_type_abbr: str,
     submitting_user: str,
@@ -130,11 +130,11 @@ def _generate_adverse_action_for_record_type(
 def _create_privilege_encumbrance_internal(
     compact: str,
     jurisdiction: str,
-    provider_id: str,
+    provider_id: UUID,
     license_type_abbr: str,
     submitting_user: str,
     adverse_action_post_body: dict,
-) -> str:
+) -> UUID:
     """Internal handler for creating privilege encumbrances that returns the adverse action ID"""
     logger.info('Processing adverse action updates for privilege record')
     adverse_action = _generate_adverse_action_for_record_type(
@@ -158,7 +158,7 @@ def _create_privilege_encumbrance_internal(
         effective_date=adverse_action.effectiveStartDate,
     )
 
-    return str(adverse_action.adverseActionId)
+    return adverse_action.adverseActionId
 
 
 def handle_privilege_encumbrance(event: dict) -> dict:
@@ -166,7 +166,7 @@ def handle_privilege_encumbrance(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    provider_id = event['pathParameters']['providerId']
+    provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     submitting_user = _get_submitting_user_id(event)
     adverse_action_post_body = _load_adverse_action_post_body(event)
@@ -185,11 +185,11 @@ def handle_privilege_encumbrance(event: dict) -> dict:
 def _create_license_encumbrance_internal(
     compact: str,
     jurisdiction: str,
-    provider_id: str,
+    provider_id: UUID,
     license_type_abbr: str,
     submitting_user: str,
     adverse_action_post_body: dict,
-) -> str:
+) -> UUID:
     """Internal handler for creating license encumbrances that returns the adverse action ID"""
     logger.info('Processing adverse action updates for license record')
     adverse_action = _generate_adverse_action_for_record_type(
@@ -214,7 +214,7 @@ def _create_license_encumbrance_internal(
         effective_date=adverse_action.effectiveStartDate,
     )
 
-    return str(adverse_action.adverseActionId)
+    return adverse_action.adverseActionId
 
 
 def handle_license_encumbrance(event: dict) -> dict:
@@ -222,7 +222,7 @@ def handle_license_encumbrance(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
-    provider_id = event['pathParameters']['providerId']
+    provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     submitting_user = _get_submitting_user_id(event)
     adverse_action_post_body = _load_adverse_action_post_body(event)
@@ -248,10 +248,10 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
 
         # Extract path parameters
         compact = event['pathParameters']['compact']
-        provider_id = event['pathParameters']['providerId']
+        provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
         jurisdiction = event['pathParameters']['jurisdiction']
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
-        encumbrance_id = event['pathParameters']['encumbranceId']
+        encumbrance_id = to_uuid(event['pathParameters']['encumbranceId'], 'Invalid encumbranceId provided')
 
         # Parse and validate request body
         body = json.loads(event['body'])
@@ -300,10 +300,10 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
 
         # Extract path parameters
         compact = event['pathParameters']['compact']
-        provider_id = event['pathParameters']['providerId']
+        provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
         jurisdiction = event['pathParameters']['jurisdiction']
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
-        encumbrance_id = event['pathParameters']['encumbranceId']
+        encumbrance_id = to_uuid(event['pathParameters']['encumbranceId'], 'Invalid encumbranceId provided')
 
         # Parse and validate request body
         body = json.loads(event['body'])
