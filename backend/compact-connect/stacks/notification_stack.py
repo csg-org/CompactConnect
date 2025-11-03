@@ -43,14 +43,30 @@ class NotificationStack(AppStack):
         self.event_processors = {}
         self.event_state_stack = event_state_stack
         self._add_privilege_purchase_notification_chain(persistent_stack, data_event_bus)
-        self._add_license_encumbrance_notification_listener(persistent_stack, data_event_bus)
-        self._add_license_encumbrance_lifting_notification_listener(persistent_stack, data_event_bus)
-        self._add_privilege_encumbrance_notification_listener(persistent_stack, data_event_bus)
-        self._add_privilege_encumbrance_lifting_notification_listener(persistent_stack, data_event_bus)
-        self._add_license_investigation_notification_listener(persistent_stack, data_event_bus)
-        self._add_license_investigation_closed_notification_listener(persistent_stack, data_event_bus)
-        self._add_privilege_investigation_notification_listener(persistent_stack, data_event_bus)
-        self._add_privilege_investigation_closed_notification_listener(persistent_stack, data_event_bus)
+        self._add_license_encumbrance_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
+        self._add_license_encumbrance_lifting_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
+        self._add_privilege_encumbrance_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
+        self._add_privilege_encumbrance_lifting_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
+        self._add_license_investigation_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
+        self._add_license_investigation_closed_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
+        self._add_privilege_investigation_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
+        self._add_privilege_investigation_closed_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
 
     def _add_privilege_purchase_notification_chain(
         self, persistent_stack: ps.PersistentStack, data_event_bus: IEventBus
@@ -162,6 +178,7 @@ class NotificationStack(AppStack):
         listener_detail_type: str,
         persistent_stack: ps.PersistentStack,
         data_event_bus: EventBus,
+        event_state_stack: ess.EventStateStack,
     ):
         """
         Add a listener lambda, queues, and event rules, that listens for events from the data event bus and sends
@@ -179,7 +196,7 @@ class NotificationStack(AppStack):
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
-                'EVENT_STATE_TABLE_NAME': self.event_state_stack.event_state_table.table_name,
+                'EVENT_STATE_TABLE_NAME': event_state_stack.event_state_table.table_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -188,7 +205,7 @@ class NotificationStack(AppStack):
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_data(emailer_event_listener_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(emailer_event_listener_handler)
-        self.event_state_stack.event_state_table.grant_read_write_data(emailer_event_listener_handler)
+        event_state_stack.event_state_table.grant_read_write_data(emailer_event_listener_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
@@ -216,7 +233,7 @@ class NotificationStack(AppStack):
         )
 
     def _add_license_encumbrance_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the license encumbrance notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -226,10 +243,11 @@ class NotificationStack(AppStack):
             listener_detail_type='license.encumbrance',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
 
     def _add_license_encumbrance_lifting_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the license encumbrance lifting notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -239,10 +257,11 @@ class NotificationStack(AppStack):
             listener_detail_type='license.encumbranceLifted',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
 
     def _add_privilege_encumbrance_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the privilege encumbrance notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -252,10 +271,11 @@ class NotificationStack(AppStack):
             listener_detail_type='privilege.encumbrance',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
 
     def _add_privilege_encumbrance_lifting_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the privilege encumbrance lifting notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -265,10 +285,11 @@ class NotificationStack(AppStack):
             listener_detail_type='privilege.encumbranceLifted',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
 
     def _add_license_investigation_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the license investigation notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -278,10 +299,11 @@ class NotificationStack(AppStack):
             listener_detail_type='license.investigation',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
 
     def _add_license_investigation_closed_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the license investigation closed notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -291,10 +313,11 @@ class NotificationStack(AppStack):
             listener_detail_type='license.investigationClosed',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
 
     def _add_privilege_investigation_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the privilege investigation notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -304,10 +327,11 @@ class NotificationStack(AppStack):
             listener_detail_type='privilege.investigation',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
 
     def _add_privilege_investigation_closed_notification_listener(
-        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
     ):
         """Add the privilege investigation closed notification listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
@@ -317,4 +341,5 @@ class NotificationStack(AppStack):
             listener_detail_type='privilege.investigationClosed',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
         )
