@@ -412,7 +412,7 @@ environment as well, should you choose to deploy one.
 > base domain (i.e. `compactconnect.org` for prod and `test.compactconnect.org` for test) if there is not one already
 > there. The target of the A record is actually not important, we simply need an A record at the base domain to
 > prove that we own it. This is necessary to create auth subdomains for the user pools. We have been pointing the A record
-> at the ip of compcatconnect.org, which can be obtained by running the command `dig compactconnect.org +short`
+> at the ip of compactconnect.org, which can be obtained by running the command `dig compactconnect.org +short`
 
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
