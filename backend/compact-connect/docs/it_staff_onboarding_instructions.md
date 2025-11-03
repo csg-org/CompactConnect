@@ -240,6 +240,8 @@ For your convenience, use of this feature is included in the [Postman Collection
 - `licenseType` must match exactly with one of the valid types for the specified compact
 - All date fields must use the `YYYY-MM-DD` format
 - The API does not accept `null` values. For optional fields with no value, omit the field or leave it empty in CSV.
+- For CSV uploads, SSNs must be unique within a single file. Do not include multiple rows with the same `ssn` in one upload. If duplicate SSNs are sent within the same file, the first row will be processed, but all other duplicate rows will be rejected.
+- For JSON uploads, SSNs must be unique within a single request payload (array). Do not include duplicate `ssn` values in the same batch. Attempting to do so will cause the entire request to be rejected.
 
 ## Common Upload Strategies: JSON vs CSV
 

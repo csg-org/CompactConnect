@@ -1428,9 +1428,9 @@ class DataClient:
 
             now = config.current_standard_datetime
             # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-            from cc_common.feature_flag_client import is_feature_enabled
+            from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
 
-            if is_feature_enabled('encumbrance-multi-category-flag'):
+            if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
                 encumbrance_details = {
                     'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
                     'adverseActionId': adverse_action.adverseActionId,
@@ -2674,9 +2674,9 @@ class DataClient:
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
         )
         # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-        from cc_common.feature_flag_client import is_feature_enabled
+        from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
 
-        if is_feature_enabled('encumbrance-multi-category-flag'):
+        if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
             encumbrance_details = {
                 'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
                 'licenseJurisdiction': jurisdiction,
