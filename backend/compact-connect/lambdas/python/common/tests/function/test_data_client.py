@@ -1966,3 +1966,160 @@ class TestDataClient(TstFunction):
         investigation_record.pop('dateOfUpdate')
 
         self.assertEqual(expected_investigation_close, investigation_record)
+
+    # TODO - remove this test once migration from old update SK pattern is complete  # noqa: FIX002
+    def test_get_provider_user_records_returns_old_sk_pattern_update_records_with_tier_one(self):
+        """Test that get_provider_user_records with TIER_ONE returns privilege update records with old SK pattern."""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.update_tier_enum import UpdateTierEnum
+
+        provider_uuid = str(uuid4())
+        compact = 'aslp'
+        jurisdiction = 'ky'
+        license_type_abbr = 'aud'
+
+        # Create provider and privilege records
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_uuid,
+                'compact': compact,
+            }
+        )
+
+        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_uuid,
+                'compact': compact,
+                'jurisdiction': jurisdiction,
+                'licenseType': 'audiologist',
+            }
+        )
+
+        # Manually create a privilege update record with the old SK pattern
+        old_sk_update_record = {
+            'pk': f'{compact}#PROVIDER#{provider_uuid}',
+            'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE/1731110399/939a3c350708e34875f0a652bf7d7454',
+            'type': 'privilegeUpdate',
+            'updateType': 'renewal',
+            'providerId': provider_uuid,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'licenseType': 'audiologist',
+            'createDate': '2024-11-08T23:59:59+00:00',
+            'effectiveDate': '2024-11-08T23:59:59+00:00',
+            'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            "previous": {
+                "attestations": [
+                    {"attestationId": "jurisprudence-confirmation", "version": "1"}
+                ],
+                "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+                "dateOfRenewal": "2016-05-05T12:59:59+00:00",
+                "dateOfExpiration": "2020-06-06",
+                "dateOfUpdate": "2016-05-05T12:59:59+00:00",
+                "compactTransactionId": "0123456789",
+                "privilegeId": "SLP-NE-1",
+                "administratorSetStatus": "active",
+                "licenseJurisdiction": "oh"
+            },
+            'updatedValues': {
+                'dateOfRenewal': '2024-11-08T23:59:59+00:00',
+                'dateOfExpiration': '2025-10-31',
+                'compactTransactionId': 'test_transaction_id',
+            },
+        }
+        self._provider_table.put_item(Item=old_sk_update_record)
+
+        # Call get_provider_user_records with TIER_ONE
+        client = DataClient(self.config)
+        provider_user_records: ProviderUserRecords = client.get_provider_user_records(
+            compact=compact,
+            provider_id=provider_uuid,
+            include_update_tier=UpdateTierEnum.TIER_ONE,
+        )
+
+        # Verify the old SK pattern update record is returned
+        update_records = provider_user_records.get_update_records_for_privilege(
+            jurisdiction=jurisdiction, license_type=privilege.licenseType
+        )
+        self.assertEqual(1, len(update_records))
+        self.assertEqual('renewal', update_records[0].updateType)
+
+    # TODO - remove this test once migration from old update SK pattern is complete  # noqa: FIX002
+    def test_get_privilege_data_returns_old_sk_pattern_update_records_with_detail(self):
+        """Test that get_privilege_data with detail=True returns privilege update records with old SK pattern."""
+        from cc_common.data_model.data_client import DataClient
+
+        provider_uuid = str(uuid4())
+        compact = 'aslp'
+        jurisdiction = 'ne'
+        license_type_abbr = 'aud'
+
+        # Create provider and privilege records
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_uuid,
+                'compact': compact,
+            }
+        )
+
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_uuid,
+                'compact': compact,
+                'jurisdiction': jurisdiction,
+                'licenseType': 'audiologist',
+            }
+        )
+
+        # Manually create a privilege update record with the old SK pattern
+        old_sk_update_record = {
+            'pk': f'{compact}#PROVIDER#{provider_uuid}',
+            'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE/1731110399/939a3c350708e34875f0a652bf7d7454',
+            'type': 'privilegeUpdate',
+            'updateType': 'renewal',
+            'providerId': provider_uuid,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'licenseType': 'audiologist',
+            'createDate': '2024-11-08T23:59:59+00:00',
+            'effectiveDate': '2024-11-08T23:59:59+00:00',
+            'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            "previous": {
+                "attestations": [
+                    {"attestationId": "jurisprudence-confirmation", "version": "1"}
+                ],
+                "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+                "dateOfRenewal": "2016-05-05T12:59:59+00:00",
+                "dateOfExpiration": "2020-06-06",
+                "dateOfUpdate": "2016-05-05T12:59:59+00:00",
+                "compactTransactionId": "0123456789",
+                "privilegeId": "SLP-NE-1",
+                "administratorSetStatus": "active",
+                "licenseJurisdiction": "oh"
+            },
+            'updatedValues': {
+                'dateOfRenewal': '2024-11-08T23:59:59+00:00',
+                'dateOfExpiration': '2025-10-31',
+                'compactTransactionId': 'test_transaction_id',
+            },
+        }
+        self._provider_table.put_item(Item=old_sk_update_record)
+
+        # Call get_privilege_data with detail=True
+        client = DataClient(self.config)
+        result = client.get_privilege_data(
+            compact=compact,
+            provider_id=provider_uuid,
+            jurisdiction=jurisdiction,
+            license_type_abbr=license_type_abbr,
+            detail=True,
+        )
+
+        # Verify the result contains the privilege record and the old SK pattern update record
+        self.assertEqual(2, len(result))
+        self.assertEqual('privilege', result[0]['type'])
+        self.assertEqual('privilegeUpdate', result[1]['type'])
+        self.assertEqual('renewal', result[1]['updateType'])
