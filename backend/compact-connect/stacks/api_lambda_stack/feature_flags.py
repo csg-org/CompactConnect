@@ -52,7 +52,7 @@ class FeatureFlagsLambdas:
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
-            path=f'{check_feature_flag_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{check_feature_flag_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

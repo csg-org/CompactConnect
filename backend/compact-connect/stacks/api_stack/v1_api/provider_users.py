@@ -187,8 +187,6 @@ class ProviderUsers:
     ):
         stack = Stack.of(self.provider_users_resource)
 
-        self.api.log_groups.append(api_lambda_stack.provider_users_lambdas.provider_registration_handler.log_group)
-
         registration_method = self.provider_users_registration_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,

@@ -78,7 +78,7 @@ export interface InterfaceCompactCreate {
     id?: string | null;
     type?: CompactType | null;
     memberStates?: Array<State>;
-    privilegePurchaseOptions?: Array <PrivilegePurchaseOption>;
+    privilegePurchaseOptions?: Array<PrivilegePurchaseOption>;
     fees?: CompactFeeConfig;
 }
 

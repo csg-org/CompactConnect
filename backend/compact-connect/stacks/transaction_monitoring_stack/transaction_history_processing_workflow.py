@@ -8,7 +8,8 @@ from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, Schedule
 from aws_cdk.aws_events_targets import SfnStateMachine
 from aws_cdk.aws_iam import Effect, PolicyStatement
-from aws_cdk.aws_logs import LogGroup, RetentionDays
+from aws_cdk.aws_lambda import Runtime
+from aws_cdk.aws_logs import FilterPattern, LogGroup, MetricFilter, RetentionDays
 from aws_cdk.aws_stepfunctions import (
     Choice,
     Condition,
@@ -49,6 +50,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
             self,
             f'{compact}-TransactionHistoryProcessor',
             description=f'Processes transaction history records for {compact} compact',
+            runtime=Runtime.PYTHON_3_12,
             lambda_dir='purchases',
             index=os.path.join('handlers', 'transaction_history.py'),
             handler='process_settled_transactions',
@@ -65,7 +67,16 @@ class TransactionHistoryProcessingWorkflow(Construct):
             # DynamoDB and authorize.net, and we want to ensure it has enough memory to handle that.
             memory_size=3008,
         )
-        persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
+        NagSuppressions.add_resource_suppressions(
+            self.transaction_processor_handler,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'Our Authorize.Net dependency is not yet compatible with Python 3.13',
+                },
+            ],
+        )
+        persistent_stack.transaction_history_table.grant_read_write_data(self.transaction_processor_handler)
         persistent_stack.provider_table.grant_read_data(self.transaction_processor_handler)
         persistent_stack.compact_configuration_table.grant_read_data(self.transaction_processor_handler)
         persistent_stack.shared_encryption_key.grant_encrypt(self.transaction_processor_handler)
@@ -86,7 +97,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
-            path=f'{self.transaction_processor_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.transaction_processor_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -130,6 +141,9 @@ class TransactionHistoryProcessingWorkflow(Construct):
                     'compact': compact,
                     'template': 'transactionBatchSettlementFailure',
                     'recipientType': 'COMPACT_OPERATIONS_TEAM',
+                    'templateVariables': {
+                        'batchFailureErrorMessage.$': '$.Payload.batchFailureErrorMessage',
+                    },
                 }
             ),
             result_path='$.notificationResult',
@@ -223,6 +237,34 @@ class TransactionHistoryProcessingWorkflow(Construct):
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+        # Create a metric filter to capture ERROR level logs from the transaction processor Lambda
+        error_log_metric = MetricFilter(
+            self,
+            f'{compact}-TransactionProcessorErrorLogMetric',
+            log_group=self.transaction_processor_handler.log_group,
+            metric_namespace='CompactConnect/TransactionProcessing',
+            metric_name=f'{compact}/TransactionProcessorErrors',
+            filter_pattern=FilterPattern.string_value(json_field='$.level', comparison='=', value='ERROR'),
+            metric_value='1',
+            default_value=0,
+        )
+
+        # Create an alarm that triggers when ERROR logs are detected
+        error_log_alarm = Alarm(
+            self,
+            f'{compact}-TransactionProcessorErrorLogAlarm',
+            metric=error_log_metric.metric(statistic='Sum'),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'The {compact} Transaction Processor Lambda logged an ERROR level message. Investigate '
+            f'the logs for the {self.transaction_processor_handler.function_name} lambda to '
+            f'determine the cause.',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        )
+        error_log_alarm.add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
     def _get_secrets_manager_compact_payment_processor_arn_for_compact(
         self, compact: str, environment_name: str

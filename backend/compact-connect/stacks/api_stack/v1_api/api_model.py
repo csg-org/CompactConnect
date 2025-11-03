@@ -414,7 +414,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -423,9 +423,16 @@ class ApiModel:
                         pattern=cc_api.YMD_FORMAT,
                     ),
                     'encumbranceType': self._encumbrance_type_schema,
+                    # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
+                        description='(Deprecated) The category of clinical privilege action. '
+                        'Use clinicalPrivilegeActionCategories instead.',
+                    ),
+                    'clinicalPrivilegeActionCategories': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The categories of clinical privilege action',
+                        items=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),
@@ -444,7 +451,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategory'],
+                required=['encumbranceEffectiveDate', 'encumbranceType'],
                 properties={
                     'encumbranceEffectiveDate': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -453,9 +460,16 @@ class ApiModel:
                         pattern=cc_api.YMD_FORMAT,
                     ),
                     'encumbranceType': self._encumbrance_type_schema,
+                    # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
                     'clinicalPrivilegeActionCategory': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The category of clinical privilege action',
+                        description='(Deprecated) The category of clinical privilege action. '
+                        'Use clinicalPrivilegeActionCategories instead.',
+                    ),
+                    'clinicalPrivilegeActionCategories': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='The categories of clinical privilege action',
+                        items=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),
@@ -1170,7 +1184,6 @@ class ApiModel:
                                         'adverseActionId',
                                         'dateOfUpdate',
                                         'encumbranceType',
-                                        'clinicalPrivilegeActionCategory',
                                     ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
@@ -1201,7 +1214,13 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
+                                        # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
+                                        'clinicalPrivilegeActionCategories': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='The categories of clinical privilege action',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
@@ -1306,7 +1325,6 @@ class ApiModel:
                                         'adverseActionId',
                                         'dateOfUpdate',
                                         'encumbranceType',
-                                        'clinicalPrivilegeActionCategory',
                                     ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
@@ -1337,7 +1355,13 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
+                                        # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
+                                        'clinicalPrivilegeActionCategories': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='The categories of clinical privilege action',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
@@ -2335,6 +2359,30 @@ class ApiModel:
             schema=self._public_provider_detailed_response_schema,
         )
         return self.api._v1_public_provider_response_model
+
+    @property
+    def get_live_jurisdictions_model(self) -> Model:
+        """Return the get live jurisdictions response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_get_live_jurisdictions_response_model'):
+            return self.api._v1_get_live_jurisdictions_response_model
+
+        # Shape: { "<compact>": ["ky", "oh", ...], ... }
+        # Keys are dynamic compact abbreviations; values are arrays of jurisdiction abbreviations
+        self.api._v1_get_live_jurisdictions_response_model = self.api.add_model(
+            'V1GetLiveJurisdictionsResponseModel',
+            description='Dictionary keyed by compact abbreviations with arrays of live jurisdiction abbreviations',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    items=JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=self.api.node.get_context('jurisdictions'),
+                    ),
+                ),
+            ),
+        )
+        return self.api._v1_get_live_jurisdictions_response_model
 
     @property
     def _public_provider_detailed_response_schema(self):

@@ -504,6 +504,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         # their SDK returns the transaction id as an internal IntElement type, so we need to cast it
                         # or this will cause an error when we try to serialize it to JSON
                         'transactionId': str(response.transactionResponse.transId),
+                        # Use current datetime as the transaction submission time
+                        # since authorize.net does not return this value in the response
+                        'submitTimeUTC': config.current_standard_datetime.isoformat(),
                     }
                 logger.warning('Failed Transaction.')
                 if hasattr(response.transactionResponse, 'errors'):

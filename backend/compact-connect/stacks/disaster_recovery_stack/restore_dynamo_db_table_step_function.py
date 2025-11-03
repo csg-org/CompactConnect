@@ -1,6 +1,6 @@
 from aws_cdk import Duration
 from aws_cdk.aws_dynamodb import Table
-from aws_cdk.aws_iam import Effect, PolicyStatement
+from aws_cdk.aws_iam import Effect, PolicyStatement, Role
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_stepfunctions import (
@@ -33,8 +33,9 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         restored_table_name_prefix: str,
         table: Table,
         sync_table_data_state_machine_arn: str,
-        shared_persistent_stack_key: Key,
+        encryption_key_for_restore: Key,
         dr_shared_encryption_key: Key,
+        ssn_dr_step_function_role: Role | None = None,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -42,11 +43,13 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         stack = Stack.of(self)
 
         # Build Step Function definition with SDK tasks and polling loops
+        # Use SSN encryption key if provided, otherwise use shared persistent stack key
         definition = self._build_state_machine_definition(
             table=table,
             restored_table_name_prefix=restored_table_name_prefix,
             sync_table_data_state_machine_arn=sync_table_data_state_machine_arn,
-            persistent_stack_encryption_key=shared_persistent_stack_key,
+            persistent_stack_encryption_key=encryption_key_for_restore,
+            ssn_restore_workflow=ssn_dr_step_function_role is not None,
         )
 
         state_machine_log_group = LogGroup(
@@ -68,80 +71,86 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
             ),
             tracing_enabled=True,
             query_language=QueryLanguage.JSONATA,
+            # if the ssn step function role is not defined, this will be set to None and a default role will
+            # be defined
+            role=ssn_dr_step_function_role if ssn_dr_step_function_role else None,
         )
 
-        # Add permissions for SDK tasks
-        self.state_machine.add_to_role_policy(
-            PolicyStatement(
-                effect=Effect.ALLOW,
-                actions=[
-                    'dynamodb:CreateBackup',  # For backup creation
-                    'dynamodb:DescribeBackup',  # For backup status polling
-                    'dynamodb:RestoreTableToPointInTime',  # For creating table from PITR backup
-                    'dynamodb:DescribeTable',  # For table status polling
-                    # The following permissions are needed for restoring data into the PITR table
-                    # https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazondynamodb.html#amazondynamodb-actions-as-permissions
-                    'dynamodb:BatchWriteItem',
-                    'dynamodb:DeleteItem',
-                    'dynamodb:GetItem',
-                    'dynamodb:PutItem',
-                    'dynamodb:Query',
-                    'dynamodb:Scan',
-                    'dynamodb:UpdateItem',
-                ],
-                resources=[
-                    table.table_arn,  # Table for backup operations
-                    f'{table.table_arn}/backup/*',  # Backup resources
-                    f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{restored_table_name_prefix}*',
-                    f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{restored_table_name_prefix}*/index/*',
-                ],
+        # Only add permissions if not using the SSN DR step function role (which already has all needed permissions)
+        if ssn_dr_step_function_role is None:
+            # Add permissions for SDK tasks
+            self.state_machine.add_to_role_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        'dynamodb:CreateBackup',  # For backup creation
+                        'dynamodb:DescribeBackup',  # For backup status polling
+                        'dynamodb:RestoreTableToPointInTime',  # For creating table from PITR backup
+                        'dynamodb:DescribeTable',  # For table status polling
+                        # The following permissions are needed for restoring data into the PITR table
+                        # https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazondynamodb.html#amazondynamodb-actions-as-permissions
+                        'dynamodb:BatchWriteItem',
+                        'dynamodb:DeleteItem',
+                        'dynamodb:GetItem',
+                        'dynamodb:PutItem',
+                        'dynamodb:Query',
+                        'dynamodb:Scan',
+                        'dynamodb:UpdateItem',
+                    ],
+                    resources=[
+                        table.table_arn,  # Table for backup operations
+                        f'{table.table_arn}/backup/*',  # Backup resources
+                        f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{restored_table_name_prefix}*',
+                        f'arn:aws:dynamodb:{stack.region}:{stack.account}:table/{restored_table_name_prefix}*/index/*',
+                    ],
+                )
             )
-        )
-        # Add permissions to start sync table step function and check for completion
-        self.state_machine.add_to_role_policy(
-            PolicyStatement(
-                effect=Effect.ALLOW,
-                actions=[
-                    'states:StartExecution',  # For invoking sync table step function
-                    # permissions needed for step function to track synchronous events of step function execution
-                    'events:PutTargets',
-                    'events:PutRule',
-                    'events:DescribeRule',
-                ],
-                resources=[
-                    sync_table_data_state_machine_arn,  # Sync table step function
-                    # rule used for tracking step function execution events
-                    f'arn:aws:events:{stack.region}:{stack.account}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule',
-                ],
+            # Add permissions to start sync table step function and check for completion
+            self.state_machine.add_to_role_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        'states:StartExecution',  # For invoking sync table step function
+                        # permissions needed for step function to track synchronous events of step function execution
+                        'events:PutTargets',
+                        'events:PutRule',
+                        'events:DescribeRule',
+                    ],
+                    resources=[
+                        sync_table_data_state_machine_arn,  # Sync table step function
+                        # rule used for tracking step function execution events
+                        f'arn:aws:events:{stack.region}:{stack.account}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule',
+                    ],
+                )
             )
-        )
 
-        shared_persistent_stack_key.grant_encrypt_decrypt(self.state_machine)
-        self.state_machine.add_to_role_policy(
-            PolicyStatement(
-                effect=Effect.ALLOW,
-                actions=[
-                    # this is needed to recover a table that is encrypted with a custom managed KMS key
-                    'kms:DescribeKey',
-                    'kms:CreateGrant',
-                ],
-                resources=[shared_persistent_stack_key.key_arn],
+            # Grant permissions for the encryption key used for restore
+            encryption_key_for_restore.grant_encrypt_decrypt(self.state_machine)
+            self.state_machine.add_to_role_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        # this is needed to recover a table that is encrypted with a custom managed KMS key
+                        'kms:DescribeKey',
+                        'kms:CreateGrant',
+                    ],
+                    resources=[encryption_key_for_restore.key_arn],
+                )
             )
-        )
 
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack=stack,
-            path=f'{self.state_machine.node.path}/Role/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                              This policy contains wild-carded actions and resources but they are scoped to creating
-                              specific DynamoDB table DR backups that this state machine is designed to restore.
-                              """,
-                },
-            ],
-        )
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack=stack,
+                path=f'{self.state_machine.node.path}/Role/DefaultPolicy/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM5',
+                        'reason': """
+                                  This policy contains wild-carded actions and resources but they are scoped to creating
+                                  specific DynamoDB table DR backups that this state machine is designed to restore.
+                                  """,
+                    },
+                ],
+            )
 
     def _build_state_machine_definition(
         self,
@@ -149,6 +158,7 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         restored_table_name_prefix: str,
         sync_table_data_state_machine_arn: str,
         persistent_stack_encryption_key: Key,
+        ssn_restore_workflow: bool,
     ):
         """Builds restore + backup in parallel, then sync execution with polling loops."""
         stack = Stack.of(self)
@@ -273,7 +283,10 @@ class RestoreDynamoDbTableStepFunctionConstruct(Construct):
         # Run restore and backup in parallel
         parallel_restore_and_backup = Parallel(self, 'RestoreAndBackupInParallel', outputs=None)
         parallel_restore_and_backup.branch(restore_task)
-        parallel_restore_and_backup.branch(create_backup_for_existing_table)
+        # We don't create backups of the SSN table during the restore process to reduce the data footprint of this
+        # sensitive information
+        if not ssn_restore_workflow:
+            parallel_restore_and_backup.branch(create_backup_for_existing_table)
 
         # After both complete, start the sync step function using JSONata to perform a hard reset
         # of the table to match the PITR backup table.

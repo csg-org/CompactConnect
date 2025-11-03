@@ -2,7 +2,7 @@ import os
 
 from aws_cdk import ArnFormat, Duration
 from aws_cdk.aws_dynamodb import Table
-from aws_cdk.aws_iam import PolicyStatement
+from aws_cdk.aws_iam import PolicyStatement, Role
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_stepfunctions import (
@@ -23,6 +23,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks.persistent_stack.ssn_table import SSN_SYNC_STATE_MACHINE_NAME
 
 
 class SyncTableDataStepFunctionConstruct(Construct):
@@ -34,6 +35,8 @@ class SyncTableDataStepFunctionConstruct(Construct):
         table: Table,
         source_table_name_prefix: str,
         dr_shared_encryption_key: Key,
+        ssn_encryption_key: Key | None = None,
+        ssn_dr_lambda_role: Role | None = None,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -41,7 +44,12 @@ class SyncTableDataStepFunctionConstruct(Construct):
         stack = Stack.of(self)
 
         # Create Lambda functions for delete and copy operations
-        self._create_lambda_functions(table, source_table_name_prefix=source_table_name_prefix)
+        self._create_lambda_functions(
+            table,
+            source_table_name_prefix=source_table_name_prefix,
+            ssn_encryption_key=ssn_encryption_key,
+            ssn_dr_lambda_role=ssn_dr_lambda_role,
+        )
 
         # Build Step Function definition with separate delete and copy phases
         definition = self._build_sync_table_data_state_machine_definition(destination_table=table)
@@ -64,6 +72,7 @@ class SyncTableDataStepFunctionConstruct(Construct):
                 include_execution_data=True,
             ),
             tracing_enabled=True,
+            state_machine_name=SSN_SYNC_STATE_MACHINE_NAME if ssn_dr_lambda_role is not None else None,
         )
         # allow step function to call these lambdas
         self.cleanup_records_function.grant_invoke(self.state_machine)
@@ -83,7 +92,13 @@ class SyncTableDataStepFunctionConstruct(Construct):
             ],
         )
 
-    def _create_lambda_functions(self, table: Table, source_table_name_prefix: str):
+    def _create_lambda_functions(
+        self,
+        table: Table,
+        source_table_name_prefix: str,
+        ssn_encryption_key: Key | None = None,
+        ssn_dr_lambda_role: Role | None = None,
+    ):
         """Create Lambda functions for delete and copy operations."""
         stack = Stack.of(self)
         self.cleanup_records_function = PythonFunction(
@@ -101,22 +116,31 @@ class SyncTableDataStepFunctionConstruct(Construct):
             # used we want to process this recovery process quickly. Increasing the memory for these
             # also increases the performance.
             memory_size=3008,
+            # Use ssn role if provided, otherwise PythonFunction creates default
+            role=ssn_dr_lambda_role if ssn_dr_lambda_role else None,
         )
-        table.grant_read_write_data(self.cleanup_records_function)
 
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack=stack,
-            path=f'{self.cleanup_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                            This policy contains wild-carded actions and resources but they are scoped to the
-                            specific table that this lambda needs access to.
-                            """,
-                },
-            ],
-        )
+        if not ssn_dr_lambda_role:
+            table.grant_read_write_data(self.cleanup_records_function)
+
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack=stack,
+                path=f'{self.cleanup_records_function.role.node.path}/DefaultPolicy/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM5',
+                        'reason': """
+                                This policy contains wild-carded actions and resources but they are scoped to the
+                                specific table that this lambda needs access to.
+                                """,
+                    },
+                ],
+            )
+
+        # Prepare environment variables for copy_records_function
+        copy_env_vars = {**stack.common_env_vars}
+        if ssn_encryption_key is not None:
+            copy_env_vars['SSN_ENCRYPTION_KMS_KEY_ID'] = ssn_encryption_key.key_id
 
         self.copy_records_function = PythonFunction(
             self,
@@ -126,48 +150,53 @@ class SyncTableDataStepFunctionConstruct(Construct):
             index=os.path.join('handlers', 'copy_records.py'),
             handler='copy_records',
             timeout=Duration.minutes(15),
-            environment={
-                **stack.common_env_vars,
-            },
+            environment=copy_env_vars,
             # Setting this memory size higher than others because these will not be used frequently, and if they are
             # used we want to process this recovery process quickly. Increasing the memory for these
             # also increases the performance.
             memory_size=3008,
+            # Use ssn role if provided, otherwise PythonFunction creates default
+            role=ssn_dr_lambda_role,
         )
-        table.grant_write_data(self.copy_records_function)
-        # the source table name for these will be determined when the DR is actually run, so we grant a policy to allow
-        # this lambda to read from any table prefixed with the name prefix defined in CDK.
-        # The parent step function to this will name the restored table to follow this prefix.
-        self.copy_records_function.add_to_role_policy(
-            PolicyStatement(
-                actions=['dynamodb:Scan'],
-                resources=[
-                    stack.format_arn(
-                        partition=stack.partition,
-                        service='dynamodb',
-                        region=stack.region,
-                        account=stack.account,
-                        resource='table',
-                        resource_name=f'{source_table_name_prefix}*',
-                        arn_format=ArnFormat.SLASH_RESOURCE_NAME,
-                    )
+        # Grant permissions to copy_records_function
+        # If using a custom SSN DR Lambda role, permissions should already be configured on that role
+        # Otherwise grant standard permissions for other tables
+        if not ssn_dr_lambda_role:
+            table.grant_write_data(self.copy_records_function)
+            # The source table name for these will be determined when the DR is actually run,
+            # so we grant a policy to allow this lambda to read from any table prefixed with the
+            # name prefix defined in CDK. The parent step function to this will name the restored table
+            # to follow this prefix.
+            self.copy_records_function.add_to_role_policy(
+                PolicyStatement(
+                    actions=['dynamodb:Scan'],
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='dynamodb',
+                            region=stack.region,
+                            account=stack.account,
+                            resource='table',
+                            resource_name=f'{source_table_name_prefix}*',
+                            arn_format=ArnFormat.SLASH_RESOURCE_NAME,
+                        )
+                    ],
+                )
+            )
+
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack=stack,
+                path=f'{self.copy_records_function.role.node.path}/DefaultPolicy/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM5',
+                        'reason': """
+                                  This policy contains wild-carded actions and resources but they are scoped to the
+                                  specific destination table and prefixed source tables this lambda needs access to.
+                                  """,
+                    },
                 ],
             )
-        )
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack=stack,
-            path=f'{self.copy_records_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                              This policy contains wild-carded actions and resources but they are scoped to the
-                              specific destination table and prefixed source tables this lambda needs access to.
-                              """,
-                },
-            ],
-        )
 
     def _build_sync_table_data_state_machine_definition(self, destination_table: Table) -> IChainable:
         """

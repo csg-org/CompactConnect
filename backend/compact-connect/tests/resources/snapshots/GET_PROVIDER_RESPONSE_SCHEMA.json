@@ -628,6 +628,13 @@
                 "clinicalPrivilegeActionCategory": {
                   "type": "string"
                 },
+                "clinicalPrivilegeActionCategories": {
+                  "description": "The categories of clinical privilege action",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
                 "liftingUser": {
                   "type": "string"
                 }
@@ -644,8 +651,7 @@
                 "creationDate",
                 "adverseActionId",
                 "dateOfUpdate",
-                "encumbranceType",
-                "clinicalPrivilegeActionCategory"
+                "encumbranceType"
               ],
               "type": "object"
             },
@@ -1434,6 +1440,13 @@
                 "clinicalPrivilegeActionCategory": {
                   "type": "string"
                 },
+                "clinicalPrivilegeActionCategories": {
+                  "description": "The categories of clinical privilege action",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
                 "liftingUser": {
                   "type": "string"
                 }
@@ -1450,8 +1463,7 @@
                 "creationDate",
                 "adverseActionId",
                 "dateOfUpdate",
-                "encumbranceType",
-                "clinicalPrivilegeActionCategory"
+                "encumbranceType"
               ],
               "type": "object"
             },

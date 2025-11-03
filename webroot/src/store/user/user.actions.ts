@@ -152,6 +152,25 @@ export default {
     getCompactStatesFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_COMPACT_STATES_FAILURE, error);
     },
+    // GET COMPACT STATES FOR REGISTRATION
+    getCompactStatesForRegistrationRequest: async ({ commit, dispatch }) => {
+        commit(MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_REQUEST);
+
+        return dataApi.getCompactStatesForRegistrationPublic().then((compacts) => {
+            dispatch('getCompactStatesForRegistrationSuccess', compacts);
+
+            return compacts;
+        }).catch((error) => {
+            dispatch('getCompactStatesForRegistrationFailure', error);
+            throw error;
+        });
+    },
+    getCompactStatesForRegistrationSuccess: ({ commit }, states) => {
+        commit(MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_SUCCESS, states);
+    },
+    getCompactStatesForRegistrationFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_COMPACT_STATES_FOR_REGISTRATION_FAILURE, error);
+    },
     // SET THE STORE STATE
     setCurrentCompact: async ({ commit, dispatch }, compact: Compact | null) => {
         commit(MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact);

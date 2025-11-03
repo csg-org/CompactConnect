@@ -16,7 +16,8 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
-import { StateSerializer } from '@models/State/State.model';
+import { State, StateSerializer } from '@models/State/State.model';
+import { CompactSerializer } from '@models/Compact/Compact.model';
 import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
 import { LicenseHistoryItemSerializer, LicenseHistoryItem } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 
@@ -325,6 +326,28 @@ export class UserDataApi implements DataApiInterface {
         const response = serverResponse.map((serverItem) => StateSerializer.fromServer({
             abbrev: serverItem.postalAbbreviation,
         }));
+
+        return response;
+    }
+
+    /**
+     * GET Compact State Lists for Registration (Public).
+     * @return {Promise<Array<Compact>>} A list of Compact instances.
+     */
+    public async getCompactStatesForRegistrationPublic() {
+        const serverResponse: any = await this.api.get(`/v1/public/jurisdictions/live`);
+        const response = Object.entries(serverResponse).map(([compactAbbrev, stateList]) => {
+            let states: Array<State> = [];
+
+            if (Array.isArray(stateList)) {
+                states = stateList.map((stateAbbrev) => StateSerializer.fromServer({ abbrev: stateAbbrev }));
+            }
+
+            return CompactSerializer.fromServer({
+                type: compactAbbrev,
+                memberStates: states,
+            });
+        });
 
         return response;
     }

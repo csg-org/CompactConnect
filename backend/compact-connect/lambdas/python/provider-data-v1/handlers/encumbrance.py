@@ -102,9 +102,26 @@ def _generate_adverse_action_for_record_type(
     adverse_action.licenseType = license_type.name
     adverse_action.actionAgainst = adverse_action_against_record_type
     adverse_action.encumbranceType = EncumbranceType(adverse_action_request['encumbranceType'])
-    adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
-        adverse_action_request['clinicalPrivilegeActionCategory']
-    )
+    # TODO - remove the flag conditions as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
+    from cc_common.feature_flag_client import is_feature_enabled
+
+    if is_feature_enabled('encumbrance-multi-category-flag'):
+        if 'clinicalPrivilegeActionCategory' in adverse_action_request:
+            # replicate data to both the deprecated and new fields
+            adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
+                adverse_action_request['clinicalPrivilegeActionCategory']
+            )
+            adverse_action.clinicalPrivilegeActionCategories = [
+                ClinicalPrivilegeActionCategory(adverse_action_request['clinicalPrivilegeActionCategory'])
+            ]
+        else:
+            adverse_action.clinicalPrivilegeActionCategories = adverse_action_request[
+                'clinicalPrivilegeActionCategories'
+            ]
+    else:
+        adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
+            adverse_action_request['clinicalPrivilegeActionCategory']
+        )
     adverse_action.effectiveStartDate = encumbrance_effective_date
     adverse_action.submittingUser = _get_submitting_user_id(event)
     adverse_action.creationDate = config.current_standard_datetime
@@ -150,7 +167,6 @@ def handle_license_encumbrance(event: dict) -> dict:
         provider_id=adverse_action.providerId,
         adverse_action_id=adverse_action.adverseActionId,
         jurisdiction=adverse_action.jurisdiction,
-        adverse_action_category=adverse_action.clinicalPrivilegeActionCategory,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         effective_date=adverse_action.effectiveStartDate,
     )
