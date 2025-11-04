@@ -9,6 +9,7 @@ from .. import TstFunction
 
 MOCK_CURRENT_DATETIME_STRING = '2024-11-08T23:59:59+00:00'
 
+
 @mock_aws
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
@@ -157,7 +158,9 @@ class TestTransformations(TstFunction):
             expected_license['compactEligibility'] = 'eligible'
             expected_license['uploadDate'] = MOCK_CURRENT_DATETIME_STRING
             expected_license['licenseUploadDateGSIPK'] = 'C#aslp#J#oh#D#2024-11'
-            expected_license['licenseUploadDateGSISK'] = 'TIME#1731110399#LT#slp#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
+            expected_license['licenseUploadDateGSISK'] = (
+                'TIME#1731110399#LT#slp#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
+            )
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
             # privilege status should be active

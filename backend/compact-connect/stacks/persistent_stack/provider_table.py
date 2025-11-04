@@ -88,7 +88,7 @@ class ProviderTable(Table):
             index_name=self.license_upload_date_gsi_name,
             partition_key=Attribute(name='licenseUploadDateGSIPK', type=AttributeType.STRING),
             sort_key=Attribute(name='licenseUploadDateGSISK', type=AttributeType.STRING),
-            projection_type=ProjectionType.KEYS_ONLY
+            projection_type=ProjectionType.KEYS_ONLY,
         )
         # Set up backup plan
         backup_enabled = environment_context['backup_enabled']

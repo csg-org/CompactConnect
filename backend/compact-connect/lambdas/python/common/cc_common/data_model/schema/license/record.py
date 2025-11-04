@@ -49,7 +49,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
     licenseGSISK = String(required=True, allow_none=False)
     licenseUploadDateGSIPK = String(required=False, allow_none=False)
     licenseUploadDateGSISK = String(required=False, allow_none=False)
-    
+
     # Optional field for tracking when the license upload caused this record to be created
     uploadDate = DateTime(required=False, allow_none=False)
 
@@ -136,7 +136,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
             # Extract YYYY-MM from uploadDate
             upload_date = in_data['uploadDate']
             year_month = upload_date.strftime('%Y-%m')
-            
+
             # Generate GSI PK: C#{compact}#J#{jurisdiction}#D#{YYYY-MM}
             in_data['licenseUploadDateGSIPK'] = (
                 f'C#{in_data["compact"].lower()}#J#{in_data["jurisdiction"].lower()}#D#{year_month}'
@@ -225,11 +225,11 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     investigationDetails = Nested(InvestigationDetailsSchema(), required=False, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
-    
+
     # Optional GSI fields for license upload date tracking
     licenseUploadDateGSIPK = String(required=False, allow_none=False)
     licenseUploadDateGSISK = String(required=False, allow_none=False)
-    
+
     # Optional field for tracking when the license upload caused this update record to be created
     uploadDate = DateTime(required=False, allow_none=False)
 
@@ -270,7 +270,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
             upload_epoch_time = int(upload_date.timestamp())
             license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
             in_data['licenseUploadDateGSISK'] = (
-                f'TIME#{upload_epoch_time}#LT#{in_data["licenseType"]}#PID#{in_data["providerId"]}'
+                f'TIME#{upload_epoch_time}#LT#{license_type_abbr}#PID#{in_data["providerId"]}'
             )
         return in_data
 
