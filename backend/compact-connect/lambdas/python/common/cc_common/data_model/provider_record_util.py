@@ -619,9 +619,16 @@ class ProviderUserRecords:
         privilege_jurisdiction: str,
         privilege_license_type_abbreviation: str,
         filter_condition: Callable[[InvestigationData], bool] | None = None,
+        include_closed: bool = False,
     ) -> list[InvestigationData]:
         """
         Get all investigation records for a given privilege.
+
+        :param privilege_jurisdiction: The jurisdiction of the privilege
+        :param privilege_license_type_abbreviation: The license type abbreviation
+        :param filter_condition: Optional filter function to apply to records
+        :param include_closed: If True, include closed investigations; otherwise only return active ones
+        :returns: List of investigation records matching the criteria
         """
         return [
             record
@@ -629,7 +636,9 @@ class ProviderUserRecords:
             if record.investigationAgainst == 'privilege'
             and record.jurisdiction == privilege_jurisdiction
             and record.licenseTypeAbbreviation == privilege_license_type_abbreviation
-            and record.closeDate is None  # Only return active investigations
+            and (
+                include_closed or record.closeDate is None
+            )  # Only return active investigations unless include_closed is True
             and (filter_condition is None or filter_condition(record))
         ]
 
@@ -638,9 +647,16 @@ class ProviderUserRecords:
         license_jurisdiction: str,
         license_type_abbreviation: str,
         filter_condition: Callable[[InvestigationData], bool] | None = None,
+        include_closed: bool = False,
     ) -> list[InvestigationData]:
         """
         Get all investigation records for a given license.
+
+        :param license_jurisdiction: The jurisdiction of the license
+        :param license_type_abbreviation: The license type abbreviation
+        :param filter_condition: Optional filter function to apply to records
+        :param include_closed: If True, include closed investigations; otherwise only return active ones
+        :returns: List of investigation records matching the criteria
         """
         return [
             record
@@ -648,7 +664,9 @@ class ProviderUserRecords:
             if record.investigationAgainst == 'license'
             and record.jurisdiction == license_jurisdiction
             and record.licenseTypeAbbreviation == license_type_abbreviation
-            and record.closeDate is None  # Only return active investigations
+            and (
+                include_closed or record.closeDate is None
+            )  # Only return active investigations unless include_closed is True
             and (filter_condition is None or filter_condition(record))
         ]
 

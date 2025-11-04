@@ -1,23 +1,21 @@
+from typing import Any, Protocol
 from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.data_event.api import InvestigationEventDetailSchema
 from cc_common.data_model.schema.provider import ProviderData
-from cc_common.email_service_client import InvestigationNotificationTemplateVariables, ProviderNotificationMethod
+from cc_common.email_service_client import InvestigationNotificationTemplateVariables
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler
 
 
-def _get_license_type_name(compact: str, license_type_abbreviation: str) -> str:
-    """
-    Get the license type name from abbreviation.
+class JurisdictionNotificationMethod(Protocol):
+    """Protocol for Jurisdiction investigation notification methods."""
 
-    :param compact: The compact identifier
-    :param license_type_abbreviation: The license type abbreviation
-    :return: The license type name
-    """
-    return LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
+    def __call__(
+        self, *, compact: str, jurisdiction: str, template_variables: InvestigationNotificationTemplateVariables
+    ) -> dict[str, Any]: ...
 
 
 def _get_provider_records(compact: str, provider_id: str) -> tuple[ProviderUserRecords, ProviderData]:
@@ -41,45 +39,8 @@ def _get_provider_records(compact: str, provider_id: str) -> tuple[ProviderUserR
         raise
 
 
-def _send_provider_notification(
-    notification_method: ProviderNotificationMethod,
-    notification_type: str,
-    *,
-    provider_record: ProviderData,
-    compact: str,
-    **notification_kwargs,
-) -> None:
-    """
-    Send notification to provider if they are registered.
-
-    :param provider_record: The provider record
-    :param notification_method: The email service method to call
-    :param notification_type: Type of notification for logging
-    :param compact: The compact identifier
-    :param notification_kwargs: Additional arguments for the notification method
-    """
-    provider_email = provider_record.compactConnectRegisteredEmailAddress
-    if provider_email:
-        logger.info(f'Sending {notification_type} notification to provider', provider_email=provider_email)
-        try:
-            notification_method(
-                compact=compact,
-                provider_email=provider_email,
-                template_variables=InvestigationNotificationTemplateVariables(
-                    provider_first_name=provider_record.givenName,
-                    provider_last_name=provider_record.familyName,
-                    **notification_kwargs,
-                ),
-            )
-        except Exception as e:
-            logger.error('Failed to send provider notification', exception=str(e))
-            raise
-    else:
-        logger.info('Provider not registered in system, skipping provider notification')
-
-
 def _send_primary_state_notification(
-    notification_method: ProviderNotificationMethod,
+    notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
     provider_record: ProviderData,
@@ -114,7 +75,7 @@ def _send_primary_state_notification(
 
 
 def _send_additional_state_notifications(
-    notification_method: ProviderNotificationMethod,
+    notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
     provider_records: ProviderUserRecords,
@@ -203,7 +164,7 @@ def license_investigation_notification_listener(message: dict):
         logger.info('Processing license investigation event')
 
         # Get license type name from abbreviation (lookup once at the top)
-        license_type_name = _get_license_type_name(compact, license_type_abbreviation)
+        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
@@ -271,7 +232,7 @@ def license_investigation_closed_notification_listener(message: dict):
             return
 
         # Get license type name from abbreviation (lookup once at the top)
-        license_type_name = _get_license_type_name(compact, license_type_abbreviation)
+        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
@@ -333,7 +294,7 @@ def privilege_investigation_notification_listener(message: dict):
         logger.info('Processing privilege investigation event')
 
         # Get license type name from abbreviation (lookup once at the top)
-        license_type_name = _get_license_type_name(compact, license_type_abbreviation)
+        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
@@ -401,7 +362,7 @@ def privilege_investigation_closed_notification_listener(message: dict):
             return
 
         # Get license type name from abbreviation (lookup once at the top)
-        license_type_name = _get_license_type_name(compact, license_type_abbreviation)
+        license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)

@@ -1076,7 +1076,7 @@ class TestDataClient(TstFunction):
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'privilege',
             'investigationId': str(investigation.investigationId),
-            'submittingUser': str(investigation.submittingUser),
+            'submittingUser': investigation.submittingUser,
             'creationDate': investigation.creationDate.isoformat(),
         }
         # Pop dynamic fields that we don't want to assert on
@@ -1621,7 +1621,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='ne',
                 license_type_abbreviation='slp',
-                investigation_id=str(uuid4()),
+                investigation_id=uuid4(),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
                 investigation_against=InvestigationAgainstEnum.PRIVILEGE,
@@ -1647,7 +1647,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='oh',
                 license_type_abbreviation='slp',
-                investigation_id=str(uuid4()),
+                investigation_id=uuid4(),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
                 investigation_against=InvestigationAgainstEnum.LICENSE,
@@ -1678,7 +1678,7 @@ class TestDataClient(TstFunction):
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                'investigationId': str(uuid4()),
+                'investigationId': uuid4(),
             }
         )
 
@@ -1711,7 +1711,7 @@ class TestDataClient(TstFunction):
         self.assertIn('Investigation not found', str(context.exception))
 
     def test_close_license_investigation_already_closed(self):
-        """Test closing privilege investigation when investigation was already closed"""
+        """Test closing license investigation when investigation was already closed"""
         from cc_common.data_model.data_client import DataClient
         from cc_common.data_model.schema.common import InvestigationAgainstEnum
         from cc_common.data_model.schema.investigation import InvestigationData
@@ -1787,7 +1787,7 @@ class TestDataClient(TstFunction):
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                'investigationId': str(uuid4()),
+                'investigationId': uuid4(),
             }
         )
 
@@ -1863,7 +1863,7 @@ class TestDataClient(TstFunction):
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                'investigationId': str(uuid4()),
+                'investigationId': uuid4(),
             }
         )
 

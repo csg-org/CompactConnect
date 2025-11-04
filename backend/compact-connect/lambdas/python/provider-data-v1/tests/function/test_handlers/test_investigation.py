@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
+from uuid import UUID
 
-from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
@@ -53,23 +53,12 @@ class TestPostPrivilegeInvestigation(TstFunction):
 
     def _load_privilege_data(self):
         """Load privilege test data from JSON file"""
-        import json
-        from decimal import Decimal
 
         # Load provider record first (needed for encumbrance creation)
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            provider_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=provider_record)
-
-        # Load privilege record
-        with open('../common/tests/resources/dynamo/privilege.json') as f:
-            privilege_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=privilege_record)
-
-        # Return the privilege data as a data class
-        from cc_common.data_model.schema.privilege import PrivilegeData
-
-        return PrivilegeData.from_database_record(privilege_record)
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        privilege = self.test_data_generator.generate_default_privilege()
+        self.test_data_generator.store_record_in_provider_table(privilege.serialize_to_database_record())
+        return privilege
 
     def _when_testing_privilege_investigation(self):
         test_privilege_record = self._load_privilege_data()
@@ -110,48 +99,36 @@ class TestPostPrivilegeInvestigation(TstFunction):
         )
 
         # Verify that the investigation record was added to the provider data table
-        # Perform a query to list all investigations for the provider using the starts_with key condition
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
         )
-        self.assertEqual(1, len(investigation_records['Items']))
-        item = investigation_records['Items'][0]
+        investigation_records = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction=test_privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=test_privilege_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(investigation_records))
+        investigation = investigation_records[0]
 
         # Verify the investigation record fields
         expected_investigation = {
             'type': 'investigation',
             'compact': test_privilege_record.compact,
-            'providerId': str(test_privilege_record.providerId),
+            'providerId': test_privilege_record.providerId,
             'jurisdiction': test_privilege_record.jurisdiction,
             'licenseType': test_privilege_record.licenseType,
             'investigationAgainst': 'privilege',
-            'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'pk': test_privilege_record.serialize_to_database_record()['pk'],
-            'sk': (
-                f'{test_privilege_record.compact}#PROVIDER#privilege/'
-                f'{test_privilege_record.jurisdiction}/slp#INVESTIGATION#{item["investigationId"]}'
-            ),
-            'investigationId': item['investigationId'],
+            'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
+            'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'investigationId': investigation.investigationId,
         }
-        self.assertEqual(expected_investigation, item)
+        self.assertEqual(expected_investigation, investigation.to_dict())
 
         # Verify that the privilege record was updated to be under investigation
-        updated_privilege_record = self._provider_table.get_item(
-            Key={
-                'pk': test_privilege_record.serialize_to_database_record()['pk'],
-                'sk': test_privilege_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        updated_privilege_record = provider_user_records.get_privilege_records()[0]
 
-        self.assertEqual(
-            InvestigationStatusEnum.UNDER_INVESTIGATION.value, updated_privilege_record['investigationStatus']
-        )
+        self.assertEqual(InvestigationStatusEnum.UNDER_INVESTIGATION, updated_privilege_record.investigationStatus)
 
         # Verify that investigation objects are included in the API response
         api_event = self.test_data_generator.generate_test_api_event(
@@ -192,7 +169,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
             ],
         }
 
-        self.assertDictFieldsMatch(expected_privilege, privilege)
+        self.assertDictPartialMatch(expected_privilege, privilege)
 
         # Verify event was published with correct details
         mock_publish_event.assert_called_once()
@@ -251,23 +228,12 @@ class TestPostLicenseInvestigation(TstFunction):
 
     def _load_license_data(self):
         """Load license test data from JSON file"""
-        import json
-        from decimal import Decimal
 
         # Load provider record first (needed for encumbrance creation)
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            provider_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=provider_record)
-
-        # Load license record
-        with open('../common/tests/resources/dynamo/license.json') as f:
-            license_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=license_record)
-
-        # Return the license data as a data class
-        from cc_common.data_model.schema.license import LicenseData
-
-        return LicenseData.from_database_record(license_record)
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        license_data = self.test_data_generator.generate_default_license()
+        self.test_data_generator.store_record_in_provider_table(license_data.serialize_to_database_record())
+        return license_data
 
     def _when_testing_valid_license_investigation(self, body_overrides: dict | None = None):
         test_license_record = self._load_license_data()
@@ -313,45 +279,36 @@ class TestPostLicenseInvestigation(TstFunction):
 
         # Verify that the investigation record was added to the provider data table
         # Perform a query to list all investigations for the provider using the starts_with key condition
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
         )
-        self.assertEqual(1, len(investigation_records['Items']))
-        item = investigation_records['Items'][0]
+        investigation_records = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction=test_license_record.jurisdiction,
+            license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(investigation_records))
+        investigation = investigation_records[0]
 
         # Verify the investigation record fields
         expected_investigation = {
             'type': 'investigation',
             'compact': test_license_record.compact,
-            'providerId': str(test_license_record.providerId),
+            'providerId': test_license_record.providerId,
             'jurisdiction': test_license_record.jurisdiction,
             'licenseType': test_license_record.licenseType,
             'investigationAgainst': 'license',
-            'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'pk': test_license_record.serialize_to_database_record()['pk'],
-            'sk': (
-                f'{test_license_record.compact}#PROVIDER#license/'
-                f'{test_license_record.jurisdiction}/slp#INVESTIGATION#{item["investigationId"]}'
-            ),
-            'investigationId': item['investigationId'],
+            'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
+            'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'investigationId': investigation.investigationId,
         }
-        self.assertEqual(expected_investigation, item)
+        self.assertEqual(expected_investigation, investigation.to_dict())
 
         # Verify that the license record was updated to be under investigation
-        updated_license_record = self._provider_table.get_item(
-            Key={
-                'pk': test_license_record.serialize_to_database_record()['pk'],
-                'sk': test_license_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        updated_license_record = provider_user_records.get_license_records()[0]
 
-        self.assertEqual(InvestigationStatusEnum.UNDER_INVESTIGATION, updated_license_record['investigationStatus'])
+        self.assertEqual(InvestigationStatusEnum.UNDER_INVESTIGATION, updated_license_record.investigationStatus)
 
         # Verify that investigation objects are included in the API response
         api_event = self.test_data_generator.generate_test_api_event(
@@ -393,7 +350,7 @@ class TestPostLicenseInvestigation(TstFunction):
             ],
         }
 
-        self.assertDictFieldsMatch(expected_license, license_obj)
+        self.assertDictPartialMatch(expected_license, license_obj)
 
         # Verify event was published with correct details
         mock_publish_event.assert_called_once()
@@ -451,24 +408,12 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
     """Test suite for privilege investigation close endpoints."""
 
     def _load_privilege_data(self):
-        """Load privilege test data from JSON file"""
-        import json
-        from decimal import Decimal
-
+        """Load privilege test data using test data generator"""
         # Load provider record first (needed for encumbrance creation)
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            provider_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=provider_record)
-
-        # Load privilege record
-        with open('../common/tests/resources/dynamo/privilege.json') as f:
-            privilege_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=privilege_record)
-
-        # Return the privilege data as a data class
-        from cc_common.data_model.schema.privilege import PrivilegeData
-
-        return PrivilegeData.from_database_record(privilege_record)
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        privilege = self.test_data_generator.generate_default_privilege()
+        self.test_data_generator.store_record_in_provider_table(privilege.serialize_to_database_record())
+        return privilege
 
     def _when_testing_privilege_investigation_close(self, body_overrides: dict | None = None):
         test_privilege_record = self._load_privilege_data()
@@ -496,15 +441,17 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
 
         investigation_handler(create_event, self.mock_context)
 
-        # Get the investigation ID from the database
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        # Get the investigation ID using the data client
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
         )
-        investigation_id = investigation_records['Items'][0]['investigationId']
+        investigation_records = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction=test_privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=test_privilege_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(investigation_records))
+        investigation_id = investigation_records[0].investigationId
 
         # Now create the close event
         test_event = self.test_data_generator.generate_test_api_event(
@@ -543,47 +490,41 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
         )
 
         # Verify that the investigation record was updated
-        investigation_record = self._provider_table.get_item(
-            Key={
-                'pk': test_privilege_record.serialize_to_database_record()['pk'],
-                'sk': (
-                    f'{test_privilege_record.compact}#PROVIDER#privilege/'
-                    f'{test_privilege_record.jurisdiction}/slp#INVESTIGATION#{investigation_id}'
-                ),
-            }
-        )['Item']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
+        )
+        # Get all investigation records (including closed ones)
+        all_investigations = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction=test_privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=test_privilege_record.licenseTypeAbbreviation,
+            filter_condition=lambda inv: inv.investigationId == investigation_id,
+            include_closed=True,
+        )
+        self.assertEqual(1, len(all_investigations))
+        investigation = all_investigations[0]
 
         expected_investigation = {
-            'pk': test_privilege_record.serialize_to_database_record()['pk'],
-            'sk': (
-                f'{test_privilege_record.compact}#PROVIDER#privilege/'
-                f'{test_privilege_record.jurisdiction}/slp#INVESTIGATION#{investigation_id}'
-            ),
             'type': 'investigation',
             'compact': test_privilege_record.compact,
-            'providerId': str(test_privilege_record.providerId),
+            'providerId': test_privilege_record.providerId,
             'jurisdiction': test_privilege_record.jurisdiction,
             'licenseType': test_privilege_record.licenseType,
             'investigationAgainst': 'privilege',
             'investigationId': investigation_id,
-            'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'closeDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'closingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
+            'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'closeDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'closingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
         }
 
-        self.assertEqual(expected_investigation, investigation_record)
+        self.assertEqual(expected_investigation, investigation.to_dict())
 
         # Verify that the privilege record no longer has investigation status
-        updated_privilege_record = self._provider_table.get_item(
-            Key={
-                'pk': test_privilege_record.serialize_to_database_record()['pk'],
-                'sk': test_privilege_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        updated_privilege_record = provider_user_records.get_privilege_records()[0]
 
-        self.assertNotIn('investigationStatus', updated_privilege_record)
+        self.assertIsNone(updated_privilege_record.investigationStatus)
 
         # Verify that investigation objects are removed from the API response
         api_event = self.test_data_generator.generate_test_api_event(
@@ -642,27 +583,27 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
         # Verify that an encumbrance was created
-        encumbrance_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#ADVERSE_ACTION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
         )
-        self.assertEqual(1, len(encumbrance_records['Items']))
+        encumbrance_records = provider_user_records.get_adverse_action_records_for_privilege(
+            privilege_jurisdiction=test_privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=test_privilege_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(encumbrance_records))
 
         # Verify that the investigation record has the resulting encumbrance ID
-        investigation_record = self._provider_table.get_item(
-            Key={
-                'pk': test_privilege_record.serialize_to_database_record()['pk'],
-                'sk': (
-                    f'{test_privilege_record.compact}#PROVIDER#privilege/'
-                    f'{test_privilege_record.jurisdiction}/slp#INVESTIGATION#{investigation_id}'
-                ),
-            }
-        )['Item']
+        all_investigations = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction=test_privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=test_privilege_record.licenseTypeAbbreviation,
+            filter_condition=lambda inv: inv.investigationId == investigation_id,
+            include_closed=True,
+        )
+        self.assertEqual(1, len(all_investigations))
+        investigation = all_investigations[0]
 
-        self.assertIn('resultingEncumbranceId', investigation_record)
+        self.assertIsNotNone(investigation.resultingEncumbranceId)
 
 
 @mock_aws
@@ -671,24 +612,12 @@ class TestPatchLicenseInvestigationClose(TstFunction):
     """Test suite for license investigation close endpoints."""
 
     def _load_license_data(self):
-        """Load license test data from JSON file"""
-        import json
-        from decimal import Decimal
-
+        """Load license test data using test data generator"""
         # Load provider record first (needed for encumbrance creation)
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            provider_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=provider_record)
-
-        # Load license record
-        with open('../common/tests/resources/dynamo/license.json') as f:
-            license_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=license_record)
-
-        # Return the license data as a data class
-        from cc_common.data_model.schema.license import LicenseData
-
-        return LicenseData.from_database_record(license_record)
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        license_data = self.test_data_generator.generate_default_license()
+        self.test_data_generator.store_record_in_provider_table(license_data.serialize_to_database_record())
+        return license_data
 
     def _when_testing_license_investigation_close(self, body_overrides: dict | None = None):
         test_license_record = self._load_license_data()
@@ -716,15 +645,17 @@ class TestPatchLicenseInvestigationClose(TstFunction):
 
         investigation_handler(create_event, self.mock_context)
 
-        # Get the investigation ID from the database
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        # Get the investigation ID using the data client
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
         )
-        investigation_id = investigation_records['Items'][0]['investigationId']
+        investigation_records = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction=test_license_record.jurisdiction,
+            license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(investigation_records))
+        investigation_id = investigation_records[0].investigationId
 
         # Now create the close event
         test_event = self.test_data_generator.generate_test_api_event(
@@ -763,47 +694,41 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         )
 
         # Verify that the investigation record was updated
-        investigation_record = self._provider_table.get_item(
-            Key={
-                'pk': test_license_record.serialize_to_database_record()['pk'],
-                'sk': (
-                    f'{test_license_record.compact}#PROVIDER#license/'
-                    f'{test_license_record.jurisdiction}/slp#INVESTIGATION#{investigation_id}'
-                ),
-            }
-        )['Item']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
+        )
+        # Get all investigation records (including closed ones)
+        all_investigations = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction=test_license_record.jurisdiction,
+            license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            filter_condition=lambda inv: inv.investigationId == investigation_id,
+            include_closed=True,
+        )
+        self.assertEqual(1, len(all_investigations))
+        investigation = all_investigations[0]
 
         expected_investigation = {
-            'pk': test_license_record.serialize_to_database_record()['pk'],
-            'sk': (
-                f'{test_license_record.compact}#PROVIDER#license/'
-                f'{test_license_record.jurisdiction}/slp#INVESTIGATION#{investigation_id}'
-            ),
             'type': 'investigation',
             'compact': test_license_record.compact,
-            'providerId': str(test_license_record.providerId),
+            'providerId': test_license_record.providerId,
             'jurisdiction': test_license_record.jurisdiction,
             'licenseType': test_license_record.licenseType,
             'investigationAgainst': 'license',
             'investigationId': investigation_id,
-            'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'closeDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            'closingUser': DEFAULT_AA_SUBMITTING_USER_ID,
-            'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
+            'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'closeDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
+            'closingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
         }
 
-        self.assertEqual(expected_investigation, investigation_record)
+        self.assertEqual(expected_investigation, investigation.to_dict())
 
         # Verify that the license record no longer has investigation status
-        updated_license_record = self._provider_table.get_item(
-            Key={
-                'pk': test_license_record.serialize_to_database_record()['pk'],
-                'sk': test_license_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        updated_license_record = provider_user_records.get_license_records()[0]
 
-        self.assertNotIn('investigationStatus', updated_license_record)
+        self.assertIsNone(updated_license_record.investigationStatus)
 
         # Verify that investigation objects are removed from the API response
         api_event = self.test_data_generator.generate_test_api_event(
@@ -862,27 +787,27 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
         # Verify that an encumbrance was created
-        encumbrance_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#ADVERSE_ACTION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
         )
-        self.assertEqual(1, len(encumbrance_records['Items']))
+        encumbrance_records = provider_user_records.get_adverse_action_records_for_license(
+            license_jurisdiction=test_license_record.jurisdiction,
+            license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(encumbrance_records))
 
         # Verify that the investigation record has the resulting encumbrance ID
-        investigation_record = self._provider_table.get_item(
-            Key={
-                'pk': test_license_record.serialize_to_database_record()['pk'],
-                'sk': (
-                    f'{test_license_record.compact}#PROVIDER#license/'
-                    f'{test_license_record.jurisdiction}/slp#INVESTIGATION#{investigation_id}'
-                ),
-            }
-        )['Item']
+        all_investigations = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction=test_license_record.jurisdiction,
+            license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            filter_condition=lambda inv: inv.investigationId == investigation_id,
+            include_closed=True,
+        )
+        self.assertEqual(1, len(all_investigations))
+        investigation = all_investigations[0]
 
-        self.assertIn('resultingEncumbranceId', investigation_record)
+        self.assertIsNotNone(investigation.resultingEncumbranceId)
 
 
 @mock_aws
@@ -891,24 +816,12 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
     """Test suite for multiple simultaneous privilege investigations."""
 
     def _load_privilege_data(self):
-        """Load privilege test data from JSON file"""
-        import json
-        from decimal import Decimal
-
+        """Load privilege test data using test data generator"""
         # Load provider record first
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            provider_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=provider_record)
-
-        # Load privilege record
-        with open('../common/tests/resources/dynamo/privilege.json') as f:
-            privilege_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=privilege_record)
-
-        # Return the privilege data as a data class
-        from cc_common.data_model.schema.privilege import PrivilegeData
-
-        return PrivilegeData.from_database_record(privilege_record)
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        privilege = self.test_data_generator.generate_default_privilege()
+        self.test_data_generator.store_record_in_provider_table(privilege.serialize_to_database_record())
+        return privilege
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_closing_one_of_multiple_investigations_maintains_investigation_status(self, mock_publish_event):
@@ -939,14 +852,16 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Get the first investigation ID
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
         )
-        first_investigation_id = investigation_records['Items'][0]['investigationId']
+        investigation_records = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction=test_privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=test_privilege_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(investigation_records))
+        first_investigation_id = investigation_records[0].investigationId
 
         # Create second investigation
         second_investigation_event = self.test_data_generator.generate_test_api_event(
@@ -968,18 +883,17 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Get the second investigation ID
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
         )
-        self.assertEqual(2, len(investigation_records['Items']))
+        investigation_records = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction=test_privilege_record.jurisdiction,
+            privilege_license_type_abbreviation=test_privilege_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(2, len(investigation_records))
         second_investigation_id = [
-            item['investigationId']
-            for item in investigation_records['Items']
-            if item['investigationId'] != first_investigation_id
+            inv.investigationId for inv in investigation_records if inv.investigationId != first_investigation_id
         ][0]
 
         # Close the second investigation
@@ -994,7 +908,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
                     'providerId': str(test_privilege_record.providerId),
                     'jurisdiction': test_privilege_record.jurisdiction,
                     'licenseType': test_privilege_record.licenseTypeAbbreviation,
-                    'investigationId': second_investigation_id,
+                    'investigationId': str(second_investigation_id),
                 },
                 'body': json.dumps({}),
             },
@@ -1004,16 +918,15 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Verify that the privilege record still shows under investigation
-        updated_privilege_record = self._provider_table.get_item(
-            Key={
-                'pk': test_privilege_record.serialize_to_database_record()['pk'],
-                'sk': test_privilege_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
+        )
+        updated_privilege_record = provider_user_records.get_privilege_records()[0]
 
         self.assertEqual(
-            InvestigationStatusEnum.UNDER_INVESTIGATION.value,
-            updated_privilege_record['investigationStatus'],
+            InvestigationStatusEnum.UNDER_INVESTIGATION,
+            updated_privilege_record.investigationStatus,
         )
 
         # Verify that one investigation is still visible in the API response
@@ -1036,25 +949,25 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         privilege = provider_data['privileges'][0]
 
         self.assertEqual(1, len(privilege['investigations']))
-        self.assertEqual(first_investigation_id, privilege['investigations'][0]['investigationId'])
+        self.assertEqual(str(first_investigation_id), privilege['investigations'][0]['investigationId'])
 
-        # Verify that there are two INVESTIGATION update records in the DB
-        update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE#'
-            ),
-        )['Items']
+        # Verify that there are two INVESTIGATION update records
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
+        )
+        update_records = provider_user_records.get_update_records_for_privilege(
+            jurisdiction=test_privilege_record.jurisdiction, license_type=test_privilege_record.licenseType
+        )
 
         investigation_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.INVESTIGATION
         ]
         self.assertEqual(2, len(investigation_update_records))
 
         # Verify that there are no CLOSING_INVESTIGATION update records
         closing_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.CLOSING_INVESTIGATION
         ]
         self.assertEqual(0, len(closing_update_records))
 
@@ -1076,7 +989,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
                     'providerId': str(test_privilege_record.providerId),
                     'jurisdiction': test_privilege_record.jurisdiction,
                     'licenseType': test_privilege_record.licenseTypeAbbreviation,
-                    'investigationId': first_investigation_id,
+                    'investigationId': str(first_investigation_id),
                 },
                 'body': json.dumps({}),
             },
@@ -1086,14 +999,13 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Verify that the privilege record no longer has investigation status
-        updated_privilege_record = self._provider_table.get_item(
-            Key={
-                'pk': test_privilege_record.serialize_to_database_record()['pk'],
-                'sk': test_privilege_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
+        )
+        updated_privilege_record = provider_user_records.get_privilege_records()[0]
 
-        self.assertNotIn('investigationStatus', updated_privilege_record)
+        self.assertIsNone(updated_privilege_record.investigationStatus)
 
         # Verify that there are no investigations visible in the API response
         api_response = get_provider(api_event, self.mock_context)
@@ -1104,23 +1016,23 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
 
         self.assertEqual(0, len(privilege['investigations']))
 
-        # Verify that there are still two INVESTIGATION update records in the DB
-        update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE#'
-            ),
-        )['Items']
+        # Verify that there are still two INVESTIGATION update records
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_privilege_record.compact,
+            provider_id=test_privilege_record.providerId,
+        )
+        update_records = provider_user_records.get_update_records_for_privilege(
+            jurisdiction=test_privilege_record.jurisdiction, license_type=test_privilege_record.licenseType
+        )
 
         investigation_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.INVESTIGATION
         ]
         self.assertEqual(2, len(investigation_update_records))
 
-        # Verify that there is one CLOSING_INVESTIGATION update record in the DB
+        # Verify that there is one CLOSING_INVESTIGATION update record
         closing_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.CLOSING_INVESTIGATION
         ]
         self.assertEqual(1, len(closing_update_records))
 
@@ -1137,24 +1049,12 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
     """Test suite for multiple simultaneous license investigations."""
 
     def _load_license_data(self):
-        """Load license test data from JSON file"""
-        import json
-        from decimal import Decimal
-
+        """Load license test data using test data generator"""
         # Load provider record first
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            provider_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=provider_record)
-
-        # Load license record
-        with open('../common/tests/resources/dynamo/license.json') as f:
-            license_record = json.load(f, parse_float=Decimal)
-        self._provider_table.put_item(Item=license_record)
-
-        # Return the license data as a data class
-        from cc_common.data_model.schema.license import LicenseData
-
-        return LicenseData.from_database_record(license_record)
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        license_data = self.test_data_generator.generate_default_license()
+        self.test_data_generator.store_record_in_provider_table(license_data.serialize_to_database_record())
+        return license_data
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_closing_one_of_multiple_investigations_maintains_investigation_status(self, mock_publish_event):
@@ -1185,14 +1085,16 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Get the first investigation ID
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
         )
-        first_investigation_id = investigation_records['Items'][0]['investigationId']
+        investigation_records = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction=test_license_record.jurisdiction,
+            license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(1, len(investigation_records))
+        first_investigation_id = investigation_records[0].investigationId
 
         # Create second investigation
         second_investigation_event = self.test_data_generator.generate_test_api_event(
@@ -1214,18 +1116,17 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Get the second investigation ID
-        investigation_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#INVESTIGATION'
-            ),
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
         )
-        self.assertEqual(2, len(investigation_records['Items']))
+        investigation_records = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction=test_license_record.jurisdiction,
+            license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+        )
+        self.assertEqual(2, len(investigation_records))
         second_investigation_id = [
-            item['investigationId']
-            for item in investigation_records['Items']
-            if item['investigationId'] != first_investigation_id
+            inv.investigationId for inv in investigation_records if inv.investigationId != first_investigation_id
         ][0]
 
         # Close the second investigation
@@ -1240,7 +1141,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
                     'providerId': str(test_license_record.providerId),
                     'jurisdiction': test_license_record.jurisdiction,
                     'licenseType': test_license_record.licenseTypeAbbreviation,
-                    'investigationId': second_investigation_id,
+                    'investigationId': str(second_investigation_id),
                 },
                 'body': json.dumps({}),
             },
@@ -1250,16 +1151,15 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Verify that the license record still shows under investigation
-        updated_license_record = self._provider_table.get_item(
-            Key={
-                'pk': test_license_record.serialize_to_database_record()['pk'],
-                'sk': test_license_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
+        )
+        updated_license_record = provider_user_records.get_license_records()[0]
 
         self.assertEqual(
             InvestigationStatusEnum.UNDER_INVESTIGATION,
-            updated_license_record['investigationStatus'],
+            updated_license_record.investigationStatus,
         )
 
         # Verify that one investigation is still visible in the API response
@@ -1282,25 +1182,25 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         license_obj = provider_data['licenses'][0]
 
         self.assertEqual(1, len(license_obj['investigations']))
-        self.assertEqual(first_investigation_id, license_obj['investigations'][0]['investigationId'])
+        self.assertEqual(str(first_investigation_id), license_obj['investigations'][0]['investigationId'])
 
-        # Verify that there are two INVESTIGATION update records in the DB
-        update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE#'
-            ),
-        )['Items']
+        # Verify that there are two INVESTIGATION update records
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
+        )
+        update_records = provider_user_records.get_update_records_for_license(
+            jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
+        )
 
         investigation_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.INVESTIGATION
         ]
         self.assertEqual(2, len(investigation_update_records))
 
         # Verify that there are no CLOSING_INVESTIGATION update records
         closing_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.CLOSING_INVESTIGATION
         ]
         self.assertEqual(0, len(closing_update_records))
 
@@ -1322,7 +1222,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
                     'providerId': str(test_license_record.providerId),
                     'jurisdiction': test_license_record.jurisdiction,
                     'licenseType': test_license_record.licenseTypeAbbreviation,
-                    'investigationId': first_investigation_id,
+                    'investigationId': str(first_investigation_id),
                 },
                 'body': json.dumps({}),
             },
@@ -1332,14 +1232,13 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         self.assertEqual(200, response['statusCode'])
 
         # Verify that the license record no longer has investigation status
-        updated_license_record = self._provider_table.get_item(
-            Key={
-                'pk': test_license_record.serialize_to_database_record()['pk'],
-                'sk': test_license_record.serialize_to_database_record()['sk'],
-            }
-        )['Item']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
+        )
+        updated_license_record = provider_user_records.get_license_records()[0]
 
-        self.assertNotIn('investigationStatus', updated_license_record)
+        self.assertIsNone(updated_license_record.investigationStatus)
 
         # Verify that there are no investigations visible in the API response
         api_response = get_provider(api_event, self.mock_context)
@@ -1350,23 +1249,23 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
 
         self.assertEqual(0, len(license_obj['investigations']))
 
-        # Verify that there are still two INVESTIGATION update records in the DB
-        update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE#'
-            ),
-        )['Items']
+        # Verify that there are still two INVESTIGATION update records
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=test_license_record.compact,
+            provider_id=test_license_record.providerId,
+        )
+        update_records = provider_user_records.get_update_records_for_license(
+            jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
+        )
 
         investigation_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.INVESTIGATION
         ]
         self.assertEqual(2, len(investigation_update_records))
 
-        # Verify that there is one CLOSING_INVESTIGATION update record in the DB
+        # Verify that there is one CLOSING_INVESTIGATION update record
         closing_update_records = [
-            record for record in update_records if record['updateType'] == UpdateCategory.CLOSING_INVESTIGATION
+            record for record in update_records if record.updateType == UpdateCategory.CLOSING_INVESTIGATION
         ]
         self.assertEqual(1, len(closing_update_records))
 

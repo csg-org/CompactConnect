@@ -103,7 +103,7 @@ def _generate_adverse_action_for_record_type(
     from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
 
     if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
-        if 'clinicalPrivilegeActionCategory' in adverse_action_request:
+        if 'clinicalPrivilegeActionCategory' in adverse_action_post_body:
             # replicate data to both the deprecated and new fields
             adverse_action.clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategory(
                 adverse_action_post_body['clinicalPrivilegeActionCategory']

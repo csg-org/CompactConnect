@@ -850,6 +850,7 @@ def _get_recaptcha_secret() -> str:
             raise CCInternalException('Failed to load reCAPTCHA secret') from e
     return _RECAPTCHA_SECRET
 
+
 def verify_recaptcha(token: str) -> bool:
     """Verify the reCAPTCHA token with Google's API."""
 

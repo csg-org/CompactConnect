@@ -1699,6 +1699,7 @@ class DataClient:
                         'UpdateExpression': (
                             'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
                         ),
+                        'ConditionExpression': 'attribute_exists(pk)',
                         'ExpressionAttributeValues': {
                             ':investigationStatus': {'S': InvestigationStatusEnum.UNDER_INVESTIGATION},
                             ':dateOfUpdate': {'S': investigation.creationDate.isoformat()},

@@ -154,12 +154,6 @@ class TestDataGenerator:
     @staticmethod
     def generate_default_investigation(value_overrides: dict | None = None) -> InvestigationData:
         """Generate a default investigation"""
-        from common_test.test_constants import (
-            DEFAULT_INVESTIGATION_AGAINST_PRIVILEGE,
-            DEFAULT_INVESTIGATION_ID,
-            DEFAULT_INVESTIGATION_START_DATE,
-        )
-
         default_investigation = {
             'providerId': DEFAULT_PROVIDER_ID,
             'compact': DEFAULT_COMPACT,
