@@ -1151,7 +1151,7 @@ class DataClient:
         privilege_update_record = PrivilegeUpdateRecordSchema().dump(
             {
                 'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                'updateType': 'deactivation',
+                'updateType': UpdateCategory.DEACTIVATION,
                 'providerId': provider_id,
                 'compact': compact,
                 'jurisdiction': jurisdiction,
@@ -2161,7 +2161,7 @@ class DataClient:
         and potentially updating the license record's encumbered status.
 
         :param str compact: The compact name
-        :param str provider_id: The provider ID
+        :param UUID provider_id: The provider ID
         :param str jurisdiction: The jurisdiction
         :param str license_type_abbreviation: The license type abbreviation
         :param UUID adverse_action_id: The adverse action ID to lift

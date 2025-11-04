@@ -437,3 +437,87 @@ class EventBusClient:
             detail=deserialized_detail,
             event_batch_writer=event_batch_writer,
         )
+
+    def publish_license_revert_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: UUID,
+        jurisdiction: str,
+        license_type: str,
+        rollback_reason: str,
+        event_batch_writer: EventBatchWriter | None = None,
+    ):
+        """
+        Publish a license revert event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction of the license
+        :param license_type: The license type
+        :param rollback_reason: The reason for the rollback
+        :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
+        """
+        from cc_common.data_model.schema.data_event.api import LicenseRevertDetailSchema
+
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseType': license_type,
+            'rollbackReason': rollback_reason,
+            'eventTime': config.current_standard_datetime,
+        }
+
+        license_revert_detail_schema = LicenseRevertDetailSchema()
+        deserialized_detail = license_revert_detail_schema.dump(event_detail)
+
+        self._publish_event(
+            source=source,
+            detail_type='license.revert',
+            detail=deserialized_detail,
+            event_batch_writer=event_batch_writer,
+        )
+
+    def publish_privilege_revert_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: UUID,
+        jurisdiction: str,
+        license_type: str,
+        rollback_reason: str,
+        event_batch_writer: EventBatchWriter | None = None,
+    ):
+        """
+        Publish a privilege revert event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction of the privilege
+        :param license_type: The license type
+        :param rollback_reason: The reason for the rollback
+        :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
+        """
+        from cc_common.data_model.schema.data_event.api import PrivilegeRevertDetailSchema
+
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseType': license_type,
+            'rollbackReason': rollback_reason,
+            'eventTime': config.current_standard_datetime,
+        }
+
+        privilege_revert_detail_schema = PrivilegeRevertDetailSchema()
+        deserialized_detail = privilege_revert_detail_schema.dump(event_detail)
+
+        self._publish_event(
+            source=source,
+            detail_type='privilege.revert',
+            detail=deserialized_detail,
+            event_batch_writer=event_batch_writer,
+        )
