@@ -758,6 +758,36 @@ class ProviderUserRecords:
 
         return latest_military_affiliation.status
 
+    def get_all_license_update_records(
+        self,
+        filter_condition: Callable[[LicenseUpdateData], bool] | None = None,
+    ) -> list[LicenseUpdateData]:
+        """
+        Get all license update records for this provider.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of LicenseUpdateData records
+        """
+        return [
+            record
+            for record in self._license_update_records
+            if filter_condition is None or filter_condition(record)
+        ]
+
+    def get_all_privilege_update_records(
+        self,
+        filter_condition: Callable[[PrivilegeUpdateData], bool] | None = None,
+    ) -> list[PrivilegeUpdateData]:
+        """
+        Get all privilege update records for this provider.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of PrivilegeUpdateData records
+        """
+        return [
+            record
+            for record in self._privilege_update_records
+            if filter_condition is None or filter_condition(record)
+        ]
+
     def get_update_records_for_license(
         self,
         jurisdiction: str,

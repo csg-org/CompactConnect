@@ -25,6 +25,10 @@ class TstFunction(TstLambdas):
         self.mock_source_table_arn = f'arn:aws:dynamodb:us-east-1:767398110685:table/{self.mock_source_table_name}'
         self.build_resources()
 
+        from common_test.test_data_generator import TestDataGenerator
+
+        self.test_data_generator = TestDataGenerator
+
         self.addCleanup(self.delete_resources)
 
     def build_resources(self):
@@ -32,6 +36,17 @@ class TstFunction(TstLambdas):
         # cleanup and restoration process regardless of the table that is being recovered
         self.mock_source_table = self.create_mock_table(table_name=self.mock_source_table_name)
         self.mock_destination_table = self.create_mock_table(table_name=self.mock_destination_table_name)
+        self.create_provider_table()
+        self.create_rollback_results_bucket()
+        self.create_event_bus()
+
+    def create_rollback_results_bucket(self):
+        self._rollback_results_bucket = boto3.resource('s3').create_bucket(
+            Bucket=os.environ['ROLLBACK_RESULTS_BUCKET_NAME']
+        )
+
+    def create_event_bus(self):
+        self._event_bus = boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def create_mock_table(self, table_name: str):
         return boto3.resource('dynamodb').create_table(
@@ -44,6 +59,61 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_provider_table(self):
+        self._provider_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerFamGivMid', 'AttributeType': 'S'},
+                {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseGSIPK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseGSISK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseUploadDateGSIPK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseUploadDateGSISK', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['PROVIDER_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['PROV_FAM_GIV_MID_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerFamGivMid', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerDateOfUpdate', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['LICENSE_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'licenseGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseGSISK', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': 'licenseUploadDateGSI',
+                    'KeySchema': [
+                        {'AttributeName': 'licenseUploadDateGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseUploadDateGSISK', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'KEYS_ONLY'},
+                },
+            ],
+        )
+
     def delete_resources(self):
         self.mock_source_table.delete()
         self.mock_destination_table.delete()
+        self._provider_table.delete()
+        self._rollback_results_bucket.objects.delete()
+        self._rollback_results_bucket.delete()
+        self._event_bus.delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])

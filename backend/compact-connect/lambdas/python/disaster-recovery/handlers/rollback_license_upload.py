@@ -1,14 +1,15 @@
 import json
 import os
 import time
-from datetime import datetime, timedelta
-from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime
 
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
+from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.common import UpdateCategory
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.event_batch_writer import EventBatchWriter
@@ -28,6 +29,143 @@ LICENSE_UPLOAD_UPDATE_CATEGORIES = {
 PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY = UpdateCategory.LICENSE_DEACTIVATION
 
 
+# Data classes for rollback operations
+@dataclass
+class IneligibleUpdate:
+    """Represents an update that makes a provider ineligible for rollback."""
+    type: str  # 'licenseUpdate' or 'privilegeUpdate'
+    update_type: str
+    create_date: str
+
+
+@dataclass
+class LicenseRevertAction:
+    """Action to take for a license record."""
+    action: str  # 'delete' or 'revert'
+    pk: str
+    sk: str
+    item: dict | None = None
+    provider_id: str = ''
+    jurisdiction: str = ''
+    license_type: str = ''
+
+
+@dataclass
+class PrivilegeRevertAction:
+    """Action to take for a privilege record."""
+    item: dict
+    provider_id: str
+    jurisdiction: str
+    license_type: str
+
+
+@dataclass
+class UpdateDeleteAction:
+    """Action to delete an update record."""
+    pk: str
+    sk: str
+
+
+@dataclass
+class RevertPlan:
+    """Plan for reverting a provider's records."""
+    licenses_to_revert: list[LicenseRevertAction] = field(default_factory=list)
+    privileges_to_revert: list[PrivilegeRevertAction] = field(default_factory=list)
+    provider_to_revert: dict | None = None
+    updates_to_delete: list[UpdateDeleteAction] = field(default_factory=list)
+
+
+@dataclass
+class ProviderSkippedDetails:
+    """Details for a provider that was skipped."""
+    provider_id: str
+    reason: str
+    ineligible_updates: list[dict] = field(default_factory=list)
+
+
+@dataclass
+class ProviderFailedDetails:
+    """Details for a provider that failed to revert."""
+    provider_id: str
+    error: str
+
+
+@dataclass
+class ProviderRevertedSummary:
+    """Summary for a provider that was successfully reverted."""
+    provider_id: str
+    licenses_reverted: int
+    privileges_reverted: int
+    updates_deleted: int
+
+
+@dataclass
+class RollbackResults:
+    """Complete results of a rollback operation."""
+    skipped_provider_details: list[ProviderSkippedDetails] = field(default_factory=list)
+    failed_provider_details: list[ProviderFailedDetails] = field(default_factory=list)
+    reverted_provider_summaries: list[ProviderRevertedSummary] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for S3 storage."""
+        return {
+            'skippedProviderDetails': [
+                {
+                    'providerId': detail.provider_id,
+                    'reason': detail.reason,
+                    'ineligibleUpdates': detail.ineligible_updates,
+                }
+                for detail in self.skipped_provider_details
+            ],
+            'failedProviderDetails': [
+                {
+                    'providerId': detail.provider_id,
+                    'error': detail.error,
+                }
+                for detail in self.failed_provider_details
+            ],
+            'revertedProviderSummaries': [
+                {
+                    'providerId': summary.provider_id,
+                    'licensesReverted': summary.licenses_reverted,
+                    'privilegesReverted': summary.privileges_reverted,
+                    'updatesDeleted': summary.updates_deleted,
+                }
+                for summary in self.reverted_provider_summaries
+            ],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'RollbackResults':
+        """Create from dictionary loaded from S3."""
+        return cls(
+            skipped_provider_details=[
+                ProviderSkippedDetails(
+                    provider_id=detail['providerId'],
+                    reason=detail['reason'],
+                    ineligible_updates=detail.get('ineligibleUpdates', []),
+                )
+                for detail in data.get('skippedProviderDetails', [])
+            ],
+            failed_provider_details=[
+                ProviderFailedDetails(
+                    provider_id=detail['providerId'],
+                    error=detail['error'],
+                )
+                for detail in data.get('failedProviderDetails', [])
+            ],
+            reverted_provider_summaries=[
+                ProviderRevertedSummary(
+                    provider_id=summary['providerId'],
+                    licenses_reverted=summary['licensesReverted'],
+                    privileges_reverted=summary['privilegesReverted'],
+                    updates_deleted=summary['updatesDeleted'],
+                )
+                for summary in data.get('revertedProviderSummaries', [])
+            ],
+        )
+
+
 def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Rollback invalid license uploads for a compact/jurisdiction/time window.
@@ -43,7 +181,6 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         'startDateTime': '2024-01-01T00:00:00Z',
         'endDateTime': '2024-01-01T23:59:59Z',
         'rollbackReason': 'Invalid data uploaded',
-        'tableNameRollbackConfirmation': 'provider-table',
         'executionId': 'unique-execution-id',
         'providersProcessed': 0,
         'lastEvaluatedGSIKey': None
@@ -69,20 +206,9 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     start_datetime_str = event['startDateTime']
     end_datetime_str = event['endDateTime']
     rollback_reason = event['rollbackReason']
-    table_name_confirmation = event['tableNameRollbackConfirmation']
     execution_id = event['executionId']
     providers_processed = event.get('providersProcessed', 0)
     last_evaluated_gsi_key = event.get('lastEvaluatedGSIKey')
-
-    # Validate table name guard rail
-    provider_table_name = config.provider_table_name
-    if table_name_confirmation != provider_table_name:
-        logger.error('Rollback execution guard flag missing or invalid')
-        return {
-            'rollbackStatus': 'FAILED',
-            'error': f'Invalid table name specified. '
-            f'tableNameRollbackConfirmation field must be set to {provider_table_name}',
-        }
 
     # Parse and validate datetime parameters
     try:
@@ -129,16 +255,12 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     if providers_processed > 0:
         existing_results = _load_results_from_s3(s3_client, rollback_results_bucket_name, results_s3_key)
     else:
-        existing_results = {
-            'skippedProviderDetails': [],
-            'failedProviderDetails': [],
-            'revertedProviderSummaries': [],
-        }
+        existing_results = RollbackResults()
 
     # Initialize counters
-    providers_reverted = len(existing_results['revertedProviderSummaries'])
-    providers_skipped = len(existing_results['skippedProviderDetails'])
-    providers_failed = len(existing_results['failedProviderDetails'])
+    providers_reverted = len(existing_results.reverted_provider_summaries)
+    providers_skipped = len(existing_results.skipped_provider_details)
+    providers_failed = len(existing_results.failed_provider_details)
 
     # Get provider table and GSI
     provider_table = config.provider_table
@@ -177,7 +299,6 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                     'startDateTime': start_datetime_str,
                     'endDateTime': end_datetime_str,
                     'rollbackReason': rollback_reason,
-                    'tableNameRollbackConfirmation': table_name_confirmation,
                     'executionId': execution_id,
                 }
 
@@ -194,15 +315,15 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
             )
 
             # Update results based on outcome
-            if result['status'] == 'reverted':
+            if isinstance(result, ProviderRevertedSummary):
                 providers_reverted += 1
-                existing_results['revertedProviderSummaries'].append(result['summary'])
-            elif result['status'] == 'skipped':
+                existing_results.reverted_provider_summaries.append(result)
+            elif isinstance(result, ProviderSkippedDetails):
                 providers_skipped += 1
-                existing_results['skippedProviderDetails'].append(result['details'])
-            elif result['status'] == 'failed':
+                existing_results.skipped_provider_details.append(result)
+            elif isinstance(result, ProviderFailedDetails):
                 providers_failed += 1
-                existing_results['failedProviderDetails'].append(result['details'])
+                existing_results.failed_provider_details.append(result)
 
         # All providers processed successfully
         logger.info('Rollback complete', providers_processed=providers_processed)
@@ -299,13 +420,14 @@ def _process_provider_rollback(
     start_datetime: datetime,
     end_datetime: datetime,
     rollback_reason: str,
-) -> dict:
+) -> ProviderRevertedSummary | ProviderSkippedDetails | ProviderFailedDetails:
     """
     Process rollback for a single provider.
 
-    Returns a dict with:
-    - status: 'reverted', 'skipped', or 'failed'
-    - summary/details: Information about the outcome
+    Returns one of:
+    - ProviderRevertedSummary: If provider was successfully reverted
+    - ProviderSkippedDetails: If provider was skipped due to ineligibility
+    - ProviderFailedDetails: If an error occurred during processing
     """
     logger.info('Processing provider rollback', provider_id=provider_id)
 
@@ -314,22 +436,60 @@ def _process_provider_rollback(
         provider_records = config.data_client.get_provider_user_records(
             compact=compact,
             provider_id=provider_id,
+            # tier three includes all update records for the provider
             include_update_tier=UpdateTierEnum.TIER_THREE,
         )
 
         # Check eligibility for rollback
-        eligibility_result = _check_rollback_eligibility(provider_records, start_datetime, end_datetime)
+        # A provider is ineligible if they have any updates after start_datetime that are NOT license-upload related
+        license_updates = provider_records.get_all_license_update_records()
+        privilege_updates = provider_records.get_all_privilege_update_records()
 
-        if not eligibility_result['eligible']:
-            logger.info('Provider not eligible for automatic rollback', provider_id=provider_id, reason=eligibility_result['reason'])
-            return {
-                'status': 'skipped',
-                'details': {
-                    'providerId': provider_id,
-                    'reason': eligibility_result['reason'],
-                    'ineligibleUpdates': eligibility_result.get('ineligible_updates', []),
-                },
-            }
+        ineligible_updates: list[IneligibleUpdate] = []
+
+        # Check license updates
+        for update in license_updates:
+            if update.createDate >= start_datetime:
+                if update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES:
+                    ineligible_updates.append(
+                        IneligibleUpdate(
+                            type='licenseUpdate',
+                            update_type=update.updateType,
+                            create_date=update.createDate.isoformat(),
+                        )
+                    )
+
+        # Check privilege updates
+        for update in privilege_updates:
+            if update.createDate >= start_datetime:
+                if update.updateType != PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY:
+                    ineligible_updates.append(
+                        IneligibleUpdate(
+                            type='privilegeUpdate',
+                            update_type=update.updateType,
+                            create_date=update.createDate.isoformat(),
+                        )
+                    )
+
+        # If ineligible updates found, skip this provider
+        if ineligible_updates:
+            logger.info(
+                'Provider not eligible for automatic rollback',
+                provider_id=provider_id,
+                reason='Provider has non-upload-related updates after rollback start time',
+            )
+            return ProviderSkippedDetails(
+                provider_id=provider_id,
+                reason='Provider has non-upload-related updates after rollback start time',
+                ineligible_updates=[
+                    {
+                        'type': update.type,
+                        'updateType': update.update_type,
+                        'createDate': update.create_date,
+                    }
+                    for update in ineligible_updates
+                ],
+            )
 
         # Determine pre-rollback state and build transactions
         revert_plan = _determine_revert_plan(provider_records, start_datetime, end_datetime, compact, jurisdiction)
@@ -341,79 +501,32 @@ def _process_provider_rollback(
         _publish_revert_events(revert_plan, compact, rollback_reason)
 
         logger.info('Provider rollback successful', provider_id=provider_id)
-        return {
-            'status': 'reverted',
-            'summary': {
-                'providerId': provider_id,
-                'licensesReverted': len(revert_plan['licenses_to_revert']),
-                'privilegesReverted': len(revert_plan['privileges_to_revert']),
-                'updatesDeleted': len(revert_plan['updates_to_delete']),
-            },
-        }
+        return ProviderRevertedSummary(
+            provider_id=provider_id,
+            licenses_reverted=len(revert_plan.licenses_to_revert),
+            privileges_reverted=len(revert_plan.privileges_to_revert),
+            updates_deleted=len(revert_plan.updates_to_delete),
+        )
 
     except Exception as e:
         logger.error(f'Error processing provider rollback: {str(e)}', provider_id=provider_id, exc_info=True)
-        return {
-            'status': 'failed',
-            'details': {
-                'providerId': provider_id,
-                'error': str(e),
-            },
-        }
+        return ProviderFailedDetails(
+            provider_id=provider_id,
+            error=str(e),
+        )
 
 
-def _check_rollback_eligibility(provider_records, start_datetime: datetime, end_datetime: datetime) -> dict:
-    """
-    Check if the provider is eligible for automatic rollback.
-
-    A provider is ineligible if they have any updates after start_datetime that are NOT
-    license-upload related.
-    """
-    # Get all update records
-    license_updates = provider_records.get_license_records(
-        filter_condition=lambda record: record.type == 'licenseUpdate'
-    )
-    privilege_updates = provider_records.get_privilege_records(
-        filter_condition=lambda record: record.type == 'privilegeUpdate'
-    )
-
-    ineligible_updates = []
-
-    # Check license updates
-    for update in license_updates:
-        if update.createDate >= start_datetime:
-            if update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES:
-                ineligible_updates.append({
-                    'type': 'licenseUpdate',
-                    'updateType': update.updateType,
-                    'createDate': update.createDate.isoformat(),
-                })
-
-    # Check privilege updates
-    for update in privilege_updates:
-        if update.createDate >= start_datetime:
-            if update.updateType != PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY:
-                ineligible_updates.append({
-                    'type': 'privilegeUpdate',
-                    'updateType': update.updateType,
-                    'createDate': update.createDate.isoformat(),
-                })
-
-    if ineligible_updates:
-        return {
-            'eligible': False,
-            'reason': 'Provider has non-upload-related updates after rollback start time',
-            'ineligible_updates': ineligible_updates,
-        }
-
-    return {'eligible': True}
-
-
-def _determine_revert_plan(provider_records, start_datetime: datetime, end_datetime: datetime, compact: str, jurisdiction: str) -> dict:
+def _determine_revert_plan(
+    provider_records: ProviderUserRecords,
+    start_datetime: datetime,
+    end_datetime: datetime,
+    compact: str,
+    jurisdiction: str,
+) -> RevertPlan:
     """
     Determine what changes need to be made to revert the provider to pre-rollback state.
 
-    Returns a plan dict with:
+    Returns a RevertPlan with:
     - licenses_to_revert: List of license records to revert/delete
     - privileges_to_revert: List of privilege records to revert
     - provider_to_revert: Provider record to revert (if needed)
@@ -421,12 +534,7 @@ def _determine_revert_plan(provider_records, start_datetime: datetime, end_datet
     """
     # This is a complex function that needs to be implemented
     # For now, return a skeleton structure
-    plan = {
-        'licenses_to_revert': [],
-        'privileges_to_revert': [],
-        'provider_to_revert': None,
-        'updates_to_delete': [],
-    }
+    plan = RevertPlan()
 
     # TODO: Implement full logic to determine revert plan
     # This would involve:
@@ -438,126 +546,133 @@ def _determine_revert_plan(provider_records, start_datetime: datetime, end_datet
     return plan
 
 
-def _execute_revert_transactions(revert_plan: dict):
+def _build_transaction_items(revert_plan: RevertPlan) -> list[dict]:
+    """
+    Build DynamoDB transaction items from a revert plan.
+
+    Returns a list of transaction items ready for transact_write_items.
+    """
+    transaction_items = []
+    table_name = config.provider_table_name
+
+    # Helper functions for cleaner item building
+    def add_put(item: dict):
+        transaction_items.append({
+            'Put': {
+                'TableName': table_name,
+                'Item': item,
+            }
+        })
+
+    def add_delete(pk: str, sk: str):
+        transaction_items.append({
+            'Delete': {
+                'TableName': table_name,
+                'Key': {'pk': pk, 'sk': sk},
+            }
+        })
+
+    # Add license operations
+    for license_action in revert_plan.licenses_to_revert:
+        if license_action.action == 'delete':
+            add_delete(license_action.pk, license_action.sk)
+            logger.info('Deleting license record', pk=license_action.pk, sk=license_action.sk)
+        else:  # revert
+            add_put(license_action.item)
+            logger.info('Reverting license record', pk=license_action.pk, sk=license_action.sk)
+
+    # Add privilege revert operations
+    for privilege_action in revert_plan.privileges_to_revert:
+        add_put(privilege_action.item)
+        logger.info('Reverting privilege record')
+
+    # Add provider revert operation if needed
+    if revert_plan.provider_to_revert:
+        add_put(revert_plan.provider_to_revert)
+        logger.info('Reverting provider record')
+
+    # Add update record deletions
+    for update in revert_plan.updates_to_delete:
+        add_delete(update.pk, update.sk)
+        logger.info('Deleting update record', pk=update.pk, sk=update.sk)
+
+    return transaction_items
+
+
+def _execute_revert_transactions(revert_plan: RevertPlan):
     """
     Execute DynamoDB transactions to revert records.
 
-    DynamoDB transactions are limited to 100 items, so we may need to split into multiple transactions.
+    DynamoDB transactions are limited to 100 items, so we split into batches if needed.
+    Uses the Table resource for automatic type conversion.
     """
-    # Build transaction items
-    transaction_items = []
+    transaction_items = _build_transaction_items(revert_plan)
 
-    # Add license revert/delete operations
-    for license_action in revert_plan['licenses_to_revert']:
-        if license_action['action'] == 'delete':
-            transaction_items.append({
-                'Delete': {
-                    'TableName': config.provider_table_name,
-                    'Key': {
-                        'pk': {'S': license_action['pk']},
-                        'sk': {'S': license_action['sk']},
-                    },
-                }
-            })
-        else:  # revert
-            transaction_items.append({
-                'Put': {
-                    'TableName': config.provider_table_name,
-                    'Item': license_action['item'],
-                }
-            })
+    if not transaction_items:
+        logger.warning('No transaction items to execute')
+        return
 
-    # Add privilege revert operations
-    for privilege_action in revert_plan['privileges_to_revert']:
-        transaction_items.append({
-            'Put': {
-                'TableName': config.provider_table_name,
-                'Item': privilege_action['item'],
-            }
-        })
-
-    # Add provider revert operation if needed
-    if revert_plan['provider_to_revert']:
-        transaction_items.append({
-            'Put': {
-                'TableName': config.provider_table_name,
-                'Item': revert_plan['provider_to_revert']['item'],
-            }
-        })
-
-    # Add update delete operations
-    for update in revert_plan['updates_to_delete']:
-        transaction_items.append({
-            'Delete': {
-                'TableName': config.provider_table_name,
-                'Key': {
-                    'pk': {'S': update['pk']},
-                    'sk': {'S': update['sk']},
-                },
-            }
-        })
-        logger.info('Deleting update record', pk=update['pk'], sk=update['sk'])
+    logger.info(f'Executing {len(transaction_items)} transaction items in batches of 100')
 
     # Execute transactions in batches of 100
     for i in range(0, len(transaction_items), 100):
         batch = transaction_items[i:i + 100]
-        config.dynamodb_client.transact_write_items(TransactItems=batch)
+        # Use Table resource's client for automatic type conversion
+        config.provider_table.meta.client.transact_write_items(TransactItems=batch)
+        logger.info(f'Executed batch {i // 100 + 1} with {len(batch)} items')
 
 
-def _publish_revert_events(revert_plan: dict, compact: str, rollback_reason: str):
+def _publish_revert_events(revert_plan: RevertPlan, compact: str, rollback_reason: str):
     """
     Publish revert events for all reverted licenses and privileges.
     """
     with EventBatchWriter(config.events_client) as event_writer:
         # Publish license revert events
-        for license_action in revert_plan['licenses_to_revert']:
+        for license_action in revert_plan.licenses_to_revert:
             config.event_bus_client.publish_license_revert_event(
                 source='org.compactconnect.disaster-recovery',
                 compact=compact,
-                provider_id=license_action['provider_id'],
-                jurisdiction=license_action['jurisdiction'],
-                license_type=license_action['license_type'],
+                provider_id=license_action.provider_id,
+                jurisdiction=license_action.jurisdiction,
+                license_type=license_action.license_type,
                 rollback_reason=rollback_reason,
                 event_batch_writer=event_writer,
             )
 
         # Publish privilege revert events
-        for privilege_action in revert_plan['privileges_to_revert']:
+        for privilege_action in revert_plan.privileges_to_revert:
             config.event_bus_client.publish_privilege_revert_event(
                 source='org.compactconnect.disaster-recovery',
                 compact=compact,
-                provider_id=privilege_action['provider_id'],
-                jurisdiction=privilege_action['jurisdiction'],
-                license_type=privilege_action['license_type'],
+                provider_id=privilege_action.provider_id,
+                jurisdiction=privilege_action.jurisdiction,
+                license_type=privilege_action.license_type,
                 rollback_reason=rollback_reason,
                 event_batch_writer=event_writer,
             )
 
 
-def _load_results_from_s3(s3_client, bucket_name: str, key: str) -> dict:
+def _load_results_from_s3(s3_client, bucket_name: str, key: str) -> RollbackResults:
     """Load existing results from S3."""
     try:
         response = s3_client.get_object(Bucket=bucket_name, Key=key)
-        return json.loads(response['Body'].read().decode('utf-8'))
+        data = json.loads(response['Body'].read().decode('utf-8'))
+        return RollbackResults.from_dict(data)
     except s3_client.exceptions.NoSuchKey:
         # First execution, no existing results
-        return {
-            'skippedProviderDetails': [],
-            'failedProviderDetails': [],
-            'revertedProviderSummaries': [],
-        }
+        return RollbackResults()
     except Exception as e:
         logger.error(f'Error loading results from S3: {str(e)}')
         raise
 
 
-def _write_results_to_s3(s3_client, bucket_name: str, key: str, results: dict):
+def _write_results_to_s3(s3_client, bucket_name: str, key: str, results: RollbackResults):
     """Write results to S3 with server-side encryption."""
     try:
         s3_client.put_object(
             Bucket=bucket_name,
             Key=key,
-            Body=json.dumps(results, indent=2),
+            Body=json.dumps(results.to_dict(), indent=2),
             ContentType='application/json',
             ServerSideEncryption='aws:kms',
         )
