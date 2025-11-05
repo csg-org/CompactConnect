@@ -1076,7 +1076,7 @@ class TestDataClient(TstFunction):
             'licenseType': 'speech-language pathologist',
             'investigationAgainst': 'privilege',
             'investigationId': str(investigation.investigationId),
-            'submittingUser': investigation.submittingUser,
+            'submittingUser': str(investigation.submittingUser),
             'creationDate': investigation.creationDate.isoformat(),
         }
         # Pop dynamic fields that we don't want to assert on
