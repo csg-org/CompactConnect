@@ -97,7 +97,7 @@ class DisasterRecoveryStack(AppStack):
         self.license_upload_rollback_workflow = LicenseUploadRollbackStepFunctionConstruct(
             self,
             'LicenseUploadRollback',
-            provider_table=persistent_stack.provider_table,
+            persistent_stack=persistent_stack,
             rollback_results_bucket=self.rollback_results_bucket,
             dr_shared_encryption_key=self.dr_shared_encryption_key,
         )

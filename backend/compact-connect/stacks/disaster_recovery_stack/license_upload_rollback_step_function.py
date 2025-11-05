@@ -1,8 +1,7 @@
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_dynamodb import Table
-from aws_cdk.aws_iam import PolicyStatement
+from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_s3 import Bucket
@@ -24,6 +23,8 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
+from stacks import persistent_stack as ps
 
 
 class LicenseUploadRollbackStepFunctionConstruct(Construct):
@@ -39,7 +40,7 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
         scope: Construct,
         construct_id: str,
         *,
-        provider_table: Table,
+        persistent_stack: ps.PersistentStack,
         rollback_results_bucket: Bucket,
         dr_shared_encryption_key: Key,
         **kwargs,
@@ -47,22 +48,26 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         stack = Stack.of(self)
+        # We explicitly get the event bus arn from parameter store, to avoid issues with cross stack updates
+        data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
 
         # Create Lambda function for rollback processing
         self._create_rollback_function(
             stack=stack,
-            provider_table=provider_table,
+            persistent_stack=persistent_stack,
             rollback_results_bucket=rollback_results_bucket,
+            data_event_bus=data_event_bus
         )
 
         # Build Step Function definition
-        definition = self._build_rollback_state_machine_definition(provider_table=provider_table)
+        definition = self._build_rollback_state_machine_definition()
 
         # Create log group for state machine
         state_machine_log_group = LogGroup(
             self,
             'LicenseUploadRollbackStateMachineLogs',
-            retention=RetentionDays.ONE_MONTH,
+            # this state machine will hopefully not be run often, so we will not automatically clear these logs
+            retention=RetentionDays.INFINITE,
             encryption_key=dr_shared_encryption_key,
         )
 
@@ -100,8 +105,9 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
     def _create_rollback_function(
         self,
         stack: Stack,
-        provider_table: Table,
+        persistent_stack: ps.PersistentStack,
         rollback_results_bucket: Bucket,
+        data_event_bus: EventBus
     ):
         """Create the Lambda function for processing license upload rollback."""
         self.rollback_function = PythonFunction(
@@ -116,38 +122,20 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
             environment={
                 **stack.common_env_vars,
                 'ROLLBACK_RESULTS_BUCKET_NAME': rollback_results_bucket.bucket_name,
+                'LICENSE_UPLOAD_DATE_INDEX_NAME': persistent_stack.provider_table.license_upload_date_gsi_name,
+                'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             },
         )
 
         # Grant permissions to read/write provider table
-        provider_table.grant_read_write_data(self.rollback_function)
-
-        # Grant permission to query the licenseUploadDateGSI
-        self.rollback_function.add_to_role_policy(
-            PolicyStatement(
-                actions=['dynamodb:Query'],
-                resources=[
-                    f'{provider_table.table_arn}/index/{provider_table.license_upload_date_gsi_name}'
-                ],
-            )
-        )
+        persistent_stack.shared_encryption_key.grant_decrypt(self.rollback_function)
+        persistent_stack.provider_table.grant_read_write_data(self.rollback_function)
 
         # Grant S3 permissions for results bucket
         rollback_results_bucket.grant_read_write(self.rollback_function)
 
         # Grant EventBridge permissions to publish events
-        self.rollback_function.add_to_role_policy(
-            PolicyStatement(
-                actions=['events:PutEvents'],
-                resources=[
-                    stack.format_arn(
-                        service='events',
-                        resource='event-bus',
-                        resource_name=stack.common_env_vars['EVENT_BUS_NAME'],
-                    )
-                ],
-            )
-        )
+        data_event_bus.grant_put_events_to(self.rollback_function)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack=stack,
@@ -157,13 +145,13 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                               This policy contains wild-carded actions and resources but they are scoped to the
-                              specific table, index, S3 bucket, and event bus that this lambda needs access to.
+                              specific table, S3 bucket, and event bus that this lambda needs access to.
                               """,
                 },
             ],
         )
 
-    def _build_rollback_state_machine_definition(self, provider_table: Table) -> IChainable:
+    def _build_rollback_state_machine_definition(self) -> IChainable:
         """
         Build the Step Function definition for license upload rollback.
 
