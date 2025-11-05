@@ -2708,7 +2708,7 @@ class DataClient:
                 filter_condition=lambda update: (
                     update.updateType == UpdateCategory.ENCUMBRANCE
                     and update.encumbranceDetails is not None
-                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
+                    and str(update.encumbranceDetails.get('adverseActionId')) == adverse_action_id
                 ),
             )
 
@@ -2762,7 +2762,7 @@ class DataClient:
                 filter_condition=lambda update: (
                     update.updateType == UpdateCategory.ENCUMBRANCE
                     and update.encumbranceDetails is not None
-                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
+                    and str(update.encumbranceDetails.get('adverseActionId')) == adverse_action_id
                 ),
             )
 

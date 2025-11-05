@@ -3032,8 +3032,10 @@ class TestEncumbranceEvents(TstFunction):
         mock_provider_email.assert_not_called()
         mock_state_email.assert_not_called()
 
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_listener_does_not_create_duplicate_update_records_for_unencumbered_privileges_on_retry(
         self,
+        mock_publish_event,
     ):
         """Test that license encumbrance event does not create duplicate update records
         when re-run for unencumbered privileges."""
@@ -3101,13 +3103,15 @@ class TestEncumbranceEvents(TstFunction):
             filter_condition=lambda update: (
                 update.updateType == UpdateCategory.ENCUMBRANCE
                 and update.encumbranceDetails is not None
-                and update.encumbranceDetails.get('adverseActionId') == DEFAULT_ADVERSE_ACTION_ID
+                and str(update.encumbranceDetails.get('adverseActionId')) == DEFAULT_ADVERSE_ACTION_ID
             ),
         )
         self.assertEqual(1, len(matching_updates))
 
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_listener_does_not_create_duplicate_update_records_for_already_encumbered_privileges(
         self,
+        mock_publish_event,
     ):
         """Test that license encumbrance event does not create duplicate update records when
         re-run for already encumbered privileges."""
@@ -3176,14 +3180,17 @@ class TestEncumbranceEvents(TstFunction):
             filter_condition=lambda update: (
                 update.updateType == UpdateCategory.ENCUMBRANCE
                 and update.encumbranceDetails is not None
-                and update.encumbranceDetails.get('adverseActionId') == DEFAULT_ADVERSE_ACTION_ID
+                and str(update.encumbranceDetails.get('adverseActionId')) == DEFAULT_ADVERSE_ACTION_ID
             ),
         )
         self.assertEqual(1, len(matching_updates))
 
-    def test_license_encumbrance_lifted_listener_does_not_create_duplicate_update_records_on_retry(self):
+    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
+    def test_license_encumbrance_lifted_listener_does_not_create_duplicate_update_records_on_retry(
+        self, mock_publish_event
+    ):
         """Test that license encumbrance lifting event does not create duplicate update records when re-run.
-
+ 
         This test confirms that the early return logic when no LICENSE_ENCUMBERED privileges are found
         prevents duplicate update record creation on retry.
         """
