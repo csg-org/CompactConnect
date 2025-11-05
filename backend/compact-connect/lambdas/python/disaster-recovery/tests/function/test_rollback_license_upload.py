@@ -52,7 +52,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'providerId': self.provider_id,
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'uploadDate': upload_datetime,
+            'firstUploadDate': upload_datetime,
             'dateOfUpdate': upload_datetime,
         })
 
@@ -82,7 +82,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'jurisdiction': self.jurisdiction,
             'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
             'dateOfExpiration': (self.default_start_datetime - timedelta(days=30)).date(),
-            'uploadDate': license_upload_datetime,
+            'firstUploadDate': license_upload_datetime,
         })
         
         # Create update record within upload window
@@ -94,7 +94,6 @@ class TestRollbackLicenseUpload(TstFunction):
             'updateType': self.update_categories.RENEWAL,
             'createDate': upload_datetime,
             'effectiveDate': upload_datetime,
-            'uploadDate': upload_datetime,
             'previous': {
                 'dateOfExpiration': original_license.dateOfExpiration,
                 **original_license.to_dict()
@@ -103,7 +102,7 @@ class TestRollbackLicenseUpload(TstFunction):
                 'dateOfExpiration': (upload_datetime + timedelta(days=365)).date(),
             },
         })
-        
+
         # Update the license record to reflect the new expiration
         updated_license = self.test_data_generator.put_default_license_record_in_provider_table({
             'providerId': self.provider_id,
@@ -111,9 +110,9 @@ class TestRollbackLicenseUpload(TstFunction):
             'jurisdiction': self.jurisdiction,
             'dateOfUpdate': upload_datetime,
             'dateOfExpiration': (upload_datetime + timedelta(days=365)).date(),
-            'uploadDate': license_upload_datetime,
+            'firstUploadDate': license_upload_datetime,
         })
-        
+
         return updated_license, license_update
 
     def _when_provider_had_privilege_deactivated_from_upload(self, upload_datetime: datetime = None):
@@ -350,7 +349,9 @@ class TestRollbackLicenseUpload(TstFunction):
         from handlers.rollback_license_upload import rollback_license_upload
 
         # Setup: License was uploaded and then updated during upload
-        license_record, license_update = self._when_provider_had_license_updated_from_upload(license_upload_datetime=self.default_start_datetime + timedelta(hours = 1))
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime + timedelta(hours = 1)
+        )
         
         # Verify update record exists before rollback
         provider_records_before = self.config.data_client.get_provider_user_records(
@@ -358,8 +359,11 @@ class TestRollbackLicenseUpload(TstFunction):
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
         )
+        licenses_before = provider_records_before.get_license_records()
+        self.assertEqual(len(licenses_before), 1, "Should have license record before rollback")
         license_updates_before = provider_records_before.get_all_license_update_records()
-        self.assertGreater(len(license_updates_before), 0, "Should have update records before rollback")
+        self.assertEqual(len(license_updates_before), 1, "Should have update record before rollback")
+
         
         # Execute: Perform rollback
         event = {
@@ -434,7 +438,7 @@ class TestRollbackLicenseUpload(TstFunction):
         from handlers.rollback_license_upload import rollback_license_upload
 
         # Setup: Provider had license update after upload window
-        license_record, license_update = self._when_provider_had_license_update_after_upload()
+        self._when_provider_had_license_update_after_upload()
         
         # Execute: Perform rollback
         event = {
@@ -451,9 +455,9 @@ class TestRollbackLicenseUpload(TstFunction):
         
         # Assert: Rollback completed but provider was skipped
         self.assertEqual(result['rollbackStatus'], 'COMPLETE')
-        self.assertEqual(result['providersSkipped'], 1)
         self.assertEqual(result['providersReverted'], 0)
-        
+        self.assertEqual(result['providersSkipped'], 1)
+
         # Verify: License record and update still exist (not rolled back)
         provider_records = self.config.data_client.get_provider_user_records(
             compact=self.compact,

@@ -1,29 +1,20 @@
 import json
-import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
 
-import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderUserRecords
-from cc_common.data_model.schema.common import UpdateCategory
+from cc_common.data_model.schema.common import UpdateCategory, LICENSE_UPLOAD_UPDATE_CATEGORIES
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.event_batch_writer import EventBatchWriter
 
 
 # Maximum time window for rollback (1 week in seconds)
 MAX_ROLLBACK_WINDOW_SECONDS = 7 * 24 * 60 * 60
-
-# License upload related update categories
-LICENSE_UPLOAD_UPDATE_CATEGORIES = {
-    UpdateCategory.DEACTIVATION,
-    UpdateCategory.RENEWAL,
-    UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER,
-}
 
 # Privilege update category for license deactivations
 PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY = UpdateCategory.LICENSE_DEACTIVATION
@@ -56,6 +47,7 @@ class ProviderFailedDetails:
 @dataclass
 class RevertedLicense:
     """Details of a reverted license for event publishing."""
+    # TODO - provider id be UUID, add reversion id
     provider_id: str
     jurisdiction: str
     license_type: str
@@ -105,14 +97,17 @@ class RollbackResults:
             ],
             'revertedProviderSummaries': [
                 {
+                    # TODO - remove redundant provider id in licenses/privileges reverted objects
                     'providerId': summary.provider_id,
                     'licensesReverted': [
                         {
-                            'providerId': license.provider_id,
-                            'jurisdiction': license.jurisdiction,
-                            'licenseType': license.license_type,
+                            'providerId': license_record.provider_id,
+                            'jurisdiction': license_record.jurisdiction,
+                            'licenseType': license_record.license_type,
+                            # TODO - add action field showing 'REVERT' or 'DELETED'
+                            'action': 'some-action'
                         }
-                        for license in summary.licenses_reverted
+                        for license_record in summary.licenses_reverted
                     ],
                     'privilegesReverted': [
                         {
@@ -122,6 +117,7 @@ class RollbackResults:
                         }
                         for privilege in summary.privileges_reverted
                     ],
+                    # TODO - add pk/sk to list
                     'updatesDeleted': summary.updates_deleted,
                 }
                 for summary in self.reverted_provider_summaries
@@ -201,10 +197,9 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         'providersSkipped': int,
         'providersFailed': int,
         'lastEvaluatedGSIKey': dict | None,
-        'resultsS3Key': 's3://bucket-name/execution-id/results.json'
     }
     """
-    start_time = time.time()
+    execution_start_time = time.time()
     max_execution_time = 12 * 60  # 12 minutes in seconds
 
     # Extract and validate input parameters
@@ -254,28 +249,19 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     )
 
     # Initialize S3 client and bucket
-    s3_client = boto3.client('s3')
-    rollback_results_bucket_name = os.environ['ROLLBACK_RESULTS_BUCKET_NAME']
     results_s3_key = f'{execution_id}/results.json'
 
     # Load existing results if this is a continuation
-    if providers_processed > 0:
-        existing_results = _load_results_from_s3(s3_client, rollback_results_bucket_name, results_s3_key)
-    else:
-        existing_results = RollbackResults()
+    existing_results = _load_results_from_s3(results_s3_key)
 
     # Initialize counters
     providers_reverted = len(existing_results.reverted_provider_summaries)
     providers_skipped = len(existing_results.skipped_provider_details)
     providers_failed = len(existing_results.failed_provider_details)
 
-    # Get provider table and GSI
-    provider_table = config.provider_table
-
     try:
         # Query GSI for affected records across the time window
         affected_provider_ids = _query_gsi_for_affected_providers(
-            provider_table,
             compact,
             jurisdiction,
             start_datetime,
@@ -286,12 +272,12 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         # Process each provider
         for provider_id in affected_provider_ids:
             # Check time limit
-            elapsed_time = time.time() - start_time
+            elapsed_time = time.time() - execution_start_time
             if elapsed_time > max_execution_time:
                 logger.info(f'Approaching time limit after {elapsed_time:.2f} seconds. Returning IN_PROGRESS status.')
 
                 # Write current results to S3
-                _write_results_to_s3(s3_client, rollback_results_bucket_name, results_s3_key, existing_results)
+                _write_results_to_s3(results_s3_key, existing_results)
 
                 return {
                     'rollbackStatus': 'IN_PROGRESS',
@@ -300,7 +286,6 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                     'providersSkipped': providers_skipped,
                     'providersFailed': providers_failed,
                     'lastEvaluatedGSIKey': None,  # Continue from next provider
-                    'resultsS3Key': f's3://{rollback_results_bucket_name}/{results_s3_key}',
                     'compact': compact,
                     'jurisdiction': jurisdiction,
                     'startDateTime': start_datetime_str,
@@ -336,7 +321,8 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         logger.info('Rollback complete', providers_processed=providers_processed)
 
         # Write final results to S3
-        _write_results_to_s3(s3_client, rollback_results_bucket_name, results_s3_key, existing_results)
+        # TODO - consider writing a CSV file with final values for ease of reference
+        _write_results_to_s3(results_s3_key, existing_results)
 
         return {
             'rollbackStatus': 'COMPLETE',
@@ -344,7 +330,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
             'providersReverted': providers_reverted,
             'providersSkipped': providers_skipped,
             'providersFailed': providers_failed,
-            'resultsS3Key': f's3://{rollback_results_bucket_name}/{results_s3_key}',
+            'resultsS3Key': f's3://{config.rollback_results_bucket_name}/{results_s3_key}',
         }
 
     except ClientError as e:
@@ -353,7 +339,6 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
 
 
 def _query_gsi_for_affected_providers(
-    provider_table,
     compact: str,
     jurisdiction: str,
     start_datetime: datetime,
@@ -399,7 +384,7 @@ def _query_gsi_for_affected_providers(
             query_kwargs['ExclusiveStartKey'] = last_evaluated_key
 
         while True:
-            response = provider_table.query(**query_kwargs)
+            response = config.provider_table.query(**query_kwargs)
 
             # Extract provider IDs from the results
             for item in response.get('Items', []):
@@ -498,7 +483,8 @@ def _build_and_execute_revert_transactions(
     from cc_common.data_model.schema.license import LicenseData
     from cc_common.data_model.schema.license.record import LicenseRecordSchema
     from cc_common.data_model.schema.privilege import PrivilegeData
-    
+
+    # TODO - split transactions into first tier/second tier lists (license/privilege first tier, updates second)
     transaction_items = []
     table_name = config.provider_table_name
     reverted_licenses = []
@@ -544,6 +530,7 @@ def _build_and_execute_revert_transactions(
     
     for license_record in license_records:
         # Get privilege updates for this license (same jurisdiction and license type)
+        # TODO - get the privilege updates for license jurisdiction
         privilege_updates = provider_records.get_update_records_for_privilege(
             jurisdiction=license_record.jurisdiction,
             license_type=license_record.licenseType,
@@ -569,6 +556,7 @@ def _build_and_execute_revert_transactions(
                 logger.info('Will delete privilege deactivation update record if provider is eligible for rollback')
                 
                 # Reactivate the privilege
+                # TODO - get privilege by it's own privilege jurisdiction, not the license jurisdiction
                 privilege_record = provider_records.get_specific_privilege_record(
                     jurisdiction=license_record.jurisdiction,
                     license_abbreviation=license_record.licenseTypeAbbreviation,
@@ -576,6 +564,7 @@ def _build_and_execute_revert_transactions(
                 if privilege_record:
                     # Remove the licenseDeactivatedStatus field to reactivate
                     reactivated_privilege_data = privilege_record.to_dict()
+                    # TODO - we should use an UPDATE to remove this field, instead of a PUT
                     reactivated_privilege_data.pop('licenseDeactivatedStatus', None)
                     
                     reactivated_privilege = PrivilegeData.create_new(reactivated_privilege_data)
@@ -583,6 +572,7 @@ def _build_and_execute_revert_transactions(
                     logger.info('Will reactivate privilege record if provider is eligible for rollback')
                     
                     reverted_privileges.append(
+                        # TODO - add revision id
                         RevertedPrivilege(
                             provider_id=provider_id,
                             jurisdiction=license_record.jurisdiction,
@@ -598,11 +588,13 @@ def _build_and_execute_revert_transactions(
         )
 
         # if license record was created during the window, delete it and all update records after start_datetime
-        if license_record.uploadDate is not None and start_datetime <= license_record.uploadDate <= end_datetime:
+        # TODO - add check for any privileges that exist for this license, since there won't be a privilege update record
+        if license_record.firstUploadDate is not None and start_datetime <= license_record.firstUploadDate <= end_datetime:
             serialized = license_record.serialize_to_database_record()
             add_delete(serialized['pk'], serialized['sk'])
             logger.info('Will delete license record (created during upload) if provider is eligible for rollback')
             reverted_licenses.append(
+                # TODO - add revision id
                 RevertedLicense(
                     provider_id=provider_id,
                     jurisdiction=license_record.jurisdiction,
@@ -618,12 +610,13 @@ def _build_and_execute_revert_transactions(
             # If license record was not created during the window, check license updates for eligibility and build transactions
             license_updates_in_window = []
             for license_update in license_updates_after_start:
-                if license_update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES:
+                if license_update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES or license_update.createDate > end_datetime:
                     # Non-upload-related license updates make provider ineligible
                     ineligible_updates.append(
                         IneligibleUpdate(
                             type='licenseUpdate',
                             update_type=license_update.updateType,
+                            # TODO - add 'ineligibleReason' field to explain why it's ineligible
                             create_date=license_update.createDate.isoformat(),
                         )
                     )
@@ -646,8 +639,8 @@ def _build_and_execute_revert_transactions(
                     earliest_update_in_window = license_updates_in_window[0]
                     
                     # Check if license was created during the window (uploadDate within window)
-                    if (license_record.uploadDate is not None and 
-                        start_datetime <= license_record.uploadDate <= end_datetime):
+                    if (license_record.firstUploadDate is not None and
+                        start_datetime <= license_record.firstUploadDate <= end_datetime):
                         # License created during upload - delete it
                         serialized = license_record.serialize_to_database_record()
                         add_delete(serialized['pk'], serialized['sk'])
@@ -695,6 +688,7 @@ def _build_and_execute_revert_transactions(
         logger.info(
             'Provider not eligible for automatic rollback',
             provider_id=provider_id,
+            # TODO - log full change summary
             ineligible_count=len(ineligible_updates),
         )
         return ProviderSkippedDetails(
@@ -724,6 +718,7 @@ def _build_and_execute_revert_transactions(
         privilege_records_dict = [p.to_dict() for p in provider_records.get_privilege_records()]
         
         # Find best license from reverted state
+        # TODO - first update licenses/privilege, then pull down again, and update provider record in separate transaction
         if reverted_licenses_dict:
             best_license = ProviderRecordUtility.find_best_license(
                 license_records=reverted_licenses_dict,
@@ -755,9 +750,11 @@ def _build_and_execute_revert_transactions(
     for i in range(0, len(transaction_items), 100):
         batch = transaction_items[i:i + 100]
         # Use Table resource's client for automatic type conversion
+        # TODO - catch failures and add failure record to write to S3 results object
         config.provider_table.meta.client.transact_write_items(TransactItems=batch)
         logger.info(f'Executed batch {i // 100 + 1} with {len(batch)} items')
-    
+
+    # TODO - log full change summary (DO NOT LOG PII)
     return ProviderRevertedSummary(
         provider_id=provider_id,
         licenses_reverted=reverted_licenses,
@@ -776,6 +773,7 @@ def _publish_revert_events(revert_summary: ProviderRevertedSummary, compact: str
             config.event_bus_client.publish_license_revert_event(
                 source='org.compactconnect.disaster-recovery',
                 compact=compact,
+                # TODO - add start time, end time, and revert id
                 provider_id=reverted_license.provider_id,
                 jurisdiction=reverted_license.jurisdiction,
                 license_type=reverted_license.license_type,
@@ -796,13 +794,13 @@ def _publish_revert_events(revert_summary: ProviderRevertedSummary, compact: str
             )
 
 
-def _load_results_from_s3(s3_client, bucket_name: str, key: str) -> RollbackResults:
+def _load_results_from_s3(key: str) -> RollbackResults:
     """Load existing results from S3."""
     try:
-        response = s3_client.get_object(Bucket=bucket_name, Key=key)
+        response = config.s3_client.get_object(Bucket=config.rollback_results_bucket_name, Key=key)
         data = json.loads(response['Body'].read().decode('utf-8'))
         return RollbackResults.from_dict(data)
-    except s3_client.exceptions.NoSuchKey:
+    except config.s3_client.exceptions.NoSuchKey:
         # First execution, no existing results
         return RollbackResults()
     except Exception as e:
@@ -810,17 +808,17 @@ def _load_results_from_s3(s3_client, bucket_name: str, key: str) -> RollbackResu
         raise
 
 
-def _write_results_to_s3(s3_client, bucket_name: str, key: str, results: RollbackResults):
+def _write_results_to_s3(key: str, results: RollbackResults):
     """Write results to S3 with server-side encryption."""
     try:
-        s3_client.put_object(
-            Bucket=bucket_name,
+        config.s3_client.put_object(
+            Bucket=config.rollback_results_bucket_name,
             Key=key,
             Body=json.dumps(results.to_dict(), indent=2),
             ContentType='application/json',
             ServerSideEncryption='aws:kms',
         )
-        logger.info('Results written to S3', bucket=bucket_name, key=key)
+        logger.info('Results written to S3', bucket=config.rollback_results_bucket_name, key=key)
     except Exception as e:
         logger.error(f'Error writing results to S3: {str(e)}')
         raise

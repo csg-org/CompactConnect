@@ -188,6 +188,10 @@ class _Config:
         return os.environ['PROVIDER_USER_BUCKET_NAME']
 
     @property
+    def rollback_results_bucket_name(self):
+        return os.environ['ROLLBACK_RESULTS_BUCKET_NAME']
+
+    @property
     def user_pool_id(self):
         """
         Return the user pool id of the staff user pool
@@ -212,6 +216,10 @@ class _Config:
     @property
     def fam_giv_index_name(self):
         return os.environ['FAM_GIV_INDEX_NAME']
+
+    @property
+    def license_upload_date_index_name(self):
+        return os.environ['LICENSE_UPLOAD_DATE_INDEX_NAME']
 
     @property
     def expiration_resolution_timezone(self):
