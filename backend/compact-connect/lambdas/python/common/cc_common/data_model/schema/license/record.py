@@ -17,6 +17,7 @@ from cc_common.data_model.schema.common import (
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
     UpdateCategory,
+    LICENSE_UPLOAD_UPDATE_CATEGORIES,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -50,8 +51,10 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
     licenseUploadDateGSIPK = String(required=False, allow_none=False)
     licenseUploadDateGSISK = String(required=False, allow_none=False)
 
-    # Optional field for tracking when the license upload caused this record to be created
-    uploadDate = DateTime(required=False, allow_none=False)
+    # Optional field for tracking the first license upload that caused this record to be created
+    # Note that records which were uploaded before this field was supported will not have this included
+    # and will not be included in the license upload date GSI
+    firstUploadDate = DateTime(required=False, allow_none=False)
 
     # Provided fields
     npi = NationalProviderIdentifier(required=False, allow_none=False)
@@ -131,10 +134,10 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
 
     @pre_dump
     def generate_license_upload_date_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        """Generate GSI fields for license upload date tracking (only if uploadDate is present)"""
-        if 'uploadDate' in in_data and in_data['uploadDate'] is not None:
-            # Extract YYYY-MM from uploadDate
-            upload_date = in_data['uploadDate']
+        """Generate GSI fields for license upload date tracking (only if firstUploadDate is present)"""
+        if 'firstUploadDate' in in_data and in_data['firstUploadDate'] is not None:
+            # Extract YYYY-MM from firstUploadDate
+            upload_date = in_data['firstUploadDate']
             year_month = upload_date.strftime('%Y-%m')
 
             # Generate GSI PK: C#{compact}#J#{jurisdiction}#D#{YYYY-MM}
@@ -230,9 +233,6 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     licenseUploadDateGSIPK = String(required=False, allow_none=False)
     licenseUploadDateGSISK = String(required=False, allow_none=False)
 
-    # Optional field for tracking when the license upload caused this update record to be created
-    uploadDate = DateTime(required=False, allow_none=False)
-
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """
@@ -255,10 +255,12 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
 
     @pre_dump
     def generate_license_upload_date_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        """Generate GSI fields for license upload date tracking (only if uploadDate is present)"""
-        if 'uploadDate' in in_data and in_data['uploadDate'] is not None:
-            # Extract YYYY-MM from uploadDate
-            upload_date = in_data['uploadDate']
+        """Generate GSI fields for license upload date tracking"""
+        # If the update is related to an upload event, we generate the upload GSI fields to allow the system to
+        # query when certain uploads occurred
+        if in_data['updateType'] in LICENSE_UPLOAD_UPDATE_CATEGORIES:
+            # Extract YYYY-MM from createDate
+            upload_date = in_data['createDate']
             year_month = upload_date.strftime('%Y-%m')
 
             # Generate GSI PK: C#{compact}#J#{jurisdiction}#D#{YYYY-MM}

@@ -141,8 +141,8 @@ class LicenseData(CCDataClass):
         return self._data.get('investigationStatus')
 
     @property
-    def uploadDate(self) -> datetime | None:
-        return self._data.get('uploadDate')
+    def firstUploadDate(self) -> datetime | None:
+        return self._data.get('firstUploadDate')
 
 
 class LicenseUpdateData(CCDataClass):
@@ -199,7 +199,3 @@ class LicenseUpdateData(CCDataClass):
     @property
     def removedValues(self) -> list[str] | None:
         return self._data.get('removedValues')
-
-    @property
-    def uploadDate(self) -> datetime | None:
-        return self._data.get('uploadDate')

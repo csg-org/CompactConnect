@@ -156,7 +156,7 @@ class TestTransformations(TstFunction):
             # license should be active and compact eligible
             expected_license['licenseStatus'] = 'active'
             expected_license['compactEligibility'] = 'eligible'
-            expected_license['uploadDate'] = MOCK_CURRENT_DATETIME_STRING
+            expected_license['firstUploadDate'] = MOCK_CURRENT_DATETIME_STRING
             expected_license['licenseUploadDateGSIPK'] = 'C#aslp#J#oh#D#2024-11'
             expected_license['licenseUploadDateGSISK'] = (
                 'TIME#1731110399#LT#slp#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'

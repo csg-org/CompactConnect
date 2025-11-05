@@ -163,14 +163,14 @@ def ingest_license_message(message: dict):
                     dynamo_transactions=dynamo_transactions,
                     data_events=data_events,
                 )
-                # now grab the uploadDate from the existing record if available and put it in the posted_license
+                # now grab the firstUploadDate from the existing record if available and put it in the posted_license
                 # for the license upload date GSI
-                if existing_license.get('uploadDate'):
-                    posted_license_record['uploadDate'] = existing_license.get('uploadDate')
+                if existing_license.get('firstUploadDate'):
+                    posted_license_record['firstUploadDate'] = existing_license.get('firstUploadDate')
             else:
                 # If this is the first time creating the license record,
-                # set the uploadDate to the current time for license upload date GSI tracking
-                posted_license_record['uploadDate'] = config.current_standard_datetime
+                # set the firstUploadDate to the current time for license upload date GSI tracking
+                posted_license_record['firstUploadDate'] = config.current_standard_datetime
 
             # write the record to the table to reflect the latest values from the upload
             license_data = LicenseData.create_new(deepcopy(posted_license_record))
