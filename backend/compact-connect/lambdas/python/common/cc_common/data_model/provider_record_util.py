@@ -788,6 +788,21 @@ class ProviderUserRecords:
             if filter_condition is None or filter_condition(record)
         ]
 
+    def get_all_provider_update_records(
+        self,
+        filter_condition: Callable[[ProviderUpdateData], bool] | None = None,
+    ) -> list[ProviderUpdateData]:
+        """
+        Get all provider update records for this provider.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of ProviderUpdateData records
+        """
+        return [
+            record
+            for record in self._provider_update_records
+            if filter_condition is None or filter_condition(record)
+        ]
+
     def get_update_records_for_license(
         self,
         jurisdiction: str,

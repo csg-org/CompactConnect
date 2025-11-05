@@ -25,8 +25,13 @@ class TstFunction(TstLambdas):
         self.mock_source_table_arn = f'arn:aws:dynamodb:us-east-1:767398110685:table/{self.mock_source_table_name}'
         self.build_resources()
 
+        # these must be imported within the tests, since they import modules which require
+        # environment variables that are not set until the TstLambdas class is initialized
+        import cc_common.config
         from common_test.test_data_generator import TestDataGenerator
 
+        cc_common.config.config = cc_common.config._Config()  # noqa: SLF001 protected-access
+        self.config = cc_common.config.config
         self.test_data_generator = TestDataGenerator
 
         self.addCleanup(self.delete_resources)
@@ -116,4 +121,4 @@ class TstFunction(TstLambdas):
         self._provider_table.delete()
         self._rollback_results_bucket.objects.delete()
         self._rollback_results_bucket.delete()
-        self._event_bus.delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
+        boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])

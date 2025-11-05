@@ -329,6 +329,20 @@ class TestDataGenerator:
         return LicenseUpdateData.create_new(license_update)
 
     @staticmethod
+    def put_default_license_update_record_in_provider_table(
+        value_overrides: dict | None = None,
+    ) -> LicenseUpdateData:
+        """
+        Creates a default license update and stores it in the provider table.
+        """
+        update_data = TestDataGenerator.generate_default_license_update(value_overrides)
+        update_record = update_data.serialize_to_database_record()
+
+        TestDataGenerator.store_record_in_provider_table(update_record)
+
+        return update_data
+
+    @staticmethod
     def generate_default_privilege(value_overrides: dict | None = None) -> PrivilegeData:
         """Generate a default privilege"""
         default_privilege = {

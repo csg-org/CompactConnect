@@ -10,29 +10,34 @@ These tests verify the rollback functionality including:
 - S3 result management
 """
 from datetime import datetime, timedelta
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from uuid import uuid4
 from moto import mock_aws
 
-from cc_common.config import config
-from cc_common.data_model.schema.common import UpdateCategory
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
-from handlers.rollback_license_upload import rollback_license_upload
 from . import TstFunction
 
+MOCK_DATETIME_STRING = '2025-10-23T08:15:00+00:00'
+
+
 @mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_DATETIME_STRING))
 class TestRollbackLicenseUpload(TstFunction):
     """Test class for license upload rollback handler."""
 
-    def setup_method(self):
+    def setUp(self):
         """Set up test fixtures before each test method."""
+        super().setUp()
         # Create sample test data
         self.compact = 'aslp'
         self.jurisdiction = 'oh'
         self.provider_id = str(uuid4())
-        self.upload_datetime = datetime.now() - timedelta(days=1)
-        self.start_datetime = self.upload_datetime - timedelta(hours=1)
-        self.end_datetime = datetime.now()
+        # default upload time between start and end time
+        self.default_upload_datetime = datetime.fromisoformat(MOCK_DATETIME_STRING) - timedelta(hours=1)
+        self.default_start_datetime = self.default_upload_datetime - timedelta(days=1)
+        self.default_end_datetime = self.default_upload_datetime
+        from cc_common.data_model.schema.common import UpdateCategory
+        self.update_categories = UpdateCategory
 
     # Helper methods for setting up test scenarios
     def _when_provider_had_license_created_from_upload(self, upload_datetime: datetime = None):
@@ -41,7 +46,7 @@ class TestRollbackLicenseUpload(TstFunction):
         Returns the created license data.
         """
         if upload_datetime is None:
-            upload_datetime = self.upload_datetime
+            upload_datetime = self.default_upload_datetime
             
         return self.test_data_generator.put_default_license_record_in_provider_table({
             'providerId': self.provider_id,
@@ -51,21 +56,33 @@ class TestRollbackLicenseUpload(TstFunction):
             'dateOfUpdate': upload_datetime,
         })
 
-    def _when_provider_had_license_updated_from_upload(self, upload_datetime: datetime = None):
+    def _when_provider_had_license_updated_from_upload(self, upload_datetime: datetime = None, license_upload_datetime: datetime = None):
         """
         Set up a scenario where a provider had an existing license updated during the upload window.
         Returns the license and its update record.
         """
         if upload_datetime is None:
-            upload_datetime = self.upload_datetime
+            upload_datetime = self.default_upload_datetime
+        if license_upload_datetime is None:
+            license_upload_datetime = self.default_upload_datetime
+
+        # add provider record to provider table
+        self.test_data_generator.put_default_provider_record_in_provider_table({
+            'providerId': self.provider_id,
+            'compact': self.compact,
+            'jurisdiction': self.jurisdiction,
+            'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
+        })
+        
             
-        # Create original license before upload window
+        # Create original license before upload window, unless different time is provided
         original_license = self.test_data_generator.put_default_license_record_in_provider_table({
             'providerId': self.provider_id,
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'dateOfUpdate': self.start_datetime - timedelta(days=30),
-            'dateOfExpiration': (self.start_datetime - timedelta(days=30)).date(),
+            'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
+            'dateOfExpiration': (self.default_start_datetime - timedelta(days=30)).date(),
+            'uploadDate': license_upload_datetime,
         })
         
         # Create update record within upload window
@@ -74,12 +91,13 @@ class TestRollbackLicenseUpload(TstFunction):
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
             'licenseType': original_license.licenseType,
-            'updateType': UpdateCategory.RENEWAL,
+            'updateType': self.update_categories.RENEWAL,
             'createDate': upload_datetime,
             'effectiveDate': upload_datetime,
             'uploadDate': upload_datetime,
             'previous': {
                 'dateOfExpiration': original_license.dateOfExpiration,
+                **original_license.to_dict()
             },
             'updatedValues': {
                 'dateOfExpiration': (upload_datetime + timedelta(days=365)).date(),
@@ -93,7 +111,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'jurisdiction': self.jurisdiction,
             'dateOfUpdate': upload_datetime,
             'dateOfExpiration': (upload_datetime + timedelta(days=365)).date(),
-            'uploadDate': upload_datetime,
+            'uploadDate': license_upload_datetime,
         })
         
         return updated_license, license_update
@@ -104,14 +122,14 @@ class TestRollbackLicenseUpload(TstFunction):
         Returns the privilege and its update record.
         """
         if upload_datetime is None:
-            upload_datetime = self.upload_datetime
+            upload_datetime = self.default_upload_datetime
             
         # Create privilege that was active before upload
         privilege = self.test_data_generator.put_default_privilege_record_in_provider_table({
             'providerId': self.provider_id,
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'dateOfUpdate': self.start_datetime - timedelta(days=30),
+            'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
         })
         
         # Create deactivation update record
@@ -120,7 +138,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
             'licenseType': privilege.licenseType,
-            'updateType': UpdateCategory.LICENSE_DEACTIVATION,
+            'updateType': self.update_categories.LICENSE_DEACTIVATION,
             'createDate': upload_datetime,
             'effectiveDate': upload_datetime,
         })
@@ -134,7 +152,7 @@ class TestRollbackLicenseUpload(TstFunction):
         Returns the privilege and its update record.
         """
         if after_upload_datetime is None:
-            after_upload_datetime = self.end_datetime + timedelta(hours=1)
+            after_upload_datetime = self.default_end_datetime + timedelta(hours=1)
             
         privilege = self.test_data_generator.put_default_privilege_record_in_provider_table({
             'providerId': self.provider_id,
@@ -148,7 +166,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
             'licenseType': privilege.licenseType,
-            'updateType': UpdateCategory.RENEWAL,  # Not LICENSE_DEACTIVATION
+            'updateType': self.update_categories.RENEWAL,  # Not LICENSE_DEACTIVATION
             'createDate': after_upload_datetime,
             'effectiveDate': after_upload_datetime,
         })
@@ -162,7 +180,7 @@ class TestRollbackLicenseUpload(TstFunction):
         Returns the license and its update record.
         """
         if after_upload_datetime is None:
-            after_upload_datetime = self.end_datetime + timedelta(hours=1)
+            after_upload_datetime = self.default_end_datetime + timedelta(hours=1)
             
         license_record = self.test_data_generator.put_default_license_record_in_provider_table({
             'providerId': self.provider_id,
@@ -176,7 +194,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
             'licenseType': license_record.licenseType,
-            'updateType': UpdateCategory.ENCUMBRANCE,  # Not an upload-related category
+            'updateType': self.update_categories.ENCUMBRANCE,  # Not an upload-related category
             'createDate': after_upload_datetime,
             'effectiveDate': after_upload_datetime,
         })
@@ -189,7 +207,7 @@ class TestRollbackLicenseUpload(TstFunction):
         Returns the provider record.
         """
         if before_upload_datetime is None:
-            before_upload_datetime = self.start_datetime - timedelta(days=30)
+            before_upload_datetime = self.default_start_datetime - timedelta(days=30)
             
         # Create provider record with old values
         provider = self.test_data_generator.put_default_provider_record_in_provider_table({
@@ -206,7 +224,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'compact': self.compact,
             'givenName': 'NewFirstName',
             'familyName': 'NewLastName',
-            'dateOfUpdate': self.upload_datetime,
+            'dateOfUpdate': self.default_upload_datetime,
         })
         
         return provider, updated_provider
@@ -214,6 +232,8 @@ class TestRollbackLicenseUpload(TstFunction):
     # Integration tests for rollback scenarios
     def test_provider_top_level_record_reset_to_prior_values_when_upload_reverted(self):
         """Test that provider top-level record is reset to values before upload."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         # Setup: Provider record was updated during upload
         old_provider, new_provider = self._when_provider_top_level_record_needs_reverted()
         
@@ -221,8 +241,8 @@ class TestRollbackLicenseUpload(TstFunction):
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.start_datetime.isoformat(),
-            'endDateTime': self.end_datetime.isoformat(),
+            'startDateTime': self.default_start_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -235,7 +255,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['providersReverted'], 1)
         
         # Verify: Provider record has been reset to old values
-        provider_records = config.data_client.get_provider_user_records(
+        provider_records = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
         )
@@ -245,8 +265,11 @@ class TestRollbackLicenseUpload(TstFunction):
 
     def test_provider_license_record_reset_to_prior_values_when_upload_reverted(self):
         """Test that license record is reset to values before upload."""
-        # Setup: License was updated during upload (e.g., renewed)
-        updated_license, license_update = self._when_provider_had_license_updated_from_upload()
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # Setup: License was updated during upload (e.g., renewed), but was first uploaded before start time
+        updated_license, license_update = self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours = 1))
         
         # Store the original expiration date from the update's previous values
         original_expiration = license_update.previous['dateOfExpiration']
@@ -255,8 +278,8 @@ class TestRollbackLicenseUpload(TstFunction):
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.start_datetime.isoformat(),
-            'endDateTime': self.end_datetime.isoformat(),
+            'startDateTime': self.default_start_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -264,12 +287,12 @@ class TestRollbackLicenseUpload(TstFunction):
         
         result = rollback_license_upload(event, Mock())
         
-        # Assert: Rollback completed successfully
+        # should return complete message
         self.assertEqual(result['rollbackStatus'], 'COMPLETE')
         self.assertEqual(result['providersReverted'], 1)
         
         # Verify: License record has been reset to original values
-        provider_records = config.data_client.get_provider_user_records(
+        provider_records = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
@@ -285,6 +308,8 @@ class TestRollbackLicenseUpload(TstFunction):
 
     def test_provider_privilege_record_reactivated_when_upload_reverted(self):
         """Test that privilege is reactivated when license deactivation is reverted."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         # Setup: Privilege was deactivated during upload due to license deactivation
         privilege, privilege_update = self._when_provider_had_privilege_deactivated_from_upload()
         
@@ -292,8 +317,8 @@ class TestRollbackLicenseUpload(TstFunction):
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.start_datetime.isoformat(),
-            'endDateTime': self.end_datetime.isoformat(),
+            'startDateTime': self.default_start_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -306,7 +331,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['providersReverted'], 1)
         
         # Verify: Privilege has been reactivated (status should be 'active')
-        provider_records = config.data_client.get_provider_user_records(
+        provider_records = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
@@ -320,13 +345,15 @@ class TestRollbackLicenseUpload(TstFunction):
         privilege_updates = provider_records.get_all_privilege_update_records()
         self.assertEqual(len(privilege_updates), 0, "Privilege update records should be deleted")
 
-    def test_provider_license_updates_within_time_period_removed_when_upload_reverted(self):
-        """Test that license update records within the time window are deleted."""
-        # Setup: License was updated during upload
-        updated_license, license_update = self._when_provider_had_license_updated_from_upload()
+    def test_provider_license_updates_and_license_record_within_time_period_removed_when_upload_reverted(self):
+        """Test that license update records and license record within the time window are deleted."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # Setup: License was uploaded and then updated during upload
+        license_record, license_update = self._when_provider_had_license_updated_from_upload(license_upload_datetime=self.default_start_datetime + timedelta(hours = 1))
         
         # Verify update record exists before rollback
-        provider_records_before = config.data_client.get_provider_user_records(
+        provider_records_before = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
@@ -338,8 +365,8 @@ class TestRollbackLicenseUpload(TstFunction):
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.start_datetime.isoformat(),
-            'endDateTime': self.end_datetime.isoformat(),
+            'startDateTime': self.default_start_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -351,21 +378,25 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['rollbackStatus'], 'COMPLETE')
         
         # Verify: All license update records within time window have been deleted
-        provider_records_after = config.data_client.get_provider_user_records(
+        provider_records_after = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
         )
+        licenses_after = provider_records_after.get_license_records()
+        self.assertEqual(len(licenses_after), 0, "License records should be deleted")
         license_updates_after = provider_records_after.get_all_license_update_records()
         self.assertEqual(len(license_updates_after), 0, "License update records should be deleted")
 
     def test_provider_privilege_deactivation_update_within_time_period_removed_when_upload_reverted(self):
         """Test that privilege deactivation update records within the time window are deleted."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         # Setup: Privilege was deactivated during upload
         privilege, privilege_update = self._when_provider_had_privilege_deactivated_from_upload()
         
         # Verify update record exists before rollback
-        provider_records_before = config.data_client.get_provider_user_records(
+        provider_records_before = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
@@ -377,8 +408,8 @@ class TestRollbackLicenseUpload(TstFunction):
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.start_datetime.isoformat(),
-            'endDateTime': self.end_datetime.isoformat(),
+            'startDateTime': self.default_start_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -390,7 +421,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['rollbackStatus'], 'COMPLETE')
         
         # Verify: All privilege update records within time window have been deleted
-        provider_records_after = config.data_client.get_provider_user_records(
+        provider_records_after = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
@@ -400,6 +431,8 @@ class TestRollbackLicenseUpload(TstFunction):
 
     def test_provider_skipped_if_license_updates_detected_after_time_period_when_upload_reverted(self):
         """Test that provider is skipped if non-upload-related license updates exist after time window."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         # Setup: Provider had license update after upload window
         license_record, license_update = self._when_provider_had_license_update_after_upload()
         
@@ -407,8 +440,8 @@ class TestRollbackLicenseUpload(TstFunction):
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.start_datetime.isoformat(),
-            'endDateTime': self.end_datetime.isoformat(),
+            'startDateTime': self.default_start_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -422,7 +455,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['providersReverted'], 0)
         
         # Verify: License record and update still exist (not rolled back)
-        provider_records = config.data_client.get_provider_user_records(
+        provider_records = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
@@ -434,6 +467,8 @@ class TestRollbackLicenseUpload(TstFunction):
 
     def test_provider_skipped_if_privilege_updates_detected_after_time_period_when_upload_reverted(self):
         """Test that provider is skipped if non-upload-related privilege updates exist after time window."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         # Setup: Provider had privilege update after upload window
         privilege, privilege_update = self._when_provider_had_privilege_update_after_upload()
         
@@ -441,8 +476,8 @@ class TestRollbackLicenseUpload(TstFunction):
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.start_datetime.isoformat(),
-            'endDateTime': self.end_datetime.isoformat(),
+            'startDateTime': self.default_start_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -456,7 +491,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['providersReverted'], 0)
         
         # Verify: Privilege record and update still exist (not rolled back)
-        provider_records = config.data_client.get_provider_user_records(
+        provider_records = self.config.data_client.get_provider_user_records(
             compact=self.compact,
             provider_id=self.provider_id,
             include_update_tier=UpdateTierEnum.TIER_THREE,
@@ -469,11 +504,13 @@ class TestRollbackLicenseUpload(TstFunction):
     # Validation tests
     def test_rollback_validates_datetime_format(self):
         """Test that rollback validates datetime format."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
             'startDateTime': 'invalid-datetime',
-            'endDateTime': self.end_datetime.isoformat(),
+            'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -486,11 +523,13 @@ class TestRollbackLicenseUpload(TstFunction):
 
     def test_rollback_validates_time_window_order(self):
         """Test that rollback validates start time is before end time."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         event = {
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
-            'startDateTime': self.end_datetime.isoformat(),
-            'endDateTime': self.start_datetime.isoformat(),
+            'startDateTime': self.default_end_datetime.isoformat(),
+            'endDateTime': self.default_start_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
             'executionId': 'test-execution-123',
             'providersProcessed': 0,
@@ -503,6 +542,8 @@ class TestRollbackLicenseUpload(TstFunction):
 
     def test_rollback_validates_maximum_time_window(self):
         """Test that rollback validates maximum time window."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
         start = datetime.now() - timedelta(days=8)  # More than 7 days
         end = datetime.now()
 
