@@ -3035,7 +3035,8 @@ class TestEncumbranceEvents(TstFunction):
     def test_license_encumbrance_listener_does_not_create_duplicate_update_records_for_unencumbered_privileges_on_retry(
         self,
     ):
-        """Test that license encumbrance event does not create duplicate update records when re-run for unencumbered privileges."""
+        """Test that license encumbrance event does not create duplicate update records
+        when re-run for unencumbered privileges."""
         from cc_common.data_model.schema.common import UpdateCategory
         from handlers.encumbrance_events import license_encumbrance_listener
 
@@ -3105,10 +3106,11 @@ class TestEncumbranceEvents(TstFunction):
         )
         self.assertEqual(1, len(matching_updates))
 
-    def test_license_encumbrance_listener_does_not_create_duplicate_update_records_for_already_encumbered_privileges_on_retry(
+    def test_license_encumbrance_listener_does_not_create_duplicate_update_records_for_already_encumbered_privileges(
         self,
     ):
-        """Test that license encumbrance event does not create duplicate update records when re-run for already encumbered privileges."""
+        """Test that license encumbrance event does not create duplicate update records when
+        re-run for already encumbered privileges."""
         from cc_common.data_model.schema.common import UpdateCategory
         from handlers.encumbrance_events import license_encumbrance_listener
 
@@ -3181,7 +3183,7 @@ class TestEncumbranceEvents(TstFunction):
 
     def test_license_encumbrance_lifted_listener_does_not_create_duplicate_update_records_on_retry(self):
         """Test that license encumbrance lifting event does not create duplicate update records when re-run.
-        
+
         This test confirms that the early return logic when no LICENSE_ENCUMBERED privileges are found
         prevents duplicate update record creation on retry.
         """
