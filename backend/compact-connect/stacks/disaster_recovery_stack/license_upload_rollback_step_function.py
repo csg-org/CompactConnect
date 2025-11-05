@@ -118,7 +118,7 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
             index=os.path.join('handlers', 'rollback_license_upload.py'),
             handler='rollback_license_upload',
             timeout=Duration.minutes(15),
-            memory_size=3008,  # High memory for performance
+            memory_size=5120,  # 5 GB for managing potentially large results files
             environment={
                 **stack.common_env_vars,
                 'ROLLBACK_RESULTS_BUCKET_NAME': rollback_results_bucket.bucket_name,

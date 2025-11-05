@@ -96,6 +96,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'effectiveDate': upload_datetime,
             'previous': {
                 'dateOfExpiration': original_license.dateOfExpiration,
+                'licenseStatus': 'inactive',
                 **original_license.to_dict()
             },
             'updatedValues': {
@@ -110,25 +111,30 @@ class TestRollbackLicenseUpload(TstFunction):
             'jurisdiction': self.jurisdiction,
             'dateOfUpdate': upload_datetime,
             'dateOfExpiration': (upload_datetime + timedelta(days=365)).date(),
+            'licenseStatus': 'inactive',
             'firstUploadDate': license_upload_datetime,
         })
 
-        return updated_license, license_update
+        return original_license, license_update, updated_license
 
     def _when_provider_had_privilege_deactivated_from_upload(self, upload_datetime: datetime = None):
         """
         Set up a scenario where a provider's privilege was deactivated due to license deactivation during upload.
         Returns the privilege and its update record.
         """
+        from cc_common.data_model.schema.common import LicenseDeactivatedStatusEnum
+
         if upload_datetime is None:
             upload_datetime = self.default_upload_datetime
             
-        # Create privilege that was active before upload
+        # Create privilege that was deactivated by upload
         privilege = self.test_data_generator.put_default_privilege_record_in_provider_table({
             'providerId': self.provider_id,
             'compact': self.compact,
             'jurisdiction': self.jurisdiction,
             'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
+            'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
+            'dateOfExpiration': datetime.fromisoformat(MOCK_DATETIME_STRING)
         })
         
         # Create deactivation update record
@@ -140,6 +146,9 @@ class TestRollbackLicenseUpload(TstFunction):
             'updateType': self.update_categories.LICENSE_DEACTIVATION,
             'createDate': upload_datetime,
             'effectiveDate': upload_datetime,
+            'updatedValues': {
+                'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
+            },
         })
         
         return privilege, privilege_update
@@ -267,7 +276,7 @@ class TestRollbackLicenseUpload(TstFunction):
         from handlers.rollback_license_upload import rollback_license_upload
 
         # Setup: License was updated during upload (e.g., renewed), but was first uploaded before start time
-        updated_license, license_update = self._when_provider_had_license_updated_from_upload(
+        original_license, license_update, updated_license  = self._when_provider_had_license_updated_from_upload(
             license_upload_datetime=self.default_start_datetime - timedelta(hours = 1))
         
         # Store the original expiration date from the update's previous values
@@ -310,7 +319,10 @@ class TestRollbackLicenseUpload(TstFunction):
         from handlers.rollback_license_upload import rollback_license_upload
 
         # Setup: Privilege was deactivated during upload due to license deactivation
-        privilege, privilege_update = self._when_provider_had_privilege_deactivated_from_upload()
+        # license was uploaded before rollback window
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours = 1))
+        self._when_provider_had_privilege_deactivated_from_upload()
         
         # Execute: Perform rollback
         event = {
@@ -339,6 +351,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(len(privileges), 1)
         privilege_record = privileges[0]
         self.assertEqual(privilege_record.status, 'active', "Privilege should be reactivated")
+        self.assertIsNone(privilege_record.licenseDeactivatedStatus)
         
         # Verify: Privilege update record has been deleted
         privilege_updates = provider_records.get_all_privilege_update_records()
