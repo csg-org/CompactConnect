@@ -100,8 +100,7 @@ class RollbackResults:
                             'jurisdiction': license_record.jurisdiction,
                             'licenseType': license_record.license_type,
                             'revisionId': str(license_record.revision_id),
-                            # TODO - add action field showing 'REVERT' or 'DELETED'
-                            'action': 'some-action'
+                            'action': license_record.action
                         }
                         for license_record in summary.licenses_reverted
                     ],
