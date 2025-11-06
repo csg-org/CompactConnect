@@ -1,6 +1,7 @@
 from aws_cdk import RemovalPolicy
 from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
 from aws_cdk.aws_logs import QueryDefinition, QueryString
+from common_constructs.frontend_app_config_utility import COGNITO_AUTH_DOMAIN_SUFFIX
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
@@ -54,15 +55,11 @@ class ProviderUsersStack(AppStack):
         # Get security profile from environment context
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 
-        # Set up provider domain prefix
-        provider_prefix = f'{app_name}-provider'
-        provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-
         # Create the new green provider user pool
         self.provider_users = ProviderUsers(
             self,
             'ProviderUsersGreen',
-            cognito_domain_prefix=provider_prefix,
+            app_name=app_name,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=persistent_stack.shared_encryption_key,
@@ -110,9 +107,15 @@ class ProviderUsersStack(AppStack):
 
         provider_app_config = ProviderUsersStackFrontendAppConfigUtility()
 
+        auth_domain_name = ''
+        if self.persistent_stack.hosted_zone:
+            auth_domain_name = self.provider_users.app_client_custom_domain.domain_name
+        else:
+            auth_domain_name = f'{self.provider_users.default_user_pool_domain.domain_name}{COGNITO_AUTH_DOMAIN_SUFFIX}'
+
         # Add provider user pool Cognito configuration
         provider_app_config.set_provider_cognito_values(
-            domain_name=self.provider_users.user_pool_domain.domain_name,
+            domain_name=auth_domain_name,
             client_id=self.provider_users.ui_client.user_pool_client_id,
         )
 

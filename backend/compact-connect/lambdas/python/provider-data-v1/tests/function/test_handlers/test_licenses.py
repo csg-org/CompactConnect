@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 from common_test.sign_request import sign_request
@@ -8,8 +8,12 @@ from moto import mock_aws
 
 from .. import TstFunction
 
+mock_flag_client = MagicMock()
+mock_flag_client.return_value = True
+
 
 @mock_aws
+@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestLicenses(TstFunction):
     def setUp(self):
@@ -360,6 +364,36 @@ class TestLicenses(TstFunction):
                 'errors': {
                     '0': {'licenseStatusName': ['Field may not be null.']},
                     '1': {'licenseStatusName': ['Field may not be null.']},
+                },
+            },
+            json.loads(resp['body']),
+        )
+
+    def test_post_licenses_returns_400_if_repeated_ssns_detected(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        event['body'] = json.dumps([license_data, license_data])
+
+        # Add signature authentication headers
+        event = self._create_signed_event(event)
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                'message': 'Invalid license records in request. See errors for more detail.',
+                'errors': {
+                    'SSN': 'Same SSN detected on multiple rows. '
+                    'Every record must have a unique SSN within the same request.',
                 },
             },
             json.loads(resp['body']),
