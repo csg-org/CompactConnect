@@ -914,6 +914,9 @@ def verify_password(hashed_password: str, password: str) -> bool:
 
 
 def to_uuid(uuid: str, on_error: str) -> UUID:
+    """
+    Parse a str to a UUID, raising CCInvalidRequestException if invalid.
+    """
     try:
         return UUID(uuid)
     except ValueError as e:
