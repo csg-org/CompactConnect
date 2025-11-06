@@ -28,9 +28,8 @@ class BackendPipeline(CdkCodePipeline):
     2. The Frontend Pipeline then deploys the frontend application using those resources
 
     Deployment Flow:
-    - Automatically triggered by git tags matching the specified pattern (e.g., 'prod-*')
-    - Can be manually started, which will use the default_branch for source code
-    - Triggers the Frontend Pipeline after successful deployment with the EXACT SAME commit ID
+    - IS triggered by GitHub pushes (trigger_on_push=True)
+    - Triggers the Frontend Pipeline after successful deployment
     """
 
     def __init__(
@@ -42,8 +41,7 @@ class BackendPipeline(CdkCodePipeline):
         github_repo_string: str,
         cdk_path: str,
         connection_arn: str,
-        default_branch: str,
-        git_tag_trigger_pattern: str,
+        trigger_branch: str,
         access_logs_bucket: IBucket,
         encryption_key: IKey,
         alarm_topic: ITopic,
@@ -53,14 +51,6 @@ class BackendPipeline(CdkCodePipeline):
         removal_policy: RemovalPolicy,
         **kwargs,
     ):
-        """
-        Initialize the BackendPipeline.
-
-        :param default_branch: The git branch to use when the pipeline is started manually.
-                              This branch is NOT used for automatic triggers.
-        :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
-                                       trigger the pipeline (e.g., 'prod-*', 'beta-*', 'test-*').
-        """
         artifact_bucket = Bucket(
             scope,
             f'{construct_id}ArtifactsBucket',
@@ -98,7 +88,7 @@ class BackendPipeline(CdkCodePipeline):
                 'Synth',
                 input=CodePipelineSource.connection(
                     repo_string=github_repo_string,
-                    branch=default_branch,
+                    branch=trigger_branch,
                     trigger_on_push=True,
                     # Arn format:
                     # arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
@@ -136,8 +126,6 @@ class BackendPipeline(CdkCodePipeline):
             **kwargs,
         )
         self._ssm_parameter = ssm_parameter
-        self._git_tag_trigger_pattern = git_tag_trigger_pattern
-        self._github_repo_string = github_repo_string
 
         self._encryption_key = encryption_key
         self._alarm_topic = alarm_topic
@@ -183,7 +171,6 @@ class BackendPipeline(CdkCodePipeline):
 
         self._add_alarms()
         self._add_codebuild_pipeline_role_override()
-        self._configure_git_tag_trigger()
 
     def _add_alarms(self):
         NotificationRule(
@@ -298,34 +285,3 @@ class BackendPipeline(CdkCodePipeline):
 
             # Now, remove the unused role and default policy
             assets_node.node.try_remove_child('FileRole')
-
-    def _configure_git_tag_trigger(self):
-        """
-        Configure git tag-based trigger using CDK escape hatch.
-
-        When triggers with filters are configured, AWS requires DetectChanges to be false
-        in the source action configuration. The trigger configuration replaces the default
-        change detection mechanism.
-
-        The source action's branch (default_branch) is still used when the pipeline is
-        started manually, but automatic triggers are controlled by the git tag pattern.
-        """
-        cfn_pipeline = self.pipeline.node.default_child
-
-        # Add the Triggers property
-        cfn_pipeline.add_property_override(
-            'Triggers',
-            [
-                {
-                    'ProviderType': 'CodeStarSourceConnection',
-                    'GitConfiguration': {
-                        'SourceActionName': self._github_repo_string.replace('/', '_'),
-                        'Push': [{'Tags': {'Includes': [self._git_tag_trigger_pattern]}}],
-                    },
-                }
-            ],
-        )
-
-        # Set DetectChanges to false in the source action
-        # The source action is in Stages[0].Actions[0] (first action of Source stage)
-        cfn_pipeline.add_property_override('Stages.0.Actions.0.Configuration.DetectChanges', False)
