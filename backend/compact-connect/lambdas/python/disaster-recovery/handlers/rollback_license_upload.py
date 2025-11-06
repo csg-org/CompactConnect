@@ -8,11 +8,13 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderUserRecords
+from cc_common.data_model.provider_record_util import ProviderUserRecords, ProviderRecordUtility
 from cc_common.data_model.schema.common import UpdateCategory, LICENSE_UPLOAD_UPDATE_CATEGORIES
+from cc_common.data_model.schema.privilege import PrivilegeData
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.event_batch_writer import EventBatchWriter
-
+from cc_common.exceptions import CCNotFoundException
 
 # Maximum time window for rollback (1 week in seconds)
 MAX_ROLLBACK_WINDOW_SECONDS = 7 * 24 * 60 * 60
@@ -52,6 +54,7 @@ class RevertedLicense:
     jurisdiction: str
     license_type: str
     revision_id: UUID
+    action: str
 
 
 @dataclass
@@ -453,6 +456,16 @@ def _process_provider_rollback(
             error=str(e),
         )
 
+def _perform_transaction(transaction_items: list[dict]) -> None:
+    logger.info(f'Executing {len(transaction_items)} transaction items in batches of 100')
+
+    for i in range(0, len(transaction_items), 100):
+        batch = transaction_items[i:i + 100]
+        # Use Table resource's client for automatic type conversion
+        # TODO - catch failures and add failure record to write to S3 results object
+        config.provider_table.meta.client.transact_write_items(TransactItems=batch)
+        logger.info(f'Executed batch {i // 100 + 1} with {len(batch)} items')
+
 
 def _build_and_execute_revert_transactions(
     provider_records: ProviderUserRecords,
@@ -472,7 +485,6 @@ def _build_and_execute_revert_transactions(
     
     Returns either a summary of what was reverted or details about why the provider was skipped.
     """
-    from cc_common.data_model.provider_record_util import ProviderRecordUtility
     from cc_common.data_model.schema.license import LicenseData
     from cc_common.data_model.schema.license.record import LicenseRecordSchema
 
@@ -613,6 +625,7 @@ def _build_and_execute_revert_transactions(
                     jurisdiction=license_record.jurisdiction,
                     license_type=license_record.licenseType,
                     revision_id=uuid4(),
+                    action='DELETE',
                 )
             )
             for update in license_updates_after_start:
@@ -667,6 +680,7 @@ def _build_and_execute_revert_transactions(
                                 jurisdiction=license_record.jurisdiction,
                                 license_type=license_record.licenseType,
                                 revision_id=uuid4(),
+                                action='DELETE',
                             )
                         )
                     else:
@@ -689,6 +703,7 @@ def _build_and_execute_revert_transactions(
                                 jurisdiction=license_record.jurisdiction,
                                 license_type=license_record.licenseType,
                                 revision_id=uuid4(),
+                                action='REVERT',
                             )
                         )
                 else:
@@ -712,38 +727,6 @@ def _build_and_execute_revert_transactions(
             ineligible_updates=ineligible_updates,
         )
     
-    # Step 3: Regenerate provider record using populate_provider_record
-    if reverted_licenses or reverted_privileges:
-        current_provider_record = provider_records.get_provider_record()
-        
-        # Get licenses from other jurisdictions (not affected by rollback)
-        all_licenses = provider_records.get_license_records()
-        for license_rec in all_licenses:
-            if license_rec.jurisdiction != jurisdiction:
-                reverted_licenses_dict.append(license_rec.to_dict())
-        
-        # Get all privilege records
-        privilege_records_dict = [p.to_dict() for p in provider_records.get_privilege_records()]
-        
-        # Find best license from reverted state
-        # TODO - first update licenses/privilege, then pull down again, and update provider record in separate transaction
-        #  or delete it all together if all license records were deleted for provider
-        if reverted_licenses_dict:
-            best_license = ProviderRecordUtility.find_best_license(
-                license_records=reverted_licenses_dict,
-                home_jurisdiction=current_provider_record.currentHomeJurisdiction,
-            )
-            
-            # Populate provider record using the reverted best license
-            updated_provider_record = ProviderRecordUtility.populate_provider_record(
-                current_provider_record=current_provider_record,
-                license_record=best_license,
-                privilege_records=privilege_records_dict,
-            )
-            
-            add_put(updated_provider_record.serialize_to_database_record())
-            logger.info('Adding provider record update to transaction')
-    
     # Execute transactions in batches of 100
     if not transaction_items:
         logger.warning('No transaction items to execute')
@@ -754,14 +737,32 @@ def _build_and_execute_revert_transactions(
             updates_deleted=updates_deleted_count,
         )
     
-    logger.info(f'Executing {len(transaction_items)} transaction items in batches of 100')
-    
-    for i in range(0, len(transaction_items), 100):
-        batch = transaction_items[i:i + 100]
-        # Use Table resource's client for automatic type conversion
-        # TODO - catch failures and add failure record to write to S3 results object
-        config.provider_table.meta.client.transact_write_items(TransactItems=batch)
-        logger.info(f'Executed batch {i // 100 + 1} with {len(batch)} items')
+    _perform_transaction(transaction_items)
+
+    # Now read all the license records for the provider and update the provider record
+    # Fetch all provider records including all update tiers
+    provider_records = config.data_client.get_provider_user_records(
+        compact=compact,
+        provider_id=provider_id
+    )
+    top_level_provider_record: ProviderData = provider_records.get_provider_record()
+    privilege_records: list[PrivilegeData] = provider_records.get_privilege_records()
+    transaction_items.clear()
+    try:
+        best_license = provider_records.find_best_license_in_current_known_licenses()
+        provider_record = ProviderRecordUtility.populate_provider_record(
+            current_provider_record=top_level_provider_record, 
+            license_record=best_license.to_dict(),
+            privilege_records=[privilege.to_dict() for privilege in privilege_records],
+        )
+        add_put(provider_record.serialize_to_database_record())
+    except CCNotFoundException:
+        # all licenses for the provider were removed as part of the rollback,
+        # the provider record needs to be removed as well
+        serialized_provider_record = top_level_provider_record.serialize_to_database_record()
+        add_delete(pk=serialized_provider_record['pk'], sk=serialized_provider_record['sk'])
+
+    _perform_transaction(transaction_items)
 
     # TODO - log full change summary (DO NOT LOG PII)
     return ProviderRevertedSummary(

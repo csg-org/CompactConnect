@@ -12,9 +12,12 @@ These tests verify the rollback functionality including:
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 from uuid import uuid4
+
+import pytest
 from moto import mock_aws
 
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
+from cc_common.exceptions import CCNotFoundException
 from . import TstFunction
 
 MOCK_DATETIME_STRING = '2025-10-23T08:15:00+00:00'
@@ -281,6 +284,31 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(old_provider.givenName, provider_record.givenName)
         self.assertEqual(old_provider.familyName, provider_record.familyName)
 
+    def test_provider_top_level_record_deleted_when_license_created_during_bad_upload(self):
+        """Test that provider top-level record is deleted if the license record is also deleted when reverting upload."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # Setup:
+        # License and provider records were created during upload
+        self._when_provider_had_license_created_from_upload()
+
+        # Execute: Perform rollback
+        event = self._generate_test_event()
+
+        result = rollback_license_upload(event, Mock())
+
+        # Assert: Rollback completed successfully
+        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(1, result['providersReverted'])
+
+        # Verify: All provider records have been deleted
+        with pytest.raises(CCNotFoundException) as exc_info:
+            self.config.data_client.get_provider_user_records(
+                compact=self.compact,
+                provider_id=self.provider_id,
+            )
+
+
     def test_provider_license_record_reset_to_prior_values_when_upload_reverted(self):
         """Test that license record is reset to values before upload."""
         from handlers.rollback_license_upload import rollback_license_upload
@@ -381,16 +409,13 @@ class TestRollbackLicenseUpload(TstFunction):
         # Assert: Rollback completed successfully
         self.assertEqual(result['rollbackStatus'], 'COMPLETE')
         
-        # Verify: All license update records within time window have been deleted
-        provider_records_after = self.config.data_client.get_provider_user_records(
-            compact=self.compact,
-            provider_id=self.provider_id,
-            include_update_tier=UpdateTierEnum.TIER_THREE,
-        )
-        licenses_after = provider_records_after.get_license_records()
-        self.assertEqual(len(licenses_after), 0, "License records should be deleted")
-        license_updates_after = provider_records_after.get_all_license_update_records()
-        self.assertEqual(len(license_updates_after), 0, "License update records should be deleted")
+        # Verify: All records within time window have been deleted
+        with pytest.raises(CCNotFoundException) as exec_info:
+            self.config.data_client.get_provider_user_records(
+                compact=self.compact,
+                provider_id=self.provider_id,
+                include_update_tier=UpdateTierEnum.TIER_THREE,
+            )
 
     def test_provider_skipped_if_license_updates_detected_after_end_of_time_window_when_upload_reverted(self):
         """Test that provider is skipped if non-upload-related license updates exist after time window."""

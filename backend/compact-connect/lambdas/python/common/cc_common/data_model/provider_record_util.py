@@ -23,7 +23,7 @@ from cc_common.data_model.schema.military_affiliation import MilitaryAffiliation
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import PrivilegeHistoryResponseSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
 class ProviderRecordType(StrEnum):
@@ -739,7 +739,7 @@ class ProviderUserRecords:
         # Last issued inactive license, otherwise
         latest_licenses = sorted(license_records, key=lambda x: x.dateOfIssuance.isoformat(), reverse=True)
         if not latest_licenses:
-            raise CCInternalException('No licenses found')
+            raise CCNotFoundException('No licenses found')
 
         return latest_licenses[0]
 
