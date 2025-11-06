@@ -488,8 +488,10 @@ def _build_and_execute_revert_transactions(
     from cc_common.data_model.schema.license import LicenseData
     from cc_common.data_model.schema.license.record import LicenseRecordSchema
 
-    # TODO - split transactions into first tier/second tier lists (license/privilege first tier, updates second)
-    transaction_items = []
+    # Split transaction lists into first tier/second tier lists (license/privilege/provider first tier, updates second)
+    # then merge the two lists into a single list of transaction items
+    primary_record_transaction_items = []  # License, privilege, and provider records
+    update_record_transactions_items = []  # Update records (license updates, privilege updates, provider updates)
     table_name = config.provider_table_name
     reverted_licenses = []
     reverted_privileges = []
@@ -497,21 +499,44 @@ def _build_and_execute_revert_transactions(
     ineligible_updates: list[IneligibleUpdate] = []
 
     # Helper functions for cleaner item building
-    def add_put(item: dict):
-        transaction_items.append({
+    def add_put(item: dict, update_record: bool):
+        """
+        Add a Put operation to the appropriate list.
+        
+        Args:
+            item: The item to put
+            update_record: True if the item is an update record, False if it is a primary record
+        """
+        transaction_item = {
             'Put': {
                 'TableName': table_name,
                 'Item': item,
             }
-        })
+        }
+        if update_record:
+            update_record_transactions_items.append(transaction_item)
+        else:
+            primary_record_transaction_items.append(transaction_item)
 
-    def add_delete(pk: str, sk: str):
-        transaction_items.append({
+    def add_delete(pk: str, sk: str, update_record: bool):
+        """
+        Add a Delete operation.
+        
+        Args:
+            pk: Partition key
+            sk: Sort key - used to determine if this is an update record
+            update_record: True if the item is an update record, False if it is a primary record
+        """
+        transaction_item = {
             'Delete': {
                 'TableName': table_name,
                 'Key': {'pk': pk, 'sk': sk},
             }
-        })
+        }
+        if update_record:
+            update_record_transactions_items.append(transaction_item)
+        else:
+            primary_record_transaction_items.append(transaction_item)
 
     # Step 1: Check provider updates - any after start_datetime make provider ineligible
     provider_updates = provider_records.get_all_provider_update_records()
@@ -561,8 +586,8 @@ def _build_and_execute_revert_transactions(
                 )
             elif start_datetime <= privilege_update.createDate <= end_datetime:
                 # License deactivation within window - mark for deletion
-                serialized = privilege_update.serialize_to_database_record()
-                add_delete(serialized['pk'], serialized['sk'])
+                serialized_privilege_update = privilege_update.serialize_to_database_record()
+                add_delete(serialized_privilege_update['pk'], serialized_privilege_update['sk'], update_record=True)
                 updates_deleted_count += 1
                 logger.info('Will delete privilege deactivation update record if provider is eligible for rollback')
                 
@@ -580,7 +605,7 @@ def _build_and_execute_revert_transactions(
                     )
                     # Remove the licenseDeactivatedStatus field to reactivate using UPDATE operation
                     serialized_privilege = privilege_record.serialize_to_database_record()
-                    transaction_items.append({
+                    primary_record_transaction_items.append({
                         'Update': {
                             'TableName': table_name,
                             'Key': {'pk': serialized_privilege['pk'], 'sk': serialized_privilege['sk']},
@@ -617,8 +642,8 @@ def _build_and_execute_revert_transactions(
                     )
                 )
             # no privileges found, so we can delete the license record    
-            serialized = license_record.serialize_to_database_record()
-            add_delete(serialized['pk'], serialized['sk'])
+            serialized_license_record = license_record.serialize_to_database_record()
+            add_delete(serialized_license_record['pk'], serialized_license_record['sk'], update_record=False)
             logger.info('Will delete license record (created during upload) if provider is eligible for rollback')
             reverted_licenses.append(
                 RevertedLicense(
@@ -629,8 +654,8 @@ def _build_and_execute_revert_transactions(
                 )
             )
             for update in license_updates_after_start:
-                serialized = update.serialize_to_database_record()
-                add_delete(serialized['pk'], serialized['sk'])
+                serialized_license_update = update.serialize_to_database_record()
+                add_delete(serialized_license_update['pk'], serialized_license_update['sk'], update_record=True)
                 updates_deleted_count += 1
                 logger.info('Will delete license update record if provider is eligible for rollback', update_type=update.updateType)
         else:
@@ -652,8 +677,8 @@ def _build_and_execute_revert_transactions(
                 elif start_datetime <= license_update.createDate <= end_datetime:
                     # Upload-related update within window - mark for deletion
                     license_updates_in_window.append(license_update)
-                    serialized = license_update.serialize_to_database_record()
-                    add_delete(serialized['pk'], serialized['sk'])
+                    serialized_license_update = license_update.serialize_to_database_record()
+                    add_delete(serialized_license_update['pk'], serialized_license_update['sk'], update_record=True)
                     updates_deleted_count += 1
                     logger.info('Will delete license update record if provider is eligible for rollback', update_type=license_update.updateType)
         
@@ -671,9 +696,9 @@ def _build_and_execute_revert_transactions(
                     if (license_record.firstUploadDate is not None and
                         start_datetime <= license_record.firstUploadDate <= end_datetime):
                         # License created during upload - delete it
-                        serialized = license_record.serialize_to_database_record()
-                        add_delete(serialized['pk'], serialized['sk'])
-                        logger.info('Deleting license record (created during upload)')
+                        serialized_license_record = license_record.serialize_to_database_record()
+                        add_delete(serialized_license_record['pk'], serialized_license_record['sk'], update_record=False)
+                        logger.info('Will delete license record (created during upload)')
                         
                         reverted_licenses.append(
                             RevertedLicense(
@@ -689,14 +714,14 @@ def _build_and_execute_revert_transactions(
                         reverted_license_data.update(earliest_update_in_window.previous)
                         
                         reverted_license = LicenseData.create_new(reverted_license_data)
-                        serialized_reverted = reverted_license.serialize_to_database_record()
+                        serialized_reverted_license = reverted_license.serialize_to_database_record()
                         
-                        add_put(serialized_reverted)
+                        add_put(serialized_reverted_license, update_record=True)
                         logger.info('Reverting license record to pre-upload state')
                         
                         # Track for provider record regeneration
                         license_schema = LicenseRecordSchema()
-                        reverted_licenses_dict.append(license_schema.load(serialized_reverted))
+                        reverted_licenses_dict.append(license_schema.load(serialized_reverted_license))
                         
                         reverted_licenses.append(
                             RevertedLicense(
@@ -727,7 +752,9 @@ def _build_and_execute_revert_transactions(
             ineligible_updates=ineligible_updates,
         )
     
-    # Execute transactions in batches of 100
+    # process primary records first, then update records
+    transaction_items = primary_record_transaction_items + update_record_transactions_items
+    
     if not transaction_items:
         logger.warning('No transaction items to execute')
         return ProviderRevertedSummary(
@@ -747,7 +774,10 @@ def _build_and_execute_revert_transactions(
     )
     top_level_provider_record: ProviderData = provider_records.get_provider_record()
     privilege_records: list[PrivilegeData] = provider_records.get_privilege_records()
-    transaction_items.clear()
+    
+    # Create a new list for provider record updates (all first tier items)
+    primary_record_transaction_items.clear()
+    
     try:
         best_license = provider_records.find_best_license_in_current_known_licenses()
         provider_record = ProviderRecordUtility.populate_provider_record(
@@ -755,14 +785,14 @@ def _build_and_execute_revert_transactions(
             license_record=best_license.to_dict(),
             privilege_records=[privilege.to_dict() for privilege in privilege_records],
         )
-        add_put(provider_record.serialize_to_database_record())
+        add_put(provider_record.serialize_to_database_record(), update_record=False)
     except CCNotFoundException:
         # all licenses for the provider were removed as part of the rollback,
         # the provider record needs to be removed as well
         serialized_provider_record = top_level_provider_record.serialize_to_database_record()
-        add_delete(pk=serialized_provider_record['pk'], sk=serialized_provider_record['sk'])
+        add_delete(pk=serialized_provider_record['pk'], sk=serialized_provider_record['sk'], update_record=False)
 
-    _perform_transaction(transaction_items)
+    _perform_transaction(primary_record_transaction_items)
 
     # TODO - log full change summary (DO NOT LOG PII)
     return ProviderRevertedSummary(
