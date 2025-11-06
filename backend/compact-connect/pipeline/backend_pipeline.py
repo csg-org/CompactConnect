@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import os
+from textwrap import dedent
 
 import common_constructs.base_pipeline_stack
 from aws_cdk import ArnFormat, Fn, RemovalPolicy, Stack
 from aws_cdk.aws_codebuild import BuildSpec, CfnProject
-from aws_cdk.aws_codepipeline import PipelineType
+from aws_cdk.aws_codepipeline import CfnPipeline, PipelineType
 from aws_cdk.aws_codestarnotifications import NotificationRule
 from aws_cdk.aws_iam import Effect, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import IKey
@@ -138,6 +140,8 @@ class BackendPipeline(CdkCodePipeline):
         self._ssm_parameter = ssm_parameter
         self._git_tag_trigger_pattern = git_tag_trigger_pattern
         self._github_repo_string = github_repo_string
+        self._pipeline_stack_name = pipeline_stack_name
+        self._pipeline_name = pipeline_name
 
         self._encryption_key = encryption_key
         self._alarm_topic = alarm_topic
@@ -184,6 +188,7 @@ class BackendPipeline(CdkCodePipeline):
         self._add_alarms()
         self._add_codebuild_pipeline_role_override()
         self._configure_git_tag_trigger()
+        self._replace_self_mutation_step()
 
     def _add_alarms(self):
         NotificationRule(
@@ -331,3 +336,145 @@ class BackendPipeline(CdkCodePipeline):
         # This functionally overrides the corresponding `trigger_on_push=True` setting in the
         # CodePipelineSource.connection() call.
         cfn_pipeline.add_property_override('Stages.0.Actions.0.Configuration.DetectChanges', False)
+
+    def _replace_self_mutation_step(self):
+        """
+        Replace the default self-mutation step with a custom implementation that preserves
+        the git tag/commit ID when restarting the pipeline after self-mutation.
+
+        The default CDK Pipeline self-mutation restarts the pipeline using the default branch,
+        which is incompatible with tag-based deployments. This custom implementation:
+        1. Deploys the pipeline stack and captures output
+        2. Detects if changes were deployed
+        3. If changes detected, triggers a new pipeline execution with the exact source revision
+        4. Cancels the current pipeline execution
+        """
+        # Find the UpdatePipeline stage node
+        update_pipeline_node = self.node.find_child('UpdatePipeline')
+
+        # Find the SelfMutation node within UpdatePipeline
+        self_mutation_node = update_pipeline_node.node.find_child('SelfMutation')
+
+        # Get the CloudFormation resource for the CodeBuild project
+        cfn_project: CfnProject = self_mutation_node.node.default_child
+        if cfn_project is None:
+            raise RuntimeError(
+                f'CloudFormation resource not found for CdkBuildProject in pipeline {self._pipeline_name}. '
+                'This indicates the pipeline structure is not as expected.'
+            )
+
+        # Get the source action name (used for source-revisions parameter)
+        source_action_name = self._github_repo_string.replace('/', '_')
+
+        # Create custom buildspec that:
+        # 1. Installs CDK CLI
+        # 2. Deploys the pipeline stack
+        # 3. Checks if changes were made
+        # 4. If changes detected, triggers new execution with source revision and cancels current
+        custom_buildspec = {
+            'version': '0.2',
+            'phases': {
+                'install': {
+                    'commands': ['npm install -g aws-cdk@2'],
+                },
+                'build': {
+                    'commands': [
+                        (
+                            f'DEPLOY_OUTPUT=$(cdk -a . deploy {self._pipeline_stack_name} '
+                            '--require-approval=never --verbose 2>&1)'
+                        ),
+                        'DEPLOY_EXIT_CODE=$?',
+                        'echo "$DEPLOY_OUTPUT"',
+                        '[ $DEPLOY_EXIT_CODE -eq 0 ] || exit $DEPLOY_EXIT_CODE',
+                        (
+                            f'echo "$DEPLOY_OUTPUT" | '
+                            f'grep -qE "Stack {self._pipeline_stack_name} (deployed|updated)"; then'
+                        ),
+                        (
+                            dedent(f'''
+                            if [ -n "$DEPLOY_OUTPUT" ]; then
+                              echo "Pipeline stack was updated. Triggering new execution with
+                              source revision: ${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
+                              aws codepipeline start-pipeline-execution --name {self._pipeline_name} \\
+                                --source-revisions \
+                                actionName={source_action_name},revisionType=COMMIT_ID,revisionValue="${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
+                              START_EXIT_CODE=$?
+                              if [ $START_EXIT_CODE -eq 0 ]; then
+                                echo "New pipeline execution started successfully"
+                              else',
+                                echo "Failed to start new pipeline execution"
+                                exit $START_EXIT_CODE',
+                              fi',
+                              aws codepipeline stop-pipeline-execution --pipeline-name {self._pipeline_name} \\
+                                --pipeline-execution-id "${{PIPELINE_EXECUTION_ID}}" || true
+                              echo "Current pipeline execution cancelled"
+                            elif [ $DEPLOY_EXIT_CODE -eq 0 ]; then
+                              echo "No changes detected in pipeline stack"
+                            else
+                              echo "Pipeline stack deployment failed"
+                              exit $DEPLOY_EXIT_CODE
+                            fi
+                            ''')
+                        ),
+                    ],
+                },
+            },
+        }
+
+        # Replace the buildspec
+        cfn_project.add_property_override('Source.BuildSpec', json.dumps(custom_buildspec))
+
+        # Add PipelineExecutionId as an environment variable to the CodePipeline action
+        # This uses CodePipeline's variable syntax to pass the execution ID to the CodeBuild step
+        # The UpdatePipeline stage is typically the 3rd stage (index 2: Source=0, Build=1,
+        # UpdatePipeline=2). The SelfMutate action is the first action in that stage.
+        cfn_pipeline: CfnPipeline = self.pipeline.node.default_child
+
+        # Add the PipelineExecutionId environment variable using CodePipeline variable syntax
+        # Note: This will replace any existing environment variables in the action configuration.
+        # CDK Pipeline typically adds a _PROJECT_CONFIG_HASH variable, but since we can't read
+        # the existing value via escape hatches, we'll override it. The _PROJECT_CONFIG_HASH
+        # is used for cache invalidation and is not critical for functionality.
+        env_vars = [
+            {
+                'name': 'PIPELINE_EXECUTION_ID',
+                'type': 'PLAINTEXT',
+                'value': '#{codepipeline.PipelineExecutionId}',
+            },
+        ]
+
+        cfn_pipeline.add_property_override(
+            'Stages.2.Actions.0.Configuration.EnvironmentVariables',
+            json.dumps(env_vars),
+        )
+        cfn_pipeline.add_property_override(
+            'RestartExecutionOnUpdate',
+            False
+        )
+
+        # Add IAM permissions to the self-mutation role
+        # Find the role associated with the CodeBuild project
+        stack = Stack.of(self)
+        self_mutation_role: Role = self_mutation_node.node.find_child('Role')
+
+        # Add permissions to start and stop pipeline executions
+        self_mutation_role.add_to_principal_policy(
+                PolicyStatement(
+                    effect=Effect.ALLOW,
+                    actions=[
+                        'codepipeline:StartPipelineExecution',
+                        'codepipeline:StopPipelineExecution',
+                        'codepipeline:GetPipelineExecution',
+                        'codepipeline:ListPipelineExecutions',
+                    ],
+                    resources=[
+                        stack.format_arn(
+                            partition=stack.partition,
+                            service='codepipeline',
+                            region=stack.region,
+                            account=stack.account,
+                            resource=self._pipeline_name,
+                        ),
+                    ],
+                )
+            )
