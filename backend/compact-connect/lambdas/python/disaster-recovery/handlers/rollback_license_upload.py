@@ -1,7 +1,7 @@
 import json
 import time
-import uuid
-from dataclasses import dataclass, field
+from uuid import UUID, uuid4
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -49,20 +49,17 @@ class ProviderFailedDetails:
 @dataclass
 class RevertedLicense:
     """Details of a reverted license for event publishing."""
-    # TODO - provider id be UUID
-    provider_id: str
     jurisdiction: str
     license_type: str
-    revision_id: str
+    revision_id: UUID
 
 
 @dataclass
 class RevertedPrivilege:
     """Details of a reverted privilege for event publishing."""
-    provider_id: str
     jurisdiction: str
     license_type: str
-    revision_id: str
+    revision_id: UUID
 
 
 @dataclass
@@ -85,30 +82,21 @@ class RollbackResults:
         """Convert to dictionary for S3 storage."""
         return {
             'skippedProviderDetails': [
-                {
-                    'providerId': detail.provider_id,
-                    'reason': detail.reason,
-                    'ineligibleUpdates': detail.ineligible_updates,
-                }
+                asdict(detail)
                 for detail in self.skipped_provider_details
             ],
             'failedProviderDetails': [
-                {
-                    'providerId': detail.provider_id,
-                    'error': detail.error,
-                }
+                asdict(detail)
                 for detail in self.failed_provider_details
             ],
             'revertedProviderSummaries': [
                 {
-                    # TODO - remove redundant provider id in licenses/privileges reverted objects
-                    'providerId': summary.provider_id,
+                    'providerId': str(summary.provider_id),
                     'licensesReverted': [
                         {
-                            'providerId': license_record.provider_id,
                             'jurisdiction': license_record.jurisdiction,
                             'licenseType': license_record.license_type,
-                            'revisionId': license_record.revision_id,
+                            'revisionId': str(license_record.revision_id),
                             # TODO - add action field showing 'REVERT' or 'DELETED'
                             'action': 'some-action'
                         }
@@ -116,10 +104,9 @@ class RollbackResults:
                     ],
                     'privilegesReverted': [
                         {
-                            'providerId': privilege.provider_id,
                             'jurisdiction': privilege.jurisdiction,
                             'licenseType': privilege.license_type,
-                            'revisionId': privilege.revision_id,
+                            'revisionId': str(privilege.revision_id),
                         }
                         for privilege in summary.privileges_reverted
                     ],
@@ -154,19 +141,17 @@ class RollbackResults:
                     provider_id=summary['providerId'],
                     licenses_reverted=[
                         RevertedLicense(
-                            provider_id=license['providerId'],
                             jurisdiction=license['jurisdiction'],
                             license_type=license['licenseType'],
-                            revision_id=license.get('revisionId', str(uuid.uuid4())),
+                            revision_id=uuid4(),
                         )
                         for license in summary.get('licensesReverted', [])
                     ],
                     privileges_reverted=[
                         RevertedPrivilege(
-                            provider_id=privilege['providerId'],
                             jurisdiction=privilege['jurisdiction'],
                             license_type=privilege['licenseType'],
-                            revision_id=privilege.get('revisionId', str(uuid.uuid4())),
+                            revision_id=uuid4(),
                         )
                         for privilege in summary.get('privilegesReverted', [])
                     ],
@@ -490,7 +475,6 @@ def _build_and_execute_revert_transactions(
     from cc_common.data_model.provider_record_util import ProviderRecordUtility
     from cc_common.data_model.schema.license import LicenseData
     from cc_common.data_model.schema.license.record import LicenseRecordSchema
-    from cc_common.data_model.schema.privilege import PrivilegeData
 
     # TODO - split transactions into first tier/second tier lists (license/privilege first tier, updates second)
     transaction_items = []
@@ -595,10 +579,9 @@ def _build_and_execute_revert_transactions(
                     
                     reverted_privileges.append(
                         RevertedPrivilege(
-                            provider_id=provider_id,
                             jurisdiction=license_record.jurisdiction,
                             license_type=license_record.licenseType,
-                            revision_id=str(uuid.uuid4()),
+                            revision_id=uuid4(),
                         )
                     )
 
@@ -627,10 +610,9 @@ def _build_and_execute_revert_transactions(
             logger.info('Will delete license record (created during upload) if provider is eligible for rollback')
             reverted_licenses.append(
                 RevertedLicense(
-                    provider_id=provider_id,
                     jurisdiction=license_record.jurisdiction,
                     license_type=license_record.licenseType,
-                    revision_id=str(uuid.uuid4()),
+                    revision_id=uuid4(),
                 )
             )
             for update in license_updates_after_start:
@@ -682,10 +664,9 @@ def _build_and_execute_revert_transactions(
                         
                         reverted_licenses.append(
                             RevertedLicense(
-                                provider_id=provider_id,
                                 jurisdiction=license_record.jurisdiction,
                                 license_type=license_record.licenseType,
-                                revision_id=str(uuid.uuid4()),
+                                revision_id=uuid4(),
                             )
                         )
                     else:
@@ -705,10 +686,9 @@ def _build_and_execute_revert_transactions(
                         
                         reverted_licenses.append(
                             RevertedLicense(
-                                provider_id=provider_id,
                                 jurisdiction=license_record.jurisdiction,
                                 license_type=license_record.licenseType,
-                                revision_id=str(uuid.uuid4()),
+                                revision_id=uuid4(),
                             )
                         )
                 else:
@@ -747,6 +727,7 @@ def _build_and_execute_revert_transactions(
         
         # Find best license from reverted state
         # TODO - first update licenses/privilege, then pull down again, and update provider record in separate transaction
+        #  or delete it all together if all license records were deleted for provider
         if reverted_licenses_dict:
             best_license = ProviderRecordUtility.find_best_license(
                 license_records=reverted_licenses_dict,
@@ -802,7 +783,7 @@ def _publish_revert_events(revert_summary: ProviderRevertedSummary, compact: str
                 source='org.compactconnect.disaster-recovery',
                 compact=compact,
                 # TODO - add start time, end time, and revert id
-                provider_id=reverted_license.provider_id,
+                provider_id=revert_summary.provider_id,
                 jurisdiction=reverted_license.jurisdiction,
                 license_type=reverted_license.license_type,
                 rollback_reason=rollback_reason,
@@ -814,7 +795,7 @@ def _publish_revert_events(revert_summary: ProviderRevertedSummary, compact: str
             config.event_bus_client.publish_privilege_revert_event(
                 source='org.compactconnect.disaster-recovery',
                 compact=compact,
-                provider_id=reverted_privilege.provider_id,
+                provider_id=revert_summary.provider_id,
                 jurisdiction=reverted_privilege.jurisdiction,
                 license_type=reverted_privilege.license_type,
                 rollback_reason=rollback_reason,
