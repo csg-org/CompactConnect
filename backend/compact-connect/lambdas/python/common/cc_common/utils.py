@@ -916,6 +916,15 @@ def verify_password(hashed_password: str, password: str) -> bool:
 def to_uuid(uuid: str, on_error: str) -> UUID:
     """
     Parse a str to a UUID, raising CCInvalidRequestException if invalid.
+
+    This should be used for all UUID path parameters to validate and normalize
+    input before processing, preventing malformed UUIDs from causing unexpected
+    errors deeper in the application.
+
+    :param str uuid: The string representation of a UUID to parse
+    :param str on_error: Custom error message to include in the exception
+    :return: A validated UUID object
+    :raises CCInvalidRequestException: If the string is not a valid UUID
     """
     try:
         return UUID(uuid)

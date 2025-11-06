@@ -2046,7 +2046,7 @@ class DataClient:
     def lift_license_encumbrance(
         self,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
         adverse_action_id: UUID,
