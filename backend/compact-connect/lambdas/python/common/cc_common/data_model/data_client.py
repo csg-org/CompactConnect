@@ -1774,7 +1774,9 @@ class DataClient:
                     (
                         inv
                         for inv in provider_records.get_investigation_records_for_license(
-                            jurisdiction, license_type_abbreviation, lambda inv: inv.investigationId == investigation_id
+                            jurisdiction,
+                            license_type_abbreviation,
+                            filter_condition=lambda inv: inv.investigationId == investigation_id
                         )
                     ),
                     None,
@@ -1798,7 +1800,9 @@ class DataClient:
                     (
                         inv
                         for inv in provider_records.get_investigation_records_for_privilege(
-                            jurisdiction, license_type_abbreviation, lambda inv: inv.investigationId == investigation_id
+                            jurisdiction,
+                            license_type_abbreviation,
+                            filter_condition=lambda inv: inv.investigationId == investigation_id
                         )
                     ),
                     None,
