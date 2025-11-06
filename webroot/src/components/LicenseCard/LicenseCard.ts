@@ -564,6 +564,7 @@ class LicenseCard extends mixins(MixinForm) {
                 this.isFormSuccessful = true;
                 await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
                 this.isEncumberLicenseModalSuccess = true;
+                this.selectedInvestigation = null;
             }
 
             this.endFormLoading();
