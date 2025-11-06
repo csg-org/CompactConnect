@@ -352,7 +352,8 @@ export class Licensee implements InterfaceLicensee {
                     const investigationState = investigation.state;
                     const investigationStateAbbrev = investigation.state?.abbrev;
 
-                    if (investigationState
+                    if (investigation.isActive()
+                        && investigationState
                         && investigationStateAbbrev
                         && !investigationStatesAbbrev.includes(investigationStateAbbrev)) {
                         investigationStates.push(investigationState);
@@ -368,7 +369,8 @@ export class Licensee implements InterfaceLicensee {
                     const investigationState = investigation.state;
                     const investigationStateAbbrev = investigation.state?.abbrev;
 
-                    if (investigationState
+                    if (investigation.isActive()
+                        && investigationState
                         && investigationStateAbbrev
                         && !investigationStatesAbbrev.includes(investigationStateAbbrev)) {
                         investigationStates.push(investigationState);

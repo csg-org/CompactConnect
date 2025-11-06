@@ -1009,9 +1009,9 @@ class LicenseCard extends mixins(MixinForm) {
             this.validateAll({ asTouched: true });
         } else if (this.isEndInvestigationModalDisplayed) {
             await Promise.all(this.investigations
-                .filter((invevstigation) => !invevstigation.hasEndDate())
-                .map(async (invevstigation) => {
-                    this.clickEndInvestigationItem(invevstigation);
+                .filter((investigation) => !investigation.hasEndDate())
+                .map(async (investigation) => {
+                    this.clickEndInvestigationItem(investigation);
                     await nextTick();
                 }));
             await nextTick();

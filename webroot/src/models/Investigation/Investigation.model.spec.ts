@@ -70,7 +70,7 @@ describe('Investigation model', () => {
         expect(investigation.state).to.be.an.instanceof(State);
         expect(investigation.type).to.equal(data.type);
         expect(investigation.startDate).to.equal(data.startDate);
-        expect(investigation.endDate).to.equal(data.endDate);
+        expect(investigation.updateDate).to.equal(data.updateDate);
 
         // Test methods
         expect(investigation.startDateDisplay()).to.equal('Invalid date');
