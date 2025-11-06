@@ -11,6 +11,7 @@ from typing import Any
 import requests
 
 from cc_common.config import config, logger
+from cc_common.feature_flag_enum import FeatureFlagEnum
 
 
 @dataclass
@@ -43,14 +44,16 @@ class FeatureFlagContext:
         return result
 
 
-def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None, fail_default: bool = False) -> bool:
+def is_feature_enabled(
+    flag_name: FeatureFlagEnum, context: FeatureFlagContext | None = None, fail_default: bool = False
+) -> bool:
     """
     Check if a feature flag is enabled.
 
     This function calls the internal feature flag API endpoint to determine
     if a feature flag is enabled for the given context.
 
-    :param flag_name: The name of the feature flag to check
+    :param flag_name: The name of the feature flag to check.
     :param context: Optional FeatureFlagContext for feature flag evaluation
     :param fail_default: If True, return True on errors; if False, return False on errors (default: False)
     :return: True if the feature flag is enabled, False otherwise (or fail_default value on error)
@@ -76,6 +79,7 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
         ):
     """
     try:
+        logger.info("checking status of feature flag", flag_name=flag_name)
         api_base_url = _get_api_base_url()
         endpoint_url = f'{api_base_url}/v1/flags/{flag_name}/check'
 
@@ -103,7 +107,8 @@ def is_feature_enabled(flag_name: str, context: FeatureFlagContext | None = None
             # Invalid response format - return fail_default value
             return fail_default
 
-        return bool(response_data['enabled'])
+        logger.info('Checked flag status successfully', flag_name=flag_name, enabled=response_data['enabled'])
+        return response_data['enabled']
 
     # We catch all exceptions to prevent a feature flag issue causing the system from operating
     except Exception as e:  # noqa: BLE001

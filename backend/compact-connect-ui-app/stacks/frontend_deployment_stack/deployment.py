@@ -8,7 +8,6 @@ from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_s3_deployment import BucketDeployment, Source
 from cdk_nag import NagSuppressions
 from common_constructs.frontend_app_config_utility import (
-    COGNITO_AUTH_DOMAIN_SUFFIX,
     HTTPS_PREFIX,
     PersistentStackFrontendAppConfigValues,
     ProviderUsersStackFrontendAppConfigValues,
@@ -65,9 +64,9 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                                 'VUE_APP_API_LICENSE_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
                                 'VUE_APP_API_USER_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
                                 'VUE_APP_COGNITO_REGION': 'us-east-1',
-                                'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.staff_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+                                'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.staff_cognito_domain}',
                                 'VUE_APP_COGNITO_CLIENT_ID_STAFF': persistent_stack_app_config_values.staff_cognito_client_id,
-                                'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE': f'{HTTPS_PREFIX}{provider_users_stack_app_config_values.provider_cognito_domain}{COGNITO_AUTH_DOMAIN_SUFFIX}',
+                                'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE': f'{HTTPS_PREFIX}{provider_users_stack_app_config_values.provider_cognito_domain}',
                                 'VUE_APP_COGNITO_CLIENT_ID_LICENSEE': provider_users_stack_app_config_values.provider_cognito_client_id,
                                 'VUE_APP_RECAPTCHA_KEY': recaptcha_public_key,
                                 'VUE_APP_STATSIG_KEY': statsig_client_key,

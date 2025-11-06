@@ -6,12 +6,13 @@
 //
 
 import { Component, mixins, toNative } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
+import InputSelectMultiple from '@components/Forms/InputSelectMultiple/InputSelectMultiple.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
@@ -34,6 +35,7 @@ const joiPassword = Joi.extend(joiPasswordExtendCore);
         InputText,
         InputTextarea,
         InputSelect,
+        InputSelectMultiple,
         InputCheckbox,
         InputRadioGroup,
         InputDate,
@@ -72,6 +74,15 @@ class ExampleForm extends mixins(MixinForm) {
 
     get states(): any {
         return this.$tm('common.states');
+    }
+
+    get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
+        const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
+            value: npdbType.key,
+            name: npdbType.name,
+        }));
+
+        return options;
     }
 
     get statusOptions(): any {
@@ -113,7 +124,7 @@ class ExampleForm extends mixins(MixinForm) {
                 showMax: true,
                 enforceMax: true,
             }),
-            state: new FormInput({
+            state: new FormInput({ // Single select
                 id: 'state',
                 name: 'state',
                 label: computed(() => this.$t('common.stateJurisdiction')),
@@ -121,6 +132,14 @@ class ExampleForm extends mixins(MixinForm) {
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: [{ value: '', name: computed(() => this.$t('common.chooseOne')) }]
                     .concat(this.states.map((state) => ({ value: state.abbrev, name: state.full }))),
+            }),
+            states: new FormInput({ // Multi select
+                id: 'states',
+                name: 'states',
+                label: computed(() => this.$t('common.statesMultiple')),
+                validation: Joi.array().min(1).messages(this.joiMessages.array),
+                valueOptions: this.states.map((state) => ({ value: state.abbrev, name: state.full })),
+                value: [],
             }),
             isSubscribed: new FormInput({
                 id: 'subscribe',

@@ -1444,6 +1444,12 @@ export const compactStates = [
     },
 ];
 
+export const compactStatesForRegistration = {
+    aslp: [ 'al', 'co', 'fl', 'ga', 'il', 'ia', 'ky', 'ne' ],
+    coun: [ 'al', 'ak', 'co', 'il', 'ia', 'ky', 'ne', 'nm' ],
+    octp: [ 'al', 'ar', 'co', 'ct', 'il', 'ky' ],
+};
+
 export const compactConfig = {
     compactAbbr: 'octp',
     compactName: 'Occupational Therapy',
