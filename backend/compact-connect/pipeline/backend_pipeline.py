@@ -373,6 +373,9 @@ class BackendPipeline(CdkCodePipeline):
         # 4. If changes detected, triggers new execution with source revision and cancels current
         custom_buildspec = {
             'version': '0.2',
+            'env': {
+                'shell': 'bash',
+            },
             'phases': {
                 'install': {
                     'commands': ['npm install -g aws-cdk@2'],
@@ -383,7 +386,7 @@ class BackendPipeline(CdkCodePipeline):
                         set -o pipefail
                         cdk -a . deploy {self._pipeline_stack_name} --require-approval=never --verbose 2>&1 | tee deploy_output.log
                         DEPLOY_EXIT_CODE=$?
-                        DEPLOY_OUTPUT=$(cat deploy_output.log)
+                        DEPLOY_OUTPUT=$(<deploy_output.log)
                         [ $DEPLOY_EXIT_CODE -eq 0 ] || exit $DEPLOY_EXIT_CODE
                         """),  # noqa: E501
                         (
