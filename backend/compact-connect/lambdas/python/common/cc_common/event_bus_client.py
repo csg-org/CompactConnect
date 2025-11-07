@@ -446,6 +446,9 @@ class EventBusClient:
         jurisdiction: str,
         license_type: str,
         rollback_reason: str,
+        start_time: datetime,
+        end_time: datetime,
+        revision_id: UUID,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -457,6 +460,9 @@ class EventBusClient:
         :param jurisdiction: The jurisdiction of the license
         :param license_type: The license type
         :param rollback_reason: The reason for the rollback
+        :param start_time: The start time of the rollback window
+        :param end_time: The end time of the rollback window
+        :param revision_id: The revision ID of the reverted license
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         from cc_common.data_model.schema.data_event.api import LicenseRevertDetailSchema
@@ -467,6 +473,9 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'licenseType': license_type,
             'rollbackReason': rollback_reason,
+            'startTime': start_time,
+            'endTime': end_time,
+            'revisionId': revision_id,
             'eventTime': config.current_standard_datetime,
         }
 
@@ -488,6 +497,9 @@ class EventBusClient:
         jurisdiction: str,
         license_type: str,
         rollback_reason: str,
+        start_time: datetime,
+        end_time: datetime,
+        revision_id: UUID,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -499,6 +511,9 @@ class EventBusClient:
         :param jurisdiction: The jurisdiction of the privilege
         :param license_type: The license type
         :param rollback_reason: The reason for the rollback
+        :param start_time: The start time of the rollback window
+        :param end_time: The end time of the rollback window
+        :param revision_id: The revision ID of the reverted privilege
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
         from cc_common.data_model.schema.data_event.api import PrivilegeRevertDetailSchema
@@ -509,6 +524,9 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'licenseType': license_type,
             'rollbackReason': rollback_reason,
+            'startTime': start_time,
+            'endTime': end_time,
+            'revisionId': revision_id,
             'eventTime': config.current_standard_datetime,
         }
 

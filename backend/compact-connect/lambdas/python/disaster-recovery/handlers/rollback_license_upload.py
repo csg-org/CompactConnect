@@ -442,7 +442,7 @@ def _process_provider_rollback(
             return result
 
         # Publish events for successful rollback
-        _publish_revert_events(result, compact, rollback_reason)
+        _publish_revert_events(result, compact, rollback_reason, start_datetime, end_datetime)
 
         logger.info('Provider rollback successful', provider_id=provider_id)
         return result
@@ -801,21 +801,38 @@ def _build_and_execute_revert_transactions(
     )
 
 
-def _publish_revert_events(revert_summary: ProviderRevertedSummary, compact: str, rollback_reason: str):
+def _publish_revert_events(
+    revert_summary: ProviderRevertedSummary,
+    compact: str,
+    rollback_reason: str,
+    start_datetime: datetime,
+    end_datetime: datetime,
+):
     """
     Publish revert events for all reverted licenses and privileges.
+    
+    :param revert_summary: Summary of reverted provider records
+    :param compact: The compact name
+    :param rollback_reason: The reason for the rollback
+    :param start_datetime: The start time of the rollback window
+    :param end_datetime: The end time of the rollback window
     """
     with EventBatchWriter(config.events_client) as event_writer:
+        # Convert provider_id string to UUID for event publishing
+        provider_id_uuid = UUID(revert_summary.provider_id)
+        
         # Publish license revert events
         for reverted_license in revert_summary.licenses_reverted:
             config.event_bus_client.publish_license_revert_event(
                 source='org.compactconnect.disaster-recovery',
                 compact=compact,
-                # TODO - add start time, end time, and revert id
-                provider_id=revert_summary.provider_id,
+                provider_id=provider_id_uuid,
                 jurisdiction=reverted_license.jurisdiction,
                 license_type=reverted_license.license_type,
                 rollback_reason=rollback_reason,
+                start_time=start_datetime,
+                end_time=end_datetime,
+                revision_id=reverted_license.revision_id,
                 event_batch_writer=event_writer,
             )
 
@@ -824,10 +841,13 @@ def _publish_revert_events(revert_summary: ProviderRevertedSummary, compact: str
             config.event_bus_client.publish_privilege_revert_event(
                 source='org.compactconnect.disaster-recovery',
                 compact=compact,
-                provider_id=revert_summary.provider_id,
+                provider_id=provider_id_uuid,
                 jurisdiction=reverted_privilege.jurisdiction,
                 license_type=reverted_privilege.license_type,
                 rollback_reason=rollback_reason,
+                start_time=start_datetime,
+                end_time=end_datetime,
+                revision_id=reverted_privilege.revision_id,
                 event_batch_writer=event_writer,
             )
 
