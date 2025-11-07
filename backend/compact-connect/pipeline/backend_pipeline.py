@@ -426,22 +426,17 @@ class BackendPipeline(CdkCodePipeline):
         # Replace the buildspec
         cfn_project.add_property_override('Source.BuildSpec', json.dumps(custom_buildspec, indent=2))
 
-        # Add PipelineExecutionId as an environment variable to the CodePipeline action
-        # This uses CodePipeline's variable syntax to pass the execution ID to the CodeBuild step
-        # The UpdatePipeline stage is typically the 3rd stage (index 2: Source=0, Build=1,
-        # UpdatePipeline=2). The SelfMutate action is the first action in that stage.
-        cfn_pipeline: CfnPipeline = self.pipeline.node.default_child
 
         # Add a namespace to the source action so we can reference its output variables
         # The source action is in Stages[0].Actions[0] (first action of Source stage)
+        cfn_pipeline: CfnPipeline = self.pipeline.node.default_child
         cfn_pipeline.add_property_override('Stages.0.Actions.0.Namespace', 'SourceVariables')
 
-        # Add the PipelineExecutionId and SOURCE_COMMIT_ID environment variables using CodePipeline variable syntax
+        # Add the PIPELINE_EXECUTION_ID and SOURCE_COMMIT_ID environment variables using CodePipeline variable syntax
         # Note: This will replace any existing environment variables in the action configuration.
         # CDK Pipeline typically adds a _PROJECT_CONFIG_HASH variable, but since we can't read
         # the existing value via escape hatches, we'll override it. The _PROJECT_CONFIG_HASH
-        # is used for cache invalidation and is not critical for functionality.
-        # TODO: investigate adding _PROJECT_CONFIG_HASH explicitly here
+        # is used for triggering pipeline restarts, which we implement differently, so it is not critical anymore.
         env_vars = [
             {
                 'name': 'PIPELINE_EXECUTION_ID',
@@ -454,11 +449,11 @@ class BackendPipeline(CdkCodePipeline):
                 'value': '#{SourceVariables.CommitId}',
             },
         ]
-
         cfn_pipeline.add_property_override(
             'Stages.2.Actions.0.Configuration.EnvironmentVariables',
             json.dumps(env_vars),
         )
+        # Force this off, since we handle the pipeline restarts explicitly, now
         cfn_pipeline.add_property_override('RestartExecutionOnUpdate', False)
 
         # Add IAM permissions to the self-mutation role
