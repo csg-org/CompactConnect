@@ -13,7 +13,7 @@ from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationDa
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.utils import ResponseEncoder
 
 from common_test.test_constants import *
@@ -494,6 +494,57 @@ class TestDataGenerator:
         TestDataGenerator.store_record_in_provider_table(provider_record)
 
         return provider_data
+
+    @staticmethod
+    def generate_default_provider_update(
+        value_overrides: dict | None = None, previous_provider: ProviderData | None = None
+    ) -> ProviderUpdateData:
+        """Generate a default provider update"""
+        if previous_provider is None:
+            previous_provider = TestDataGenerator.generate_default_provider()
+
+        # Ensure previous provider has dateOfUpdate for the previous field
+        previous_dict = previous_provider.to_dict()
+        if 'dateOfUpdate' not in previous_dict:
+            previous_dict['dateOfUpdate'] = datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME)
+
+        provider_update = {
+            'updateType': DEFAULT_PROVIDER_UPDATE_TYPE,
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': PROVIDER_UPDATE_RECORD_TYPE,
+            'previous': previous_dict,
+            'updatedValues': {
+                'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
+                'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            },
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME),
+        }
+        if value_overrides:
+            provider_update.update(value_overrides)
+
+        return ProviderUpdateData.create_new(provider_update)
+
+    @staticmethod
+    def put_default_provider_update_record_in_provider_table(
+        value_overrides: dict | None = None, date_of_update_override: str = None
+    ) -> ProviderUpdateData:
+        """
+        Creates a default provider update record and stores it in the provider table.
+
+        :param value_overrides: Optional dictionary to override default values
+        :param date_of_update_override: optional date for date of update to be shown on provider record
+        :return: The ProviderUpdateData instance that was stored
+        """
+        provider_update_data = TestDataGenerator.generate_default_provider_update(value_overrides)
+        provider_update_record = provider_update_data.serialize_to_database_record()
+        if date_of_update_override:
+            provider_update_record['dateOfUpdate'] = date_of_update_override
+
+        TestDataGenerator.store_record_in_provider_table(provider_update_record)
+
+        # recreate data object to ensure it picks up the dateOfUpdate change
+        return ProviderUpdateData.from_database_record(provider_update_record)
 
     @staticmethod
     def _override_date_of_update_for_record(data_class: CCDataClass, date_of_update: datetime):

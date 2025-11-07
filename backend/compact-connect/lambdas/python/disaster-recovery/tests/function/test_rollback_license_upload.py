@@ -10,9 +10,9 @@ These tests verify the rollback functionality including:
 - S3 result management
 """
 
+import json
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, ANY
-from uuid import uuid4
+from unittest.mock import ANY, Mock, patch
 
 import pytest
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
@@ -26,6 +26,7 @@ MOCK_ORIGINAL_GIVEN_NAME = 'originalGiven'
 MOCK_ORIGINAL_FAMILY_NAME = 'originalFamily'
 MOCK_UPDATED_GIVEN_NAME = 'updatedGiven'
 MOCK_UPDATED_FAMILY_NAME = 'updatedFamily'
+MOCK_PROVIDER_ID = 'ba880c7c-5ed3-4be4-8ad5-c8558f58ef6f'
 
 
 @mock_aws
@@ -38,8 +39,8 @@ class TestRollbackLicenseUpload(TstFunction):
         super().setUp()
         # Create sample test data
         self.compact = 'aslp'
-        self.jurisdiction = 'oh'
-        self.provider_id = str(uuid4())
+        self.license_jurisdiction = 'oh'
+        self.provider_id = MOCK_PROVIDER_ID
         # default upload time between start and end time
         self.default_upload_datetime = datetime.fromisoformat(MOCK_DATETIME_STRING) - timedelta(hours=1)
         self.default_start_datetime = self.default_upload_datetime - timedelta(days=1)
@@ -48,12 +49,12 @@ class TestRollbackLicenseUpload(TstFunction):
 
         self.update_categories = UpdateCategory
 
-        self._add_provider_record()
+        self.provider_data = self._add_provider_record()
 
     def _generate_test_event(self):
         return {
             'compact': self.compact,
-            'jurisdiction': self.jurisdiction,
+            'jurisdiction': self.license_jurisdiction,
             'startDateTime': self.default_start_datetime.isoformat(),
             'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
@@ -63,14 +64,16 @@ class TestRollbackLicenseUpload(TstFunction):
 
     def _add_provider_record(self):
         # add provider record to provider table
-        self.test_data_generator.put_default_provider_record_in_provider_table(
+        provider_data = self.test_data_generator.put_default_provider_record_in_provider_table(
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
                 'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
             }
         )
+
+        return provider_data
 
     # Helper methods for setting up test scenarios
     def _when_provider_had_license_created_from_upload(self):
@@ -82,7 +85,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
                 'firstUploadDate': self.default_upload_datetime,
                 'dateOfUpdate': self.default_upload_datetime,
             }
@@ -106,7 +109,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
                 'familyName': MOCK_ORIGINAL_FAMILY_NAME,
                 'givenName': MOCK_ORIGINAL_GIVEN_NAME,
                 'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
@@ -120,7 +123,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
                 'licenseType': original_license.licenseType,
                 'updateType': self.update_categories.RENEWAL,
                 'createDate': upload_datetime,
@@ -143,7 +146,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
                 'familyName': MOCK_UPDATED_FAMILY_NAME,
                 'givenName': MOCK_UPDATED_GIVEN_NAME,
                 'dateOfUpdate': upload_datetime,
@@ -165,12 +168,13 @@ class TestRollbackLicenseUpload(TstFunction):
         if upload_datetime is None:
             upload_datetime = self.default_upload_datetime
 
-        # Create privilege that was deactivated by upload
+        # provider has privilege in Nebraska that was deactivated by upload
         privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': 'ne',
+                'licenseJurisdiction': self.license_jurisdiction,
                 'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
                 'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
                 'dateOfExpiration': datetime.fromisoformat(MOCK_DATETIME_STRING),
@@ -182,11 +186,14 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': 'ne',
                 'licenseType': privilege.licenseType,
                 'updateType': self.update_categories.LICENSE_DEACTIVATION,
                 'createDate': upload_datetime,
                 'effectiveDate': upload_datetime,
+                'previous': {
+                    **privilege.to_dict()
+                },
                 'updatedValues': {
                     'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
                 },
@@ -208,7 +215,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
             }
         )
 
@@ -217,7 +224,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
                 'licenseType': privilege.licenseType,
                 'updateType': self.update_categories.RENEWAL,  # Not LICENSE_DEACTIVATION
                 'createDate': after_upload_datetime,
@@ -241,7 +248,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.jurisdiction,
+                'jurisdiction': self.license_jurisdiction,
                 'updateType': self.update_categories.ENCUMBRANCE,  # Not an upload-related category
                 'createDate': after_upload_datetime,
                 'effectiveDate': after_upload_datetime,
@@ -284,6 +291,35 @@ class TestRollbackLicenseUpload(TstFunction):
         )
 
         return provider, updated_provider
+
+    def _when_provider_changed_home_jurisdiction_after_license_upload(self):
+
+        self._when_provider_had_license_created_from_upload()
+
+        provider_update_record = self.test_data_generator.put_default_provider_update_record_in_provider_table(
+            value_overrides={
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'updateType': self.update_categories.HOME_JURISDICTION_CHANGE,
+                'previous': {
+                    **self.provider_data.to_dict()
+                },
+                'updatedValues': {
+                    'currentHomeJurisdiction': self.license_jurisdiction,
+                },
+            },
+            # home jurisdiction was changed during license upload window
+            date_of_update_override=self.default_upload_datetime.isoformat()
+        )
+
+        # Simulate that the provider record was updated during upload
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'currentHomeJurisdiction': self.license_jurisdiction,
+            }
+        )
+
+        return provider_update_record
 
     def test_provider_top_level_record_reset_to_prior_values_when_upload_reverted(self):
         """Test that provider top-level record is reset to values before upload."""
@@ -504,7 +540,6 @@ class TestRollbackLicenseUpload(TstFunction):
 
     # Validation tests
     def test_rollback_validates_datetime_format(self):
-        """Test that rollback validates datetime format."""
         from handlers.rollback_license_upload import rollback_license_upload
 
         event = self._generate_test_event()
@@ -516,7 +551,6 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertIn('Invalid datetime format', result['error'])
 
     def test_rollback_validates_time_window_order(self):
-        """Test that rollback validates start time is before end time."""
         from handlers.rollback_license_upload import rollback_license_upload
 
         event = self._generate_test_event()
@@ -529,7 +563,6 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertIn('Start time must be before end time', result['error'])
 
     def test_rollback_validates_maximum_time_window(self):
-        """Test that rollback validates maximum time window."""
         from handlers.rollback_license_upload import rollback_license_upload
 
         start = datetime.now() - timedelta(days=8)  # More than 7 days
@@ -544,17 +577,9 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['rollbackStatus'], 'FAILED')
         self.assertIn('cannot exceed', result['error'])
 
-    # Tests for checking data written to S3
-    def test_expected_s3_object_stored_when_provider_license_record_reset_to_prior_values(self):
-        """Test that license record is reset to values before upload."""
-        import json
 
+    def _perform_rollback_and_get_s3_object(self):
         from handlers.rollback_license_upload import rollback_license_upload
-
-        # Setup: License was updated during upload (e.g., renewed), but was first uploaded before start time
-        original_license, license_update, updated_license = self._when_provider_had_license_updated_from_upload(
-            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
-        )
 
         # Execute: Perform rollback
         event = self._generate_test_event()
@@ -566,6 +591,17 @@ class TestRollbackLicenseUpload(TstFunction):
         s3_key = f'{execution_id}/results.json'
         s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
         results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
+
+        return results_data
+
+    # Tests for checking data written to S3
+    def test_expected_s3_object_stored_when_provider_license_record_reset_to_prior_values(self):
+        # Setup: License was updated during upload (e.g., renewed), but was first uploaded before start time
+        original_license, license_update, updated_license = self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
+        )
+
+        results_data = self._perform_rollback_and_get_s3_object()
 
         # Verify the structure of the results
         self.assertEqual(
@@ -588,6 +624,190 @@ class TestRollbackLicenseUpload(TstFunction):
                     }
                 ],
                 'skippedProviderDetails': [],
+            },
+            results_data,
+        )
+
+    def test_expected_s3_object_stored_when_provider_license_record_deleted_from_rollback(self):
+        # Setup: License was updated during upload (e.g., renewed), but was first uploaded before start time
+        new_license = self._when_provider_had_license_created_from_upload()
+
+        results_data = self._perform_rollback_and_get_s3_object()
+
+        # Verify the structure of the results
+        self.assertEqual(
+            {
+                'failedProviderDetails': [],
+                'revertedProviderSummaries': [
+                    {
+                        'licensesReverted': [
+                            {
+                                'action': 'DELETE',
+                                'jurisdiction': new_license.jurisdiction,
+                                'licenseType': new_license.licenseType,
+                                # random UUID, we won't check for it here
+                                'revisionId': ANY,
+                            }
+                        ],
+                        'privilegesReverted': [],
+                        'providerId': self.provider_id,
+                        'updatesDeleted': [],
+                    }
+                ],
+                'skippedProviderDetails': [],
+            },
+            results_data,
+        )
+
+    def test_expected_s3_object_stored_when_provider_privilege_record_reactivated_from_rollback(self):
+        # Setup: Privilege was deactivated during upload due to license deactivation
+        # license was uploaded before rollback window
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
+        )
+        privilege, privilege_update = self._when_provider_had_privilege_deactivated_from_upload()
+
+        results_data = self._perform_rollback_and_get_s3_object()
+
+        # Verify the structure of the results
+        self.assertEqual(
+            {
+                'failedProviderDetails': [],
+                'revertedProviderSummaries': [
+                    {
+                        'licensesReverted': [
+                            {
+                                'action': 'REVERT',
+                                'jurisdiction': self.license_jurisdiction,
+                                'licenseType': privilege.licenseType,
+                                # random UUID, we won't check for it here
+                                'revisionId': ANY,
+                            }
+                        ],
+                        'privilegesReverted': [
+                            {
+                                'action': 'REACTIVATED',
+                                'jurisdiction': privilege.jurisdiction,
+                                'licenseType': privilege.licenseType,
+                                # random UUID, we won't check for it here
+                                'revisionId': ANY,
+                            }
+                        ],
+                        'providerId': self.provider_id,
+                        'updatesDeleted': ['aslp#UPDATE#1#privilege/ne/slp/1761207300/06b886756a79b796ad10b17bd67057e6',
+                                           'aslp#UPDATE#3#license/oh/slp/1761207300/d8781f4e9489217462892394a791e885'],
+                    }
+                ],
+                'skippedProviderDetails': [],
+            },
+            results_data,
+        )
+
+    def test_expected_s3_object_stored_when_provider_skipped_due_to_extra_license_updates(self):
+        # Setup: Provider had valid license before upload, and update occurred during upload window
+        original_license, license_update, updated_license = self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
+        )
+        # update also occurred after upload window
+        encumbrance_update = self._when_provider_had_license_update_after_upload()
+
+        results_data = self._perform_rollback_and_get_s3_object()
+
+        # Verify the structure of the results
+        expected_reason_message = ("License was updated with a change unrelated to license upload or the update "
+                                   "occurred after rollback end time. Manual review required.")
+        self.assertEqual(
+            {
+                'failedProviderDetails': [],
+                'revertedProviderSummaries': [],
+                'skippedProviderDetails': [
+                    {
+                        'ineligible_updates': [
+                            {
+                                'update_time': encumbrance_update.createDate.isoformat(),
+                                'license_type': original_license.licenseType,
+                                'reason': expected_reason_message,
+                                'record_type': 'licenseUpdate',
+                                'type_of_update': encumbrance_update.updateType,
+                            }
+                        ],
+                        'provider_id': MOCK_PROVIDER_ID,
+                        'reason': 'Provider has updates that are either '
+                        'unrelated to license upload or '
+                        'occurred after rollback end time. '
+                        'Manual review required.',
+                    }
+                ],
+            },
+            results_data,
+        )
+
+    def test_expected_s3_object_stored_when_provider_skipped_due_to_extra_privilege_updates(self):
+        # Setup: Provider had privilege update after upload window
+        self._when_provider_had_license_updated_from_upload()
+        privilege, privilege_update = self._when_provider_had_privilege_update_after_upload()
+
+        results_data = self._perform_rollback_and_get_s3_object()
+
+        # Verify the structure of the results
+        expected_reason_message = ("Privilege in jurisdiction oh was updated with a change unrelated to license upload or the update "
+                                   "occurred after rollback end time. Manual review required.")
+        self.assertEqual(
+            {
+                'failedProviderDetails': [],
+                'revertedProviderSummaries': [],
+                'skippedProviderDetails': [
+                    {
+                        'ineligible_updates': [
+                            {
+                                'update_time': privilege_update.createDate.isoformat(),
+                                'license_type': privilege.licenseType,
+                                'reason': expected_reason_message,
+                                'record_type': 'privilegeUpdate',
+                                'type_of_update': privilege_update.updateType,
+                            }
+                        ],
+                        'provider_id': MOCK_PROVIDER_ID,
+                        'reason': 'Provider has updates that are either '
+                        'unrelated to license upload or '
+                        'occurred after rollback end time. '
+                        'Manual review required.',
+                    }
+                ],
+            },
+            results_data,
+        )
+
+    def test_expected_s3_object_stored_when_provider_skipped_due_to_extra_provider_updates(self):
+        # Setup: Provider had privilege update after upload window
+        provider_update = self._when_provider_changed_home_jurisdiction_after_license_upload()
+
+        results_data = self._perform_rollback_and_get_s3_object()
+
+        # Verify the structure of the results
+        expected_reason_message = "Provider update occurred after rollback start time. Manual review required."
+        self.assertEqual(
+            {
+                'failedProviderDetails': [],
+                'revertedProviderSummaries': [],
+                'skippedProviderDetails': [
+                    {
+                        'ineligible_updates': [
+                            {
+                                'update_time': provider_update.dateOfUpdate.isoformat(),
+                                'reason': expected_reason_message,
+                                'record_type': 'providerUpdate',
+                                'type_of_update': provider_update.updateType,
+                                'license_type': 'N/A'
+                            }
+                        ],
+                        'provider_id': MOCK_PROVIDER_ID,
+                        'reason': 'Provider has updates that are either '
+                        'unrelated to license upload or '
+                        'occurred after rollback end time. '
+                        'Manual review required.',
+                    }
+                ],
             },
             results_data,
         )

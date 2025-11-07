@@ -28,10 +28,11 @@ PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY = UpdateCategory.LICENSE_DEACTIVATION
 class IneligibleUpdate:
     """Represents an update that makes a provider ineligible for rollback."""
 
-    type: str  # 'licenseUpdate', 'privilegeUpdate', or 'providerUpdate'
-    update_type: str
-    create_date: str
+    record_type: str  # 'licenseUpdate', 'privilegeUpdate', or 'providerUpdate'
+    type_of_update: str
+    update_time: str
     reason: str
+    license_type: str | None = None  # License type if applicable (None for provider updates)
 
 
 @dataclass
@@ -68,6 +69,7 @@ class RevertedPrivilege:
     jurisdiction: str
     license_type: str
     revision_id: UUID
+    action: str
 
 
 @dataclass
@@ -110,6 +112,7 @@ class RollbackResults:
                             'jurisdiction': privilege.jurisdiction,
                             'licenseType': privilege.license_type,
                             'revisionId': str(privilege.revision_id),
+                            'action': privilege.action,
                         }
                         for privilege in summary.privileges_reverted
                     ],
@@ -544,10 +547,12 @@ def _build_and_execute_revert_transactions(
         if update.dateOfUpdate >= start_datetime:
             ineligible_updates.append(
                 IneligibleUpdate(
-                    type='providerUpdate',
-                    update_type=update.updateType,
-                    create_date=update.dateOfUpdate.isoformat(),
+                    record_type='providerUpdate',
+                    type_of_update=update.updateType,
+                    update_time=update.dateOfUpdate.isoformat(),
                     reason='Provider update occurred after rollback start time. Manual review required.',
+                    # provider updates are not specific to a license type
+                    license_type='N/A'
                 )
             )
 
@@ -558,7 +563,7 @@ def _build_and_execute_revert_transactions(
 
     for license_record in license_records:
         privileges_associated_with_license = provider_records.get_privilege_records(
-            filter_condition=lambda x: x.jurisdiction == jurisdiction and x.licenseType == license_record.licenseType
+            filter_condition=lambda x: x.licenseJurisdiction == jurisdiction and x.licenseType == license_record.licenseType
         )
         privilege_jurisdictions = [x.jurisdiction for x in privileges_associated_with_license]
         # Get privilege updates for all privileges associated with this license
@@ -576,13 +581,14 @@ def _build_and_execute_revert_transactions(
                 # Non-license-deactivation privilege update or privilege update after end_datetime make provider ineligible
                 ineligible_updates.append(
                     IneligibleUpdate(
-                        type='privilegeUpdate',
-                        update_type=privilege_update.updateType,
-                        create_date=privilege_update.dateOfUpdate.isoformat(),
+                        record_type='privilegeUpdate',
+                        type_of_update=privilege_update.updateType,
+                        update_time=privilege_update.dateOfUpdate.isoformat(),
+                        license_type=privilege_update.licenseType,
                         # include privilege jurisdiction in reason
-                        reason=f'Privilege in jurisdiction {privilege_update.jurisdiction} for license '
-                        f'type {privilege_update.licenseType} was updated with a change unrelated to license '
-                        f'upload or the update occurred after rollback end time. Manual review required.',
+                        reason=f'Privilege in jurisdiction {privilege_update.jurisdiction} was updated with a change '
+                               f'unrelated to license upload or the update occurred after rollback end time. '
+                               f'Manual review required.',
                     )
                 )
             elif start_datetime <= privilege_update.createDate <= end_datetime:
@@ -619,9 +625,10 @@ def _build_and_execute_revert_transactions(
 
                     reverted_privileges.append(
                         RevertedPrivilege(
-                            jurisdiction=license_record.jurisdiction,
-                            license_type=license_record.licenseType,
+                            jurisdiction=privilege_record.jurisdiction,
+                            license_type=privilege_record.licenseType,
                             revision_id=uuid4(),
+                            action='REACTIVATED',
                         )
                     )
 
@@ -640,11 +647,12 @@ def _build_and_execute_revert_transactions(
             if privilege_jurisdictions:
                 ineligible_updates.append(
                     IneligibleUpdate(
-                        type='privilegeUpdate',
-                        update_type='Issuance',
-                        create_date=datetime.now().isoformat(),
-                        reason=f'Privileges issued in jurisdictions {privilege_jurisdictions} for '
-                        + f'license type {license_record.licenseType} after license upload. Manual review required.',
+                        record_type='privilegeUpdate',
+                        type_of_update='Issuance',
+                        update_time=datetime.now().isoformat(),
+                        license_type=license_record.licenseType,
+                        reason=f'Privileges issued in jurisdictions {privilege_jurisdictions} after license upload. '
+                               f'Manual review required.',
                     )
                 )
             # no privileges found, so we can delete the license record
@@ -678,12 +686,12 @@ def _build_and_execute_revert_transactions(
                     # Non-upload-related license updates make provider ineligible
                     ineligible_updates.append(
                         IneligibleUpdate(
-                            type='licenseUpdate',
-                            update_type=license_update.updateType,
-                            create_date=license_update.createDate.isoformat(),
-                            reason=f'License update for license type {license_update.licenseType} was updated with a '
-                            f'change unrelated to license upload or the update occurred after rollback end '
-                            f'time. Manual review required.',
+                            record_type='licenseUpdate',
+                            type_of_update=license_update.updateType,
+                            update_time=license_update.createDate.isoformat(),
+                            license_type=license_update.licenseType,
+                            reason='License was updated with a change unrelated to license upload or the update '
+                                   'occurred after rollback end time. Manual review required.',
                         )
                     )
                 elif start_datetime <= license_update.createDate <= end_datetime:
@@ -695,6 +703,7 @@ def _build_and_execute_revert_transactions(
                     logger.info(
                         'Will delete license update record if provider is eligible for rollback',
                         update_type=license_update.updateType,
+                        license_type=license_update.licenseType
                     )
 
             # If there were updates in the window and no updates after end_datetime, revert the license
