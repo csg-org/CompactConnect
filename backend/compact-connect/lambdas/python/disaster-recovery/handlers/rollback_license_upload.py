@@ -865,7 +865,13 @@ def _build_and_execute_revert_transactions(
 
     _perform_transaction(primary_record_transaction_items, provider_id)
 
-    # TODO - log full change summary (DO NOT LOG PII)
+    logger.info(
+        'Completed rollback for provider',
+        provider_id=provider_id,
+        licenses_reverted=reverted_licenses,
+        privileges_reverted=reverted_privileges,
+        updates_deleted=updates_deleted_sks,
+    )
     return ProviderRevertedSummary(
         provider_id=provider_id,
         licenses_reverted=reverted_licenses,
@@ -972,9 +978,13 @@ def _write_results_to_s3(key: str, results: RollbackResults):
             Key=key,
             Body=json.dumps(results.to_dict(), indent=2),
             ContentType='application/json',
-            ServerSideEncryption='aws:kms',
         )
         logger.info('Results written to S3', bucket=config.rollback_results_bucket_name, key=key)
-    except Exception as e:
+    # handle json serialization errors
+    except json.JSONDecodeError as e:
         logger.error(f'Error writing results to S3: {str(e)}')
+        raise
+    # handle other errors by logging the full object and raising the exception
+    except Exception as e:
+        logger.error(f'Error writing results to S3: {str(e)}', results=results.to_dict())
         raise
