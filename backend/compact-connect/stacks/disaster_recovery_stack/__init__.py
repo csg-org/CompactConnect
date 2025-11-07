@@ -1,8 +1,9 @@
-from aws_cdk import RemovalPolicy
+from aws_cdk import RemovalPolicy, Stack
 from aws_cdk.aws_dynamodb import Table
 from aws_cdk.aws_iam import PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
-from aws_cdk.aws_s3 import Bucket, BucketEncryption
+from aws_cdk.aws_s3 import BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership
+from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -61,6 +62,7 @@ class DisasterRecoveryStack(AppStack):
         )
 
         # Create S3 bucket for license upload rollback results
+        stack = Stack.of(self)
         self.rollback_results_bucket = Bucket(
             self,
             'DisasterRecoveryResultsBucket',
@@ -70,6 +72,21 @@ class DisasterRecoveryStack(AppStack):
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             versioned=True,
             enforce_ssl=True,
+            block_public_access=BlockPublicAccess.BLOCK_ALL,
+            object_ownership=ObjectOwnership.BUCKET_OWNER_ENFORCED,
+            server_access_logs_bucket=persistent_stack.access_logs_bucket,
+            server_access_logs_prefix=f'_logs/{stack.account}/{stack.region}/{self.node.path}/DisasterRecoveryResultsBucket/',
+        )
+
+        # Suppress replication requirement - replication to a logs archive account may be added as a future enhancement
+        NagSuppressions.add_resource_suppressions(
+            self.rollback_results_bucket,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-S3BucketReplicationEnabled',
+                    'reason': 'This bucket is for generating one time results of the rollback workflow and is not intended to be replicated.',
+                },
+            ],
         )
 
         # Create Step Functions for restoring DynamoDB tables

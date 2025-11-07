@@ -71,6 +71,17 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
             encryption_key=dr_shared_encryption_key,
         )
 
+        # Suppress retention period requirement - we are deliberately retaining logs indefinitely
+        NagSuppressions.add_resource_suppressions(
+            state_machine_log_group,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-CloudWatchLogGroupRetentionPeriod',
+                    'reason': 'This system will be used infrequently. We are deliberately retaining logs indefinitely here.',
+                },
+            ],
+        )
+
         # Create state machine
         self.state_machine = StateMachine(
             self,
@@ -174,10 +185,8 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
                 'startDateTime.$': '$.startDateTime',
                 'endDateTime.$': '$.endDateTime',
                 'rollbackReason.$': '$.rollbackReason',
-                'tableNameRollbackConfirmation.$': '$.tableNameRollbackConfirmation',
-                'executionId.$': '$$.Execution.Name',
+                'executionName.$': '$$.Execution.Name',
                 'providersProcessed': 0,
-                'lastEvaluatedGSIKey': None,
             },
             comment='Initialize rollback parameters with execution ID',
             result_path='$',
