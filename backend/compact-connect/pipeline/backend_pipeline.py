@@ -389,7 +389,7 @@ class BackendPipeline(CdkCodePipeline):
                         (
                             'echo "$DEPLOY_OUTPUT" | '
                             # Assuming that, if we deploy _any_ changeset here, that's a change to restart on
-                            'grep -q "Initiating execution of changeset" && CHANGED=true'
+                            'grep -q "Initiating execution of changeset" && CHANGED=true || true'
                         ),
                         (
                             dedent(f"""
