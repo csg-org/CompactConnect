@@ -380,8 +380,10 @@ class BackendPipeline(CdkCodePipeline):
                 'build': {
                     'commands': [
                         dedent(f"""
-                        DEPLOY_OUTPUT=$(cdk -a . deploy {self._pipeline_stack_name} --require-approval=never --verbose 2>&1 | tee /dev/tty)
+                        set -o pipefail
+                        cdk -a . deploy {self._pipeline_stack_name} --require-approval=never --verbose 2>&1 | tee deploy_output.log
                         DEPLOY_EXIT_CODE=$?
+                        DEPLOY_OUTPUT=$(cat deploy_output.log)
                         [ $DEPLOY_EXIT_CODE -eq 0 ] || exit $DEPLOY_EXIT_CODE
                         """),  # noqa: E501
                         (
