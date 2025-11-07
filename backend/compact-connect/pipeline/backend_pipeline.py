@@ -389,11 +389,11 @@ class BackendPipeline(CdkCodePipeline):
                         (
                             'echo "$DEPLOY_OUTPUT" | '
                             # Assuming that, if we deploy _any_ changeset here, that's a change to restart on
-                            'grep -qE "Initiating execution of changeset"'
+                            'grep -q "Initiating execution of changeset" && CHANGED=true'
                         ),
                         (
                             dedent(f'''
-                            if [ -n "$DEPLOY_OUTPUT" ]; then
+                            if [ -n "$CHANGED" ]; then
                               echo "Pipeline stack was updated. Triggering new execution with
                               source revision: ${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
                               aws codepipeline start-pipeline-execution --name {self._pipeline_name} \\
