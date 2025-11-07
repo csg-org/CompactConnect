@@ -444,19 +444,17 @@ def _process_provider_rollback(
         # If provider was skipped due to ineligibility, return early
         if isinstance(result, ProviderSkippedDetails):
             return result
-
-        # Publish events for successful rollback
-        _publish_revert_events(result, compact, rollback_reason, start_datetime, end_datetime)
-
-        logger.info('Provider rollback successful', provider_id=provider_id)
-        return result
-
     except Exception as e:
         logger.error(f'Error processing provider rollback: {str(e)}', provider_id=provider_id, exc_info=True)
         return ProviderFailedDetails(
             provider_id=provider_id,
-            error=str(e),
+            error=f"Failed to rollback updates for provider. Manual review required: {str(e)}",
         )
+
+    # Publish events for successful rollback
+    _publish_revert_events(result, compact, rollback_reason, start_datetime, end_datetime)
+    logger.info('Provider rollback successful', provider_id=provider_id)
+    return result
 
 
 def _perform_transaction(transaction_items: list[dict]) -> None:
@@ -845,38 +843,63 @@ def _publish_revert_events(
     :param end_datetime: The end time of the rollback window
     """
     with EventBatchWriter(config.events_client) as event_writer:
-        # Convert provider_id string to UUID for event publishing
-        provider_id_uuid = UUID(revert_summary.provider_id)
-
         # Publish license revert events
         for reverted_license in revert_summary.licenses_reverted:
-            config.event_bus_client.publish_license_revert_event(
-                source='org.compactconnect.disaster-recovery',
-                compact=compact,
-                provider_id=provider_id_uuid,
-                jurisdiction=reverted_license.jurisdiction,
-                license_type=reverted_license.license_type,
-                rollback_reason=rollback_reason,
-                start_time=start_datetime,
-                end_time=end_datetime,
-                revision_id=reverted_license.revision_id,
-                event_batch_writer=event_writer,
-            )
+            try:
+                config.event_bus_client.publish_license_revert_event(
+                    source='org.compactconnect.disaster-recovery',
+                    compact=compact,
+                    provider_id=revert_summary.provider_id,
+                    jurisdiction=reverted_license.jurisdiction,
+                    license_type=reverted_license.license_type,
+                    rollback_reason=rollback_reason,
+                    start_time=start_datetime,
+                    end_time=end_datetime,
+                    revision_id=reverted_license.revision_id,
+                    event_batch_writer=event_writer,
+                )
+            except Exception as e:
+                # this event publishing is not business critical, so we log the error and move on
+                logger.error("Unable to publish license revert event",
+                            compact=compact,
+                            provider_id=revert_summary.provider_id,
+                            jurisdiction=reverted_license.jurisdiction,
+                            license_type=reverted_license.license_type,
+                            rollback_reason=rollback_reason,
+                            start_time=start_datetime,
+                            end_time=end_datetime,
+                            revision_id=reverted_license.revision_id,
+                            error=str(e),
+                        )
 
         # Publish privilege revert events
         for reverted_privilege in revert_summary.privileges_reverted:
-            config.event_bus_client.publish_privilege_revert_event(
-                source='org.compactconnect.disaster-recovery',
-                compact=compact,
-                provider_id=provider_id_uuid,
-                jurisdiction=reverted_privilege.jurisdiction,
-                license_type=reverted_privilege.license_type,
-                rollback_reason=rollback_reason,
-                start_time=start_datetime,
-                end_time=end_datetime,
-                revision_id=reverted_privilege.revision_id,
-                event_batch_writer=event_writer,
-            )
+            try:
+                config.event_bus_client.publish_privilege_revert_event(
+                    source='org.compactconnect.disaster-recovery',
+                    compact=compact,
+                    provider_id=revert_summary.provider_id,
+                    jurisdiction=reverted_privilege.jurisdiction,
+                    license_type=reverted_privilege.license_type,
+                    rollback_reason=rollback_reason,
+                    start_time=start_datetime,
+                    end_time=end_datetime,
+                    revision_id=reverted_privilege.revision_id,
+                    event_batch_writer=event_writer,
+                )
+            except Exception as e:
+                # this event publishing is not business critical, so we log the error and move on
+                logger.error("Unable to publish privilege revert event",
+                    compact=compact,
+                    provider_id=revert_summary.provider_id,
+                    jurisdiction=reverted_privilege.jurisdiction,
+                    license_type=reverted_privilege.license_type,
+                    rollback_reason=rollback_reason,
+                    start_time=start_datetime,
+                    end_time=end_datetime,
+                    revision_id=reverted_privilege.revision_id,
+                    error=str(e),
+                )
 
 
 def _load_results_from_s3(key: str) -> RollbackResults:

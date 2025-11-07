@@ -442,7 +442,7 @@ class EventBusClient:
         self,
         source: str,
         compact: str,
-        provider_id: UUID,
+        provider_id: str,
         jurisdiction: str,
         license_type: str,
         rollback_reason: str,

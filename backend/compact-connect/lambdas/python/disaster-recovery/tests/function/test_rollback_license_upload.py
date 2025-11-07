@@ -824,3 +824,35 @@ class TestRollbackLicenseUpload(TstFunction):
             },
             results_data,
         )
+
+    def test_expected_s3_object_stored_when_provider_fails_during_rollback(self):
+        """Test that failed provider details are correctly stored in S3 results when an exception occurs."""
+        # Setup: License was updated during upload
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
+        )
+
+        # Mock get_provider_user_records to raise an exception when called during rollback
+        mock_error_message = 'Database connection error'
+        with patch.object(
+            self.config.data_client,
+            'get_provider_user_records',
+            side_effect=Exception(mock_error_message)
+        ):
+            results_data = self._perform_rollback_and_get_s3_object()
+
+            # Verify the structure of the results contains failed provider details
+            self.assertEqual(
+                {
+                    'failedProviderDetails': [
+                        {
+                            'error': f'Failed to rollback updates for provider. '
+                                     f'Manual review required: {mock_error_message}',
+                            'provider_id': self.provider_id,
+                        }
+                    ],
+                    'revertedProviderSummaries': [],
+                    'skippedProviderDetails': [],
+                },
+                results_data,
+            )
