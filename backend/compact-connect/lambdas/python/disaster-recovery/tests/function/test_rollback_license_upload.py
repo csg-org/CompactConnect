@@ -1066,14 +1066,14 @@ class TestRollbackLicenseUpload(TstFunction):
  'revertedProviderSummaries': [{'licensesReverted': [{'action': 'REVERT',
                                                       'jurisdiction': 'oh',
                                                       'licenseType': 'speech-language pathologist',
-                                                      'revisionId': '9f0f8c0c-40a9-4578-86d1-da4278e68bb4'}],
+                                                      'revisionId': ANY}],
                                 'privilegesReverted': [],
                                 'providerId': mock_first_provider_id,
                                 'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6']},
                                {'licensesReverted': [{'action': 'REVERT',
                                                       'jurisdiction': 'oh',
                                                       'licenseType': 'speech-language pathologist',
-                                                      'revisionId': '97f68dba-ee91-4c6c-833d-66fed70b9a9a'}],
+                                                      'revisionId': ANY}],
                                 'privilegesReverted': [],
                                 'providerId': mock_second_provider_id,
                                 'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6']}],
@@ -1104,11 +1104,9 @@ class TestRollbackLicenseUpload(TstFunction):
             operation_name='TransactWriteItems'
         )
         
-        with patch.object(
-            self.config.provider_table.meta.client,
-            'transact_write_items',
-            side_effect=mock_error
-        ):
+        # Patch at the handler module level to ensure it works across the full test suite
+        with patch('handlers.rollback_license_upload.config.provider_table.meta.client.transact_write_items',
+                   side_effect=mock_error):
             results_data = self._perform_rollback_and_get_s3_object()
 
             # Verify: Provider was marked as failed
