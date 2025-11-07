@@ -406,9 +406,10 @@ class BackendPipeline(CdkCodePipeline):
                             echo "Failed to start new pipeline execution"
                             exit $START_EXIT_CODE
                           fi
+                          echo "Attempting to stop the current pipeline execution - it may already be stopping, which is fine."
                           aws codepipeline stop-pipeline-execution \\
                             --pipeline-name {self._pipeline_name} \\
-                            --pipeline-execution-id "${{PIPELINE_EXECUTION_ID}}"
+                            --pipeline-execution-id "${{PIPELINE_EXECUTION_ID}}" | true
                           echo "Current pipeline execution cancelled"
                         elif [ $DEPLOY_EXIT_CODE -eq 0 ]; then
                           echo "No changes detected in pipeline stack"
