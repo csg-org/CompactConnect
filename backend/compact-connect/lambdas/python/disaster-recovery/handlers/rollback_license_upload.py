@@ -146,19 +146,21 @@ class RollbackResults:
                     provider_id=summary['providerId'],
                     licenses_reverted=[
                         RevertedLicense(
-                            jurisdiction=license['jurisdiction'],
-                            license_type=license['licenseType'],
+                            jurisdiction=reverted_license['jurisdiction'],
+                            license_type=reverted_license['licenseType'],
                             revision_id=uuid4(),
+                            action=reverted_license['action']
                         )
-                        for license in summary.get('licensesReverted', [])
+                        for reverted_license in summary.get('licensesReverted', [])
                     ],
                     privileges_reverted=[
                         RevertedPrivilege(
-                            jurisdiction=privilege['jurisdiction'],
-                            license_type=privilege['licenseType'],
+                            jurisdiction=reverted_privilege['jurisdiction'],
+                            license_type=reverted_privilege['licenseType'],
                             revision_id=uuid4(),
+                            action=reverted_privilege['action']
                         )
-                        for privilege in summary.get('privilegesReverted', [])
+                        for reverted_privilege in summary.get('privilegesReverted', [])
                     ],
                     updates_deleted=summary.get('updatesDeleted', []),
                 )
@@ -184,7 +186,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         'rollbackReason': 'Invalid data uploaded',
         'executionId': 'unique-execution-id',
         'providersProcessed': 0,
-        'lastEvaluatedGSIKey': None
+        'continueFromProviderId': None
     }
 
     Returns:
@@ -194,7 +196,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         'providersReverted': int,
         'providersSkipped': int,
         'providersFailed': int,
-        'lastEvaluatedGSIKey': dict | None,
+        'continueFromProviderId': str | None,
     }
     """
     execution_start_time = time.time()
@@ -208,7 +210,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     rollback_reason = event['rollbackReason']
     execution_id = event['executionId']
     providers_processed = event.get('providersProcessed', 0)
-    last_evaluated_gsi_key = event.get('lastEvaluatedGSIKey')
+    continue_from_provider_id = event.get('continueFromProviderId')
 
     # Parse and validate datetime parameters
     try:
@@ -264,11 +266,32 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
             jurisdiction,
             start_datetime,
             end_datetime,
-            last_evaluated_gsi_key,
         )
+        
+        # Convert to sorted list for consistent ordering across invocations
+        affected_provider_ids_list = sorted(affected_provider_ids)
+        
+        # If continuing from a previous invocation, slice the list to start from that provider
+        if continue_from_provider_id:
+            try:
+                start_index = affected_provider_ids_list.index(continue_from_provider_id)
+                affected_provider_ids_list = affected_provider_ids_list[start_index:]
+                logger.info(
+                    f'Continuing from provider {continue_from_provider_id} (index {start_index}). '
+                    f'{len(affected_provider_ids_list)} providers remaining to process.'
+                )
+            except ValueError as e:
+                # Provider ID in event input not found in list
+                # Log error and raise exception
+                logger.error(
+                    f'Continue-from provider {continue_from_provider_id} not found in affected providers list.',
+                    continue_from_provider_id=continue_from_provider_id,
+                    affected_provider_ids_list=affected_provider_ids_list,
+                )
+                raise e
 
         # Process each provider
-        for provider_id in affected_provider_ids:
+        for provider_id in affected_provider_ids_list:
             # Check time limit
             elapsed_time = time.time() - execution_start_time
             if elapsed_time > max_execution_time:
@@ -283,7 +306,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                     'providersReverted': providers_reverted,
                     'providersSkipped': providers_skipped,
                     'providersFailed': providers_failed,
-                    'lastEvaluatedGSIKey': None,  # Continue from next provider
+                    'continueFromProviderId': provider_id,  # Continue from next provider
                     'compact': compact,
                     'jurisdiction': jurisdiction,
                     'startDateTime': start_datetime_str,
@@ -341,7 +364,6 @@ def _query_gsi_for_affected_providers(
     jurisdiction: str,
     start_datetime: datetime,
     end_datetime: datetime,
-    last_evaluated_key: dict | None,
 ) -> set[str]:
     """
     Query the licenseUploadDateGSI to find all affected provider IDs.
@@ -378,19 +400,14 @@ def _query_gsi_for_affected_providers(
             ),
         }
 
-        if last_evaluated_key:
-            query_kwargs['ExclusiveStartKey'] = last_evaluated_key
-
         while True:
             response = config.provider_table.query(**query_kwargs)
 
             # Extract provider IDs from the results
             for item in response.get('Items', []):
                 # The providerId is in the SK: TIME#{epoch}#LT#{license_type}#PID#{provider_id}
-                sk = item.get('licenseUploadDateGSISK', '')
-                if '#PID#' in sk:
-                    provider_id = sk.split('#PID#')[1]
-                    affected_provider_ids.add(provider_id)
+                provider_id = item['providerId']
+                affected_provider_ids.add(provider_id)
 
             # Check for pagination
             last_evaluated_key = response.get('LastEvaluatedKey')

@@ -84,11 +84,16 @@ class ProviderTable(Table):
                 'providerId',
             ],
         )
+        # in this case, we only need to include the provider id since this GSI is used to
+        # determine which providers were associated with a particular license upload time
         self.add_global_secondary_index(
             index_name=self.license_upload_date_gsi_name,
             partition_key=Attribute(name='licenseUploadDateGSIPK', type=AttributeType.STRING),
             sort_key=Attribute(name='licenseUploadDateGSISK', type=AttributeType.STRING),
-            projection_type=ProjectionType.KEYS_ONLY,
+            projection_type=ProjectionType.INCLUDE,
+            non_key_attributes=[
+                'providerId',
+            ],
         )
         # Set up backup plan
         backup_enabled = environment_context['backup_enabled']

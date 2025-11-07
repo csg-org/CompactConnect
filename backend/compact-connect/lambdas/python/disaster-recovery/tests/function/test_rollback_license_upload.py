@@ -27,6 +27,7 @@ MOCK_ORIGINAL_FAMILY_NAME = 'originalFamily'
 MOCK_UPDATED_GIVEN_NAME = 'updatedGiven'
 MOCK_UPDATED_FAMILY_NAME = 'updatedFamily'
 MOCK_PROVIDER_ID = 'ba880c7c-5ed3-4be4-8ad5-c8558f58ef6f'
+MOCK_EXECUTION_ID = 'test-execution-123'
 
 
 @mock_aws
@@ -49,7 +50,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         self.update_categories = UpdateCategory
 
-        self.provider_data = self._add_provider_record()
+        self.provider_data = self._add_provider_record(provider_id=None)
 
     def _generate_test_event(self):
         return {
@@ -58,15 +59,18 @@ class TestRollbackLicenseUpload(TstFunction):
             'startDateTime': self.default_start_datetime.isoformat(),
             'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
-            'executionId': 'test-execution-123',
+            'executionId': MOCK_EXECUTION_ID,
             'providersProcessed': 0,
         }
 
-    def _add_provider_record(self):
+    def _add_provider_record(self, provider_id: str):
+        if provider_id is None:
+            provider_id = self.provider_id
+
         # add provider record to provider table
         provider_data = self.test_data_generator.put_default_provider_record_in_provider_table(
             {
-                'providerId': self.provider_id,
+                'providerId': provider_id,
                 'compact': self.compact,
                 'jurisdiction': self.license_jurisdiction,
                 'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
@@ -92,7 +96,7 @@ class TestRollbackLicenseUpload(TstFunction):
         )
 
     def _when_provider_had_license_updated_from_upload(
-        self, upload_datetime: datetime = None, license_upload_datetime: datetime = None
+        self, upload_datetime: datetime = None, license_upload_datetime: datetime = None, provider_id: str = None
     ):
         """
         Set up a scenario where a provider had an existing license updated during the upload window.
@@ -103,11 +107,13 @@ class TestRollbackLicenseUpload(TstFunction):
         if license_upload_datetime is None:
             # by default, the license was originally uploaded a day before the bad upload
             license_upload_datetime = self.default_start_datetime - timedelta(days=1)
+        if provider_id is None:
+            provider_id = self.provider_id
 
         # Create original license before upload window, unless different time is provided
         original_license = self.test_data_generator.put_default_license_record_in_provider_table(
             {
-                'providerId': self.provider_id,
+                'providerId': provider_id,
                 'compact': self.compact,
                 'jurisdiction': self.license_jurisdiction,
                 'familyName': MOCK_ORIGINAL_FAMILY_NAME,
@@ -123,7 +129,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Create update record within upload window to simulate license deactivation
         license_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
             {
-                'providerId': self.provider_id,
+                'providerId': provider_id,
                 'compact': self.compact,
                 'jurisdiction': self.license_jurisdiction,
                 'licenseType': original_license.licenseType,
@@ -148,7 +154,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Update the license record to reflect the new expiration and status
         updated_license = self.test_data_generator.put_default_license_record_in_provider_table(
             {
-                'providerId': self.provider_id,
+                'providerId': provider_id,
                 'compact': self.compact,
                 'jurisdiction': self.license_jurisdiction,
                 'familyName': MOCK_UPDATED_FAMILY_NAME,
@@ -594,12 +600,11 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # Execute: Perform rollback
         event = self._generate_test_event()
-        execution_id = event['executionId']
 
         rollback_license_upload(event, Mock())
 
         # Read object from S3 and verify its contents match what is expected
-        s3_key = f'{execution_id}/results.json'
+        s3_key = f'{MOCK_EXECUTION_ID}/results.json'
         s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
         results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
 
@@ -856,3 +861,220 @@ class TestRollbackLicenseUpload(TstFunction):
                 },
                 results_data,
             )
+
+    def test_rollback_handles_loading_existing_s3_results_and_appends_new_data(self):
+        """Test that rollback can load existing S3 results and append new data without deleting previous data."""
+        from uuid import uuid4
+
+        test_revision_id = str(uuid4())
+        existing_skipped_provider_id = str(uuid4())
+        existing_reverted_provider_id = str(uuid4())
+        existing_failed_provider_id = str(uuid4())
+
+        # Setup: Create existing provider with license that will be reverted
+        # This provider will have a privilege that gets reactivated
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
+        )
+        self._when_provider_had_privilege_deactivated_from_upload()
+        
+        # Create initial S3 results with data in all fields
+        s3_key = f'{MOCK_EXECUTION_ID}/results.json'
+        
+        # Create existing results data in the format that from_dict expects (camelCase for top-level keys)
+        existing_results_data = {
+            'skippedProviderDetails': [
+                {
+                    'providerId': existing_skipped_provider_id,
+                    'reason': 'Existing skipped provider reason',
+                    'ineligibleUpdates': [
+                        {
+                            'record_type': 'licenseUpdate',
+                            'type_of_update': 'ENCUMBRANCE',
+                            'update_time': (self.default_start_datetime - timedelta(days=2)).isoformat(),
+                            'reason': 'Existing ineligible update reason',
+                            'license_type': 'audiologist',
+                        }
+                    ],
+                }
+            ],
+            'failedProviderDetails': [
+                {
+                    'providerId': existing_failed_provider_id,
+                    'error': 'Existing failure error message',
+                }
+            ],
+            'revertedProviderSummaries': [
+                {
+                    'providerId': existing_reverted_provider_id,
+                    'licensesReverted': [
+                        {
+                            'jurisdiction': 'tx',
+                            'licenseType': 'audiologist',
+                            'revisionId': test_revision_id,
+                            'action': 'REVERT',
+                        }
+                    ],
+                    'privilegesReverted': [],
+                    'updatesDeleted': ['existing-update-sha-1'],
+                }
+            ],
+        }
+        
+        # Write existing results to S3
+        self.config.s3_client.put_object(
+            Bucket=self.config.rollback_results_bucket_name,
+            Key=s3_key,
+            Body=json.dumps(existing_results_data, indent=2),
+            ContentType='application/json',
+        )
+        
+        final_results_data = self._perform_rollback_and_get_s3_object()
+        
+        # Verify: All existing data is preserved and new data is appended
+        # Note: to_dict() uses asdict() which produces snake_case for skipped/failed details
+        self.assertEqual(
+            {
+                'skippedProviderDetails': [
+                    {
+                        'provider_id': existing_skipped_provider_id,
+                        'reason': 'Existing skipped provider reason',
+                        'ineligible_updates': [
+                            {
+                                'record_type': 'licenseUpdate',
+                                'type_of_update': 'ENCUMBRANCE',
+                                'update_time': (self.default_start_datetime - timedelta(days=2)).isoformat(),
+                                'reason': 'Existing ineligible update reason',
+                                'license_type': 'audiologist',
+                            }
+                        ],
+                    }
+                ],
+                'failedProviderDetails': [
+                    {
+                        'provider_id': existing_failed_provider_id,
+                        'error': 'Existing failure error message',
+                    }
+                ],
+                'revertedProviderSummaries': [
+                    {
+                        'providerId': existing_reverted_provider_id,
+                        'licensesReverted': [
+                            {
+                                'jurisdiction': 'tx',
+                                'licenseType': 'audiologist',
+                                'revisionId': ANY,
+                                'action': 'REVERT',
+                            }
+                        ],
+                        'privilegesReverted': [],
+                        'updatesDeleted': ['existing-update-sha-1'],
+                    },
+                    {
+                        'providerId': self.provider_id,
+                        'licensesReverted': [
+                            {
+                                'action': 'REVERT',
+                                'jurisdiction': self.license_jurisdiction,
+                                'licenseType': ANY,
+                                'revisionId': ANY,
+                            }
+                        ],
+                        'privilegesReverted': [
+                            {
+                                'action': 'REACTIVATED',
+                                'jurisdiction': 'ne',
+                                'licenseType': ANY,
+                                'revisionId': ANY,
+                            }
+                        ],
+                        'updatesDeleted': ANY,
+                    }
+                ],
+            },
+            final_results_data,
+        )
+
+    @patch('handlers.rollback_license_upload.time')
+    def test_rollback_handles_pagination_when_provider_id_present_in_event_input(self, mock_time):
+        """Test that rollback can paginate across multiple invocations using continueFromProviderId."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # Lambda functions have a timeout of 15 minutes, so we set a cutoff of 12 minutes before we loop around
+        # the step function to reset the timeout. This mock allows us to test that branch of logic.
+        # the first time the mock_time function is called, it will return current time
+        # the second time the mock_time function is called, it will return + 1 second
+        # the third time the mock_time function is called, it will return 12 minutes + 2 seconds (cutoff is 12 minutes)
+        # this should cause the lambda to return an IN_PROGRESS status with a pagination key
+        mock_time.time.side_effect = [0, 1, 12 * 60 + 2]  # current time, 12 minutes + 2 seconds
+
+        # Setup: Create two providers with licenses that will be reverted
+        # Provider IDs in sorted order (to ensure consistent pagination behavior)
+        mock_first_provider_id = '11111111-5ed3-4be4-8ad5-c8558f587890'
+        mock_second_provider_id = '22222222-5ed3-4be4-8ad5-c8558f587890'
+        
+        # Add first provider
+        self._add_provider_record(provider_id=mock_first_provider_id)
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1),
+            provider_id=mock_first_provider_id
+        )
+        
+        # Add second provider
+        self._add_provider_record(provider_id=mock_second_provider_id)
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1),
+            provider_id=mock_second_provider_id
+        )
+        
+        # Execute: First invocation (should timeout after processing first provider)
+        event = self._generate_test_event()
+        
+        result_first = rollback_license_upload(event, Mock())
+        
+        # Assert: First invocation returned IN_PROGRESS status
+        self.assertEqual(result_first['rollbackStatus'], 'IN_PROGRESS')
+        self.assertEqual(1, result_first['providersProcessed'])
+        self.assertEqual(1, result_first['providersReverted'])
+        self.assertEqual(0, result_first['providersSkipped'])
+        self.assertEqual(0, result_first['providersFailed'])
+        self.assertEqual(mock_second_provider_id, result_first['continueFromProviderId'])
+        
+        # Execute: Second invocation (continue from where we left off)
+        # Reset mock time for second invocation
+        mock_time.time.side_effect = [0, 1]  # Won't timeout this time
+        
+
+        result_second = rollback_license_upload(result_first, Mock())
+        
+        # Assert: Second invocation completed successfully
+        self.assertEqual(result_second['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(2, result_second['providersProcessed'])
+        self.assertEqual(2, result_second['providersReverted'])
+        self.assertEqual(0, result_second['providersSkipped'])
+        self.assertEqual(0, result_second['providersFailed'])
+        
+        # Verify: S3 results contain both providers
+        s3_key = f'{MOCK_EXECUTION_ID}/results.json'
+        s3_obj = self.config.s3_client.get_object(
+            Bucket=self.config.rollback_results_bucket_name, Key=s3_key
+        )
+        final_results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
+        
+        # Should have 2 reverted providers
+        self.assertEqual({'failedProviderDetails': [],
+ 'revertedProviderSummaries': [{'licensesReverted': [{'action': 'REVERT',
+                                                      'jurisdiction': 'oh',
+                                                      'licenseType': 'speech-language pathologist',
+                                                      'revisionId': '9f0f8c0c-40a9-4578-86d1-da4278e68bb4'}],
+                                'privilegesReverted': [],
+                                'providerId': mock_first_provider_id,
+                                'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6']},
+                               {'licensesReverted': [{'action': 'REVERT',
+                                                      'jurisdiction': 'oh',
+                                                      'licenseType': 'speech-language pathologist',
+                                                      'revisionId': '97f68dba-ee91-4c6c-833d-66fed70b9a9a'}],
+                                'privilegesReverted': [],
+                                'providerId': mock_second_provider_id,
+                                'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6']}],
+ 'skippedProviderDetails': []}, final_results_data)
