@@ -387,8 +387,9 @@ class BackendPipeline(CdkCodePipeline):
                         'echo "$DEPLOY_OUTPUT"',
                         '[ $DEPLOY_EXIT_CODE -eq 0 ] || exit $DEPLOY_EXIT_CODE',
                         (
-                            f'echo "$DEPLOY_OUTPUT" | '
-                            f'grep -qE "Stack {self._pipeline_stack_name} (deployed|updated)"; then'
+                            'echo "$DEPLOY_OUTPUT" | '
+                            # Assuming that, if we deploy _any_ changeset here, that's a change to restart on
+                            'grep -qE "Initiating execution of changeset"; then'
                         ),
                         (
                             dedent(f'''
