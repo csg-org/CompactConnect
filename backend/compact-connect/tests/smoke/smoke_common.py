@@ -257,11 +257,26 @@ def get_provider_user_records(compact: str, provider_id: str) -> ProviderUserRec
     :return: ProviderUserRecords instance containing all records for this provider
     """
     # Query the provider database for all records
-    query_result = config.provider_user_dynamodb_table.query(
-        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-    )
+    resp = {'Items': []}
+    last_evaluated_key = None
+    while True:
+        pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+        # This query key condition expression ensures we always grab all the primary and update records
+        query_resp = config.provider_user_dynamodb_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+            & Key('sk').lt(f'{compact}#UPDATE#9'),
+            ConsistentRead=True,
+            **pagination,
+        )
 
-    return ProviderUserRecords(query_result['Items'])
+        resp['Items'].extend(query_resp.get('Items', []))
+
+        last_evaluated_key = query_resp.get('LastEvaluatedKey')
+        if not last_evaluated_key:
+            break
+
+    return ProviderUserRecords(resp['Items'])
 
 
 def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, data_overrides: dict = None):
