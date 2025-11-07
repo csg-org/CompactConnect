@@ -392,22 +392,23 @@ class BackendPipeline(CdkCodePipeline):
                             'grep -q "Initiating execution of changeset" && CHANGED=true'
                         ),
                         (
-                            dedent(f'''
+                            dedent(f"""
                             if [ -n "$CHANGED" ]; then
                               echo "Pipeline stack was updated. Triggering new execution with
                               source revision: ${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
-                              aws codepipeline start-pipeline-execution --name {self._pipeline_name} \\
-                                --source-revisions \
-                                actionName={source_action_name},revisionType=COMMIT_ID,revisionValue="${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
+                              aws codepipeline start-pipeline-execution \\
+                                --name {self._pipeline_name} \\
+                                --source-revisions actionName={source_action_name},revisionType=COMMIT_ID,revisionValue="${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
                               START_EXIT_CODE=$?
                               if [ $START_EXIT_CODE -eq 0 ]; then
                                 echo "New pipeline execution started successfully"
-                              else',
+                              else
                                 echo "Failed to start new pipeline execution"
-                                exit $START_EXIT_CODE',
-                              fi',
-                              aws codepipeline stop-pipeline-execution --pipeline-name {self._pipeline_name} \\
-                                --pipeline-execution-id "${{PIPELINE_EXECUTION_ID}}" || true
+                                exit $START_EXIT_CODE
+                              fi
+                              aws codepipeline stop-pipeline-execution \\
+                                --pipeline-name {self._pipeline_name} \\
+                                --pipeline-execution-id "${{PIPELINE_EXECUTION_ID}}"
                               echo "Current pipeline execution cancelled"
                             elif [ $DEPLOY_EXIT_CODE -eq 0 ]; then
                               echo "No changes detected in pipeline stack"
@@ -415,7 +416,7 @@ class BackendPipeline(CdkCodePipeline):
                               echo "Pipeline stack deployment failed"
                               exit $DEPLOY_EXIT_CODE
                             fi
-                            ''')
+                            """)  # noqa: E501
                         ),
                     ],
                 },
@@ -423,7 +424,7 @@ class BackendPipeline(CdkCodePipeline):
         }
 
         # Replace the buildspec
-        cfn_project.add_property_override('Source.BuildSpec', json.dumps(custom_buildspec))
+        cfn_project.add_property_override('Source.BuildSpec', json.dumps(custom_buildspec, indent=2))
 
         # Add PipelineExecutionId as an environment variable to the CodePipeline action
         # This uses CodePipeline's variable syntax to pass the execution ID to the CodeBuild step
@@ -448,10 +449,7 @@ class BackendPipeline(CdkCodePipeline):
             'Stages.2.Actions.0.Configuration.EnvironmentVariables',
             json.dumps(env_vars),
         )
-        cfn_pipeline.add_property_override(
-            'RestartExecutionOnUpdate',
-            False
-        )
+        cfn_pipeline.add_property_override('RestartExecutionOnUpdate', False)
 
         # Add IAM permissions to the self-mutation role
         # Find the role associated with the CodeBuild project
@@ -460,22 +458,22 @@ class BackendPipeline(CdkCodePipeline):
 
         # Add permissions to start and stop pipeline executions
         self_mutation_role.add_to_principal_policy(
-                PolicyStatement(
-                    effect=Effect.ALLOW,
-                    actions=[
-                        'codepipeline:StartPipelineExecution',
-                        'codepipeline:StopPipelineExecution',
-                        'codepipeline:GetPipelineExecution',
-                        'codepipeline:ListPipelineExecutions',
-                    ],
-                    resources=[
-                        stack.format_arn(
-                            partition=stack.partition,
-                            service='codepipeline',
-                            region=stack.region,
-                            account=stack.account,
-                            resource=self._pipeline_name,
-                        ),
-                    ],
-                )
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                actions=[
+                    'codepipeline:StartPipelineExecution',
+                    'codepipeline:StopPipelineExecution',
+                    'codepipeline:GetPipelineExecution',
+                    'codepipeline:ListPipelineExecutions',
+                ],
+                resources=[
+                    stack.format_arn(
+                        partition=stack.partition,
+                        service='codepipeline',
+                        region=stack.region,
+                        account=stack.account,
+                        resource=self._pipeline_name,
+                    ),
+                ],
             )
+        )
