@@ -584,7 +584,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         ],
                         'privilegesReverted': [],
                         'providerId': self.provider_id,
-                        'updatesDeleted': 1,
+                        'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d8781f4e9489217462892394a791e885'],
                     }
                 ],
                 'skippedProviderDetails': [],

@@ -71,7 +71,7 @@ class ProviderRevertedSummary:
     provider_id: str
     licenses_reverted: list[RevertedLicense] = field(default_factory=list)
     privileges_reverted: list[RevertedPrivilege] = field(default_factory=list)
-    updates_deleted: int = 0
+    updates_deleted: list[str] = field(default_factory=list)  # List of SKs for deleted update records
 
 
 @dataclass
@@ -112,7 +112,6 @@ class RollbackResults:
                         }
                         for privilege in summary.privileges_reverted
                     ],
-                    # TODO - add pk/sk to list
                     'updatesDeleted': summary.updates_deleted,
                 }
                 for summary in self.reverted_provider_summaries
@@ -157,7 +156,7 @@ class RollbackResults:
                         )
                         for privilege in summary.get('privilegesReverted', [])
                     ],
-                    updates_deleted=summary.get('updatesDeleted', 0),
+                    updates_deleted=summary.get('updatesDeleted', []),
                 )
                 for summary in data.get('revertedProviderSummaries', [])
             ],
@@ -494,7 +493,7 @@ def _build_and_execute_revert_transactions(
     table_name = config.provider_table_name
     reverted_licenses = []
     reverted_privileges = []
-    updates_deleted_count = 0
+    updates_deleted_sks = []  # List of SKs for deleted update records
     ineligible_updates: list[IneligibleUpdate] = []
 
     # Helper functions for cleaner item building
@@ -587,7 +586,7 @@ def _build_and_execute_revert_transactions(
                 # License deactivation within window - mark for deletion
                 serialized_privilege_update = privilege_update.serialize_to_database_record()
                 add_delete(serialized_privilege_update['pk'], serialized_privilege_update['sk'], update_record=True)
-                updates_deleted_count += 1
+                updates_deleted_sks.append(serialized_privilege_update['sk'])
                 logger.info('Will delete privilege deactivation update record if provider is eligible for rollback')
                 
                 # Reactivate the privilege
@@ -655,7 +654,7 @@ def _build_and_execute_revert_transactions(
             for update in license_updates_after_start:
                 serialized_license_update = update.serialize_to_database_record()
                 add_delete(serialized_license_update['pk'], serialized_license_update['sk'], update_record=True)
-                updates_deleted_count += 1
+                updates_deleted_sks.append(serialized_license_update['sk'])
                 logger.info('Will delete license update record if provider is eligible for rollback', update_type=update.updateType)
         else:
             # If license record was not created during the window, check license updates for eligibility and build transactions
@@ -678,7 +677,7 @@ def _build_and_execute_revert_transactions(
                     license_updates_in_window.append(license_update)
                     serialized_license_update = license_update.serialize_to_database_record()
                     add_delete(serialized_license_update['pk'], serialized_license_update['sk'], update_record=True)
-                    updates_deleted_count += 1
+                    updates_deleted_sks.append(serialized_license_update['sk'])
                     logger.info('Will delete license update record if provider is eligible for rollback', update_type=license_update.updateType)
         
             # If there were updates in the window and no updates after end_datetime, revert the license
@@ -760,7 +759,7 @@ def _build_and_execute_revert_transactions(
             provider_id=provider_id,
             licenses_reverted=reverted_licenses,
             privileges_reverted=reverted_privileges,
-            updates_deleted=updates_deleted_count,
+            updates_deleted=updates_deleted_sks,
         )
     
     _perform_transaction(transaction_items)
@@ -798,7 +797,7 @@ def _build_and_execute_revert_transactions(
         provider_id=provider_id,
         licenses_reverted=reverted_licenses,
         privileges_reverted=reverted_privileges,
-        updates_deleted=updates_deleted_count,
+        updates_deleted=updates_deleted_sks,
     )
 
 
