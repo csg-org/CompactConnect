@@ -50,7 +50,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         self.update_categories = UpdateCategory
 
-        self.provider_data = self._add_provider_record(provider_id=None)
+        self.provider_data = self._add_provider_record()
 
     def _generate_test_event(self):
         return {
@@ -63,7 +63,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'providersProcessed': 0,
         }
 
-    def _add_provider_record(self, provider_id: str):
+    def _add_provider_record(self, provider_id: str | None = None):
         if provider_id is None:
             provider_id = self.provider_id
 
@@ -1078,3 +1078,44 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'providerId': mock_second_provider_id,
                                 'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6']}],
  'skippedProviderDetails': []}, final_results_data)
+
+    def test_transaction_failure_is_logged_and_provider_marked_as_failed(self):
+        """Test that transaction failures are properly logged and the provider is marked as failed."""
+        from botocore.exceptions import ClientError
+
+        # Setup: Create a scenario with privilege deactivation which will have PUT, DELETE, and UPDATE operations
+        # - License update (DELETE of update record)
+        # - Privilege update (DELETE of update record) 
+        # - Privilege reactivation (UPDATE to remove licenseDeactivatedStatus)
+        # - Provider record update (PUT)
+        self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
+        )
+        self._when_provider_had_privilege_deactivated_from_upload()
+
+        # Mock the transaction to fail with a ClientError
+        mock_error = ClientError(
+            error_response={
+                'Error': {
+                    'Code': 'TransactionCanceledException',
+                    'Message': 'Transaction cancelled'
+                }
+            },
+            operation_name='TransactWriteItems'
+        )
+        
+        with patch.object(
+            self.config.provider_table.meta.client,
+            'transact_write_items',
+            side_effect=mock_error
+        ):
+            results_data = self._perform_rollback_and_get_s3_object()
+
+            # Verify: Provider was marked as failed
+            self.assertEqual(1, len(results_data['failedProviderDetails']))
+            self.assertEqual(self.provider_id, results_data['failedProviderDetails'][0]['provider_id'])
+            self.assertIn('TransactionCanceledException', results_data['failedProviderDetails'][0]['error'])
+            
+            # Verify: No providers were reverted or skipped
+            self.assertEqual(0, len(results_data['revertedProviderSummaries']))
+            self.assertEqual(0, len(results_data['skippedProviderDetails']))

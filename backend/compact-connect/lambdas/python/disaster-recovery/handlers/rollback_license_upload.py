@@ -474,15 +474,46 @@ def _process_provider_rollback(
     return result
 
 
-def _perform_transaction(transaction_items: list[dict]) -> None:
+def _extract_sk_from_transaction_item(transaction_item: dict) -> str | None:
+    """
+    Extract the sort key (SK) from a transaction item.
+    
+    Transaction items can be Put, Delete, or Update operations.
+    Returns the SK if found, None otherwise.
+    """
+    if 'Put' in transaction_item:
+        return transaction_item['Put']['Item'].get('sk')
+    elif 'Delete' in transaction_item:
+        return transaction_item['Delete']['Key'].get('sk')
+    elif 'Update' in transaction_item:
+        return transaction_item['Update']['Key'].get('sk')
+    return None
+
+
+def _perform_transaction(transaction_items: list[dict], provider_id: str) -> None:
     logger.info(f'Executing {len(transaction_items)} transaction items in batches of 100')
 
     for i in range(0, len(transaction_items), 100):
         batch = transaction_items[i : i + 100]
         # Use Table resource's client for automatic type conversion
-        # TODO - catch failures and add failure record to write to S3 results object
-        config.provider_table.meta.client.transact_write_items(TransactItems=batch)
-        logger.info(f'Executed batch {i // 100 + 1} with {len(batch)} items')
+        try:
+            config.provider_table.meta.client.transact_write_items(TransactItems=batch)
+            logger.info(f'Executed batch {i // 100 + 1} with {len(batch)} items')
+        except Exception as e:
+            # Extract all SKs from the failed transaction batch for debugging
+            failed_sks = [_extract_sk_from_transaction_item(item) for item in batch]
+            # filter out null values
+            failed_sks = [sk for sk in failed_sks if sk is not None]
+            
+            logger.error(
+                'Transaction batch failed for provider',
+                provider_id=provider_id,
+                batch_number=i // 100 + 1,
+                batch_size=len(batch),
+                failed_sks=failed_sks,
+                error=str(e)
+            )
+            raise
 
 
 def _build_and_execute_revert_transactions(
@@ -807,7 +838,7 @@ def _build_and_execute_revert_transactions(
             updates_deleted=updates_deleted_sks,
         )
 
-    _perform_transaction(transaction_items)
+    _perform_transaction(transaction_items, provider_id)
 
     # Now read all the license records for the provider and update the provider record
     # Fetch all provider records including all update tiers
@@ -832,7 +863,7 @@ def _build_and_execute_revert_transactions(
         serialized_provider_record = top_level_provider_record.serialize_to_database_record()
         add_delete(pk=serialized_provider_record['pk'], sk=serialized_provider_record['sk'], update_record=False)
 
-    _perform_transaction(primary_record_transaction_items)
+    _perform_transaction(primary_record_transaction_items, provider_id)
 
     # TODO - log full change summary (DO NOT LOG PII)
     return ProviderRevertedSummary(
