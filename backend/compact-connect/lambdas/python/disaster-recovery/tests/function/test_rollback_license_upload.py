@@ -113,35 +113,39 @@ class TestRollbackLicenseUpload(TstFunction):
                 'familyName': MOCK_ORIGINAL_FAMILY_NAME,
                 'givenName': MOCK_ORIGINAL_GIVEN_NAME,
                 'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
-                'dateOfExpiration': (self.default_start_datetime - timedelta(days=30)).date(),
+                # simulate license record that has not expired yet
+                'dateOfExpiration': (self.default_start_datetime + timedelta(days=30)).date(),
                 'firstUploadDate': license_upload_datetime,
+                'licenseStatus': 'active',
             }
         )
 
-        # Create update record within upload window
+        # Create update record within upload window to simulate license deactivation
         license_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
                 'jurisdiction': self.license_jurisdiction,
                 'licenseType': original_license.licenseType,
-                'updateType': self.update_categories.RENEWAL,
+                'updateType': self.update_categories.DEACTIVATION,
                 'createDate': upload_datetime,
                 'effectiveDate': upload_datetime,
                 'previous': {
                     'dateOfExpiration': original_license.dateOfExpiration,
-                    'licenseStatus': 'inactive',
+                    'licenseStatus': 'active',
                     **original_license.to_dict(),
                 },
                 'updatedValues': {
-                    'dateOfExpiration': (upload_datetime + timedelta(days=365)).date(),
+                    # simulate accidentally changing the expiration to last year
+                    'dateOfExpiration': (upload_datetime - timedelta(days=365)).date(),
+                    'licenseStatus': 'inactive',
                     'familyName': MOCK_UPDATED_FAMILY_NAME,
                     'givenName': MOCK_UPDATED_GIVEN_NAME,
                 },
             }
         )
 
-        # Update the license record to reflect the new expiration
+        # Update the license record to reflect the new expiration and status
         updated_license = self.test_data_generator.put_default_license_record_in_provider_table(
             {
                 'providerId': self.provider_id,
@@ -150,7 +154,7 @@ class TestRollbackLicenseUpload(TstFunction):
                 'familyName': MOCK_UPDATED_FAMILY_NAME,
                 'givenName': MOCK_UPDATED_GIVEN_NAME,
                 'dateOfUpdate': upload_datetime,
-                'dateOfExpiration': (upload_datetime + timedelta(days=365)).date(),
+                'dateOfExpiration': (upload_datetime - timedelta(days=365)).date(),
                 'licenseStatus': 'inactive',
                 'firstUploadDate': license_upload_datetime,
             }
@@ -443,6 +447,13 @@ class TestRollbackLicenseUpload(TstFunction):
         privilege_updates = provider_records.get_all_privilege_update_records()
         self.assertEqual(len(privilege_updates), 0, 'Privilege update records should be deleted')
 
+        # make sure license record was reactivated as well
+        license_record = provider_records.get_specific_license_record(
+            jurisdiction=self.license_jurisdiction,
+            license_abbreviation=privilege_record.licenseTypeAbbreviation
+        )
+        self.assertEqual('active', license_record.licenseStatus)
+
     def test_provider_license_updates_and_license_record_within_time_period_removed_when_upload_reverted(self):
         """Test that license update records and license record within the time window are deleted."""
         from handlers.rollback_license_upload import rollback_license_upload
@@ -620,7 +631,8 @@ class TestRollbackLicenseUpload(TstFunction):
                         ],
                         'privilegesReverted': [],
                         'providerId': self.provider_id,
-                        'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d8781f4e9489217462892394a791e885'],
+                        # NOTE: if the test update data is modified, the sha here will need to be updated
+                        'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6'],
                     }
                 ],
                 'skippedProviderDetails': [],
@@ -694,8 +706,9 @@ class TestRollbackLicenseUpload(TstFunction):
                             }
                         ],
                         'providerId': self.provider_id,
+                        # NOTE: if the test update data is modified, the shas here will need to be updated
                         'updatesDeleted': ['aslp#UPDATE#1#privilege/ne/slp/1761207300/06b886756a79b796ad10b17bd67057e6',
-                                           'aslp#UPDATE#3#license/oh/slp/1761207300/d8781f4e9489217462892394a791e885'],
+                                           'aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6'],
                     }
                 ],
                 'skippedProviderDetails': [],
