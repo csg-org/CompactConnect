@@ -394,11 +394,10 @@ class BackendPipeline(CdkCodePipeline):
                         (
                             dedent(f"""
                             if [ -n "$CHANGED" ]; then
-                              echo "Pipeline stack was updated. Triggering new execution with
-                              source revision: ${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
+                              echo "Pipeline stack was updated. Triggering new execution with source revision: ${{SOURCE_COMMIT_ID}}"
                               aws codepipeline start-pipeline-execution \\
                                 --name {self._pipeline_name} \\
-                                --source-revisions actionName={source_action_name},revisionType=COMMIT_ID,revisionValue="${{CODEBUILD_RESOLVED_SOURCE_VERSION}}"
+                                --source-revisions actionName={source_action_name},revisionType=COMMIT_ID,revisionValue="${{SOURCE_COMMIT_ID}}"
                               START_EXIT_CODE=$?
                               if [ $START_EXIT_CODE -eq 0 ]; then
                                 echo "New pipeline execution started successfully"
@@ -443,6 +442,11 @@ class BackendPipeline(CdkCodePipeline):
                 'type': 'PLAINTEXT',
                 'value': '#{codepipeline.PipelineExecutionId}',
             },
+            {
+                'name': 'SOURCE_COMMIT_ID',
+                'type': 'PLAINTEXT',
+                'value': '#{SourceVariables.CommitId}'
+            }
         ]
 
         cfn_pipeline.add_property_override(
