@@ -426,11 +426,16 @@ class BackendPipeline(CdkCodePipeline):
         # UpdatePipeline=2). The SelfMutate action is the first action in that stage.
         cfn_pipeline: CfnPipeline = self.pipeline.node.default_child
 
-        # Add the PipelineExecutionId environment variable using CodePipeline variable syntax
+        # Add a namespace to the source action so we can reference its output variables
+        # The source action is in Stages[0].Actions[0] (first action of Source stage)
+        cfn_pipeline.add_property_override('Stages.0.Actions.0.Namespace', 'SourceVariables')
+
+        # Add the PipelineExecutionId and SOURCE_COMMIT_ID environment variables using CodePipeline variable syntax
         # Note: This will replace any existing environment variables in the action configuration.
         # CDK Pipeline typically adds a _PROJECT_CONFIG_HASH variable, but since we can't read
         # the existing value via escape hatches, we'll override it. The _PROJECT_CONFIG_HASH
         # is used for cache invalidation and is not critical for functionality.
+        # TODO: investigate adding _PROJECT_CONFIG_HASH explicitly here
         env_vars = [
             {
                 'name': 'PIPELINE_EXECUTION_ID',
@@ -440,8 +445,8 @@ class BackendPipeline(CdkCodePipeline):
             {
                 'name': 'SOURCE_COMMIT_ID',
                 'type': 'PLAINTEXT',
-                'value': '#{SourceVariables.CommitId}'
-            }
+                'value': '#{SourceVariables.CommitId}',
+            },
         ]
 
         cfn_pipeline.add_property_override(
