@@ -27,7 +27,7 @@ BATCH_SIZE = 100  # Upload in batches of 100 to avoid timeouts
 
 
 def upload_test_license_batch(
-    staff_headers: dict, batch_start_index: int, batch_size: int, upload_start_time: datetime
+    staff_headers: dict, batch_start_index: int, batch_size: int
 ):
     """
     Upload a batch of test license records.
@@ -35,7 +35,6 @@ def upload_test_license_batch(
     :param staff_headers: Authentication headers for staff user
     :param batch_start_index: Starting index for this batch
     :param batch_size: Number of licenses to upload in this batch
-    :param upload_start_time: The timestamp when upload started (for generating unique data)
     :return: List of license records that were uploaded
     """
     licenses_batch = []
@@ -97,7 +96,7 @@ def upload_test_licenses(staff_headers: dict, num_licenses: int, batch_size: int
 
     for batch_start in range(0, num_licenses, batch_size):
         current_batch_size = min(batch_size, num_licenses - batch_start)
-        batch_licenses = upload_test_license_batch(staff_headers, batch_start, current_batch_size, upload_start_time)
+        batch_licenses = upload_test_license_batch(staff_headers, batch_start, current_batch_size)
         all_licenses.extend(batch_licenses)
 
         # Small delay between batches to avoid rate limiting
@@ -241,7 +240,6 @@ def start_rollback_step_function(
     jurisdiction: str,
     start_datetime: datetime,
     end_datetime: datetime,
-    rollback_reason: str,
 ):
     """
     Start the license upload rollback step function.
@@ -251,7 +249,6 @@ def start_rollback_step_function(
     :param jurisdiction: Jurisdiction abbreviation
     :param start_datetime: Start of rollback time window
     :param end_datetime: End of rollback time window
-    :param rollback_reason: Reason for the rollback
     :return: Execution ARN
     """
     sfn_client = boto3.client('stepfunctions')
@@ -264,8 +261,8 @@ def start_rollback_step_function(
         'jurisdiction': jurisdiction,
         'startDateTime': start_datetime.isoformat().replace('+00:00', 'Z'),
         'endDateTime': end_datetime.isoformat().replace('+00:00', 'Z'),
-        'rollbackReason': rollback_reason,
-        'tableNameRollbackConfirmation': 'CONFIRMED',  # Required confirmation parameter
+        'executionName': execution_name,
+        'rollbackReason': 'Smoke test validation of rollback functionality',
     }
 
     logger.info(f'Starting step function execution: {execution_name}')
@@ -501,7 +498,6 @@ def rollback_license_upload_smoke_test():
         jurisdiction=JURISDICTION,
         start_datetime=rollback_start,
         end_datetime=rollback_end,
-        rollback_reason='Smoke test validation of rollback functionality',
     )
 
     # Step 4: Wait for step function completion

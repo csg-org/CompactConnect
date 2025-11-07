@@ -27,7 +27,7 @@ MOCK_ORIGINAL_FAMILY_NAME = 'originalFamily'
 MOCK_UPDATED_GIVEN_NAME = 'updatedGiven'
 MOCK_UPDATED_FAMILY_NAME = 'updatedFamily'
 MOCK_PROVIDER_ID = 'ba880c7c-5ed3-4be4-8ad5-c8558f58ef6f'
-MOCK_EXECUTION_ID = 'test-execution-123'
+MOCK_EXECUTION_NAME = 'test-execution-123'
 
 
 @mock_aws
@@ -59,7 +59,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'startDateTime': self.default_start_datetime.isoformat(),
             'endDateTime': self.default_end_datetime.isoformat(),
             'rollbackReason': 'Test rollback',
-            'executionId': MOCK_EXECUTION_ID,
+            'executionName': MOCK_EXECUTION_NAME,
             'providersProcessed': 0,
         }
 
@@ -604,7 +604,7 @@ class TestRollbackLicenseUpload(TstFunction):
         rollback_license_upload(event, Mock())
 
         # Read object from S3 and verify its contents match what is expected
-        s3_key = f'{MOCK_EXECUTION_ID}/results.json'
+        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
         s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
         results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
 
@@ -879,7 +879,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self._when_provider_had_privilege_deactivated_from_upload()
         
         # Create initial S3 results with data in all fields
-        s3_key = f'{MOCK_EXECUTION_ID}/results.json'
+        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
         
         # Create existing results data in the format that from_dict expects (camelCase for top-level keys)
         existing_results_data = {
@@ -1055,7 +1055,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(0, result_second['providersFailed'])
         
         # Verify: S3 results contain both providers
-        s3_key = f'{MOCK_EXECUTION_ID}/results.json'
+        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
         s3_obj = self.config.s3_client.get_object(
             Bucket=self.config.rollback_results_bucket_name, Key=s3_key
         )

@@ -184,7 +184,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         'startDateTime': '2024-01-01T00:00:00Z',
         'endDateTime': '2024-01-01T23:59:59Z',
         'rollbackReason': 'Invalid data uploaded',
-        'executionId': 'unique-execution-id',
+        'executionName': 'unique-execution-id',
         'providersProcessed': 0,
         'continueFromProviderId': None
     }
@@ -208,7 +208,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     start_datetime_str = event['startDateTime']
     end_datetime_str = event['endDateTime']
     rollback_reason = event['rollbackReason']
-    execution_id = event['executionId']
+    execution_name = event['executionName']
     providers_processed = event.get('providersProcessed', 0)
     continue_from_provider_id = event.get('continueFromProviderId')
 
@@ -245,11 +245,11 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         jurisdiction=jurisdiction,
         start_datetime=start_datetime_str,
         end_datetime=end_datetime_str,
-        execution_id=execution_id,
+        execution_name=execution_name,
     )
 
     # Initialize S3 client and bucket
-    results_s3_key = f'{execution_id}/results.json'
+    results_s3_key = f'{execution_name}/results.json'
 
     # Load existing results if this is a continuation
     existing_results = _load_results_from_s3(results_s3_key)
@@ -312,7 +312,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                     'startDateTime': start_datetime_str,
                     'endDateTime': end_datetime_str,
                     'rollbackReason': rollback_reason,
-                    'executionId': execution_id,
+                    'executionName': execution_name,
                 }
 
             providers_processed += 1
