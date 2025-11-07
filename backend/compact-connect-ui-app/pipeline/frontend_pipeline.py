@@ -13,13 +13,13 @@ from aws_cdk.aws_s3 import BucketEncryption, IBucket
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import IParameter
 from aws_cdk.pipelines import CodeBuildOptions, CodeBuildStep, CodePipelineSource
-from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
+from common_constructs.base_pipeline import BasePipeline
 from common_constructs.base_pipeline_stack import CCPipelineType
 from common_constructs.bucket import Bucket
 
 
-class FrontendPipeline(CdkCodePipeline):
+class FrontendPipeline(BasePipeline):
     """
     Stack for creating the Frontend CodePipeline resources.
 
@@ -33,6 +33,9 @@ class FrontendPipeline(CdkCodePipeline):
     3. This pipeline pulls the EXACT SAME source code revision that triggered the backend
     4. Frontend application deploys using configuration values created by the Backend Pipeline
     and stored in SSM Parameter Store
+
+    The pipeline is configured with an invalid branch name to ensure it can only be executed
+    with explicit git tag/commit ID specifications, enforcing tag-based deployments only.
     """
 
     def __init__(
@@ -44,7 +47,6 @@ class FrontendPipeline(CdkCodePipeline):
         github_repo_string: str,
         cdk_path: str,
         connection_arn: str,
-        default_branch: str,
         git_tag_trigger_pattern: str,
         access_logs_bucket: IBucket,
         encryption_key: IKey,
@@ -58,8 +60,6 @@ class FrontendPipeline(CdkCodePipeline):
         """
         Initialize the FrontendPipeline.
 
-        :param default_branch: The git branch to use as the source for manual starts only.
-                               When triggered by backend pipeline, the specific commit ID is used instead.
         :param git_tag_trigger_pattern: The git tag pattern for trigger configuration. Note: This pipeline
                                         does not automatically trigger on git events (trigger_on_push=False),
                                         but the pattern is configured for consistency with the backend pipeline.
@@ -92,6 +92,8 @@ class FrontendPipeline(CdkCodePipeline):
             scope,
             construct_id,
             pipeline_name=pipeline_name,
+            pipeline_stack_name=pipeline_stack_name,
+            github_repo_string=github_repo_string,
             pipeline_type=PipelineType.V2,
             artifact_bucket=artifact_bucket,
             role=pipeline_role,
@@ -100,7 +102,7 @@ class FrontendPipeline(CdkCodePipeline):
                 'Synth',
                 input=CodePipelineSource.connection(
                     repo_string=github_repo_string,
-                    branch=default_branch,
+                    branch=self._INVALID_BRANCH_NAME,
                     # This pipeline is triggered by the backend pipeline, so we don't
                     # want push events to trigger it. This prevents duplicate deployments
                     # since both pipelines use the same source code.
@@ -142,7 +144,6 @@ class FrontendPipeline(CdkCodePipeline):
         )
         self._ssm_parameter = ssm_parameter
         self._git_tag_trigger_pattern = git_tag_trigger_pattern
-        self._github_repo_string = github_repo_string
 
         self._encryption_key = encryption_key
         self._alarm_topic = alarm_topic
@@ -312,33 +313,27 @@ class FrontendPipeline(CdkCodePipeline):
         in the source action configuration. The trigger configuration replaces the default
         change detection mechanism.
 
-        The source action's branch (default_branch) is still used when the pipeline is
-        started manually, but automatic triggers are controlled by the git tag pattern.
+        The source action uses an invalid branch name to ensure the pipeline can only be
+        executed with explicit git tag/commit ID specifications, enforcing tag-based deployments.
         """
         cfn_pipeline = self.pipeline.node.default_child
 
         # Add the Triggers property
-        cfn_pipeline.add_property_override('Triggers', [
-            {
-                'ProviderType': 'CodeStarSourceConnection',
-                'GitConfiguration': {
-                    'SourceActionName': self._github_repo_string.replace('/', '_'),
-                    'Push': [
-                        {
-                            'Tags': {
-                                'Includes': [self._git_tag_trigger_pattern]
-                            }
-                        }
-                    ]
+        cfn_pipeline.add_property_override(
+            'Triggers',
+            [
+                {
+                    'ProviderType': 'CodeStarSourceConnection',
+                    'GitConfiguration': {
+                        'SourceActionName': self._github_repo_string.replace('/', '_'),
+                        'Push': [{'Tags': {'Includes': [self._git_tag_trigger_pattern]}}],
+                    },
                 }
-            }
-        ])
+            ],
+        )
 
         # Set DetectChanges to false in the source action
         # The source action is in Stages[0].Actions[0] (first action of Source stage)
         # This functionally overrides the corresponding `trigger_on_push=True` setting in the
         # CodePipelineSource.connection() call.
-        cfn_pipeline.add_property_override(
-            'Stages.0.Actions.0.Configuration.DetectChanges',
-            False
-        )
+        cfn_pipeline.add_property_override('Stages.0.Actions.0.Configuration.DetectChanges', False)

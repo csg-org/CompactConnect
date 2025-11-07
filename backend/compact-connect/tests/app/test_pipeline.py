@@ -418,9 +418,9 @@ class TestBackendPipeline(TstAppABC, TestCase):
     def test_pipeline_git_tag_triggers(self):
         """Test that pipelines are configured with git tag triggers."""
         test_cases = [
-            (self.app.test_backend_pipeline_stack, 'test-*'),
-            (self.app.beta_backend_pipeline_stack, 'beta-*'),
-            (self.app.prod_backend_pipeline_stack, 'prod-*'),
+            (self.app.test_backend_pipeline_stack, 'cc-test-*'),
+            (self.app.beta_backend_pipeline_stack, 'cc-beta-*'),
+            (self.app.prod_backend_pipeline_stack, 'cc-prod-*'),
         ]
 
         for stack, expected_pattern in test_cases:

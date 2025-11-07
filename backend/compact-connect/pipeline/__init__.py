@@ -178,7 +178,6 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             **kwargs,
         )
 
-        default_branch = self.pipeline_environment_context['default_branch']
         git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
 
         self.pre_prod_pipeline = BackendPipeline(
@@ -188,7 +187,6 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            default_branch=default_branch,
             git_tag_trigger_pattern=git_tag_trigger_pattern,
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
@@ -241,7 +239,6 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             **kwargs,
         )
 
-        default_branch = self.pipeline_environment_context['default_branch']
         git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
 
         self.beta_backend_pipeline = BackendPipeline(
@@ -251,7 +248,6 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            default_branch=default_branch,
             git_tag_trigger_pattern=git_tag_trigger_pattern,
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
@@ -307,7 +303,6 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
         if not self.backup_config or not self.ssm_context['environments'][PROD_ENVIRONMENT_NAME].get('backup_enabled'):
             raise ValueError('Backups must be enabled for production environment.')
 
-        default_branch = self.pipeline_environment_context['default_branch']
         git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
 
         self.prod_pipeline = BackendPipeline(
@@ -317,7 +312,6 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            default_branch=default_branch,
             git_tag_trigger_pattern=git_tag_trigger_pattern,
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
@@ -340,7 +334,7 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
 
         # Add a post step to trigger the frontend pipeline
         # trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
-        self.prod_pipeline.add_stage(self.prod_stage)  #, post=[trigger_frontend_pipeline_step])
+        self.prod_pipeline.add_stage(self.prod_stage)  # , post=[trigger_frontend_pipeline_step])
         self.prod_pipeline.build_pipeline()
         # the following must be called after the pipeline is built
         self._add_pipeline_cdk_assume_role_policy(self.prod_pipeline)
