@@ -379,44 +379,40 @@ class BackendPipeline(CdkCodePipeline):
                 },
                 'build': {
                     'commands': [
+                        dedent(f"""
+                        DEPLOY_OUTPUT=$(cdk -a . deploy {self._pipeline_stack_name} --require-approval=never --verbose 2>&1)
+                        DEPLOY_EXIT_CODE=$?
+                        echo "$DEPLOY_OUTPUT"
+                        [ $DEPLOY_EXIT_CODE -eq 0 ] || exit $DEPLOY_EXIT_CODE
+                        """),  # noqa: E501
                         (
-                            f'DEPLOY_OUTPUT=$(cdk -a . deploy {self._pipeline_stack_name} '
-                            '--require-approval=never --verbose 2>&1)'
-                        ),
-                        'DEPLOY_EXIT_CODE=$?',
-                        'echo "$DEPLOY_OUTPUT"',
-                        '[ $DEPLOY_EXIT_CODE -eq 0 ] || exit $DEPLOY_EXIT_CODE',
-                        (
-                            'echo "$DEPLOY_OUTPUT" | '
                             # Assuming that, if we deploy _any_ changeset here, that's a change to restart on
-                            'grep -q "Initiating execution of changeset" && CHANGED=true || true'
+                            'echo "$DEPLOY_OUTPUT" | grep -q "Initiating execution of changeset" && CHANGED=true || true'  # noqa: E501
                         ),
-                        (
-                            dedent(f"""
-                            if [ -n "$CHANGED" ]; then
-                              echo "Pipeline stack was updated. Triggering new execution with source revision: ${{SOURCE_COMMIT_ID}}"
-                              aws codepipeline start-pipeline-execution \\
-                                --name {self._pipeline_name} \\
-                                --source-revisions actionName={source_action_name},revisionType=COMMIT_ID,revisionValue="${{SOURCE_COMMIT_ID}}"
-                              START_EXIT_CODE=$?
-                              if [ $START_EXIT_CODE -eq 0 ]; then
-                                echo "New pipeline execution started successfully"
-                              else
-                                echo "Failed to start new pipeline execution"
-                                exit $START_EXIT_CODE
-                              fi
-                              aws codepipeline stop-pipeline-execution \\
-                                --pipeline-name {self._pipeline_name} \\
-                                --pipeline-execution-id "${{PIPELINE_EXECUTION_ID}}"
-                              echo "Current pipeline execution cancelled"
-                            elif [ $DEPLOY_EXIT_CODE -eq 0 ]; then
-                              echo "No changes detected in pipeline stack"
-                            else
-                              echo "Pipeline stack deployment failed"
-                              exit $DEPLOY_EXIT_CODE
-                            fi
-                            """)  # noqa: E501
-                        ),
+                        dedent(f"""
+                        if [ -n "$CHANGED" ]; then
+                          echo "Pipeline stack was updated. Triggering new execution with source revision: ${{SOURCE_COMMIT_ID}}"
+                          aws codepipeline start-pipeline-execution \\
+                            --name {self._pipeline_name} \\
+                            --source-revisions actionName={source_action_name},revisionType=COMMIT_ID,revisionValue="${{SOURCE_COMMIT_ID}}"
+                          START_EXIT_CODE=$?
+                          if [ $START_EXIT_CODE -eq 0 ]; then
+                            echo "New pipeline execution started successfully"
+                          else
+                            echo "Failed to start new pipeline execution"
+                            exit $START_EXIT_CODE
+                          fi
+                          aws codepipeline stop-pipeline-execution \\
+                            --pipeline-name {self._pipeline_name} \\
+                            --pipeline-execution-id "${{PIPELINE_EXECUTION_ID}}"
+                          echo "Current pipeline execution cancelled"
+                        elif [ $DEPLOY_EXIT_CODE -eq 0 ]; then
+                          echo "No changes detected in pipeline stack"
+                        else
+                          echo "Pipeline stack deployment failed"
+                          exit $DEPLOY_EXIT_CODE
+                        fi
+                        """)  # noqa: E501
                     ],
                 },
             },
