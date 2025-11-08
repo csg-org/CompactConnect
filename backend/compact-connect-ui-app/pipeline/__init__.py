@@ -3,6 +3,7 @@ from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_sns import ITopic
 from common_constructs.base_pipeline_stack import (
+    ALLOWED_ENVIRONMENT_NAMES,
     BETA_ENVIRONMENT_NAME,
     PROD_ENVIRONMENT_NAME,
     TEST_ENVIRONMENT_NAME,
@@ -79,6 +80,11 @@ class BaseFrontendPipelineStack(BasePipelineStack):
             environment_context=environment_context,
         )
 
+    def _get_frontend_pipeline_name(self):
+        if self.environment_name not in ALLOWED_ENVIRONMENT_NAMES:
+            raise ValueError(f'Environment name must be one of {ALLOWED_ENVIRONMENT_NAMES}')
+
+        return f'{self.environment_name}-compactConnect-frontendPipeline'
 
 class TestFrontendPipelineStack(BaseFrontendPipelineStack):
     """Pipeline stack for the test frontend environment."""
