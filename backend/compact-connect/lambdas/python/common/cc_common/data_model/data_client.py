@@ -1768,7 +1768,7 @@ class DataClient:
                 open_investigations = provider_records.get_investigation_records_for_license(
                     jurisdiction,
                     license_type_abbreviation,
-                    filter_condition=lambda inv: inv.closeDate is None and inv.investigationId != investigation_id,
+                    filter_condition=lambda inv: inv.investigationId != investigation_id,
                 )
                 investigation = next(
                     (
@@ -1776,7 +1776,7 @@ class DataClient:
                         for inv in provider_records.get_investigation_records_for_license(
                             jurisdiction,
                             license_type_abbreviation,
-                            filter_condition=lambda inv: inv.investigationId == investigation_id
+                            filter_condition=lambda inv: inv.investigationId == investigation_id,
                         )
                     ),
                     None,
@@ -1802,7 +1802,7 @@ class DataClient:
                         for inv in provider_records.get_investigation_records_for_privilege(
                             jurisdiction,
                             license_type_abbreviation,
-                            filter_condition=lambda inv: inv.investigationId == investigation_id
+                            filter_condition=lambda inv: inv.investigationId == investigation_id,
                         )
                     ),
                     None,

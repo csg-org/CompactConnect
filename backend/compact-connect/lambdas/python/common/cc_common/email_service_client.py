@@ -34,7 +34,7 @@ class InvestigationNotificationTemplateVariables:
     provider_last_name: str
     investigation_jurisdiction: str
     license_type: str
-    provider_id: UUID | None = None
+    provider_id: UUID
 
 
 class ProviderNotificationMethod(Protocol):

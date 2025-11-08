@@ -1,13 +1,14 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import Schema
 from marshmallow.fields import List, Nested, Raw, String
-from marshmallow.validate import Length
+from marshmallow.validate import ContainsNoneOf, Length
 
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionGeneralResponseSchema,
     AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.common import UpdateCategory
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -166,7 +167,13 @@ class PrivilegeHistoryEventResponseSchema(ForgivingSchema):
     """
 
     type = String(required=True, allow_none=False)
-    updateType = UpdateType(required=True, allow_none=False)
+    # We specifically prohibit returning investigation updates as a backup protection from accidental
+    # disclosure via the API
+    updateType = UpdateType(
+        required=True,
+        allow_none=False,
+        validate=ContainsNoneOf((UpdateCategory.INVESTIGATION, UpdateCategory.CLOSING_INVESTIGATION)),
+    )
     dateOfUpdate = Raw(required=True, allow_none=False)
     effectiveDate = Raw(required=True, allow_none=False)
     createDate = Raw(required=True, allow_none=False)

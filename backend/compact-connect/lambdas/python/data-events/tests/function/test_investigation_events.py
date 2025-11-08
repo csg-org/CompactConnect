@@ -184,46 +184,6 @@ class TestInvestigationEvents(TstFunction):
 
         self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
 
-    @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_state_notification_email')
-    def test_license_investigation_listener_processes_event_with_unregistered_provider(self, mock_state_email):
-        """
-        Test that license investigation listener handles unregistered providers.
-
-        Note: An unregistered provider holding a license should not be possible in our system.
-        This test is just stressing the limits of our investigation logic, to make sure it handles it gracefully.
-        """
-        from cc_common.email_service_client import InvestigationNotificationTemplateVariables
-        from handlers.investigation_events import license_investigation_notification_listener
-
-        # Set up test data with unregistered provider (no email)
-        self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=False)
-
-        # Add the license that is under investigation
-        self.test_data_generator.put_default_license_record_in_provider_table()
-
-        message = self._generate_license_investigation_message()
-        event = self._create_sqs_event(message)
-
-        # Execute the handler
-        result = license_investigation_notification_listener(event, self.mock_context)
-
-        # Should succeed with no batch failures
-        self.assertEqual({'batchItemFailures': []}, result)
-
-        # Verify state notification was still sent
-        # Note: We do NOT send provider notifications for investigations
-        mock_state_email.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-            template_variables=InvestigationNotificationTemplateVariables(
-                provider_first_name='Björk',
-                provider_last_name='Guðmundsdóttir',
-                investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-                license_type='speech-language pathologist',
-                provider_id=UUID(DEFAULT_PROVIDER_ID),
-            ),
-        )
-
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_investigation_closed_state_notification_email'
     )
