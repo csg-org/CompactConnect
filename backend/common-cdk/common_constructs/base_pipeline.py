@@ -33,6 +33,7 @@ class BasePipeline(CdkCodePipeline):
         pipeline_name: str,
         pipeline_stack_name: str | None = None,
         github_repo_string: str | None = None,
+        git_tag_trigger_pattern: str | None = None,
         self_mutation: bool = True,
         **kwargs,
     ):
@@ -49,6 +50,9 @@ class BasePipeline(CdkCodePipeline):
         :param github_repo_string: The GitHub repository string in the format 'owner/repo'.
                                   Used by the custom self-mutation step to reference the source action
                                   when restarting the pipeline. Required if self_mutation is enabled.
+        :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
+                                       trigger the pipeline (e.g., 'prod-*', 'beta-*', 'test-*').
+                                       If provided, the pipeline will be configured with git tag triggers.
         :param self_mutation: Whether to enable self-mutation for this pipeline. When enabled, the
                              pipeline will automatically update itself when its definition changes,
                              preserving the git tag/commit ID when restarting. Defaults to True.
@@ -60,6 +64,7 @@ class BasePipeline(CdkCodePipeline):
         self._pipeline_name = pipeline_name
         self._pipeline_stack_name = pipeline_stack_name
         self._github_repo_string = github_repo_string
+        self._git_tag_trigger_pattern = git_tag_trigger_pattern
 
         super().__init__(scope, construct_id, pipeline_name=pipeline_name, self_mutation=self_mutation, **kwargs)
 
@@ -70,6 +75,10 @@ class BasePipeline(CdkCodePipeline):
         # Only apply custom self-mutation if self_mutation is enabled
         if self._self_mutation_enabled:
             self._replace_self_mutation_step()
+
+        # Configure git tag triggers if pattern is provided
+        if self._git_tag_trigger_pattern:
+            self._configure_git_tag_trigger()
 
     def _replace_self_mutation_step(self):
         """
@@ -232,3 +241,50 @@ class BasePipeline(CdkCodePipeline):
                 ],
             )
         )
+
+    def _configure_git_tag_trigger(self):
+        """
+        Configure git tag-based trigger using CDK escape hatch.
+
+        When triggers with filters are configured, AWS requires DetectChanges to be false
+        in the source action configuration. The trigger configuration replaces the default
+        change detection mechanism.
+
+        The source action uses an invalid branch name to ensure the pipeline can only be
+        executed with explicit git tag/commit ID specifications, enforcing tag-based deployments.
+
+        This method requires:
+        - self._github_repo_string: The GitHub repository string (e.g., 'owner/repo')
+        - self._git_tag_trigger_pattern: The git tag pattern (glob format) for triggers
+        """
+        if not self._github_repo_string:
+            raise RuntimeError(
+                'GitHub repo string must be set. Ensure github_repo_string is passed to the pipeline constructor.'
+            )
+        if not self._git_tag_trigger_pattern:
+            raise RuntimeError(
+                'Git tag trigger pattern must be set. Ensure git_tag_trigger_pattern is passed to the pipeline '
+                'constructor.'
+            )
+
+        cfn_pipeline: CfnPipeline = self.pipeline.node.default_child
+
+        # Add the Triggers property
+        cfn_pipeline.add_property_override(
+            'Triggers',
+            [
+                {
+                    'ProviderType': 'CodeStarSourceConnection',
+                    'GitConfiguration': {
+                        'SourceActionName': self._github_repo_string.replace('/', '_'),
+                        'Push': [{'Tags': {'Includes': [self._git_tag_trigger_pattern]}}],
+                    },
+                }
+            ],
+        )
+
+        # Set DetectChanges to false in the source action
+        # The source action is in Stages[0].Actions[0] (first action of Source stage)
+        # This functionally overrides the corresponding `trigger_on_push=True` setting in the
+        # CodePipelineSource.connection() call.
+        cfn_pipeline.add_property_override('Stages.0.Actions.0.Configuration.DetectChanges', False)

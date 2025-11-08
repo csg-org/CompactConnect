@@ -28,10 +28,10 @@ class BackendPipeline(BasePipeline):
     2. The Frontend Pipeline then deploys the frontend application using those resources
 
     Deployment Flow:
-    - Automatically triggered by git tags matching the specified pattern (e.g., 'prod-*')
-    - Pipeline is configured with an invalid branch name to ensure it can only be executed
-      with explicit git tag/commit ID specifications
-    - Triggers the Frontend Pipeline after successful deployment with the EXACT SAME commit ID
+    - Automatically triggered by git tags matching the specified pattern (e.g., 'cc-prod-*')
+
+    The pipeline is configured with an invalid branch name to ensure it can only be executed
+    with explicit git tag/commit ID specifications, enforcing tag-based deploiyments only.
     """
 
     def __init__(
@@ -90,6 +90,7 @@ class BackendPipeline(BasePipeline):
             pipeline_name=pipeline_name,
             pipeline_stack_name=pipeline_stack_name,
             github_repo_string=github_repo_string,
+            git_tag_trigger_pattern=git_tag_trigger_pattern,
             pipeline_type=PipelineType.V2,
             artifact_bucket=artifact_bucket,
             role=pipeline_role,
@@ -136,7 +137,6 @@ class BackendPipeline(BasePipeline):
             **kwargs,
         )
         self._ssm_parameter = ssm_parameter
-        self._git_tag_trigger_pattern = git_tag_trigger_pattern
 
         self._encryption_key = encryption_key
         self._alarm_topic = alarm_topic
@@ -182,8 +182,6 @@ class BackendPipeline(BasePipeline):
 
         self._add_alarms()
         self._add_codebuild_pipeline_role_override()
-        self._configure_git_tag_trigger()
-        # BasePipeline.build_pipeline() will call _replace_self_mutation_step() if self_mutation is enabled
 
     def _add_alarms(self):
         NotificationRule(
@@ -298,36 +296,3 @@ class BackendPipeline(BasePipeline):
 
             # Now, remove the unused role and default policy
             assets_node.node.try_remove_child('FileRole')
-
-    def _configure_git_tag_trigger(self):
-        """
-        Configure git tag-based trigger using CDK escape hatch.
-
-        When triggers with filters are configured, AWS requires DetectChanges to be false
-        in the source action configuration. The trigger configuration replaces the default
-        change detection mechanism.
-
-        The source action uses an invalid branch name to ensure the pipeline can only be
-        executed with explicit git tag/commit ID specifications, enforcing tag-based deployments.
-        """
-        cfn_pipeline = self.pipeline.node.default_child
-
-        # Add the Triggers property
-        cfn_pipeline.add_property_override(
-            'Triggers',
-            [
-                {
-                    'ProviderType': 'CodeStarSourceConnection',
-                    'GitConfiguration': {
-                        'SourceActionName': self._github_repo_string.replace('/', '_'),
-                        'Push': [{'Tags': {'Includes': [self._git_tag_trigger_pattern]}}],
-                    },
-                }
-            ],
-        )
-
-        # Set DetectChanges to false in the source action
-        # The source action is in Stages[0].Actions[0] (first action of Source stage)
-        # This functionally overrides the corresponding `trigger_on_push=True` setting in the
-        # CodePipelineSource.connection() call.
-        cfn_pipeline.add_property_override('Stages.0.Actions.0.Configuration.DetectChanges', False)

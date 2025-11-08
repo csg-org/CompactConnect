@@ -194,34 +194,21 @@ class TestBasePipeline(TestCase):
 
     def test_pipeline_git_tag_triggers(self):
         """Test that pipelines can be configured with git tag triggers."""
+        git_tag_pattern = 'test-*'
+        source_action_name = TEST_GITHUB_REPO_STRING.replace('/', '_')
+
         pipeline = ConcretePipeline(
             self.stack,
             'TestPipeline',
             pipeline_name='test-pipeline',
+            pipeline_stack_name='TestStack',
+            github_repo_string=TEST_GITHUB_REPO_STRING,
+            git_tag_trigger_pattern=git_tag_pattern,
             self_mutation=False,
             artifact_bucket=self.artifact_bucket,
         )
 
         pipeline.build_pipeline()
-
-        # Configure git tag trigger using escape hatch (simulating what BackendPipeline does)
-        cfn_pipeline: CfnPipeline = pipeline.pipeline.node.default_child
-        source_action_name = TEST_GITHUB_REPO_STRING.replace('/', '_')
-        git_tag_pattern = 'test-*'
-
-        cfn_pipeline.add_property_override(
-            'Triggers',
-            [
-                {
-                    'ProviderType': 'CodeStarSourceConnection',
-                    'GitConfiguration': {
-                        'SourceActionName': source_action_name,
-                        'Push': [{'Tags': {'Includes': [git_tag_pattern]}}],
-                    },
-                }
-            ],
-        )
-        cfn_pipeline.add_property_override('Stages.0.Actions.0.Configuration.DetectChanges', False)
 
         template = Template.from_stack(self.stack)
 
@@ -247,9 +234,10 @@ class TestBasePipeline(TestCase):
                                     [
                                         Match.object_like(
                                             {
-                                                'Configuration': Match.object_like(
-                                                    {'DetectChanges': False, 'BranchName': Match.any_value()}
-                                                )
+                                                'Configuration': {
+                                                    'DetectChanges': False,
+                                                    'BranchName': Match.any_value(),
+                                                }
                                             }
                                         )
                                     ]
