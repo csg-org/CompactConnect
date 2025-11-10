@@ -20,7 +20,7 @@ from smoke_common import (
     load_smoke_test_env,
 )
 
-COMPACT = 'octp'
+COMPACT = 'coun'
 JURISDICTION = 'ne'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
@@ -48,13 +48,15 @@ def upload_test_license_batch(
         license_data = {
             'licenseNumber': f'ROLLBACK-TEST-{i:04d}',
             'homeAddressPostalCode': '68001',
-            'givenName': f'TestProvider{i}',
-            'familyName': f'RollbackTest{i:04d}',
+            'givenName': f'TestProvider{i:04d}',
+            # keep the family name consistent so we can query for all the providers which requires an exact
+            # match on the family name
+            'familyName': 'RollbackTest',
             'homeAddressStreet1': '123 Test Street',
             'dateOfBirth': '1985-01-01',
             'dateOfIssuance': '2020-01-01',
             'ssn': f'500-50-{i:04d}',  # Incrementing SSN with padded zeros
-            'licenseType': 'audiologist',
+            'licenseType': 'licensed professional counselor',
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'NE',
             'homeAddressCity': 'Omaha',
@@ -69,7 +71,7 @@ def upload_test_license_batch(
     )
 
     post_response = requests.post(
-        url=f'{get_api_base_url()}/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses',
+        url=f'{config.state_api_base_url}/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses',
         headers=auth_headers,
         json=licenses_batch,
         timeout=60,  # Longer timeout for batch uploads
@@ -134,7 +136,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
     base_query_body = {
         'query': {'familyName': 'RollbackTest'},
         'pagination': {
-            'pageSize': 1000  # Maximum page size to minimize number of requests
+            'pageSize': 100  # Maximum page size to minimize number of requests
         },
     }
 
@@ -157,7 +159,8 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
             )
 
             if query_response.status_code != 200:
-                logger.warning(f'Query failed with status {query_response.status_code}. Retrying...')
+                logger.warning(f'Query failed with status {query_response.status_code}: {query_response.json()}'
+                               f' Retrying...')
                 break
 
             response_data = query_response.json()

@@ -501,7 +501,7 @@ def create_test_app_client(client_name: str, compact: str, jurisdiction: str):
 
         # Create the user pool client
         response = cognito_client.create_user_pool_client(
-            UserPoolId=config.cognito_staff_user_pool_id,
+            UserPoolId=config.cognito_state_auth_user_pool_id,
             ClientName=client_name,
             PreventUserExistenceErrors='ENABLED',
             GenerateSecret=True,
@@ -533,7 +533,7 @@ def delete_test_app_client(client_id: str):
     """Delete the test app client from Cognito."""
     try:
         cognito_client = boto3.client('cognito-idp')
-        cognito_client.delete_user_pool_client(UserPoolId=config.cognito_staff_user_pool_id, ClientId=client_id)
+        cognito_client.delete_user_pool_client(UserPoolId=config.cognito_state_auth_user_pool_id, ClientId=client_id)
         logger.info(f'Successfully deleted test app client: {client_id}')
     except ClientError as e:
         logger.error(f'Failed to delete app client {client_id}: {str(e)}')
@@ -551,7 +551,7 @@ def get_client_credentials_token(client_id: str, client_secret: str, compact: st
     :return: Access token
     """
     try:
-        auth_url = f'https://{config.cognito_staff_user_pool_id.split("_")[1]}.auth.{config.aws_region}.amazoncognito.com/oauth2/token'
+        auth_url = config.state_auth_url
 
         # Prepare the request data for client credentials flow
         data = {
