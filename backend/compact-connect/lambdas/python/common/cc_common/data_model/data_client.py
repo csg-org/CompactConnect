@@ -925,6 +925,7 @@ class DataClient:
             }
 
             # Create provider update record to show registration event and fields that were updated
+            now = config.current_standard_datetime
             provider_update_record = ProviderUpdateData.create_new(
                 {
                     'type': ProviderRecordType.PROVIDER_UPDATE,
@@ -932,6 +933,7 @@ class DataClient:
                     'providerId': matched_license_record.providerId,
                     'compact': matched_license_record.compact,
                     'previous': current_provider_record.to_dict(),
+                    'createDate': now,
                     'updatedValues': {**registration_values},
                 }
             )
@@ -2632,6 +2634,7 @@ class DataClient:
         )
 
         # Create the provider update record
+        now = config.current_standard_datetime
         provider_update_record = ProviderUpdateData.create_new(
             {
                 'type': ProviderRecordType.PROVIDER_UPDATE,
@@ -2639,6 +2642,7 @@ class DataClient:
                 'providerId': provider_id,
                 'compact': compact,
                 'previous': provider_record.to_dict(),
+                'createDate': now,
                 'updatedValues': {
                     'currentHomeJurisdiction': selected_jurisdiction,
                 },
@@ -2792,6 +2796,7 @@ class DataClient:
         )
 
         # Create the provider update record
+        now = config.current_standard_datetime
         provider_update_record = ProviderUpdateData.create_new(
             {
                 'type': ProviderRecordType.PROVIDER_UPDATE,
@@ -2799,6 +2804,7 @@ class DataClient:
                 'providerId': provider_id,
                 'compact': compact,
                 'previous': provider_records.get_provider_record().to_dict(),
+                'createDate': now,
                 'updatedValues': {
                     'licenseJurisdiction': new_license_record.jurisdiction,
                     # we explicitly set this to align with what was passed in as the selected jurisdiction
@@ -3485,6 +3491,7 @@ class DataClient:
         current_provider_record = self.get_provider_top_level_record(compact=compact, provider_id=provider_id)
 
         # Create provider update record to track the email change
+        now = config.current_standard_datetime
         provider_update_record = ProviderUpdateData.create_new(
             {
                 'type': ProviderRecordType.PROVIDER_UPDATE,
@@ -3492,6 +3499,7 @@ class DataClient:
                 'providerId': provider_id,
                 'compact': compact,
                 'previous': current_provider_record.to_dict(),
+                'createDate': now,
                 'updatedValues': {
                     'compactConnectRegisteredEmailAddress': new_email_address,
                 },

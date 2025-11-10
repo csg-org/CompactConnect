@@ -243,13 +243,13 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         served out via API.
         """
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
-        # This needs to include a POSIX timestamp (seconds) and a hash of the changes
-        # to the record. We'll use the current time and the hash of the updatedValues
+        # This needs to include an iso formatted datetime string and a hash of the changes
+        # to the record. We'll use the createDate and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         in_data['sk'] = (
-            f'{in_data["compact"]}#UPDATE#3#license/{in_data["jurisdiction"]}/{license_type_abbr}/{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#UPDATE#3#license/{in_data["jurisdiction"]}/{license_type_abbr}/{in_data["createDate"]}/{change_hash}'
         )
         return in_data
 

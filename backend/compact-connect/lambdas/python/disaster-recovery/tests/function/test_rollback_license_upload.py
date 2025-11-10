@@ -637,7 +637,8 @@ class TestRollbackLicenseUpload(TstFunction):
                         'privilegesReverted': [],
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the sha here will need to be updated
-                        'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6'],
+                        'updatesDeleted': [
+                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'],
                     }
                 ],
                 'skippedProviderDetails': [],
@@ -712,8 +713,9 @@ class TestRollbackLicenseUpload(TstFunction):
                         ],
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the shas here will need to be updated
-                        'updatesDeleted': ['aslp#UPDATE#1#privilege/ne/slp/1761207300/06b886756a79b796ad10b17bd67057e6',
-                                           'aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6'],
+                        'updatesDeleted': [
+                            'aslp#UPDATE#1#privilege/ne/slp/2025-10-23T07:15:00+00:00/06b886756a79b796ad10b17bd67057e6',
+                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'],
                     }
                 ],
                 'skippedProviderDetails': [],
@@ -1069,14 +1071,16 @@ class TestRollbackLicenseUpload(TstFunction):
                                                       'revisionId': ANY}],
                                 'privilegesReverted': [],
                                 'providerId': mock_first_provider_id,
-                                'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6']},
+                                'updatesDeleted': [
+                                    'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6']},
                                {'licensesReverted': [{'action': 'REVERT',
                                                       'jurisdiction': 'oh',
                                                       'licenseType': 'speech-language pathologist',
                                                       'revisionId': ANY}],
                                 'privilegesReverted': [],
                                 'providerId': mock_second_provider_id,
-                                'updatesDeleted': ['aslp#UPDATE#3#license/oh/slp/1761207300/d92450a96739428f1a77c051dce9d4a6']}],
+                                'updatesDeleted': [
+                                    'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6']}],
  'skippedProviderDetails': []}, final_results_data)
 
     def test_transaction_failure_is_logged_and_provider_marked_as_failed(self):

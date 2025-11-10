@@ -514,6 +514,7 @@ class TestDataGenerator:
             'compact': DEFAULT_COMPACT,
             'type': PROVIDER_UPDATE_RECORD_TYPE,
             'previous': previous_dict,
+            'createDate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME),
             'updatedValues': {
                 'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
                 'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,

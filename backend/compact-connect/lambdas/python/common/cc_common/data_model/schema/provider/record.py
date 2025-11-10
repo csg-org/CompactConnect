@@ -225,19 +225,32 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     providerId = UUID(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     previous = Nested(ProviderUpdatePreviousRecordSchema, required=True, allow_none=False)
+    # this tracks when the update record was created
+    createDate = DateTime(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(ProviderUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
 
+    # TODO - remove this pre_load hook after migration is complete  # noqa: FIX002
+    @pre_load
+    def populate_create_date_for_backwards_compatibility(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """
+        For backwards compatibility, populate createDate from dateOfUpdate if createDate is missing.
+        This allows us to load old records that were created before the createDate field was added.
+        """
+        if 'createDate' not in in_data and 'updatedValues' in in_data and 'dateOfUpdate' in in_data['updatedValues']:
+            in_data['createDate'] = in_data['updatedValues']['dateOfUpdate']
+        return in_data
+
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
-        # This needs to include a POSIX timestamp (seconds) and a hash of the changes
-        # to the record. We'll use the current time and the hash of the updatedValues
+        # This needs to include a iso formatted datetime string and a hash of the changes
+        # to the record. We'll use the createDate and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
         in_data['sk'] = (
-            f'{in_data["compact"]}#UPDATE#2#provider/{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#UPDATE#2#provider/{in_data["createDate"]}/{change_hash}'
         )
         return in_data
