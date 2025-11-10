@@ -3,7 +3,7 @@ name: Auto-Tag Test Deployments
 on:
   push:
     branches:
-      - feat/git-tag-deploys
+      - main
 
 env:
   AWS_REGION: "us-east-1"
