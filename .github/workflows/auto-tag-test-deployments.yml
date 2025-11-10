@@ -1,0 +1,51 @@
+name: Auto-Tag Test Deployments
+
+on:
+  push:
+    branches:
+      - feat/git-tag-deploys
+
+env:
+  AWS_REGION: "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  contents: write  # Required to create tags
+  id-token: write  # This is required for requesting the JWT
+
+jobs:
+  AutoTag:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history to compare commits
+          token: ${{ secrets.GITHUB_TOKEN }}  # Required to push tags
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create CC Test Tag
+        run: |
+          SHORT_SHA=$(git rev-parse --short ${{ github.sha }})
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="cc-test-${TIMESTAMP}-${SHORT_SHA}"
+
+          git tag -a "$TAG_NAME" -m "Auto-generated test deployment tag for compact-connect service (commit: ${{ github.sha }})"
+          git push origin "$TAG_NAME"
+
+          echo "Created tag: $TAG_NAME"
+
+      - name: Create UI Test Tag
+        run: |
+          SHORT_SHA=$(git rev-parse --short ${{ github.sha }})
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="ui-test-${TIMESTAMP}-${SHORT_SHA}"
+
+          git tag -a "$TAG_NAME" -m "Auto-generated test deployment tag for compact-connect-ui-app service (commit: ${{ github.sha }})"
+          git push origin "$TAG_NAME"
+
+          echo "Created tag: $TAG_NAME"
