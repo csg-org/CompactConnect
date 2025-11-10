@@ -9,17 +9,21 @@ import requests
 from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
+    create_test_app_client,
     create_test_staff_user,
+    delete_test_app_client,
     delete_test_staff_user,
     get_api_base_url,
+    get_client_auth_headers,
     get_provider_user_records,
     get_staff_user_auth_headers,
     load_smoke_test_env,
 )
 
-COMPACT = 'aslp'
+COMPACT = 'octp'
 JURISDICTION = 'ne'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
+TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 
 # Test configuration
 NUM_LICENSES_TO_UPLOAD = 1000
@@ -27,12 +31,12 @@ BATCH_SIZE = 100  # Upload in batches of 100 to avoid timeouts
 
 
 def upload_test_license_batch(
-    staff_headers: dict, batch_start_index: int, batch_size: int
+    auth_headers: dict, batch_start_index: int, batch_size: int
 ):
     """
     Upload a batch of test license records.
 
-    :param staff_headers: Authentication headers for staff user
+    :param auth_headers: Authentication headers for app client
     :param batch_start_index: Starting index for this batch
     :param batch_size: Number of licenses to upload in this batch
     :return: List of license records that were uploaded
@@ -66,7 +70,7 @@ def upload_test_license_batch(
 
     post_response = requests.post(
         url=f'{get_api_base_url()}/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses',
-        headers=staff_headers,
+        headers=auth_headers,
         json=licenses_batch,
         timeout=60,  # Longer timeout for batch uploads
     )
@@ -80,11 +84,11 @@ def upload_test_license_batch(
     return licenses_batch
 
 
-def upload_test_licenses(staff_headers: dict, num_licenses: int, batch_size: int):
+def upload_test_licenses(auth_headers: dict, num_licenses: int, batch_size: int):
     """
     Upload test license records in batches.
 
-    :param staff_headers: Authentication headers for staff user
+    :param auth_headers: Authentication headers for app client
     :param num_licenses: Total number of licenses to upload
     :param batch_size: Number of licenses per batch
     :return: Tuple of (all uploaded license data, upload start time, upload end time)
@@ -96,7 +100,7 @@ def upload_test_licenses(staff_headers: dict, num_licenses: int, batch_size: int
 
     for batch_start in range(0, num_licenses, batch_size):
         current_batch_size = min(batch_size, num_licenses - batch_start)
-        batch_licenses = upload_test_license_batch(staff_headers, batch_start, current_batch_size)
+        batch_licenses = upload_test_license_batch(auth_headers, batch_start, current_batch_size)
         all_licenses.extend(batch_licenses)
 
         # Small delay between batches to avoid rate limiting
@@ -459,79 +463,92 @@ def rollback_license_upload_smoke_test():
     if not step_function_arn:
         raise SmokeTestFailureException('CC_TEST_ROLLBACK_STEP_FUNCTION_ARN environment variable not set')
 
+    # staff user to query providers
     staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
 
-    # Step 1: Upload test licenses
-    logger.info('=' * 80)
-    logger.info('STEP 1: Uploading test licenses')
-    logger.info('=' * 80)
+    # Create test app client for authentication
+    client_credentials = create_test_app_client(TEST_APP_CLIENT_NAME, COMPACT, JURISDICTION)
+    client_id = client_credentials['client_id']
+    client_secret = client_credentials['client_secret']
 
-    uploaded_licenses, upload_start_time, upload_end_time = upload_test_licenses(
-        staff_headers,
-        NUM_LICENSES_TO_UPLOAD,
-        BATCH_SIZE,
-    )
+    try:
+        # Get authentication headers using app client
+        auth_headers = get_client_auth_headers(client_id, client_secret, COMPACT, JURISDICTION)
 
-    logger.info(f'Upload time window: {upload_start_time.isoformat()} to {upload_end_time.isoformat()}')
+        # Step 1: Upload test licenses
+        logger.info('=' * 80)
+        logger.info('STEP 1: Uploading test licenses')
+        logger.info('=' * 80)
 
-    # Step 2: Wait for providers to be created
-    logger.info('=' * 80)
-    logger.info('STEP 2: Waiting for provider records to be created')
-    logger.info('=' * 80)
+        uploaded_licenses, upload_start_time, upload_end_time = upload_test_licenses(
+            auth_headers,
+            NUM_LICENSES_TO_UPLOAD,
+            BATCH_SIZE,
+        )
 
-    provider_ids = wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
+        logger.info(f'Upload time window: {upload_start_time.isoformat()} to {upload_end_time.isoformat()}')
 
-    logger.info(f'Found {len(provider_ids)} provider records')
+        # Step 2: Wait for providers to be created
+        logger.info('=' * 80)
+        logger.info('STEP 2: Waiting for provider records to be created')
+        logger.info('=' * 80)
 
-    # Step 3: Start rollback step function
-    logger.info('=' * 80)
-    logger.info('STEP 3: Starting rollback step function')
-    logger.info('=' * 80)
+        provider_ids = wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
 
-    # Add buffer to time window to ensure we catch all uploads
-    rollback_start = upload_start_time - timedelta(minutes=5)
-    rollback_end = upload_end_time + timedelta(minutes=5)
+        logger.info(f'Found {len(provider_ids)} provider records')
 
-    execution_arn = start_rollback_step_function(
-        step_function_arn=step_function_arn,
-        compact=COMPACT,
-        jurisdiction=JURISDICTION,
-        start_datetime=rollback_start,
-        end_datetime=rollback_end,
-    )
+        # Step 3: Start rollback step function
+        logger.info('=' * 80)
+        logger.info('STEP 3: Starting rollback step function')
+        logger.info('=' * 80)
 
-    # Step 4: Wait for step function completion
-    logger.info('=' * 80)
-    logger.info('STEP 4: Waiting for step function to complete')
-    logger.info('=' * 80)
+        # Add buffer to time window to ensure we catch all uploads
+        rollback_start = upload_start_time - timedelta(minutes=5)
+        rollback_end = upload_end_time + timedelta(minutes=5)
 
-    status, output = wait_for_step_function_completion(execution_arn)
+        execution_arn = start_rollback_step_function(
+            step_function_arn=step_function_arn,
+            compact=COMPACT,
+            jurisdiction=JURISDICTION,
+            start_datetime=rollback_start,
+            end_datetime=rollback_end,
+        )
 
-    logger.info(f'Step function output: {json.dumps(output, indent=2)}')
+        # Step 4: Wait for step function completion
+        logger.info('=' * 80)
+        logger.info('STEP 4: Waiting for step function to complete')
+        logger.info('=' * 80)
 
-    # Step 5: Retrieve and verify results from S3
-    logger.info('=' * 80)
-    logger.info('STEP 5: Retrieving and verifying results from S3')
-    logger.info('=' * 80)
+        status, output = wait_for_step_function_completion(execution_arn)
 
-    results_s3_key = output.get('resultsS3Key')
-    if not results_s3_key:
-        raise SmokeTestFailureException('No resultsS3Key in step function output')
+        logger.info(f'Step function output: {json.dumps(output, indent=2)}')
 
-    results = get_rollback_results_from_s3(results_s3_key)
+        # Step 5: Retrieve and verify results from S3
+        logger.info('=' * 80)
+        logger.info('STEP 5: Retrieving and verifying results from S3')
+        logger.info('=' * 80)
 
-    verify_rollback_results(results, len(provider_ids))
+        results_s3_key = output.get('resultsS3Key')
+        if not results_s3_key:
+            raise SmokeTestFailureException('No resultsS3Key in step function output')
 
-    # Step 6: Verify providers deleted from database
-    logger.info('=' * 80)
-    logger.info('STEP 6: Verifying providers were deleted from database')
-    logger.info('=' * 80)
+        results = get_rollback_results_from_s3(results_s3_key)
 
-    verify_providers_deleted_from_database(results, COMPACT)
+        verify_rollback_results(results, len(provider_ids))
 
-    logger.info('=' * 80)
-    logger.info('✅ ALL TESTS PASSED')
-    logger.info('=' * 80)
+        # Step 6: Verify providers deleted from database
+        logger.info('=' * 80)
+        logger.info('STEP 6: Verifying providers were deleted from database')
+        logger.info('=' * 80)
+
+        verify_providers_deleted_from_database(results, COMPACT)
+
+        logger.info('=' * 80)
+        logger.info('✅ ALL TESTS PASSED')
+        logger.info('=' * 80)
+    finally:
+        # Clean up the test app client
+        delete_test_app_client(client_id)
 
 
 if __name__ == '__main__':
