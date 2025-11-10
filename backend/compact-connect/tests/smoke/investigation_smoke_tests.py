@@ -311,11 +311,11 @@ def test_close_privilege_investigation(auth_headers):
 
     investigation_id = _verify_investigation_exists('privilege', jurisdiction, license_type)
 
-    # Close investigation (empty JSON body)
+    # Close investigation (no encumbrance)
     response = requests.patch(
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}/privileges/jurisdiction/{jurisdiction}'
         f'/licenseType/{license_type_abbreviation}/investigation/{investigation_id}',
-        json={},
+        json={'action': 'close'},
         headers=auth_headers,
         timeout=30,
     )
@@ -346,12 +346,12 @@ def test_close_license_investigation(auth_headers):
 
     investigation_id = _verify_investigation_exists('license', jurisdiction, license_type)
 
-    # Close investigation (empty JSON body)
+    # Close investigation (no encumbrance)
     response = requests.patch(
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}/licenses/jurisdiction/{jurisdiction}'
         f'/licenseType/{license_type_abbreviation}/investigation/{investigation_id}',
         headers=auth_headers,
-        json={},
+        json={'action': 'close'},
         timeout=30,
     )
 
@@ -392,6 +392,7 @@ def test_close_privilege_investigation_with_encumbrance(auth_headers):
 
     # Close investigation with encumbrance
     close_data = {
+        'action': 'close',
         'encumbrance': {
             'encumbranceEffectiveDate': '2024-01-15',
             'encumbranceType': 'fine',

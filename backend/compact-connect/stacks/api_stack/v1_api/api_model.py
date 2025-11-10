@@ -2862,7 +2862,9 @@ class ApiModel:
                 description='Patch privilege investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
+                    required=['action'],
                     properties={
+                        'action': JsonSchema(type=JsonSchemaType.STRING, enum=['close']),
                         'encumbrance': self._encumbrance_request_schema,
                     },
                 ),
@@ -2880,7 +2882,9 @@ class ApiModel:
                 description='Patch license investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
+                    required=['action'],
                     properties={
+                        'action': JsonSchema(type=JsonSchemaType.STRING, enum=['close']),
                         'encumbrance': self._encumbrance_request_schema,
                     },
                 ),

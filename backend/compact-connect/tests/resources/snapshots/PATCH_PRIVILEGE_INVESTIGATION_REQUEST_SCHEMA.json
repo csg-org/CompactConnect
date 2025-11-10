@@ -1,5 +1,11 @@
 {
   "properties": {
+    "action": {
+      "enum": [
+        "close"
+      ],
+      "type": "string"
+    },
     "encumbrance": {
       "additionalProperties": false,
       "description": "Encumbrance data to create",
@@ -50,6 +56,9 @@
       "type": "object"
     }
   },
+  "required": [
+    "action"
+  ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"
 }

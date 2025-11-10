@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-10-25T20:22:36Z"
+    "version": "2025-11-10T18:53:58Z"
   },
   "servers": [
     {
@@ -10,61 +10,6 @@
     }
   ],
   "paths": {
-    "/v1/public/jurisdictions/live": {
-      "get": {
-        "summary": "Get live jurisdictions",
-        "description": "Returns all jurisdictions that are live (enabled for operations) across all compacts or for a specific compact if the optional compact query parameter is provided.",
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "query",
-            "required": false,
-            "description": "Optional compact abbreviation to filter results. If not provided, returns data for all compacts. If an invalid compact is provided, returns a 400 error.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "200 response - Returns a dictionary with compact abbreviations as keys and arrays of live jurisdiction postal abbreviations as values",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "example": {
-                    "aslp": ["co", "ne", "wy"],
-                    "octp": ["ak", "ky"]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "400 response - Invalid compact abbreviation provided",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Invalid request query param: invalid_compact"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/compacts/{compact}": {
       "get": {
         "parameters": [
@@ -2855,6 +2800,31 @@
         }
       }
     },
+    "/v1/public/jurisdictions/live": {
+      "get": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenZdwYMaXuEYs6"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/purchases/privileges": {
       "post": {
         "parameters": [
@@ -3046,8 +3016,17 @@
         "additionalProperties": false
       },
       "SandboLicenvJ6cvnUE8Wwa": {
+        "required": [
+          "action"
+        ],
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "close"
+            ]
+          },
           "encumbrance": {
             "required": [
               "encumbranceEffectiveDate",
@@ -5421,8 +5400,17 @@
         "additionalProperties": false
       },
       "SandboLicenmwNUQ4l5yt99": {
+        "required": [
+          "action"
+        ],
         "type": "object",
         "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "close"
+            ]
+          },
           "encumbrance": {
             "required": [
               "encumbranceEffectiveDate",
@@ -5977,6 +5965,70 @@
           }
         },
         "additionalProperties": false
+      },
+      "SandboLicenZdwYMaXuEYs6": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ]
+          }
+        }
       },
       "SandboLiceng72nqBB23bmL": {
         "required": [
