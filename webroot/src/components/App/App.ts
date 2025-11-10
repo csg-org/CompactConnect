@@ -40,6 +40,7 @@ class App extends Vue {
     //
     body = document.body;
     featureGateFetchIntervalId: number | undefined = undefined;
+    autoLogoutEventsController: AbortController | null = null;
 
     //
     // Lifecycle
@@ -55,6 +56,7 @@ class App extends Vue {
 
     async beforeUnmount() {
         this.clearFeatureGateRefetchInterval();
+        this.removeAutoLogoutEvents();
     }
 
     //
@@ -98,6 +100,7 @@ class App extends Vue {
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
             await this.getAccount();
             await this.setCurrentCompact();
+            this.startAutoLogoutTimer();
         }
     }
 
@@ -189,6 +192,52 @@ class App extends Vue {
                     params: { compact: userDefaultCompact.type }
                 });
             }
+        }
+    }
+
+    startAutoLogoutTimer(): void {
+        const resetEvents = [
+            'mousemove',
+            'mousedown',
+            'click',
+            'keypress',
+            'touchstart',
+            'touchend',
+            'touchmove',
+            'onscroll',
+            'wheel',
+            'mousewheel',
+        ];
+        const eventHandler = (event) => {
+            console.log(`event: ${event.type}`);
+            this.$store.dispatch('user/startAutoLogoutTokenTimer');
+            this.startAutoLogoutTimer();
+        };
+        const controller = new AbortController();
+        const { isLoggedIn, isAutoLogoutWarning } = this.userStore;
+
+        this.removeAutoLogoutEvents();
+
+        if (isLoggedIn && !isAutoLogoutWarning) {
+            this.$store.dispatch('user/startAutoLogoutTokenTimer');
+            this.autoLogoutEventsController = controller;
+            resetEvents.forEach((resetEvent) => {
+                document.addEventListener(resetEvent, eventHandler, {
+                    capture: false,
+                    once: true,
+                    passive: true,
+                    signal: controller.signal,
+                });
+            });
+        }
+    }
+
+    removeAutoLogoutEvents(): void {
+        const { autoLogoutEventsController } = this;
+
+        if (autoLogoutEventsController) {
+            autoLogoutEventsController.abort();
+            this.autoLogoutEventsController = null;
         }
     }
 

@@ -37,6 +37,8 @@ export enum MutationTypes {
     UPDATE_ACCOUNT_FAILURE = '[User] Update Account Failure',
     UPDATE_ACCOUNT_SUCCESS = '[User] Update Account Success',
     SET_REFRESH_TIMEOUT_ID = '[User] Set Refresh Timeout ID',
+    SET_LOGOUT_TIMEOUT_ID = '[User] Set Logout Timeout ID',
+    UPDATE_AUTO_LOGOUT_WARNING = '[User] Update Auto Logout Warning',
     GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST = '[User] Get Privilege Purchase Information Request',
     GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS = '[User] Get Privilege Purchase Information Success',
     GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
@@ -160,6 +162,7 @@ export default {
         state.isLoggedIn = false;
         state.isLoadingAccount = false;
         state.refreshTokenTimeoutId = null;
+        state.autoLogoutTimeoutId = null;
         state.userType = null;
         state.currentCompact = null;
         state.error = null;
@@ -178,6 +181,12 @@ export default {
     },
     [MutationTypes.SET_REFRESH_TIMEOUT_ID]: (state: any, timeoutId: number|null) => {
         state.refreshTokenTimeoutId = timeoutId;
+    },
+    [MutationTypes.SET_LOGOUT_TIMEOUT_ID]: (state: any, timeoutId: number|null) => {
+        state.autoLogoutTimeoutId = timeoutId;
+    },
+    [MutationTypes.UPDATE_AUTO_LOGOUT_WARNING]: (state: any, isWarning: boolean) => {
+        state.isAutoLogoutWarning = isWarning;
     },
     [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = true;

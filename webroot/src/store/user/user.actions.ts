@@ -275,6 +275,51 @@ export default {
         clearTimeout(refreshTokenTimeoutId);
         commit(MutationTypes.SET_REFRESH_TIMEOUT_ID, null);
     },
+    startAutoLogoutTokenTimer: ({ dispatch, state }) => {
+        const { isLoggedIn, isAutoLogoutWarning } = state;
+
+        dispatch('clearAutoLogoutTimeout');
+
+        if (isLoggedIn && !isAutoLogoutWarning) {
+            dispatch('setAutoLogoutTimeout');
+        }
+    },
+    setAutoLogoutTimeout: async ({ commit, dispatch, state }) => {
+        const { isLoggedInAsStaff, isLoggedInAsLicensee } = state;
+        let initiateInMs = moment.duration(10, 'minutes').asMilliseconds(); // Default inactivity timer
+
+        if (isLoggedInAsStaff) {
+            initiateInMs = moment.duration(5, 'seconds').asMilliseconds(); // Inactivity timer for Staff
+        } else if (isLoggedInAsLicensee) {
+            initiateInMs = moment.duration(5, 'seconds').asMilliseconds(); // Inactivity timer for Licensees
+        }
+
+        const initiateAutoLogout = () => {
+            dispatch('clearAutoLogoutTimeout');
+            dispatch('updateAutoLogoutWarning', true);
+            console.log(`auto logout warning: ${state.isAutoLogoutWarning}`);
+            console.log(`auto logout timer: ${state.autoLogoutTimeoutId}`);
+        };
+        const timeoutId = setTimeout(initiateAutoLogout, initiateInMs);
+
+        console.log(`timer started in store`);
+        console.log(`initiateInMs: ${initiateInMs}`);
+        console.log(``);
+
+        commit(MutationTypes.SET_LOGOUT_TIMEOUT_ID, timeoutId);
+    },
+    clearAutoLogoutTimeout: ({ commit, state }) => {
+        const { autoLogoutTimeoutId } = state;
+
+        if (autoLogoutTimeoutId) {
+            clearTimeout(autoLogoutTimeoutId);
+        }
+
+        commit(MutationTypes.SET_LOGOUT_TIMEOUT_ID, null);
+    },
+    updateAutoLogoutWarning: ({ commit }, isWarning) => {
+        commit(MutationTypes.UPDATE_AUTO_LOGOUT_WARNING, isWarning);
+    },
     clearSessionStores: ({ dispatch }) => {
         dispatch('resetStoreUser');
         dispatch('license/resetStoreLicense', null, { root: true });
