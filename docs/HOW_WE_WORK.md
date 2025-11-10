@@ -70,7 +70,11 @@ It is expected that each _sprint_ produces functional software sans test data, c
 
 ### Branch strategy
 
-InspiringApps will use feature branches within their fork, and upon completion of that feature, will file a pull request from that branch to the `development` branch in CSG’s repo. CSG will periodically merge the `development` branch to `main`, through a process and at a frequency to be determined.
+InspiringApps will use feature branches within their fork, and upon completion of that feature, will file a pull request from that branch to the `main` branch in CSG’s repo. CSG will periodically trigger deployments of features to the test, beta, and prod environments using git tags, pushed to (or created via) GitHub.
+
+### InspiringApps workflow
+
+InspiringApps developers will not necessarily keep their fork's `main` branch in sync with CSG's. To minimize risk of merge conflicts, they will branch directly from the CSG repository's `main` branch, rather than from that of the fork.
 
 ### API Design
 
