@@ -2823,10 +2823,8 @@ class ApiModel:
     def post_privilege_investigation_request_model(self) -> Model:
         """POST privilege investigation request model"""
         if not hasattr(self.api, '_v1_post_privilege_investigation_request_model'):
-            self.api._v1_post_privilege_investigation_request_model = Model(
-                self.api,
+            self.api._v1_post_privilege_investigation_request_model = self.api.add_model(
                 'V1PostPrivilegeInvestigationRequestModel',
-                rest_api=self.api,
                 description='Post privilege investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
@@ -2839,10 +2837,8 @@ class ApiModel:
     def post_license_investigation_request_model(self) -> Model:
         """POST license investigation request model"""
         if not hasattr(self.api, '_v1_post_license_investigation_request_model'):
-            self.api._v1_post_license_investigation_request_model = Model(
-                self.api,
+            self.api._v1_post_license_investigation_request_model = self.api.add_model(
                 'V1PostLicenseInvestigationRequestModel',
-                rest_api=self.api,
                 description='Post license investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
@@ -2855,10 +2851,8 @@ class ApiModel:
     def patch_privilege_investigation_request_model(self) -> Model:
         """PATCH privilege investigation request model"""
         if not hasattr(self.api, '_v1_patch_privilege_investigation_request_model'):
-            self.api._v1_patch_privilege_investigation_request_model = Model(
-                self.api,
+            self.api._v1_patch_privilege_investigation_request_model = self.api.add_model(
                 'V1PatchPrivilegeInvestigationRequestModel',
-                rest_api=self.api,
                 description='Patch privilege investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
@@ -2875,10 +2869,8 @@ class ApiModel:
     def patch_license_investigation_request_model(self) -> Model:
         """PATCH license investigation request model"""
         if not hasattr(self.api, '_v1_patch_license_investigation_request_model'):
-            self.api._v1_patch_license_investigation_request_model = Model(
-                self.api,
+            self.api._v1_patch_license_investigation_request_model = self.api.add_model(
                 'V1PatchLicenseInvestigationRequestModel',
-                rest_api=self.api,
                 description='Patch license investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
