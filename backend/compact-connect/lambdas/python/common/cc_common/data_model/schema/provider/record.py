@@ -239,8 +239,8 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         For backwards compatibility, populate createDate from dateOfUpdate if createDate is missing.
         This allows us to load old records that were created before the createDate field was added.
         """
-        if 'createDate' not in in_data and 'updatedValues' in in_data and 'dateOfUpdate' in in_data['updatedValues']:
-            in_data['createDate'] = in_data['updatedValues']['dateOfUpdate']
+        if 'createDate' not in in_data:
+            in_data['createDate'] = in_data['dateOfUpdate']
         return in_data
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
