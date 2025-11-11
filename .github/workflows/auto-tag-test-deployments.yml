@@ -11,7 +11,6 @@ env:
 # Permission can be added at job level or workflow level
 permissions:
   contents: write  # Required to create tags
-  id-token: write  # This is required for requesting the JWT
 
 jobs:
   AutoTag:
