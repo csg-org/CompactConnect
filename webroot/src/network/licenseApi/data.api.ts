@@ -363,6 +363,7 @@ export class LicenseDataApi implements DataApiInterface {
     ) {
         const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation/${investigationId}`, {
+            action: 'close',
             ...(encumbrance
                 ? {
                     encumbranceType: encumbrance.encumbranceType,
@@ -518,6 +519,7 @@ export class LicenseDataApi implements DataApiInterface {
     ) {
         const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/investigation/${investigationId}`, {
+            action: 'close',
             ...(encumbrance
                 ? {
                     encumbranceType: encumbrance.encumbranceType,
