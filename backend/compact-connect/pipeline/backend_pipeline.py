@@ -31,7 +31,7 @@ class BackendPipeline(BasePipeline):
     - Automatically triggered by git tags matching the specified pattern (e.g., 'cc-prod-*')
 
     The pipeline is configured with an invalid branch name to ensure it can only be executed
-    with explicit git tag/commit ID specifications, enforcing tag-based deploiyments only.
+    with explicit git tag/commit ID specifications, enforcing tag-based deployments only.
     """
 
     def __init__(
