@@ -3114,8 +3114,8 @@ class TestEncumbranceEvents(TstFunction):
         mock_state_email,  # noqa: ARG002
     ):
         """
-        Test that license encumbrance notification listener skips notifications that were already sent successfully
-        and only retries notifications that failed in a previous attempt.
+        Test that license encumbrance notification listener stores successful notification events for tracking in the
+        event of handler retries.
         """
         from cc_common.event_state_client import NotificationStatus, NotificationTracker
         from handlers.encumbrance_events import license_encumbrance_notification_listener
