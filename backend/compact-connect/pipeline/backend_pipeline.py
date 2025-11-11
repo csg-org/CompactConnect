@@ -57,7 +57,7 @@ class BackendPipeline(BasePipeline):
         Initialize the BackendPipeline.
 
         :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
-                                       trigger the pipeline (e.g., 'prod-*', 'beta-*', 'test-*').
+                                       trigger the pipeline (e.g., 'cc-prod-*', 'cc-beta-*', 'cc-test-*').
         """
         artifact_bucket = Bucket(
             scope,

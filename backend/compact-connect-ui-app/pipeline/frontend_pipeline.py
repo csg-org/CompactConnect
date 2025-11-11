@@ -58,9 +58,8 @@ class FrontendPipeline(BasePipeline):
         """
         Initialize the FrontendPipeline.
 
-        :param git_tag_trigger_pattern: The git tag pattern for trigger configuration. Note: This pipeline
-                                        does not automatically trigger on git events (trigger_on_push=False),
-                                        but the pattern is configured for consistency with the backend pipeline.
+        :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
+                                       trigger the pipeline (e.g., 'ui-prod-*', 'ui-beta-*', 'ui-test-*').
         """
         artifact_bucket = Bucket(
             scope,
