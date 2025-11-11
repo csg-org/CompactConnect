@@ -117,7 +117,7 @@ def upload_test_licenses(auth_headers: dict, num_licenses: int, batch_size: int)
     return all_licenses, upload_start_time, upload_end_time
 
 
-def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max_wait_time: int = 900):
+def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max_wait_time: int = 120):
     """
     Wait for all provider records to be created from uploaded licenses.
 
@@ -129,7 +129,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
     logger.info(f'Waiting for {expected_count} provider records to be created...')
 
     start_time = time.time()
-    check_interval = 30
+    check_interval = 5
 
     # Query using the common family name prefix 'RollbackTest'
     # The API will return all providers with family names starting with this prefix
@@ -140,10 +140,10 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
         },
     }
 
+    last_key = None
+    page_num = 1
+    all_provider_ids = []
     while time.time() - start_time < max_wait_time:
-        all_provider_ids = []
-        last_key = None
-        page_num = 1
 
         # Collect all providers across all pages
         while True:
@@ -186,7 +186,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
 
         num_found = len(all_provider_ids)
         logger.info(
-            f'Found {num_found}/{expected_count} providers with family name prefix "RollbackTest" '
+            f'Found {num_found}/{expected_count} providers with family name "RollbackTest" '
             f'(across {page_num} pages)'
         )
 
@@ -200,45 +200,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
             time.sleep(check_interval)
 
     # Timeout reached - make one final query to get the latest results
-    logger.warning(f'Timeout reached after {max_wait_time}s. Making final query to collect all available providers.')
-
-    all_provider_ids = []
-    last_key = None
-    page_num = 1
-
-    while True:
-        query_body = base_query_body.copy()
-        if last_key:
-            query_body['pagination']['lastKey'] = last_key
-
-        query_response = requests.post(
-            url=f'{get_api_base_url()}/v1/compacts/{COMPACT}/providers/query',
-            headers=staff_headers,
-            json=query_body,
-            timeout=30,
-        )
-
-        if query_response.status_code != 200:
-            logger.warning(f'Final query failed with status {query_response.status_code}')
-            break
-
-        response_data = query_response.json()
-        providers = response_data.get('providers', [])
-        pagination = response_data.get('pagination', {})
-
-        page_provider_ids = [p['providerId'] for p in providers]
-        all_provider_ids.extend(page_provider_ids)
-
-        logger.info(f'Final query page {page_num}: Found {len(page_provider_ids)} providers')
-
-        last_key = pagination.get('lastKey')
-        if not last_key:
-            break
-
-        page_num += 1
-
-    logger.warning(f'Final count: {len(all_provider_ids)}/{expected_count} providers found')
-    return all_provider_ids
+    raise SmokeTestFailureException(f'Timeout reached waiting for providers after {max_wait_time}s.')
 
 
 def start_rollback_step_function(
