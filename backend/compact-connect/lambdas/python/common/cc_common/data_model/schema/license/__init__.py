@@ -136,6 +136,10 @@ class LicenseData(CCDataClass):
     def encumberedStatus(self) -> str | None:
         return self._data.get('encumberedStatus')
 
+    @property
+    def investigationStatus(self) -> str | None:
+        return self._data.get('investigationStatus')
+
 
 class LicenseUpdateData(CCDataClass):
     """

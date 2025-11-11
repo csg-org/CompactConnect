@@ -564,3 +564,330 @@ class TestNotificationStack(TstAppABC, TestCase):
             },
             event_source_mapping,
         )
+
+    def test_license_investigation_notification_resources_created(self):
+        """
+        Test that the license investigation notification listener lambda is added with a SQS queue
+        and an event bridge event rule that listens for 'license.investigation' detail types.
+        """
+        notification_stack = self.app.sandbox_backend_stage.notification_stack
+        notification_template = Template.from_stack(notification_stack)
+
+        # Verify the lambda function is created
+        license_investigation_handler_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'LicenseInvestigationNotificationListener'
+            ].queue_processor.process_function.node.default_child
+        )
+        license_investigation_handler = TestNotificationStack.get_resource_properties_by_logical_id(
+            license_investigation_handler_logical_id,
+            resources=notification_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(
+            'handlers.investigation_events.license_investigation_notification_listener',
+            license_investigation_handler['Handler'],
+        )
+
+        # Verify SQS queue is created for the license investigation notification listener
+        investigation_listener_queue_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'LicenseInvestigationNotificationListener'
+            ].queue_processor.queue.node.default_child
+        )
+        license_investigation_listener_queue = TestNotificationStack.get_resource_properties_by_logical_id(
+            investigation_listener_queue_logical_id,
+            resources=notification_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        dlq_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'LicenseInvestigationNotificationListener'
+            ].queue_processor.dlq.node.default_child
+        )
+
+        # remove dynamic field
+        del license_investigation_listener_queue['KmsMasterKeyId']
+
+        self.assertEqual(
+            {
+                'MessageRetentionPeriod': 43200,
+                'RedrivePolicy': {'deadLetterTargetArn': {'Fn::GetAtt': [dlq_logical_id, 'Arn']}, 'maxReceiveCount': 3},
+                'VisibilityTimeout': 300,
+            },
+            license_investigation_listener_queue,
+        )
+
+        # Verify EventBridge rule is created with correct detail type
+        license_investigation_rule = TestNotificationStack.get_resource_properties_by_logical_id(
+            notification_stack.get_logical_id(
+                notification_stack.event_processors[
+                    'LicenseInvestigationNotificationListener'
+                ].event_rule.node.default_child
+            ),
+            resources=notification_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(
+            {
+                'EventBusName': {
+                    'Fn::Select': [
+                        1,
+                        {
+                            'Fn::Split': [
+                                '/',
+                                {'Fn::Select': [5, {'Fn::Split': [':', {'Ref': 'DataEventBusArnParameterParameter'}]}]},
+                            ]
+                        },
+                    ]
+                },
+                'EventPattern': {'detail-type': ['license.investigation']},
+                'State': 'ENABLED',
+                'Targets': [
+                    {
+                        'Arn': {'Fn::GetAtt': [investigation_listener_queue_logical_id, 'Arn']},
+                        'DeadLetterConfig': {'Arn': {'Fn::GetAtt': [dlq_logical_id, 'Arn']}},
+                        'Id': 'Target0',
+                    }
+                ],
+            },
+            license_investigation_rule,
+        )
+
+        # Verify event source mapping is created
+        event_source_mapping = TestNotificationStack.get_resource_properties_by_logical_id(
+            notification_stack.get_logical_id(
+                notification_stack.event_processors[
+                    'LicenseInvestigationNotificationListener'
+                ].queue_processor.event_source_mapping.node.default_child
+            ),
+            resources=notification_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.assertEqual(
+            {
+                'BatchSize': 10,
+                'EventSourceArn': {'Fn::GetAtt': [investigation_listener_queue_logical_id, 'Arn']},
+                'FunctionName': {'Ref': license_investigation_handler_logical_id},
+                'FunctionResponseTypes': ['ReportBatchItemFailures'],
+                'MaximumBatchingWindowInSeconds': 15,
+            },
+            event_source_mapping,
+        )
+
+    def test_license_investigation_closed_notification_resources_created(self):
+        """
+        Test that the license investigation closed notification listener lambda is added with a SQS queue
+        and an event bridge event rule that listens for 'license.investigationClosed' detail types.
+        """
+        notification_stack = self.app.sandbox_backend_stage.notification_stack
+        notification_template = Template.from_stack(notification_stack)
+
+        # Verify the lambda function is created
+        license_investigation_closed_handler_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'LicenseInvestigationClosedNotificationListener'
+            ].queue_processor.process_function.node.default_child
+        )
+        license_investigation_closed_handler = TestNotificationStack.get_resource_properties_by_logical_id(
+            license_investigation_closed_handler_logical_id,
+            resources=notification_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(
+            'handlers.investigation_events.license_investigation_closed_notification_listener',
+            license_investigation_closed_handler['Handler'],
+        )
+
+        # Verify EventBridge rule is created with correct detail type
+        license_investigation_closed_rule = TestNotificationStack.get_resource_properties_by_logical_id(
+            notification_stack.get_logical_id(
+                notification_stack.event_processors[
+                    'LicenseInvestigationClosedNotificationListener'
+                ].event_rule.node.default_child
+            ),
+            resources=notification_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        # Get the queue and DLQ logical IDs for the targets
+        investigation_closed_listener_queue_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'LicenseInvestigationClosedNotificationListener'
+            ].queue_processor.queue.node.default_child
+        )
+        investigation_closed_dlq_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'LicenseInvestigationClosedNotificationListener'
+            ].queue_processor.dlq.node.default_child
+        )
+
+        self.assertEqual(
+            {
+                'EventBusName': {
+                    'Fn::Select': [
+                        1,
+                        {
+                            'Fn::Split': [
+                                '/',
+                                {'Fn::Select': [5, {'Fn::Split': [':', {'Ref': 'DataEventBusArnParameterParameter'}]}]},
+                            ]
+                        },
+                    ]
+                },
+                'EventPattern': {'detail-type': ['license.investigationClosed']},
+                'State': 'ENABLED',
+                'Targets': [
+                    {
+                        'Arn': {'Fn::GetAtt': [investigation_closed_listener_queue_logical_id, 'Arn']},
+                        'DeadLetterConfig': {'Arn': {'Fn::GetAtt': [investigation_closed_dlq_logical_id, 'Arn']}},
+                        'Id': 'Target0',
+                    }
+                ],
+            },
+            license_investigation_closed_rule,
+        )
+
+    def test_privilege_investigation_notification_resources_created(self):
+        """
+        Test that the privilege investigation notification listener lambda is added with a SQS queue
+        and an event bridge event rule that listens for 'privilege.investigation' detail types.
+        """
+        notification_stack = self.app.sandbox_backend_stage.notification_stack
+        notification_template = Template.from_stack(notification_stack)
+
+        # Verify the lambda function is created
+        privilege_investigation_handler_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'PrivilegeInvestigationNotificationListener'
+            ].queue_processor.process_function.node.default_child
+        )
+        privilege_investigation_handler = TestNotificationStack.get_resource_properties_by_logical_id(
+            privilege_investigation_handler_logical_id,
+            resources=notification_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(
+            'handlers.investigation_events.privilege_investigation_notification_listener',
+            privilege_investigation_handler['Handler'],
+        )
+
+        # Verify EventBridge rule is created with correct detail type
+        privilege_investigation_rule = TestNotificationStack.get_resource_properties_by_logical_id(
+            notification_stack.get_logical_id(
+                notification_stack.event_processors[
+                    'PrivilegeInvestigationNotificationListener'
+                ].event_rule.node.default_child
+            ),
+            resources=notification_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        # Get the queue and DLQ logical IDs for the targets
+        privilege_investigation_listener_queue_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'PrivilegeInvestigationNotificationListener'
+            ].queue_processor.queue.node.default_child
+        )
+        privilege_investigation_dlq_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'PrivilegeInvestigationNotificationListener'
+            ].queue_processor.dlq.node.default_child
+        )
+
+        self.assertEqual(
+            {
+                'EventBusName': {
+                    'Fn::Select': [
+                        1,
+                        {
+                            'Fn::Split': [
+                                '/',
+                                {'Fn::Select': [5, {'Fn::Split': [':', {'Ref': 'DataEventBusArnParameterParameter'}]}]},
+                            ]
+                        },
+                    ]
+                },
+                'EventPattern': {'detail-type': ['privilege.investigation']},
+                'State': 'ENABLED',
+                'Targets': [
+                    {
+                        'Arn': {'Fn::GetAtt': [privilege_investigation_listener_queue_logical_id, 'Arn']},
+                        'DeadLetterConfig': {'Arn': {'Fn::GetAtt': [privilege_investigation_dlq_logical_id, 'Arn']}},
+                        'Id': 'Target0',
+                    }
+                ],
+            },
+            privilege_investigation_rule,
+        )
+
+    def test_privilege_investigation_closed_notification_resources_created(self):
+        """
+        Test that the privilege investigation closed notification listener lambda is added with a SQS queue
+        and an event bridge event rule that listens for 'privilege.investigationClosed' detail types.
+        """
+        notification_stack = self.app.sandbox_backend_stage.notification_stack
+        notification_template = Template.from_stack(notification_stack)
+
+        # Verify the lambda function is created
+        privilege_investigation_closed_handler_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'PrivilegeInvestigationClosedNotificationListener'
+            ].queue_processor.process_function.node.default_child
+        )
+        privilege_investigation_closed_handler = TestNotificationStack.get_resource_properties_by_logical_id(
+            privilege_investigation_closed_handler_logical_id,
+            resources=notification_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(
+            'handlers.investigation_events.privilege_investigation_closed_notification_listener',
+            privilege_investigation_closed_handler['Handler'],
+        )
+
+        # Verify EventBridge rule is created with correct detail type
+        privilege_investigation_closed_rule = TestNotificationStack.get_resource_properties_by_logical_id(
+            notification_stack.get_logical_id(
+                notification_stack.event_processors[
+                    'PrivilegeInvestigationClosedNotificationListener'
+                ].event_rule.node.default_child
+            ),
+            resources=notification_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        # Get the queue and DLQ logical IDs for the targets
+        privilege_investigation_closed_listener_queue_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'PrivilegeInvestigationClosedNotificationListener'
+            ].queue_processor.queue.node.default_child
+        )
+        privilege_investigation_closed_dlq_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'PrivilegeInvestigationClosedNotificationListener'
+            ].queue_processor.dlq.node.default_child
+        )
+
+        self.assertEqual(
+            {
+                'EventBusName': {
+                    'Fn::Select': [
+                        1,
+                        {
+                            'Fn::Split': [
+                                '/',
+                                {'Fn::Select': [5, {'Fn::Split': [':', {'Ref': 'DataEventBusArnParameterParameter'}]}]},
+                            ]
+                        },
+                    ]
+                },
+                'EventPattern': {'detail-type': ['privilege.investigationClosed']},
+                'State': 'ENABLED',
+                'Targets': [
+                    {
+                        'Arn': {'Fn::GetAtt': [privilege_investigation_closed_listener_queue_logical_id, 'Arn']},
+                        'DeadLetterConfig': {
+                            'Arn': {'Fn::GetAtt': [privilege_investigation_closed_dlq_logical_id, 'Arn']}
+                        },
+                        'Id': 'Target0',
+                    }
+                ],
+            },
+            privilege_investigation_closed_rule,
+        )

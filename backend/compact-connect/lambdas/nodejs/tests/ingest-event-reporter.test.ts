@@ -1,12 +1,11 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { Context, EventBridgeEvent } from 'aws-lambda';
+import { Context } from 'aws-lambda';
 import { DynamoDBClient, QueryCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
 
 import { Lambda } from '../ingest-event-reporter/lambda';
-import { IngestEventEmailService } from '../lib/email';
 import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import {
     SAMPLE_INGEST_FAILURE_ERROR_RECORD,
@@ -64,13 +63,13 @@ jest.mock('../lib/email/ingest-event-email-service', () => {
 });
 
 const mockSendReportEmail = jest.fn().mockImplementation(
-    (events, recipients: string[]) => Promise.resolve('message-id-123')
+    (_events, _recipients: string[]) => Promise.resolve('message-id-123')
 );
 const mockSendAllsWellEmail = jest.fn().mockImplementation(
-    (recipients: string[]) => Promise.resolve('message-id-123')
+    (_recipients: string[]) => Promise.resolve('message-id-123')
 );
 const mockSendNoLicenseUpdatesEmail = jest.fn().mockImplementation(
-    (recipients: string[]) => Promise.resolve('message-id-no-license-updates')
+    (_recipients: string[]) => Promise.resolve('message-id-no-license-updates')
 );
 
 describe('Frequent runs', () => {
@@ -146,7 +145,7 @@ describe('Frequent runs', () => {
             sesClient: asSESClient(mockSESClient)
         });
 
-        const resp = await lambda.handler(
+        await lambda.handler(
             SAMPLE_NIGHTLY_EVENT,
             SAMPLE_CONTEXT
         );
@@ -213,7 +212,7 @@ describe('Frequent runs', () => {
             sesClient: asSESClient(mockSESClient)
         });
 
-        const resp = await lambda.handler(
+        await lambda.handler(
             SAMPLE_NIGHTLY_EVENT,
             SAMPLE_CONTEXT
         );
@@ -510,7 +509,7 @@ describe('Weekly runs', () => {
             sesClient: asSESClient(mockSESClient)
         });
 
-        const resp = await lambda.handler(
+        await lambda.handler(
             SAMPLE_WEEKLY_EVENT,
             SAMPLE_CONTEXT
         );

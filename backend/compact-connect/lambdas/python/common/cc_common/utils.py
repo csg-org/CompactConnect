@@ -850,6 +850,7 @@ def _get_recaptcha_secret() -> str:
             raise CCInternalException('Failed to load reCAPTCHA secret') from e
     return _RECAPTCHA_SECRET
 
+
 def verify_recaptcha(token: str) -> bool:
     """Verify the reCAPTCHA token with Google's API."""
 
@@ -910,3 +911,22 @@ def verify_password(hashed_password: str, password: str) -> bool:
     except Exception as e:
         logger.error('Failed to verify password', error=str(e))
         raise CCInternalException('Failed to verify password') from e
+
+
+def to_uuid(uuid: str, on_error: str) -> UUID:
+    """
+    Parse a str to a UUID, raising CCInvalidRequestException if invalid.
+
+    This should be used for all UUID path parameters to validate and normalize
+    input before processing, preventing malformed UUIDs from causing unexpected
+    errors deeper in the application.
+
+    :param str uuid: The string representation of a UUID to parse
+    :param str on_error: Custom error message to include in the exception
+    :return: A validated UUID object
+    :raises CCInvalidRequestException: If the string is not a valid UUID
+    """
+    try:
+        return UUID(uuid)
+    except ValueError as e:
+        raise CCInvalidRequestException(on_error) from e

@@ -284,12 +284,23 @@ class AdverseActionAgainstEnum(StrEnum):
     LICENSE = 'license'
 
 
+class InvestigationAgainstEnum(StrEnum):
+    """
+    Enum for possible records that investigations can be made against
+    """
+
+    PRIVILEGE = 'privilege'
+    LICENSE = 'license'
+
+
 class UpdateCategory(CCEnum):
     DEACTIVATION = 'deactivation'
     EXPIRATION = 'expiration'
     ISSUANCE = 'issuance'
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
+    INVESTIGATION = 'investigation'
+    CLOSING_INVESTIGATION = 'closingInvestigation'
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
     REGISTRATION = 'registration'
     LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
@@ -321,6 +332,11 @@ class PrivilegeEncumberedStatusEnum(CCEnum):
     UNENCUMBERED = 'unencumbered'
     # the following status is set whenever the license this privilege is associated with is encumbered
     LICENSE_ENCUMBERED = 'licenseEncumbered'
+
+
+class InvestigationStatusEnum(CCEnum):
+    UNDER_INVESTIGATION = 'underInvestigation'
+    NOT_UNDER_INVESTIGATION = 'notUnderInvestigation'
 
 
 class HomeJurisdictionChangeStatusEnum(CCEnum):

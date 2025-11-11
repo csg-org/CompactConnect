@@ -1,10 +1,12 @@
 import json
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from cc_common.config import config
+from cc_common.data_model.schema.common import InvestigationAgainstEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
+    InvestigationEventDetailSchema,
     LicenseDeactivationDetailSchema,
     PrivilegeIssuanceDetailSchema,
     PrivilegePurchaseEventDetailSchema,
@@ -330,6 +332,108 @@ class EventBusClient:
         self._publish_event(
             source=source,
             detail_type='privilege.encumbranceLifted',
+            detail=deserialized_detail,
+            event_batch_writer=event_batch_writer,
+        )
+
+    def publish_investigation_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: UUID,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        create_date: datetime,
+        investigation_against: InvestigationAgainstEnum,
+        investigation_id: UUID,
+        event_batch_writer: EventBatchWriter | None = None,
+    ):
+        """
+        Publish an investigation event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction of the record being investigated
+        :param license_type_abbreviation: The license type abbreviation
+        :param create_date: The datetime when the investigation record was created
+        :param investigation_against: The type of record being investigated (privilege or license)
+        :param investigation_id: The investigation ID
+        :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
+        """
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseTypeAbbreviation': license_type_abbreviation,
+            'investigationAgainst': investigation_against.value,
+            'investigationId': investigation_id,
+            'eventTime': create_date,
+        }
+
+        investigation_detail_schema = InvestigationEventDetailSchema()
+        deserialized_detail = investigation_detail_schema.dump(event_detail)
+
+        # Determine the detail type based on investigation_against
+        detail_type = f'{investigation_against}.investigation'
+
+        self._publish_event(
+            source=source,
+            detail_type=detail_type,
+            detail=deserialized_detail,
+            event_batch_writer=event_batch_writer,
+        )
+
+    def publish_investigation_closed_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: UUID,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        close_date: datetime,
+        investigation_against: InvestigationAgainstEnum,
+        investigation_id: UUID,
+        adverse_action_id: UUID | None = None,
+        event_batch_writer: EventBatchWriter | None = None,
+    ):
+        """
+        Publish an investigation closed event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction of the record being investigated
+        :param license_type_abbreviation: The license type abbreviation
+        :param close_date: The datetime when the investigation record was closed
+        :param investigation_against: The type of record being investigated (privilege or license)
+        :param investigation_id: The id of the investigation closed
+        :param adverse_action_id: Optional adverse action ID if an encumbrance resulted from the investigation
+        :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
+        """
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'licenseTypeAbbreviation': license_type_abbreviation,
+            'investigationAgainst': investigation_against.value,
+            'investigationId': investigation_id,
+            'eventTime': close_date,
+        }
+
+        # Include adverseActionId if an encumbrance resulted from the investigation
+        if adverse_action_id is not None:
+            event_detail['adverseActionId'] = adverse_action_id
+
+        investigation_detail_schema = InvestigationEventDetailSchema()
+        deserialized_detail = investigation_detail_schema.dump(event_detail)
+
+        # Determine the detail type based on investigation_against
+        detail_type = f'{investigation_against.value}.investigationClosed'
+
+        self._publish_event(
+            source=source,
+            detail_type=detail_type,
             detail=deserialized_detail,
             event_batch_writer=event_batch_writer,
         )

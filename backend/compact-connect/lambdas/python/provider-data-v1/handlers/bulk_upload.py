@@ -163,11 +163,11 @@ def process_bulk_upload_file(
                     if duplicate_ssn_check_flag_enabled:
                         matched_ssn_index = ssns_in_file_upload.get(license_ssn)
                         if matched_ssn_index:
-                                raise ValidationError(
-                                    message=f'Duplicate License SSN detected. SSN matches with record '
-                                            f'{matched_ssn_index}. Every record must have a unique SSN within the same '
-                                            f'file.'
-                                )
+                            raise ValidationError(
+                                message=f'Duplicate License SSN detected. SSN matches with record '
+                                f'{matched_ssn_index}. Every record must have a unique SSN within the same '
+                                f'file.'
+                            )
                         ssns_in_file_upload.update({license_ssn: i + 1})
                 except TypeError as e:
                     # This will be raised, if `raw_license` includes compact and/or jurisdiction fields

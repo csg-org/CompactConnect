@@ -19,6 +19,32 @@
       "project": "compact-connect",
       "service": "ui-app"
     },
+    "jurisdictions": [
+      "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",
+      "ga", "hi", "id", "il", "in", "ia", "ks", "ky", "la", "me",
+      "md", "ma", "mi", "mn", "ms", "mo", "mt", "ne", "nv", "nh",
+      "nj", "nm", "ny", "nc", "nd", "oh", "ok", "or", "pa", "pr",
+      "ri", "sc", "sd", "tn", "tx", "ut", "vt", "va", "vi", "wa",
+      "wv", "wi", "wy"
+    ],
+    "license_types": {
+      "aslp": [
+        {"name": "audiologist", "abbreviation": "aud"},
+        {"name": "speech-language pathologist", "abbreviation": "slp"}
+      ],
+      "octp": [
+        {"name": "occupational therapist", "abbreviation": "ot"},
+        {"name": "occupational therapy assistant", "abbreviation": "ota"}
+      ],
+      "coun": [
+        {"name": "licensed professional counselor", "abbreviation": "lpc"}
+      ]
+    },
+    "compacts": [
+      "aslp",
+      "octp",
+      "coun"
+    ],
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [
