@@ -15,11 +15,13 @@ from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
+    InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
     SocialSecurityNumber,
 )
+from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
 
 class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
@@ -145,6 +147,9 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    # This field is only set if the license is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
 class LicenseReadPrivateResponseSchema(ForgivingSchema):
@@ -183,6 +188,9 @@ class LicenseReadPrivateResponseSchema(ForgivingSchema):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
+    # This field is only set if the license is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=False, allow_none=False)

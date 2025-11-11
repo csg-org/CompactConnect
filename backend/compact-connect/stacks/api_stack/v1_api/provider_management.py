@@ -57,21 +57,42 @@ class ProviderManagement:
             'licenseType'
         ).add_resource('{licenseType}')
 
-        # Reference lambda handlers from api_lambda_stack
-        self.get_provider_handler = api_lambda_stack.provider_management_lambdas.get_provider_handler
-        self.query_providers_handler = api_lambda_stack.provider_management_lambdas.query_providers_handler
-        self.get_provider_ssn_handler = api_lambda_stack.provider_management_lambdas.get_provider_ssn_handler
-        self.deactivate_privilege_handler = api_lambda_stack.provider_management_lambdas.deactivate_privilege_handler
-        self.provider_encumbrance_handler = api_lambda_stack.provider_management_lambdas.provider_encumbrance_handler
+        self._add_query_providers(
+            method_options=method_options,
+            query_providers_handler=api_lambda_stack.provider_management_lambdas.query_providers_handler,
+        )
+        self._add_get_provider(
+            method_options=method_options,
+            get_provider_handler=api_lambda_stack.provider_management_lambdas.get_provider_handler,
+        )
+        self._add_get_provider_ssn(
+            method_options=ssn_method_options,
+            get_provider_ssn_handler=api_lambda_stack.provider_management_lambdas.get_provider_ssn_handler,
+        )
+        self._add_deactivate_privilege(
+            method_options=admin_method_options,
+            deactivate_privilege_handler=api_lambda_stack.provider_management_lambdas.deactivate_privilege_handler,
+        )
 
-        self._add_query_providers(method_options=method_options)
-        self._add_get_provider(method_options=method_options)
-        self._add_get_provider_ssn(method_options=ssn_method_options)
-        self._add_deactivate_privilege(method_options=admin_method_options)
+        self._add_encumber_privilege(
+            method_options=admin_method_options,
+            provider_encumbrance_handler=api_lambda_stack.provider_management_lambdas.provider_encumbrance_handler,
+        )
 
-        self._add_encumber_privilege(method_options=admin_method_options)
+        self._add_encumber_license(
+            method_options=admin_method_options,
+            provider_encumbrance_handler=api_lambda_stack.provider_management_lambdas.provider_encumbrance_handler,
+        )
 
-        self._add_encumber_license(method_options=admin_method_options)
+        self._add_investigation_privilege(
+            method_options=admin_method_options,
+            investigation_handler=api_lambda_stack.provider_management_lambdas.provider_investigation_handler,
+        )
+
+        self._add_investigation_license(
+            method_options=admin_method_options,
+            investigation_handler=api_lambda_stack.provider_management_lambdas.provider_investigation_handler,
+        )
 
         self._add_get_privilege_history(
             method_options=method_options,
@@ -81,6 +102,7 @@ class ProviderManagement:
     def _add_get_provider(
         self,
         method_options: MethodOptions,
+        get_provider_handler: PythonFunction,
     ):
         self.provider_resource.add_method(
             'GET',
@@ -91,7 +113,7 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.provider_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.get_provider_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(get_provider_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
@@ -101,6 +123,7 @@ class ProviderManagement:
     def _add_query_providers(
         self,
         method_options: MethodOptions,
+        query_providers_handler: PythonFunction,
     ):
         query_resource = self.resource.add_resource('query')
 
@@ -114,7 +137,7 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.query_providers_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.query_providers_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(query_providers_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
@@ -124,6 +147,7 @@ class ProviderManagement:
     def _add_get_provider_ssn(
         self,
         method_options: MethodOptions,
+        get_provider_ssn_handler: PythonFunction,
     ):
         """Add GET /providers/{providerId}/ssn endpoint to retrieve a provider's SSN."""
         # Add the SSN endpoint as a sub-resource of the provider
@@ -137,7 +161,7 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.get_provider_ssn_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.get_provider_ssn_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(get_provider_ssn_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
@@ -173,6 +197,7 @@ class ProviderManagement:
     def _add_deactivate_privilege(
         self,
         method_options: MethodOptions,
+        deactivate_privilege_handler: PythonFunction,
     ):
         """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
         /licenseType/{licenseType}/deactivate endpoint."""
@@ -212,7 +237,7 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.deactivate_privilege_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(deactivate_privilege_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
@@ -222,6 +247,7 @@ class ProviderManagement:
     def _add_encumber_privilege(
         self,
         method_options: MethodOptions,
+        provider_encumbrance_handler: PythonFunction,
     ):
         """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
         /licenseType/{licenseType}/encumbrance endpoint."""
@@ -238,7 +264,7 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(provider_encumbrance_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
@@ -257,7 +283,7 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(provider_encumbrance_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
@@ -267,6 +293,7 @@ class ProviderManagement:
     def _add_encumber_license(
         self,
         method_options: MethodOptions,
+        provider_encumbrance_handler: PythonFunction,
     ):
         """Add POST /providers/{providerId}/licenses/jurisdiction/{jurisdiction}
         /licenseType/{licenseType}/encumbrance endpoint."""
@@ -281,7 +308,7 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(provider_encumbrance_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
@@ -300,7 +327,101 @@ class ProviderManagement:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(provider_encumbrance_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_investigation_privilege(
+        self,
+        method_options: MethodOptions,
+        investigation_handler: PythonFunction,
+    ):
+        """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/investigation endpoint."""
+        self.investigation_privilege_resource = self.privilege_jurisdiction_license_type_resource.add_resource(
+            'investigation'
+        )
+        self.investigation_privilege_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_privilege_investigation_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+        # Add PATCH method for closing privilege investigations - now with investigationId in path
+        self.investigation_privilege_id_resource = self.investigation_privilege_resource.add_resource(
+            '{investigationId}'
+        )
+        self.investigation_privilege_id_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_privilege_investigation_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_investigation_license(
+        self,
+        method_options: MethodOptions,
+        investigation_handler: PythonFunction,
+    ):
+        """Add POST /providers/{providerId}/licenses/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/investigation endpoint."""
+        self.investigation_license_resource = self.license_jurisdiction_license_type_resource.add_resource(
+            'investigation'
+        )
+        self.investigation_license_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_license_investigation_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+        # Add PATCH method for closing license investigations - now with investigationId in path
+        self.investigation_license_id_resource = self.investigation_license_resource.add_resource('{investigationId}')
+        self.investigation_license_id_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_license_investigation_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,

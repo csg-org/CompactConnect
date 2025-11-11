@@ -1,5 +1,6 @@
 {
   "additionalProperties": false,
+  "description": "Encumbrance data to create",
   "properties": {
     "encumbranceEffectiveDate": {
       "description": "The effective date of the encumbrance",

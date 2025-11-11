@@ -1502,4 +1502,368 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required template variables for providerAccountRecoveryConfirmation template');
         });
     });
+
+    describe('License Investigation State Notification', () => {
+        const SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'licenseInvestigationStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                investigationJurisdiction: 'OH',
+                licenseType: 'Audiologist'
+            }
+        };
+
+        it('should successfully send license investigation state notification email', async () => {
+            const mockCaJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            const mockOhJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'jurisdictionName': { S: 'Ohio' },
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockCaJurisdictionConfig });
+                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                    return Promise.resolve({ Item: mockOhJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('John Doe holding Audiologist license in Ohio is under investigation')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'John Doe holding Audiologist license in Ohio is under investigation'
+                        }
+                    }
+                },
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('No jurisdiction provided for license investigation state notification email');
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for licenseInvestigationStateNotification template.');
+        });
+    });
+
+    describe('License Investigation Closed State Notification', () => {
+        const SAMPLE_LICENSE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'licenseInvestigationClosedStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                investigationJurisdiction: 'OH',
+                licenseType: 'Audiologist'
+            }
+        };
+
+        it('should successfully send license investigation closed state notification email', async () => {
+            const mockCaJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            const mockOhJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'jurisdictionName': { S: 'Ohio' },
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockCaJurisdictionConfig });
+                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                    return Promise.resolve({ Item: mockOhJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(
+                SAMPLE_LICENSE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT, {} as any
+            );
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Investigation on John Doe')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringMatching(/Investigation on John Doe.s Audiologist license in Ohio has been closed/)
+                        }
+                    }
+                },
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('No jurisdiction provided for license investigation closed state notification email');
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_LICENSE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for licenseInvestigationClosedStateNotification template.');
+        });
+    });
+
+    describe('Privilege Investigation State Notification', () => {
+        const SAMPLE_PRIVILEGE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeInvestigationStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                investigationJurisdiction: 'OH',
+                licenseType: 'Audiologist'
+            }
+        };
+
+        it('should successfully send privilege investigation state notification email', async () => {
+            const mockCaJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            const mockOhJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'jurisdictionName': { S: 'Ohio' },
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockCaJurisdictionConfig });
+                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                    return Promise.resolve({ Item: mockOhJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(SAMPLE_PRIVILEGE_INVESTIGATION_STATE_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('John Doe holding Audiologist privilege in Ohio is under investigation')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'John Doe holding Audiologist privilege in Ohio is under investigation'
+                        }
+                    }
+                },
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_INVESTIGATION_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('No jurisdiction provided for privilege investigation state notification email');
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_INVESTIGATION_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for privilegeInvestigationStateNotification template.');
+        });
+    });
+
+    describe('Privilege Investigation Closed State Notification', () => {
+        const SAMPLE_PRIVILEGE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeInvestigationClosedStateNotification',
+            recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
+            compact: 'aslp',
+            jurisdiction: 'ca',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                investigationJurisdiction: 'OH',
+                licenseType: 'Audiologist'
+            }
+        };
+
+        it('should successfully send privilege investigation closed state notification email', async () => {
+            const mockCaJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
+                'type': { S: 'jurisdiction' }
+            };
+
+            const mockOhJurisdictionConfig = {
+                'pk': { S: 'aslp#CONFIGURATION' },
+                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'jurisdictionName': { S: 'Ohio' },
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                    return Promise.resolve({ Item: mockCaJurisdictionConfig });
+                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                    return Promise.resolve({ Item: mockOhJurisdictionConfig });
+                }
+                return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+            });
+
+            const response = await lambda.handler(
+                SAMPLE_PRIVILEGE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT, {} as any
+            );
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ca-adverse@example.com']
+                },
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('Investigation on John Doe')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringMatching(/Investigation on John Doe.s Audiologist privilege in Ohio has been closed/)
+                        }
+                    }
+                },
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('No jurisdiction provided for privilege investigation closed state notification email');
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for privilegeInvestigationClosedStateNotification template.');
+        });
+    });
 });

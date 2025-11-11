@@ -56,6 +56,14 @@ export default [
       'implicit-arrow-linebreak': OFF,
       'class-methods-use-this': OFF,
       '@typescript-eslint/no-explicit-any': OFF,
+      'no-unused-vars': OFF, // Disabled in favor of @typescript-eslint/no-unused-vars
+      '@typescript-eslint/no-unused-vars': [ERROR, {
+        vars: 'all',
+        args: 'after-used',
+        ignoreRestSiblings: true,
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
       'padding-line-between-statements': [
         ERROR,
         { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
