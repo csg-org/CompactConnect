@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import patch
 from uuid import UUID
 
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
@@ -955,9 +956,12 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_privilege_record.compact,
             provider_id=test_privilege_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         update_records = provider_user_records.get_update_records_for_privilege(
-            jurisdiction=test_privilege_record.jurisdiction, license_type=test_privilege_record.licenseType
+            jurisdiction=test_privilege_record.jurisdiction,
+            license_type=test_privilege_record.licenseType,
+
         )
 
         investigation_update_records = [
@@ -1002,6 +1006,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_privilege_record.compact,
             provider_id=test_privilege_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         updated_privilege_record = provider_user_records.get_privilege_records()[0]
 
@@ -1020,6 +1025,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_privilege_record.compact,
             provider_id=test_privilege_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         update_records = provider_user_records.get_update_records_for_privilege(
             jurisdiction=test_privilege_record.jurisdiction, license_type=test_privilege_record.licenseType
@@ -1088,6 +1094,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_license_record.compact,
             provider_id=test_license_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
@@ -1119,6 +1126,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_license_record.compact,
             provider_id=test_license_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
@@ -1154,6 +1162,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_license_record.compact,
             provider_id=test_license_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         updated_license_record = provider_user_records.get_license_records()[0]
 
@@ -1188,6 +1197,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_license_record.compact,
             provider_id=test_license_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         update_records = provider_user_records.get_update_records_for_license(
             jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
@@ -1235,6 +1245,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_license_record.compact,
             provider_id=test_license_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         updated_license_record = provider_user_records.get_license_records()[0]
 
@@ -1253,6 +1264,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         provider_user_records = self.config.data_client.get_provider_user_records(
             compact=test_license_record.compact,
             provider_id=test_license_record.providerId,
+            include_update_tier=UpdateTierEnum.TIER_THREE
         )
         update_records = provider_user_records.get_update_records_for_license(
             jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
