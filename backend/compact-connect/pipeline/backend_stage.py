@@ -216,7 +216,6 @@ class BackendStage(Stage):
             environment_context=environment_context,
             standard_tags=standard_tags,
             persistent_stack=self.persistent_stack,
-            api_stack=self.api_stack,
         )
         # Explicitly declare the dependency to ensure proper deployment order
         self.data_migration_stack.add_dependency(self.api_stack)

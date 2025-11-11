@@ -4,7 +4,6 @@ from constructs import Construct
 
 from common_constructs.data_migration import DataMigration
 from stacks import persistent_stack as ps
-from stacks.api_stack import ApiStack
 
 
 class DataMigrationStack(AppStack):
@@ -21,17 +20,11 @@ class DataMigrationStack(AppStack):
         environment_name: str,
         environment_context: dict,
         persistent_stack: ps.PersistentStack,
-        api_stack: ApiStack,
         **kwargs,
     ):
         super().__init__(
             scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
         )
-
-        # Reference dummy env var from the API Lambda stack to create a CloudFormation dependency
-        # This ensures the lambdas/API endpoints are fully deployed before migrations run
-        common_env_vars = self.common_env_vars
-        common_env_vars['apiStack'] = api_stack.stack_name
 
         update_sort_keys_migration = DataMigration(
             self,
@@ -39,14 +32,14 @@ class DataMigrationStack(AppStack):
             migration_dir='migrate_update_sort_keys',
             lambda_environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                **common_env_vars,
+                **self.common_env_vars,
             },
         )
         persistent_stack.shared_encryption_key.grant_encrypt_decrypt(update_sort_keys_migration)
         persistent_stack.provider_table.grant_read_write_data(update_sort_keys_migration)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{update_sort_keys_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{update_sort_keys_migration.migration_function.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
