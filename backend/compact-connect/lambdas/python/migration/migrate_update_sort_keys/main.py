@@ -1,6 +1,11 @@
 from boto3.dynamodb.conditions import Attr
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderUpdateData, LicenseUpdateData, PrivilegeUpdateData
+from cc_common.data_model.provider_record_util import (
+    LicenseUpdateData,
+    PrivilegeUpdateData,
+    ProviderRecordType,
+    ProviderUpdateData,
+)
 from cc_common.exceptions import CCInternalException
 from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
 
@@ -41,11 +46,10 @@ def do_migration(_properties: dict) -> None:
     while True:
         response = config.provider_table.scan(
             FilterExpression=Attr('type').eq(ProviderRecordType.LICENSE_UPDATE)
-                             | Attr('type').eq(ProviderRecordType.PROVIDER_UPDATE)
-                             | Attr('type').eq(ProviderRecordType.PRIVILEGE_UPDATE),
+            | Attr('type').eq(ProviderRecordType.PROVIDER_UPDATE)
+            | Attr('type').eq(ProviderRecordType.PRIVILEGE_UPDATE),
             **scan_pagination,
         )
-
 
         items = response.get('Items', [])
         update_records.extend(items)
@@ -93,6 +97,7 @@ def _generate_delete_transaction_item(pk: str, sk: str) -> dict:
         }
     }
 
+
 def _generate_put_transaction_item(item: dict) -> dict:
     """
     Generate a put transaction item for a provider record.
@@ -106,10 +111,11 @@ def _generate_put_transaction_item(item: dict) -> dict:
         }
     }
 
+
 def _generate_transaction_items(original_update_record: dict) -> list[dict]:
     """
     In the case of a provider update record, we add a createDate field based on the dateOfUpdate field.
-    Then we use the ProviderUpdateData class to serialize the record and return the transaction items. 
+    Then we use the ProviderUpdateData class to serialize the record and return the transaction items.
     (one to delete the old record and one to create the new record)
 
     :param original_update_record: The provider update record to process
@@ -126,8 +132,8 @@ def _generate_transaction_items(original_update_record: dict) -> list[dict]:
     elif record_type == ProviderRecordType.PRIVILEGE_UPDATE:
         data_class = PrivilegeUpdateData
     else:
-        logger.error("invalid record type found", record_type=record_type, pk=old_pk, sk=old_sk)
-        raise CCInternalException("invalid record type found")
+        logger.error('invalid record type found', record_type=record_type, pk=old_pk, sk=old_sk)
+        raise CCInternalException('invalid record type found')
 
     # Performing deserialization/serialization on the record, which will generate
     # the new pk/sks values we are migrating to.
@@ -148,8 +154,9 @@ def _generate_transaction_items(original_update_record: dict) -> list[dict]:
     # delete old record with old pk/sk, and create new one
     return [
         _generate_delete_transaction_item(pk=old_pk, sk=old_sk),
-        _generate_put_transaction_item(migrated_provider_update_record)
+        _generate_put_transaction_item(migrated_provider_update_record),
     ]
+
 
 def _process_batch(update_records: list[dict]) -> None:
     """

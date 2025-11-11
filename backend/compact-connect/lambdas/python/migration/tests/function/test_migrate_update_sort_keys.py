@@ -1,10 +1,15 @@
 from datetime import datetime
-from moto import mock_aws
 from unittest.mock import patch
 
-from common_test.test_constants import DEFAULT_PROVIDER_UPDATE_DATETIME, DEFAULT_LICENSE_UPDATE_DATETIME, \
-    DEFAULT_LICENSE_UPDATE_CREATE_DATE, DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION, \
-    DEFAULT_PRIVILEGE_UPDATE_DATETIME
+from common_test.test_constants import (
+    DEFAULT_LICENSE_JURISDICTION,
+    DEFAULT_LICENSE_UPDATE_CREATE_DATE,
+    DEFAULT_LICENSE_UPDATE_DATETIME,
+    DEFAULT_PRIVILEGE_JURISDICTION,
+    DEFAULT_PRIVILEGE_UPDATE_DATETIME,
+    DEFAULT_PROVIDER_UPDATE_DATETIME,
+)
+from moto import mock_aws
 
 from . import TstFunction
 
@@ -21,10 +26,9 @@ class TestMigrateUpdateSortKeys(TstFunction):
     def test_should_migrate_provider_update_records_to_expected_pattern(self):
         from migrate_update_sort_keys.main import do_migration
 
-        old_provider_update_record = self.test_data_generator.generate_default_provider_update(value_overrides={
-            'compact': MOCK_COMPACT,
-            'providerId': MOCK_PROVIDER_ID
-        })
+        old_provider_update_record = self.test_data_generator.generate_default_provider_update(
+            value_overrides={'compact': MOCK_COMPACT, 'providerId': MOCK_PROVIDER_ID}
+        )
         serialized_old_record = old_provider_update_record.serialize_to_database_record()
         # replace sk with old pattern to simulate old record to be migrated
         serialized_old_record['sk'] = 'aslp#PROVIDER#UPDATE#1752526787/2f429ccda22d273b1ee4876f2917e27f'
@@ -36,12 +40,18 @@ class TestMigrateUpdateSortKeys(TstFunction):
         do_migration({})
 
         # verify old record was deleted
-        old_record_resp = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': serialized_old_record['sk']})
+        old_record_resp = self.config.provider_table.get_item(
+            Key={'pk': serialized_old_record['pk'], 'sk': serialized_old_record['sk']}
+        )
         self.assertIsNone(old_record_resp.get('Item'))
 
         # verify new record was created with expected sk
-        expected_sk = f'{MOCK_COMPACT}#UPDATE#2#provider/{DEFAULT_PROVIDER_UPDATE_DATETIME}/2f429ccda22d273b1ee4876f2917e27f'
-        new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})['Item']
+        expected_sk = (
+            f'{MOCK_COMPACT}#UPDATE#2#provider/{DEFAULT_PROVIDER_UPDATE_DATETIME}/2f429ccda22d273b1ee4876f2917e27f'
+        )
+        new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})[
+            'Item'
+        ]
 
         serialized_old_record['sk'] = expected_sk
         # as part of migration, the createDate field will be populated with whatever the dateOfUpdate was
@@ -50,18 +60,21 @@ class TestMigrateUpdateSortKeys(TstFunction):
         # only the sort key and the createDate should have been modified
         self.assertEqual(serialized_old_record, new_record)
 
-
     def test_should_migrate_license_update_records_to_expected_pattern(self):
         from migrate_update_sort_keys.main import do_migration
 
-        old_license_update_record = self.test_data_generator.generate_default_license_update(value_overrides={
-            'compact': MOCK_COMPACT,
-            'providerId': MOCK_PROVIDER_ID,
-            'licenseType': 'licensed professional counselor'
-        })
+        old_license_update_record = self.test_data_generator.generate_default_license_update(
+            value_overrides={
+                'compact': MOCK_COMPACT,
+                'providerId': MOCK_PROVIDER_ID,
+                'licenseType': 'licensed professional counselor',
+            }
+        )
         serialized_old_record = old_license_update_record.serialize_to_database_record()
         # replace sk with old pattern to simulate old record to be migrated
-        serialized_old_record['sk'] = f'{MOCK_COMPACT}#PROVIDER#license/{DEFAULT_LICENSE_JURISDICTION}/lpc#UPDATE#1752526787/21554583eb71ccc5f8aa5988c8a50ac2'
+        serialized_old_record['sk'] = (
+            f'{MOCK_COMPACT}#PROVIDER#license/{DEFAULT_LICENSE_JURISDICTION}/lpc#UPDATE#1752526787/21554583eb71ccc5f8aa5988c8a50ac2'
+        )
         serialized_old_record['dateOfUpdate'] = DEFAULT_LICENSE_UPDATE_DATETIME
         self.config.provider_table.put_item(Item=serialized_old_record)
 
@@ -69,12 +82,16 @@ class TestMigrateUpdateSortKeys(TstFunction):
         do_migration({})
 
         # verify old record was deleted
-        old_record_resp = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': serialized_old_record['sk']})
+        old_record_resp = self.config.provider_table.get_item(
+            Key={'pk': serialized_old_record['pk'], 'sk': serialized_old_record['sk']}
+        )
         self.assertIsNone(old_record_resp.get('Item'))
 
         # verify new record was created with expected sk
         expected_sk = f'{MOCK_COMPACT}#UPDATE#3#license/{DEFAULT_LICENSE_JURISDICTION}/lpc/{DEFAULT_LICENSE_UPDATE_CREATE_DATE}/21554583eb71ccc5f8aa5988c8a50ac2'
-        new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})['Item']
+        new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})[
+            'Item'
+        ]
         serialized_old_record['sk'] = expected_sk
         # nothing on the record should have changed other than the sort key
         self.assertEqual(serialized_old_record, new_record)
@@ -84,15 +101,19 @@ class TestMigrateUpdateSortKeys(TstFunction):
 
         mock_create_date = '2025-07-07T07:07:07+00:00'
 
-        old_privilege_update_record = self.test_data_generator.generate_default_privilege_update(value_overrides={
-            'compact': MOCK_COMPACT,
-            'providerId': MOCK_PROVIDER_ID,
-            'licenseType': 'licensed professional counselor',
-            'createDate': datetime.fromisoformat(mock_create_date)
-        })
+        old_privilege_update_record = self.test_data_generator.generate_default_privilege_update(
+            value_overrides={
+                'compact': MOCK_COMPACT,
+                'providerId': MOCK_PROVIDER_ID,
+                'licenseType': 'licensed professional counselor',
+                'createDate': datetime.fromisoformat(mock_create_date),
+            }
+        )
         serialized_old_record = old_privilege_update_record.serialize_to_database_record()
         # replace sk with old pattern to simulate old record to be migrated
-        serialized_old_record['sk'] = f'{MOCK_COMPACT}#PROVIDER#privilege/{DEFAULT_PRIVILEGE_JURISDICTION}/lpc#UPDATE#1752526787/399abde0989ad5e936920a3ba9f0944a'
+        serialized_old_record['sk'] = (
+            f'{MOCK_COMPACT}#PROVIDER#privilege/{DEFAULT_PRIVILEGE_JURISDICTION}/lpc#UPDATE#1752526787/399abde0989ad5e936920a3ba9f0944a'
+        )
         serialized_old_record['dateOfUpdate'] = DEFAULT_PRIVILEGE_UPDATE_DATETIME
         self.config.provider_table.put_item(Item=serialized_old_record)
 
@@ -100,14 +121,16 @@ class TestMigrateUpdateSortKeys(TstFunction):
         do_migration({})
 
         # verify old record was deleted
-        old_record_resp = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': serialized_old_record['sk']})
+        old_record_resp = self.config.provider_table.get_item(
+            Key={'pk': serialized_old_record['pk'], 'sk': serialized_old_record['sk']}
+        )
         self.assertIsNone(old_record_resp.get('Item'))
 
         # verify new record was created with expected sk
         expected_sk = f'{MOCK_COMPACT}#UPDATE#1#privilege/{DEFAULT_PRIVILEGE_JURISDICTION}/lpc/{mock_create_date}/399abde0989ad5e936920a3ba9f0944a'
-        new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})['Item']
+        new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})[
+            'Item'
+        ]
         serialized_old_record['sk'] = expected_sk
         # nothing on the record should have changed other than the sort key
         self.assertEqual(serialized_old_record, new_record)
-
-

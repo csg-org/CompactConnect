@@ -93,4 +93,3 @@ class TstFunction(TstLambdas):
 
     def delete_resources(self):
         self._provider_table.delete()
-

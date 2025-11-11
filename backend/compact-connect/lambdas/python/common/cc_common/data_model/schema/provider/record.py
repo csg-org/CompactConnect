@@ -250,7 +250,5 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # to the record. We'll use the createDate and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
-        in_data['sk'] = (
-            f'{in_data["compact"]}#UPDATE#2#provider/{in_data["createDate"]}/{change_hash}'
-        )
+        in_data['sk'] = f'{in_data["compact"]}#UPDATE#2#provider/{in_data["createDate"]}/{change_hash}'
         return in_data

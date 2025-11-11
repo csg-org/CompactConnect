@@ -1,10 +1,9 @@
 import json
 from datetime import UTC, date, datetime
-from unittest.mock import patch, ANY
+from unittest.mock import ANY, patch
 from uuid import UUID, uuid4
 
 from boto3.dynamodb.conditions import Key
-
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException
 from common_test.test_constants import DEFAULT_PROVIDER_ID
@@ -1419,9 +1418,7 @@ class TestDataClient(TstFunction):
             compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_privilege(
-            privilege_jurisdiction='ne',
-            privilege_license_type_abbreviation='slp',
-            include_closed=True
+            privilege_jurisdiction='ne', privilege_license_type_abbreviation='slp', include_closed=True
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -1497,7 +1494,7 @@ class TestDataClient(TstFunction):
             'updatedValues': {},
             'removedValues': ['investigationStatus'],
             'dateOfUpdate': ANY,
-            'compactTransactionIdGSIPK': ANY
+            'compactTransactionIdGSIPK': ANY,
         }
 
         self.assertEqual(expected_closure_update, closure_update.serialize_to_database_record())
@@ -1551,9 +1548,7 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information
         investigation_records = provider_user_records.get_investigation_records_for_license(
-            license_jurisdiction='oh',
-            license_type_abbreviation='slp',
-            include_closed=True
+            license_jurisdiction='oh', license_type_abbreviation='slp', include_closed=True
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -1574,7 +1569,7 @@ class TestDataClient(TstFunction):
             'creationDate': investigation.creationDate.isoformat(),
             'closeDate': close_date.isoformat(),
             'closingUser': closing_user,
-            'dateOfUpdate': ANY
+            'dateOfUpdate': ANY,
         }
 
         self.assertEqual(expected_investigation_close, investigation_record.serialize_to_database_record())
@@ -1588,8 +1583,7 @@ class TestDataClient(TstFunction):
 
         # Verify update record was created for closure
         update_records = provider_user_records.get_update_records_for_license(
-            jurisdiction=license_record.jurisdiction,
-            license_type=license_record.licenseType
+            jurisdiction=license_record.jurisdiction, license_type=license_record.licenseType
         )
 
         # Should have 2 update records: one for creation, one for closure
@@ -1642,7 +1636,7 @@ class TestDataClient(TstFunction):
             },
             'updatedValues': {},
             'removedValues': ['investigationStatus'],
-            'dateOfUpdate': ANY
+            'dateOfUpdate': ANY,
         }
 
         self.assertEqual(expected_closure_update, closure_update.serialize_to_database_record())

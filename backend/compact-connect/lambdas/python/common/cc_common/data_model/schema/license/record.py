@@ -12,12 +12,12 @@ from cc_common.data_model.schema.base_record import (
     ForgivingSchema,
 )
 from cc_common.data_model.schema.common import (
+    LICENSE_UPLOAD_UPDATE_CATEGORIES,
     ActiveInactiveStatus,
     ChangeHashMixin,
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
     UpdateCategory,
-    LICENSE_UPLOAD_UPDATE_CATEGORIES,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,

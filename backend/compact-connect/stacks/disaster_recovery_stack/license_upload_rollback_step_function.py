@@ -56,7 +56,7 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
             stack=stack,
             persistent_stack=persistent_stack,
             rollback_results_bucket=rollback_results_bucket,
-            data_event_bus=data_event_bus
+            data_event_bus=data_event_bus,
         )
 
         # Build Step Function definition
@@ -118,7 +118,7 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
         stack: Stack,
         persistent_stack: ps.PersistentStack,
         rollback_results_bucket: Bucket,
-        data_event_bus: EventBus
+        data_event_bus: EventBus,
     ):
         """Create the Lambda function for processing license upload rollback."""
         self.rollback_function = PythonFunction(
@@ -242,4 +242,3 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
 
         # Start with initialization
         return initialize_rollback
-

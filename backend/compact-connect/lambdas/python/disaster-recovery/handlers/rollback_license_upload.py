@@ -149,7 +149,7 @@ class RollbackResults:
                             jurisdiction=reverted_license['jurisdiction'],
                             license_type=reverted_license['licenseType'],
                             revision_id=uuid4(),
-                            action=reverted_license['action']
+                            action=reverted_license['action'],
                         )
                         for reverted_license in summary.get('licensesReverted', [])
                     ],
@@ -158,7 +158,7 @@ class RollbackResults:
                             jurisdiction=reverted_privilege['jurisdiction'],
                             license_type=reverted_privilege['licenseType'],
                             revision_id=uuid4(),
-                            action=reverted_privilege['action']
+                            action=reverted_privilege['action'],
                         )
                         for reverted_privilege in summary.get('privilegesReverted', [])
                     ],
@@ -267,10 +267,10 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
             start_datetime,
             end_datetime,
         )
-        
+
         # Convert to sorted list for consistent ordering across invocations
         affected_provider_ids_list = sorted(affected_provider_ids)
-        
+
         # If continuing from a previous invocation, slice the list to start from that provider
         if continue_from_provider_id:
             try:
@@ -465,7 +465,7 @@ def _process_provider_rollback(
         logger.error(f'Error processing provider rollback: {str(e)}', provider_id=provider_id, exc_info=True)
         return ProviderFailedDetails(
             provider_id=provider_id,
-            error=f"Failed to rollback updates for provider. Manual review required: {str(e)}",
+            error=f'Failed to rollback updates for provider. Manual review required: {str(e)}',
         )
 
     # Publish events for successful rollback
@@ -477,7 +477,7 @@ def _process_provider_rollback(
 def _extract_sk_from_transaction_item(transaction_item: dict) -> str | None:
     """
     Extract the sort key (SK) from a transaction item.
-    
+
     Transaction items can be Put, Delete, or Update operations.
     Returns the SK if found, None otherwise.
     """
@@ -504,14 +504,14 @@ def _perform_transaction(transaction_items: list[dict], provider_id: str) -> Non
             failed_sks = [_extract_sk_from_transaction_item(item) for item in batch]
             # filter out null values
             failed_sks = [sk for sk in failed_sks if sk is not None]
-            
+
             logger.error(
                 'Transaction batch failed for provider',
                 provider_id=provider_id,
                 batch_number=i // 100 + 1,
                 batch_size=len(batch),
                 failed_sks=failed_sks,
-                error=str(e)
+                error=str(e),
             )
             raise
 
@@ -598,7 +598,7 @@ def _build_and_execute_revert_transactions(
                     update_time=update.dateOfUpdate.isoformat(),
                     reason='Provider update occurred after rollback start time. Manual review required.',
                     # provider updates are not specific to a license type
-                    license_type='N/A'
+                    license_type='N/A',
                 )
             )
 
@@ -609,7 +609,8 @@ def _build_and_execute_revert_transactions(
 
     for license_record in license_records:
         privileges_associated_with_license = provider_records.get_privilege_records(
-            filter_condition=lambda x: x.licenseJurisdiction == jurisdiction and x.licenseType == license_record.licenseType
+            filter_condition=lambda x: x.licenseJurisdiction == jurisdiction
+            and x.licenseType == license_record.licenseType
         )
         privilege_jurisdictions = [x.jurisdiction for x in privileges_associated_with_license]
         # Get privilege updates for all privileges associated with this license
@@ -633,8 +634,8 @@ def _build_and_execute_revert_transactions(
                         license_type=privilege_update.licenseType,
                         # include privilege jurisdiction in reason
                         reason=f'Privilege in jurisdiction {privilege_update.jurisdiction} was updated with a change '
-                               f'unrelated to license upload or the update occurred after rollback end time. '
-                               f'Manual review required.',
+                        f'unrelated to license upload or the update occurred after rollback end time. '
+                        f'Manual review required.',
                     )
                 )
             elif start_datetime <= privilege_update.createDate <= end_datetime:
@@ -698,7 +699,7 @@ def _build_and_execute_revert_transactions(
                         update_time=datetime.now().isoformat(),
                         license_type=license_record.licenseType,
                         reason=f'Privileges issued in jurisdictions {privilege_jurisdictions} after license upload. '
-                               f'Manual review required.',
+                        f'Manual review required.',
                     )
                 )
             # no privileges found, so we can delete the license record
@@ -737,7 +738,7 @@ def _build_and_execute_revert_transactions(
                             update_time=license_update.createDate.isoformat(),
                             license_type=license_update.licenseType,
                             reason='License was updated with a change unrelated to license upload or the update '
-                                   'occurred after rollback end time. Manual review required.',
+                            'occurred after rollback end time. Manual review required.',
                         )
                     )
                 elif start_datetime <= license_update.createDate <= end_datetime:
@@ -749,7 +750,7 @@ def _build_and_execute_revert_transactions(
                     logger.info(
                         'Will delete license update record if provider is eligible for rollback',
                         update_type=license_update.updateType,
-                        license_type=license_update.licenseType
+                        license_type=license_update.licenseType,
                     )
 
             # If there were updates in the window and no updates after end_datetime, revert the license
@@ -914,17 +915,18 @@ def _publish_revert_events(
                 )
             except Exception as e:
                 # this event publishing is not business critical, so we log the error and move on
-                logger.error("Unable to publish license revert event",
-                            compact=compact,
-                            provider_id=revert_summary.provider_id,
-                            jurisdiction=reverted_license.jurisdiction,
-                            license_type=reverted_license.license_type,
-                            rollback_reason=rollback_reason,
-                            start_time=start_datetime,
-                            end_time=end_datetime,
-                            revision_id=reverted_license.revision_id,
-                            error=str(e),
-                        )
+                logger.error(
+                    'Unable to publish license revert event',
+                    compact=compact,
+                    provider_id=revert_summary.provider_id,
+                    jurisdiction=reverted_license.jurisdiction,
+                    license_type=reverted_license.license_type,
+                    rollback_reason=rollback_reason,
+                    start_time=start_datetime,
+                    end_time=end_datetime,
+                    revision_id=reverted_license.revision_id,
+                    error=str(e),
+                )
 
         # Publish privilege revert events
         for reverted_privilege in revert_summary.privileges_reverted:
@@ -943,7 +945,8 @@ def _publish_revert_events(
                 )
             except Exception as e:
                 # this event publishing is not business critical, so we log the error and move on
-                logger.error("Unable to publish privilege revert event",
+                logger.error(
+                    'Unable to publish privilege revert event',
                     compact=compact,
                     provider_id=revert_summary.provider_id,
                     jurisdiction=reverted_privilege.jurisdiction,

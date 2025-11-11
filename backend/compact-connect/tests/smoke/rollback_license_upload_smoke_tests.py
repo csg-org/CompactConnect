@@ -30,9 +30,7 @@ NUM_LICENSES_TO_UPLOAD = 1000
 BATCH_SIZE = 100  # Upload in batches of 100 to avoid timeouts
 
 
-def upload_test_license_batch(
-    auth_headers: dict, batch_start_index: int, batch_size: int
-):
+def upload_test_license_batch(auth_headers: dict, batch_start_index: int, batch_size: int):
     """
     Upload a batch of test license records.
 
@@ -144,7 +142,6 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
     page_num = 1
     all_provider_ids = []
     while time.time() - start_time < max_wait_time:
-
         # Collect all providers across all pages
         while True:
             query_body = base_query_body.copy()
@@ -159,8 +156,9 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
             )
 
             if query_response.status_code != 200:
-                logger.warning(f'Query failed with status {query_response.status_code}: {query_response.json()}'
-                               f' Retrying...')
+                logger.warning(
+                    f'Query failed with status {query_response.status_code}: {query_response.json()} Retrying...'
+                )
                 break
 
             response_data = query_response.json()
@@ -186,8 +184,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
 
         num_found = len(all_provider_ids)
         logger.info(
-            f'Found {num_found}/{expected_count} providers with family name "RollbackTest" '
-            f'(across {page_num} pages)'
+            f'Found {num_found}/{expected_count} providers with family name "RollbackTest" (across {page_num} pages)'
         )
 
         if num_found >= expected_count:

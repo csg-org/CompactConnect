@@ -768,9 +768,7 @@ class ProviderUserRecords:
         :return: List of LicenseUpdateData records
         """
         return [
-            record
-            for record in self._license_update_records
-            if filter_condition is None or filter_condition(record)
+            record for record in self._license_update_records if filter_condition is None or filter_condition(record)
         ]
 
     def get_all_privilege_update_records(
@@ -783,9 +781,7 @@ class ProviderUserRecords:
         :return: List of PrivilegeUpdateData records
         """
         return [
-            record
-            for record in self._privilege_update_records
-            if filter_condition is None or filter_condition(record)
+            record for record in self._privilege_update_records if filter_condition is None or filter_condition(record)
         ]
 
     def get_all_provider_update_records(
@@ -798,9 +794,7 @@ class ProviderUserRecords:
         :return: List of ProviderUpdateData records
         """
         return [
-            record
-            for record in self._provider_update_records
-            if filter_condition is None or filter_condition(record)
+            record for record in self._provider_update_records if filter_condition is None or filter_condition(record)
         ]
 
     def get_update_records_for_license(

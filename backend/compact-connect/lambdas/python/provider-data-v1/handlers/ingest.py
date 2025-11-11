@@ -1,5 +1,5 @@
-from copy import deepcopy
 import json
+from copy import deepcopy
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger

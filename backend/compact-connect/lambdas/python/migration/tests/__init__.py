@@ -92,8 +92,8 @@ class TstLambdas(TestCase):
                             {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
                         ],
                         'coun': [
-                            {"name": "licensed professional counselor", "abbreviation": "lpc"},
-                        ]
+                            {'name': 'licensed professional counselor', 'abbreviation': 'lpc'},
+                        ],
                     },
                 ),
             },

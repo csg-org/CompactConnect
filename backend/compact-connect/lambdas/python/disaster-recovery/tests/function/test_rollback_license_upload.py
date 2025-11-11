@@ -201,9 +201,7 @@ class TestRollbackLicenseUpload(TstFunction):
                 'updateType': self.update_categories.LICENSE_DEACTIVATION,
                 'createDate': upload_datetime,
                 'effectiveDate': upload_datetime,
-                'previous': {
-                    **privilege.to_dict()
-                },
+                'previous': {**privilege.to_dict()},
                 'updatedValues': {
                     'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
                 },
@@ -303,7 +301,6 @@ class TestRollbackLicenseUpload(TstFunction):
         return provider, updated_provider
 
     def _when_provider_changed_home_jurisdiction_after_license_upload(self):
-
         self._when_provider_had_license_created_from_upload()
 
         provider_update_record = self.test_data_generator.put_default_provider_update_record_in_provider_table(
@@ -311,15 +308,13 @@ class TestRollbackLicenseUpload(TstFunction):
                 'providerId': self.provider_id,
                 'compact': self.compact,
                 'updateType': self.update_categories.HOME_JURISDICTION_CHANGE,
-                'previous': {
-                    **self.provider_data.to_dict()
-                },
+                'previous': {**self.provider_data.to_dict()},
                 'updatedValues': {
                     'currentHomeJurisdiction': self.license_jurisdiction,
                 },
             },
             # home jurisdiction was changed during license upload window
-            date_of_update_override=self.default_upload_datetime.isoformat()
+            date_of_update_override=self.default_upload_datetime.isoformat(),
         )
 
         # Simulate that the provider record was updated during upload
@@ -455,8 +450,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # make sure license record was reactivated as well
         license_record = provider_records.get_specific_license_record(
-            jurisdiction=self.license_jurisdiction,
-            license_abbreviation=privilege_record.licenseTypeAbbreviation
+            jurisdiction=self.license_jurisdiction, license_abbreviation=privilege_record.licenseTypeAbbreviation
         )
         self.assertEqual('active', license_record.licenseStatus)
 
@@ -594,7 +588,6 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['rollbackStatus'], 'FAILED')
         self.assertIn('cannot exceed', result['error'])
 
-
     def _perform_rollback_and_get_s3_object(self):
         from handlers.rollback_license_upload import rollback_license_upload
 
@@ -638,7 +631,8 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the sha here will need to be updated
                         'updatesDeleted': [
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'],
+                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                        ],
                     }
                 ],
                 'skippedProviderDetails': [],
@@ -715,7 +709,8 @@ class TestRollbackLicenseUpload(TstFunction):
                         # NOTE: if the test update data is modified, the shas here will need to be updated
                         'updatesDeleted': [
                             'aslp#UPDATE#1#privilege/ne/slp/2025-10-23T07:15:00+00:00/06b886756a79b796ad10b17bd67057e6',
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'],
+                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6',
+                        ],
                     }
                 ],
                 'skippedProviderDetails': [],
@@ -734,8 +729,10 @@ class TestRollbackLicenseUpload(TstFunction):
         results_data = self._perform_rollback_and_get_s3_object()
 
         # Verify the structure of the results
-        expected_reason_message = ("License was updated with a change unrelated to license upload or the update "
-                                   "occurred after rollback end time. Manual review required.")
+        expected_reason_message = (
+            'License was updated with a change unrelated to license upload or the update '
+            'occurred after rollback end time. Manual review required.'
+        )
         self.assertEqual(
             {
                 'failedProviderDetails': [],
@@ -770,8 +767,10 @@ class TestRollbackLicenseUpload(TstFunction):
         results_data = self._perform_rollback_and_get_s3_object()
 
         # Verify the structure of the results
-        expected_reason_message = ("Privilege in jurisdiction oh was updated with a change unrelated to license upload or the update "
-                                   "occurred after rollback end time. Manual review required.")
+        expected_reason_message = (
+            'Privilege in jurisdiction oh was updated with a change unrelated to license upload or the update '
+            'occurred after rollback end time. Manual review required.'
+        )
         self.assertEqual(
             {
                 'failedProviderDetails': [],
@@ -805,7 +804,7 @@ class TestRollbackLicenseUpload(TstFunction):
         results_data = self._perform_rollback_and_get_s3_object()
 
         # Verify the structure of the results
-        expected_reason_message = "Provider update occurred after rollback start time. Manual review required."
+        expected_reason_message = 'Provider update occurred after rollback start time. Manual review required.'
         self.assertEqual(
             {
                 'failedProviderDetails': [],
@@ -818,7 +817,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'reason': expected_reason_message,
                                 'record_type': 'providerUpdate',
                                 'type_of_update': provider_update.updateType,
-                                'license_type': 'N/A'
+                                'license_type': 'N/A',
                             }
                         ],
                         'provider_id': MOCK_PROVIDER_ID,
@@ -842,9 +841,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Mock get_provider_user_records to raise an exception when called during rollback
         mock_error_message = 'Database connection error'
         with patch.object(
-            self.config.data_client,
-            'get_provider_user_records',
-            side_effect=Exception(mock_error_message)
+            self.config.data_client, 'get_provider_user_records', side_effect=Exception(mock_error_message)
         ):
             results_data = self._perform_rollback_and_get_s3_object()
 
@@ -854,7 +851,7 @@ class TestRollbackLicenseUpload(TstFunction):
                     'failedProviderDetails': [
                         {
                             'error': f'Failed to rollback updates for provider. '
-                                     f'Manual review required: {mock_error_message}',
+                            f'Manual review required: {mock_error_message}',
                             'provider_id': self.provider_id,
                         }
                     ],
@@ -879,10 +876,10 @@ class TestRollbackLicenseUpload(TstFunction):
             license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
         )
         self._when_provider_had_privilege_deactivated_from_upload()
-        
+
         # Create initial S3 results with data in all fields
         s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
-        
+
         # Create existing results data in the format that from_dict expects (camelCase for top-level keys)
         existing_results_data = {
             'skippedProviderDetails': [
@@ -922,7 +919,7 @@ class TestRollbackLicenseUpload(TstFunction):
                 }
             ],
         }
-        
+
         # Write existing results to S3
         self.config.s3_client.put_object(
             Bucket=self.config.rollback_results_bucket_name,
@@ -930,9 +927,9 @@ class TestRollbackLicenseUpload(TstFunction):
             Body=json.dumps(existing_results_data, indent=2),
             ContentType='application/json',
         )
-        
+
         final_results_data = self._perform_rollback_and_get_s3_object()
-        
+
         # Verify: All existing data is preserved and new data is appended
         # Note: to_dict() uses asdict() which produces snake_case for skipped/failed details
         self.assertEqual(
@@ -991,7 +988,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             }
                         ],
                         'updatesDeleted': ANY,
-                    }
+                    },
                 ],
             },
             final_results_data,
@@ -1014,26 +1011,25 @@ class TestRollbackLicenseUpload(TstFunction):
         # Provider IDs in sorted order (to ensure consistent pagination behavior)
         mock_first_provider_id = '11111111-5ed3-4be4-8ad5-c8558f587890'
         mock_second_provider_id = '22222222-5ed3-4be4-8ad5-c8558f587890'
-        
+
         # Add first provider
         self._add_provider_record(provider_id=mock_first_provider_id)
         self._when_provider_had_license_updated_from_upload(
-            license_upload_datetime=self.default_start_datetime - timedelta(hours=1),
-            provider_id=mock_first_provider_id
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1), provider_id=mock_first_provider_id
         )
-        
+
         # Add second provider
         self._add_provider_record(provider_id=mock_second_provider_id)
         self._when_provider_had_license_updated_from_upload(
             license_upload_datetime=self.default_start_datetime - timedelta(hours=1),
-            provider_id=mock_second_provider_id
+            provider_id=mock_second_provider_id,
         )
-        
+
         # Execute: First invocation (should timeout after processing first provider)
         event = self._generate_test_event()
-        
+
         result_first = rollback_license_upload(event, Mock())
-        
+
         # Assert: First invocation returned IN_PROGRESS status
         self.assertEqual(result_first['rollbackStatus'], 'IN_PROGRESS')
         self.assertEqual(1, result_first['providersProcessed'])
@@ -1041,47 +1037,65 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(0, result_first['providersSkipped'])
         self.assertEqual(0, result_first['providersFailed'])
         self.assertEqual(mock_second_provider_id, result_first['continueFromProviderId'])
-        
+
         # Execute: Second invocation (continue from where we left off)
         # Reset mock time for second invocation
         mock_time.time.side_effect = [0, 1]  # Won't timeout this time
-        
 
         result_second = rollback_license_upload(result_first, Mock())
-        
+
         # Assert: Second invocation completed successfully
         self.assertEqual(result_second['rollbackStatus'], 'COMPLETE')
         self.assertEqual(2, result_second['providersProcessed'])
         self.assertEqual(2, result_second['providersReverted'])
         self.assertEqual(0, result_second['providersSkipped'])
         self.assertEqual(0, result_second['providersFailed'])
-        
+
         # Verify: S3 results contain both providers
         s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
-        s3_obj = self.config.s3_client.get_object(
-            Bucket=self.config.rollback_results_bucket_name, Key=s3_key
-        )
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
         final_results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
-        
+
         # Should have 2 reverted providers
-        self.assertEqual({'failedProviderDetails': [],
- 'revertedProviderSummaries': [{'licensesReverted': [{'action': 'REVERT',
-                                                      'jurisdiction': 'oh',
-                                                      'licenseType': 'speech-language pathologist',
-                                                      'revisionId': ANY}],
-                                'privilegesReverted': [],
-                                'providerId': mock_first_provider_id,
-                                'updatesDeleted': [
-                                    'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6']},
-                               {'licensesReverted': [{'action': 'REVERT',
-                                                      'jurisdiction': 'oh',
-                                                      'licenseType': 'speech-language pathologist',
-                                                      'revisionId': ANY}],
-                                'privilegesReverted': [],
-                                'providerId': mock_second_provider_id,
-                                'updatesDeleted': [
-                                    'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6']}],
- 'skippedProviderDetails': []}, final_results_data)
+        self.assertEqual(
+            {
+                'failedProviderDetails': [],
+                'revertedProviderSummaries': [
+                    {
+                        'licensesReverted': [
+                            {
+                                'action': 'REVERT',
+                                'jurisdiction': 'oh',
+                                'licenseType': 'speech-language pathologist',
+                                'revisionId': ANY,
+                            }
+                        ],
+                        'privilegesReverted': [],
+                        'providerId': mock_first_provider_id,
+                        'updatesDeleted': [
+                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                        ],
+                    },
+                    {
+                        'licensesReverted': [
+                            {
+                                'action': 'REVERT',
+                                'jurisdiction': 'oh',
+                                'licenseType': 'speech-language pathologist',
+                                'revisionId': ANY,
+                            }
+                        ],
+                        'privilegesReverted': [],
+                        'providerId': mock_second_provider_id,
+                        'updatesDeleted': [
+                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                        ],
+                    },
+                ],
+                'skippedProviderDetails': [],
+            },
+            final_results_data,
+        )
 
     def test_transaction_failure_is_logged_and_provider_marked_as_failed(self):
         """Test that transaction failures are properly logged and the provider is marked as failed."""
@@ -1089,7 +1103,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # Setup: Create a scenario with privilege deactivation which will have PUT, DELETE, and UPDATE operations
         # - License update (DELETE of update record)
-        # - Privilege update (DELETE of update record) 
+        # - Privilege update (DELETE of update record)
         # - Privilege reactivation (UPDATE to remove licenseDeactivatedStatus)
         # - Provider record update (PUT)
         self._when_provider_had_license_updated_from_upload(
@@ -1099,25 +1113,22 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # Mock the transaction to fail with a ClientError
         mock_error = ClientError(
-            error_response={
-                'Error': {
-                    'Code': 'TransactionCanceledException',
-                    'Message': 'Transaction cancelled'
-                }
-            },
-            operation_name='TransactWriteItems'
+            error_response={'Error': {'Code': 'TransactionCanceledException', 'Message': 'Transaction cancelled'}},
+            operation_name='TransactWriteItems',
         )
-        
+
         # Patch at the handler module level to ensure it works across the full test suite
-        with patch('handlers.rollback_license_upload.config.provider_table.meta.client.transact_write_items',
-                   side_effect=mock_error):
+        with patch(
+            'handlers.rollback_license_upload.config.provider_table.meta.client.transact_write_items',
+            side_effect=mock_error,
+        ):
             results_data = self._perform_rollback_and_get_s3_object()
 
             # Verify: Provider was marked as failed
             self.assertEqual(1, len(results_data['failedProviderDetails']))
             self.assertEqual(self.provider_id, results_data['failedProviderDetails'][0]['provider_id'])
             self.assertIn('TransactionCanceledException', results_data['failedProviderDetails'][0]['error'])
-            
+
             # Verify: No providers were reverted or skipped
             self.assertEqual(0, len(results_data['revertedProviderSummaries']))
             self.assertEqual(0, len(results_data['skippedProviderDetails']))
