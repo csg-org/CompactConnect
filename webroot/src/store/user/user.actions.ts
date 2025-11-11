@@ -289,9 +289,9 @@ export default {
         let initiateInMs = moment.duration(10, 'minutes').asMilliseconds(); // Default inactivity timer
 
         if (isLoggedInAsStaff) {
-            initiateInMs = moment.duration(5, 'seconds').asMilliseconds(); // Inactivity timer for Staff
+            initiateInMs = moment.duration(10, 'seconds').asMilliseconds(); // Inactivity timer for Staff
         } else if (isLoggedInAsLicensee) {
-            initiateInMs = moment.duration(5, 'seconds').asMilliseconds(); // Inactivity timer for Licensees
+            initiateInMs = moment.duration(10, 'seconds').asMilliseconds(); // Inactivity timer for Licensees
         }
 
         const initiateAutoLogout = () => {

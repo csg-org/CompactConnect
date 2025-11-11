@@ -208,11 +208,22 @@ class App extends Vue {
             'wheel',
             'mousewheel',
         ];
+        const debounce = (func, delay) => {
+            let timer;
+
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        };
         const eventHandler = (event) => {
             console.log(`event: ${event.type}`);
             this.$store.dispatch('user/startAutoLogoutTokenTimer');
             this.startAutoLogoutTimer();
         };
+        const debouncedEventHandler = debounce(eventHandler, 1000);
         const controller = new AbortController();
         const { isLoggedIn, isAutoLogoutWarning } = this.userStore;
 
@@ -222,7 +233,7 @@ class App extends Vue {
             this.$store.dispatch('user/startAutoLogoutTokenTimer');
             this.autoLogoutEventsController = controller;
             resetEvents.forEach((resetEvent) => {
-                document.addEventListener(resetEvent, eventHandler, {
+                document.addEventListener(resetEvent, debouncedEventHandler, {
                     capture: false,
                     once: true,
                     passive: true,
@@ -261,6 +272,7 @@ class App extends Vue {
 
     @Watch('userStore.isLoggedInAsLicensee') async handleLicenseeLogin() {
         if (!this.userStore.isLoggedIn) {
+            this.removeAutoLogoutEvents();
             this.$router.push({ name: 'Logout' });
         } else if (this.userStore.isLoggedInAsLicensee) {
             await this.handleAuth();
@@ -269,6 +281,7 @@ class App extends Vue {
 
     @Watch('userStore.isLoggedInAsStaff') async handleStaffLogin() {
         if (!this.userStore.isLoggedIn) {
+            this.removeAutoLogoutEvents();
             this.$router.push({ name: 'Logout' });
         } else if (this.userStore.isLoggedInAsStaff) {
             await this.handleAuth();
