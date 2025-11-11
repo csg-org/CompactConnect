@@ -1,9 +1,11 @@
 import json
 from datetime import UTC, date, datetime
-from unittest.mock import patch
+from unittest.mock import patch, ANY
 from uuid import UUID, uuid4
 
 from boto3.dynamodb.conditions import Key
+
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException
 from common_test.test_constants import DEFAULT_PROVIDER_ID
 from moto import mock_aws
@@ -1107,10 +1109,13 @@ class TestDataClient(TstFunction):
         client.create_investigation(investigation)
 
         # Verify investigation record was created
-        investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#')
-        )['Items']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        investigation_records = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction='ne',
+            privilege_license_type_abbreviation='slp',
+        )
 
         self.assertEqual(1, len(investigation_records))
         investigation_record = investigation_records[0]
@@ -1128,27 +1133,23 @@ class TestDataClient(TstFunction):
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
             'creationDate': investigation.creationDate.isoformat(),
+            'dateOfUpdate': ANY,
         }
         # Pop dynamic fields that we don't want to assert on
-        investigation_record.pop('dateOfUpdate')
-
-        self.assertEqual(expected_investigation, investigation_record)
+        self.assertEqual(expected_investigation, investigation_record.serialize_to_database_record())
 
         # Verify privilege record was updated with investigation status
-        privilege_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').eq('aslp#PROVIDER#privilege/ne/slp#')
-        )['Items']
+        privilege_records = provider_user_records.get_privilege_records()
 
         self.assertEqual(1, len(privilege_records))
         privilege_record = privilege_records[0]
-        self.assertEqual('underInvestigation', privilege_record['investigationStatus'])
+        self.assertEqual('underInvestigation', privilege_record.investigationStatus)
 
         # Verify update record was created
-        update_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#UPDATE#')
-        )['Items']
+        update_records = provider_user_records.get_update_records_for_privilege(
+            jurisdiction=privilege_record.jurisdiction,
+            license_type=privilege_record.licenseType,
+        )
 
         self.assertEqual(1, len(update_records))
         update_record = update_records[0]
@@ -1156,6 +1157,7 @@ class TestDataClient(TstFunction):
         # Verify the complete update record structure
         expected_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': ANY,
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'type': 'privilegeUpdate',
             'updateType': 'investigation',
@@ -1182,12 +1184,10 @@ class TestDataClient(TstFunction):
             'investigationDetails': {
                 'investigationId': str(investigation.investigationId),
             },
+            'dateOfUpdate': ANY,
         }
-        # Pop dynamic fields that we don't want to assert on
-        update_record.pop('dateOfUpdate')
-        update_record.pop('sk')
 
-        self.assertEqual(expected_update, update_record)
+        self.assertEqual(expected_update, update_record.serialize_to_database_record())
 
     def test_create_license_investigation_success(self):
         """Test successful creation of license investigation"""
@@ -1218,10 +1218,13 @@ class TestDataClient(TstFunction):
         client.create_investigation(investigation)
 
         # Verify investigation record was created
-        investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#INVESTIGATION#')
-        )['Items']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        investigation_records = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction='oh',
+            license_type_abbreviation='slp',
+        )
 
         self.assertEqual(1, len(investigation_records))
         investigation_record = investigation_records[0]
@@ -1239,27 +1242,23 @@ class TestDataClient(TstFunction):
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
             'creationDate': investigation.creationDate.isoformat(),
+            'dateOfUpdate': ANY,
         }
-        # Pop dynamic fields that we don't want to assert on
-        investigation_record.pop('dateOfUpdate')
 
-        self.assertEqual(expected_investigation, investigation_record)
+        self.assertEqual(expected_investigation, investigation_record.serialize_to_database_record())
 
         # Verify license record was updated with investigation status
-        license_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').eq('aslp#PROVIDER#license/oh/slp#')
-        )['Items']
+        license_records = provider_user_records.get_license_records()
 
         self.assertEqual(1, len(license_records))
         license_record = license_records[0]
-        self.assertEqual('underInvestigation', license_record['investigationStatus'])
+        self.assertEqual('underInvestigation', license_record.investigationStatus)
 
         # Verify update record was created
-        update_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#UPDATE#')
-        )['Items']
+        update_records = provider_user_records.get_update_records_for_license(
+            jurisdiction=license_record.jurisdiction,
+            license_type=license_record.licenseType,
+        )
 
         self.assertEqual(1, len(update_records))
         update_record = update_records[0]
@@ -1267,6 +1266,7 @@ class TestDataClient(TstFunction):
         # Verify the complete update record structure
         expected_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'investigation',
             'compact': 'aslp',
@@ -1304,12 +1304,10 @@ class TestDataClient(TstFunction):
             'investigationDetails': {
                 'investigationId': str(investigation.investigationId),
             },
+            'dateOfUpdate': ANY,
         }
-        # Pop dynamic fields that we don't want to assert on
-        update_record.pop('dateOfUpdate')
-        update_record.pop('sk')
 
-        self.assertEqual(expected_update, update_record)
+        self.assertEqual(expected_update, update_record.serialize_to_database_record())
 
     def test_create_privilege_investigation_privilege_not_found(self):
         """Test creation of privilege investigation when privilege doesn't exist"""
@@ -1417,10 +1415,14 @@ class TestDataClient(TstFunction):
         )
 
         # Verify investigation record was updated with close information
-        investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#')
-        )['Items']
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        investigation_records = provider_user_records.get_investigation_records_for_privilege(
+            privilege_jurisdiction='ne',
+            privilege_license_type_abbreviation='slp',
+            include_closed=True
+        )
 
         self.assertEqual(1, len(investigation_records))
         investigation_record = investigation_records[0]
@@ -1440,27 +1442,21 @@ class TestDataClient(TstFunction):
             'creationDate': investigation.creationDate.isoformat(),
             'closeDate': investigation.creationDate.isoformat(),
             'closingUser': closing_user,
+            'dateOfUpdate': ANY,
         }
-        # Pop dynamic fields that we don't want to assert on
-        investigation_record.pop('dateOfUpdate')
-
-        self.assertEqual(expected_investigation_close, investigation_record)
+        self.assertEqual(expected_investigation_close, investigation_record.serialize_to_database_record())
 
         # Verify privilege record no longer has investigation status
-        privilege_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').eq('aslp#PROVIDER#privilege/ne/slp#')
-        )['Items']
-
+        privilege_records = provider_user_records.get_privilege_records()
         self.assertEqual(1, len(privilege_records))
         privilege_record = privilege_records[0]
-        self.assertNotIn('investigationStatus', privilege_record)
+        self.assertIsNone(privilege_record.investigationStatus)
 
         # Verify update record was created for closure
-        update_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#UPDATE#')
-        )['Items']
+        update_records = provider_user_records.get_update_records_for_privilege(
+            jurisdiction='ne',
+            license_type=privilege_record.licenseType,
+        )
 
         # Should have 2 update records: one for creation, one for closure
         self.assertEqual(2, len(update_records))
@@ -1468,7 +1464,7 @@ class TestDataClient(TstFunction):
         # Find the closure update record
         closure_update = None
         for update_record in update_records:
-            if update_record.get('updateType') == 'closingInvestigation':
+            if update_record.updateType == 'closingInvestigation':
                 closure_update = update_record
                 break
 
@@ -1477,6 +1473,7 @@ class TestDataClient(TstFunction):
         # Verify the complete closure update record structure
         expected_closure_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': ANY,
             'type': 'privilegeUpdate',
             'updateType': 'closingInvestigation',
             'compact': 'aslp',
@@ -1499,15 +1496,11 @@ class TestDataClient(TstFunction):
             },
             'updatedValues': {},
             'removedValues': ['investigationStatus'],
+            'dateOfUpdate': ANY,
+            'compactTransactionIdGSIPK': ANY
         }
-        # Pop dynamic fields that we don't want to assert on
-        closure_update.pop('dateOfUpdate')
-        closure_update.pop('sk')
-        # Only pop compactTransactionIdGSIPK if it exists
-        if 'compactTransactionIdGSIPK' in closure_update:
-            closure_update.pop('compactTransactionIdGSIPK')
 
-        self.assertEqual(expected_closure_update, closure_update)
+        self.assertEqual(expected_closure_update, closure_update.serialize_to_database_record())
 
     def test_close_license_investigation_success(self):
         """Test successful closing of license investigation"""
@@ -1551,11 +1544,17 @@ class TestDataClient(TstFunction):
             investigation_against=InvestigationAgainstEnum.LICENSE,
         )
 
+        # grab all provider records to make assertions
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+
         # Verify investigation record was updated with close information
-        investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#INVESTIGATION#')
-        )['Items']
+        investigation_records = provider_user_records.get_investigation_records_for_license(
+            license_jurisdiction='oh',
+            license_type_abbreviation='slp',
+            include_closed=True
+        )
 
         self.assertEqual(1, len(investigation_records))
         investigation_record = investigation_records[0]
@@ -1575,27 +1574,23 @@ class TestDataClient(TstFunction):
             'creationDate': investigation.creationDate.isoformat(),
             'closeDate': close_date.isoformat(),
             'closingUser': closing_user,
+            'dateOfUpdate': ANY
         }
-        # Pop dynamic fields that we don't want to assert on
-        investigation_record.pop('dateOfUpdate')
 
-        self.assertEqual(expected_investigation_close, investigation_record)
+        self.assertEqual(expected_investigation_close, investigation_record.serialize_to_database_record())
 
         # Verify license record no longer has investigation status
-        license_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').eq('aslp#PROVIDER#license/oh/slp#')
-        )['Items']
+        license_records = provider_user_records.get_license_records()
 
         self.assertEqual(1, len(license_records))
         license_record = license_records[0]
-        self.assertNotIn('investigationStatus', license_record)
+        self.assertNotIn('investigationStatus', license_record.to_dict())
 
         # Verify update record was created for closure
-        update_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#UPDATE#')
-        )['Items']
+        update_records = provider_user_records.get_update_records_for_license(
+            jurisdiction=license_record.jurisdiction,
+            license_type=license_record.licenseType
+        )
 
         # Should have 2 update records: one for creation, one for closure
         self.assertEqual(2, len(update_records))
@@ -1603,7 +1598,7 @@ class TestDataClient(TstFunction):
         # Find the closure update record
         closure_update = None
         for update_record in update_records:
-            if update_record.get('updateType') == 'closingInvestigation':
+            if update_record.updateType == 'closingInvestigation':
                 closure_update = update_record
                 break
 
@@ -1612,6 +1607,7 @@ class TestDataClient(TstFunction):
         # Verify the complete closure update record structure
         expected_closure_update = {
             'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'closingInvestigation',
             'compact': 'aslp',
@@ -1646,12 +1642,10 @@ class TestDataClient(TstFunction):
             },
             'updatedValues': {},
             'removedValues': ['investigationStatus'],
+            'dateOfUpdate': ANY
         }
-        # Pop dynamic fields that we don't want to assert on
-        closure_update.pop('dateOfUpdate')
-        closure_update.pop('sk')
 
-        self.assertEqual(expected_closure_update, closure_update)
+        self.assertEqual(expected_closure_update, closure_update.serialize_to_database_record())
 
     def test_close_privilege_investigation_not_found(self):
         """Test closing privilege investigation when investigation doesn't exist"""
