@@ -87,8 +87,8 @@ def _generate_delete_transaction_item(pk: str, sk: str) -> dict:
         'Delete': {
             'TableName': config.provider_table.table_name,
             'Key': {
-                'pk': {'S': pk},
-                'sk': {'S': sk},
+                'pk': pk,
+                'sk': sk,
             },
         }
     }
@@ -106,19 +106,19 @@ def _generate_put_transaction_item(item: dict) -> dict:
         }
     }
 
-def _generate_transaction_items(update_record: dict) -> list[dict]:
+def _generate_transaction_items(original_update_record: dict) -> list[dict]:
     """
     In the case of a provider update record, we add a createDate field based on the dateOfUpdate field.
     Then we use the ProviderUpdateData class to serialize the record and return the transaction items. 
     (one to delete the old record and one to create the new record)
 
-    :param update_record: The provider update record to process
+    :param original_update_record: The provider update record to process
     :return: List of transaction items
     """
     # grab the old pk and sk from the object
-    old_pk = update_record['pk']
-    old_sk = update_record['sk']
-    record_type = update_record.get('type')
+    old_pk = original_update_record['pk']
+    old_sk = original_update_record['sk']
+    record_type = original_update_record.get('type')
     if record_type == ProviderRecordType.PROVIDER_UPDATE:
         data_class = ProviderUpdateData
     elif record_type == ProviderRecordType.LICENSE_UPDATE:
@@ -132,8 +132,10 @@ def _generate_transaction_items(update_record: dict) -> list[dict]:
     # Performing deserialization/serialization on the record, which will generate
     # the new pk/sks values we are migrating to.
 
-    update_data = data_class.from_database_record(update_record)
+    update_data = data_class.from_database_record(original_update_record)
     migrated_provider_update_record = update_data.serialize_to_database_record()
+    # retain original dateOfUpdate value
+    migrated_provider_update_record['dateOfUpdate'] = original_update_record['dateOfUpdate']
 
     logger.info(
         'Prepared update items for create date',
