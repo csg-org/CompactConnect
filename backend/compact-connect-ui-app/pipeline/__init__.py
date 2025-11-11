@@ -109,8 +109,6 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             **kwargs,
         )
 
-        git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
-
         self.pre_prod_frontend_pipeline = FrontendPipeline(
             self,
             'TestFrontendPipeline',
@@ -118,7 +116,7 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern=git_tag_trigger_pattern,
+            git_tag_trigger_pattern='ui-test-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -163,8 +161,6 @@ class BetaFrontendPipelineStack(BaseFrontendPipelineStack):
             **kwargs,
         )
 
-        git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
-
         self.beta_frontend_pipeline = FrontendPipeline(
             self,
             'BetaFrontendPipeline',
@@ -172,7 +168,7 @@ class BetaFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern=git_tag_trigger_pattern,
+            git_tag_trigger_pattern='ui-beta-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -217,8 +213,6 @@ class ProdFrontendPipelineStack(BaseFrontendPipelineStack):
             **kwargs,
         )
 
-        git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
-
         self.prod_frontend_pipeline = FrontendPipeline(
             self,
             'ProdFrontendPipeline',
@@ -226,7 +220,7 @@ class ProdFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern=git_tag_trigger_pattern,
+            git_tag_trigger_pattern='ui-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,

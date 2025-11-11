@@ -114,8 +114,6 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             **kwargs,
         )
 
-        git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
-
         self.pre_prod_pipeline = BackendPipeline(
             self,
             'TestBackendPipeline',
@@ -123,7 +121,7 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern=git_tag_trigger_pattern,
+            git_tag_trigger_pattern='cc-test-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -171,8 +169,6 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             **kwargs,
         )
 
-        git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
-
         self.beta_backend_pipeline = BackendPipeline(
             self,
             'BetaBackendPipeline',
@@ -180,7 +176,7 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern=git_tag_trigger_pattern,
+            git_tag_trigger_pattern='cc-beta-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -232,8 +228,6 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
         if not self.backup_config or not self.ssm_context['environments'][PROD_ENVIRONMENT_NAME].get('backup_enabled'):
             raise ValueError('Backups must be enabled for production environment.')
 
-        git_tag_trigger_pattern = self.pipeline_environment_context['git_tag_trigger_pattern']
-
         self.prod_pipeline = BackendPipeline(
             self,
             'ProdBackendPipeline',
@@ -241,7 +235,7 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern=git_tag_trigger_pattern,
+            git_tag_trigger_pattern='cc-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,

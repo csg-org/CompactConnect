@@ -6,8 +6,7 @@
       "pipeline": {
         "account_id": "000000000000",
         "region": "us-east-1",
-        "connection_arn": "arn:aws:codestar-connections:us-east-1:000000000000:connection/11111111-1111-1111-111111111111",
-        "git_tag_trigger_pattern": "ui-test-*"
+        "connection_arn": "arn:aws:codestar-connections:us-east-1:000000000000:connection/11111111-1111-1111-111111111111"
       },
       "test": {
         "account_id": "111122223333",
