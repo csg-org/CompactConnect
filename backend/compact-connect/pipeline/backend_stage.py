@@ -219,3 +219,4 @@ class BackendStage(Stage):
         )
         # Explicitly declare the dependency to ensure proper deployment order
         self.data_migration_stack.add_dependency(self.api_stack)
+        self.data_migration_stack.add_dependency(self.event_listener_stack)
