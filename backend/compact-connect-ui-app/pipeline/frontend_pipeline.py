@@ -58,8 +58,27 @@ class FrontendPipeline(BasePipeline):
         """
         Initialize the FrontendPipeline.
 
+        :param scope: The parent construct (BasePipelineStack instance).
+        :param construct_id: The construct ID for this pipeline, used for naming resources.
+        :param pipeline_name: The name of the CodePipeline pipeline.
+        :param github_repo_string: The GitHub repository string in the format 'owner/repo',
+            used for the source connection.
+        :param cdk_path: The path to the CDK directory where synthesis commands will be executed.
+        :param connection_arn: The ARN of the AWS CodeStar connection for GitHub integration.
+            Format: arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
         :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
-                                       trigger the pipeline (e.g., 'ui-prod-*', 'ui-beta-*', 'ui-test-*').
+            trigger the pipeline (e.g., 'ui-prod-*', 'ui-beta-*', 'ui-test-*').
+        :param access_logs_bucket: The S3 bucket used for storing server access logs for the
+            artifact bucket.
+        :param encryption_key: The KMS key used to encrypt the artifact bucket and alarm topic.
+        :param alarm_topic: The SNS topic used for pipeline notifications and alarms.
+        :param ssm_parameter: The SSM parameter that the synth project needs read access to.
+        :param pipeline_stack_name: The name of the CloudFormation stack that contains this pipeline.
+            Used by the self-mutation step to deploy pipeline changes.
+        :param environment_context: Dictionary containing environment context with 'account_id' and
+            'region' keys for the pipeline environment.
+        :param removal_policy: The removal policy for the artifact bucket (e.g., DESTROY or RETAIN).
+        :param **kwargs: Additional keyword arguments passed to the BasePipeline constructor.
         """
         artifact_bucket = Bucket(
             scope,
