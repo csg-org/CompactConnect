@@ -88,7 +88,10 @@ class TestMigrateUpdateSortKeys(TstFunction):
         self.assertIsNone(old_record_resp.get('Item'))
 
         # verify new record was created with expected sk
-        expected_sk = f'{MOCK_COMPACT}#UPDATE#3#license/{DEFAULT_LICENSE_JURISDICTION}/lpc/{DEFAULT_LICENSE_UPDATE_CREATE_DATE}/21554583eb71ccc5f8aa5988c8a50ac2'
+        expected_sk = (
+            f'{MOCK_COMPACT}#UPDATE#3#license/{DEFAULT_LICENSE_JURISDICTION}/lpc'
+            f'/{DEFAULT_LICENSE_UPDATE_CREATE_DATE}/21554583eb71ccc5f8aa5988c8a50ac2'
+        )
         new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})[
             'Item'
         ]
@@ -127,7 +130,10 @@ class TestMigrateUpdateSortKeys(TstFunction):
         self.assertIsNone(old_record_resp.get('Item'))
 
         # verify new record was created with expected sk
-        expected_sk = f'{MOCK_COMPACT}#UPDATE#1#privilege/{DEFAULT_PRIVILEGE_JURISDICTION}/lpc/{mock_create_date}/399abde0989ad5e936920a3ba9f0944a'
+        expected_sk = (
+            f'{MOCK_COMPACT}#UPDATE#1#privilege/{DEFAULT_PRIVILEGE_JURISDICTION}/lpc'
+            f'/{mock_create_date}/399abde0989ad5e936920a3ba9f0944a'
+        )
         new_record = self.config.provider_table.get_item(Key={'pk': serialized_old_record['pk'], 'sk': expected_sk})[
             'Item'
         ]

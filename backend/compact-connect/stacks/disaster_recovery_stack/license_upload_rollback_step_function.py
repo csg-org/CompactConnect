@@ -77,7 +77,8 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
             suppressions=[
                 {
                     'id': 'HIPAA.Security-CloudWatchLogGroupRetentionPeriod',
-                    'reason': 'This system will be used infrequently. We are deliberately retaining logs indefinitely here.',
+                    'reason': 'This system will be used infrequently.'
+                    ' We are deliberately retaining logs indefinitely here.',
                 },
             ],
         )

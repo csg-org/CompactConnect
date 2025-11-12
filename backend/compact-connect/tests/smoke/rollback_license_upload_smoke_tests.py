@@ -65,7 +65,8 @@ def upload_test_license_batch(auth_headers: dict, batch_start_index: int, batch_
 
     # Upload the batch
     logger.info(
-        f'Uploading batch of {len(licenses_batch)} licenses (indices {batch_start_index}-{batch_start_index + batch_size - 1})'
+        f'Uploading batch of {len(licenses_batch)} licenses'
+        f' (indices {batch_start_index}-{batch_start_index + batch_size - 1})'
     )
 
     post_response = requests.post(
@@ -256,7 +257,7 @@ def wait_for_step_function_completion(execution_arn: str, max_wait_time: int = 3
     """
     sfn_client = boto3.client('stepfunctions')
 
-    logger.info(f'Waiting for step function to complete...')
+    logger.info('Waiting for step function to complete...')
     start_time = time.time()
     check_interval = 30
 
@@ -271,7 +272,7 @@ def wait_for_step_function_completion(execution_arn: str, max_wait_time: int = 3
             elapsed = time.time() - start_time
             logger.info(f'Step function completed successfully after {elapsed:.1f}s')
             return status, output
-        elif status in ['FAILED', 'TIMED_OUT', 'ABORTED']:
+        if status in ['FAILED', 'TIMED_OUT', 'ABORTED']:
             raise SmokeTestFailureException(
                 f'Step function execution failed with status: {status}. '
                 f'Error: {response.get("error", "N/A")}, Cause: {response.get("cause", "N/A")}'

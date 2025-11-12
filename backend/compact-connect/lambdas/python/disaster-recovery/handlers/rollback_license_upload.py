@@ -460,7 +460,7 @@ def _process_provider_rollback(
         # If provider was skipped due to ineligibility, return early
         if isinstance(result, ProviderSkippedDetails):
             return result
-    except Exception as e:
+    except Exception as e:  # noqa BLE001
         logger.error(f'Error processing provider rollback: {str(e)}', provider_id=provider_id, exc_info=True)
         return ProviderFailedDetails(
             provider_id=provider_id,
@@ -482,9 +482,9 @@ def _extract_sk_from_transaction_item(transaction_item: dict) -> str | None:
     """
     if 'Put' in transaction_item:
         return transaction_item['Put']['Item'].get('sk')
-    elif 'Delete' in transaction_item:
+    if 'Delete' in transaction_item:
         return transaction_item['Delete']['Key'].get('sk')
-    elif 'Update' in transaction_item:
+    if 'Update' in transaction_item:
         return transaction_item['Update']['Key'].get('sk')
     return None
 
@@ -529,7 +529,7 @@ def _check_for_orphaned_update_records(
 
     # Extract unique (jurisdiction, license_type) pairs from update records
     license_keys_from_updates: set[tuple[str, str]] = set()
-    
+
     for update in all_license_updates:
         license_keys_from_updates.add((update.jurisdiction, update.licenseType))
 
@@ -544,19 +544,19 @@ def _check_for_orphaned_update_records(
             ),
             None,
         )
-        
+
         if license_record is None:
             # Found an orphaned update record
             return IneligibleUpdate(
                 record_type='licenseUpdate',
                 type_of_update='Orphaned',
-                update_time=datetime.now().isoformat(),
+                update_time='N/A',
                 license_type=license_type,
                 reason=f'License update record(s) exist for license in jurisdiction '
                 f'{license_jurisdiction} with type {license_type}, but no corresponding top-level '
                 f'license record was found. This indicates data inconsistency. Manual review required.',
             )
-    
+
     return None
 
 
@@ -657,24 +657,24 @@ def _build_and_execute_revert_transactions(
     reverted_licenses_dict = []
 
     for license_record in license_records:
-        privileges_associated_with_license = provider_records.get_privilege_records(
-            filter_condition=lambda x: x.licenseJurisdiction == jurisdiction
-            and x.licenseType == license_record.licenseType
+        privileges_associated_with_license = provider_records.get_privileges_associated_with_license(
+            license_jurisdiction=license_record.jurisdiction,
+            license_type_abbreviation=license_record.licenseTypeAbbreviation,
         )
-        privilege_jurisdictions = [x.jurisdiction for x in privileges_associated_with_license]
-        # Get privilege updates for all privileges associated with this license
-        # that are after the start_datetime
+        privileges_associated_with_license_jurisdictions = [x.jurisdiction for x in privileges_associated_with_license]
+        # Get privilege updates for all privileges that are after the start_datetime
         privilege_updates = provider_records.get_all_privilege_update_records(
-            filter_condition=lambda x: x.jurisdiction in privilege_jurisdictions and x.dateOfUpdate >= start_datetime,
+            filter_condition=lambda x: x.createDate >= start_datetime,
         )
 
         # Check privilege updates for eligibility
         for privilege_update in privilege_updates:
-            if (
+            if privilege_update.jurisdiction in privileges_associated_with_license_jurisdictions and (
                 privilege_update.updateType != PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY
                 or privilege_update.createDate > end_datetime
             ):
-                # Non-license-deactivation privilege update or privilege update after end_datetime make provider ineligible
+                # Non-license-deactivation privilege update or privilege update
+                # after end_datetime make provider ineligible
                 ineligible_updates.append(
                     IneligibleUpdate(
                         record_type='privilegeUpdate',
@@ -736,19 +736,22 @@ def _build_and_execute_revert_transactions(
         )
 
         # if license record was created during the window, delete it and all update records after start_datetime
+        # unless a user has purchased privileges
         if (
             license_record.firstUploadDate is not None
             and start_datetime <= license_record.firstUploadDate <= end_datetime
         ):
-            if privilege_jurisdictions:
+            if privileges_associated_with_license_jurisdictions:
                 ineligible_updates.append(
                     IneligibleUpdate(
                         record_type='privilegeUpdate',
                         type_of_update='Issuance',
-                        update_time=datetime.now().isoformat(),
+                        # We only need to show the issuance date of the first privilege associated with the license
+                        # for the purposes of the report.
+                        update_time=privileges_associated_with_license[0].dateOfIssuance.isoformat(),
                         license_type=license_record.licenseType,
-                        reason=f'Privileges issued in jurisdictions {privilege_jurisdictions} after license upload. '
-                        f'Manual review required.',
+                        reason=f'Privileges issued in jurisdictions {privileges_associated_with_license_jurisdictions}'
+                        ' after license upload. Manual review required.',
                     )
                 )
             # no privileges found, so we can delete the license record
@@ -772,7 +775,8 @@ def _build_and_execute_revert_transactions(
                     update_type=update.updateType,
                 )
         else:
-            # If license record was not created during the window, check license updates for eligibility and build transactions
+            # If license record was not created during the window,
+            # check license updates for eligibility and build transactions
             license_updates_in_window = []
             for license_update in license_updates_after_start:
                 if (
@@ -872,7 +876,8 @@ def _build_and_execute_revert_transactions(
         )
         return ProviderSkippedDetails(
             provider_id=provider_id,
-            reason='Provider has updates that are either unrelated to license upload or occurred after rollback end time. Manual review required.',
+            reason='Provider has updates that are either unrelated to license upload or occurred after'
+            ' rollback end time. Manual review required.',
             ineligible_updates=ineligible_updates,
         )
 
@@ -962,7 +967,7 @@ def _publish_revert_events(
                     revision_id=reverted_license.revision_id,
                     event_batch_writer=event_writer,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa BLE001
                 # this event publishing is not business critical, so we log the error and move on
                 logger.error(
                     'Unable to publish license revert event',
@@ -992,7 +997,7 @@ def _publish_revert_events(
                     revision_id=reverted_privilege.revision_id,
                     event_batch_writer=event_writer,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa BLE001
                 # this event publishing is not business critical, so we log the error and move on
                 logger.error(
                     'Unable to publish privilege revert event',

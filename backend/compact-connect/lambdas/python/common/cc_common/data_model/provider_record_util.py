@@ -500,6 +500,27 @@ class ProviderUserRecords:
         """
         return [record for record in self._privilege_records if filter_condition is None or filter_condition(record)]
 
+    def get_privileges_associated_with_license(
+        self,
+        license_jurisdiction: str,
+        license_type_abbreviation: str,
+        filter_condition: Callable[[PrivilegeData], bool] | None = None,
+    ) -> list[PrivilegeData]:
+        """
+        Get all privileges associated with a given license.
+        :param license_jurisdiction: The jurisdiction of the license.
+        :param license_type_abbreviation: The abbreviation of the license type.
+        :param filter_condition: An optional filter to apply to the privilege records
+        :return: A list of privilege records associated with the license
+        """
+        return [
+            record
+            for record in self._privilege_records
+            if record.licenseJurisdiction == license_jurisdiction
+            and record.licenseTypeAbbreviation == license_type_abbreviation
+            and (filter_condition is None or filter_condition(record))
+        ]
+
     def get_license_records(
         self,
         filter_condition: Callable[[LicenseData], bool] | None = None,

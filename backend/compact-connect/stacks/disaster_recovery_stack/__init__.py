@@ -84,7 +84,8 @@ class DisasterRecoveryStack(AppStack):
             suppressions=[
                 {
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
-                    'reason': 'This bucket is for generating one time results of the rollback workflow and is not intended to be replicated.',
+                    'reason': 'This bucket is for generating one time'
+                    ' results of the rollback workflow and is not intended to be replicated.',
                 },
             ],
         )

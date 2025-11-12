@@ -68,7 +68,7 @@ class TestRollbackLicenseUpload(TstFunction):
             provider_id = self.provider_id
 
         # add provider record to provider table
-        provider_data = self.test_data_generator.put_default_provider_record_in_provider_table(
+        return self.test_data_generator.put_default_provider_record_in_provider_table(
             {
                 'providerId': provider_id,
                 'compact': self.compact,
@@ -76,8 +76,6 @@ class TestRollbackLicenseUpload(TstFunction):
                 'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
             }
         )
-
-        return provider_data
 
     # Helper methods for setting up test scenarios
     def _when_provider_had_license_created_from_upload(self):
@@ -252,7 +250,7 @@ class TestRollbackLicenseUpload(TstFunction):
             after_upload_datetime = self.default_end_datetime + timedelta(hours=1)
 
         # Create a non-upload-related update (e.g., encumbrance) after the window
-        license_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
+        return self.test_data_generator.put_default_license_update_record_in_provider_table(
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
@@ -262,8 +260,6 @@ class TestRollbackLicenseUpload(TstFunction):
                 'effectiveDate': after_upload_datetime,
             }
         )
-
-        return license_update
 
     def _when_provider_top_level_record_needs_reverted(self, before_upload_datetime: datetime = None):
         """
@@ -353,7 +349,8 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(old_provider.familyName, provider_record.familyName)
 
     def test_provider_top_level_record_deleted_when_license_created_during_bad_upload(self):
-        """Test that provider top-level record is deleted if the license record is also deleted when reverting upload."""
+        """Test that provider top-level record is deleted if the license record
+        is also deleted when reverting upload."""
         from handlers.rollback_license_upload import rollback_license_upload
 
         # Setup:
@@ -370,7 +367,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(1, result['providersReverted'])
 
         # Verify: All provider records have been deleted
-        with pytest.raises(CCNotFoundException) as exc_info:
+        with pytest.raises(CCNotFoundException):
             self.config.data_client.get_provider_user_records(
                 compact=self.compact,
                 provider_id=self.provider_id,
@@ -483,7 +480,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['rollbackStatus'], 'COMPLETE')
 
         # Verify: All records within time window have been deleted
-        with pytest.raises(CCNotFoundException) as exec_info:
+        with pytest.raises(CCNotFoundException):
             self.config.data_client.get_provider_user_records(
                 compact=self.compact,
                 provider_id=self.provider_id,
@@ -576,8 +573,8 @@ class TestRollbackLicenseUpload(TstFunction):
     def test_rollback_validates_maximum_time_window(self):
         from handlers.rollback_license_upload import rollback_license_upload
 
-        start = datetime.now() - timedelta(days=8)  # More than 7 days
-        end = datetime.now()
+        start = self.config.current_standard_datetime - timedelta(days=8)  # More than 7 days
+        end = self.config.current_standard_datetime
 
         event = self._generate_test_event()
         event['startDateTime'] = start.isoformat()
@@ -599,9 +596,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Read object from S3 and verify its contents match what is expected
         s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
         s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
-        results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
-
-        return results_data
+        return json.loads(s3_obj['Body'].read().decode('utf-8'))
 
     # Tests for checking data written to S3
     def test_expected_s3_object_stored_when_provider_license_record_reset_to_prior_values(self):
@@ -1133,11 +1128,12 @@ class TestRollbackLicenseUpload(TstFunction):
             self.assertEqual(0, len(results_data['revertedProviderSummaries']))
             self.assertEqual(0, len(results_data['skippedProviderDetails']))
 
-
     def test_orphaned_license_updates_cause_provider_to_be_skipped(self):
-        """Test that orphaned license update records (without top-level license records) cause provider to be skipped."""
-        from handlers.rollback_license_upload import rollback_license_upload
+        """Test that orphaned license update records (without top-level license records)
+        cause provider to be skipped."""
         from uuid import uuid4
+
+        from handlers.rollback_license_upload import rollback_license_upload
 
         orphaned_provider_id = str(uuid4())
 
@@ -1195,22 +1191,22 @@ class TestRollbackLicenseUpload(TstFunction):
             f'but no corresponding top-level license record was found. '
             f'This indicates data inconsistency. Manual review required.'
         )
-        
+
         self.assertEqual(1, len(results_data['skippedProviderDetails']))
         skipped_detail = results_data['skippedProviderDetails'][0]
-        
+
         self.assertEqual(orphaned_provider_id, skipped_detail['provider_id'])
         self.assertIn('Manual review required', skipped_detail['reason'])
-        
+
         # Check ineligible updates details
         self.assertEqual(1, len(skipped_detail['ineligible_updates']))
         ineligible_update = skipped_detail['ineligible_updates'][0]
-        
+
         self.assertEqual('licenseUpdate', ineligible_update['record_type'])
         self.assertEqual('Orphaned', ineligible_update['type_of_update'])
         self.assertEqual(orphaned_license_update.licenseType, ineligible_update['license_type'])
         self.assertEqual(expected_reason, ineligible_update['reason'])
-        
+
         # Verify no providers were reverted or failed
         self.assertEqual(0, len(results_data['revertedProviderSummaries']))
         self.assertEqual(0, len(results_data['failedProviderDetails']))
