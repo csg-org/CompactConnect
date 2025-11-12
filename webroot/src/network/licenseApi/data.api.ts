@@ -379,7 +379,7 @@ export class LicenseDataApi implements DataApiInterface {
                         encumbranceEffectiveDate: encumbrance.startDate,
                     },
                 }
-                : undefined
+                : {}
             ),
         });
 
@@ -537,7 +537,7 @@ export class LicenseDataApi implements DataApiInterface {
                         encumbranceEffectiveDate: encumbrance.startDate,
                     },
                 }
-                : undefined
+                : {}
             ),
         });
 
