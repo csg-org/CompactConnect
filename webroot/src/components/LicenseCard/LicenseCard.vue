@@ -493,7 +493,7 @@
                                     <div class="investigation-dates">
                                         <span v-if="investigation.hasEndDate()">
                                             {{ $t('licensing.investigationEndedOn', {
-                                                date: investigation.updateDateDisplay()
+                                                date: investigation.endDateDisplay()
                                             }) }}
                                         </span>
                                     </div>

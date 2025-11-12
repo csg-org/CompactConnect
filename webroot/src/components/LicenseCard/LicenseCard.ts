@@ -409,7 +409,7 @@ class LicenseCard extends mixins(MixinForm) {
                 id: `end-investigation-data-${investigationId}`,
                 name: `end-investigation-data-${investigationId}`,
                 label: this.$t('licensing.investigationStartedOn', { date: investigation.startDateDisplay() }),
-                isDisabled: Boolean(investigation.updateDate),
+                isDisabled: Boolean(investigation.endDate),
             });
 
             this.formData[`end-investigation-data-${investigationId}`] = investigationInput;

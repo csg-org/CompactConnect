@@ -778,7 +778,8 @@ export const licensees = {
                             licenseType: 'occupational therapy assistant',
                             type: 'investigation',
                             creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
-                            dateOfUpdate: null,
+                            dateOfUpdate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                            endDate: null,
                         },
                         {
                             investigationId: '12345-DEF',
@@ -788,7 +789,8 @@ export const licensees = {
                             licenseType: 'occupational therapy assistant',
                             type: 'investigation',
                             creationDate: moment().subtract(1, 'month').format(serverDatetimeFormat),
-                            dateOfUpdate: moment().subtract(3, 'weeks').format(serverDatetimeFormat),
+                            dateOfUpdate: moment().subtract(1, 'month').format(serverDatetimeFormat),
+                            endDate: moment().subtract(2, 'weeks').format(serverDatetimeFormat),
                         },
                     ],
                 },
@@ -967,6 +969,7 @@ export const licensees = {
                             type: 'investigation',
                             creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
                             dateOfUpdate: null,
+                            endDate: null,
                         },
                         {
                             investigationId: '12345-DEF',
@@ -976,7 +979,8 @@ export const licensees = {
                             licenseType: 'occupational therapy assistant',
                             type: 'investigation',
                             creationDate: moment().subtract(1, 'month').format(serverDatetimeFormat),
-                            dateOfUpdate: moment().subtract(3, 'weeks').format(serverDatetimeFormat),
+                            dateOfUpdate: moment().subtract(1, 'month').format(serverDatetimeFormat),
+                            endDate: moment().subtract(3, 'weeks').format(serverDatetimeFormat),
                         },
                         {
                             investigationId: '12345-GHI',
@@ -986,7 +990,8 @@ export const licensees = {
                             licenseType: 'occupational therapy assistant',
                             type: 'investigation',
                             creationDate: moment().subtract(1, 'year').format(serverDatetimeFormat),
-                            dateOfUpdate: null
+                            dateOfUpdate: null,
+                            endDate: null,
                         },
                     ],
                 },

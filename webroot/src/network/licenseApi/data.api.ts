@@ -366,16 +366,18 @@ export class LicenseDataApi implements DataApiInterface {
             action: 'close',
             ...(encumbrance
                 ? {
-                    encumbranceType: encumbrance.encumbranceType,
-                    ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                        ? {
-                            clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
-                        }
-                        : {
-                            clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
-                        }
-                    ),
-                    encumbranceEffectiveDate: encumbrance.startDate,
+                    encumbrance: {
+                        encumbranceType: encumbrance.encumbranceType,
+                        ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                            ? {
+                                clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
+                            }
+                            : {
+                                clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
+                            }
+                        ),
+                        encumbranceEffectiveDate: encumbrance.startDate,
+                    },
                 }
                 : undefined
             ),
@@ -522,16 +524,18 @@ export class LicenseDataApi implements DataApiInterface {
             action: 'close',
             ...(encumbrance
                 ? {
-                    encumbranceType: encumbrance.encumbranceType,
-                    ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                        ? {
-                            clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
-                        }
-                        : {
-                            clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
-                        }
-                    ),
-                    encumbranceEffectiveDate: encumbrance.startDate,
+                    encumbrance: {
+                        encumbranceType: encumbrance.encumbranceType,
+                        ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                            ? {
+                                clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
+                            }
+                            : {
+                                clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
+                            }
+                        ),
+                        encumbranceEffectiveDate: encumbrance.startDate,
+                    },
                 }
                 : undefined
             ),

@@ -24,6 +24,7 @@ export interface InterfaceInvestigationCreate {
     type?: string | null;
     startDate?: string | null;
     updateDate?: string | null;
+    endDate?: string | null;
 }
 
 // ========================================================
@@ -39,6 +40,7 @@ export class Investigation implements InterfaceInvestigationCreate {
     public type? = null;
     public startDate? = null;
     public updateDate? = null;
+    public endDate? = null;
 
     constructor(data?: InterfaceInvestigationCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -60,13 +62,17 @@ export class Investigation implements InterfaceInvestigationCreate {
         return dateDisplay(this.updateDate);
     }
 
+    public endDateDisplay(): string {
+        return dateDisplay(this.endDate);
+    }
+
     public hasEndDate(): boolean {
-        return Boolean(this.updateDate);
+        return Boolean(this.endDate);
     }
 
     public isActive(): boolean {
         // Determine whether the investigation is currently in effect
-        const { startDate, updateDate: endDate } = this;
+        const { startDate, endDate } = this;
         const startDateMoment = (startDate) ? moment(startDate, serverDateFormat) : null;
         const endDateMoment = (endDate) ? moment(endDate, serverDateFormat) : null;
         const now = moment();
@@ -99,6 +105,7 @@ export class InvestigationSerializer {
             type: json.type,
             startDate: json.creationDate,
             updateDate: json.dateOfUpdate,
+            endDate: json.endDate,
         };
 
         return new Investigation(investigationData);

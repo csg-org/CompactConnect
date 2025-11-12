@@ -43,10 +43,12 @@ describe('Investigation model', () => {
         expect(investigation.type).to.equal(null);
         expect(investigation.startDate).to.equal(null);
         expect(investigation.updateDate).to.equal(null);
+        expect(investigation.endDate).to.equal(null);
 
         // Test methods
         expect(investigation.startDateDisplay()).to.equal('');
         expect(investigation.updateDateDisplay()).to.equal('');
+        expect(investigation.endDateDisplay()).to.equal('');
         expect(investigation.hasEndDate()).to.equal(false);
         expect(investigation.isActive()).to.equal(false);
     });
@@ -58,7 +60,8 @@ describe('Investigation model', () => {
             state: new State(),
             type: 'test-type',
             startDate: 'test-startDate',
-            updateDate: 'test-endDate',
+            updateDate: 'test-updateDate',
+            endDate: 'test-endDate',
         };
         const investigation = new Investigation(data);
 
@@ -71,10 +74,12 @@ describe('Investigation model', () => {
         expect(investigation.type).to.equal(data.type);
         expect(investigation.startDate).to.equal(data.startDate);
         expect(investigation.updateDate).to.equal(data.updateDate);
+        expect(investigation.endDate).to.equal(data.endDate);
 
         // Test methods
         expect(investigation.startDateDisplay()).to.equal('Invalid date');
         expect(investigation.updateDateDisplay()).to.equal('Invalid date');
+        expect(investigation.endDateDisplay()).to.equal('Invalid date');
         expect(investigation.hasEndDate()).to.equal(true);
         expect(investigation.isActive()).to.equal(false);
     });
@@ -87,36 +92,36 @@ describe('Investigation model', () => {
         // Test field values
         expect(investigation).to.be.an.instanceof(Investigation);
         expect(investigation.startDate).to.equal(data.startDate);
-        expect(investigation.updateDate).to.equal(null);
+        expect(investigation.endDate).to.equal(null);
 
         // Test methods
         expect(investigation.isActive()).to.equal(true);
     });
     it('should create an Investigation model with specific values (endDate but no startDate)', () => {
         const data = {
-            updateDate: moment().add(1, 'day').format(serverDateFormat),
+            endDate: moment().add(1, 'day').format(serverDateFormat),
         };
         const investigation = new Investigation(data);
 
         // Test field values
         expect(investigation).to.be.an.instanceof(Investigation);
         expect(investigation.startDate).to.equal(null);
-        expect(investigation.updateDate).to.equal(data.updateDate);
+        expect(investigation.endDate).to.equal(data.endDate);
 
         // Test methods
         expect(investigation.isActive()).to.equal(true);
     });
-    it('should create an Investigation model with specific values (updateDate of today should count as lifted)', () => {
+    it('should create an Investigation model with specific values (endDate of today should count as lifted)', () => {
         const data = {
             startDate: moment().format(serverDateFormat),
-            updateDate: moment().format(serverDateFormat),
+            endDate: moment().format(serverDateFormat),
         };
         const investigation = new Investigation(data);
 
         // Test field values
         expect(investigation).to.be.an.instanceof(Investigation);
         expect(investigation.startDate).to.equal(data.startDate);
-        expect(investigation.updateDate).to.equal(data.updateDate);
+        expect(investigation.endDate).to.equal(data.endDate);
 
         // Test methods
         expect(investigation.isActive()).to.equal(false);
@@ -129,7 +134,8 @@ describe('Investigation model', () => {
             jurisdiction: 'al',
             type: 'test-type',
             creationDate: moment.utc().format(serverDateFormat),
-            dateOfUpdate: moment.utc().add(1, 'day').format(serverDateFormat),
+            dateOfUpdate: moment.utc().format(serverDateFormat),
+            endDate: moment.utc().add(1, 'day').format(serverDateFormat),
         };
         const investigation = InvestigationSerializer.fromServer(data);
 
@@ -143,6 +149,7 @@ describe('Investigation model', () => {
         expect(investigation.type).to.equal(data.type);
         expect(investigation.startDate).to.equal(data.creationDate);
         expect(investigation.updateDate).to.equal(data.dateOfUpdate);
+        expect(investigation.endDate).to.equal(data.endDate);
 
         // Test methods
         expect(investigation.startDateDisplay()).to.equal(
@@ -150,6 +157,9 @@ describe('Investigation model', () => {
         );
         expect(investigation.updateDateDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
+        );
+        expect(investigation.endDateDisplay()).to.equal(
+            moment(data.endDate, serverDateFormat).format(displayDateFormat)
         );
         expect(investigation.hasEndDate()).to.equal(true);
         expect(investigation.isActive()).to.equal(true);
