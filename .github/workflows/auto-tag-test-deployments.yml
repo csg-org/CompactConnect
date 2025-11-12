@@ -37,7 +37,7 @@ jobs:
 
           echo "Created tag: $TAG_NAME"
 
-      # We're deploying the backend and UI in parallel here, since that is _usuall_ fine. However,
+      # We're deploying the backend and UI in parallel here, since that is _usually_ fine. However,
       # the UI deployment does have some dependencies on the backend, in the form of parameters like
       # S3 bucket urls, cognito domains, etc. If those change, or if new parameters are introduced,
       # the UI deploy will probably not be valid due to the race-condition here. This is only a test
