@@ -337,16 +337,17 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * PATCH Update License Investigation for a licensee.
-     * @param  {string}           compact       The compact string ID (aslp, octp, coun).
-     * @param  {string}           licenseeId    The Licensee ID.
-     * @param  {string}           licenseState  The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType   The license type.
-     * @param  {object}           [encumbrance] Optional encumbrance config to add to the license.
-     *   @param  {string}           encumbranceType The discipline action type.
-     *   @param  {string}           npdbCategory    The NPDB category name.
-     *   @param  {Array<string>}    npdbCategories  The NPDB category list.
-     *   @param  {string}           startDate       The encumber start date.
-     * @return {Promise<object>}                The server response.
+     * @param  {string}        compact         The compact string ID (aslp, octp, coun).
+     * @param  {string}        licenseeId      The Licensee ID.
+     * @param  {string}        licenseState    The 2-character state abbreviation for the License.
+     * @param  {string}        licenseType     The license type.
+     * @param  {string}        investigationId The Investigation ID.
+     * @param  {object}        [encumbrance]   Optional encumbrance config to add to the license.
+     *   @param  {string}        encumbranceType The discipline action type.
+     *   @param  {string}        npdbCategory    The NPDB category name.
+     *   @param  {Array<string>} npdbCategories  The NPDB category list.
+     *   @param  {string}        startDate       The encumber start date.
+     * @return {Promise<object>}               The server response.
      */
     public async updateLicenseInvestigation(
         compact: string,
