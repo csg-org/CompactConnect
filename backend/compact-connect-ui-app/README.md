@@ -154,7 +154,6 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
 
 Once the pipelines are established with the above steps, deployments will be automatically handled:
 
-
 - Tags pushed with the pattern, `ui-test-*` will trigger the frontend `test` pipeline to deploy
 - Tags pushed with the pattern, `ui-prod-*` will trigger the frontend `beta` and `prod` pipelines to deploy
 

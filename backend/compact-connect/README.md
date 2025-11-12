@@ -283,8 +283,8 @@ there on, the pipelines should integrate as designed.
 
 Once the pipelines are established with the above steps, deployments will be automatically handled:
 
-  - Tags pushed with the pattern, `cc-test-*` will trigger the backend `test` pipeline to deploy
-  - Tags pushed with the pattern, `cc-prod-*` will trigger the backend `beta` and `prod` pipelines to deploy
+- Tags pushed with the pattern, `cc-test-*` will trigger the backend `test` pipeline to deploy
+- Tags pushed with the pattern, `cc-prod-*` will trigger the backend `beta` and `prod` pipelines to deploy
 
 > *Note:* The frontend app has dependencies on the backend, in the form of parameters like
 > S3 bucket urls, cognito domains, etc. If those change, you will need to explicitly plan
