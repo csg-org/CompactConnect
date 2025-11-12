@@ -1132,3 +1132,85 @@ class TestRollbackLicenseUpload(TstFunction):
             # Verify: No providers were reverted or skipped
             self.assertEqual(0, len(results_data['revertedProviderSummaries']))
             self.assertEqual(0, len(results_data['skippedProviderDetails']))
+
+
+    def test_orphaned_license_updates_cause_provider_to_be_skipped(self):
+        """Test that orphaned license update records (without top-level license records) cause provider to be skipped."""
+        from handlers.rollback_license_upload import rollback_license_upload
+        from uuid import uuid4
+
+        orphaned_provider_id = str(uuid4())
+
+        # Setup: License was uploaded and then updated during upload
+        # Create update record within upload window to simulate license deactivation
+        orphaned_license_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'providerId': orphaned_provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'updateType': self.update_categories.DEACTIVATION,
+                'createDate': self.default_upload_datetime,
+                'effectiveDate': self.default_upload_datetime,
+                'updatedValues': {
+                    # simulate accidentally changing the expiration to last year
+                    'dateOfExpiration': (self.default_upload_datetime - timedelta(days=365)).date(),
+                    'licenseStatus': 'inactive',
+                    'familyName': MOCK_UPDATED_FAMILY_NAME,
+                    'givenName': MOCK_UPDATED_GIVEN_NAME,
+                },
+            }
+        )
+
+        # Verify update record exists before rollback
+        provider_records_before = self.config.data_client.get_provider_user_records(
+            compact=self.compact,
+            provider_id=orphaned_provider_id,
+            include_update_tier=UpdateTierEnum.TIER_THREE,
+        )
+        licenses_before = provider_records_before.get_license_records()
+        self.assertEqual(len(licenses_before), 0, 'Should not have license record before rollback')
+        license_updates_before = provider_records_before.get_all_license_update_records()
+        self.assertEqual(len(license_updates_before), 1, 'Should have orphaned update record before rollback')
+
+        # Execute: Perform rollback
+        event = self._generate_test_event()
+
+        result = rollback_license_upload(event, Mock())
+
+        # Assert: Rollback completed with provider skipped
+        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(result['providersSkipped'], 1, 'Provider with orphaned updates should be skipped')
+        self.assertEqual(result['providersReverted'], 0, 'No providers should be reverted')
+        self.assertEqual(result['providersFailed'], 0, 'No providers should have failed')
+
+        # Verify S3 results contain the orphaned update details
+        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
+        results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
+
+        # Verify the structure of the results
+        expected_reason = (
+            f'License or privilege update records exist for license in jurisdiction '
+            f'{self.license_jurisdiction} with type {orphaned_license_update.licenseType}, '
+            f'but no corresponding top-level license record was found. '
+            f'This indicates data inconsistency. Manual review required.'
+        )
+        
+        self.assertEqual(1, len(results_data['skippedProviderDetails']))
+        skipped_detail = results_data['skippedProviderDetails'][0]
+        
+        self.assertEqual(orphaned_provider_id, skipped_detail['provider_id'])
+        self.assertIn('Manual review required', skipped_detail['reason'])
+        
+        # Check ineligible updates details
+        self.assertEqual(1, len(skipped_detail['ineligible_updates']))
+        ineligible_update = skipped_detail['ineligible_updates'][0]
+        
+        self.assertEqual('licenseUpdate', ineligible_update['record_type'])
+        self.assertEqual('Orphaned', ineligible_update['type_of_update'])
+        self.assertEqual(orphaned_license_update.licenseType, ineligible_update['license_type'])
+        self.assertEqual(expected_reason, ineligible_update['reason'])
+        
+        # Verify no providers were reverted or failed
+        self.assertEqual(0, len(results_data['revertedProviderSummaries']))
+        self.assertEqual(0, len(results_data['failedProviderDetails']))

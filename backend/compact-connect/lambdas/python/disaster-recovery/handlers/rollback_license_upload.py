@@ -342,7 +342,6 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
         logger.info('Rollback complete', providers_processed=providers_processed)
 
         # Write final results to S3
-        # TODO - consider writing a CSV file with final values for ease of reference
         _write_results_to_s3(results_s3_key, existing_results)
 
         return {
@@ -516,6 +515,51 @@ def _perform_transaction(transaction_items: list[dict], provider_id: str) -> Non
             raise
 
 
+def _check_for_orphaned_update_records(
+    provider_records: ProviderUserRecords,
+) -> IneligibleUpdate | None:
+    """
+    Check if there are any license update records without associated top-level license records.
+
+    :param provider_records: The provider's records
+    :return: IneligibleUpdate if orphaned updates are found, None otherwise
+    """
+    # Get all license update records
+    all_license_updates = provider_records.get_all_license_update_records()
+
+    # Extract unique (jurisdiction, license_type) pairs from update records
+    license_keys_from_updates: set[tuple[str, str]] = set()
+    
+    for update in all_license_updates:
+        license_keys_from_updates.add((update.jurisdiction, update.licenseType))
+
+    # Check if each license key has a corresponding top-level license record
+    for license_jurisdiction, license_type in license_keys_from_updates:
+        # Try to find the license record
+        license_record = next(
+            (
+                record
+                for record in provider_records.get_license_records()
+                if record.jurisdiction == license_jurisdiction and record.licenseType == license_type
+            ),
+            None,
+        )
+        
+        if license_record is None:
+            # Found an orphaned update record
+            return IneligibleUpdate(
+                record_type='licenseUpdate',
+                type_of_update='Orphaned',
+                update_time=datetime.now().isoformat(),
+                license_type=license_type,
+                reason=f'License update record(s) exist for license in jurisdiction '
+                f'{license_jurisdiction} with type {license_type}, but no corresponding top-level '
+                f'license record was found. This indicates data inconsistency. Manual review required.',
+            )
+    
+    return None
+
+
 def _build_and_execute_revert_transactions(
     provider_records: ProviderUserRecords,
     start_datetime: datetime,
@@ -587,7 +631,12 @@ def _build_and_execute_revert_transactions(
         else:
             primary_record_transaction_items.append(transaction_item)
 
-    # Step 1: Check provider updates - any after start_datetime make provider ineligible
+    # Step 1: Check for license update records without top-level license records
+    orphaned_update_check = _check_for_orphaned_update_records(provider_records)
+    if orphaned_update_check is not None:
+        ineligible_updates.append(orphaned_update_check)
+
+    # Step 2: Check provider updates - any after start_datetime make provider ineligible
     provider_updates = provider_records.get_all_provider_update_records()
     for update in provider_updates:
         if update.dateOfUpdate >= start_datetime:
@@ -602,7 +651,7 @@ def _build_and_execute_revert_transactions(
                 )
             )
 
-    # Step 2: Process each license record for the jurisdiction
+    # Step 3: Process each license record for the jurisdiction
     license_records = provider_records.get_license_records(filter_condition=lambda x: x.jurisdiction == jurisdiction)
 
     reverted_licenses_dict = []
