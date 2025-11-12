@@ -32,8 +32,8 @@ by the backend deploy process.
 Commits are pushed to the `main` branch, but no deployments are triggered by commits. Each pipeline has an associated
 git tag pattern, which will trigger the corresponding backend/frontend pipeline to the corresponding environment. The
 patterns are as follows:
-- CompactConnect backend pipeline: `cc-<test|beta|prod>-*`
-- CompactConnect frontend pipeline: `ui-<test|beta|prod>-*`
+- CompactConnect backend pipeline: `cc-<test|prod>-*`
+- CompactConnect frontend pipeline: `ui-<test|prod>-*`
 
 ## Self-Mutation Feature and Optimization
 

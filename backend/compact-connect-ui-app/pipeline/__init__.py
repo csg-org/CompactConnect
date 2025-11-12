@@ -86,6 +86,7 @@ class BaseFrontendPipelineStack(BasePipelineStack):
 
         return f'{self.environment_name}-compactConnect-frontendPipeline'
 
+
 class TestFrontendPipelineStack(BaseFrontendPipelineStack):
     """Pipeline stack for the test frontend environment."""
 
@@ -168,7 +169,9 @@ class BetaFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern='ui-beta-*',
+            # We will explicitly tie beta deploys to the production tag, because we always want the
+            # beta environment code to mirror production.
+            git_tag_trigger_pattern='ui-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,

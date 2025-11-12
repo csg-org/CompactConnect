@@ -92,7 +92,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
 
 
 class TestBackendPipelineStack(BaseBackendPipelineStack):
-    """Pipeline stack for the test backend environment, triggered by the development branch."""
+    """Pipeline stack for the test backend environment"""
 
     def __init__(
         self,
@@ -176,7 +176,9 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern='cc-beta-*',
+            # We will explicitly tie beta deploys to the production tag, because we always want the
+            # beta environment code to mirror production.
+            git_tag_trigger_pattern='cc-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,

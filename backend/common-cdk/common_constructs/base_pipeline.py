@@ -51,7 +51,7 @@ class BasePipeline(CdkCodePipeline):
                                   Used by the custom self-mutation step to reference the source action
                                   when restarting the pipeline. Required if self_mutation is enabled.
         :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
-                                       trigger the pipeline (e.g., 'prod-*', 'beta-*', 'test-*').
+                                       trigger the pipeline.
                                        If provided, the pipeline will be configured with git tag triggers.
         :param self_mutation: Whether to enable self-mutation for this pipeline. When enabled, the
                              pipeline will automatically update itself when its definition changes,

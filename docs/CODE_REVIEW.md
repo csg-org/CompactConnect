@@ -85,7 +85,7 @@ We wouldn’t want anyone being mean to us because of an oversight, mistake, or 
 
 ## Checklist
 
-Per [HOW_WE_WORK.md](https://github.com/csg-org/CompactConnect/edit/development/docs/HOW_WE_WORK.md), CSG may not review some items until the end of each sprint. For simplicity sake, we split the checklist into two, one for PRs and one for sprints. Some items on the sprint checklist may appear in particular PRs where it feels most relevant. We use these lists as starting points when performing code reviews to ensure that all tasks have been completed.
+Per [HOW_WE_WORK.md](https://github.com/csg-org/CompactConnect/edit/main/docs/HOW_WE_WORK.md), CSG may not review some items until the end of each sprint. For simplicity sake, we split the checklist into two, one for PRs and one for sprints. Some items on the sprint checklist may appear in particular PRs where it feels most relevant. We use these lists as starting points when performing code reviews to ensure that all tasks have been completed.
 
 ### Per PR Checklist
 

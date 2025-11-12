@@ -67,7 +67,7 @@ class FrontendPipeline(BasePipeline):
         :param connection_arn: The ARN of the AWS CodeStar connection for GitHub integration.
             Format: arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
         :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
-            trigger the pipeline (e.g., 'ui-prod-*', 'ui-beta-*', 'ui-test-*').
+            trigger the pipeline (e.g., 'ui-prod-*', 'ui-test-*').
         :param access_logs_bucket: The S3 bucket used for storing server access logs for the
             artifact bucket.
         :param encryption_key: The KMS key used to encrypt the artifact bucket and alarm topic.
