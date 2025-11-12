@@ -1190,7 +1190,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # Verify the structure of the results
         expected_reason = (
-            f'License or privilege update records exist for license in jurisdiction '
+            f'License update record(s) exist for license in jurisdiction '
             f'{self.license_jurisdiction} with type {orphaned_license_update.licenseType}, '
             f'but no corresponding top-level license record was found. '
             f'This indicates data inconsistency. Manual review required.'
