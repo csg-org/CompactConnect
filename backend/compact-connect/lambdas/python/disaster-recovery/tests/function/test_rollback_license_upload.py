@@ -11,7 +11,6 @@ These tests verify the rollback functionality including:
 """
 
 import json
-from calendar import month
 from datetime import datetime, timedelta
 from unittest.mock import ANY, Mock, patch
 
@@ -167,9 +166,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         return original_license, license_update, updated_license
 
-    def _when_license_was_updated_twice(
-        self, provider_id: str = None
-    ):
+    def _when_license_was_updated_twice(self, provider_id: str = None):
         """
         Set up a scenario where a provider had an existing license updated twice during the upload window.
         Returns the original license, both update records, and the final updated license.
@@ -560,11 +557,12 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(len(license_updates), 0, 'License update records should be deleted')
 
     def test_provider_license_record_reverted_to_earliest_update_previous_values_when_multiple_updates(self):
-        """Test that license record is reverted to the 'previous' field of the earliest update when multiple updates exist."""
         from handlers.rollback_license_upload import rollback_license_upload
 
         # Setup: License was updated twice during upload window, but was first uploaded before start time
-        existing_update, original_license, first_update, second_update, final_license = self._when_license_was_updated_twice()
+        existing_update, original_license, first_update, second_update, final_license = (
+            self._when_license_was_updated_twice()
+        )
 
         # Execute: Perform rollback
         event = self._generate_test_event()
@@ -591,7 +589,9 @@ class TestRollbackLicenseUpload(TstFunction):
         license_updates = provider_records.get_all_license_update_records()
         # license update that existed before upload should still be there
         self.assertEqual(len(license_updates), 1, 'Expected one existing license update to remain')
-        self.assertEqual(existing_update.serialize_to_database_record(), license_updates[0].serialize_to_database_record())
+        self.assertEqual(
+            existing_update.serialize_to_database_record(), license_updates[0].serialize_to_database_record()
+        )
 
     def test_provider_privilege_record_reactivated_when_upload_reverted(self):
         """Test that privilege is reactivated when license deactivation is reverted."""
