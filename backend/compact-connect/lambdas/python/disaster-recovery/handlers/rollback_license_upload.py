@@ -1,6 +1,6 @@
 import json
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -93,8 +93,30 @@ class RollbackResults:
     def to_dict(self) -> dict:
         """Convert to dictionary for S3 storage."""
         return {
-            'skippedProviderDetails': [asdict(detail) for detail in self.skipped_provider_details],
-            'failedProviderDetails': [asdict(detail) for detail in self.failed_provider_details],
+            'skippedProviderDetails': [
+                {
+                    'providerId': detail.provider_id,
+                    'reason': detail.reason,
+                    'ineligibleUpdates': [
+                        {
+                            'recordType': update.record_type,
+                            'typeOfUpdate': update.type_of_update,
+                            'updateTime': update.update_time,
+                            'reason': update.reason,
+                            'licenseType': update.license_type,
+                        }
+                        for update in detail.ineligible_updates
+                    ],
+                }
+                for detail in self.skipped_provider_details
+            ],
+            'failedProviderDetails': [
+                {
+                    'providerId': detail.provider_id,
+                    'error': detail.error,
+                }
+                for detail in self.failed_provider_details
+            ],
             'revertedProviderSummaries': [
                 {
                     'providerId': str(summary.provider_id),
@@ -130,7 +152,16 @@ class RollbackResults:
                 ProviderSkippedDetails(
                     provider_id=detail['providerId'],
                     reason=detail['reason'],
-                    ineligible_updates=detail.get('ineligibleUpdates', []),
+                    ineligible_updates=[
+                        IneligibleUpdate(
+                            record_type=update['recordType'],
+                            type_of_update=update['typeOfUpdate'],
+                            update_time=update['updateTime'],
+                            reason=update['reason'],
+                            license_type=update['licenseType'],
+                        )
+                        for update in detail.get('ineligibleUpdates', [])
+                    ],
                 )
                 for detail in data.get('skippedProviderDetails', [])
             ],

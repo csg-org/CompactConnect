@@ -754,16 +754,16 @@ class TestRollbackLicenseUpload(TstFunction):
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
                     {
-                        'ineligible_updates': [
+                        'ineligibleUpdates': [
                             {
-                                'update_time': encumbrance_update.createDate.isoformat(),
-                                'license_type': original_license.licenseType,
+                                'updateTime': encumbrance_update.createDate.isoformat(),
+                                'licenseType': original_license.licenseType,
                                 'reason': expected_reason_message,
-                                'record_type': 'licenseUpdate',
-                                'type_of_update': encumbrance_update.updateType,
+                                'recordType': 'licenseUpdate',
+                                'typeOfUpdate': encumbrance_update.updateType,
                             }
                         ],
-                        'provider_id': MOCK_PROVIDER_ID,
+                        'providerId': MOCK_PROVIDER_ID,
                         'reason': 'Provider has updates that are either '
                         'unrelated to license upload or '
                         'occurred after rollback end time. '
@@ -791,16 +791,16 @@ class TestRollbackLicenseUpload(TstFunction):
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
                     {
-                        'ineligible_updates': [
+                        'ineligibleUpdates': [
                             {
-                                'update_time': privilege.dateOfIssuance.isoformat(),
-                                'license_type': privilege.licenseType,
+                                'updateTime': privilege.dateOfIssuance.isoformat(),
+                                'licenseType': privilege.licenseType,
                                 'reason': expected_reason_message,
-                                'record_type': 'privilegeUpdate',
-                                'type_of_update': 'Issuance',
+                                'recordType': 'privilegeUpdate',
+                                'typeOfUpdate': 'Issuance',
                             }
                         ],
-                        'provider_id': MOCK_PROVIDER_ID,
+                        'providerId': MOCK_PROVIDER_ID,
                         'reason': 'Provider has updates that are either '
                         'unrelated to license upload or '
                         'occurred after rollback end time. '
@@ -829,16 +829,16 @@ class TestRollbackLicenseUpload(TstFunction):
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
                     {
-                        'ineligible_updates': [
+                        'ineligibleUpdates': [
                             {
-                                'update_time': privilege_update.createDate.isoformat(),
-                                'license_type': privilege.licenseType,
+                                'updateTime': privilege_update.createDate.isoformat(),
+                                'licenseType': privilege.licenseType,
                                 'reason': expected_reason_message,
-                                'record_type': 'privilegeUpdate',
-                                'type_of_update': privilege_update.updateType,
+                                'recordType': 'privilegeUpdate',
+                                'typeOfUpdate': privilege_update.updateType,
                             }
                         ],
-                        'provider_id': MOCK_PROVIDER_ID,
+                        'providerId': MOCK_PROVIDER_ID,
                         'reason': 'Provider has updates that are either '
                         'unrelated to license upload or '
                         'occurred after rollback end time. '
@@ -863,16 +863,16 @@ class TestRollbackLicenseUpload(TstFunction):
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
                     {
-                        'ineligible_updates': [
+                        'ineligibleUpdates': [
                             {
-                                'update_time': provider_update.dateOfUpdate.isoformat(),
+                                'updateTime': provider_update.dateOfUpdate.isoformat(),
                                 'reason': expected_reason_message,
-                                'record_type': 'providerUpdate',
-                                'type_of_update': provider_update.updateType,
-                                'license_type': 'N/A',
+                                'recordType': 'providerUpdate',
+                                'typeOfUpdate': provider_update.updateType,
+                                'licenseType': 'N/A',
                             }
                         ],
-                        'provider_id': MOCK_PROVIDER_ID,
+                        'providerId': MOCK_PROVIDER_ID,
                         'reason': 'Provider has updates that are either '
                         'unrelated to license upload or '
                         'occurred after rollback end time. '
@@ -904,7 +904,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         {
                             'error': f'Failed to rollback updates for provider. '
                             f'Manual review required: {mock_error_message}',
-                            'provider_id': self.provider_id,
+                            'providerId': self.provider_id,
                         }
                     ],
                     'revertedProviderSummaries': [],
@@ -932,7 +932,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Create initial S3 results with data in all fields
         s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
 
-        # Create existing results data in the format that from_dict expects (camelCase for top-level keys)
+        # Create existing results data in the format that from_dict expects (camelCase for all keys)
         existing_results_data = {
             'skippedProviderDetails': [
                 {
@@ -940,11 +940,11 @@ class TestRollbackLicenseUpload(TstFunction):
                     'reason': 'Existing skipped provider reason',
                     'ineligibleUpdates': [
                         {
-                            'record_type': 'licenseUpdate',
-                            'type_of_update': 'ENCUMBRANCE',
-                            'update_time': (self.default_start_datetime - timedelta(days=2)).isoformat(),
+                            'recordType': 'licenseUpdate',
+                            'typeOfUpdate': 'ENCUMBRANCE',
+                            'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                             'reason': 'Existing ineligible update reason',
-                            'license_type': 'audiologist',
+                            'licenseType': 'audiologist',
                         }
                     ],
                 }
@@ -983,27 +983,27 @@ class TestRollbackLicenseUpload(TstFunction):
         final_results_data = self._perform_rollback_and_get_s3_object()
 
         # Verify: All existing data is preserved and new data is appended
-        # Note: to_dict() uses asdict() which produces snake_case for skipped/failed details
+        # Note: All keys should now be camelCase for consistency
         self.assertEqual(
             {
                 'skippedProviderDetails': [
                     {
-                        'provider_id': existing_skipped_provider_id,
+                        'providerId': existing_skipped_provider_id,
                         'reason': 'Existing skipped provider reason',
-                        'ineligible_updates': [
+                        'ineligibleUpdates': [
                             {
-                                'record_type': 'licenseUpdate',
-                                'type_of_update': 'ENCUMBRANCE',
-                                'update_time': (self.default_start_datetime - timedelta(days=2)).isoformat(),
+                                'recordType': 'licenseUpdate',
+                                'typeOfUpdate': 'ENCUMBRANCE',
+                                'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                                 'reason': 'Existing ineligible update reason',
-                                'license_type': 'audiologist',
+                                'licenseType': 'audiologist',
                             }
                         ],
                     }
                 ],
                 'failedProviderDetails': [
                     {
-                        'provider_id': existing_failed_provider_id,
+                        'providerId': existing_failed_provider_id,
                         'error': 'Existing failure error message',
                     }
                 ],
@@ -1178,7 +1178,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
             # Verify: Provider was marked as failed
             self.assertEqual(1, len(results_data['failedProviderDetails']))
-            self.assertEqual(self.provider_id, results_data['failedProviderDetails'][0]['provider_id'])
+            self.assertEqual(self.provider_id, results_data['failedProviderDetails'][0]['providerId'])
             self.assertIn('TransactionCanceledException', results_data['failedProviderDetails'][0]['error'])
 
             # Verify: No providers were reverted or skipped
@@ -1252,16 +1252,16 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(1, len(results_data['skippedProviderDetails']))
         skipped_detail = results_data['skippedProviderDetails'][0]
 
-        self.assertEqual(orphaned_provider_id, skipped_detail['provider_id'])
+        self.assertEqual(orphaned_provider_id, skipped_detail['providerId'])
         self.assertIn('Manual review required', skipped_detail['reason'])
 
         # Check ineligible updates details
-        self.assertEqual(1, len(skipped_detail['ineligible_updates']))
-        ineligible_update = skipped_detail['ineligible_updates'][0]
+        self.assertEqual(1, len(skipped_detail['ineligibleUpdates']))
+        ineligible_update = skipped_detail['ineligibleUpdates'][0]
 
-        self.assertEqual('licenseUpdate', ineligible_update['record_type'])
-        self.assertEqual('Orphaned', ineligible_update['type_of_update'])
-        self.assertEqual(orphaned_license_update.licenseType, ineligible_update['license_type'])
+        self.assertEqual('licenseUpdate', ineligible_update['recordType'])
+        self.assertEqual('Orphaned', ineligible_update['typeOfUpdate'])
+        self.assertEqual(orphaned_license_update.licenseType, ineligible_update['licenseType'])
         self.assertEqual(expected_reason, ineligible_update['reason'])
 
         # Verify no providers were reverted or failed
@@ -1318,5 +1318,5 @@ class TestRollbackLicenseUpload(TstFunction):
 
         self.assertEqual(1, len(results_data['skippedProviderDetails']))
         skipped_detail = results_data['skippedProviderDetails'][0]
-        self.assertEqual(self.provider_id, skipped_detail['provider_id'])
+        self.assertEqual(self.provider_id, skipped_detail['providerId'])
         self.assertIn('Manual review required', skipped_detail['reason'])
