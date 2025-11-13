@@ -18,7 +18,7 @@ class UpdateRecordSortKeyMigration(CustomResourceHandler):
 
     def on_update(self, properties: dict) -> None:
         """
-        No-op on delete.
+        No-op on update.
         """
 
     def on_delete(self, _properties: dict) -> CustomResourceResponse | None:
@@ -33,9 +33,10 @@ on_event = UpdateRecordSortKeyMigration('update-record-sort-keys')
 def do_migration(_properties: dict) -> None:
     """
     This migration performs the following:
-    - Scans the provider table for all privilege update records
-    - For each update record, adds effectiveDate and createDate equal to that updates dateOfUpdate
-    - Handles batching for cases where there are more than 100 records to update
+    - Scans the provider table for all update records
+    - For each update record, load the records and serialize it again,
+        so the schema classes will generate the new sort key patterns
+    - Recreate the records by deleting the update records with the old sort key and storing the migrated records.
     """
     logger.info('Starting update record sort key migration')
 

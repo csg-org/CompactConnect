@@ -181,7 +181,7 @@ class RollbackResults:
                         RevertedLicense(
                             jurisdiction=reverted_license['jurisdiction'],
                             license_type=reverted_license['licenseType'],
-                            revision_id=uuid4(),
+                            revision_id=reverted_license['revisionId'],
                             action=reverted_license['action'],
                         )
                         for reverted_license in summary.get('licensesReverted', [])
@@ -190,7 +190,7 @@ class RollbackResults:
                         RevertedPrivilege(
                             jurisdiction=reverted_privilege['jurisdiction'],
                             license_type=reverted_privilege['licenseType'],
-                            revision_id=uuid4(),
+                            revision_id=reverted_privilege['revisionId'],
                             action=reverted_privilege['action'],
                         )
                         for reverted_privilege in summary.get('privilegesReverted', [])
@@ -723,7 +723,7 @@ def _build_and_execute_revert_transactions(
                         IneligibleUpdate(
                             record_type='privilegeUpdate',
                             type_of_update=privilege_update.updateType,
-                            update_time=privilege_update.dateOfUpdate.isoformat(),
+                            update_time=privilege_update.createDate.isoformat(),
                             license_type=privilege_update.licenseType,
                             # include privilege jurisdiction in reason
                             reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was updated "
@@ -736,7 +736,7 @@ def _build_and_execute_revert_transactions(
                         IneligibleUpdate(
                             record_type='privilegeUpdate',
                             type_of_update=privilege_update.updateType,
-                            update_time=privilege_update.dateOfUpdate.isoformat(),
+                            update_time=privilege_update.createDate.isoformat(),
                             license_type=privilege_update.licenseType,
                             # include privilege jurisdiction in reason
                             reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was deactivated "
@@ -839,6 +839,11 @@ def _build_and_execute_revert_transactions(
             )
         # license was not first uploaded during the upload window, revert it to last previous state before the upload
         else:
+            # if the provider is ineligible for rollback, the list of license updates may be empty, and we need to
+            # defensively check for that here and continue to the next license
+            if not license_updates_in_window:
+                continue
+
             # Find the earliest update in the window to get the previous state
             license_updates_in_window.sort(key=lambda x: x.createDate)
             earliest_update_in_window = license_updates_in_window[0]
@@ -1037,7 +1042,7 @@ def _write_results_to_s3(key: str, results: RollbackResults):
         )
         logger.info('Results written to S3', bucket=config.disaster_recovery_results_bucket_name, key=key)
     # handle json serialization errors
-    except json.JSONDecodeError as e:
+    except TypeError as e:
         logger.error(f'Error writing results to S3: {str(e)}')
         raise
     # handle other errors by logging the full object and raising the exception

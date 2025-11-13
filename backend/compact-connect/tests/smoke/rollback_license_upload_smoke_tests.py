@@ -178,7 +178,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
 
     last_key = None
     page_num = 1
-    all_provider_ids = []
+    all_provider_ids: set[str] = set()
     while time.time() - start_time < max_wait_time:
         # Collect all providers across all pages
         while True:
@@ -203,9 +203,9 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
             providers = response_data.get('providers', [])
             pagination = response_data.get('pagination', {})
 
-            # Collect provider IDs from this page
+            # Collect provider IDs from this page and add to set
             page_provider_ids = [p['providerId'] for p in providers]
-            all_provider_ids.extend(page_provider_ids)
+            all_provider_ids.update(page_provider_ids)
 
             logger.info(
                 f'Page {page_num}: Found {len(page_provider_ids)} providers '
@@ -227,7 +227,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
 
         if num_found >= expected_count:
             logger.info(f'All {expected_count} providers found!')
-            return all_provider_ids  # Return only the expected count
+            return list(all_provider_ids)  # Return only the expected count
 
         elapsed = time.time() - start_time
         if elapsed < max_wait_time:
@@ -325,7 +325,6 @@ def get_rollback_results_from_s3(results_s3_key: str):
     Retrieve rollback results from S3.
 
     :param results_s3_key: S3 URI or key to the results file
-    :param bucket_name: S3 bucket name
     :return: Parsed results data
     """
     s3_client = boto3.client('s3')
@@ -632,7 +631,6 @@ def rollback_license_upload_smoke_test():
             street_address='123 Test Street',
         )
         first_upload_end_time = datetime.now(tz=UTC)
-
         logger.info(
             f'First upload time window: {first_upload_start_time.isoformat()} to {first_upload_end_time.isoformat()}'
         )
@@ -641,6 +639,7 @@ def rollback_license_upload_smoke_test():
         logger.info('=' * 80)
         logger.info('Waiting for first upload providers and license records to be created...')
         logger.info('=' * 80)
+        time.sleep(10)
         wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
         logger.info('✅ All first upload license records have been created')
 

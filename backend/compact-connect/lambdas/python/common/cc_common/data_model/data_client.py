@@ -1065,7 +1065,7 @@ class DataClient:
 
         return [PrivilegeUpdateData.from_database_record(item) for item in response_items]
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type')
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type_abbr')
     def get_privilege_data(
         self,
         *,
@@ -1117,7 +1117,7 @@ class DataClient:
 
         return result
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbr')
     def deactivate_privilege(
         self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str, deactivation_details: dict
     ) -> None:

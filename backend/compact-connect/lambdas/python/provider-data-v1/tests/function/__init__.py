@@ -166,7 +166,10 @@ class TstFunction(TstLambdas):
                         {'AttributeName': 'licenseUploadDateGSIPK', 'KeyType': 'HASH'},
                         {'AttributeName': 'licenseUploadDateGSISK', 'KeyType': 'RANGE'},
                     ],
-                    'Projection': {'ProjectionType': 'KEYS_ONLY'},
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE',
+                        'NonKeyAttributes': ['providerId'],
+                    },
                 },
             ],
         )

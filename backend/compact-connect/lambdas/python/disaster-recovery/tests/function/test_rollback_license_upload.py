@@ -1088,6 +1088,14 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(0, result_first['providersFailed'])
         self.assertEqual(mock_second_provider_id, result_first['continueFromProviderId'])
 
+        # Verify: S3 results contain first provider with revision id
+        s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.disaster_recovery_results_bucket_name, Key=s3_key)
+        first_results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
+
+        # grab the revision id from the results which we will use when asserting on the final object
+        revision_id = first_results_data['revertedProviderSummaries'][0]['licensesReverted'][0]['revisionId']
+
         # Execute: Second invocation (continue from where we left off)
         # Reset mock time for second invocation
         mock_time.time.side_effect = [0, 1]  # Won't timeout this time
@@ -1117,7 +1125,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
                                 'licenseType': 'speech-language pathologist',
-                                'revisionId': ANY,
+                                'revisionId': revision_id,
                             }
                         ],
                         'privilegesReverted': [],
@@ -1132,6 +1140,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
                                 'licenseType': 'speech-language pathologist',
+                                # unknown random UUID, we won't check for it here
                                 'revisionId': ANY,
                             }
                         ],
