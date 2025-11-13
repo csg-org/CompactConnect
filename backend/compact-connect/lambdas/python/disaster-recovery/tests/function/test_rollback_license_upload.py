@@ -208,6 +208,25 @@ class TestRollbackLicenseUpload(TstFunction):
 
         return privilege, privilege_update
 
+    def _when_provider_had_privilege_issued_during_upload(self):
+        """
+        Set up a scenario where a provider had a non-upload-related privilege update AFTER the upload window.
+        This makes them ineligible for automatic rollback.
+        Returns the privilege and its update record.
+        """
+
+        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'jurisdiction': 'ne',
+                'licenseJurisdiction': self.license_jurisdiction,
+                'dateOfIssuance': self.default_upload_datetime
+            }
+        )
+
+        return privilege
+
     def _when_provider_had_privilege_update_after_upload(self, after_upload_datetime: datetime = None):
         """
         Set up a scenario where a provider had a non-upload-related privilege update AFTER the upload window.
@@ -221,7 +240,8 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.license_jurisdiction,
+                'jurisdiction': 'ne',
+                'licenseJurisdiction': self.license_jurisdiction,
             }
         )
 
@@ -230,7 +250,7 @@ class TestRollbackLicenseUpload(TstFunction):
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
-                'jurisdiction': self.license_jurisdiction,
+                'jurisdiction': 'ne',
                 'licenseType': privilege.licenseType,
                 'updateType': self.update_categories.RENEWAL,  # Not LICENSE_DEACTIVATION
                 'createDate': after_upload_datetime,
@@ -754,6 +774,43 @@ class TestRollbackLicenseUpload(TstFunction):
             results_data,
         )
 
+    def test_expected_s3_object_stored_when_provider_skipped_due_to_privilege_issuance(self):
+        # Setup: Provider had privilege update after upload window
+        self._when_provider_had_license_updated_from_upload()
+        privilege = self._when_provider_had_privilege_issued_during_upload()
+
+        results_data = self._perform_rollback_and_get_s3_object()
+
+        # Verify the structure of the results
+        expected_reason_message = (
+            f"Privilege in jurisdiction '{privilege.jurisdiction}' issued after license upload. Manual review required."
+        )
+        self.assertEqual(
+            {
+                'failedProviderDetails': [],
+                'revertedProviderSummaries': [],
+                'skippedProviderDetails': [
+                    {
+                        'ineligible_updates': [
+                            {
+                                'update_time': privilege.dateOfIssuance.isoformat(),
+                                'license_type': privilege.licenseType,
+                                'reason': expected_reason_message,
+                                'record_type': 'privilegeUpdate',
+                                'type_of_update': 'Issuance',
+                            }
+                        ],
+                        'provider_id': MOCK_PROVIDER_ID,
+                        'reason': 'Provider has updates that are either '
+                        'unrelated to license upload or '
+                        'occurred after rollback end time. '
+                        'Manual review required.',
+                    }
+                ],
+            },
+            results_data,
+        )
+
     def test_expected_s3_object_stored_when_provider_skipped_due_to_extra_privilege_updates(self):
         # Setup: Provider had privilege update after upload window
         self._when_provider_had_license_updated_from_upload()
@@ -763,8 +820,8 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # Verify the structure of the results
         expected_reason_message = (
-            'Privilege in jurisdiction oh was updated with a change unrelated to license upload or the update '
-            'occurred after rollback end time. Manual review required.'
+            "Privilege in jurisdiction 'ne' was updated with a change unrelated to license upload. "
+            "Manual review required."
         )
         self.assertEqual(
             {
@@ -1210,3 +1267,56 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify no providers were reverted or failed
         self.assertEqual(0, len(results_data['revertedProviderSummaries']))
         self.assertEqual(0, len(results_data['failedProviderDetails']))
+
+    def test_provider_skipped_when_encumbrance_update_created_within_upload_window(self):
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # Setup: License was created during upload window
+        self._when_provider_had_license_created_from_upload()
+
+        # Create an encumbrance update that happens WITHIN the upload window
+        # but is NOT an upload-related update type
+        encumbrance_time = self.default_upload_datetime + timedelta(minutes=1)
+        self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'updateType': self.update_categories.ENCUMBRANCE,  # Not an upload-related category
+                'createDate': encumbrance_time,
+                'effectiveDate': encumbrance_time,
+                'updatedValues': {
+                    'encumberedStatus': 'encumbered',
+                },
+            }
+        )
+
+        # Execute: Perform rollback
+        event = self._generate_test_event()
+        result = rollback_license_upload(event, Mock())
+
+        # Assert: Rollback completed but provider was skipped
+        self.assertEqual('COMPLETE', result['rollbackStatus'])
+        self.assertEqual(0, result['providersReverted'])
+        self.assertEqual(1, result['providersSkipped'])
+
+        # Verify: License record and encumbrance update still exist (not rolled back)
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=self.compact,
+            provider_id=self.provider_id,
+            include_update_tier=UpdateTierEnum.TIER_THREE,
+        )
+        licenses = provider_records.get_license_records()
+        self.assertEqual(len(licenses), 1, 'License should still exist')
+        license_updates = provider_records.get_all_license_update_records()
+        self.assertEqual(1, len(license_updates), 'Encumbrance update should still exist')
+
+        # Verify S3 results contain skip details
+        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
+        results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
+
+        self.assertEqual(1, len(results_data['skippedProviderDetails']))
+        skipped_detail = results_data['skippedProviderDetails'][0]
+        self.assertEqual(self.provider_id, skipped_detail['provider_id'])
+        self.assertIn('Manual review required', skipped_detail['reason'])

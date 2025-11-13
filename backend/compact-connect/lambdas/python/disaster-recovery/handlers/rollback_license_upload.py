@@ -450,8 +450,8 @@ def _process_provider_rollback(
         # If ineligible updates are found, this will return a ProviderSkippedDetails
         result = _build_and_execute_revert_transactions(
             provider_records=provider_records,
-            start_datetime=start_datetime,
-            end_datetime=end_datetime,
+            upload_window_start_datetime=start_datetime,
+            upload_window_end_datetime=end_datetime,
             compact=compact,
             jurisdiction=jurisdiction,
             provider_id=provider_id,
@@ -562,8 +562,8 @@ def _check_for_orphaned_update_records(
 
 def _build_and_execute_revert_transactions(
     provider_records: ProviderUserRecords,
-    start_datetime: datetime,
-    end_datetime: datetime,
+    upload_window_start_datetime: datetime,
+    upload_window_end_datetime: datetime,
     compact: str,
     jurisdiction: str,
     provider_id: str,
@@ -639,7 +639,7 @@ def _build_and_execute_revert_transactions(
     # Step 2: Check provider updates - any after start_datetime make provider ineligible
     provider_updates = provider_records.get_all_provider_update_records()
     for update in provider_updates:
-        if update.dateOfUpdate >= start_datetime:
+        if update.dateOfUpdate >= upload_window_start_datetime:
             ineligible_updates.append(
                 IneligibleUpdate(
                     record_type='providerUpdate',
@@ -661,100 +661,139 @@ def _build_and_execute_revert_transactions(
             license_jurisdiction=license_record.jurisdiction,
             license_type_abbreviation=license_record.licenseTypeAbbreviation,
         )
-        privileges_associated_with_license_jurisdictions = [x.jurisdiction for x in privileges_associated_with_license]
-        # Get privilege updates for all privileges that are after the start_datetime
-        privilege_updates = provider_records.get_all_privilege_update_records(
-            filter_condition=lambda x: x.createDate >= start_datetime,
-        )
 
-        # Check privilege updates for eligibility
-        for privilege_update in privilege_updates:
-            if privilege_update.jurisdiction in privileges_associated_with_license_jurisdictions and (
-                privilege_update.updateType != PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY
-                or privilege_update.createDate > end_datetime
-            ):
-                # Non-license-deactivation privilege update or privilege update
-                # after end_datetime make provider ineligible
+        # Check if any privileges were issued for this license since the upload start date
+        for privilege in privileges_associated_with_license:
+            if privilege.dateOfIssuance >= upload_window_start_datetime:
                 ineligible_updates.append(
                     IneligibleUpdate(
                         record_type='privilegeUpdate',
-                        type_of_update=privilege_update.updateType,
-                        update_time=privilege_update.dateOfUpdate.isoformat(),
-                        license_type=privilege_update.licenseType,
-                        # include privilege jurisdiction in reason
-                        reason=f'Privilege in jurisdiction {privilege_update.jurisdiction} was updated with a change '
-                        f'unrelated to license upload or the update occurred after rollback end time. '
-                        f'Manual review required.',
+                        type_of_update='Issuance',
+                        update_time=privilege.dateOfIssuance.isoformat(),
+                        license_type=license_record.licenseType,
+                        reason=f"Privilege in jurisdiction '{privilege.jurisdiction}' issued after license upload. "
+                        "Manual review required.",
                     )
                 )
-            elif start_datetime <= privilege_update.createDate <= end_datetime:
-                # License deactivation within window - mark for deletion
-                serialized_privilege_update = privilege_update.serialize_to_database_record()
-                add_delete(serialized_privilege_update['pk'], serialized_privilege_update['sk'], update_record=True)
-                updates_deleted_sks.append(serialized_privilege_update['sk'])
-                logger.info('Will delete privilege deactivation update record if provider is eligible for rollback')
+            # Check updates associated with this privilege that are after the start_datetime
+            privilege_updates_after_start_time = provider_records.get_update_records_for_privilege(
+                jurisdiction=privilege.jurisdiction,
+                license_type=privilege.licenseType,
+                filter_condition=lambda x: x.createDate >= upload_window_start_datetime,
+            )
 
-                # Reactivate the privilege
-                privilege_record = provider_records.get_specific_privilege_record(
-                    jurisdiction=privilege_update.jurisdiction,
-                    license_abbreviation=license_record.licenseTypeAbbreviation,
-                )
-                if privilege_record:
-                    logger.info(
-                        'privilege record found associated with deactivation, reactivating privilege',
-                        provider_id=provider_id,
-                        privilege_jurisdiction=privilege_record.jurisdiction,
-                        license_type=privilege_record.licenseType,
-                    )
-                    # Remove the licenseDeactivatedStatus field to reactivate using UPDATE operation
-                    serialized_privilege = privilege_record.serialize_to_database_record()
-                    primary_record_transaction_items.append(
-                        {
-                            'Update': {
-                                'TableName': table_name,
-                                'Key': {'pk': serialized_privilege['pk'], 'sk': serialized_privilege['sk']},
-                                'UpdateExpression': 'REMOVE licenseDeactivatedStatus',
-                            }
-                        }
-                    )
-                    logger.info('Will reactivate privilege record if provider is eligible for rollback')
-
-                    reverted_privileges.append(
-                        RevertedPrivilege(
-                            jurisdiction=privilege_record.jurisdiction,
-                            license_type=privilege_record.licenseType,
-                            revision_id=uuid4(),
-                            action='REACTIVATED',
+            # Check privilege updates for eligibility
+            for privilege_update in privilege_updates_after_start_time:
+                if privilege_update.updateType != PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY:
+                    # Non-license-deactivation privilege update makes provider ineligible for rollback
+                    ineligible_updates.append(
+                        IneligibleUpdate(
+                            record_type='privilegeUpdate',
+                            type_of_update=privilege_update.updateType,
+                            update_time=privilege_update.dateOfUpdate.isoformat(),
+                            license_type=privilege_update.licenseType,
+                            # include privilege jurisdiction in reason
+                            reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was updated with a change "
+                                   "unrelated to license upload. Manual review required.",
                         )
                     )
+                elif privilege_update.createDate > upload_window_end_datetime:
+                    # privilege update after upload window makes provider ineligible
+                    ineligible_updates.append(
+                        IneligibleUpdate(
+                            record_type='privilegeUpdate',
+                            type_of_update=privilege_update.updateType,
+                            update_time=privilege_update.dateOfUpdate.isoformat(),
+                            license_type=privilege_update.licenseType,
+                            # include privilege jurisdiction in reason
+                            reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was deactivated "
+                                   "after rollback end time. Manual review required.",
+                        )
+                    )
+                else:
+                    # License deactivation within window cause privilege deactivation - revert the deactivation
+                    serialized_privilege_update = privilege_update.serialize_to_database_record()
+                    add_delete(serialized_privilege_update['pk'], serialized_privilege_update['sk'], update_record=True)
+                    updates_deleted_sks.append(serialized_privilege_update['sk'])
+                    logger.info('Will delete privilege deactivation update record if provider is eligible for rollback')
+
+                    # Reactivate the privilege
+                    privilege_record = provider_records.get_specific_privilege_record(
+                        jurisdiction=privilege_update.jurisdiction,
+                        license_abbreviation=license_record.licenseTypeAbbreviation,
+                    )
+                    if privilege_record:
+                        logger.info(
+                            'privilege record found associated with deactivation, reactivating privilege',
+                            provider_id=provider_id,
+                            privilege_jurisdiction=privilege_record.jurisdiction,
+                            license_type=privilege_record.licenseType,
+                        )
+                        # Remove the licenseDeactivatedStatus field to reactivate using UPDATE operation
+                        serialized_privilege = privilege_record.serialize_to_database_record()
+                        primary_record_transaction_items.append(
+                            {
+                                'Update': {
+                                    'TableName': table_name,
+                                    'Key': {'pk': serialized_privilege['pk'], 'sk': serialized_privilege['sk']},
+                                    'UpdateExpression': 'REMOVE licenseDeactivatedStatus',
+                                }
+                            }
+                        )
+                        logger.info('Will reactivate privilege record if provider is eligible for rollback')
+
+                        reverted_privileges.append(
+                            RevertedPrivilege(
+                                jurisdiction=privilege_record.jurisdiction,
+                                license_type=privilege_record.licenseType,
+                                revision_id=uuid4(),
+                                action='REACTIVATED',
+                            )
+                        )
+
 
         # Get license updates for this license after start_datetime
         license_updates_after_start = provider_records.get_update_records_for_license(
             jurisdiction=license_record.jurisdiction,
             license_type=license_record.licenseType,
-            filter_condition=lambda x: x.createDate >= start_datetime,
+            filter_condition=lambda x: x.createDate >= upload_window_start_datetime,
         )
 
-        # if license record was created during the window, delete it and all update records after start_datetime
-        # unless a user has purchased privileges
-        if (
-            license_record.firstUploadDate is not None
-            and start_datetime <= license_record.firstUploadDate <= end_datetime
-        ):
-            if privileges_associated_with_license_jurisdictions:
+        # check license updates for eligibility
+        license_updates_in_window = []
+        for license_update in license_updates_after_start:
+            if (
+                license_update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES
+                or license_update.createDate > upload_window_end_datetime
+            ):
+                # Non-upload-related license updates make provider ineligible
                 ineligible_updates.append(
                     IneligibleUpdate(
-                        record_type='privilegeUpdate',
-                        type_of_update='Issuance',
-                        # We only need to show the issuance date of the first privilege associated with the license
-                        # for the purposes of the report.
-                        update_time=privileges_associated_with_license[0].dateOfIssuance.isoformat(),
-                        license_type=license_record.licenseType,
-                        reason=f'Privileges issued in jurisdictions {privileges_associated_with_license_jurisdictions}'
-                        ' after license upload. Manual review required.',
+                        record_type='licenseUpdate',
+                        type_of_update=license_update.updateType,
+                        update_time=license_update.createDate.isoformat(),
+                        license_type=license_update.licenseType,
+                        reason='License was updated with a change unrelated to license upload or the update '
+                        'occurred after rollback end time. Manual review required.',
                     )
                 )
-            # no privileges found, so we can delete the license record
+            else:
+                # Upload-related update within window - mark for deletion
+                license_updates_in_window.append(license_update)
+                serialized_license_update = license_update.serialize_to_database_record()
+                add_delete(serialized_license_update['pk'], serialized_license_update['sk'], update_record=True)
+                updates_deleted_sks.append(serialized_license_update['sk'])
+                logger.info(
+                    'Will delete license update record if provider is eligible for rollback',
+                    update_type=license_update.updateType,
+                    license_type=license_update.licenseType,
+                )
+
+        # if license record was created during the window, delete it
+        if (
+            license_record.firstUploadDate is not None
+            and upload_window_start_datetime <= license_record.firstUploadDate <= upload_window_end_datetime
+        ):
             serialized_license_record = license_record.serialize_to_database_record()
             add_delete(serialized_license_record['pk'], serialized_license_record['sk'], update_record=False)
             logger.info('Will delete license record (created during upload) if provider is eligible for rollback')
@@ -766,106 +805,34 @@ def _build_and_execute_revert_transactions(
                     action='DELETE',
                 )
             )
-            for update in license_updates_after_start:
-                serialized_license_update = update.serialize_to_database_record()
-                add_delete(serialized_license_update['pk'], serialized_license_update['sk'], update_record=True)
-                updates_deleted_sks.append(serialized_license_update['sk'])
-                logger.info(
-                    'Will delete license update record if provider is eligible for rollback',
-                    update_type=update.updateType,
-                )
+        # license was not first uploaded during the upload window, revert it to last previous state before the upload
         else:
-            # If license record was not created during the window,
-            # check license updates for eligibility and build transactions
-            license_updates_in_window = []
-            for license_update in license_updates_after_start:
-                if (
-                    license_update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES
-                    or license_update.createDate > end_datetime
-                ):
-                    # Non-upload-related license updates make provider ineligible
-                    ineligible_updates.append(
-                        IneligibleUpdate(
-                            record_type='licenseUpdate',
-                            type_of_update=license_update.updateType,
-                            update_time=license_update.createDate.isoformat(),
-                            license_type=license_update.licenseType,
-                            reason='License was updated with a change unrelated to license upload or the update '
-                            'occurred after rollback end time. Manual review required.',
-                        )
-                    )
-                elif start_datetime <= license_update.createDate <= end_datetime:
-                    # Upload-related update within window - mark for deletion
-                    license_updates_in_window.append(license_update)
-                    serialized_license_update = license_update.serialize_to_database_record()
-                    add_delete(serialized_license_update['pk'], serialized_license_update['sk'], update_record=True)
-                    updates_deleted_sks.append(serialized_license_update['sk'])
-                    logger.info(
-                        'Will delete license update record if provider is eligible for rollback',
-                        update_type=license_update.updateType,
-                        license_type=license_update.licenseType,
-                    )
+            # Find the earliest update in the window to get the previous state
+            license_updates_in_window.sort(key=lambda x: x.createDate)
+            earliest_update_in_window = license_updates_in_window[0]
 
-            # If there were updates in the window and no updates after end_datetime, revert the license
-            # to the previous values of the earliest update in the window
-            if license_updates_in_window:
-                updates_after_window = [u for u in license_updates_after_start if u.createDate > end_datetime]
+            # License existed before - revert to previous state
+            reverted_license_data = license_record.to_dict()
+            reverted_license_data.update(earliest_update_in_window.previous)
 
-                if not updates_after_window:
-                    # Find the earliest update in the window to get the previous state
-                    license_updates_in_window.sort(key=lambda x: x.createDate)
-                    earliest_update_in_window = license_updates_in_window[0]
+            reverted_license = LicenseData.create_new(reverted_license_data)
+            serialized_reverted_license = reverted_license.serialize_to_database_record()
 
-                    # Check if license was created during the window (uploadDate within window)
-                    if (
-                        license_record.firstUploadDate is not None
-                        and start_datetime <= license_record.firstUploadDate <= end_datetime
-                    ):
-                        # License created during upload - delete it
-                        serialized_license_record = license_record.serialize_to_database_record()
-                        add_delete(
-                            serialized_license_record['pk'], serialized_license_record['sk'], update_record=False
-                        )
-                        logger.info('Will delete license record (created during upload)')
+            add_put(serialized_reverted_license, update_record=True)
+            logger.info('Reverting license record to pre-upload state')
 
-                        reverted_licenses.append(
-                            RevertedLicense(
-                                jurisdiction=license_record.jurisdiction,
-                                license_type=license_record.licenseType,
-                                revision_id=uuid4(),
-                                action='DELETE',
-                            )
-                        )
-                    else:
-                        # License existed before - revert to previous state
-                        reverted_license_data = license_record.to_dict()
-                        reverted_license_data.update(earliest_update_in_window.previous)
+            # Track for provider record regeneration
+            license_schema = LicenseRecordSchema()
+            reverted_licenses_dict.append(license_schema.load(serialized_reverted_license))
 
-                        reverted_license = LicenseData.create_new(reverted_license_data)
-                        serialized_reverted_license = reverted_license.serialize_to_database_record()
-
-                        add_put(serialized_reverted_license, update_record=True)
-                        logger.info('Reverting license record to pre-upload state')
-
-                        # Track for provider record regeneration
-                        license_schema = LicenseRecordSchema()
-                        reverted_licenses_dict.append(license_schema.load(serialized_reverted_license))
-
-                        reverted_licenses.append(
-                            RevertedLicense(
-                                jurisdiction=license_record.jurisdiction,
-                                license_type=license_record.licenseType,
-                                revision_id=uuid4(),
-                                action='REVERT',
-                            )
-                        )
-                else:
-                    # Keep current license state if there were updates after the window
-                    logger.info('Updates detected after rollback end time - will keep license record as-is.')
-                    reverted_licenses_dict.append(license_record.to_dict())
-            else:
-                # No updates in window, keep license as-is
-                reverted_licenses_dict.append(license_record.to_dict())
+            reverted_licenses.append(
+                RevertedLicense(
+                    jurisdiction=license_record.jurisdiction,
+                    license_type=license_record.licenseType,
+                    revision_id=uuid4(),
+                    action='REVERT',
+                )
+            )
 
     # Check if provider is ineligible for rollback
     if ineligible_updates:
