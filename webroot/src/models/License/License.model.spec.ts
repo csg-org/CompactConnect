@@ -19,6 +19,7 @@ import { State } from '@models/State/State.model';
 import { Address } from '@models/Address/Address.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
+import { Investigation } from '@models/Investigation/Investigation.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 
@@ -64,6 +65,7 @@ describe('License model', () => {
         expect(license.statusDescription).to.equal(null);
         expect(license.eligibility).to.equal(EligibilityStatus.INELIGIBLE);
         expect(license.adverseActions).to.matchPattern([]);
+        expect(license.investigations).to.matchPattern([]);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('');
@@ -77,6 +79,7 @@ describe('License model', () => {
         expect(license.displayName()).to.equal('Unknown');
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isUnderInvestigation()).to.equal(false);
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -99,6 +102,7 @@ describe('License model', () => {
             statusDescription: 'test-status-desc',
             eligibility: EligibilityStatus.ELIGIBLE,
             adverseActions: [new AdverseAction()],
+            investigations: [new Investigation()],
         };
         const license = new License(data);
 
@@ -123,6 +127,7 @@ describe('License model', () => {
         expect(license.statusDescription).to.equal(data.statusDescription);
         expect(license.eligibility).to.equal(data.eligibility);
         expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
+        expect(license.investigations[0]).to.be.an.instanceof(Investigation);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('Invalid date');
@@ -137,6 +142,7 @@ describe('License model', () => {
         expect(license.displayName(', ', true)).to.equal('Unknown, AUD');
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isUnderInvestigation()).to.equal(false);
     });
     it('should create a License with specific values (custom displayName delimiter)', () => {
         const data = {
@@ -181,6 +187,17 @@ describe('License model', () => {
                     effectiveLiftDate: moment().add(1, 'day').format(serverDateFormat),
                 },
             ],
+            investigations: [
+                {
+                    investigationId: 'test-id',
+                    compact: CompactType.ASLP,
+                    providerId: 'test-provider-id',
+                    jurisdiction: 'al',
+                    type: 'investigation',
+                    creationDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    dateOfUpdate: moment().add(1, 'day').format(serverDateFormat),
+                },
+            ],
         };
         const license = LicenseSerializer.fromServer(data);
 
@@ -203,6 +220,8 @@ describe('License model', () => {
         expect(license.eligibility).to.equal(data.compactEligibility);
         expect(license.adverseActions).to.be.an('array').with.length(1);
         expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
+        expect(license.investigations).to.be.an('array').with.length(1);
+        expect(license.investigations[0]).to.be.an.instanceof(Investigation);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -222,6 +241,7 @@ describe('License model', () => {
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
         expect(license.isEncumbered()).to.equal(true);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
+        expect(license.isUnderInvestigation()).to.equal(true);
     });
     it('should create a privilege with specific values through serializer', () => {
         const data = {
@@ -242,6 +262,17 @@ describe('License model', () => {
                     adverseActionId: 'test-id',
                     creationDate: moment().subtract(6, 'months').format(serverDatetimeFormat),
                     effectiveLiftDate: moment().subtract(3, 'months').format(serverDateFormat),
+                },
+            ],
+            investigations: [
+                {
+                    investigationId: 'test-id',
+                    compact: CompactType.ASLP,
+                    providerId: 'test-provider-id',
+                    jurisdiction: 'al',
+                    type: 'investigation',
+                    creationDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    dateOfUpdate: moment().add(1, 'day').format(serverDateFormat),
                 },
             ],
             attestations: [
@@ -550,6 +581,8 @@ describe('License model', () => {
         expect(license.adverseActions).to.be.an('array').with.length(1);
         expect(license.adverseActions[0]).to.be.an.instanceof(AdverseAction);
         expect(license.adverseActions[0].endDate).to.equal(data.adverseActions[0].effectiveLiftDate);
+        expect(license.investigations).to.be.an('array').with.length(1);
+        expect(license.investigations[0]).to.be.an.instanceof(Investigation);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -573,6 +606,7 @@ describe('License model', () => {
         expect(license.history.length).to.equal(0);
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);
+        expect(license.isUnderInvestigation()).to.equal(true);
     });
     it('should populate isDeactivated correctly given license history (deactivation)', () => {
         const data = {

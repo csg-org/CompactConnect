@@ -213,6 +213,49 @@ export class DataApi {
     }
 
     /**
+     * POST Create License Investigation for a licensee.
+     * @param  {string}           compact      The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId   The Licensee ID.
+     * @param  {string}           licenseState The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType  The license type.
+     * @return {Promise<object>}               The server response.
+     */
+    public createLicenseInvestigation(
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType
+    ) {
+        return licenseDataApi.createLicenseInvestigation(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType
+        );
+    }
+
+    /**
+     * Update License Investigation for a licensee.
+     * @param  {string}           compact         The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           licenseState    The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           investigationId The Investigation ID.
+     * @param  {object}           [encumbrance]   Optional encumbrance config to add to the privilege.
+     * @return {Promise<object>}                  The server response.
+     */
+    public updateLicenseInvestigation(compact, licenseeId, licenseState, licenseType, investigationId, encumbrance) {
+        return licenseDataApi.updateLicenseInvestigation(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            investigationId,
+            encumbrance
+        );
+    }
+
+    /**
      * DELETE Privilege for a licensee.
      * @param  {string}           compact        The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId     The Licensee ID.
@@ -277,6 +320,56 @@ export class DataApi {
             licenseType,
             encumbranceId,
             endDate
+        );
+    }
+
+    /**
+     * POST Create Privilege Investigation for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType    The license type.
+     * @return {Promise<object>}                 The server response.
+     */
+    public createPrivilegeInvestigation(
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType
+    ) {
+        return licenseDataApi.createPrivilegeInvestigation(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType
+        );
+    }
+
+    /**
+     * Update Privilege Investigation for a licensee.
+     * @param  {string}           compact         The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           privilegeState  The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType     The license type.
+     * @param  {string}           investigationId The Investigation ID.
+     * @param  {object}           [encumbrance]   Optional encumbrance config to add to the privilege.
+     * @return {Promise<object>}                  The server response.
+     */
+    public updatePrivilegeInvestigation(
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        investigationId,
+        encumbrance
+    ) {
+        return licenseDataApi.updatePrivilegeInvestigation(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+            investigationId,
+            encumbrance
         );
     }
 

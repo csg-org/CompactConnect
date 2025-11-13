@@ -278,6 +278,43 @@ export class DataApi {
         }));
     }
 
+    // Create License Investigation for a licensee.
+    public createLicenseInvestigation(
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType
+    ) {
+        if (!compact) {
+            return Promise.reject(new Error('failed license investigation create'));
+        }
+
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+        }));
+    }
+
+    // Update License Investigation for a licensee.
+    public updateLicenseInvestigation(compact, licenseeId, licenseState, licenseType, investigationId, encumbrance) {
+        if (!compact) {
+            return Promise.reject(new Error('failed license investigation update'));
+        }
+
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            investigationId,
+            encumbrance,
+        }));
+    }
+
     // Delete Privilege for a licensee.
     public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
         if (!compact) {
@@ -343,6 +380,50 @@ export class DataApi {
             licenseType,
             encumbranceId,
             endDate,
+        }));
+    }
+
+    // Create Privilege Investigation for a licensee.
+    public createPrivilegeInvestigation(
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType
+    ) {
+        if (!compact) {
+            return Promise.reject(new Error('failed privilege investigation create'));
+        }
+
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+        }));
+    }
+
+    // Update Privilege Investigation for a licensee.
+    public updatePrivilegeInvestigation(
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        investigationId,
+        encumbrance
+    ) {
+        if (!compact) {
+            return Promise.reject(new Error('failed privilege investigation update'));
+        }
+
+        return wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+            investigationId,
+            encumbrance,
         }));
     }
 
