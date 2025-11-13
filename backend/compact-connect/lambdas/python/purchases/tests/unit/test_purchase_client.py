@@ -1295,3 +1295,82 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(SETTLEMENT_ERROR_STATE, response['transactions'][0].transactionStatus)
         # assert we return a list of failed transaction ids
         self.assertEqual([MOCK_TRANSACTION_ID], response['settlementErrorTransactionIds'])
+
+    @patch('purchase_client.getSettledBatchListController')
+    @patch('purchase_client.getTransactionListController')
+    @patch('purchase_client.getTransactionDetailsController')
+    def test_purchase_client_skips_declined_transactions(
+        self, mock_details_controller, mock_transaction_controller, mock_batch_controller
+    ):
+        """Test that declined transactions are skipped and not included in the results."""
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+
+        # Set up batch with one batch
+        mock_batch_response = json_to_magic_mock(
+            {
+                'messages': {
+                    'resultCode': SUCCESSFUL_RESULT_CODE,
+                },
+                'batchList': {
+                    'batch': [
+                        {
+                            'batchId': MOCK_BATCH_ID,
+                            'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
+                            'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
+                            'settlementState': SUCCESSFUL_SETTLED_STATE,
+                        }
+                    ]
+                },
+            }
+        )
+        mock_batch_controller.return_value.getresponse.return_value = mock_batch_response
+
+        # Set up transaction list with two transactions: one declined, one successful
+        declined_transaction_id = '999'
+        successful_transaction_id = MOCK_TRANSACTION_ID
+        mock_transaction_list_response = json_to_magic_mock(
+            {
+                'messages': {
+                    'resultCode': SUCCESSFUL_RESULT_CODE,
+                },
+                'transactions': {
+                    'transaction': [
+                        {'transId': declined_transaction_id, 'transactionStatus': 'declined'},
+                        {'transId': successful_transaction_id, 'transactionStatus': SUCCESSFUL_SETTLED_STATE},
+                    ]
+                },
+                'totalNumInResultSet': 2,
+            }
+        )
+        mock_transaction_controller.return_value.getresponse.return_value = mock_transaction_list_response
+
+        # Set up transaction details responses: declined first, then successful
+        declined_details_response = json_to_magic_mock(
+            self._generate_mock_transaction_detail_response(declined_transaction_id, 'declined')
+        )
+        successful_details_response = json_to_magic_mock(
+            self._generate_mock_transaction_detail_response(successful_transaction_id, SUCCESSFUL_SETTLED_STATE)
+        )
+        mock_details_controller.return_value.getresponse.side_effect = [
+            declined_details_response,
+            successful_details_response,
+        ]
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+        response = test_purchase_client.get_settled_transactions(
+            compact='aslp',
+            start_time='2024-01-01T00:00:00Z',
+            end_time='2024-01-02T00:00:00Z',
+            transaction_limit=500,
+        )
+
+        # Verify only the successful transaction is returned (declined one is skipped)
+        self.assertEqual(1, len(response['transactions']))
+        self.assertEqual(successful_transaction_id, response['transactions'][0].transactionId)
+        self.assertEqual(SUCCESSFUL_SETTLED_STATE, response['transactions'][0].transactionStatus)
+        # Verify declined transaction is not in the results
+        transaction_ids = [tx.transactionId for tx in response['transactions']]
+        self.assertNotIn(declined_transaction_id, transaction_ids)
+        self.assertIn(successful_transaction_id, transaction_ids)

@@ -40,6 +40,9 @@ MAXIMUM_TRANSACTION_API_LIMIT = 1000
 AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17', '65', 'E00114']
 
 
+class AuthorizeNetTransactionIgnoreStates(StrEnum):
+    DeclinedError = 'declined'
+
 class AuthorizeNetTransactionErrorStates(StrEnum):
     SettlementError = 'settlementError'
     GeneralError = 'generalError'
@@ -820,6 +823,14 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                     transaction_id=str(transaction.transId),
                                     transaction_status=str(tx.transactionStatus),
                                 )
+                            if str(tx.transactionStatus) in AuthorizeNetTransactionIgnoreStates:
+                                logger.info(
+                                    'Transaction was in an ignorable state. Skipping.',
+                                    batch_id=batch_id,
+                                    transaction_id=str(tx.transId),
+                                    transaction_status=str(tx.transactionStatus)
+                                )
+                                continue
 
                             licensee_id = None
                             if hasattr(tx, 'order') and tx.order.description:
