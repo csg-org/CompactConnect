@@ -6,6 +6,7 @@
 //
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import localStorage from '@store/local.storage';
+import moment from 'moment';
 
 // =========================
 // =  Authorization Types  =
@@ -114,6 +115,23 @@ export const tokens = {
 export const AUTH_TYPE = 'auth_type';
 export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
+
+// ====================
+// =    Auto logout   =
+// ====================
+export const autoLogoutConfig = {
+    INACTIVITY_TIMER_DEFAULT_MS: moment.duration(10, 'minutes').asMilliseconds(),
+    INACTIVITY_TIMER_STAFF_MS: moment.duration(10, 'seconds').asMilliseconds(),
+    INACTIVITY_TIMER_LICENSEE_MS: moment.duration(10, 'seconds').asMilliseconds(),
+    GRACE_PERIOD_MS: moment.duration(10, 'seconds').asMilliseconds(),
+    LOG: (message = '') => {
+        const isEnabled = false; // Helper logging for auto-logout testing
+
+        if (isEnabled) {
+            console.log(`auto-logout: ${message}`);
+        }
+    },
+};
 
 // ====================
 // =  User Languages  =

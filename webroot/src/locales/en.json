@@ -991,7 +991,10 @@
         "resetAccountErrorTitle": "Verification error",
         "resetAccountErrorSubtext": "If you are trying to reuse a link that was sent to you, be aware that the links are only valid for a short period of time and can only be used once.",
         "resetAccountActionLogin": "Go to login",
-        "resetAccountActionDashboard": "Go to dashboard"
+        "resetAccountActionDashboard": "Go to dashboard",
+        "autoLogoutWarningTitle": "Are you still there?",
+        "autoLogoutWarningDescription": "You’ve been inactive for a while. For your security, you’ll be signed out soon.",
+        "autoLogoutStaySignedIn": "Stay signed in"
     },
     "recaptcha": {
         "googleDesc": "This site is protected by reCAPTCHA and the Google",

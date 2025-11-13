@@ -163,6 +163,7 @@ export default {
         state.isLoadingAccount = false;
         state.refreshTokenTimeoutId = null;
         state.autoLogoutTimeoutId = null;
+        state.isAutoLogoutWarning = false;
         state.userType = null;
         state.currentCompact = null;
         state.error = null;

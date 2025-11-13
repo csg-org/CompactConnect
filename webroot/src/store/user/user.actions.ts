@@ -11,7 +11,8 @@ import {
     authStorage,
     AuthTypes,
     tokens,
-    AUTH_TYPE
+    AUTH_TYPE,
+    autoLogoutConfig
 } from '@/app.config';
 import localStorage from '@store/local.storage';
 import { Compact } from '@models/Compact/Compact.model';
@@ -275,7 +276,7 @@ export default {
         clearTimeout(refreshTokenTimeoutId);
         commit(MutationTypes.SET_REFRESH_TIMEOUT_ID, null);
     },
-    startAutoLogoutTokenTimer: ({ dispatch, state }) => {
+    startAutoLogoutInactivityTimer: ({ dispatch, state }) => {
         const { isLoggedIn, isAutoLogoutWarning } = state;
 
         dispatch('clearAutoLogoutTimeout');
@@ -286,25 +287,22 @@ export default {
     },
     setAutoLogoutTimeout: async ({ commit, dispatch, state }) => {
         const { isLoggedInAsStaff, isLoggedInAsLicensee } = state;
-        let initiateInMs = moment.duration(10, 'minutes').asMilliseconds(); // Default inactivity timer
+        let initiateInMs = autoLogoutConfig.INACTIVITY_TIMER_DEFAULT_MS; // Default inactivity timer
 
         if (isLoggedInAsStaff) {
-            initiateInMs = moment.duration(10, 'seconds').asMilliseconds(); // Inactivity timer for Staff
+            initiateInMs = autoLogoutConfig.INACTIVITY_TIMER_STAFF_MS; // Inactivity timer for Staff
         } else if (isLoggedInAsLicensee) {
-            initiateInMs = moment.duration(10, 'seconds').asMilliseconds(); // Inactivity timer for Licensees
+            initiateInMs = autoLogoutConfig.INACTIVITY_TIMER_LICENSEE_MS; // Inactivity timer for Licensees
         }
 
         const initiateAutoLogout = () => {
             dispatch('clearAutoLogoutTimeout');
             dispatch('updateAutoLogoutWarning', true);
-            console.log(`auto logout warning: ${state.isAutoLogoutWarning}`);
-            console.log(`auto logout timer: ${state.autoLogoutTimeoutId}`);
+            autoLogoutConfig.LOG(`auto logout warning: ${state.isAutoLogoutWarning}`);
         };
         const timeoutId = setTimeout(initiateAutoLogout, initiateInMs);
 
-        console.log(`timer started in store`);
-        console.log(`initiateInMs: ${initiateInMs}`);
-        console.log(``);
+        autoLogoutConfig.LOG(`timer started in store`);
 
         commit(MutationTypes.SET_LOGOUT_TIMEOUT_ID, timeoutId);
     },
@@ -313,6 +311,7 @@ export default {
 
         if (autoLogoutTimeoutId) {
             clearTimeout(autoLogoutTimeoutId);
+            autoLogoutConfig.LOG(`timer cleared in store`);
         }
 
         commit(MutationTypes.SET_LOGOUT_TIMEOUT_ID, null);

@@ -34,6 +34,7 @@
                 </ul>
             </template>
         </Modal>
+        <AutoLogout />
     </div>
 </template>
 

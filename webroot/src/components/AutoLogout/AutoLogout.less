@@ -1,0 +1,65 @@
+//
+//  AutoLogout.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/13/2025.
+//
+
+.auto-logout-modal {
+    color: @fontColor;
+
+    :deep(.modal-container) {
+        width: 95%;
+        max-width: 60rem;
+        padding: 2rem;
+
+        @media @tabletWidth {
+            padding: 4rem;
+        }
+
+        .header-container {
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .description-container {
+                text-align: center;
+            }
+
+            .action-button-row {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 4rem;
+
+                @media @desktopWidth {
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+
+                .action-button {
+                    width: 100%;
+                    margin-bottom: 1rem;
+
+                    @media @desktopWidth {
+                        width: auto;
+
+                        &:not(:first-child) {
+                            margin-left: 2.4rem;
+                        }
+                    }
+
+                    .input-button {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+}

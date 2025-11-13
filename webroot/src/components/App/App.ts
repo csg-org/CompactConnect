@@ -21,6 +21,7 @@ import {
 import { CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
+import AutoLogout from '@components/AutoLogout/AutoLogout.vue';
 import { StatsigUser } from '@statsig/js-client';
 import moment from 'moment';
 
@@ -29,6 +30,7 @@ import moment from 'moment';
     components: {
         PageContainer,
         Modal,
+        AutoLogout,
     },
     emits: [
         'trigger-scroll-behavior'
@@ -40,7 +42,6 @@ class App extends Vue {
     //
     body = document.body;
     featureGateFetchIntervalId: number | undefined = undefined;
-    autoLogoutEventsController: AbortController | null = null;
 
     //
     // Lifecycle
@@ -56,7 +57,6 @@ class App extends Vue {
 
     async beforeUnmount() {
         this.clearFeatureGateRefetchInterval();
-        this.removeAutoLogoutEvents();
     }
 
     //
@@ -100,7 +100,6 @@ class App extends Vue {
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
             await this.getAccount();
             await this.setCurrentCompact();
-            this.startAutoLogoutTimer();
         }
     }
 
@@ -195,63 +194,6 @@ class App extends Vue {
         }
     }
 
-    startAutoLogoutTimer(): void {
-        const resetEvents = [
-            'mousemove',
-            'mousedown',
-            'click',
-            'keypress',
-            'touchstart',
-            'touchend',
-            'touchmove',
-            'onscroll',
-            'wheel',
-            'mousewheel',
-        ];
-        const debounce = (func, delay) => {
-            let timer;
-
-            return (...args) => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    func.apply(this, args);
-                }, delay);
-            };
-        };
-        const eventHandler = (event) => {
-            console.log(`event: ${event.type}`);
-            this.$store.dispatch('user/startAutoLogoutTokenTimer');
-            this.startAutoLogoutTimer();
-        };
-        const debouncedEventHandler = debounce(eventHandler, 1000);
-        const controller = new AbortController();
-        const { isLoggedIn, isAutoLogoutWarning } = this.userStore;
-
-        this.removeAutoLogoutEvents();
-
-        if (isLoggedIn && !isAutoLogoutWarning) {
-            this.$store.dispatch('user/startAutoLogoutTokenTimer');
-            this.autoLogoutEventsController = controller;
-            resetEvents.forEach((resetEvent) => {
-                document.addEventListener(resetEvent, debouncedEventHandler, {
-                    capture: false,
-                    once: true,
-                    passive: true,
-                    signal: controller.signal,
-                });
-            });
-        }
-    }
-
-    removeAutoLogoutEvents(): void {
-        const { autoLogoutEventsController } = this;
-
-        if (autoLogoutEventsController) {
-            autoLogoutEventsController.abort();
-            this.autoLogoutEventsController = null;
-        }
-    }
-
     setRelativeTimeFormats() {
         // https://momentjs.com/docs/#/customization/relative-time/
         moment.updateLocale('en', {
@@ -272,7 +214,6 @@ class App extends Vue {
 
     @Watch('userStore.isLoggedInAsLicensee') async handleLicenseeLogin() {
         if (!this.userStore.isLoggedIn) {
-            this.removeAutoLogoutEvents();
             this.$router.push({ name: 'Logout' });
         } else if (this.userStore.isLoggedInAsLicensee) {
             await this.handleAuth();
@@ -281,7 +222,6 @@ class App extends Vue {
 
     @Watch('userStore.isLoggedInAsStaff') async handleStaffLogin() {
         if (!this.userStore.isLoggedIn) {
-            this.removeAutoLogoutEvents();
             this.$router.push({ name: 'Logout' });
         } else if (this.userStore.isLoggedInAsStaff) {
             await this.handleAuth();
