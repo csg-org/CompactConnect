@@ -612,14 +612,14 @@
                             <InputButton
                                 id="end-investigation-modal-no-encumbrance"
                                 class="action-button end-investigation-modal-no-encumbrance"
-                                :label="$t('licensing.confirmPrivilegeInvestigationEndSubmit1')"
+                                :label="$t('licensing.confirmPrivilegeInvestigationEndSubmitWithoutEncumber')"
                                 :onClick="submitEndInvestigationWithoutEncumbrance"
                                 :isEnabled="!isFormLoading"
                             />
                             <InputButton
                                 id="submit-modal-continue"
                                 class="action-button end-investigation-modal-with-encumbrance"
-                                :label="$t('licensing.confirmPrivilegeInvestigationEndSubmit2')"
+                                :label="$t('licensing.confirmPrivilegeInvestigationEndSubmitWithEncumber')"
                                 :isWarning="true"
                                 :onClick="submitEndInvestigationWithEncumbrance"
                                 :isEnabled="!isFormLoading"
