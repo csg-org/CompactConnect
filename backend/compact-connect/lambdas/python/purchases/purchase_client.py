@@ -19,6 +19,7 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.common import CompactFeeType, PaymentProcessorType, TransactionFeeChargeType
 from cc_common.data_model.schema.jurisdiction import Jurisdiction
+from cc_common.data_model.schema.transaction import TransactionData
 from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
@@ -218,6 +219,7 @@ class PaymentProcessorClient(ABC):
     @abstractmethod
     def get_settled_transactions(
         self,
+        compact: str,
         start_time: str,
         end_time: str,
         transaction_limit: int,
@@ -228,6 +230,7 @@ class PaymentProcessorClient(ABC):
         """
         Get settled transactions from the payment processor.
 
+        :param compact: The compact abbreviation
         :param start_time: UTC timestamp string for start of range
         :param end_time: UTC timestamp string for end of range
         :param transaction_limit: Maximum number of transactions to return
@@ -727,6 +730,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
     def get_settled_transactions(
         self,
+        compact: str,
         start_time: str,
         end_time: str,
         transaction_limit: int,
@@ -737,6 +741,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         """
         Get settled transactions from the payment processor.
 
+        :param compact: The compact abbreviation
         :param start_time: UTC timestamp string for start of range
         :param end_time: UTC timestamp string for end of range
         :param transaction_limit: Maximum number of transactions to return
@@ -839,26 +844,29 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                         }
                                     )
 
-                            transaction_data = {
-                                # we must cast these to strings, or they will cause an error when we try to serialize
-                                # in other parts of the system
-                                'transactionId': str(tx.transId),
-                                'submitTimeUTC': str(tx.submitTimeUTC),
-                                'transactionType': str(tx.transactionType),
-                                'transactionStatus': str(tx.transactionStatus),
-                                'responseCode': str(tx.responseCode),
-                                'settleAmount': str(tx.settleAmount),
-                                'licenseeId': licensee_id,
-                                'batch': {
-                                    'batchId': str(batch.batchId),
-                                    'settlementTimeUTC': str(batch.settlementTimeUTC),
-                                    'settlementTimeLocal': str(batch.settlementTimeLocal),
-                                    'settlementState': str(batch.settlementState),
-                                },
-                                'lineItems': line_items,
-                                # this defines the type of transaction processor that processed the transaction
-                                'transactionProcessor': PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE,
-                            }
+                            transaction_data = TransactionData.create_new(
+                                {
+                                    # we must cast these to strings, or they will cause an error when we try to
+                                    # serialize in other parts of the system
+                                    'transactionId': str(tx.transId),
+                                    'submitTimeUTC': str(tx.submitTimeUTC),
+                                    'transactionType': str(tx.transactionType),
+                                    'transactionStatus': str(tx.transactionStatus),
+                                    'responseCode': str(tx.responseCode),
+                                    'settleAmount': str(tx.settleAmount),
+                                    'licenseeId': licensee_id,
+                                    'batch': {
+                                        'batchId': str(batch.batchId),
+                                        'settlementTimeUTC': str(batch.settlementTimeUTC),
+                                        'settlementTimeLocal': str(batch.settlementTimeLocal),
+                                        'settlementState': str(batch.settlementState),
+                                    },
+                                    'lineItems': line_items,
+                                    # this defines the type of transaction processor that processed the transaction
+                                    'transactionProcessor': PaymentProcessorType.AUTHORIZE_DOT_NET_TYPE,
+                                    'compact': compact,
+                                }
+                            )
                             transactions.append(transaction_data)
                             processed_transaction_count += 1
                             if processed_transaction_count >= transaction_limit:
@@ -1084,7 +1092,8 @@ class PurchaseClient:
         if not self.payment_processor_client:
             self.payment_processor_client = self._get_compact_payment_processor_client(compact)
 
-        response = self.payment_processor_client.get_settled_transactions(
+        return self.payment_processor_client.get_settled_transactions(
+            compact=compact,
             start_time=start_time,
             end_time=end_time,
             transaction_limit=transaction_limit,
@@ -1092,9 +1101,3 @@ class PurchaseClient:
             current_batch_id=current_batch_id,
             processed_batch_ids=processed_batch_ids,
         )
-
-        # Add compact to each transaction for serialization
-        for transaction in response['transactions']:
-            transaction['compact'] = compact
-
-        return response

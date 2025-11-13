@@ -29,6 +29,37 @@ DEFAULT_PRIVILEGE_RENEWAL_DATETIME = '2020-05-05T12:59:59+00:00'
 DEFAULT_PRIVILEGE_EXPIRATION_DATE = '2025-04-04'
 DEFAULT_PRIVILEGE_UPDATE_DATETIME = '2020-05-05T12:59:59+00:00'
 DEFAULT_COMPACT_TRANSACTION_ID = '1234567890'
+DEFAULT_COMPACT_TRANSACTION_BATCH = {
+    'batchId': '67890',
+    'settlementState': 'settledSuccessfully',
+    'settlementTimeLocal': '2024-01-01T09:00:00',
+    'settlementTimeUTC': '2024-01-01T13:00:00.000Z',
+}
+DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM = {
+    'description': 'Compact Privilege for Ohio',
+    'itemId': 'priv:aslp-oh',
+    'name': 'Ohio Compact Privilege',
+    'quantity': '1.0',
+    'taxable': 'False',
+    'unitPrice': '100.00',
+    'privilegeId': 'mock-privilege-id-oh',
+}
+DEFAULT_COMPACT_TRANSACTION_COMPACT_LINE_ITEM = {
+    'description': 'Compact fee applied for each privilege purchased',
+    'itemId': 'aslp-compact-fee',
+    'name': 'ASLP Compact Fee',
+    'quantity': '1',
+    'taxable': 'False',
+    'unitPrice': '10.50',
+}
+DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM = {
+    'description': 'credit card transaction fee',
+    'itemId': 'credit-card-transaction-fee',
+    'name': 'Credit Card Transaction Fee',
+    'quantity': '1',
+    'taxable': 'False',
+    'unitPrice': '3.00',
+}
 DEFAULT_PRIVILEGE_ID = 'SLP-NE-1'
 DEFAULT_MILITARY_AFFILIATION_TYPE = 'militaryMember'
 DEFAULT_MILITARY_STATUS = 'active'
@@ -57,6 +88,7 @@ LICENSE_UPDATE_RECORD_TYPE = 'licenseUpdate'
 PRIVILEGE_RECORD_TYPE = 'privilege'
 PRIVILEGE_UPDATE_RECORD_TYPE = 'privilegeUpdate'
 PROVIDER_RECORD_TYPE = 'provider'
+TRANSACTION_RECORD_TYPE = 'transaction'
 
 # Privilege update default values
 DEFAULT_PRIVILEGE_UPDATE_TYPE = 'renewal'

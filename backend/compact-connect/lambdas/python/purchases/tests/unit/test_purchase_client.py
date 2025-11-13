@@ -1112,11 +1112,12 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         # Verify transaction data
         transaction = response['transactions'][0]
-        self.assertEqual(transaction['transactionId'], MOCK_TRANSACTION_ID)
-        self.assertEqual(transaction['compact'], 'aslp')
-        self.assertEqual(transaction['licenseeId'], MOCK_LICENSEE_ID)
-        self.assertEqual(transaction['batch']['batchId'], MOCK_BATCH_ID)
-        self.assertEqual(len(transaction['lineItems']), 1)
+
+        self.assertEqual(transaction.transactionId, MOCK_TRANSACTION_ID)
+        self.assertEqual(transaction.compact, 'aslp')
+        self.assertEqual(transaction.licenseeId, MOCK_LICENSEE_ID)
+        self.assertEqual(transaction.batch['batchId'], MOCK_BATCH_ID)
+        self.assertEqual(len(transaction.lineItems), 1)
 
     @patch('purchase_client.getSettledBatchListController')
     @patch('purchase_client.getTransactionListController')
@@ -1197,8 +1198,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual([MOCK_BATCH_ID], response['processedBatchIds'])
         # Verify transaction data
         self.assertEqual(2, len(response['transactions']))
-        self.assertEqual(response['transactions'][0]['transactionId'], MOCK_TRANSACTION_ID_1_BATCH_1)
-        self.assertEqual(response['transactions'][1]['transactionId'], MOCK_TRANSACTION_ID_1_BATCH_2)
+        self.assertEqual(response['transactions'][0].transactionId, MOCK_TRANSACTION_ID_1_BATCH_1)
+        self.assertEqual(response['transactions'][1].transactionId, MOCK_TRANSACTION_ID_1_BATCH_2)
 
         # now fetch the remaining results
         response = test_purchase_client.get_settled_transactions(
@@ -1218,7 +1219,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # assert that the second transaction is returned, the first being skipped
         self.assertEqual([MOCK_BATCH_ID, MOCK_BATCH_ID_2], response['processedBatchIds'])
         self.assertEqual(1, len(response['transactions']))
-        self.assertEqual(MOCK_TRANSACTION_ID_2_BATCH_2, response['transactions'][0]['transactionId'])
+        self.assertEqual(MOCK_TRANSACTION_ID_2_BATCH_2, response['transactions'][0].transactionId)
 
     @patch('purchase_client.getSettledBatchListController')
     def test_purchase_client_handles_no_batches_for_settled_transactions(self, mock_batch_controller):
@@ -1290,7 +1291,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         # assert that we return the transaction with the settlement error
         self.assertEqual(1, len(response['transactions']))
-        self.assertEqual(MOCK_TRANSACTION_ID, response['transactions'][0]['transactionId'])
-        self.assertEqual(SETTLEMENT_ERROR_STATE, response['transactions'][0]['transactionStatus'])
+        self.assertEqual(MOCK_TRANSACTION_ID, response['transactions'][0].transactionId)
+        self.assertEqual(SETTLEMENT_ERROR_STATE, response['transactions'][0].transactionStatus)
         # assert we return a list of failed transaction ids
         self.assertEqual([MOCK_TRANSACTION_ID], response['settlementErrorTransactionIds'])

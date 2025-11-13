@@ -1,4 +1,3 @@
-import json
 from datetime import UTC, datetime, timedelta
 
 from moto import mock_aws
@@ -8,12 +7,19 @@ from .. import TstFunction
 
 @mock_aws
 class TestTransactionClient(TstFunction):
-    def _generate_mock_transaction(self, transaction_id: str, settlement_time_utc: str, batch_id: str) -> dict:
-        with open('tests/resources/dynamo/transaction.json') as f:
-            transaction = json.load(f)
-            transaction['transactionId'] = transaction_id
-            transaction['batch']['settlementTimeUTC'] = settlement_time_utc
-            transaction['batch']['batchId'] = batch_id
+    def _generate_mock_transaction(
+        self, transaction_id: str, compact: str = None, settlement_time_utc: str = None, batch_id: str = None
+    ):
+        transaction = self.test_data_generator.generate_default_transaction(
+            value_overrides={
+                'transactionId': transaction_id,
+                **({'compact': compact} if compact else {}),
+            }
+        )
+        if settlement_time_utc:
+            transaction.batch['settlementTimeUTC'] = settlement_time_utc
+        if batch_id:
+            transaction.batch['batchId'] = batch_id
         return transaction
 
     def test_transaction_history_edge_times(self):
@@ -34,12 +40,24 @@ class TestTransactionClient(TstFunction):
         client.store_transactions(
             transactions=[
                 # One at the beginning of the window
-                self._generate_mock_transaction(
-                    transaction_id='123', settlement_time_utc=start_time_string, batch_id='abc'
+                self.test_data_generator.generate_default_transaction(
+                    {
+                        'transactionId': '123',
+                        'batch': {
+                            'batchId': 'abc',
+                            'settlementTimeUTC': start_time_string,
+                        },
+                    }
                 ),
                 # One at the end of the window
-                self._generate_mock_transaction(
-                    transaction_id='456', settlement_time_utc=end_time_string, batch_id='def'
+                self.test_data_generator.generate_default_transaction(
+                    {
+                        'transactionId': '456',
+                        'batch': {
+                            'batchId': 'def',
+                            'settlementTimeUTC': end_time_string,
+                        },
+                    }
                 ),
             ],
         )
@@ -57,54 +75,19 @@ class TestTransactionClient(TstFunction):
         # remove dynamic dateOfUpdate timestamp
         transactions[0].pop('dateOfUpdate')
 
-        self.assertEqual(
+        expected_transaction = self.test_data_generator.generate_default_transaction(
             {
+                'transactionId': '123',
                 'batch': {
                     'batchId': 'abc',
-                    'settlementState': 'settledSuccessfully',
-                    'settlementTimeLocal': '2024-01-01T09:00:00',
                     'settlementTimeUTC': start_time_string,
                 },
-                'compact': 'aslp',
-                'licenseeId': '12345',
-                'lineItems': [
-                    {
-                        'description': 'Compact Privilege for Ohio',
-                        'itemId': 'priv:aslp-oh',
-                        'name': 'Ohio Compact Privilege',
-                        'privilegeId': 'mock-privilege-id-oh',
-                        'quantity': '1.0',
-                        'taxable': 'False',
-                        'unitPrice': '100.00',
-                    },
-                    {
-                        'description': 'Compact fee applied for each privilege purchased',
-                        'itemId': 'aslp-compact-fee',
-                        'name': 'ASLP Compact Fee',
-                        'quantity': '1',
-                        'taxable': 'False',
-                        'unitPrice': '10.50',
-                    },
-                    {
-                        'description': 'Credit card transaction fee',
-                        'itemId': 'credit-card-transaction-fee',
-                        'name': 'Credit Card Transaction Fee',
-                        'quantity': '1',
-                        'taxable': 'False',
-                        'unitPrice': '3.00',
-                    },
-                ],
-                'pk': 'COMPACT#aslp#TRANSACTIONS#MONTH#2024-01',
-                'responseCode': '1',
-                'settleAmount': '113.50',
-                'sk': 'COMPACT#aslp#TIME#1704067200#BATCH#abc#TX#123',
-                'submitTimeUTC': '2024-01-01T12:00:00.000Z',
-                'transactionId': '123',
-                'transactionProcessor': 'authorize.net',
-                'transactionStatus': 'settledSuccessfully',
-                'transactionType': 'authCaptureTransaction',
-                'type': 'transaction',
-            },
+            }
+        ).serialize_to_database_record()
+        expected_transaction.pop('dateOfUpdate')
+
+        self.assertEqual(
+            expected_transaction,
             transactions[0],
         )
 
@@ -186,8 +169,18 @@ class TestTransactionClient(TstFunction):
 
         # Create matching settled transactions
         settled_transactions = [
-            {'transactionId': 'tx-1', 'compact': compact},
-            {'transactionId': 'tx-2', 'compact': compact},
+            self.test_data_generator.generate_default_transaction(
+                {
+                    'transactionId': 'tx-1',
+                    'compact': compact,
+                }
+            ),
+            self.test_data_generator.generate_default_transaction(
+                {
+                    'transactionId': 'tx-2',
+                    'compact': compact,
+                }
+            ),
         ]
 
         client.reconcile_unsettled_transactions(compact=compact, settled_transactions=settled_transactions)
@@ -248,7 +241,7 @@ class TestTransactionClient(TstFunction):
 
         # Only one settled transaction that matches
         settled_transactions = [
-            {'transactionId': 'tx-matched', 'compact': compact},
+            self.test_data_generator.generate_default_transaction({'transactionId': 'tx-matched', 'compact': compact}),
         ]
 
         result = client.reconcile_unsettled_transactions(compact=compact, settled_transactions=settled_transactions)

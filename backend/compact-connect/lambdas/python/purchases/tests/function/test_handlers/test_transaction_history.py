@@ -38,10 +38,25 @@ def _generate_mock_transaction(
     transaction_status='settledSuccessfully',
     batch_settlement_state='settledSuccessfully',
 ):
+    from cc_common.data_model.schema.transaction import TransactionData
+
     if jurisdictions is None:
         jurisdictions = ['oh']
 
-    transaction = {
+    line_items = []
+    for jurisdiction in jurisdictions:
+        line_items.append(
+            {
+                'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}-{TEST_AUD_LICENSE_TYPE_ABBR}',
+                'name': f'{jurisdiction.upper()} Compact Privilege',
+                'description': f'Compact Privilege for {jurisdiction}',
+                'quantity': '1',
+                'unitPrice': '100.00',
+                'taxable': str(False),
+            }
+        )
+
+    transaction_data = {
         'transactionId': transaction_id,
         'submitTimeUTC': MOCK_SUBMIT_TIME_UTC,
         'transactionType': 'authCaptureTransaction',
@@ -55,24 +70,12 @@ def _generate_mock_transaction(
             'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
             'settlementState': batch_settlement_state,
         },
-        'lineItems': [],
+        'lineItems': line_items,
         'compact': TEST_COMPACT,
         'transactionProcessor': 'authorize.net',
     }
 
-    for jurisdiction in jurisdictions:
-        transaction['lineItems'].append(
-            {
-                'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}-{TEST_AUD_LICENSE_TYPE_ABBR}',
-                'name': f'{jurisdiction.upper()} Compact Privilege',
-                'description': f'Compact Privilege for {jurisdiction}',
-                'quantity': '1',
-                'unitPrice': '100.00',
-                'taxable': str(False),
-            }
-        )
-
-    return transaction
+    return TransactionData.create_new(transaction_data)
 
 
 @mock_aws
@@ -280,10 +283,13 @@ class TestProcessSettledTransactions(TstFunction):
             ExpressionAttributeValues={':pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01'},
         )
 
-        expected_epoch_timestamp = int(datetime.fromisoformat(MOCK_SETTLEMENT_TIME_UTC).timestamp())
+        expected_epoch_timestamp = int(
+            datetime.fromisoformat(MOCK_SETTLEMENT_TIME_UTC.replace('Z', '+00:00')).timestamp()
+        )
         # remove dynamic dateOfUpdate timestamp
         del stored_transactions['Items'][0]['dateOfUpdate']
 
+        self.maxDiff = None
         self.assertEqual(
             [
                 {
