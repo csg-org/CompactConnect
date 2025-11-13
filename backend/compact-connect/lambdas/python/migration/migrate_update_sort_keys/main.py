@@ -40,7 +40,7 @@ def do_migration(_properties: dict) -> None:
     """
     logger.info('Starting update record sort key migration')
 
-    # Scan for all privilege update records
+    # Scan for all update records
     update_records = []
     scan_pagination = {}
 
@@ -54,7 +54,7 @@ def do_migration(_properties: dict) -> None:
 
         items = response.get('Items', [])
         update_records.extend(items)
-        logger.info(f'Found {len(items)} privilege update records in current scan batch')
+        logger.info(f'Found {len(items)} update records in current scan batch')
 
         # Check if we need to continue pagination
         last_evaluated_key = response.get('LastEvaluatedKey')
@@ -161,7 +161,7 @@ def _generate_transaction_items(original_update_record: dict) -> list[dict]:
 
 def _process_batch(update_records: list[dict]) -> None:
     """
-    Process a batch of privilege update records.
+    Process a batch of update records.
 
     :param update_records: List of update records to process
     """

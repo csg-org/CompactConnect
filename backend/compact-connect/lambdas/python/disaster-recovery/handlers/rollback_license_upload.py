@@ -855,7 +855,7 @@ def _build_and_execute_revert_transactions(
             reverted_license = LicenseData.create_new(reverted_license_data)
             serialized_reverted_license = reverted_license.serialize_to_database_record()
 
-            add_put(serialized_reverted_license, update_record=True)
+            add_put(serialized_reverted_license, update_record=False)
             logger.info('Reverting license record to pre-upload state')
 
             # Track for provider record regeneration
