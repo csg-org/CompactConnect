@@ -11,6 +11,7 @@ These tests verify the rollback functionality including:
 """
 
 import json
+from calendar import month
 from datetime import datetime, timedelta
 from unittest.mock import ANY, Mock, patch
 
@@ -165,6 +166,137 @@ class TestRollbackLicenseUpload(TstFunction):
         )
 
         return original_license, license_update, updated_license
+
+    def _when_license_was_updated_twice(
+        self, provider_id: str = None
+    ):
+        """
+        Set up a scenario where a provider had an existing license updated twice during the upload window.
+        Returns the original license, both update records, and the final updated license.
+        """
+        first_upload_datetime = self.default_start_datetime + timedelta(minutes=30)
+        second_upload_datetime = self.default_start_datetime + timedelta(hours=1)
+        if provider_id is None:
+            provider_id = self.provider_id
+
+        # License was originally uploaded before the upload window
+        license_upload_datetime = self.default_start_datetime - timedelta(days=1)
+
+        # Create original license before upload window
+        original_license = self.test_data_generator.put_default_license_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'familyName': MOCK_ORIGINAL_FAMILY_NAME,
+                'givenName': MOCK_ORIGINAL_GIVEN_NAME,
+                'dateOfExpiration': (self.default_start_datetime + timedelta(days=30)).date(),
+                'firstUploadDate': license_upload_datetime,
+                'licenseStatus': 'active',
+            }
+        )
+
+        # old update record before upload window (e.g., RENEWAL)
+        existing_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'licenseType': original_license.licenseType,
+                'updateType': self.update_categories.LICENSE_UPLOAD_UPDATE_OTHER,
+                # last update was 5 days before upload, this should be ignored
+                'createDate': first_upload_datetime - timedelta(days=5),
+                'effectiveDate': first_upload_datetime,
+                'previous': {
+                    **original_license.to_dict(),
+                    'familyName': 'someFamilyName',
+                    'givenName': 'someGivenName',
+                },
+                'updatedValues': {
+                    'familyName': original_license.familyName,
+                    'givenName': original_license.givenName,
+                },
+            }
+        )
+
+        # Create first update record within upload window (e.g., RENEWAL)
+        first_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'licenseType': original_license.licenseType,
+                'updateType': self.update_categories.RENEWAL,
+                'createDate': first_upload_datetime,
+                'effectiveDate': first_upload_datetime,
+                'previous': {
+                    'dateOfExpiration': original_license.dateOfExpiration,
+                    'licenseStatus': original_license.licenseStatus,
+                    **original_license.to_dict(),
+                },
+                'updatedValues': {
+                    'dateOfExpiration': (first_upload_datetime + timedelta(days=365)).date(),
+                    'dateOfRenewal': first_upload_datetime.date(),
+                },
+            }
+        )
+
+        # Create intermediate license state after first update
+        intermediate_license = self.test_data_generator.put_default_license_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'familyName': MOCK_ORIGINAL_FAMILY_NAME,
+                'givenName': MOCK_ORIGINAL_GIVEN_NAME,
+                'dateOfUpdate': first_upload_datetime,
+                'dateOfExpiration': (first_upload_datetime + timedelta(days=365)).date(),
+                'dateOfRenewal': first_upload_datetime.date(),
+                'firstUploadDate': license_upload_datetime,
+                'licenseStatus': 'active',
+            }
+        )
+
+        # Create second update record within upload window (e.g., DEACTIVATION)
+        second_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'licenseType': original_license.licenseType,
+                'updateType': self.update_categories.DEACTIVATION,
+                'createDate': second_upload_datetime,
+                'effectiveDate': second_upload_datetime,
+                'previous': {
+                    'dateOfExpiration': intermediate_license.dateOfExpiration,
+                    'licenseStatus': intermediate_license.licenseStatus,
+                    **intermediate_license.to_dict(),
+                },
+                'updatedValues': {
+                    'dateOfExpiration': (second_upload_datetime - timedelta(days=365)).date(),
+                    'licenseStatus': 'inactive',
+                    'familyName': MOCK_UPDATED_FAMILY_NAME,
+                    'givenName': MOCK_UPDATED_GIVEN_NAME,
+                },
+            }
+        )
+
+        # Update the license record to reflect the final state after second update
+        final_license = self.test_data_generator.put_default_license_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'familyName': MOCK_UPDATED_FAMILY_NAME,
+                'givenName': MOCK_UPDATED_GIVEN_NAME,
+                'dateOfUpdate': second_upload_datetime,
+                'dateOfExpiration': (second_upload_datetime - timedelta(days=365)).date(),
+                'firstUploadDate': license_upload_datetime,
+                'licenseStatus': 'inactive',
+            }
+        )
+
+        return existing_update, original_license, first_update, second_update, final_license
 
     def _when_provider_had_privilege_deactivated_from_upload(self, upload_datetime: datetime = None):
         """
@@ -426,6 +558,40 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify: Update record has been deleted
         license_updates = provider_records.get_all_license_update_records()
         self.assertEqual(len(license_updates), 0, 'License update records should be deleted')
+
+    def test_provider_license_record_reverted_to_earliest_update_previous_values_when_multiple_updates(self):
+        """Test that license record is reverted to the 'previous' field of the earliest update when multiple updates exist."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # Setup: License was updated twice during upload window, but was first uploaded before start time
+        existing_update, original_license, first_update, second_update, final_license = self._when_license_was_updated_twice()
+
+        # Execute: Perform rollback
+        event = self._generate_test_event()
+
+        result = rollback_license_upload(event, Mock())
+
+        # Assert: Rollback completed successfully
+        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(result['providersReverted'], 1)
+
+        # Verify: License record has been reset to the values from the first (earliest) update's previous field
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact=self.compact,
+            provider_id=self.provider_id,
+            include_update_tier=UpdateTierEnum.TIER_THREE,
+        )
+        licenses = provider_records.get_license_records()
+        self.assertEqual(len(licenses), 1)
+        license_record = licenses[0]
+        # license should look the same as it did before the updates that were rolled back
+        self.assertEqual(original_license.serialize_to_database_record(), license_record.serialize_to_database_record())
+
+        # Verify: Both update records have been deleted
+        license_updates = provider_records.get_all_license_update_records()
+        # license update that existed before upload should still be there
+        self.assertEqual(len(license_updates), 1, 'Expected one existing license update to remain')
+        self.assertEqual(existing_update.serialize_to_database_record(), license_updates[0].serialize_to_database_record())
 
     def test_provider_privilege_record_reactivated_when_upload_reverted(self):
         """Test that privilege is reactivated when license deactivation is reverted."""
