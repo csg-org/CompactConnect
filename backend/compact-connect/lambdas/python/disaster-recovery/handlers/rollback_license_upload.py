@@ -17,6 +17,8 @@ from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCNotFoundException
 
 # Maximum time window for rollback (1 week in seconds)
+# this is set as a safety net to prevent accidental rollback over large time period
+# it can be modified if needed
 MAX_ROLLBACK_WINDOW_SECONDS = 7 * 24 * 60 * 60
 
 # Privilege update category for license deactivations
@@ -703,7 +705,7 @@ def _build_and_execute_revert_transactions(
                         update_time=privilege.dateOfIssuance.isoformat(),
                         license_type=license_record.licenseType,
                         reason=f"Privilege in jurisdiction '{privilege.jurisdiction}' issued after license upload. "
-                        "Manual review required.",
+                        'Manual review required.',
                     )
                 )
             # Check updates associated with this privilege that are after the start_datetime
@@ -724,8 +726,8 @@ def _build_and_execute_revert_transactions(
                             update_time=privilege_update.dateOfUpdate.isoformat(),
                             license_type=privilege_update.licenseType,
                             # include privilege jurisdiction in reason
-                            reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was updated with a change "
-                                   "unrelated to license upload. Manual review required.",
+                            reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was updated "
+                            f'with a change unrelated to license upload. Manual review required.',
                         )
                     )
                 elif privilege_update.createDate > upload_window_end_datetime:
@@ -738,7 +740,7 @@ def _build_and_execute_revert_transactions(
                             license_type=privilege_update.licenseType,
                             # include privilege jurisdiction in reason
                             reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was deactivated "
-                                   "after rollback end time. Manual review required.",
+                            'after rollback end time. Manual review required.',
                         )
                     )
                 else:
@@ -781,7 +783,6 @@ def _build_and_execute_revert_transactions(
                                 action='REACTIVATED',
                             )
                         )
-
 
         # Get license updates for this license after start_datetime
         license_updates_after_start = provider_records.get_update_records_for_license(

@@ -63,7 +63,7 @@ class DisasterRecoveryStack(AppStack):
 
         # Create S3 bucket for license upload rollback results
         stack = Stack.of(self)
-        self.rollback_results_bucket = Bucket(
+        self.disaster_recovery_results_bucket = Bucket(
             self,
             'DisasterRecoveryResultsBucket',
             encryption=BucketEncryption.KMS,
@@ -80,7 +80,7 @@ class DisasterRecoveryStack(AppStack):
 
         # Suppress replication requirement - replication to a logs archive account may be added as a future enhancement
         NagSuppressions.add_resource_suppressions(
-            self.rollback_results_bucket,
+            self.disaster_recovery_results_bucket,
             suppressions=[
                 {
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
@@ -116,7 +116,7 @@ class DisasterRecoveryStack(AppStack):
             self,
             'LicenseUploadRollback',
             persistent_stack=persistent_stack,
-            rollback_results_bucket=self.rollback_results_bucket,
+            rollback_results_bucket=self.disaster_recovery_results_bucket,
             dr_shared_encryption_key=self.dr_shared_encryption_key,
         )
 

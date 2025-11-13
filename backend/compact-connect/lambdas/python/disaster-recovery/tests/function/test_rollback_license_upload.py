@@ -215,17 +215,15 @@ class TestRollbackLicenseUpload(TstFunction):
         Returns the privilege and its update record.
         """
 
-        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
+        return self.test_data_generator.put_default_privilege_record_in_provider_table(
             {
                 'providerId': self.provider_id,
                 'compact': self.compact,
                 'jurisdiction': 'ne',
                 'licenseJurisdiction': self.license_jurisdiction,
-                'dateOfIssuance': self.default_upload_datetime
+                'dateOfIssuance': self.default_upload_datetime,
             }
         )
-
-        return privilege
 
     def _when_provider_had_privilege_update_after_upload(self, after_upload_datetime: datetime = None):
         """
@@ -821,7 +819,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify the structure of the results
         expected_reason_message = (
             "Privilege in jurisdiction 'ne' was updated with a change unrelated to license upload. "
-            "Manual review required."
+            'Manual review required.'
         )
         self.assertEqual(
             {
