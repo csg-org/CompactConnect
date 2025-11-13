@@ -8,6 +8,8 @@ import boto3
 import requests
 from config import config, logger
 from smoke_common import (
+    LicenseData,
+    LicenseUpdateData,
     SmokeTestFailureException,
     create_test_app_client,
     create_test_staff_user,
@@ -25,18 +27,26 @@ JURISDICTION = 'ne'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 
+LICENSE_TYPE = 'licensed professional counselor'
+
 # Test configuration
 NUM_LICENSES_TO_UPLOAD = 1000
 BATCH_SIZE = 100  # Upload in batches of 100 to avoid timeouts
 
+# Global list to track all provider IDs for cleanup
+ALL_PROVIDER_IDS = []
 
-def upload_test_license_batch(auth_headers: dict, batch_start_index: int, batch_size: int):
+
+def upload_test_license_batch(
+    auth_headers: dict, batch_start_index: int, batch_size: int, street_address: str = '123 Test Street'
+):
     """
     Upload a batch of test license records.
 
     :param auth_headers: Authentication headers for app client
     :param batch_start_index: Starting index for this batch
     :param batch_size: Number of licenses to upload in this batch
+    :param street_address: Street address to use
     :return: List of license records that were uploaded
     """
     licenses_batch = []
@@ -50,11 +60,11 @@ def upload_test_license_batch(auth_headers: dict, batch_start_index: int, batch_
             # keep the family name consistent so we can query for all the providers which requires an exact
             # match on the family name
             'familyName': 'RollbackTest',
-            'homeAddressStreet1': '123 Test Street',
+            'homeAddressStreet1': street_address,
             'dateOfBirth': '1985-01-01',
             'dateOfIssuance': '2020-01-01',
-            'ssn': f'500-50-{i:04d}',  # Incrementing SSN with padded zeros
-            'licenseType': 'licensed professional counselor',
+            'ssn': f'999-50-{i:04d}',  # Incrementing SSN with padded zeros
+            'licenseType': LICENSE_TYPE,
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'NE',
             'homeAddressCity': 'Omaha',
@@ -85,23 +95,25 @@ def upload_test_license_batch(auth_headers: dict, batch_start_index: int, batch_
     return licenses_batch
 
 
-def upload_test_licenses(auth_headers: dict, num_licenses: int, batch_size: int):
+def upload_test_licenses(
+    auth_headers: dict, num_licenses: int, batch_size: int, street_address: str = '123 Test Street'
+):
     """
     Upload test license records in batches.
 
     :param auth_headers: Authentication headers for app client
     :param num_licenses: Total number of licenses to upload
     :param batch_size: Number of licenses per batch
+    :param street_address: Street address to use
     :return: Tuple of (all uploaded license data, upload start time, upload end time)
     """
-    upload_start_time = datetime.now(tz=UTC)
     all_licenses = []
 
     logger.info(f'Starting upload of {num_licenses} test licenses in batches of {batch_size}')
 
     for batch_start in range(0, num_licenses, batch_size):
         current_batch_size = min(batch_size, num_licenses - batch_start)
-        batch_licenses = upload_test_license_batch(auth_headers, batch_start, current_batch_size)
+        batch_licenses = upload_test_license_batch(auth_headers, batch_start, current_batch_size, street_address)
         all_licenses.extend(batch_licenses)
 
         # Small delay between batches to avoid rate limiting
@@ -109,11 +121,9 @@ def upload_test_licenses(auth_headers: dict, num_licenses: int, batch_size: int)
             time.sleep(2)
 
     # wait for several minutes for all licenses to propagate in the system
-
-    upload_end_time = datetime.now(tz=UTC)
     logger.info(f'Completed upload of {len(all_licenses)} licenses')
 
-    return all_licenses, upload_start_time, upload_end_time
+    return all_licenses
 
 
 def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max_wait_time: int = 120):
@@ -226,9 +236,8 @@ def start_rollback_step_function(
     input_data = {
         'compact': compact,
         'jurisdiction': jurisdiction,
-        'startDateTime': start_datetime.isoformat().replace('+00:00', 'Z'),
-        'endDateTime': end_datetime.isoformat().replace('+00:00', 'Z'),
-        'executionName': execution_name,
+        'startDateTime': start_datetime.isoformat(),
+        'endDateTime': end_datetime.isoformat(),
         'rollbackReason': 'Smoke test validation of rollback functionality',
     }
 
@@ -309,12 +318,138 @@ def get_rollback_results_from_s3(results_s3_key: str):
     return results
 
 
-def verify_rollback_results(results: dict, expected_provider_count: int):
+def create_privilege_for_provider(provider_id: str, compact: str):
+    """
+    Manually create a privilege record for a provider to test skip conditions.
+
+    :param provider_id: The provider ID to create privilege for
+    :param compact: The compact abbreviation
+    """
+    from datetime import date
+
+    # Create a privilege record for a different jurisdiction (e.g., 'co' for Colorado)
+    privilege_jurisdiction = 'co'
+    license_type_abbr = 'lpc'
+
+    privilege_record = {
+        'pk': f'{compact}#PROVIDER#{provider_id}',
+        'sk': f'{compact}#PROVIDER#privilege/{privilege_jurisdiction}/{license_type_abbr}#',
+        'type': 'privilege',
+        'providerId': provider_id,
+        'compact': compact,
+        'jurisdiction': privilege_jurisdiction,
+        'licenseJurisdiction': JURISDICTION,
+        'licenseType': LICENSE_TYPE,
+        'dateOfIssuance': datetime.now(tz=UTC).isoformat(),
+        'dateOfRenewal': datetime.now(tz=UTC).isoformat(),
+        'dateOfExpiration': date(2050, 12, 10).isoformat(),
+        'dateOfUpdate': datetime.now(tz=UTC).isoformat(),
+        'privilegeId': f'{license_type_abbr.upper()}-{privilege_jurisdiction.upper()}-12345',
+        'administratorSetStatus': 'active',
+        'compactTransactionId': 'test-transaction-12345',
+        'compactTransactionIdGSIPK': f'COMPACT#{compact}#TX#test-transaction-12345#',
+        'attestations': [],
+    }
+
+    config.provider_user_dynamodb_table.put_item(Item=privilege_record)
+    logger.info(f'Created privilege record for provider {provider_id}')
+
+
+def create_encumbrance_update_for_provider(provider_id: str, compact: str, license_jurisdiction: str):
+    """
+    Manually create a license encumbrance update record to test skip conditions.
+
+    :param provider_id: The provider ID
+    :param compact: The compact abbreviation
+    :param license_jurisdiction: The jurisdiction of the license
+    """
+
+    license_type_abbr = 'lpc'
+    # Use current time or specified time
+    now = datetime.now(tz=UTC)
+
+    # First, query the actual license record to get the previous state
+    license_sk = f'{compact}#PROVIDER#license/{license_jurisdiction}/{license_type_abbr}#'
+
+    try:
+        response = config.provider_user_dynamodb_table.get_item(
+            Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': license_sk}
+        )
+        license_record_item = response.get('Item')
+
+        if not license_record_item:
+            raise SmokeTestFailureException(f'License record not found for provider {provider_id}')
+
+        # Load the license record using the schema to get properly typed data
+        license_record = LicenseData.from_database_record(license_record_item)
+
+    except Exception as e:
+        logger.error(f'Failed to retrieve license record for provider {provider_id}: {str(e)}')
+        raise
+
+    # Create a license encumbrance update record using LicenseUpdateData
+    # This ensures proper schema validation and field generation (including SK hash)
+    update_data = LicenseUpdateData.create_new(
+        {
+            'type': 'licenseUpdate',
+            'updateType': 'encumbrance',
+            'providerId': provider_id,
+            'compact': compact,
+            'jurisdiction': license_jurisdiction,
+            'licenseType': LICENSE_TYPE,
+            'createDate': now,
+            'effectiveDate': now,
+            'previous': license_record.to_dict(),
+            'updatedValues': {
+                'encumberedStatus': 'encumbered',
+            },
+        }
+    )
+
+    # Serialize to database record format
+    update_record = update_data.serialize_to_database_record()
+
+    config.provider_user_dynamodb_table.put_item(Item=update_record)
+    logger.info(f'Created encumbrance update record for provider {provider_id} with createDate {now.isoformat()}')
+
+
+def delete_all_provider_records(provider_ids: list[str], compact: str):
+    """
+    Delete all records for the given provider IDs.
+
+    :param provider_ids: List of provider IDs to delete
+    :param compact: The compact abbreviation
+    """
+    logger.info(f'Starting cleanup of {len(provider_ids)} provider records...')
+
+    for i, provider_id in enumerate(provider_ids):
+        if i % 100 == 0:
+            logger.info(f'Cleaned up {i}/{len(provider_ids)} provider records')
+
+        try:
+            # Query all records for this provider
+            response = config.provider_user_dynamodb_table.query(
+                KeyConditionExpression='pk = :pk',
+                ExpressionAttributeValues={':pk': f'{compact}#PROVIDER#{provider_id}'},
+            )
+
+            # Delete all records in batches
+            with config.provider_user_dynamodb_table.batch_writer() as batch:
+                for item in response.get('Items', []):
+                    batch.delete_item(Key={'pk': item['pk'], 'sk': item['sk']})
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f'Failed to delete records for provider {provider_id}: {str(e)}')
+
+    logger.info(f'✅ Completed cleanup of {len(provider_ids)} provider records')
+
+
+def verify_rollback_results(results: dict, expected_provider_count: int, expected_skipped_count: int = 0):
     """
     Verify the rollback results match expected format and counts.
 
     :param results: Rollback results from S3
-    :param expected_provider_count: Expected number of providers rolled back
+    :param expected_provider_count: Expected number of providers rolled back (reverted)
+    :param expected_skipped_count: Expected number of providers that should be skipped
     """
     logger.info('Verifying rollback results...')
 
@@ -338,12 +473,12 @@ def verify_rollback_results(results: dict, expected_provider_count: int):
     logger.info(f'  - Skipped: {num_skipped}')
     logger.info(f'  - Failed: {num_failed}')
 
-    # Verify all providers were reverted (none skipped or failed)
-    if num_skipped > 0:
-        logger.error(f'Found {num_skipped} skipped providers:')
+    # Verify skipped count matches expectation
+    if num_skipped != expected_skipped_count:
+        logger.error(f'Found {num_skipped} skipped providers, expected {expected_skipped_count}:')
         for detail in skipped[:5]:  # Show first 5
             logger.error(f'Details for skipped provider: {detail["providerId"]}', skipped=detail)
-        raise SmokeTestFailureException(f'Expected 0 skipped providers but found {num_skipped}')
+        raise SmokeTestFailureException(f'Expected {expected_skipped_count} skipped providers but found {num_skipped}')
 
     if num_failed > 0:
         logger.error(f'Found {num_failed} failed providers:')
@@ -355,12 +490,14 @@ def verify_rollback_results(results: dict, expected_provider_count: int):
     if num_reverted != expected_provider_count:
         logger.warning(f'Expected {expected_provider_count} reverted providers but found {num_reverted}')
 
-    # Verify the  reverted provider has the expected structure
+    # Verify the reverted provider has the expected structure
     for i, summary in enumerate(reverted):
         if 'providerId' not in summary:
             raise SmokeTestFailureException(f'Reverted provider summary {i} missing providerId')
         if 'licensesReverted' not in summary:
             raise SmokeTestFailureException(f'Reverted provider summary {i} missing licensesReverted')
+        if 'updatesDeleted' not in summary:
+            raise SmokeTestFailureException(f'Reverted provider summary {i} missing updatesDeleted')
 
         # Verify each license was deleted (not reverted to previous state)
         licenses_reverted = summary['licensesReverted']
@@ -373,6 +510,14 @@ def verify_rollback_results(results: dict, expected_provider_count: int):
         if license_action != 'DELETE':
             raise SmokeTestFailureException(
                 f'Expected license action "DELETE" but found "{license_action}" for provider {summary["providerId"]}'
+            )
+
+        # Verify that update records were deleted (should have at least 1 from the re-upload)
+        updates_deleted = summary['updatesDeleted']
+        if len(updates_deleted) < 1:
+            raise SmokeTestFailureException(
+                f'Expected at least 1 update record deleted for provider {summary["providerId"]}, '
+                f'found {len(updates_deleted)}'
             )
 
     logger.info('✅ Rollback results verification passed')
@@ -413,13 +558,20 @@ def rollback_license_upload_smoke_test():
     Main smoke test for license upload rollback functionality.
 
     Steps:
-    1. Upload 1,000 test license records
-    2. Wait for all providers to be created
-    3. Start rollback step function
-    4. Wait for step function completion
-    5. Retrieve and verify results from S3
-    6. Verify providers were deleted from database
+    1. Upload 1,000 test license records (first time)
+    2. Upload 1,000 test license records again with different address (creates update records)
+    3. Wait for all providers to be created
+    4. Store all provider IDs for cleanup
+    5. Create privilege for first provider (should be skipped)
+    6. Create encumbrance update for second provider (should be skipped)
+    7. Start rollback step function
+    8. Wait for step function completion
+    9. Retrieve and verify results from S3 (expect 998 reverted, 2 skipped)
+    10. Verify providers were deleted from database (except 2 skipped)
+    11. Clean up remaining test records
     """
+    global ALL_PROVIDER_IDS
+
     # Get environment configuration
     step_function_arn = config.license_upload_rollback_step_function_arn
 
@@ -434,40 +586,90 @@ def rollback_license_upload_smoke_test():
     client_id = client_credentials['client_id']
     client_secret = client_credentials['client_secret']
 
+    skipped_provider_ids = []
+
     try:
         # Get authentication headers using app client
         auth_headers = get_client_auth_headers(client_id, client_secret, COMPACT, JURISDICTION)
 
-        # Step 1: Upload test licenses
+        # Step 1: Upload test licenses (first time)
         logger.info('=' * 80)
-        logger.info('STEP 1: Uploading test licenses')
+        logger.info('STEP 1: Uploading test licenses (first time)')
         logger.info('=' * 80)
 
-        uploaded_licenses, upload_start_time, upload_end_time = upload_test_licenses(
+        first_upload_start_time = datetime.now(tz=UTC)
+        uploaded_licenses = upload_test_licenses(
             auth_headers,
             NUM_LICENSES_TO_UPLOAD,
             BATCH_SIZE,
+            street_address='123 Test Street',
+        )
+        first_upload_end_time = datetime.now(tz=UTC)
+
+        logger.info(
+            f'First upload time window: {first_upload_start_time.isoformat()} to {first_upload_end_time.isoformat()}'
         )
 
-        logger.info(f'Upload time window: {upload_start_time.isoformat()} to {upload_end_time.isoformat()}')
-
-        # Step 2: Wait for providers to be created
+        # Step 2: Upload test licenses again with different address to create update records
         logger.info('=' * 80)
-        logger.info('STEP 2: Waiting for provider records to be created')
+        logger.info('STEP 2: Uploading test licenses again with different address (creates update records)')
+        logger.info('=' * 80)
+
+        upload_test_licenses(
+            auth_headers,
+            NUM_LICENSES_TO_UPLOAD,
+            BATCH_SIZE,
+            street_address='456 Updated Street',
+        )
+
+        logger.info('Second upload completed - update records should be created')
+
+        # Step 3: Wait for providers to be created
+        logger.info('=' * 80)
+        logger.info('STEP 3: Waiting for provider records to be created')
         logger.info('=' * 80)
 
         provider_ids = wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
+        # set end of upload window for after all providers are accounted for in system
+        second_upload_end_time = datetime.now(tz=UTC)
+
+        # Store all provider IDs globally for cleanup
+        ALL_PROVIDER_IDS = provider_ids.copy()
 
         logger.info(f'Found {len(provider_ids)} provider records')
 
-        # Step 3: Start rollback step function
+        # Step 4: Create privilege for first provider (should be skipped in rollback)
         logger.info('=' * 80)
-        logger.info('STEP 3: Starting rollback step function')
+        logger.info('STEP 4: Creating privilege for first provider to test skip condition')
         logger.info('=' * 80)
 
-        # Add buffer to time window to ensure we catch all uploads
-        rollback_start = upload_start_time - timedelta(minutes=5)
-        rollback_end = upload_end_time + timedelta(minutes=5)
+        first_provider_id = provider_ids[0]
+        create_privilege_for_provider(first_provider_id, COMPACT)
+        skipped_provider_ids.append(first_provider_id)
+        logger.info(f'Created privilege for provider {first_provider_id} - should be skipped in rollback')
+
+        # Step 5: Create encumbrance update for second provider (should be skipped in rollback)
+        logger.info('=' * 80)
+        logger.info('STEP 5: Creating encumbrance update for second provider to test skip condition')
+        logger.info('=' * 80)
+
+        second_provider_id = provider_ids[1]
+        create_encumbrance_update_for_provider(second_provider_id, COMPACT, JURISDICTION)
+        skipped_provider_ids.append(second_provider_id)
+        logger.info(f'Created encumbrance update for provider {second_provider_id} - should be skipped in rollback')
+
+        # Wait a moment to ensure records are written
+        logger.info('Waiting for records to propagate...')
+        time.sleep(5)
+
+        # Step 6: Start rollback step function
+        logger.info('=' * 80)
+        logger.info('STEP 6: Starting rollback step function')
+        logger.info('=' * 80)
+
+        rollback_start = first_upload_start_time
+        # Add buffer to end time window to ensure we catch all uploads
+        rollback_end = second_upload_end_time + timedelta(minutes=5)
 
         execution_arn = start_rollback_step_function(
             step_function_arn=step_function_arn,
@@ -477,18 +679,18 @@ def rollback_license_upload_smoke_test():
             end_datetime=rollback_end,
         )
 
-        # Step 4: Wait for step function completion
+        # Step 7: Wait for step function completion
         logger.info('=' * 80)
-        logger.info('STEP 4: Waiting for step function to complete')
+        logger.info('STEP 7: Waiting for step function to complete')
         logger.info('=' * 80)
 
         status, output = wait_for_step_function_completion(execution_arn)
 
         logger.info(f'Step function output: {json.dumps(output, indent=2)}')
 
-        # Step 5: Retrieve and verify results from S3
+        # Step 8: Retrieve and verify results from S3
         logger.info('=' * 80)
-        logger.info('STEP 5: Retrieving and verifying results from S3')
+        logger.info('STEP 8: Retrieving and verifying results from S3')
         logger.info('=' * 80)
 
         results_s3_key = output.get('resultsS3Key')
@@ -497,18 +699,37 @@ def rollback_license_upload_smoke_test():
 
         results = get_rollback_results_from_s3(results_s3_key)
 
-        verify_rollback_results(results, len(provider_ids))
+        # Expect 998 reverted (1000 - 2 skipped) and 2 skipped
+        expected_reverted = NUM_LICENSES_TO_UPLOAD - 2
+        expected_skipped = 2
+        verify_rollback_results(results, expected_reverted, expected_skipped)
 
-        # Step 6: Verify providers deleted from database
+        # Step 9: Verify providers deleted from database (except the 2 skipped ones)
         logger.info('=' * 80)
-        logger.info('STEP 6: Verifying providers were deleted from database')
+        logger.info('STEP 9: Verifying providers were deleted from database')
         logger.info('=' * 80)
 
         verify_providers_deleted_from_database(results, COMPACT)
 
+        # Step 10: Clean up the 2 skipped provider records
+        logger.info('=' * 80)
+        logger.info('STEP 10: Cleaning up skipped provider records')
+        logger.info('=' * 80)
+
+        delete_all_provider_records(skipped_provider_ids, COMPACT)
+
         logger.info('=' * 80)
         logger.info('✅ ALL TESTS PASSED')
         logger.info('=' * 80)
+    except Exception as e:
+        logger.error(f'Test failed: {str(e)}')
+        # If test failed, we need to clean up all provider records
+        if ALL_PROVIDER_IDS:
+            logger.info('=' * 80)
+            logger.info('CLEANUP: Test failed, cleaning up all provider records')
+            logger.info('=' * 80)
+            delete_all_provider_records(ALL_PROVIDER_IDS, COMPACT)
+        raise
     finally:
         # Clean up the test app client
         delete_test_app_client(client_id)
