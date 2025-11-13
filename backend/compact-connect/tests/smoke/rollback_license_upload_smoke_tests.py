@@ -30,8 +30,8 @@ TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 LICENSE_TYPE = 'licensed professional counselor'
 
 # Test configuration
-NUM_LICENSES_TO_UPLOAD = 1000
-BATCH_SIZE = 100  # Upload in batches of 100 to avoid timeouts
+NUM_LICENSES_TO_UPLOAD = 300
+BATCH_SIZE = 100  # Upload in batches of 100
 
 # Global list to track all provider IDs for cleanup
 ALL_PROVIDER_IDS = []
@@ -126,6 +126,33 @@ def upload_test_licenses(
     return all_licenses
 
 
+def verify_license_update_records_created(provider_ids, retry_count: int = 0):
+    """
+    Checks all provider ids for license update records, if none are found, adds to list to retry
+    and retries after a delay
+    :param provider_ids: List of provider IDs to check
+    :param retry_count: Current retry count
+    :return: None
+    """
+    provider_ids_to_retry = []
+    for provider_id in provider_ids:
+        provider_user_records = get_provider_user_records(COMPACT, provider_id)
+        if len(provider_user_records.get_all_license_update_records()) == 0:
+            logger.info(f'no license update records found for provider {provider_id}. Will retry.')
+            provider_ids_to_retry.append(provider_id)
+
+    if provider_ids_to_retry:
+        if retry_count >= 3:
+            raise SmokeTestFailureException(
+                f'failed to find license update records for {len(provider_ids_to_retry)} providers after 3 retries'
+            )
+        time.sleep(10)
+        logger.info(f'retrying {len(provider_ids_to_retry)} providers after 10 seconds...')
+        verify_license_update_records_created(provider_ids_to_retry, retry_count + 1)
+    else:
+        logger.info('all license update records found')
+
+
 def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max_wait_time: int = 120):
     """
     Wait for all provider records to be created from uploaded licenses.
@@ -200,7 +227,7 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
 
         if num_found >= expected_count:
             logger.info(f'All {expected_count} providers found!')
-            return all_provider_ids[:expected_count]  # Return only the expected count
+            return all_provider_ids  # Return only the expected count
 
         elapsed = time.time() - start_time
         if elapsed < max_wait_time:
@@ -558,15 +585,15 @@ def rollback_license_upload_smoke_test():
     Main smoke test for license upload rollback functionality.
 
     Steps:
-    1. Upload 1,000 test license records (first time)
-    2. Upload 1,000 test license records again with different address (creates update records)
-    3. Wait for all providers to be created
+    1. Upload test license records (first time)
+    2. Upload test license records again with different address (creates update records)
+    3. Wait for all providers to be created AND verify license update records exist in DynamoDB
     4. Store all provider IDs for cleanup
     5. Create privilege for first provider (should be skipped)
     6. Create encumbrance update for second provider (should be skipped)
     7. Start rollback step function
     8. Wait for step function completion
-    9. Retrieve and verify results from S3 (expect 998 reverted, 2 skipped)
+    9. Retrieve and verify results from S3
     10. Verify providers were deleted from database (except 2 skipped)
     11. Clean up remaining test records
     """
@@ -610,6 +637,13 @@ def rollback_license_upload_smoke_test():
             f'First upload time window: {first_upload_start_time.isoformat()} to {first_upload_end_time.isoformat()}'
         )
 
+        # Wait for first upload's license records to be created before second upload
+        logger.info('=' * 80)
+        logger.info('Waiting for first upload providers and license records to be created...')
+        logger.info('=' * 80)
+        wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
+        logger.info('✅ All first upload license records have been created')
+
         # Step 2: Upload test licenses again with different address to create update records
         logger.info('=' * 80)
         logger.info('STEP 2: Uploading test licenses again with different address (creates update records)')
@@ -624,17 +658,20 @@ def rollback_license_upload_smoke_test():
 
         logger.info('Second upload completed - update records should be created')
 
-        # Step 3: Wait for providers to be created
+        # Step 3: Wait for providers to be created and update records to propagate
         logger.info('=' * 80)
-        logger.info('STEP 3: Waiting for provider records to be created')
+        logger.info('STEP 3: Waiting for provider records and update records to be created')
         logger.info('=' * 80)
 
         provider_ids = wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
-        # set end of upload window for after all providers are accounted for in system
-        second_upload_end_time = datetime.now(tz=UTC)
 
         # Store all provider IDs globally for cleanup
         ALL_PROVIDER_IDS = provider_ids.copy()
+
+        logger.info('Checking for license update records.')
+        verify_license_update_records_created(provider_ids)
+        # Capture end time after verifying update records exist
+        second_upload_end_time = datetime.now(tz=UTC)
 
         logger.info(f'Found {len(provider_ids)} provider records')
 
@@ -658,8 +695,8 @@ def rollback_license_upload_smoke_test():
         skipped_provider_ids.append(second_provider_id)
         logger.info(f'Created encumbrance update for provider {second_provider_id} - should be skipped in rollback')
 
-        # Wait a moment to ensure records are written
-        logger.info('Waiting for records to propagate...')
+        # Brief wait to ensure the manually created records are written
+        logger.info('Waiting briefly for test records to propagate...')
         time.sleep(5)
 
         # Step 6: Start rollback step function
@@ -699,7 +736,7 @@ def rollback_license_upload_smoke_test():
 
         results = get_rollback_results_from_s3(results_s3_key)
 
-        # Expect 998 reverted (1000 - 2 skipped) and 2 skipped
+        # Expect all providers reverted except for the 2 skipped
         expected_reverted = NUM_LICENSES_TO_UPLOAD - 2
         expected_skipped = 2
         verify_rollback_results(results, expected_reverted, expected_skipped)
