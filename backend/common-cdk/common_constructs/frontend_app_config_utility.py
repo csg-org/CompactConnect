@@ -20,6 +20,12 @@ class PersistentStackFrontendAppConfigUtility:
 
     This class provides helper methods for generating and storing configuration
     values that need to be shared between the Persistent stack and Frontend Deployment Stack.
+
+    Note::
+      # The Frontend deployment has dependencies on the backend, in the form of these parameters.
+      # If these change, or if new parameters are introduced, the Frontend deploy will need to be planned
+      # for _after_ the backend so that these dependencies can be properly resolved.
+
     """
 
     def __init__(self):
@@ -98,11 +104,7 @@ class ProviderUsersStackFrontendAppConfigUtility:
     def __init__(self):
         self._config: dict[str, str] = {}
 
-    def set_provider_cognito_values(
-            self,
-            domain_name: str,
-            client_id: str
-    ) -> None:
+    def set_provider_cognito_values(self, domain_name: str, client_id: str) -> None:
         """
         Set Cognito configuration values for provider users.
 

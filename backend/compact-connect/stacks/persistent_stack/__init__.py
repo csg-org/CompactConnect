@@ -470,6 +470,10 @@ class PersistentStack(AppStack):
         """
         Creates and stores UI application configuration in SSM Parameter Store for use in the UI stack and
         frontend deployment stack.
+
+        NOTE:: These parameters represent Frontend dependencies on the backend app. If any values are changed
+            or new parameters are introduced, be sure to explicitly plan the deploy sequencing between back- and
+            front-ends so that these dependencies are properly resolved.
         """
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
         frontend_app_config = PersistentStackFrontendAppConfigUtility()
