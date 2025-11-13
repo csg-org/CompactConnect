@@ -134,7 +134,7 @@ class LicenseUploadRollbackStepFunctionConstruct(Construct):
             environment={
                 **stack.common_env_vars,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                'ROLLBACK_RESULTS_BUCKET_NAME': rollback_results_bucket.bucket_name,
+                'DISASTER_RECOVERY_RESULTS_BUCKET_NAME': rollback_results_bucket.bucket_name,
                 'LICENSE_UPLOAD_DATE_INDEX_NAME': persistent_stack.provider_table.license_upload_date_gsi_name,
                 'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             },

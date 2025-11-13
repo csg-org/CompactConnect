@@ -47,7 +47,7 @@ class TstFunction(TstLambdas):
 
     def create_rollback_results_bucket(self):
         self._rollback_results_bucket = boto3.resource('s3').create_bucket(
-            Bucket=os.environ['ROLLBACK_RESULTS_BUCKET_NAME']
+            Bucket=os.environ['DISASTER_RECOVERY_RESULTS_BUCKET_NAME']
         )
 
     def create_event_bus(self):

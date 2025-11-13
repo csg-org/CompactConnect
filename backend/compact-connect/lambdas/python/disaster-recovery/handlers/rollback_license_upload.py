@@ -249,7 +249,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     )
 
     # Initialize S3 client and bucket
-    results_s3_key = f'{execution_name}/results.json'
+    results_s3_key = f'licenseUploadRollbacks/{execution_name}/results.json'
 
     # Load existing results if this is a continuation
     existing_results = _load_results_from_s3(results_s3_key)
@@ -350,7 +350,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
             'providersReverted': providers_reverted,
             'providersSkipped': providers_skipped,
             'providersFailed': providers_failed,
-            'resultsS3Key': f's3://{config.rollback_results_bucket_name}/{results_s3_key}',
+            'resultsS3Key': f's3://{config.disaster_recovery_results_bucket_name}/{results_s3_key}',
         }
 
     except ClientError as e:
@@ -983,7 +983,7 @@ def _publish_revert_events(
 def _load_results_from_s3(key: str) -> RollbackResults:
     """Load existing results from S3."""
     try:
-        response = config.s3_client.get_object(Bucket=config.rollback_results_bucket_name, Key=key)
+        response = config.s3_client.get_object(Bucket=config.disaster_recovery_results_bucket_name, Key=key)
         data = json.loads(response['Body'].read().decode('utf-8'))
         return RollbackResults.from_dict(data)
     except config.s3_client.exceptions.NoSuchKey:
@@ -998,12 +998,12 @@ def _write_results_to_s3(key: str, results: RollbackResults):
     """Write results to S3 with server-side encryption."""
     try:
         config.s3_client.put_object(
-            Bucket=config.rollback_results_bucket_name,
+            Bucket=config.disaster_recovery_results_bucket_name,
             Key=key,
             Body=json.dumps(results.to_dict(), indent=2),
             ContentType='application/json',
         )
-        logger.info('Results written to S3', bucket=config.rollback_results_bucket_name, key=key)
+        logger.info('Results written to S3', bucket=config.disaster_recovery_results_bucket_name, key=key)
     # handle json serialization errors
     except json.JSONDecodeError as e:
         logger.error(f'Error writing results to S3: {str(e)}')

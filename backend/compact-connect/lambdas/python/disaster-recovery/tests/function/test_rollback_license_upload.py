@@ -614,8 +614,8 @@ class TestRollbackLicenseUpload(TstFunction):
         rollback_license_upload(event, Mock())
 
         # Read object from S3 and verify its contents match what is expected
-        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
-        s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
+        s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.disaster_recovery_results_bucket_name, Key=s3_key)
         return json.loads(s3_obj['Body'].read().decode('utf-8'))
 
     # Tests for checking data written to S3
@@ -930,7 +930,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self._when_provider_had_privilege_deactivated_from_upload()
 
         # Create initial S3 results with data in all fields
-        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
+        s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
 
         # Create existing results data in the format that from_dict expects (camelCase for top-level keys)
         existing_results_data = {
@@ -974,7 +974,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # Write existing results to S3
         self.config.s3_client.put_object(
-            Bucket=self.config.rollback_results_bucket_name,
+            Bucket=self.config.disaster_recovery_results_bucket_name,
             Key=s3_key,
             Body=json.dumps(existing_results_data, indent=2),
             ContentType='application/json',
@@ -1104,8 +1104,8 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(0, result_second['providersFailed'])
 
         # Verify: S3 results contain both providers
-        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
-        s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
+        s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.disaster_recovery_results_bucket_name, Key=s3_key)
         final_results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
 
         # Should have 2 reverted providers
@@ -1237,8 +1237,8 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(result['providersFailed'], 0, 'No providers should have failed')
 
         # Verify S3 results contain the orphaned update details
-        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
-        s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
+        s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.disaster_recovery_results_bucket_name, Key=s3_key)
         results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
 
         # Verify the structure of the results
@@ -1312,8 +1312,8 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(1, len(license_updates), 'Encumbrance update should still exist')
 
         # Verify S3 results contain skip details
-        s3_key = f'{MOCK_EXECUTION_NAME}/results.json'
-        s3_obj = self.config.s3_client.get_object(Bucket=self.config.rollback_results_bucket_name, Key=s3_key)
+        s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
+        s3_obj = self.config.s3_client.get_object(Bucket=self.config.disaster_recovery_results_bucket_name, Key=s3_key)
         results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
 
         self.assertEqual(1, len(results_data['skippedProviderDetails']))

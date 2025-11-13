@@ -188,8 +188,8 @@ class _Config:
         return os.environ['PROVIDER_USER_BUCKET_NAME']
 
     @property
-    def rollback_results_bucket_name(self):
-        return os.environ['ROLLBACK_RESULTS_BUCKET_NAME']
+    def disaster_recovery_results_bucket_name(self):
+        return os.environ['DISASTER_RECOVERY_RESULTS_BUCKET_NAME']
 
     @property
     def user_pool_id(self):

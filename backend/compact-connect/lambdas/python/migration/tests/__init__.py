@@ -15,7 +15,6 @@ class TstLambdas(TestCase):
                 'DEBUG': 'true',
                 'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
-                'ROLLBACK_RESULTS_BUCKET_NAME': 'rollback-results-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
