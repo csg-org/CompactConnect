@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock, patch
 
 from moto import mock_aws
 
@@ -258,3 +259,121 @@ class TestTransactionClient(TstFunction):
             ['tx-old-unmatched', 'tx-recent-unmatched'],
             [transaction['transactionId'] for transaction in response['Items']],
         )  # Two unmatched transactions remain
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-15T12:00:00+00:00'))
+    def test_get_most_recent_transaction_for_compact_finds_in_current_month(self):
+        """Test that get_most_recent_transaction_for_compact finds the most recent transaction in the current month"""
+        from cc_common.data_model.transaction_client import TransactionClient
+
+        client = TransactionClient(self.config)
+
+        compact = 'aslp'
+
+        # Create transactions in the current month (November 2024)
+        # Format datetime as ISO string with Z suffix (e.g., '2024-11-01T00:00:00.000Z')
+        def format_utc_datetime(dt):
+            return dt.replace(tzinfo=None).isoformat() + '.000Z'
+
+        current_month_start = datetime(2024, 11, 1, tzinfo=UTC)
+        # Create two transactions - one older, one newer
+        older_transaction = self._generate_mock_transaction(
+            transaction_id='tx-older',
+            compact=compact,
+            settlement_time_utc=format_utc_datetime(current_month_start + timedelta(days=1)),
+            batch_id='batch-1',
+        )
+        newer_transaction = self._generate_mock_transaction(
+            transaction_id='tx-newer',
+            compact=compact,
+            settlement_time_utc=format_utc_datetime(current_month_start + timedelta(days=2)),
+            batch_id='batch-2',
+        )
+
+        # Store transactions
+        client.store_transactions(transactions=[older_transaction, newer_transaction])
+
+        # Get the most recent transaction
+        result = client.get_most_recent_transaction_for_compact(compact=compact)
+
+        # Should return the newer transaction
+        self.assertEqual('tx-newer', result.transactionId)
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-15T12:00:00+00:00'))
+    def test_get_most_recent_transaction_for_compact_searches_previous_months(self):
+        """Test that get_most_recent_transaction_for_compact searches previous months when current month is empty"""
+        from cc_common.data_model.transaction_client import TransactionClient
+
+        client = TransactionClient(self.config)
+
+        compact = 'aslp'
+
+        # Create a transaction in the previous month (October 2024)
+        # Format datetime as ISO string with Z suffix (e.g., '2024-10-15T00:00:00.000Z')
+        def format_utc_datetime(dt):
+            return dt.replace(tzinfo=None).isoformat() + '.000Z'
+
+        previous_month = datetime(2024, 10, 15, tzinfo=UTC)
+        previous_month_transaction = self._generate_mock_transaction(
+            transaction_id='tx-previous-month',
+            compact=compact,
+            settlement_time_utc=format_utc_datetime(previous_month),
+            batch_id='batch-prev',
+        )
+
+        # Store transaction
+        client.store_transactions(transactions=[previous_month_transaction])
+
+        # Get the most recent transaction
+        result = client.get_most_recent_transaction_for_compact(compact=compact)
+
+        # Should return the transaction from the previous month
+        self.assertEqual('tx-previous-month', result.transactionId)
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-02-01T01:00:00+00:00'))
+    def test_get_most_recent_transaction_for_compact_raises_when_no_transactions_found(self):
+        """Test that get_most_recent_transaction_for_compact raises ValueError when no transactions are found"""
+        from cc_common.data_model.transaction_client import TransactionClient
+
+        compact = 'aslp'
+
+        # Mock the query method to return empty results and track calls
+        # Create a mock table that returns empty results
+        mock_table = MagicMock()
+        mock_table.query.return_value = {'Items': []}
+
+        # Create a mock DynamoDB resource that returns our mock table
+        mock_resource = MagicMock()
+        mock_resource.Table.return_value = mock_table
+
+        # Patch boto3.resource to return our mock resource
+        with patch('cc_common.config.boto3.resource', return_value=mock_resource):
+            client = TransactionClient(self.config)
+
+            # Try to get the most recent transaction for a compact with no transactions
+            with self.assertRaises(ValueError) as context:
+                client.get_most_recent_transaction_for_compact(compact=compact)
+
+        # Verify ValueError is raised with correct message
+        self.assertIn('No transactions found for compact: aslp', str(context.exception))
+
+        # Verify query was called 3 times (once for each month)
+        self.assertEqual(3, mock_table.query.call_count)
+
+        # Verify each call queried the correct partition key
+        # First call: current month (2024-02)
+        first_call = mock_table.query.call_args_list[0]
+        # Key condition expressions provided to the Table.query call aren't very conducive to testing - we have
+        # to dig the values out
+        # They look like tuple(Key('pk'), '<private-key-value>')
+        first_condition_values = first_call.kwargs['KeyConditionExpression']._values  # noqa: SLF001
+        self.assertEqual(f'COMPACT#{compact}#TRANSACTIONS#MONTH#2024-02', first_condition_values[1])
+
+        # Second call: previous month (2024-01)
+        second_call = mock_table.query.call_args_list[1]
+        second_condition_values = second_call.kwargs['KeyConditionExpression']._values  # noqa: SLF001
+        self.assertIn(f'COMPACT#{compact}#TRANSACTIONS#MONTH#2024-01', second_condition_values)
+
+        # Third call: month before that (2023-12)
+        third_call = mock_table.query.call_args_list[2]
+        third_condition_values = third_call.kwargs['KeyConditionExpression']._values  # noqa: SLF001
+        self.assertIn(f'COMPACT#{compact}#TRANSACTIONS#MONTH#2023-12', third_condition_values)

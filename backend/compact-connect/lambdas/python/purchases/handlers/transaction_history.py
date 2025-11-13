@@ -41,141 +41,160 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     last_processed_transaction_id = event.get('lastProcessedTransactionId')
     current_batch_id = event.get('currentBatchId')
     processed_batch_ids = event.get('processedBatchIds', [])
-
-    # Get compact configuration and jurisdictions that are live for licensee registration
-    compact_configuration_client = config.compact_configuration_client
-    compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
-
-    compact_configuration = next(
-        (Compact(item) for item in compact_configuration_options['items'] if item['type'] == COMPACT_TYPE), None
-    )
-    jurisdiction_configurations = [
-        item for item in compact_configuration_options['items'] if item['type'] == JURISDICTION_TYPE
-    ]
-
-    if not compact_configuration or not jurisdiction_configurations:
-        logger.warning('The compact is not yet live - batch settlement data')
-        return {
-            'compact': compact,  # Always include the compact name
-            'scheduledTime': scheduled_time,  # Preserve scheduled time for subsequent iterations
-            'status': 'COMPLETE',  # This will skip straight to the end of the step function flow
-        }
-
-    # Use the scheduled time from EventBridge for replay-ability
-    # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.
-    # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect
-    # all settled transaction for the last 24 hours.
-    end_time = datetime.fromisoformat(scheduled_time).replace(hour=1, minute=0, second=0, microsecond=0)
-    start_time = end_time - timedelta(days=1)
-
-    # Format timestamps for API call
-    start_time_str = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-    end_time_str = end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-    logger.info(
-        'Collecting settled transaction for time period',
+    with logger.append_context_keys(
         compact=compact,
-        start_time=start_time_str,
-        end_time=end_time_str,
-    )
-
-    # Get transactions from payment processor
-    purchase_client = PurchaseClient()
-    transaction_response = purchase_client.get_settled_transactions(
-        compact=compact,
-        start_time=start_time_str,
-        end_time=end_time_str,
-        # we set the transaction limit to 500 to avoid hitting the 15-minute timeout for lambda
-        transaction_limit=500,
+        scheduled_time=scheduled_time,
         last_processed_transaction_id=last_processed_transaction_id,
         current_batch_id=current_batch_id,
-        processed_batch_ids=processed_batch_ids,
-    )
+    ):
+        # Get compact configuration and jurisdictions that are live for licensee registration
+        compact_configuration_client = config.compact_configuration_client
+        compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
 
-    # Store transactions in DynamoDB
-    if transaction_response['transactions']:
-        logger.info('Fetching privilege ids for transactions', compact=compact)
-        # first we must add the associated privilege ids to each transaction so we can show the association in our
-        # reports
-        transactions_with_privilege_ids = config.transaction_client.add_privilege_information_to_transactions(
-            compact=compact, transactions=transaction_response['transactions']
+        compact_configuration = next(
+            (Compact(item) for item in compact_configuration_options['items'] if item['type'] == COMPACT_TYPE), None
         )
-        logger.info('Storing transactions in DynamoDB', compact=compact)
-        config.transaction_client.store_transactions(transactions=transactions_with_privilege_ids)
+        jurisdiction_configurations = [
+            item for item in compact_configuration_options['items'] if item['type'] == JURISDICTION_TYPE
+        ]
 
-    # Return appropriate response based on whether there are more transactions to process
-    response = {
-        'compact': compact,  # Always include the compact name
-        'scheduledTime': scheduled_time,  # Preserve scheduled time for subsequent iterations
-        'status': 'IN_PROGRESS' if not _all_transactions_processed(transaction_response) else 'COMPLETE',
-        'processedBatchIds': transaction_response['processedBatchIds'],
-    }
-
-    # Only include pagination values if we're not done processing
-    if not _all_transactions_processed(transaction_response):
-        logger.info('Not all transactions processed, updating response with pagination values')
-        response.update(
-            {
-                'lastProcessedTransactionId': transaction_response['lastProcessedTransactionId'],
-                'currentBatchId': transaction_response['currentBatchId'],
+        if not compact_configuration or not jurisdiction_configurations:
+            logger.warning('The compact is not yet live - batch settlement data')
+            return {
+                'compact': compact,  # Always include the compact name
+                'scheduledTime': scheduled_time,  # Preserve scheduled time for subsequent iterations
+                'status': 'COMPLETE',  # This will skip straight to the end of the step function flow
             }
+
+        # We collect a window spanning the most recent captured batch of settled transactions, through the scheduled
+        # EventBridge time. Nominally this is a 1-day window, but if something goes wrong and causes a batch to be
+        # delayed the window will expand in the subsequent run to pick up where it left off.
+        end_time = datetime.fromisoformat(scheduled_time).replace(hour=1, minute=0, second=0, microsecond=0)
+        # Authorize.net will only allow us to query a 31-day window, so we'll limit ourselves to 30. If we fail to
+        # collect settled transactions for 30 days, we're well outside normal operations and will require manual
+        # intervention to recover data
+        oldest_allowed_start = end_time - timedelta(days=30)
+        try:
+            most_recent_settled_transaction = config.transaction_client.get_most_recent_transaction_for_compact(compact)
+            # Time ranges are inclusive in the Authorize.net API, so we need to shift our start forward by 1 second
+            most_recent_settlement = datetime.fromisoformat(
+                most_recent_settled_transaction.batch['settlementTimeUTC']
+            ) + timedelta(seconds=1)
+        except ValueError as e:
+            # We should make some noise if we can't find any transactions, but it's also an expected state for a compact
+            # that just went live, so we do need to be able to collect our first batch after launch. If we're in this
+            # state we'll log an error and collect what we can.
+            logger.error('Failed to find transactions for compact', compact=compact, exc_info=e)
+            most_recent_settlement = oldest_allowed_start
+        start_time = max(most_recent_settlement, oldest_allowed_start)
+
+        # Format timestamps for API call
+        start_time_str = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+        end_time_str = end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        logger.info(
+            'Collecting settled transaction for time period',
+            start_time=start_time_str,
+            end_time=end_time_str,
         )
 
-    # here we check if there were any settlement errors in the batch or if there was a settlement failure
-    # in a previous iteration, and we need to send an alert to the compact operations team
-    failed_transactions_ids = transaction_response.get('settlementErrorTransactionIds', [])
-    if failed_transactions_ids or event.get('batchFailureErrorMessage'):
-        # error message should be a json object we can load
-        if event.get('batchFailureErrorMessage'):
-            batch_failure_error_message = json.loads(event.get('batchFailureErrorMessage'))
-            batch_failure_error_message['failedTransactionIds'].extend(failed_transactions_ids)
-            response['batchFailureErrorMessage'] = json.dumps(batch_failure_error_message)
-        else:
-            # if there was no previous error message, we'll create a new one
-            response['batchFailureErrorMessage'] = json.dumps(
+        # Get transactions from payment processor
+        purchase_client = PurchaseClient()
+        transaction_response = purchase_client.get_settled_transactions(
+            compact=compact,
+            start_time=start_time_str,
+            end_time=end_time_str,
+            # we set the transaction limit to 500 to avoid hitting the 15-minute timeout for lambda
+            transaction_limit=500,
+            last_processed_transaction_id=last_processed_transaction_id,
+            current_batch_id=current_batch_id,
+            processed_batch_ids=processed_batch_ids,
+        )
+
+        # Store transactions in DynamoDB
+        if transaction_response['transactions']:
+            logger.info('Fetching privilege ids for transactions', compact=compact)
+            # first we must add the associated privilege ids to each transaction so we can show the association in our
+            # reports
+            transactions_with_privilege_ids = config.transaction_client.add_privilege_information_to_transactions(
+                compact=compact, transactions=transaction_response['transactions']
+            )
+            logger.info('Storing transactions in DynamoDB', compact=compact)
+            config.transaction_client.store_transactions(transactions=transactions_with_privilege_ids)
+
+        # Return appropriate response based on whether there are more transactions to process
+        response = {
+            'compact': compact,  # Always include the compact name
+            'scheduledTime': scheduled_time,  # Preserve scheduled time for subsequent iterations
+            'status': 'IN_PROGRESS' if not _all_transactions_processed(transaction_response) else 'COMPLETE',
+            'processedBatchIds': transaction_response['processedBatchIds'],
+        }
+
+        # Only include pagination values if we're not done processing
+        if not _all_transactions_processed(transaction_response):
+            logger.info('Not all transactions processed, updating response with pagination values')
+            response.update(
                 {
-                    'message': 'Settlement errors detected in one or more transactions.',
-                    'failedTransactionIds': failed_transactions_ids,
+                    'lastProcessedTransactionId': transaction_response['lastProcessedTransactionId'],
+                    'currentBatchId': transaction_response['currentBatchId'],
                 }
             )
 
-        if _all_transactions_processed(transaction_response):
-            # we've finished storing all transactions for this period,
-            # and we need to send an alert to the compact operations team
+        # here we check if there were any settlement errors in the batch or if there was a settlement failure
+        # in a previous iteration, and we need to send an alert to the compact operations team
+        failed_transactions_ids = transaction_response.get('settlementErrorTransactionIds', [])
+        if failed_transactions_ids or event.get('batchFailureErrorMessage'):
+            # error message should be a json object we can load
+            if event.get('batchFailureErrorMessage'):
+                batch_failure_error_message = json.loads(event.get('batchFailureErrorMessage'))
+                batch_failure_error_message['failedTransactionIds'].extend(failed_transactions_ids)
+                response['batchFailureErrorMessage'] = json.dumps(batch_failure_error_message)
+            else:
+                # if there was no previous error message, we'll create a new one
+                response['batchFailureErrorMessage'] = json.dumps(
+                    {
+                        'message': 'Settlement errors detected in one or more transactions.',
+                        'failedTransactionIds': failed_transactions_ids,
+                    }
+                )
+
+            if _all_transactions_processed(transaction_response):
+                # we've finished storing all transactions for this period,
+                # and we need to send an alert to the compact operations team
+                logger.error(
+                    'Batch settlement error detected', batchFailureErrorMessage=response['batchFailureErrorMessage']
+                )
+                response['status'] = 'BATCH_FAILURE'
+
+        # Reconcile unsettled transactions with settled transactions
+        # This must be run every iteration to clean up all unsettled transaction records from the transaction history
+        # table
+        old_unsettled_transaction_ids = config.transaction_client.reconcile_unsettled_transactions(
+            compact=compact, settled_transactions=transaction_response['transactions']
+        )
+
+        # Check for old unsettled transactions (older than 48 hours) and report on them if we've
+        # finished processing all transactions
+        if old_unsettled_transaction_ids and _all_transactions_processed(transaction_response):
+            # Parse existing error message if it exists
+            existing_error = {}
+            if response.get('batchFailureErrorMessage'):
+                existing_error = json.loads(response.get('batchFailureErrorMessage'))
+
+            existing_error.update(
+                {
+                    'message': existing_error.get('message', '')
+                    + ' One or more transactions have not settled in over 48 hours.',
+                    'unsettledTransactionIds': old_unsettled_transaction_ids,
+                }
+            )
+
+            response['batchFailureErrorMessage'] = json.dumps(existing_error)
+
             logger.error(
-                'Batch settlement error detected', batchFailureErrorMessage=response['batchFailureErrorMessage']
+                'Unsettled transactions older than 48 hours detected',
+                unsettledTransactionIds=old_unsettled_transaction_ids,
             )
             response['status'] = 'BATCH_FAILURE'
 
-    # Reconcile unsettled transactions with settled transactions
-    # This must be run every iteration to clean up all unsettled transaction records from the transaction history
-    # table
-    old_unsettled_transaction_ids = config.transaction_client.reconcile_unsettled_transactions(
-        compact=compact, settled_transactions=transaction_response['transactions']
-    )
-
-    # Check for old unsettled transactions (older than 48 hours) and report on them if we've
-    # finished processing all transactions
-    if old_unsettled_transaction_ids and _all_transactions_processed(transaction_response):
-        # Parse existing error message if it exists
-        existing_error = {}
-        if response.get('batchFailureErrorMessage'):
-            existing_error = json.loads(response.get('batchFailureErrorMessage'))
-
-        existing_error.update(
-            {
-                'message': existing_error.get('message', '')
-                + ' One or more transactions have not settled in over 48 hours.',
-                'unsettledTransactionIds': old_unsettled_transaction_ids,
-            }
-        )
-
-        response['batchFailureErrorMessage'] = json.dumps(existing_error)
-
-        logger.error(
-            'Unsettled transactions older than 48 hours detected',
-            unsettledTransactionIds=old_unsettled_transaction_ids,
-        )
-        response['status'] = 'BATCH_FAILURE'
-
-    return response
+        return response

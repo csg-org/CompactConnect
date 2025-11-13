@@ -78,6 +78,47 @@ class TransactionClient:
 
         return all_items
 
+    def get_most_recent_transaction_for_compact(self, compact: str) -> TransactionData:
+        """
+        Get the most recent transaction for a compact.
+
+        Starts by querying the current month's partition key (based on config.current_standard_datetime),
+        then sequentially queries previous months until a record is found.
+
+        :param compact: The compact name
+        :return: The most recent transaction for the compact
+        :raises ValueError: If no transactions are found for the compact
+        """
+        # Start with the current month
+        current_date = self.config.current_standard_datetime.replace(day=1)
+        # We can't recover transactions from Authorize.net after 31 days, so we only check the last 3 months
+        max_months_to_check = 3
+
+        for _ in range(max_months_to_check):
+            month_key = current_date.strftime('%Y-%m')
+            pk = f'COMPACT#{compact}#TRANSACTIONS#MONTH#{month_key}'
+
+            # Query for the most recent transaction in this month (descending order, limit 1)
+            response = self.config.transaction_history_table.query(
+                KeyConditionExpression=Key('pk').eq(pk),
+                ScanIndexForward=False,  # Descending order (most recent first)
+                Limit=1,
+            )
+
+            items = response.get('Items', [])
+            if items:
+                # Found a transaction, return it
+                return TransactionData.from_database_record(items[0])
+
+            # Move to previous month
+            if current_date.month == 1:
+                current_date = current_date.replace(year=current_date.year - 1, month=12)
+            else:
+                current_date = current_date.replace(month=current_date.month - 1)
+
+        # No transactions found after checking max_months_to_check months
+        raise ValueError(f'No transactions found for compact: {compact}')
+
     def _query_transactions_for_month(
         self,
         compact: str,

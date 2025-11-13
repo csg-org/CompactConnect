@@ -1,6 +1,5 @@
 import json
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal
 from unittest.mock import ANY, MagicMock, patch
 
 from moto import mock_aws
@@ -29,7 +28,7 @@ MOCK_PROCESSED_BATCH_IDS = ['mock_processed_batch_id']
 MOCK_SCHEDULED_TIME = '2024-01-01T01:00:00Z'
 
 # Test jurisdiction data
-OHIO_JURISDICTION = {'postalAbbreviation': 'oh', 'jurisdictionName': 'ohio', 'sk': 'aslp#JURISDICTION#oh'}
+OHIO_JURISDICTION = {'postalAbbreviation': 'oh', 'jurisdictionName': 'ohio'}
 
 
 def _generate_mock_transaction(
@@ -38,7 +37,7 @@ def _generate_mock_transaction(
     transaction_status='settledSuccessfully',
     batch_settlement_state='settledSuccessfully',
 ):
-    from cc_common.data_model.schema.transaction import TransactionData
+    from common_test.test_data_generator import TestDataGenerator
 
     if jurisdictions is None:
         jurisdictions = ['oh']
@@ -56,26 +55,23 @@ def _generate_mock_transaction(
             }
         )
 
-    transaction_data = {
-        'transactionId': transaction_id,
-        'submitTimeUTC': MOCK_SUBMIT_TIME_UTC,
-        'transactionType': 'authCaptureTransaction',
-        'transactionStatus': transaction_status,
-        'responseCode': '1',
-        'settleAmount': '100.00',
-        'licenseeId': MOCK_LICENSEE_ID,
-        'batch': {
-            'batchId': MOCK_BATCH_ID,
-            'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
-            'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
-            'settlementState': batch_settlement_state,
-        },
-        'lineItems': line_items,
-        'compact': TEST_COMPACT,
-        'transactionProcessor': 'authorize.net',
-    }
-
-    return TransactionData.create_new(transaction_data)
+    return TestDataGenerator.generate_default_transaction(
+        {
+            'transactionId': transaction_id,
+            'submitTimeUTC': MOCK_SUBMIT_TIME_UTC,
+            'transactionStatus': transaction_status,
+            'settleAmount': '100.00',
+            'licenseeId': MOCK_LICENSEE_ID,
+            'batch': {
+                'batchId': MOCK_BATCH_ID,
+                'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
+                'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
+                'settlementState': batch_settlement_state,
+            },
+            'lineItems': line_items,
+            'compact': TEST_COMPACT,
+        }
+    )
 
 
 @mock_aws
@@ -84,22 +80,31 @@ class TestProcessSettledTransactions(TstFunction):
 
     def _add_compact_configuration_data(self, jurisdictions=None):
         """
-        Use the canned test resources to load compact and jurisdiction information into the DB.
+        Use the test data generator to load compact and jurisdiction information into the DB.
 
         If jurisdictions is None, it will default to only include Ohio.
         """
+        # Add jurisdiction configurations first
         if jurisdictions is None:
             jurisdictions = [OHIO_JURISDICTION]
 
-        with open('../common/tests/resources/dynamo/compact.json') as f:
-            record = json.load(f, parse_float=Decimal)
-            self._compact_configuration_table.put_item(Item=record)
+        for jurisdiction in jurisdictions:
+            self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table(
+                {
+                    'compact': TEST_COMPACT,
+                    'postalAbbreviation': jurisdiction['postalAbbreviation'],
+                    'jurisdictionName': jurisdiction['jurisdictionName'],
+                }
+            )
 
-        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
-            record = json.load(f, parse_float=Decimal)
-            for jurisdiction in jurisdictions:
-                record.update(jurisdiction)
-                self._compact_configuration_table.put_item(Item=record)
+        # Add compact configuration with configuredStates set based on jurisdictions
+        configured_states = [{'postalAbbreviation': j['postalAbbreviation'], 'isLive': True} for j in jurisdictions]
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            {
+                'compactAbbr': TEST_COMPACT,
+                'configuredStates': configured_states,
+            }
+        )
 
     def _add_mock_privilege_to_database(
         self,
@@ -108,25 +113,15 @@ class TestProcessSettledTransactions(TstFunction):
         transaction_id=MOCK_TRANSACTION_ID,
         jurisdiction='oh',
     ):
-        from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
-
-        privilege_schema = PrivilegeRecordSchema()
-
-        with open('../common/tests/resources/dynamo/privilege.json') as f:
-            record = json.load(f)
-            loaded_record = privilege_schema.load(record)
-            loaded_record.update(
-                {
-                    'privilegeId': privilege_id,
-                    'providerId': licensee_id,
-                    'compact': TEST_COMPACT,
-                    'jurisdiction': jurisdiction,
-                    'compactTransactionId': transaction_id,
-                }
-            )
-
-            serialized_record = privilege_schema.dump(loaded_record)
-            self._provider_table.put_item(Item=serialized_record)
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            {
+                'privilegeId': privilege_id,
+                'providerId': licensee_id,
+                'compact': TEST_COMPACT,
+                'jurisdiction': jurisdiction,
+                'compactTransactionId': transaction_id,
+            }
+        )
 
     def _add_mock_privilege_update_to_database(
         self,
@@ -135,31 +130,30 @@ class TestProcessSettledTransactions(TstFunction):
         transaction_id=MOCK_TRANSACTION_ID,
         jurisdiction='oh',
     ):
-        from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+        # Create the previous privilege record
+        previous_privilege = self.test_data_generator.generate_default_privilege(
+            {
+                'privilegeId': privilege_id,
+                'providerId': licensee_id,
+                'compact': TEST_COMPACT,
+                'jurisdiction': jurisdiction,
+                'compactTransactionId': transaction_id,
+            }
+        )
 
-        privilege_update_schema = PrivilegeUpdateRecordSchema()
-
-        with open('../common/tests/resources/dynamo/privilege-update.json') as f:
-            record = json.load(f)
-            loaded_record = privilege_update_schema.load(record)
-            loaded_record['previous'].update(
-                {
-                    'privilegeId': privilege_id,
-                    'compactTransactionId': transaction_id,
-                }
-            )
-            loaded_record.update(
-                {
-                    'compact': TEST_COMPACT,
-                    'jurisdiction': jurisdiction,
-                    'compactTransactionId': transaction_id,
-                    'providerId': licensee_id,
-                }
-            )
-
-            schema = PrivilegeUpdateRecordSchema()
-            serialized_record = schema.dump(loaded_record)
-            self._provider_table.put_item(Item=serialized_record)
+        # Create the privilege update record
+        # Note: generate_default_privilege_update takes previous_privilege as a separate parameter
+        update_data = self.test_data_generator.generate_default_privilege_update(
+            value_overrides={
+                'compact': TEST_COMPACT,
+                'jurisdiction': jurisdiction,
+                'compactTransactionId': transaction_id,
+                'providerId': licensee_id,
+            },
+            previous_privilege=previous_privilege,
+        )
+        update_record = update_data.serialize_to_database_record()
+        self.test_data_generator.store_record_in_provider_table(update_record)
 
     def _when_testing_non_paginated_event(self, test_compact=TEST_COMPACT):
         return {
@@ -210,6 +204,43 @@ class TestProcessSettledTransactions(TstFunction):
 
         return mock_purchase_client
 
+    def _add_previous_transaction_to_history(
+        self,
+        settlement_time_utc: str = None,
+        transaction_id: str = 'previous-tx-12345',
+        batch_id: str = 'previous-batch-67890',
+    ):
+        """
+        Add a previous transaction to the transaction history table to simulate a previously processed transaction.
+
+        :param settlement_time_utc: Settlement time in UTC (ISO format with Z suffix).
+            If None, defaults to 2 days before scheduled time.
+        :param transaction_id: Transaction ID for the previous transaction
+        :param batch_id: Batch ID for the previous transaction
+        """
+        from cc_common.data_model.transaction_client import TransactionClient
+
+        if settlement_time_utc is None:
+            # Default to 2 days before the scheduled time
+            scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+            previous_settlement_dt = scheduled_dt - timedelta(days=2)
+            settlement_time_utc = previous_settlement_dt.replace(tzinfo=None).isoformat() + '.000Z'
+
+        # Format datetime for settlement time local (assuming EST, which is UTC-5)
+        settlement_dt = datetime.fromisoformat(settlement_time_utc)
+        settlement_time_local = (settlement_dt - timedelta(hours=5)).replace(tzinfo=None).strftime('%Y-%m-%dT%H:%M:%S')
+
+        previous_transaction = _generate_mock_transaction(
+            transaction_id=transaction_id,
+            batch_settlement_state='settledSuccessfully',
+        )
+        previous_transaction.batch['batchId'] = batch_id
+        previous_transaction.batch['settlementTimeUTC'] = settlement_time_utc
+        previous_transaction.batch['settlementTimeLocal'] = settlement_time_local
+
+        client = TransactionClient(self.config)
+        client.store_transactions(transactions=[previous_transaction])
+
     @patch('handlers.transaction_history.PurchaseClient')
     def test_process_settled_transactions_returns_complete_status(self, mock_purchase_client_constructor):
         """Test successful processing of settled transactions."""
@@ -220,6 +251,8 @@ class TestProcessSettledTransactions(TstFunction):
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_mock_privilege_to_database()
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
@@ -246,6 +279,8 @@ class TestProcessSettledTransactions(TstFunction):
         )
         self._add_mock_privilege_to_database()
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_paginated_event()
 
@@ -272,6 +307,8 @@ class TestProcessSettledTransactions(TstFunction):
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_mock_privilege_to_database()
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_non_paginated_event()
 
@@ -283,9 +320,7 @@ class TestProcessSettledTransactions(TstFunction):
             ExpressionAttributeValues={':pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01'},
         )
 
-        expected_epoch_timestamp = int(
-            datetime.fromisoformat(MOCK_SETTLEMENT_TIME_UTC.replace('Z', '+00:00')).timestamp()
-        )
+        expected_epoch_timestamp = int(datetime.fromisoformat(MOCK_SETTLEMENT_TIME_UTC).timestamp())
         # remove dynamic dateOfUpdate timestamp
         del stored_transactions['Items'][0]['dateOfUpdate']
 
@@ -341,6 +376,8 @@ class TestProcessSettledTransactions(TstFunction):
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_mock_privilege_to_database()
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_non_paginated_event()
 
@@ -375,6 +412,8 @@ class TestProcessSettledTransactions(TstFunction):
 
         self._when_purchase_client_returns_paginated_transactions(mock_purchase_client_constructor)
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
@@ -444,6 +483,8 @@ class TestProcessSettledTransactions(TstFunction):
         ]
 
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
         event = self._when_testing_non_paginated_event()
         first_resp = process_settled_transactions(event, self.mock_context)
 
@@ -517,6 +558,8 @@ class TestProcessSettledTransactions(TstFunction):
         # privilege id as UNKNOWN
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_non_paginated_event()
 
@@ -561,6 +604,8 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
         event = self._when_testing_non_paginated_event()
 
         process_settled_transactions(event, self.mock_context)
@@ -634,6 +679,8 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
         self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
         event = self._when_testing_non_paginated_event()
 
         process_settled_transactions(event, self.mock_context)
@@ -707,9 +754,7 @@ class TestProcessSettledTransactions(TstFunction):
         from handlers.transaction_history import process_settled_transactions
 
         # Add only compact configuration data, no jurisdictions
-        with open('../common/tests/resources/dynamo/compact.json') as f:
-            record = json.load(f, parse_float=Decimal)
-            self._compact_configuration_table.put_item(Item=record)
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table({'compactAbbr': TEST_COMPACT})
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
@@ -764,6 +809,8 @@ class TestProcessSettledTransactions(TstFunction):
             transaction_id=MOCK_TRANSACTION_ID,
             privilege_id=MOCK_PRIVILEGE_ID,
         )
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
@@ -809,6 +856,8 @@ class TestProcessSettledTransactions(TstFunction):
             transaction_id=MOCK_TRANSACTION_ID,
             privilege_id=MOCK_PRIVILEGE_ID,
         )
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
@@ -823,3 +872,61 @@ class TestProcessSettledTransactions(TstFunction):
             KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
         )
         self.assertEqual(0, len(response['Items']))
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
+    def test_process_settled_transactions_uses_previous_transaction_settlement_time_for_start_time(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that start_time is set to just after the most recent previous transaction's settlement time."""
+        from handlers.transaction_history import process_settled_transactions
+
+        # Set up a previous transaction that is 3 days old
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        previous_settlement_dt = scheduled_dt - timedelta(days=3)
+        previous_settlement_time_utc = previous_settlement_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        # Add the previous transaction
+        self._add_previous_transaction_to_history(settlement_time_utc=previous_settlement_time_utc)
+
+        self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
+        self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
+
+        event = self._when_testing_non_paginated_event()
+        process_settled_transactions(event, self.mock_context)
+
+        # Verify that get_settled_transactions was called with start_time just after the previous transaction
+        # The start_time should be the previous settlement time plus one second
+        # (since it's more recent than 30 days ago)
+        expected_start_time = (previous_settlement_dt + timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        mock_purchase_client = mock_purchase_client_constructor.return_value
+        call_kwargs = mock_purchase_client.get_settled_transactions.call_args.kwargs
+        self.assertEqual(expected_start_time, call_kwargs['start_time'])
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
+    def test_process_settled_transactions_uses_30_day_fallback_when_no_previous_transactions(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that start_time falls back to 30 days ago when no previous transactions exist."""
+        from handlers.transaction_history import process_settled_transactions
+
+        # Don't add any previous transactions - this simulates a compact that just went live
+        self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
+        self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
+
+        event = self._when_testing_non_paginated_event()
+        process_settled_transactions(event, self.mock_context)
+
+        # Verify that get_settled_transactions was called with start_time 30 days before scheduled time
+        # end_time is set to scheduled_time with hour=1, minute=0, second=0, microsecond=0
+        # oldest_allowed_start = end_time - timedelta(days=30) + timedelta(seconds=1)
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        end_time = scheduled_dt.replace(hour=1, minute=0, second=0, microsecond=0)
+        expected_start_time = (end_time - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        mock_purchase_client = mock_purchase_client_constructor.return_value
+        call_kwargs = mock_purchase_client.get_settled_transactions.call_args.kwargs
+        self.assertEqual(expected_start_time, call_kwargs['start_time'])
