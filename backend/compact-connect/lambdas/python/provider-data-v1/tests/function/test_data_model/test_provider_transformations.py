@@ -2,16 +2,18 @@ import json
 from datetime import date, datetime
 from unittest.mock import patch
 
-from boto3.dynamodb.conditions import Key
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from moto import mock_aws
 
 from .. import TstFunction
+
+MOCK_CURRENT_DATETIME_STRING = '2024-11-08T23:59:59+00:00'
 
 
 @mock_aws
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_DATETIME_STRING))
     @patch('cc_common.config._Config.license_preprocessing_queue')
     def test_transformations(self, mock_license_preprocessing_queue):
         """Provider data undergoes several transformations from when a license is first posted, stored into the
@@ -98,6 +100,9 @@ class TestTransformations(TstFunction):
             expected_provider = json.load(f)
             # this should be set during the registration flow
             expected_provider['currentHomeJurisdiction'] = 'oh'
+            # provider should be active and compact eligible
+            expected_provider['licenseStatus'] = 'active'
+            expected_provider['compactEligibility'] = 'eligible'
 
         # register the provider in the system
         client.process_registration_values(
@@ -133,24 +138,33 @@ class TestTransformations(TstFunction):
             ],
         )
 
-        # Get the provider straight from the table, to inspect them
-        resp = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER'),
+        # Get the provider and all update records straight from the table, to inspect them
+        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
+            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
+
         # One record for each of: provider, providerUpdate, license,
         # privilege, and militaryAffiliation
-        self.assertEqual(5, len(resp['Items']))
-        records = {item['type']: item for item in resp['Items']}
+        self.assertEqual(5, len(provider_user_records.provider_records))
+        records = {item['type']: item for item in provider_user_records.provider_records}
 
         # Convert this to the data type expected from DynamoDB
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
         with open('../common/tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
+            # license should be active and compact eligible
+            expected_license['licenseStatus'] = 'active'
+            expected_license['compactEligibility'] = 'eligible'
+            expected_license['firstUploadDate'] = MOCK_CURRENT_DATETIME_STRING
+            expected_license['licenseUploadDateGSIPK'] = 'C#aslp#J#oh#D#2024-11'
+            expected_license['licenseUploadDateGSISK'] = (
+                'TIME#1731110399#LT#slp#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
+            )
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
+            # privilege status should be active
+            expected_privilege['status'] = 'active'
         with open('../common/tests/resources/dynamo/military-affiliation.json') as f:
             expected_military_affiliation = json.load(f)
             # in this case, the status will be initializing, since it is not set to active until

@@ -66,3 +66,23 @@ class InvestigationEventDetailSchema(DataEventDetailBaseSchema):
 class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+
+
+class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    rollbackReason = String(required=True, allow_none=False)
+    startTime = DateTime(required=True, allow_none=False)
+    endTime = DateTime(required=True, allow_none=False)
+    revisionId = UUID(required=True, allow_none=False)
+
+
+class PrivilegeRevertDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    rollbackReason = String(required=True, allow_none=False)
+    startTime = DateTime(required=True, allow_none=False)
+    endTime = DateTime(required=True, allow_none=False)
+    revisionId = UUID(required=True, allow_none=False)

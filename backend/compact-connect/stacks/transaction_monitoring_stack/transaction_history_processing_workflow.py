@@ -221,7 +221,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         Rule(
             self,
             f'{compact}-DailyTransactionProcessingRule',
-            schedule=Schedule.cron(week_day='*', hour='1', minute='0', month='*', year='*'),
+            schedule=Schedule.cron(week_day='*', hour='2', minute='0', month='*', year='*'),
             targets=[SfnStateMachine(state_machine)],
         )
 

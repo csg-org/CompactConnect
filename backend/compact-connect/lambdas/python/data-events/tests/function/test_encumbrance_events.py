@@ -4,7 +4,6 @@ from datetime import date, datetime, time
 from unittest.mock import ANY, MagicMock, patch
 from uuid import UUID
 
-from boto3.dynamodb.conditions import Key
 from common_test.test_constants import (
     DEFAULT_ADVERSE_ACTION_ID,
     DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY,
@@ -242,21 +241,18 @@ class TestEncumbranceEvents(TstFunction):
         privileges = provider_records.get_privilege_records()
         self.assertEqual(1, len(privileges))
 
-        serialized_privilege = privilege.serialize_to_database_record()
         self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privileges[0].encumberedStatus)
 
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        # Get update records using test_data_generator
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
-
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        update_record = privilege_update_records['Items'][0]
-        update_encumbrance_details = update_record['encumbranceDetails']
+        self.assertEqual(1, len(update_records))
+        update_record = update_records[0]
+        update_encumbrance_details = update_record.encumbranceDetails
         self.assertEqual(
             {
-                'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
+                'adverseActionId': UUID(DEFAULT_ADVERSE_ACTION_ID),
                 'licenseJurisdiction': 'oh',
                 'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
             },
@@ -312,21 +308,18 @@ class TestEncumbranceEvents(TstFunction):
         privileges = provider_records.get_privilege_records()
         self.assertEqual(1, len(privileges))
 
-        serialized_privilege = privilege.serialize_to_database_record()
         self.assertEqual(PrivilegeEncumberedStatusEnum.ENCUMBERED, privileges[0].encumberedStatus)
 
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        # Get update records using test_data_generator
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
-
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        update_record = privilege_update_records['Items'][0]
-        update_encumbrance_details = update_record['encumbranceDetails']
+        self.assertEqual(1, len(update_records))
+        update_record = update_records[0]
+        update_encumbrance_details = update_record.encumbranceDetails
         self.assertEqual(
             {
-                'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
+                'adverseActionId': UUID(DEFAULT_ADVERSE_ACTION_ID),
                 'licenseJurisdiction': 'oh',
                 'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
             },
@@ -358,17 +351,13 @@ class TestEncumbranceEvents(TstFunction):
         license_encumbrance_listener(event, self.mock_context)
 
         # Verify privilege update record was created
-        serialized_privilege = privilege.serialize_to_database_record()
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
-
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        update_record = privilege_update_records['Items'][0]
-        self.assertEqual('encumbrance', update_record['updateType'])
-        self.assertEqual({'encumberedStatus': 'licenseEncumbered'}, update_record['updatedValues'])
+        self.assertEqual(1, len(update_records))
+        update_record = update_records[0]
+        self.assertEqual('encumbrance', update_record.updateType)
+        self.assertEqual({'encumberedStatus': 'licenseEncumbered'}, update_record.updatedValues)
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_lifted_listener_unencumbers_license_encumbered_privileges_successfully(
@@ -552,16 +541,13 @@ class TestEncumbranceEvents(TstFunction):
         license_encumbrance_lifted_listener(event, self.mock_context)
 
         # Verify privilege update record was created
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(privilege.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(f'{privilege.compact}#PROVIDER#privilege/{privilege.jurisdiction}/slp#UPDATE'),
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
-
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        update_record = privilege_update_records['Items'][0]
-        self.assertEqual('lifting_encumbrance', update_record['updateType'])
-        self.assertEqual({'encumberedStatus': 'unencumbered'}, update_record['updatedValues'])
+        self.assertEqual(1, len(update_records))
+        update_record = update_records[0]
+        self.assertEqual('lifting_encumbrance', update_record.updateType)
+        self.assertEqual({'encumberedStatus': 'unencumbered'}, update_record.updatedValues)
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_listener_handles_multiple_matching_privileges(self, mock_publish_event):

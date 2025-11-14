@@ -312,6 +312,14 @@ class UpdateCategory(CCEnum):
     LICENSE_UPLOAD_UPDATE_OTHER = 'other'
 
 
+# License upload related update categories
+LICENSE_UPLOAD_UPDATE_CATEGORIES = {
+    UpdateCategory.DEACTIVATION,
+    UpdateCategory.RENEWAL,
+    UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER,
+}
+
+
 class ActiveInactiveStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'

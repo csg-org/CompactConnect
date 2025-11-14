@@ -139,7 +139,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
     @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
     def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
-        from cc_common.data_model.schema.privilege import PrivilegeUpdateData
         from handlers.encumbrance import encumbrance_handler
 
         event, test_privilege_record = self._when_testing_privilege_encumbrance()
@@ -148,18 +147,13 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
         # Verify that the encumbrance record was added to the provider data table
-        # Perform a query to list all encumbrances for the provider using the starts_with key condition
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'
-            ),
+        privilege_update_records = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                test_privilege_record
+            )
         )
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        item = privilege_update_records['Items'][0]
-
-        loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
+        self.assertEqual(1, len(privilege_update_records))
+        loaded_privilege_update_data = privilege_update_records[0]
 
         expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
             value_overrides={
@@ -186,7 +180,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self,
         mock_flag,  # noqa: ARG002
     ):
-        from cc_common.data_model.schema.privilege import PrivilegeUpdateData
         from handlers.encumbrance import encumbrance_handler
 
         event, test_privilege_record = self._when_testing_privilege_encumbrance()
@@ -195,18 +188,13 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
         # Verify that the encumbrance record was added to the provider data table
-        # Perform a query to list all encumbrances for the provider using the starts_with key condition
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#UPDATE'
-            ),
+        privilege_update_records = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                test_privilege_record
+            )
         )
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        item = privilege_update_records['Items'][0]
-
-        loaded_privilege_update_data = PrivilegeUpdateData.from_database_record(item)
+        self.assertEqual(1, len(privilege_update_records))
+        loaded_privilege_update_data = privilege_update_records[0]
 
         expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
             value_overrides={
@@ -515,7 +503,6 @@ class TestPostLicenseEncumbrance(TstFunction):
         )
 
     def test_license_encumbrance_handler_adds_license_update_record_in_provider_data_table(self):
-        from cc_common.data_model.schema.license import LicenseUpdateData
         from handlers.encumbrance import encumbrance_handler
 
         event, test_license_record = self._when_testing_valid_license_encumbrance()
@@ -524,15 +511,11 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
 
         # Verify that the update record was added for the license
-        license_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#UPDATE'
-            ),
+        license_update_records = self.test_data_generator.query_license_update_records_for_given_record_from_database(
+            test_license_record
         )
-        self.assertEqual(1, len(license_update_records['Items']))
-        item = license_update_records['Items'][0]
+        self.assertEqual(1, len(license_update_records))
+        loaded_license_update_data = license_update_records[0]
 
         expected_license_update_data = self.test_data_generator.generate_default_license_update(
             value_overrides={
@@ -542,7 +525,6 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
             }
         )
-        loaded_license_update_data = LicenseUpdateData.from_database_record(item)
 
         self.assertEqual(
             expected_license_update_data.to_dict(),

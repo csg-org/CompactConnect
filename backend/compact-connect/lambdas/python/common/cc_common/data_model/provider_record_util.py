@@ -23,7 +23,7 @@ from cc_common.data_model.schema.military_affiliation import MilitaryAffiliation
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import PrivilegeHistoryResponseSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
 class ProviderRecordType(StrEnum):
@@ -500,6 +500,27 @@ class ProviderUserRecords:
         """
         return [record for record in self._privilege_records if filter_condition is None or filter_condition(record)]
 
+    def get_privileges_associated_with_license(
+        self,
+        license_jurisdiction: str,
+        license_type_abbreviation: str,
+        filter_condition: Callable[[PrivilegeData], bool] | None = None,
+    ) -> list[PrivilegeData]:
+        """
+        Get all privileges associated with a given license.
+        :param license_jurisdiction: The jurisdiction of the license.
+        :param license_type_abbreviation: The abbreviation of the license type.
+        :param filter_condition: An optional filter to apply to the privilege records
+        :return: A list of privilege records associated with the license
+        """
+        return [
+            record
+            for record in self._privilege_records
+            if record.licenseJurisdiction == license_jurisdiction
+            and record.licenseTypeAbbreviation == license_type_abbreviation
+            and (filter_condition is None or filter_condition(record))
+        ]
+
     def get_license_records(
         self,
         filter_condition: Callable[[LicenseData], bool] | None = None,
@@ -739,7 +760,7 @@ class ProviderUserRecords:
         # Last issued inactive license, otherwise
         latest_licenses = sorted(license_records, key=lambda x: x.dateOfIssuance.isoformat(), reverse=True)
         if not latest_licenses:
-            raise CCInternalException('No licenses found')
+            raise CCNotFoundException('No licenses found')
 
         return latest_licenses[0]
 
@@ -757,6 +778,45 @@ class ProviderUserRecords:
         )[0]
 
         return latest_military_affiliation.status
+
+    def get_all_license_update_records(
+        self,
+        filter_condition: Callable[[LicenseUpdateData], bool] | None = None,
+    ) -> list[LicenseUpdateData]:
+        """
+        Get all license update records for this provider.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of LicenseUpdateData records
+        """
+        return [
+            record for record in self._license_update_records if filter_condition is None or filter_condition(record)
+        ]
+
+    def get_all_privilege_update_records(
+        self,
+        filter_condition: Callable[[PrivilegeUpdateData], bool] | None = None,
+    ) -> list[PrivilegeUpdateData]:
+        """
+        Get all privilege update records for this provider.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of PrivilegeUpdateData records
+        """
+        return [
+            record for record in self._privilege_update_records if filter_condition is None or filter_condition(record)
+        ]
+
+    def get_all_provider_update_records(
+        self,
+        filter_condition: Callable[[ProviderUpdateData], bool] | None = None,
+    ) -> list[ProviderUpdateData]:
+        """
+        Get all provider update records for this provider.
+        :param filter_condition: An optional filter to apply to the update records
+        :return: List of ProviderUpdateData records
+        """
+        return [
+            record for record in self._provider_update_records if filter_condition is None or filter_condition(record)
+        ]
 
     def get_update_records_for_license(
         self,

@@ -18,5 +18,6 @@
   "CC_TEST_PROVIDER_USER_PASSWORD": "examplePassword",
   "ENVIRONMENT_NAME": "sandboxEnvironmentNamePlaceholder",
   "SANDBOX_AUTHORIZE_NET_API_LOGIN_ID": "your_sandbox_api_login_id",
-  "SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY": "your_sandbox_transaction_key"
+  "SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY": "your_sandbox_transaction_key",
+  "CC_TEST_ROLLBACK_STEP_FUNCTION_ARN": "arn:aws:states:us-east-1:123456789012:stateMachine:Sandbox-DisasterRecoveryStack-LicenseUploadRollbackStateMachine"
 }
