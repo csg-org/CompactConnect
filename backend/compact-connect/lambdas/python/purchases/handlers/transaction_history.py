@@ -66,31 +66,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
                 'status': 'COMPLETE',  # This will skip straight to the end of the step function flow
             }
 
-        # We collect a window spanning the most recent captured batch of settled transactions, through the scheduled
-        # EventBridge time. Nominally this is a 1-day window, but if something goes wrong and causes a batch to be
-        # delayed the window will expand in the subsequent run to pick up where it left off.
-        end_time = datetime.fromisoformat(scheduled_time).replace(hour=1, minute=0, second=0, microsecond=0)
-        # Authorize.net will only allow us to query a 31-day window, so we'll limit ourselves to 30. If we fail to
-        # collect settled transactions for 30 days, we're well outside normal operations and will require manual
-        # intervention to recover data
-        oldest_allowed_start = end_time - timedelta(days=30)
-        try:
-            most_recent_settled_transaction = config.transaction_client.get_most_recent_transaction_for_compact(compact)
-            # Time ranges are inclusive in the Authorize.net API, so we need to shift our start forward by 1 second
-            most_recent_settlement = datetime.fromisoformat(
-                most_recent_settled_transaction.batch['settlementTimeUTC']
-            ) + timedelta(seconds=1)
-        except ValueError as e:
-            # We should make some noise if we can't find any transactions, but it's also an expected state for a compact
-            # that just went live, so we do need to be able to collect our first batch after launch. If we're in this
-            # state we'll log an error and collect what we can.
-            logger.warning('Failed to find transactions for compact', compact=compact, exc_info=e)
-            most_recent_settlement = oldest_allowed_start
-        start_time = max(most_recent_settlement, oldest_allowed_start)
-
-        # Format timestamps for API call
-        start_time_str = start_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-        end_time_str = end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+        start_time_str, end_time_str = _get_time_window_strings(event, compact)
 
         logger.info(
             'Collecting settled transaction for time period',
@@ -126,6 +102,8 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
         response = {
             'compact': compact,  # Always include the compact name
             'scheduledTime': scheduled_time,  # Preserve scheduled time for subsequent iterations
+            'startTime': start_time_str,
+            'endTime': end_time_str,
             'status': 'IN_PROGRESS' if not _all_transactions_processed(transaction_response) else 'COMPLETE',
             'processedBatchIds': transaction_response['processedBatchIds'],
         }
@@ -198,3 +176,38 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             response['status'] = 'BATCH_FAILURE'
 
         return response
+
+
+def _get_time_window_strings(event: dict, compact: str):
+    if event.get('startTime') and event.get('endTime'):
+        start_time = datetime.fromisoformat(event['startTime'])
+        end_time = datetime.fromisoformat(event['endTime'])
+        logger.info(
+            'Using start/end times from event', start_time=start_time.isoformat(), end_time=end_time.isoformat()
+        )
+    else:
+        logger.info('Calculating start/end times')
+        # We collect a window spanning the most recent captured batch of settled transactions, through the scheduled
+        # EventBridge time. Nominally this is a 1-day window, but if something goes wrong and causes a batch to be
+        # delayed the window will expand in the subsequent run to pick up where it left off.
+        end_time = datetime.fromisoformat(event['scheduledTime']).replace(hour=1, minute=0, second=0, microsecond=0)
+        # Authorize.net will only allow us to query a 31-day window, so we'll limit ourselves to 30. If we fail to
+        # collect settled transactions for 30 days, we're well outside normal operations and will require manual
+        # intervention to recover data
+        oldest_allowed_start = end_time - timedelta(days=30)
+        try:
+            most_recent_settled_transaction = config.transaction_client.get_most_recent_transaction_for_compact(compact)
+            # Time ranges are inclusive in the Authorize.net API, so we need to shift our start forward by 1 second
+            most_recent_settlement = datetime.fromisoformat(
+                most_recent_settled_transaction.batch['settlementTimeUTC']
+            ) + timedelta(seconds=1)
+        except ValueError as e:
+            # We should make some noise if we can't find any transactions, but it's also an expected state for a compact
+            # that just went live, so we do need to be able to collect our first batch after launch. If we're in this
+            # state we'll log an error and collect what we can.
+            logger.warning('Failed to find transactions for compact', exc_info=e)
+            most_recent_settlement = oldest_allowed_start
+        start_time = max(most_recent_settlement, oldest_allowed_start)
+
+    # Format timestamps for API call
+    return start_time.strftime('%Y-%m-%dT%H:%M:%SZ'), end_time.strftime('%Y-%m-%dT%H:%M:%SZ')

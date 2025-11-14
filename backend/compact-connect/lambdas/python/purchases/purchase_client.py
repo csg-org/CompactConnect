@@ -43,6 +43,7 @@ AUTHORIZE_NET_CARD_USER_ERROR_CODES = ['2', '5', '6', '7', '8', '11', '17', '65'
 class AuthorizeNetTransactionIgnoreStates(StrEnum):
     DeclinedError = 'declined'
 
+
 class AuthorizeNetTransactionErrorStates(StrEnum):
     SettlementError = 'settlementError'
     GeneralError = 'generalError'
@@ -828,7 +829,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                     'Transaction was in an ignorable state. Skipping.',
                                     batch_id=batch_id,
                                     transaction_id=str(tx.transId),
-                                    transaction_status=str(tx.transactionStatus)
+                                    transaction_status=str(tx.transactionStatus),
                                 )
                                 continue
 

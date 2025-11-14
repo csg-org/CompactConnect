@@ -242,6 +242,7 @@ class TestProcessSettledTransactions(TstFunction):
         client.store_transactions(transactions=[previous_transaction])
 
     @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
     def test_process_settled_transactions_returns_complete_status(self, mock_purchase_client_constructor):
         """Test successful processing of settled transactions."""
         from handlers.transaction_history import process_settled_transactions
@@ -257,10 +258,20 @@ class TestProcessSettledTransactions(TstFunction):
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
 
+        # Calculate expected start/end times
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        previous_settlement_dt = scheduled_dt - timedelta(days=2)
+        expected_start_time = (previous_settlement_dt + timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        expected_end_time = scheduled_dt.replace(hour=1, minute=0, second=0, microsecond=0).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
         self.assertEqual(
             {
                 'compact': 'aslp',
                 'scheduledTime': MOCK_SCHEDULED_TIME,
+                'startTime': expected_start_time,
+                'endTime': expected_end_time,
                 'processedBatchIds': [MOCK_BATCH_ID],
                 'status': 'COMPLETE',
             },
@@ -404,6 +415,7 @@ class TestProcessSettledTransactions(TstFunction):
         self.assertEqual(1, len(stored_transactions['Items']))
 
     @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
     def test_process_settled_transactions_returns_in_progress_status_with_pagination_values(
         self, mock_purchase_client_constructor
     ):
@@ -418,10 +430,20 @@ class TestProcessSettledTransactions(TstFunction):
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
 
+        # Calculate expected start/end times
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        previous_settlement_dt = scheduled_dt - timedelta(days=2)
+        expected_start_time = (previous_settlement_dt + timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        expected_end_time = scheduled_dt.replace(hour=1, minute=0, second=0, microsecond=0).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
         self.assertEqual(
             {
                 'compact': TEST_COMPACT,
                 'scheduledTime': MOCK_SCHEDULED_TIME,
+                'startTime': expected_start_time,
+                'endTime': expected_end_time,
                 'status': 'IN_PROGRESS',
                 'lastProcessedTransactionId': MOCK_LAST_PROCESSED_TRANSACTION_ID,
                 'currentBatchId': MOCK_CURRENT_BATCH_ID,
@@ -431,6 +453,7 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
     @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
     def test_process_settled_transactions_returns_batch_failure_status_after_processing_all_transaction(
         self, mock_purchase_client_constructor
     ):
@@ -488,11 +511,21 @@ class TestProcessSettledTransactions(TstFunction):
         event = self._when_testing_non_paginated_event()
         first_resp = process_settled_transactions(event, self.mock_context)
 
+        # Calculate expected start/end times
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        previous_settlement_dt = scheduled_dt - timedelta(days=2)
+        expected_start_time = (previous_settlement_dt + timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        expected_end_time = scheduled_dt.replace(hour=1, minute=0, second=0, microsecond=0).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
         self.assertEqual(
             {
                 'status': 'IN_PROGRESS',
                 'compact': TEST_COMPACT,
                 'scheduledTime': MOCK_SCHEDULED_TIME,
+                'startTime': expected_start_time,
+                'endTime': expected_end_time,
                 'currentBatchId': MOCK_BATCH_ID,
                 'lastProcessedTransactionId': mock_first_iteration_failed_transaction_id,
                 'processedBatchIds': [],
@@ -516,6 +549,8 @@ class TestProcessSettledTransactions(TstFunction):
                 'status': 'BATCH_FAILURE',
                 'compact': TEST_COMPACT,
                 'scheduledTime': MOCK_SCHEDULED_TIME,
+                'startTime': expected_start_time,
+                'endTime': expected_end_time,
                 'processedBatchIds': [MOCK_BATCH_ID],
                 'batchFailureErrorMessage': json.dumps(
                     {
@@ -930,3 +965,94 @@ class TestProcessSettledTransactions(TstFunction):
         mock_purchase_client = mock_purchase_client_constructor.return_value
         call_kwargs = mock_purchase_client.get_settled_transactions.call_args.kwargs
         self.assertEqual(expected_start_time, call_kwargs['start_time'])
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
+    def test_process_settled_transactions_uses_provided_start_and_end_times(self, mock_purchase_client_constructor):
+        """
+        Test that when startTime and endTime are provided in the event, they are used instead of calculating new ones.
+        """
+        from handlers.transaction_history import process_settled_transactions
+
+        self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
+        self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
+
+        # Provide start and end times in the event
+        provided_start_time = '2023-12-15T10:00:00Z'
+        provided_end_time = '2024-01-01T05:00:00Z'
+        event = {
+            'compact': TEST_COMPACT,
+            'scheduledTime': MOCK_SCHEDULED_TIME,
+            'startTime': provided_start_time,
+            'endTime': provided_end_time,
+            'lastProcessedTransactionId': None,
+            'currentBatchId': None,
+            'processedBatchIds': None,
+        }
+
+        resp = process_settled_transactions(event, self.mock_context)
+
+        # Verify that the provided times are used and returned in the response
+        self.assertEqual(provided_start_time, resp['startTime'])
+        self.assertEqual(provided_end_time, resp['endTime'])
+
+        # Verify that get_settled_transactions was called with the provided times
+        mock_purchase_client = mock_purchase_client_constructor.return_value
+        call_kwargs = mock_purchase_client.get_settled_transactions.call_args.kwargs
+        self.assertEqual(provided_start_time, call_kwargs['start_time'])
+        self.assertEqual(provided_end_time, call_kwargs['end_time'])
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
+    def test_process_settled_transactions_persists_start_and_end_times_across_pagination_iterations(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that startTime and endTime persist across pagination iterations."""
+        from handlers.transaction_history import process_settled_transactions
+
+        # Set up paginated transactions
+        self._when_purchase_client_returns_paginated_transactions(mock_purchase_client_constructor)
+        self._add_mock_privilege_to_database()
+        self._add_compact_configuration_data()
+        # Add a previous transaction to simulate normal operation
+        self._add_previous_transaction_to_history()
+
+        # First iteration: no start/end times provided, they should be calculated
+        event = self._when_testing_non_paginated_event()
+        resp = process_settled_transactions(event, self.mock_context)
+
+        # Verify start/end times are calculated and returned
+        self.assertIn('startTime', resp)
+        self.assertIn('endTime', resp)
+        first_iteration_start_time = resp['startTime']
+        first_iteration_end_time = resp['endTime']
+
+        # Verify status is IN_PROGRESS
+        self.assertEqual('IN_PROGRESS', resp['status'])
+
+        # Second iteration: use the start/end times from the first iteration
+        event = {
+            'compact': TEST_COMPACT,
+            'scheduledTime': MOCK_SCHEDULED_TIME,
+            'startTime': first_iteration_start_time,
+            'endTime': first_iteration_end_time,
+            'lastProcessedTransactionId': MOCK_LAST_PROCESSED_TRANSACTION_ID,
+            'currentBatchId': MOCK_CURRENT_BATCH_ID,
+            'processedBatchIds': [MOCK_BATCH_ID],
+        }
+
+        resp = process_settled_transactions(event, self.mock_context)
+
+        # Verify that the same start/end times are persisted in the response
+        self.assertEqual(first_iteration_start_time, resp['startTime'])
+        self.assertEqual(first_iteration_end_time, resp['endTime'])
+
+        # Verify that get_settled_transactions was called with the persisted times
+        mock_purchase_client = mock_purchase_client_constructor.return_value
+        # Get the second call (index 1) since we made two calls
+        second_call_kwargs = mock_purchase_client.get_settled_transactions.call_args_list[1].kwargs
+        self.assertEqual(first_iteration_start_time, second_call_kwargs['start_time'])
+        self.assertEqual(first_iteration_end_time, second_call_kwargs['end_time'])
