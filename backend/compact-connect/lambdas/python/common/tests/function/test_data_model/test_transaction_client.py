@@ -260,6 +260,61 @@ class TestTransactionClient(TstFunction):
             [transaction['transactionId'] for transaction in response['Items']],
         )  # Two unmatched transactions remain
 
+    @patch('cc_common.data_model.transaction_client.logger')
+    def test_reconcile_unsettled_transactions_logs_error_when_settled_transactions_not_matched(
+        self, mock_logger
+    ):
+        """
+        Test that reconcile_unsettled_transactions logs an error when settled transactions don't match unsettled ones.
+        """
+        from cc_common.data_model.transaction_client import TransactionClient
+
+        client = TransactionClient(self.config)
+
+        # Create some unsettled transactions
+        compact = 'aslp'
+        transaction_date = datetime.now(UTC).isoformat()
+        client.store_unsettled_transaction(
+            compact=compact, transaction_id='tx-unsettled-1', transaction_date=transaction_date
+        )
+
+        # Create settled transactions - one matches, one doesn't have an unsettled record
+        settled_transactions = [
+            self.test_data_generator.generate_default_transaction(
+                {
+                    'transactionId': 'tx-unsettled-1',
+                    'compact': compact,
+                }
+            ),
+            self.test_data_generator.generate_default_transaction(
+                {
+                    'transactionId': 'tx-settled-without-unsettled',
+                    'compact': compact,
+                }
+            ),
+        ]
+
+        result = client.reconcile_unsettled_transactions(compact=compact, settled_transactions=settled_transactions)
+
+        # Verify logger.error was called with the expected message
+        mock_logger.error.assert_called_once()
+        call_args = mock_logger.error.call_args
+        self.assertEqual(
+            'Unable to reconcile some transactions from Authorize.Net with our unsettled transactions',
+            call_args[0][0],
+        )
+        self.assertEqual({'tx-settled-without-unsettled'}, call_args[1]['unreconciled_transactions'])
+
+        # Verify the method still returns correctly (old unsettled transactions)
+        self.assertEqual([], result)
+
+        # Verify matched unsettled transaction was deleted
+        pk = f'COMPACT#{compact}#UNSETTLED_TRANSACTIONS'
+        response = self._transaction_history_table.query(
+            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
+        )
+        self.assertEqual(0, len(response['Items']))
+
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-15T12:00:00+00:00'))
     def test_get_most_recent_transaction_for_compact_finds_in_current_month(self):
         """Test that get_most_recent_transaction_for_compact finds the most recent transaction in the current month"""

@@ -370,6 +370,16 @@ class TransactionClient:
         cutoff_time = datetime.now(UTC) - timedelta(hours=48)
         old_unsettled_transactions = []
 
+        # We expect that all transactions we process from Authorize.net will match a record we have already
+        # created at the time of purchase, as an unsettled transaction. Any mismatch is an error.
+        matched_unsettled_transaction_ids = {tx['transactionId'] for tx in matched_unsettled}
+        unmatched_settled_transaction_ids = settled_transaction_ids - matched_unsettled_transaction_ids
+        if unmatched_settled_transaction_ids:
+            logger.error(
+                'Unable to reconcile some transactions from Authorize.Net with our unsettled transactions',
+                unreconciled_transactions=unmatched_settled_transaction_ids
+            )
+
         for unsettled_tx in unmatched_unsettled:
             transaction_date = datetime.fromisoformat(unsettled_tx['transactionDate'])
             if transaction_date < cutoff_time:

@@ -84,7 +84,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             # We should make some noise if we can't find any transactions, but it's also an expected state for a compact
             # that just went live, so we do need to be able to collect our first batch after launch. If we're in this
             # state we'll log an error and collect what we can.
-            logger.error('Failed to find transactions for compact', compact=compact, exc_info=e)
+            logger.warning('Failed to find transactions for compact', compact=compact, exc_info=e)
             most_recent_settlement = oldest_allowed_start
         start_time = max(most_recent_settlement, oldest_allowed_start)
 
