@@ -315,7 +315,7 @@ class TransactionClient:
                 'Deleting matched unsettled transactions',
                 compact=compact,
                 count=len(matched_unsettled),
-                settled_transaction_ids=settled_transaction_ids
+                settled_transaction_ids=settled_transaction_ids,
             )
             with self.config.transaction_history_table.batch_writer() as batch:
                 for tx in matched_unsettled:

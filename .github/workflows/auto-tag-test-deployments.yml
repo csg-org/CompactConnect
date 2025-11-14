@@ -1,0 +1,55 @@
+name: Auto-Tag Test Deployments
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  contents: write  # Required to create tags
+
+jobs:
+  AutoTag:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Required to push tags
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create CC Test Tag
+        run: |
+          SHORT_SHA=$(git rev-parse --short ${{ github.sha }})
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="cc-test-${TIMESTAMP}-${SHORT_SHA}"
+
+          git tag -a "$TAG_NAME" -m "Auto-generated test deployment tag for compact-connect service (commit: ${{ github.sha }})"
+          git push origin "$TAG_NAME"
+
+          echo "Created tag: $TAG_NAME"
+
+      # We're deploying the backend and UI in parallel here, since that is _usually_ fine. However,
+      # the UI deployment does have some dependencies on the backend, in the form of parameters like
+      # S3 bucket urls, cognito domains, etc. If those change, or if new parameters are introduced,
+      # the UI deploy will probably not be valid due to the race-condition here. This is only a test
+      # environment, so a small interruption is acceptable. Someone will just need to create a UI test
+      # tag manually after the backend deployment completes, to resolve the dependency.
+      - name: Create UI Test Tag
+        run: |
+          SHORT_SHA=$(git rev-parse --short ${{ github.sha }})
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="ui-test-${TIMESTAMP}-${SHORT_SHA}"
+
+          git tag -a "$TAG_NAME" -m "Auto-generated test deployment tag for compact-connect-ui-app service (commit: ${{ github.sha }})"
+          git push origin "$TAG_NAME"
+
+          echo "Created tag: $TAG_NAME"

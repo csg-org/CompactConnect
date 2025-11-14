@@ -283,10 +283,18 @@ there on, the pipelines should integrate as designed.
 
 Once the pipelines are established with the above steps, deployments will be automatically handled:
 
-- Pushes to the `development` branch will trigger the test backend pipeline, which will then trigger the test frontend
-  pipeline
-- Pushes to the `main` branch will trigger both the beta and production backend pipelines, which will then trigger
-  their respective frontend pipelines.
+- Tags pushed with the pattern, `cc-test-*` will trigger the backend `test` pipeline to deploy
+- Tags pushed with the pattern, `cc-prod-*` will trigger the backend `beta` and `prod` pipelines to deploy
+
+> *Note:* The frontend app has dependencies on the backend, in the form of parameters like
+> S3 bucket urls, cognito domains, etc. If those change, you will need to explicitly plan
+> the deploys so that the backend completes before the frontend starts to resolve the dependency.
+>
+> Currently, we include a [GitHub Action](../../.github/workflows/auto-tag-test-deployments.yml) that automatically
+> tags all pushed commits to `main` with a `cc-test-*` and `ui-test-*` tag. Because there is no coordination between
+> pipelines for these, now independent, services, they go out in parallel to the `test` environment. If these
+> cross-app dependencies change, you will need to manually create an additional `ui-test-*` tag after the backend
+> deploy completes, to resolve the cross-app dependencies.
 
 ## StatSig Feature Flag Setup
 [Back to top](#compact-connect---backend-developer-documentation)
@@ -388,8 +396,8 @@ together. See the [Route53 FAQs for more](https://aws.amazon.com/route53/faqs/).
 to also configure the domain name registrar (be it AWS or some other vendor) to point to the name servers associated
 with your hosted zone, before the records in the zone will have any effect. When deploying this app, creating a hosted
 zone in the AWS account for the UI and API domains is part of the environment setup. If you use the common approach
-of having your test environments be a subdomain of your production environments (i.e. `compcatconnect.org` for prod
-and `test.compcatconnect.org` for test), you need to delegate nameserver authority from your production hosted zone
+of having your test environments be a subdomain of your production environments (i.e. `compactconnect.org` for prod
+and `test.compactconnect.org` for test), you need to delegate nameserver authority from your production hosted zone
 (`compactconnect.org` in this example) to your test account's hosted zone (`test.compactconnect.org`). To do this, you
 need to create your production hosted zone (`compactconnect.org`) in your production account first, then create your
 test hosted zone (`test.compactconnect.org`) in your test account second, then delegate name server authority to your
@@ -403,9 +411,16 @@ ns-6.awsdns-16.org.
 ```
 
 Copy those name server values and, back in your production hosted zone, create a new NS record that matches the test
-one, with the same value (i.e. Record Name: `test.compcatconnect.org`, Type: `NS`, Value: `<same as above>`). Once that
+one, with the same value (i.e. Record Name: `test.compactconnect.org`, Type: `NS`, Value: `<same as above>`). Once that
 is done, your test hosted zone is ready for use by the app. You will need to perform this action for your beta
 environment as well, should you choose to deploy one.
+
+> [!WARNING]
+> Additionally, If you are setting up a Route53 HostedZone, you need to add an A record at your environment's HostedZone's
+> base domain (i.e. `compactconnect.org` for prod and `test.compactconnect.org` for test) if there is not one already
+> there. The target of the A record is actually not important, we simply need an A record at the base domain to
+> prove that we own it. This is necessary to create auth subdomains for the user pools. We have been pointing the A record
+> at the ip of compactconnect.org, which can be obtained by running the command `dig compactconnect.org +short`
 
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)

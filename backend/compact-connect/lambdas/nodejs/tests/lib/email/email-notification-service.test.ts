@@ -48,10 +48,6 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
 
-interface MockMailResponse {
-    messageId: string;
-}
-
 const MOCK_TRANSPORT = {
     sendMail: jest.fn().mockImplementation(async () => ({ messageId: 'test-message-id' }))
 };

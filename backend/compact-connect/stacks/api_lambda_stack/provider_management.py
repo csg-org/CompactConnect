@@ -31,11 +31,11 @@ class ProviderManagementLambdas:
         self.stack: Stack = Stack.of(scope)
         lambda_environment = {
             'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+            'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
             'PROV_DATE_OF_UPDATE_INDEX_NAME': persistent_stack.provider_table.provider_date_of_update_index_name,
             'SSN_TABLE_NAME': persistent_stack.ssn_table.table_name,
             'SSN_INDEX_NAME': persistent_stack.ssn_table.ssn_index_name,
-            'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
@@ -45,6 +45,8 @@ class ProviderManagementLambdas:
         }
 
         # Create all the lambda handlers
+        self.provider_investigation_handler = self._create_provider_investigation_handler(lambda_environment)
+        api_lambda_stack.log_groups.append(self.provider_investigation_handler.log_group)
         self.get_provider_handler = self._get_provider_handler(lambda_environment)
         api_lambda_stack.log_groups.append(self.get_provider_handler.log_group)
         self.query_providers_handler = self._query_providers_handler(lambda_environment)
@@ -55,6 +57,38 @@ class ProviderManagementLambdas:
         api_lambda_stack.log_groups.append(self.deactivate_privilege_handler.log_group)
         self.provider_encumbrance_handler = self._add_provider_encumbrance_handler(lambda_environment)
         api_lambda_stack.log_groups.append(self.provider_encumbrance_handler.log_group)
+
+    def _create_provider_investigation_handler(self, lambda_environment: dict) -> PythonFunction:
+        """Create and configure the Lambda handler for investigating a provider's privilege or license."""
+        handler = PythonFunction(
+            self.scope,
+            'ProviderInvestigationHandler',
+            description='Provider investigation handler',
+            lambda_dir='provider-data-v1',
+            index=os.path.join('handlers', 'investigation.py'),
+            handler='investigation_handler',
+            environment=lambda_environment,
+            alarm_topic=self.persistent_stack.alarm_topic,
+        )
+
+        # Grant necessary permissions
+        self.persistent_stack.provider_table.grant_read_write_data(handler)
+        self.persistent_stack.staff_users.user_table.grant_read_data(handler)
+        self.data_event_bus.grant_put_events_to(handler)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                    'and is scoped to tables and an event bus.',
+                },
+            ],
+        )
+
+        return handler
 
     def _get_provider_handler(
         self,
@@ -333,4 +367,5 @@ class ProviderManagementLambdas:
                 },
             ],
         )
+
         return handler

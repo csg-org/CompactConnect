@@ -6,12 +6,17 @@ from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum, Priv
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
-from cc_common.email_service_client import EncumbranceNotificationTemplateVariables, ProviderNotificationMethod
+from cc_common.email_service_client import (
+    EncumbranceNotificationTemplateVariables,
+    JurisdictionNotificationMethod,
+    ProviderNotificationMethod,
+)
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.event_bus_client import EventBusClient
+from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
 from cc_common.exceptions import CCInternalException
 from cc_common.license_util import LicenseUtility
-from cc_common.utils import sqs_handler
+from cc_common.utils import sqs_handler, sqs_handler_with_notification_tracking
 
 
 def _get_license_type_name(compact: str, license_type_abbreviation: str) -> str:
@@ -52,48 +57,81 @@ def _send_provider_notification(
     *,
     provider_record: ProviderData,
     compact: str,
+    provider_id: UUID,
+    event_type: EventType,
+    event_time: str,
+    tracker: NotificationTracker,
     **notification_kwargs,
 ) -> None:
     """
-    Send notification to provider if they are registered.
+    Send notification to provider if they are registered and not already sent.
 
-    :param provider_record: The provider record
     :param notification_method: The email service method to call
     :param notification_type: Type of notification for logging
+    :param provider_record: The provider record
     :param compact: The compact identifier
+    :param provider_id: The provider ID
+    :param event_type: Event type (e.g., 'license.encumbrance')
+    :param event_time: Event timestamp
+    :param tracker: NotificationTracker instance for idempotency
     :param notification_kwargs: Additional arguments for the notification method
     """
     provider_email = provider_record.compactConnectRegisteredEmailAddress
     if provider_email:
-        logger.info(f'Sending {notification_type} notification to provider', provider_email=provider_email)
-        try:
-            notification_method(
-                compact=compact,
-                provider_email=provider_email,
-                template_variables=EncumbranceNotificationTemplateVariables(
-                    provider_first_name=provider_record.givenName,
-                    provider_last_name=provider_record.familyName,
-                    **notification_kwargs,
-                ),
-            )
-        except Exception as e:
-            logger.error('Failed to send provider notification', exception=str(e))
-            raise
+        if tracker.should_send_provider_notification():
+            logger.info(f'Sending {notification_type} notification to provider', provider_id=provider_id)
+            try:
+                notification_method(
+                    compact=compact,
+                    provider_email=provider_email,
+                    template_variables=EncumbranceNotificationTemplateVariables(
+                        provider_first_name=provider_record.givenName,
+                        provider_last_name=provider_record.familyName,
+                        **notification_kwargs,
+                    ),
+                )
+                logger.info(
+                    'Successfully called email service client for provider notification. Calling Notification Tracker.',
+                    provider_id=provider_id,
+                    event_type=event_type,
+                )
+                tracker.record_success(
+                    recipient_type=RecipientType.PROVIDER,
+                    provider_id=provider_id,
+                    event_type=event_type,
+                    event_time=event_time,
+                )
+            except Exception as e:
+                logger.error('Failed to send provider notification', exception=str(e))
+                tracker.record_failure(
+                    recipient_type=RecipientType.PROVIDER,
+                    provider_id=provider_id,
+                    event_type=event_type,
+                    event_time=event_time,
+                    error_message=str(e),
+                )
+                raise
+        else:
+            logger.info('Skipping provider notification (already sent successfully)', provider_id=provider_id)
     else:
         logger.info('Provider not registered in system, skipping provider notification')
 
 
 def _send_primary_state_notification(
-    notification_method: ProviderNotificationMethod,
+    notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
     provider_record: ProviderData,
     jurisdiction: str,
     compact: str,
+    event_type: EventType,
+    event_time: str,
+    tracker: NotificationTracker,
+    provider_id: UUID,
     **notification_kwargs,
 ) -> None:
     """
-    Send notification to the primary affected state.
+    Send notification to the primary affected state if not already sent.
 
     :param notification_method: The email service method to call
     :param notification_type: Type of notification for logging
@@ -101,37 +139,70 @@ def _send_primary_state_notification(
     :param provider_id: The provider ID
     :param jurisdiction: The jurisdiction to notify
     :param compact: The compact identifier
+    :param event_type: Event type (e.g., 'license.encumbrance')
+    :param event_time: Event timestamp
+    :param tracker: NotificationTracker instance for idempotency
     :param notification_kwargs: Additional arguments for the notification method
     """
-    logger.info(f'Sending {notification_type} notification to affected state', affected_jurisdiction=jurisdiction)
-    try:
-        notification_method(
-            compact=compact,
-            jurisdiction=jurisdiction,
-            template_variables=EncumbranceNotificationTemplateVariables(
-                provider_first_name=provider_record.givenName,
-                provider_last_name=provider_record.familyName,
-                **notification_kwargs,
-            ),
+    if tracker.should_send_state_notification(jurisdiction):
+        logger.info(f'Sending {notification_type} notification to affected state', affected_jurisdiction=jurisdiction)
+        try:
+            notification_method(
+                compact=compact,
+                jurisdiction=jurisdiction,
+                template_variables=EncumbranceNotificationTemplateVariables(
+                    provider_first_name=provider_record.givenName,
+                    provider_last_name=provider_record.familyName,
+                    provider_id=provider_id,
+                    **notification_kwargs,
+                ),
+            )
+            logger.info(
+                'Successfully called email service client for state notification. Calling Notification Tracker.',
+                provider_id=provider_id,
+                event_type=event_type,
+                jurisdiction=jurisdiction,
+            )
+            tracker.record_success(
+                recipient_type=RecipientType.STATE,
+                provider_id=provider_id,
+                event_type=event_type,
+                event_time=event_time,
+                jurisdiction=jurisdiction,
+            )
+        except Exception as e:
+            logger.error('Failed to send state notification', jurisdiction=jurisdiction, exception=str(e))
+            tracker.record_failure(
+                recipient_type=RecipientType.STATE,
+                provider_id=provider_id,
+                event_type=event_type,
+                event_time=event_time,
+                error_message=str(e),
+                jurisdiction=jurisdiction,
+            )
+            raise
+    else:
+        logger.info(
+            'Skipping primary state notification (already sent successfully)', affected_jurisdiction=jurisdiction
         )
-    except Exception as e:
-        logger.error('Failed to send state notification', jurisdiction=jurisdiction, exception=str(e))
-        raise
 
 
 def _send_additional_state_notifications(
-    notification_method: ProviderNotificationMethod,
+    notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
     provider_records: ProviderUserRecords,
     provider_record: ProviderData,
-    provider_id: UUID,
     excluded_jurisdiction: str,
     compact: str,
+    event_type: EventType,
+    event_time: str,
+    tracker: NotificationTracker,
+    provider_id: UUID,
     **notification_kwargs,
 ) -> None:
     """
-    Send notifications to all other states where the provider has licenses or privileges.
+    Send notifications to all other states where the provider has licenses or privileges, if not already sent.
 
     :param provider_records: The provider records collection
     :param notification_method: The email service method to call
@@ -140,6 +211,9 @@ def _send_additional_state_notifications(
     :param provider_id: The provider ID
     :param excluded_jurisdiction: Jurisdiction to exclude from notifications
     :param compact: The compact identifier
+    :param event_type: Event type (e.g., 'license.encumbrance')
+    :param event_time: Event timestamp
+    :param tracker: NotificationTracker instance for idempotency
     :param notification_kwargs: Additional arguments for the notification method
     """
     # Query provider's records to find all states where they hold or have held licenses or privileges
@@ -163,23 +237,50 @@ def _send_additional_state_notifications(
         **notification_kwargs,
     )
     for notification_jurisdiction in notification_jurisdictions:
-        logger.info(
-            f'Sending {notification_type} notification to other state',
-            notification_jurisdiction=notification_jurisdiction,
-        )
-        try:
-            notification_method(
-                compact=compact,
-                jurisdiction=notification_jurisdiction,
-                template_variables=template_variables,
-            )
-        except Exception as e:
-            logger.error(
-                'Failed to send notification to other state',
+        if tracker.should_send_state_notification(notification_jurisdiction):
+            logger.info(
+                f'Sending {notification_type} notification to other state',
                 notification_jurisdiction=notification_jurisdiction,
-                exception=str(e),
             )
-            raise
+            try:
+                notification_method(
+                    compact=compact,
+                    jurisdiction=notification_jurisdiction,
+                    template_variables=template_variables,
+                )
+                logger.info(
+                    'Successfully called email service client for state notification. Calling Notification Tracker.',
+                    provider_id=provider_id,
+                    event_type=event_type,
+                    jurisdiction=notification_jurisdiction,
+                )
+                tracker.record_success(
+                    recipient_type=RecipientType.STATE,
+                    provider_id=provider_id,
+                    event_type=event_type,
+                    event_time=event_time,
+                    jurisdiction=notification_jurisdiction,
+                )
+            except Exception as e:
+                logger.error(
+                    'Failed to send notification to other state',
+                    notification_jurisdiction=notification_jurisdiction,
+                    exception=str(e),
+                )
+                tracker.record_failure(
+                    recipient_type=RecipientType.STATE,
+                    provider_id=provider_id,
+                    event_type=event_type,
+                    event_time=event_time,
+                    error_message=str(e),
+                    jurisdiction=notification_jurisdiction,
+                )
+                raise
+        else:
+            logger.info(
+                'Skipping additional state notification (already sent successfully)',
+                notification_jurisdiction=notification_jurisdiction,
+            )
 
 
 @sqs_handler
@@ -307,13 +408,14 @@ def license_encumbrance_lifted_listener(message: dict):
         )
 
 
-@sqs_handler
-def privilege_encumbrance_notification_listener(message: dict):
+@sqs_handler_with_notification_tracking
+def privilege_encumbrance_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle privilege encumbrance events by sending notifications.
 
     This handler processes 'privilege.encumbrance' events and sends notifications
     to the affected provider and relevant states.
+    Uses NotificationTracker to ensure idempotent delivery on retries.
     """
     detail_schema = EncumbranceEventDetailSchema()
     detail = detail_schema.load(message['detail'])
@@ -346,6 +448,10 @@ def privilege_encumbrance_notification_listener(message: dict):
             'privilege encumbrance',
             provider_record=provider_record,
             compact=compact,
+            provider_id=provider_id,
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -360,6 +466,9 @@ def privilege_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -374,6 +483,9 @@ def privilege_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -382,13 +494,14 @@ def privilege_encumbrance_notification_listener(message: dict):
         logger.info('Successfully processed privilege encumbrance event')
 
 
-@sqs_handler
-def privilege_encumbrance_lifting_notification_listener(message: dict):
+@sqs_handler_with_notification_tracking
+def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle privilege encumbrance lifting events by sending notifications.
 
     This handler processes 'privilege.encumbranceLifted' events and sends notifications
     to the affected provider and relevant states.
+    Uses NotificationTracker to ensure idempotent delivery on retries.
     """
     detail_schema = EncumbranceEventDetailSchema()
     detail = detail_schema.load(message['detail'])
@@ -419,8 +532,9 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             jurisdiction=jurisdiction, license_abbreviation=license_type_abbreviation
         )
         if target_privilege is None:
-            logger.error('Privilege record not found for lifting event')
-            raise CCInternalException
+            error_message = 'Privilege record not found for lifting event'
+            logger.error(error_message)
+            raise CCInternalException(error_message)
 
         if (
             target_privilege.encumberedStatus is not None
@@ -446,12 +560,12 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
         )
 
         if latest_license_lift_date is None and latest_privilege_lift_date is None:
-            message = (
+            error_message = (
                 'No latest effective lift date found for this privilege record. Records with an unencumbered '
                 'status should have a latest effective lift date'
             )
-            logger.error(message)
-            raise CCInternalException(message)
+            logger.error(error_message)
+            raise CCInternalException(error_message)
         if latest_license_lift_date is None:
             latest_effective_lift_date = latest_privilege_lift_date
         elif latest_privilege_lift_date is None:
@@ -465,6 +579,10 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             'privilege encumbrance lifting',
             provider_record=provider_record,
             compact=compact,
+            provider_id=provider_id,
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,
@@ -479,6 +597,9 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,
@@ -493,6 +614,9 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,
@@ -501,13 +625,14 @@ def privilege_encumbrance_lifting_notification_listener(message: dict):
         logger.info('Successfully processed privilege encumbrance lifting event')
 
 
-@sqs_handler
-def license_encumbrance_notification_listener(message: dict):
+@sqs_handler_with_notification_tracking
+def license_encumbrance_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle license encumbrance events by sending notifications only.
 
     This handler processes 'license.encumbrance' events and sends notifications
     to the affected provider and relevant states. It does NOT perform any data operations.
+    Uses NotificationTracker to ensure idempotent delivery on retries.
     """
     detail_schema = EncumbranceEventDetailSchema()
     detail = detail_schema.load(message['detail'])
@@ -540,6 +665,10 @@ def license_encumbrance_notification_listener(message: dict):
             'license encumbrance',
             provider_record=provider_record,
             compact=compact,
+            provider_id=provider_id,
+            event_type=EventType.LICENSE_ENCUMBRANCE,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -554,6 +683,9 @@ def license_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.LICENSE_ENCUMBRANCE,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -568,6 +700,9 @@ def license_encumbrance_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.LICENSE_ENCUMBRANCE,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -576,13 +711,14 @@ def license_encumbrance_notification_listener(message: dict):
         logger.info('Successfully processed license encumbrance notification event')
 
 
-@sqs_handler
-def license_encumbrance_lifting_notification_listener(message: dict):
+@sqs_handler_with_notification_tracking
+def license_encumbrance_lifting_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle license encumbrance lifting events by sending notifications only.
 
     This handler processes 'license.encumbranceLifted' events and sends notifications
     to the affected provider and relevant states. It does NOT perform any data operations.
+    Uses NotificationTracker to ensure idempotent delivery on retries.
     """
     detail_schema = EncumbranceEventDetailSchema()
     detail = detail_schema.load(message['detail'])
@@ -613,9 +749,9 @@ def license_encumbrance_lifting_notification_listener(message: dict):
         )
 
         if target_license is None:
-            message = 'License record not found for lifting event'
-            logger.error(message)
-            raise CCInternalException(message)
+            error_message = 'License record not found for lifting event'
+            logger.error(error_message)
+            raise CCInternalException(error_message)
 
         if (
             target_license.encumberedStatus is not None
@@ -640,6 +776,10 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             'license encumbrance lifting',
             provider_record=provider_record,
             compact=compact,
+            provider_id=provider_id,
+            event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,
@@ -654,6 +794,9 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,
@@ -668,6 +811,9 @@ def license_encumbrance_lifting_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
+            event_time=event_time,
+            tracker=tracker,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,

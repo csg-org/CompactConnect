@@ -16,17 +16,20 @@ from cc_common.data_model.schema.common import (
     ChangeHashMixin,
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
+    UpdateCategory,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
+    InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
     LicenseEncumberedStatusField,
     NationalProviderIdentifier,
     UpdateType,
 )
+from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
 
 
@@ -52,6 +55,8 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
 
     # optional field for setting encumbrance status
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
+    # optional field for setting investigation status
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
     # Persisted values
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -160,6 +165,8 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
+    encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('licenseUpdate')
@@ -187,6 +194,8 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     effectiveDate = DateTime(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(LicenseUpdateRecordPreviousSchema(partial=True), required=True, allow_none=False)
+    # optional field that is only included if the update was an investigation
+    investigationDetails = Nested(InvestigationDetailsSchema(), required=False, allow_none=False)
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
 
@@ -215,3 +224,13 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+
+    @validates_schema
+    def validate_investigation_details_present_if_investigation_status_updated(self, data, **kwargs):  # noqa: ARG002
+        """
+        Require investigationDetails whenever update type is investigation
+        """
+        if data['updateType'] == UpdateCategory.INVESTIGATION and not data.get('investigationDetails'):
+            raise ValidationError(
+                {'investigationDetails': ['This field is required when update was investigation type']}
+            )

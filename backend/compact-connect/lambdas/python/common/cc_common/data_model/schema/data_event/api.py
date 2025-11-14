@@ -54,6 +54,15 @@ class EncumbranceEventDetailSchema(DataEventDetailBaseSchema):
     adverseActionCategory = String(required=False, allow_none=False)
 
 
+class InvestigationEventDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    investigationId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    investigationAgainst = String(required=True, allow_none=False)
+    # Only present for investigationClosed events with encumbrance
+    adverseActionId = UUID(required=False, allow_none=False)
+
+
 class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)

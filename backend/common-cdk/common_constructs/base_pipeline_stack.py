@@ -73,18 +73,6 @@ class BasePipelineStack(Stack):
         self.backup_config = self.ssm_context.get('backup_config', {})
         self.app_name = self.ssm_context['app_name']
 
-    def _get_predictable_role_name(self, pipeline_type: str, role_type: str) -> str:
-        """Generate predictable role name for bootstrap template integration.
-
-        :param pipeline_type: 'Backend' or 'Frontend'
-        :param role_type: 'Synth', 'SelfMutation', 'AssetPublishing', 'Deploy'
-        :return: Predictable role name following pattern: CompactConnect-{env}-{pipeline}-{role}Role
-        """
-        if self.environment_name not in ALLOWED_ENVIRONMENT_NAMES:
-            raise ValueError(f'Environment name must be one of {ALLOWED_ENVIRONMENT_NAMES}')
-
-        return f'CompactConnect-{self.environment_name}-{pipeline_type}-{role_type}Role'
-
     def create_predictable_pipeline_role(self, pipeline_type: CCPipelineType) -> Role:
         """Create a predictable cross-account role that will be trusted by bootstrap roles.
 
@@ -122,21 +110,4 @@ class BasePipelineStack(Stack):
                     ),
                 ],
             ),
-        )
-
-    def _get_frontend_pipeline_name(self):
-        if self.environment_name not in ALLOWED_ENVIRONMENT_NAMES:
-            raise ValueError(f'Environment name must be one of {ALLOWED_ENVIRONMENT_NAMES}')
-
-        return f'{self.environment_name}-compactConnect-frontendPipeline'
-
-    def _get_frontend_pipeline_arn(self):
-        pipeline_name = self._get_frontend_pipeline_name()
-
-        return self.format_arn(
-            partition=self.partition,
-            service='codepipeline',
-            region=self.env.region,
-            account=self.env.account,
-            resource=pipeline_name,
         )

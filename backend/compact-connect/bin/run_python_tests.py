@@ -30,10 +30,11 @@ TEST_DIRS = (
     'lambdas/python/disaster-recovery',
     'lambdas/python/migration',
     'lambdas/python/provider-data-v1',
-    'lambdas/python/purchases',
     'lambdas/python/staff-user-pre-token',
     'lambdas/python/staff-users',
     '.',  # CDK tests
+    # Save Authorize.net tests for last, since special dependencies make that runtime different
+    'lambdas/python/purchases',
 )
 
 

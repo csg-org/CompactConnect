@@ -411,31 +411,7 @@ class ApiModel:
         self.api._v1_post_privilege_encumbrance_request_model = self.api.add_model(
             'V1PostPrivilegeEncumbranceRequestModel',
             description='Post privilege encumbrance request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType'],
-                properties={
-                    'encumbranceEffectiveDate': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The effective date of the encumbrance',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'encumbranceType': self._encumbrance_type_schema,
-                    # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
-                    'clinicalPrivilegeActionCategory': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='(Deprecated) The category of clinical privilege action. '
-                        'Use clinicalPrivilegeActionCategories instead.',
-                    ),
-                    'clinicalPrivilegeActionCategories': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='The categories of clinical privilege action',
-                        items=JsonSchema(type=JsonSchemaType.STRING),
-                    ),
-                },
-            ),
+            schema=self._encumbrance_request_schema,
         )
 
         return self.api._v1_post_privilege_encumbrance_request_model
@@ -448,31 +424,7 @@ class ApiModel:
         self.api._v1_post_license_encumbrance_request_model = self.api.add_model(
             'V1PostLicenseEncumbranceRequestModel',
             description='Post license encumbrance request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['encumbranceEffectiveDate', 'encumbranceType'],
-                properties={
-                    'encumbranceEffectiveDate': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The effective date of the encumbrance',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'encumbranceType': self._encumbrance_type_schema,
-                    # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
-                    'clinicalPrivilegeActionCategory': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='(Deprecated) The category of clinical privilege action. '
-                        'Use clinicalPrivilegeActionCategories instead.',
-                    ),
-                    'clinicalPrivilegeActionCategories': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='The categories of clinical privilege action',
-                        items=JsonSchema(type=JsonSchemaType.STRING),
-                    ),
-                },
-            ),
+            schema=self._encumbrance_request_schema,
         )
 
         return self.api._v1_post_license_encumbrance_request_model
@@ -607,8 +559,7 @@ class ApiModel:
                     'dateOfUpdate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The date the document was last updated',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
+                        format='date-time',
                     ),
                     'documentUploadFields': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -1077,8 +1028,7 @@ class ApiModel:
                             'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                             'dateOfUpdate': JsonSchema(
                                 type=JsonSchemaType.STRING,
-                                format='date',
-                                pattern=cc_api.YMD_FORMAT,
+                                format='date-time',
                             ),
                             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                             'compactEligibility': JsonSchema(
@@ -1116,9 +1066,7 @@ class ApiModel:
                                         'licenseType': JsonSchema(
                                             type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'previous': JsonSchema(
                                             type=JsonSchemaType.OBJECT,
                                             required=[
@@ -1210,9 +1158,7 @@ class ApiModel:
                                         'effectiveLiftDate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                                         # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
@@ -1224,6 +1170,15 @@ class ApiModel:
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
+                            ),
+                            'investigations': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=self._investigation_schema,
+                            ),
+                            'investigationStatus': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['underInvestigation'],
+                                description='Status indicating if the license is under investigation',
                             ),
                             **self._common_license_properties,
                         },
@@ -1277,9 +1232,7 @@ class ApiModel:
                                         'licenseType': JsonSchema(
                                             type=JsonSchemaType.STRING, enum=self.stack.license_type_names
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'previous': JsonSchema(
                                             type=JsonSchemaType.OBJECT,
                                             required=[
@@ -1351,9 +1304,7 @@ class ApiModel:
                                         'effectiveLiftDate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
-                                        'dateOfUpdate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
+                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                                         # TODO - remove this after migrating to list field # noqa: FIX002
                                         'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
@@ -1365,6 +1316,15 @@ class ApiModel:
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
+                            ),
+                            'investigations': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=self._investigation_schema,
+                            ),
+                            'investigationStatus': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['underInvestigation'],
+                                description='Status indicating if the privilege is under investigation',
                             ),
                             **self._common_privilege_properties,
                         },
@@ -1386,9 +1346,7 @@ class ApiModel:
                         ],
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['militaryAffiliation']),
-                            'dateOfUpdate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
+                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
                             'compact': JsonSchema(
                                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
@@ -1444,6 +1402,37 @@ class ApiModel:
         )
 
     @property
+    def _encumbrance_request_schema(self) -> JsonSchema:
+        """Common schema for encumbrance request data used in both POST and PATCH investigation endpoints"""
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            description='Encumbrance data to create',
+            additional_properties=False,
+            # TODO - add clinicalPrivilegeActionCategories after migrating  # noqa: FIX002
+            required=['encumbranceEffectiveDate', 'encumbranceType'],
+            properties={
+                'encumbranceEffectiveDate': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='The effective date of the encumbrance',
+                    format='date',
+                    pattern=cc_api.YMD_FORMAT,
+                ),
+                'encumbranceType': self._encumbrance_type_schema,
+                # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
+                'clinicalPrivilegeActionCategory': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='(Deprecated) The category of clinical privilege action. '
+                    'Use clinicalPrivilegeActionCategories instead.',
+                ),
+                'clinicalPrivilegeActionCategories': JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    description='The categories of clinical privilege action',
+                    items=JsonSchema(type=JsonSchemaType.STRING),
+                ),
+            },
+        )
+
+    @property
     def _encumbrance_type_schema(self) -> JsonSchema:
         """Common schema for encumbrance type field"""
         return JsonSchema(
@@ -1466,6 +1455,38 @@ class ApiModel:
                 'other monitoring',
                 'other adjudicated action not listed',
             ],
+        )
+
+    @property
+    def _investigation_schema(self) -> JsonSchema:
+        """Common schema for investigation objects"""
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'type',
+                'compact',
+                'providerId',
+                'investigationId',
+                'jurisdiction',
+                'licenseType',
+                'dateOfUpdate',
+                'creationDate',
+                'submittingUser',
+            ],
+            properties={
+                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['investigation']),
+                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'investigationId': JsonSchema(type=JsonSchemaType.STRING),
+                'jurisdiction': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=self.stack.node.get_context('jurisdictions'),
+                ),
+                'licenseType': JsonSchema(type=JsonSchemaType.STRING),
+                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                'submittingUser': JsonSchema(type=JsonSchemaType.STRING),
+            },
         )
 
     @property
@@ -1542,7 +1563,7 @@ class ApiModel:
                 max_length=100,
             ),
             'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
 
     @property
@@ -1555,7 +1576,7 @@ class ApiModel:
             'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
             'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
             'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
             'licenseJurisdiction': JsonSchema(
@@ -2329,15 +2350,11 @@ class ApiModel:
                             properties={
                                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
                                 'updateType': self._update_type_schema,
-                                'dateOfUpdate': JsonSchema(
-                                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                ),
+                                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                 'effectiveDate': JsonSchema(
                                     type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                 ),
-                                'createDate': JsonSchema(
-                                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                ),
+                                'createDate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                 'note': JsonSchema(type=JsonSchemaType.STRING),
                             },
                         ),
@@ -2445,7 +2462,7 @@ class ApiModel:
                 'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
@@ -2474,9 +2491,7 @@ class ApiModel:
                                 enum=stack.node.get_context('jurisdictions'),
                             ),
                             'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
-                            'dateOfUpdate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
+                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                             'previous': JsonSchema(
                                 type=JsonSchemaType.OBJECT,
                                 required=[
@@ -2501,9 +2516,7 @@ class ApiModel:
                                     'dateOfRenewal': JsonSchema(
                                         type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                     ),
-                                    'dateOfUpdate': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
+                                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                     'licenseJurisdiction': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         enum=stack.node.get_context('jurisdictions'),
@@ -2526,9 +2539,7 @@ class ApiModel:
                                     'dateOfRenewal': JsonSchema(
                                         type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                     ),
-                                    'dateOfUpdate': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
+                                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                     'licenseJurisdiction': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         enum=stack.node.get_context('jurisdictions'),
@@ -2576,9 +2587,7 @@ class ApiModel:
                             'effectiveLiftDate': JsonSchema(
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
-                            'dateOfUpdate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
+                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                         },
                     ),
                 ),
@@ -2701,7 +2710,7 @@ class ApiModel:
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             ),
             'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
 
     @property
@@ -2809,3 +2818,67 @@ class ApiModel:
             ),
         )
         return self.api._v1_check_feature_flag_response_model
+
+    @property
+    def post_privilege_investigation_request_model(self) -> Model:
+        """POST privilege investigation request model"""
+        if not hasattr(self.api, '_v1_post_privilege_investigation_request_model'):
+            self.api._v1_post_privilege_investigation_request_model = self.api.add_model(
+                'V1PostPrivilegeInvestigationRequestModel',
+                description='Post privilege investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={},
+                ),
+            )
+        return self.api._v1_post_privilege_investigation_request_model
+
+    @property
+    def post_license_investigation_request_model(self) -> Model:
+        """POST license investigation request model"""
+        if not hasattr(self.api, '_v1_post_license_investigation_request_model'):
+            self.api._v1_post_license_investigation_request_model = self.api.add_model(
+                'V1PostLicenseInvestigationRequestModel',
+                description='Post license investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={},
+                ),
+            )
+        return self.api._v1_post_license_investigation_request_model
+
+    @property
+    def patch_privilege_investigation_request_model(self) -> Model:
+        """PATCH privilege investigation request model"""
+        if not hasattr(self.api, '_v1_patch_privilege_investigation_request_model'):
+            self.api._v1_patch_privilege_investigation_request_model = self.api.add_model(
+                'V1PatchPrivilegeInvestigationRequestModel',
+                description='Patch privilege investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    required=['action'],
+                    properties={
+                        'action': JsonSchema(type=JsonSchemaType.STRING, enum=['close']),
+                        'encumbrance': self._encumbrance_request_schema,
+                    },
+                ),
+            )
+        return self.api._v1_patch_privilege_investigation_request_model
+
+    @property
+    def patch_license_investigation_request_model(self) -> Model:
+        """PATCH license investigation request model"""
+        if not hasattr(self.api, '_v1_patch_license_investigation_request_model'):
+            self.api._v1_patch_license_investigation_request_model = self.api.add_model(
+                'V1PatchLicenseInvestigationRequestModel',
+                description='Patch license investigation request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    required=['action'],
+                    properties={
+                        'action': JsonSchema(type=JsonSchemaType.STRING, enum=['close']),
+                        'encumbrance': self._encumbrance_request_schema,
+                    },
+                ),
+            )
+        return self.api._v1_patch_license_investigation_request_model

@@ -1,10 +1,7 @@
 from aws_cdk import Environment, RemovalPolicy
-from aws_cdk.aws_iam import Effect, PolicyDocument, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_sns import ITopic
-from aws_cdk.pipelines import CodeBuildStep
-from cdk_nag import NagSuppressions
 from common_constructs.base_pipeline_stack import (
     ALLOWED_ENVIRONMENT_NAMES,
     BETA_ENVIRONMENT_NAME,
@@ -93,65 +90,9 @@ class BaseBackendPipelineStack(BasePipelineStack):
             backup_config=self.backup_config,
         )
 
-    def _generate_frontend_pipeline_trigger_step(self):
-        """
-        Creates a CodeBuild step that triggers the frontend pipeline after backend deployment completes.
-
-        This is a critical part of the deployment orchestration:
-        1. The backend pipeline creates necessary infrastructure
-        2. This step executes after successful backend deployment
-        3. It uses AWS CLI to trigger the frontend pipeline
-        4. The frontend pipeline then deploys UI components that depend on backend resources
-
-        The step uses a dedicated IAM role with permission to start the frontend pipeline execution.
-        Pipeline names are determined through convention rather than direct CDK references to
-        avoid circular dependencies during synthesis.
-        """
-        # create a role with the needed permission to trigger the frontend pipeline
-        trigger_frontend_pipeline_role = Role(
-            self,
-            'TriggerFrontendPipelineRole',
-            assumed_by=ServicePrincipal('codebuild.amazonaws.com'),
-            inline_policies={
-                'TriggerFrontendPipelinePolicy': PolicyDocument(
-                    statements=[
-                        PolicyStatement(
-                            effect=Effect.ALLOW,
-                            actions=['codepipeline:StartPipelineExecution'],
-                            resources=[self._get_frontend_pipeline_arn()],
-                        )
-                    ]
-                )
-            },
-        )
-        return CodeBuildStep(
-            'TriggerFrontendPipeline',
-            commands=[f'aws codepipeline start-pipeline-execution --name {self._get_frontend_pipeline_name()}'],
-            role=trigger_frontend_pipeline_role,
-        )
-
-    def _add_nag_suppressions_for_trigger_pipeline_step_role(self, trigger_pipeline_step: CodeBuildStep):
-        """
-        This method must be called after the pipeline is built, else it results in an error as the role does
-        not exist until then.
-        """
-        # add cdk nag suppressions for the role
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{trigger_pipeline_step.role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """This policy contains wild-carded actions set by CDK to access the needed artifacts and
-                                      pipeline resources as part of deployment.
-                                      """,
-                },
-            ],
-        )
-
 
 class TestBackendPipelineStack(BaseBackendPipelineStack):
-    """Pipeline stack for the test backend environment, triggered by the development branch."""
+    """Pipeline stack for the test backend environment"""
 
     def __init__(
         self,
@@ -173,9 +114,6 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             **kwargs,
         )
 
-        # Allows us to override the default branching scheme for the test environment, via context variable
-        pre_prod_trigger_branch = self.pipeline_environment_context.get('pre_prod_trigger_branch', 'development')
-
         self.pre_prod_pipeline = BackendPipeline(
             self,
             'TestBackendPipeline',
@@ -183,7 +121,7 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch=pre_prod_trigger_branch,
+            git_tag_trigger_pattern='cc-test-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -203,13 +141,9 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             environment_context=self.ssm_context['environments'][TEST_ENVIRONMENT_NAME],
         )
 
-        # Add a post step to trigger the frontend pipeline
-        trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
-        self.pre_prod_pipeline.add_stage(self.test_stage, post=[trigger_frontend_pipeline_step])
+        self.pre_prod_pipeline.add_stage(self.test_stage)
         self.pre_prod_pipeline.build_pipeline()
         self._add_pipeline_cdk_assume_role_policy(self.pre_prod_pipeline)
-        # the following must be called after the pipeline is built
-        self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
 
 
 class BetaBackendPipelineStack(BaseBackendPipelineStack):
@@ -242,7 +176,9 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch='main',
+            # We will explicitly tie beta deploys to the production tag, because we always want the
+            # beta environment code to mirror production.
+            git_tag_trigger_pattern='cc-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -262,13 +198,10 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             environment_context=self.ssm_context['environments'][BETA_ENVIRONMENT_NAME],
         )
 
-        # Add a post step to trigger the frontend pipeline
-        trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
-        self.beta_backend_pipeline.add_stage(self.beta_backend_stage, post=[trigger_frontend_pipeline_step])
+        self.beta_backend_pipeline.add_stage(self.beta_backend_stage)
         self.beta_backend_pipeline.build_pipeline()
         # the following must be called after the pipeline is built
         self._add_pipeline_cdk_assume_role_policy(self.beta_backend_pipeline)
-        self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)
 
 
 class ProdBackendPipelineStack(BaseBackendPipelineStack):
@@ -304,7 +237,7 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            trigger_branch='main',
+            git_tag_trigger_pattern='cc-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -324,10 +257,7 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             environment_context=self.ssm_context['environments'][PROD_ENVIRONMENT_NAME],
         )
 
-        # Add a post step to trigger the frontend pipeline
-        trigger_frontend_pipeline_step = self._generate_frontend_pipeline_trigger_step()
-        self.prod_pipeline.add_stage(self.prod_stage, post=[trigger_frontend_pipeline_step])
+        self.prod_pipeline.add_stage(self.prod_stage)
         self.prod_pipeline.build_pipeline()
         # the following must be called after the pipeline is built
         self._add_pipeline_cdk_assume_role_policy(self.prod_pipeline)
-        self._add_nag_suppressions_for_trigger_pipeline_step_role(trigger_frontend_pipeline_step)

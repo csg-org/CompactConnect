@@ -24,17 +24,16 @@ by the backend deploy process.
 
 ### Deployment Resources Stack
 
-- **Deployment Resources Stack**: Shared resources used by all pipeline stacks across all environments
+- **Deployment Resources Stack**: Shared resources used by pipeline stacks across all environments
 - **Environments**: Test, Beta, and Production environments
 
 ## Pipeline Flow
 
-1. GitHub push → Backend Pipeline
-2. Backend Pipeline successful completion → Trigger Frontend Pipeline
-3. Frontend Pipeline deploys web application using configuration values from Backend
-
-Commits pushed to the 'development' branch trigger the test pipelines. Commits pushed to the 'main' branch trigger the
-beta and prod pipelines.
+Commits are pushed to the `main` branch, but no deployments are triggered by commits. Each pipeline has an associated
+git tag pattern, which will trigger the corresponding backend/frontend pipeline to the corresponding environment. The
+patterns are as follows:
+- CompactConnect backend pipeline: `cc-<test|prod>-*`
+- CompactConnect frontend pipeline: `ui-<test|prod>-*`
 
 ## Self-Mutation Feature and Optimization
 

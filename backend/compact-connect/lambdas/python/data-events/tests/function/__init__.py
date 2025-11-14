@@ -30,6 +30,8 @@ class TstFunction(TstLambdas):
 
     def build_resources(self):
         self.create_data_event_table()
+        self.create_rate_limit_table()
+        self.create_event_state_table()
         self.create_provider_table()
 
     def create_data_event_table(self):
@@ -41,6 +43,40 @@ class TstFunction(TstLambdas):
             TableName=os.environ['DATA_EVENT_TABLE_NAME'],
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
             BillingMode='PAY_PER_REQUEST',
+        )
+
+    def create_rate_limit_table(self):
+        self._rate_limit_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['RATE_LIMITING_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
+    def create_event_state_table(self):
+        self._event_state_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerId', 'AttributeType': 'S'},
+                {'AttributeName': 'eventTime', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['EVENT_STATE_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': 'providerId-eventTime-index',
+                    'KeySchema': [
+                        {'AttributeName': 'providerId', 'KeyType': 'HASH'},
+                        {'AttributeName': 'eventTime', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                }
+            ],
         )
 
     def create_provider_table(self):
@@ -86,3 +122,6 @@ class TstFunction(TstLambdas):
 
     def delete_resources(self):
         self._data_event_table.delete()
+        self._rate_limit_table.delete()
+        self._event_state_table.delete()
+        self._provider_table.delete()

@@ -284,19 +284,32 @@ class AdverseActionAgainstEnum(StrEnum):
     LICENSE = 'license'
 
 
+class InvestigationAgainstEnum(StrEnum):
+    """
+    Enum for possible records that investigations can be made against
+    """
+
+    PRIVILEGE = 'privilege'
+    LICENSE = 'license'
+
+
 class UpdateCategory(CCEnum):
     DEACTIVATION = 'deactivation'
     EXPIRATION = 'expiration'
     ISSUANCE = 'issuance'
-    OTHER = 'other'
     RENEWAL = 'renewal'
     ENCUMBRANCE = 'encumbrance'
+    INVESTIGATION = 'investigation'
+    CLOSING_INVESTIGATION = 'closingInvestigation'
     HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
     REGISTRATION = 'registration'
     LIFTING_ENCUMBRANCE = 'lifting_encumbrance'
     # this is specific to privileges that are deactivated due to a state license deactivation
     LICENSE_DEACTIVATION = 'licenseDeactivation'
     EMAIL_CHANGE = 'emailChange'
+    # NOTE: this value should explicitly be used for license upload updates, not anywhere else
+    # it is referenced in the event that an invalid license upload needs to be reverted.
+    LICENSE_UPLOAD_UPDATE_OTHER = 'other'
 
 
 class ActiveInactiveStatus(CCEnum):
@@ -319,6 +332,11 @@ class PrivilegeEncumberedStatusEnum(CCEnum):
     UNENCUMBERED = 'unencumbered'
     # the following status is set whenever the license this privilege is associated with is encumbered
     LICENSE_ENCUMBERED = 'licenseEncumbered'
+
+
+class InvestigationStatusEnum(CCEnum):
+    UNDER_INVESTIGATION = 'underInvestigation'
+    NOT_UNDER_INVESTIGATION = 'notUnderInvestigation'
 
 
 class HomeJurisdictionChangeStatusEnum(CCEnum):

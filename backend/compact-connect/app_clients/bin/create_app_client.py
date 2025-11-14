@@ -301,7 +301,7 @@ expire in 7 days.**
 
 For more information on CompactConnect and how to integrate your state IT system with ours, see the documentation
 here:
-https://github.com/csg-org/CompactConnect/blob/development/backend/compact-connect/docs/it_staff_onboarding_instructions.md
+https://github.com/csg-org/CompactConnect/blob/main/backend/compact-connect/docs/it_staff_onboarding_instructions.md
 """
 
     print('\n' + '=' * 60)

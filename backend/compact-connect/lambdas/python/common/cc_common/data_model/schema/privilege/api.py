@@ -1,14 +1,22 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import Schema
 from marshmallow.fields import List, Nested, Raw, String
-from marshmallow.validate import Length
+from marshmallow.validate import ContainsNoneOf, Length
 
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionGeneralResponseSchema,
     AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
+from cc_common.data_model.schema.common import UpdateCategory
+from cc_common.data_model.schema.fields import (
+    ActiveInactive,
+    Compact,
+    InvestigationStatusField,
+    Jurisdiction,
+    UpdateType,
+)
+from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
 
 class AttestationVersionResponseSchema(Schema):
@@ -68,6 +76,7 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased this privilege
     compactTransactionId = String(required=False, allow_none=False)
@@ -79,6 +88,8 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     # This field shows how long the privilege have been continuously active according to
     # its history
     activeSince = Raw(required=False, allow_none=False)
+    # This field is only set if the privilege is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
 class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
@@ -100,6 +111,7 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased this privilege
     compactTransactionId = String(required=False, allow_none=False)
@@ -111,6 +123,8 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     # This field shows how long the privilege have been continuously active according to
     # its history
     activeSince = Raw(required=False, allow_none=False)
+    # This field is only set if the privilege is under investigation
+    investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=False, allow_none=False)
@@ -153,7 +167,13 @@ class PrivilegeHistoryEventResponseSchema(ForgivingSchema):
     """
 
     type = String(required=True, allow_none=False)
-    updateType = UpdateType(required=True, allow_none=False)
+    # We specifically prohibit returning investigation updates as a backup protection from accidental
+    # disclosure via the API
+    updateType = UpdateType(
+        required=True,
+        allow_none=False,
+        validate=ContainsNoneOf((UpdateCategory.INVESTIGATION, UpdateCategory.CLOSING_INVESTIGATION)),
+    )
     dateOfUpdate = Raw(required=True, allow_none=False)
     effectiveDate = Raw(required=True, allow_none=False)
     createDate = Raw(required=True, allow_none=False)

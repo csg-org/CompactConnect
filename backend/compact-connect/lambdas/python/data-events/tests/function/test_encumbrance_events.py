@@ -1,6 +1,7 @@
 import json
+import uuid
 from datetime import date, datetime, time
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 from uuid import UUID
 
 from boto3.dynamodb.conditions import Key
@@ -56,7 +57,7 @@ class TestEncumbranceEvents(TstFunction):
 
     def _create_sqs_event(self, message):
         """Create a proper SQS event structure with the message in the body."""
-        return {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        return {'Records': [{'messageId': str(uuid.uuid4()), 'body': json.dumps(message)}]}
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_listener_encumbers_unencumbered_privileges_successfully(self, mock_publish_event):
@@ -1304,7 +1305,7 @@ class TestEncumbranceEvents(TstFunction):
         result = privilege_encumbrance_notification_listener(event, self.mock_context)
 
         # Should return batch item failure for the message
-        expected_failure = {'batchItemFailures': [{'itemIdentifier': '123'}]}
+        expected_failure = {'batchItemFailures': [{'itemIdentifier': event['Records'][0]['messageId']}]}
         self.assertEqual(expected_failure, result)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
@@ -1991,7 +1992,7 @@ class TestEncumbranceEvents(TstFunction):
         result = privilege_encumbrance_lifting_notification_listener(event, self.mock_context)
 
         # Should return batch item failure for the message
-        expected_failure = {'batchItemFailures': [{'itemIdentifier': '123'}]}
+        expected_failure = {'batchItemFailures': [{'itemIdentifier': event['Records'][0]['messageId']}]}
         self.assertEqual(expected_failure, result)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
@@ -2227,7 +2228,7 @@ class TestEncumbranceEvents(TstFunction):
         result = license_encumbrance_notification_listener(event, self.mock_context)
 
         # Should return batch item failure for the message
-        expected_failure = {'batchItemFailures': [{'itemIdentifier': '123'}]}
+        expected_failure = {'batchItemFailures': [{'itemIdentifier': event['Records'][0]['messageId']}]}
         self.assertEqual(expected_failure, result)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
@@ -2655,7 +2656,6 @@ class TestEncumbranceEvents(TstFunction):
         for call in calls:
             self.assertEqual(call.kwargs['compact'], DEFAULT_COMPACT)
             self.assertEqual(
-                call.kwargs['template_variables'],
                 EncumbranceNotificationTemplateVariables(
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
@@ -2664,6 +2664,7 @@ class TestEncumbranceEvents(TstFunction):
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
+                call.kwargs['template_variables'],
             )
 
     def test_license_encumbrance_lifting_notification_listener_handles_provider_retrieval_failure(self):
@@ -2678,7 +2679,7 @@ class TestEncumbranceEvents(TstFunction):
         result = license_encumbrance_lifting_notification_listener(event, self.mock_context)
 
         # Should return batch item failure for the message
-        expected_failure = {'batchItemFailures': [{'itemIdentifier': '123'}]}
+        expected_failure = {'batchItemFailures': [{'itemIdentifier': event['Records'][0]['messageId']}]}
         self.assertEqual(expected_failure, result)
 
     @patch(
@@ -3031,3 +3032,120 @@ class TestEncumbranceEvents(TstFunction):
         # Verify NO notifications were sent because license is still encumbered
         mock_provider_email.assert_not_called()
         mock_state_email.assert_not_called()
+
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
+    def test_license_encumbrance_notification_listener_skips_already_sent_notifications_and_retries_failed(
+        self, mock_provider_email, mock_state_email
+    ):
+        """
+        Test that license encumbrance notification listener skips notifications that were already sent successfully
+        and only retries notifications that failed in a previous attempt.
+        """
+        from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
+        from handlers.encumbrance_events import license_encumbrance_notification_listener
+
+        # Set up test data
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ne'})
+        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ky'})
+
+        message = self._generate_license_encumbrance_message()
+        event = self._create_sqs_event(message)
+
+        # mock previous attempt where the notification to ky failed
+        tracker = NotificationTracker(compact=DEFAULT_COMPACT, message_id=event['Records'][0]['messageId'])
+        tracker.record_success(
+            recipient_type=RecipientType.PROVIDER,
+            provider_id=DEFAULT_PROVIDER_ID,
+            event_type=EventType.LICENSE_ENCUMBRANCE,
+            event_time=DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+        )
+        tracker.record_success(
+            recipient_type=RecipientType.STATE,
+            provider_id=DEFAULT_PROVIDER_ID,
+            event_type=EventType.LICENSE_ENCUMBRANCE,
+            event_time=DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            jurisdiction=DEFAULT_LICENSE_JURISDICTION,
+        )
+        tracker.record_success(
+            recipient_type=RecipientType.STATE,
+            provider_id=DEFAULT_PROVIDER_ID,
+            event_type=EventType.LICENSE_ENCUMBRANCE,
+            event_time=DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            jurisdiction='ne',
+        )
+        tracker.record_failure(
+            recipient_type=RecipientType.STATE,
+            provider_id=DEFAULT_PROVIDER_ID,
+            event_type=EventType.LICENSE_ENCUMBRANCE,
+            event_time=DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+            error_message='something failed',
+            jurisdiction='ky',
+        )
+
+        # Execute listener, which should only attempt to send notification to ky
+        license_encumbrance_notification_listener(event, self.mock_context)
+
+        # Re-instantiate tracker to get latest notification attempts
+        updated_tracker = NotificationTracker(compact=DEFAULT_COMPACT, message_id=event['Records'][0]['messageId'])
+
+        notification_records = updated_tracker._attempts  # noqa: SLF001
+
+        # ky should now be SUCCESS
+        self.assertEqual('SUCCESS', notification_records['NOTIFICATION#state#ky']['status'])
+
+        # verify only the email to ky was sent
+        mock_provider_email.assert_not_called()
+        mock_state_email.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            jurisdiction='ky',
+            template_variables=ANY,
+        )
+
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_provider_notification_email')
+    def test_license_encumbrance_notification_listener_creates_notification_events_to_track_successful_notifications(
+        self,
+        mock_provider_email,  # noqa: ARG002
+        mock_state_email,  # noqa: ARG002
+    ):
+        """
+        Test that license encumbrance notification listener stores successful notification events for tracking in the
+        event of handler retries.
+        """
+        from cc_common.event_state_client import NotificationStatus, NotificationTracker
+        from handlers.encumbrance_events import license_encumbrance_notification_listener
+
+        # Set up test data
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ne'})
+        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ky'})
+
+        message = self._generate_license_encumbrance_message()
+        event = self._create_sqs_event(message)
+
+        # Execute
+        license_encumbrance_notification_listener(event, self.mock_context)
+
+        # Re-instantiate tracker to get latest notification attempts
+        updated_tracker = NotificationTracker(compact=DEFAULT_COMPACT, message_id=event['Records'][0]['messageId'])
+
+        notification_records = updated_tracker._attempts  # noqa: SLF001
+
+        expected_sks = [
+            'NOTIFICATION#provider#',
+            'NOTIFICATION#state#ky',
+            'NOTIFICATION#state#ne',
+            'NOTIFICATION#state#oh',
+        ]
+
+        self.assertEqual(expected_sks, list(notification_records.keys()))
+        for sk in expected_sks:
+            self.assertEqual(NotificationStatus.SUCCESS, notification_records.get(sk).get('status'))

@@ -2,7 +2,7 @@ import time
 from datetime import date, datetime
 from datetime import time as dtime
 from urllib.parse import quote
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.conditions import Attr, Key
@@ -23,11 +23,14 @@ from cc_common.data_model.schema.common import (
     CCDataClass,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
+    InvestigationAgainstEnum,
+    InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
+from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.military_affiliation.common import (
@@ -174,7 +177,7 @@ class DataClient:
         self,
         *,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         consistent_read: bool = True,
     ) -> ProviderUserRecords:
         logger.info('Getting provider')
@@ -338,10 +341,6 @@ class DataClient:
         if original_privilege:
             # Copy over the original issuance date and privilege id
             date_of_issuance = original_privilege.dateOfIssuance
-            # TODO: This privilege number copy-over approach has a gap in it, in the event that a  # noqa: FIX002
-            # provider's license type changes. In that event, the privilege id will have the original
-            # license type abbreviation in it, not the new one.
-            # This gap should be closed as part of https://github.com/csg-org/CompactConnect/issues/443.
             privilege_id = original_privilege.privilegeId
         else:
             date_of_issuance = current_datetime
@@ -594,7 +593,7 @@ class DataClient:
                             }
                         }
                     )
-                elif item.get('type') == 'privilege':
+                elif item.get('type') == ProviderRecordType.PRIVILEGE:
                     # For privilege records, check if it was an update or new creation
                     original_privilege = existing_privileges_by_jurisdiction.get(item['jurisdiction'])
                     if original_privilege:
@@ -735,7 +734,7 @@ class DataClient:
         logger.info('Creating military affiliation')
 
         latest_military_affiliation_record = {
-            'type': 'militaryAffiliation',
+            'type': ProviderRecordType.MILITARY_AFFILIATION,
             'affiliationType': affiliation_type.value,
             'fileNames': file_names,
             'compact': compact,
@@ -915,7 +914,7 @@ class DataClient:
             # Create provider update record to show registration event and fields that were updated
             provider_update_record = ProviderUpdateData.create_new(
                 {
-                    'type': 'providerUpdate',
+                    'type': ProviderRecordType.PROVIDER_UPDATE,
                     'updateType': UpdateCategory.REGISTRATION,
                     'providerId': matched_license_record.providerId,
                     'compact': matched_license_record.compact,
@@ -1052,7 +1051,7 @@ class DataClient:
         # Use the schema to generate the update record with proper pk/sk
         privilege_update_record = PrivilegeUpdateRecordSchema().dump(
             {
-                'type': 'privilegeUpdate',
+                'type': ProviderRecordType.PRIVILEGE_UPDATE,
                 'updateType': 'deactivation',
                 'providerId': provider_id,
                 'compact': compact,
@@ -1224,13 +1223,13 @@ class DataClient:
         return LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
     def _find_and_validate_adverse_action(
-        self, adverse_action_records: list[AdverseActionData], adverse_action_id: str
+        self, adverse_action_records: list[AdverseActionData], adverse_action_id: UUID
     ) -> AdverseActionData:
         """
         Find and validate an adverse action record from a list of records.
 
         :param list[AdverseActionData] adverse_action_records: List of adverse action records to search
-        :param str adverse_action_id: The ID of the adverse action to find
+        :param UUID adverse_action_id: The ID of the adverse action to find
         :return: The found adverse action record
         :raises CCNotFoundException: If the adverse action record is not found
         :raises CCInvalidRequestException: If the encumbrance has already been lifted
@@ -1238,7 +1237,7 @@ class DataClient:
         # Find the specific adverse action record to lift
         target_adverse_action: AdverseActionData | None = None
         for adverse_action in adverse_action_records:
-            if str(adverse_action.adverseActionId) == adverse_action_id:
+            if adverse_action.adverseActionId == adverse_action_id:
                 target_adverse_action = adverse_action
                 break
 
@@ -1252,19 +1251,19 @@ class DataClient:
         return target_adverse_action
 
     def _get_unlifted_adverse_actions(
-        self, adverse_action_records: list[AdverseActionData], target_adverse_action_id: str
+        self, adverse_action_records: list[AdverseActionData], target_adverse_action_id: UUID
     ) -> list[AdverseActionData]:
         """
         Get all unlifted adverse actions excluding the target adverse action.
 
         :param list[AdverseActionData] adverse_action_records: List of adverse action records
-        :param str target_adverse_action_id: The ID of the target adverse action being lifted
+        :param UUID target_adverse_action_id: The ID of the target adverse action being lifted
         :return: List of unlifted adverse actions excluding the target one
         """
         return [
             aa
             for aa in adverse_action_records
-            if aa.effectiveLiftDate is None and str(aa.adverseActionId) != target_adverse_action_id
+            if aa.effectiveLiftDate is None and aa.adverseActionId != target_adverse_action_id
         ]
 
     def _generate_provider_encumbered_status_update_item_if_not_already_encumbered(
@@ -1428,9 +1427,9 @@ class DataClient:
 
             now = config.current_standard_datetime
             # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-            from cc_common.feature_flag_client import is_feature_enabled
+            from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
 
-            if is_feature_enabled('encumbrance-multi-category-flag'):
+            if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
                 encumbrance_details = {
                     'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
                     'adverseActionId': adverse_action.adverseActionId,
@@ -1452,7 +1451,7 @@ class DataClient:
             # Use the schema to generate the update record with proper pk/sk
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
-                    'type': 'privilegeUpdate',
+                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
                     'updateType': UpdateCategory.ENCUMBRANCE,
                     'providerId': adverse_action.providerId,
                     'compact': adverse_action.compact,
@@ -1610,13 +1609,306 @@ class DataClient:
 
             logger.info('Set encumbrance for license record')
 
+    def create_investigation(self, investigation: InvestigationData) -> None:
+        """
+        Creates an investigation record for a provider in a jurisdiction.
+
+        This will also update the record to have an investigationStatus of 'underInvestigation',
+        add an update record to show the investigation event.
+
+        :param InvestigationData investigation: The details of the investigation to be added to the records
+        :raises CCNotFoundException: If the record is not found
+        """
+        with logger.append_context_keys(
+            compact=investigation.compact,
+            provider_id=investigation.providerId,
+            jurisdiction=investigation.jurisdiction,
+            license_type_abbreviation=investigation.licenseTypeAbbreviation,
+        ):
+            # Get the record (privilege or license)
+            record_type = investigation.investigationAgainst
+
+            # Query for the record (privilege or license) and all its investigations in a single query
+            provider_records = self.get_provider_user_records(
+                compact=investigation.compact, provider_id=investigation.providerId, consistent_read=True
+            )
+
+            # Separate the main record from investigation records
+            if investigation.investigationAgainst == InvestigationAgainstEnum.LICENSE:
+                record = provider_records.get_specific_license_record(
+                    investigation.jurisdiction, investigation.licenseTypeAbbreviation
+                )
+                if not record:
+                    message = f'{record_type.title()} not found for jurisdiction'
+                    logger.info(message)
+                    raise CCNotFoundException(
+                        f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
+                    )
+
+                update_data_type = LicenseUpdateData
+                update_type = ProviderRecordType.LICENSE_UPDATE
+            else:
+                record = provider_records.get_specific_privilege_record(
+                    investigation.jurisdiction, investigation.licenseTypeAbbreviation
+                )
+                if not record:
+                    message = f'{record_type.title()} not found for jurisdiction'
+                    logger.info(message)
+                    raise CCNotFoundException(
+                        f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
+                    )
+
+                update_data_type = PrivilegeUpdateData
+                update_type = ProviderRecordType.PRIVILEGE_UPDATE
+
+            investigation_details = {
+                'investigationId': investigation.investigationId,
+            }
+
+            # Create the update record
+            update_record = update_data_type.create_new(
+                {
+                    'type': update_type,
+                    'updateType': UpdateCategory.INVESTIGATION,
+                    'providerId': investigation.providerId,
+                    'compact': investigation.compact,
+                    'jurisdiction': investigation.jurisdiction,
+                    'createDate': investigation.creationDate,
+                    'effectiveDate': investigation.creationDate,
+                    'licenseType': investigation.licenseType,
+                    'previous': record.to_dict(),
+                    'updatedValues': {
+                        'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
+                    },
+                    'investigationDetails': investigation_details,
+                }
+            )
+
+            # Prepare the transaction items
+            serialized_record = record.serialize_to_database_record()
+            transaction_items = [
+                self._generate_put_transaction_item(investigation.serialize_to_database_record()),
+                self._generate_put_transaction_item(update_record.serialize_to_database_record()),
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Key': {
+                            'pk': {'S': serialized_record['pk']},
+                            'sk': {'S': serialized_record['sk']},
+                        },
+                        'UpdateExpression': (
+                            'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
+                        ),
+                        'ConditionExpression': 'attribute_exists(pk)',
+                        'ExpressionAttributeValues': {
+                            ':investigationStatus': {'S': InvestigationStatusEnum.UNDER_INVESTIGATION},
+                            ':dateOfUpdate': {'S': investigation.creationDate.isoformat()},
+                        },
+                    }
+                },
+            ]
+
+            # Execute the transaction
+            self.config.dynamodb_client.transact_write_items(TransactItems=transaction_items)
+
+            logger.info(f'Set investigation for {record_type} record')
+
+    def close_investigation(
+        self,
+        compact: str,
+        provider_id: UUID,
+        jurisdiction: str,
+        license_type_abbreviation: str,
+        investigation_id: UUID,
+        closing_user: str,
+        close_date: datetime,
+        investigation_against: InvestigationAgainstEnum,
+        resulting_encumbrance_id: UUID = None,
+    ) -> None:
+        """
+        Closes an investigation by updating the investigation record.
+
+        Only removes the investigation status and creates an update record if this is the last open investigation.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param jurisdiction: The jurisdiction
+        :param license_type_abbreviation: The license type abbreviation
+        :param investigation_id: The investigation ID
+        :param closing_user: The user who closed the investigation
+        :param close_date: The date that the investigation was closed
+        :param investigation_against: Whether investigating a privilege or license
+        :param resulting_encumbrance_id: Optional encumbrance ID to reference in the investigation closure
+        """
+        with logger.append_context_keys(
+            compact=compact,
+            provider_id=provider_id,
+            jurisdiction=jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
+            investigation_id=investigation_id,
+        ):
+            record_type = investigation_against.value
+
+            # Query for the record (privilege or license) and all its investigations in a single query
+            provider_records = self.get_provider_user_records(
+                compact=compact, provider_id=provider_id, consistent_read=True
+            )
+
+            # Separate the main record from investigation records
+            if investigation_against == InvestigationAgainstEnum.LICENSE:
+                record = provider_records.get_specific_license_record(jurisdiction, license_type_abbreviation)
+                if not record:
+                    message = f'{record_type.title()} not found for jurisdiction'
+                    logger.info(message)
+                    raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
+
+                update_data_type = LicenseUpdateData
+                update_type = ProviderRecordType.LICENSE_UPDATE
+                # Count open investigations (those without closeDate), excluding the one we're closing
+                open_investigations = provider_records.get_investigation_records_for_license(
+                    jurisdiction,
+                    license_type_abbreviation,
+                    filter_condition=lambda inv: inv.investigationId != investigation_id,
+                )
+                investigation = next(
+                    (
+                        inv
+                        for inv in provider_records.get_investigation_records_for_license(
+                            jurisdiction,
+                            license_type_abbreviation,
+                            filter_condition=lambda inv: inv.investigationId == investigation_id,
+                        )
+                    ),
+                    None,
+                )
+            else:
+                record = provider_records.get_specific_privilege_record(jurisdiction, license_type_abbreviation)
+                if not record:
+                    message = f'{record_type.title()} not found for jurisdiction'
+                    logger.info(message)
+                    raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
+
+                update_data_type = PrivilegeUpdateData
+                update_type = ProviderRecordType.PRIVILEGE_UPDATE
+                # Count open investigations (those without closeDate), excluding the one we're closing
+                open_investigations = provider_records.get_investigation_records_for_privilege(
+                    jurisdiction,
+                    license_type_abbreviation,
+                    filter_condition=lambda inv: inv.closeDate is None and inv.investigationId != investigation_id,
+                )
+                investigation = next(
+                    (
+                        inv
+                        for inv in provider_records.get_investigation_records_for_privilege(
+                            jurisdiction,
+                            license_type_abbreviation,
+                            filter_condition=lambda inv: inv.investigationId == investigation_id,
+                        )
+                    ),
+                    None,
+                )
+
+            if investigation is None:
+                raise CCNotFoundException('Investigation not found')
+
+            # Determine if this is the last open investigation
+            is_last_open_investigation = len(open_investigations) == 0
+
+            # Prepare the transaction items
+            # Build the investigation update expression and values
+            investigation_update_expression = (
+                'SET closeDate = :closeDate, closingUser = :closingUser, dateOfUpdate = :dateOfUpdate'
+            )
+            investigation_expression_values = {
+                ':closeDate': {'S': close_date.isoformat()},
+                ':closingUser': {'S': closing_user},
+                ':dateOfUpdate': {'S': close_date.isoformat()},
+            }
+
+            # Add resultingEncumbranceId if an encumbrance was created
+            if resulting_encumbrance_id:
+                investigation_update_expression += ', resultingEncumbranceId = :resultingEncumbranceId'
+                investigation_expression_values[':resultingEncumbranceId'] = {'S': str(resulting_encumbrance_id)}
+
+            # Always update the investigation record itself
+            transaction_items = [
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.table_name,
+                        'Key': {
+                            'pk': {'S': investigation.pk},
+                            'sk': {'S': investigation.sk},
+                        },
+                        'UpdateExpression': investigation_update_expression,
+                        'ConditionExpression': 'attribute_exists(pk) AND attribute_not_exists(closeDate)',
+                        'ExpressionAttributeValues': investigation_expression_values,
+                    }
+                },
+            ]
+
+            # Only create update record and remove status if this is the last open investigation
+            if is_last_open_investigation:
+                # Create the update record for investigation closure
+                update_record = update_data_type.create_new(
+                    {
+                        'type': update_type,
+                        'updateType': UpdateCategory.CLOSING_INVESTIGATION,
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': jurisdiction,
+                        'createDate': close_date,
+                        'effectiveDate': close_date,
+                        'licenseType': record.licenseType,
+                        'previous': record.to_dict(),
+                        'updatedValues': {},
+                        'removedValues': ['investigationStatus'],
+                    }
+                )
+
+                serialized_record = record.serialize_to_database_record()
+                transaction_items.extend(
+                    [
+                        self._generate_put_transaction_item(update_record.serialize_to_database_record()),
+                        # Remove investigationStatus from the license/privilege record
+                        {
+                            'Update': {
+                                'TableName': self.config.provider_table.table_name,
+                                'Key': {
+                                    'pk': {'S': serialized_record['pk']},
+                                    'sk': {'S': serialized_record['sk']},
+                                },
+                                'UpdateExpression': 'REMOVE investigationStatus SET dateOfUpdate = :dateOfUpdate',
+                                'ConditionExpression': 'attribute_exists(pk)',
+                                'ExpressionAttributeValues': {
+                                    ':dateOfUpdate': {'S': close_date.isoformat()},
+                                },
+                            }
+                        },
+                    ]
+                )
+
+            # Execute the transaction
+            try:
+                self.config.dynamodb_client.transact_write_items(TransactItems=transaction_items)
+            except Exception as e:
+                # Check if this is a TransactionCanceledException with ConditionalCheckFailed
+                if hasattr(e, 'response') and e.response.get('CancellationReasons'):
+                    for reason in e.response['CancellationReasons']:
+                        if reason.get('Code') == 'ConditionalCheckFailed':
+                            logger.info('Investigation not found or already closed')
+                            raise CCNotFoundException(f'Investigation not found: {investigation_id}') from e
+                # Re-raise if it's not a conditional check failure
+                raise
+
+            logger.info(f'Closed investigation for {record_type} record')
+
     def lift_privilege_encumbrance(
         self,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        adverse_action_id: str,
+        adverse_action_id: UUID,
         effective_lift_date: date,
         lifting_user: str,
     ) -> None:
@@ -1725,7 +2017,7 @@ class DataClient:
                 # Create privilege update record
                 privilege_update_record = PrivilegeUpdateData.create_new(
                     {
-                        'type': 'privilegeUpdate',
+                        'type': ProviderRecordType.PRIVILEGE_UPDATE,
                         'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
                         'providerId': provider_id,
                         'compact': compact,
@@ -1758,10 +2050,10 @@ class DataClient:
     def lift_license_encumbrance(
         self,
         compact: str,
-        provider_id: str,
+        provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
-        adverse_action_id: str,
+        adverse_action_id: UUID,
         effective_lift_date: date,
         lifting_user: str,
     ) -> None:
@@ -1773,7 +2065,7 @@ class DataClient:
         :param str provider_id: The provider ID
         :param str jurisdiction: The jurisdiction
         :param str license_type_abbreviation: The license type abbreviation
-        :param str adverse_action_id: The adverse action ID to lift
+        :param UUID adverse_action_id: The adverse action ID to lift
         :param date effective_lift_date: The effective date when the encumbrance is lifted
         :param str lifting_user: The cognito sub of the user lifting the encumbrance
         :raises CCNotFoundException: If the adverse action record is not found
@@ -2243,7 +2535,7 @@ class DataClient:
         # Create the provider update record
         provider_update_record = ProviderUpdateData.create_new(
             {
-                'type': 'providerUpdate',
+                'type': ProviderRecordType.PROVIDER_UPDATE,
                 'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
                 'providerId': provider_id,
                 'compact': compact,
@@ -2327,7 +2619,7 @@ class DataClient:
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
-                    'type': 'privilegeUpdate',
+                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
                     'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
                     'providerId': provider_id,
                     'compact': compact,
@@ -2403,7 +2695,7 @@ class DataClient:
         # Create the provider update record
         provider_update_record = ProviderUpdateData.create_new(
             {
-                'type': 'providerUpdate',
+                'type': ProviderRecordType.PROVIDER_UPDATE,
                 'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
                 'providerId': provider_id,
                 'compact': compact,
@@ -2547,7 +2839,7 @@ class DataClient:
             # Create update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
-                    'type': 'privilegeUpdate',
+                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
                     'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
                     'providerId': provider_id,
                     'compact': compact,
@@ -2674,9 +2966,9 @@ class DataClient:
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
         )
         # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-        from cc_common.feature_flag_client import is_feature_enabled
+        from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
 
-        if is_feature_enabled('encumbrance-multi-category-flag'):
+        if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
             encumbrance_details = {
                 'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
                 'licenseJurisdiction': jurisdiction,
@@ -2705,7 +2997,7 @@ class DataClient:
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
-                    'type': 'privilegeUpdate',
+                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
                     'updateType': UpdateCategory.ENCUMBRANCE,
                     'providerId': provider_id,
                     'compact': compact,
@@ -2738,7 +3030,7 @@ class DataClient:
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
-                    'type': 'privilegeUpdate',
+                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
                     'updateType': UpdateCategory.ENCUMBRANCE,
                     'providerId': provider_id,
                     'compact': compact,
@@ -2860,7 +3152,7 @@ class DataClient:
             # Create privilege update record using the latest effective lift date
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
-                    'type': 'privilegeUpdate',
+                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
                     'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
                     'providerId': provider_id,
                     'compact': compact,
@@ -2951,7 +3243,7 @@ class DataClient:
             # Create privilege update record
             privilege_update_record = PrivilegeUpdateData.create_new(
                 {
-                    'type': 'privilegeUpdate',
+                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
                     'updateType': UpdateCategory.LICENSE_DEACTIVATION,
                     'providerId': provider_id,
                     'compact': compact,
@@ -3096,7 +3388,7 @@ class DataClient:
         # Create provider update record to track the email change
         provider_update_record = ProviderUpdateData.create_new(
             {
-                'type': 'providerUpdate',
+                'type': ProviderRecordType.PROVIDER_UPDATE,
                 'updateType': UpdateCategory.EMAIL_CHANGE,
                 'providerId': provider_id,
                 'compact': compact,
