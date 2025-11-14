@@ -104,7 +104,9 @@ class TstLambdas(TestCase):
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above
         import cc_common.config
+        from common_test.test_data_generator import TestDataGenerator
 
         cls.config = cc_common.config._Config()  # noqa: SLF001 protected-access
         cc_common.config.config = cls.config
         cls.mock_context = MagicMock(name='MockLambdaContext', spec=LambdaContext)
+        cls.test_data_generator = TestDataGenerator

@@ -1,8 +1,12 @@
-import json
+from copy import deepcopy
 from datetime import datetime
 from unittest.mock import ANY, MagicMock
 
 from boto3.dynamodb.conditions import Key
+from common_test.test_constants import (
+    DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM,
+    DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM,
+)
 
 from tests import TstLambdas
 
@@ -10,14 +14,6 @@ TEST_SETTLEMENT_DATETIME = '2024-01-15T10:30:00+00:00'
 
 
 class TestTransactionClient(TstLambdas):
-    def _generate_mock_transaction(self, transaction_id: str, settlement_time_utc: str, batch_id: str) -> dict:
-        with open('tests/resources/dynamo/transaction.json') as f:
-            transaction = json.load(f)
-            transaction['transactionId'] = transaction_id
-            transaction['batch']['settlementTimeUTC'] = settlement_time_utc
-            transaction['batch']['batchId'] = batch_id
-        return transaction
-
     def setUp(self):
         from cc_common.data_model import transaction_client
 
@@ -31,8 +27,14 @@ class TestTransactionClient(TstLambdas):
         self.client = transaction_client.TransactionClient(self.mock_config)
 
     def test_store_transactions_authorize_net(self):
-        mock_transaction = self._generate_mock_transaction(
-            transaction_id='tx123', settlement_time_utc=TEST_SETTLEMENT_DATETIME, batch_id='batch456'
+        mock_transaction = self.test_data_generator.generate_default_transaction(
+            {
+                'transactionId': 'tx123',
+                'batch': {
+                    'batchId': 'batch456',
+                    'settlementTimeUTC': TEST_SETTLEMENT_DATETIME,
+                },
+            }
         )
         # Test data
         test_transactions = [
@@ -44,7 +46,7 @@ class TestTransactionClient(TstLambdas):
 
         # Verify the batch writer was called with correct data
         expected_epoch = int(datetime.fromisoformat(TEST_SETTLEMENT_DATETIME).timestamp())
-        expected_item = mock_transaction.copy()
+        expected_item = mock_transaction.to_dict().copy()
         expected_item.update(
             {
                 'pk': 'COMPACT#aslp#TRANSACTIONS#MONTH#2024-01',
@@ -59,27 +61,19 @@ class TestTransactionClient(TstLambdas):
 
     def test_store_transactions_unsupported_processor(self):
         # Test data with unsupported processor
-        test_transactions = [
-            {
-                'transactionProcessor': 'unsupported',
-                'transactionId': 'tx123',
-                'batch': {'batchId': 'batch456', 'settlementTimeUTC': '2024-01-15T10:30:00+00:00'},
-            }
-        ]
+        transaction = self.test_data_generator.generate_default_transaction()
+        # We'll force the transaction into an invalid state by updating the internal data, after it's done validation
+        transaction._data['transactionProcessor'] = 'unsupported'  # noqa: SLF001
 
         # Verify it raises ValueError for unsupported processor
         with self.assertRaises(ValueError):
-            self.client.store_transactions(test_transactions)
+            self.client.store_transactions([transaction])
 
     def test_store_multiple_transactions(self):
         # Test data with multiple transactions
         test_transactions = [
-            self._generate_mock_transaction(
-                transaction_id='tx123', settlement_time_utc=TEST_SETTLEMENT_DATETIME, batch_id='batch456'
-            ),
-            self._generate_mock_transaction(
-                transaction_id='tx124', settlement_time_utc=TEST_SETTLEMENT_DATETIME, batch_id='batch456'
-            ),
+            self.test_data_generator.generate_default_transaction({'transactionId': 'tx123'}),
+            self.test_data_generator.generate_default_transaction({'transactionId': 'tx124'}),
         ]
 
         # Call the method
@@ -110,16 +104,20 @@ class TestTransactionClient(TstLambdas):
         }
 
         # Test data
+        priv_line_ca = deepcopy(DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM)
+        priv_line_ca.update({'itemId': 'priv:aslp-CA', 'unitPrice': 100})
+        priv_line_ny = deepcopy(DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM)
+        priv_line_ny.update({'itemId': 'priv:aslp-NY', 'unitPrice': 200})
+        priv_line_fee = deepcopy(DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM)
+        priv_line_fee.update({'itemId': 'credit-card-transaction-fee', 'unitPrice': 50})
         test_transactions = [
-            {
-                'transactionId': 'tx123',
-                'licenseeId': 'prov-123',
-                'lineItems': [
-                    {'itemId': 'priv:aslp-CA', 'unitPrice': 100},
-                    {'itemId': 'priv:aslp-NY', 'unitPrice': 200},
-                    {'itemId': 'credit-card-transaction-fee', 'unitPrice': 50},
-                ],
-            }
+            self.test_data_generator.generate_default_transaction(
+                {
+                    'transactionId': 'tx123',
+                    'licenseeId': 'prov-123',
+                    'lineItems': [priv_line_ca, priv_line_ny, priv_line_fee],
+                }
+            )
         ]
 
         # Call the method
@@ -132,9 +130,9 @@ class TestTransactionClient(TstLambdas):
         )
 
         # Verify privilege IDs were added to correct line items
-        self.assertEqual(result[0]['lineItems'][0]['privilegeId'], 'priv-123')  # CA line item
-        self.assertEqual(result[0]['lineItems'][1]['privilegeId'], 'priv-456')  # NY line item
-        self.assertNotIn('privilegeId', result[0]['lineItems'][2])  # other item
+        self.assertEqual(result[0].lineItems[0]['privilegeId'], 'priv-123')  # CA line item
+        self.assertEqual(result[0].lineItems[1]['privilegeId'], 'priv-456')  # NY line item
+        self.assertNotIn('privilegeId', result[0].lineItems[2])  # other item
 
     def test_add_privilege_information_to_transactions_maps_provider_id_to_transaction(self):
         expected_provider_id = 'abcd1234-5678-9012-3456-7890a0d12345'
@@ -154,16 +152,18 @@ class TestTransactionClient(TstLambdas):
         }
 
         # Test data
+        line_item_ca = deepcopy(DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM)
+        line_item_ca.update({'itemId': 'priv:aslp-CA', 'unitPrice': 100})
+        line_item_fee = deepcopy(DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM)
+        line_item_fee.update({'itemId': 'credit-card-transaction-fee', 'unitPrice': 50})
         test_transactions = [
-            {
-                'transactionId': 'tx123',
-                # reproducing real case where licensee id was masked in authorize.net
-                'licenseeId': 'abcdXXXXXXXXXXXXXXXXXXX-4927a0d12345',
-                'lineItems': [
-                    {'itemId': 'priv:aslp-CA', 'unitPrice': 100},
-                    {'itemId': 'credit-card-transaction-fee', 'unitPrice': 50},
-                ],
-            }
+            self.test_data_generator.generate_default_transaction(
+                {
+                    'transactionId': 'tx123',
+                    'licenseeId': 'abcdXXXXXXXXXXXXXXXXXXX-4927a0d12345',
+                    'lineItems': [line_item_ca, line_item_fee],
+                }
+            ),
         ]
 
         # Call the method
@@ -176,7 +176,7 @@ class TestTransactionClient(TstLambdas):
         )
 
         # Verify the correct provider ID was added to the transaction
-        self.assertEqual(expected_provider_id, result[0]['licenseeId'])
+        self.assertEqual(expected_provider_id, result[0].licenseeId)
         # Verify the privilege id is mapped as expected
-        self.assertEqual(expected_privilege_id, result[0]['lineItems'][0]['privilegeId'])
-        self.assertNotIn('privilegeId', result[0]['lineItems'][1])  # credit card fee line item
+        self.assertEqual(expected_privilege_id, result[0].lineItems[0]['privilegeId'])
+        self.assertNotIn('privilegeId', result[0].lineItems[1])  # credit card fee line item
