@@ -91,7 +91,9 @@ class TransactionClient:
         """
         # Start with the current month
         current_date = self.config.current_standard_datetime.replace(day=1)
-        # We can't recover transactions from Authorize.net after 31 days, so we only check the last 3 months
+        # During normal operations, the most recent transaction should be no more than two days old, if there were any
+        # transactions in that period. We'll look back up to three months, which should cover most reasonable
+        # situations.
         max_months_to_check = 3
 
         for _ in range(max_months_to_check):
@@ -271,7 +273,7 @@ class TransactionClient:
                     self._set_privilege_id_in_line_item(
                         line_items=line_items, item_id_prefix=item_id_prefix, privilege_id='UNKNOWN'
                     )
-            transaction.lineItems = line_items
+            transaction.update({'lineItems': line_items})
 
         return transactions
 

@@ -43,10 +43,6 @@ class TransactionData(CCDataClass):
         """
         return self._data['lineItems']
 
-    @lineItems.setter
-    def lineItems(self, value: list[dict]):
-        self._data['lineItems'] = value
-
     @property
     def compact(self) -> str:
         return self._data['compact']
