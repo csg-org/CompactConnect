@@ -1,10 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import date
 
-from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
-from marshmallow.validate import Length
-
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import (
@@ -27,6 +23,10 @@ from cc_common.data_model.schema.fields import (
     UpdateType,
 )
 from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
+from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
+from marshmallow.validate import Length
 
 
 class AttestationVersionRecordSchema(Schema):
@@ -240,7 +240,7 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
         change_hash = self.hash_changes(in_data)
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         in_data['sk'] = (
-            f'{in_data["compact"]}#UPDATE#1#privilege/{in_data["jurisdiction"]}/{license_type_abbr}/{in_data["createDate"]}/{change_hash}'
+            f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_ONE}#privilege/{in_data["jurisdiction"]}/{license_type_abbr}/{in_data["createDate"]}/{change_hash}'
         )
         return in_data
 

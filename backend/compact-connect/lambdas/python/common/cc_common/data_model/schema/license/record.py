@@ -2,10 +2,6 @@
 from datetime import date
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
-from marshmallow.validate import Length
-
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
@@ -32,6 +28,10 @@ from cc_common.data_model.schema.fields import (
 )
 from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
+from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.validate import Length
 
 
 @BaseRecordSchema.register_schema('license')
@@ -249,7 +249,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         change_hash = self.hash_changes(in_data)
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         in_data['sk'] = (
-            f'{in_data["compact"]}#UPDATE#3#license/{in_data["jurisdiction"]}/{license_type_abbr}/{in_data["createDate"]}/{change_hash}'
+            f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_THREE}#license/{in_data["jurisdiction"]}/{license_type_abbr}/{in_data["createDate"]}/{change_hash}'
         )
         return in_data
 

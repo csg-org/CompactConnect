@@ -26,6 +26,7 @@ from cc_common.data_model.schema.fields import (
     Set,
     UpdateType,
 )
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
 
 @BaseRecordSchema.register_schema('provider')
@@ -246,9 +247,12 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
-        # This needs to include a iso formatted datetime string and a hash of the changes
+        # This needs to include an iso formatted datetime string and a hash of the changes
         # to the record. We'll use the createDate and the hash of the updatedValues
         # field for this.
+        # Provider update records are considered a tier 2 update. Privilege updates are tier 1 because they are accessed
+        # most frequently. Provider update records are not generated often, so it is more performant to place them at
+        # tier 2, with license updates being the last tier 3.
         change_hash = self.hash_changes(in_data)
-        in_data['sk'] = f'{in_data["compact"]}#UPDATE#2#provider/{in_data["createDate"]}/{change_hash}'
+        in_data['sk'] = f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_TWO}#provider/{in_data["createDate"]}/{change_hash}'
         return in_data
