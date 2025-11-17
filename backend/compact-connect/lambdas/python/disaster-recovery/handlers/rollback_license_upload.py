@@ -158,7 +158,7 @@ class RollbackResults:
     def from_dict(cls, data: dict) -> 'RollbackResults':
         """Create from dictionary loaded from S3."""
         return cls(
-            execution_name=data.get('executionName', ''),
+            execution_name=data['executionName'],
             skipped_provider_details=[
                 ProviderSkippedDetails(
                     provider_id=detail['providerId'],

@@ -66,7 +66,7 @@ The Step Function will process providers in batches. Monitor the step function e
 
 ### Step 5: Review Results
 
-Once the execution completes, comprehensive results are stored in S3. The S3 key is returned as output from the lambda step of the step function
+Once the execution completes, comprehensive results are stored in S3. The S3 key is returned as output from the lambda step of the step function. Check the Step Function execution output/logs to get the S3 key.
 
 #### Accessing the Results File
 

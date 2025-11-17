@@ -169,12 +169,6 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
 
     # Query using the common family name prefix 'RollbackTest'
     # The API will return all providers with family names starting with this prefix
-    base_query_body = {
-        'query': {'familyName': 'RollbackTest'},
-        'pagination': {
-            'pageSize': 100  # Maximum page size to minimize number of requests
-        },
-    }
 
     last_key = None
     page_num = 1
@@ -182,7 +176,10 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
     while time.time() - start_time < max_wait_time:
         # Collect all providers across all pages
         while True:
-            query_body = base_query_body.copy()
+            query_body = {
+                'query': {'familyName': 'RollbackTest'},
+                'pagination': {'pageSize': 100},
+            }
             if last_key:
                 query_body['pagination']['lastKey'] = last_key
 
