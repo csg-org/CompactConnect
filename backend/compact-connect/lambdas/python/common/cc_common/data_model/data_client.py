@@ -1037,7 +1037,7 @@ class DataClient:
         # TODO - remove old pattern once migration is complete  # noqa: FIX002
         sk_prefixes = [
             # New pattern
-            f'{compact}#UPDATE#1#privilege/{jurisdiction}/{license_type_abbr}/',
+            f'{compact}#UPDATE#{UpdateTierEnum.TIER_ONE}#privilege/{jurisdiction}/{license_type_abbr}/',
             # Old pattern
             f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#UPDATE',
         ]
@@ -1090,7 +1090,7 @@ class DataClient:
         :param bool detail: Boolean determining whether we include associated records or just privilege record itself
         :raises CCNotFoundException: If the privilege record is not found
         :return If detail = False list of length one containing privilege item, if detail = True list containing,
-        privilege record, privilege update records and privilege adverse action records
+        privilege record and privilege update records
         """
         # Query directly for the privilege record
         privilege = self._get_privilege_record_directly(

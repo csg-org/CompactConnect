@@ -689,7 +689,7 @@ def _build_and_execute_revert_transactions(
                 IneligibleUpdate(
                     record_type='providerUpdate',
                     type_of_update=update.updateType,
-                    update_time=update.dateOfUpdate.isoformat(),
+                    update_time=update.createDate.isoformat(),
                     reason='Provider update occurred after rollback start time. Manual review required.',
                     # provider updates are not specific to a license type
                     license_type='N/A',
