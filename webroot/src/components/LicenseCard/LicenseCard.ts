@@ -749,10 +749,15 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     focusTrapAddInvestigationModal(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('add-investigation-modal-cancel-button');
-        const lastTabIndex = (this.isFormValid && !this.isFormLoading && !this.isAddInvestigationModalSuccess)
-            ? document.getElementById(this.formData.addInvestigationModalContinue.id)
+        const { isAddInvestigationModalSuccess } = this;
+        const firstTabIndex = (isAddInvestigationModalSuccess)
+            ? document.getElementById('submit-modal-continue')
             : document.getElementById('add-investigation-modal-cancel-button');
+        let lastTabIndex = document.getElementById('submit-modal-continue');
+
+        if (!this.isAddInvestigationModalSuccess && (!this.isFormValid || this.isFormLoading)) {
+            lastTabIndex = document.getElementById('add-investigation-modal-cancel-button');
+        }
 
         if (event.shiftKey) {
             // shift + tab to last input

@@ -483,18 +483,19 @@
                         aria-live="polite"
                         role="status"
                     >
-                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
-                        <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationStartSuccess') }}</h1>
-                        <div class="success-container">
-                            <div class="input-label static-label">{{ licenseeName }}</div>
-                            <div class="static-value">{{ privilegeId }}</div>
-                        </div>
-                        <InputButton
-                            id="add-investigation-modal-cancel-button"
-                            class="add-investigation-modal-cancel-button"
-                            :label="$t('common.close')"
-                            :onClick="closeAddInvestigationModal"
-                        />
+                        <form class="add-investigation-success-form" @submit.prevent="closeAddInvestigationModal">
+                            <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
+                            <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationStartSuccess') }}</h1>
+                            <div class="success-container">
+                                <div class="input-label static-label">{{ licenseeName }}</div>
+                                <div class="static-value">{{ privilegeId }}</div>
+                            </div>
+                            <InputSubmit
+                                :formInput="formData.addInvestigationModalContinue"
+                                class="add-investigation-modal-cancel-button"
+                                :label="$t('common.close')"
+                            />
+                        </form>
                     </div>
                 </template>
             </Modal>

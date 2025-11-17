@@ -1129,8 +1129,12 @@ describe('Licensee model', () => {
         expect(licensee.isEncumbered()).to.equal(true);
     });
     it('should create a Licensee with under-investigation licenses and privileges', () => {
+        const homeState = new State({ abbrev: 'co' });
         const underInvestigationLicense = new License({
-            licenseNumber: 'encumbered-license',
+            issueState: homeState,
+            licenseNumber: 'investigation-license',
+            status: LicenseStatus.ACTIVE,
+            eligibility: EligibilityStatus.ELIGIBLE,
             investigations: [new Investigation({
                 state: new State({ abbrev: 'al' }),
                 startDate: moment().subtract(1, 'day').format(serverDateFormat),
@@ -1138,7 +1142,7 @@ describe('Licensee model', () => {
             })],
         });
         const underInvestigationPrivilege = new License({
-            licenseNumber: 'encumbered-privilege',
+            licenseNumber: 'investigation-privilege',
             investigations: [
                 new Investigation({
                     state: new State({ abbrev: 'al' }),
@@ -1153,6 +1157,7 @@ describe('Licensee model', () => {
             ],
         });
         const licensee = new Licensee({
+            homeJurisdiction: homeState,
             licenses: [underInvestigationLicense],
             privileges: [underInvestigationPrivilege],
         });
@@ -1165,6 +1170,7 @@ describe('Licensee model', () => {
             new State({ abbrev: 'al' }),
             new State({ abbrev: 'co' }),
         ]);
+        expect(licensee.canPurchasePrivileges()).to.equal(true);
     });
     it(`should handle 'unknown' currentHomeJurisdiction by falling back to licenseJurisdiction`, () => {
         const data = {

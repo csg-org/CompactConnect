@@ -392,8 +392,7 @@ export class Licensee implements InterfaceLicensee {
         return !!this.purchaseEligibleLicenses().length
             && !this.isMilitaryStatusInitializing()
             && !this.isEncumbered()
-            && !this.hasEncumbranceLiftedWithinWaitPeriod()
-            && !this.isUnderInvestigation();
+            && !this.hasEncumbranceLiftedWithinWaitPeriod();
     }
 }
 

@@ -116,12 +116,12 @@ export default class LicensingDetail extends Vue {
         const investigationStates = this.licensee?.underInvestigationStates() || [];
         const statesContent = (investigationStates.length === 1)
             ? investigationStates[0].name()
-            : this.$t('licensing.underInvestigationAlert1MultipleLocations');
+            : this.$t('licensing.underInvestigationAlertMultipleLocations');
         let alertContent = '';
 
         if (investigationStates.length) {
-            alertContent += `${this.$t('licensing.underInvestigationAlert1', { locations: statesContent })}
-            ${this.$t('licensing.underInvestigationAlert2')}`;
+            alertContent += `${this.$t('licensing.underInvestigationAlertLocation', { locations: statesContent })}
+            ${this.$t('licensing.underInvestigationAlertStatus')}`;
         }
 
         return alertContent;
