@@ -31,7 +31,7 @@ class TestMigrateUpdateSortKeys(TstFunction):
         )
         serialized_old_record = old_provider_update_record.serialize_to_database_record()
         # replace sk with old pattern to simulate old record to be migrated
-        serialized_old_record['sk'] = 'aslp#PROVIDER#UPDATE#1752526787/2f429ccda22d273b1ee4876f2917e27f'
+        serialized_old_record['sk'] = 'coun#PROVIDER#UPDATE#1752526787/2f429ccda22d273b1ee4876f2917e27f'
         del serialized_old_record['createDate']
         serialized_old_record['dateOfUpdate'] = DEFAULT_PROVIDER_UPDATE_DATETIME
         self.config.provider_table.put_item(Item=serialized_old_record)

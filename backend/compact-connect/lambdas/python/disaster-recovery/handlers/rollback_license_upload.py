@@ -439,7 +439,7 @@ def _query_gsi_for_affected_providers(
         gsi_pk = f'C#{compact.lower()}#J#{jurisdiction.lower()}#D#{year_month}'
 
         query_kwargs = {
-            'IndexName': 'licenseUploadDateGSI',
+            'IndexName': config.license_upload_date_index_name,
             'KeyConditionExpression': (
                 Key('licenseUploadDateGSIPK').eq(gsi_pk)
                 & Key('licenseUploadDateGSISK').between(f'TIME#{start_epoch}#', f'TIME#{end_epoch}#~')

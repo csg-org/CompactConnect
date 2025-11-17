@@ -264,11 +264,10 @@ def get_provider_user_records(compact: str, provider_id: str) -> ProviderUserRec
     last_evaluated_key = None
     while True:
         pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
-        # This query key condition expression ensures we always grab all the primary and update records
+        # Grab all records under the provider partition
         query_resp = config.provider_user_dynamodb_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-            & Key('sk').lt(f'{compact}#UPDATE#9'),
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}'),
             ConsistentRead=True,
             **pagination,
         )

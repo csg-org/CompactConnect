@@ -206,8 +206,8 @@ class BackendStage(Stage):
         )
 
         # Stack to house data migration custom resources
-        # This stack depends on the API Lambda stack to ensure
-        # all infrastructure is in place before migrations run
+        # This stack depends on the API and event listener stacks to ensure
+        # all core infrastructure is in place before migrations run
         self.data_migration_stack = DataMigrationStack(
             self,
             'DataMigrationStack',
