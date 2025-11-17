@@ -121,9 +121,9 @@ export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
 // ====================
 export const autoLogoutConfig = {
     INACTIVITY_TIMER_DEFAULT_MS: moment.duration(10, 'minutes').asMilliseconds(),
-    INACTIVITY_TIMER_STAFF_MS: moment.duration(10, 'seconds').asMilliseconds(),
-    INACTIVITY_TIMER_LICENSEE_MS: moment.duration(10, 'seconds').asMilliseconds(),
-    GRACE_PERIOD_MS: moment.duration(10, 'seconds').asMilliseconds(),
+    INACTIVITY_TIMER_STAFF_MS: moment.duration(10, 'minutes').asMilliseconds(),
+    INACTIVITY_TIMER_LICENSEE_MS: moment.duration(10, 'minutes').asMilliseconds(),
+    GRACE_PERIOD_MS: moment.duration(30, 'seconds').asMilliseconds(),
     LOG: (message = '') => {
         const isEnabled = false; // Helper logging for auto-logout testing
 
