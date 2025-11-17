@@ -70,7 +70,6 @@ class RevertedLicense:
 
     jurisdiction: str
     license_type: str
-    revision_id: UUID
     action: str
 
 
@@ -80,7 +79,6 @@ class RevertedPrivilege:
 
     jurisdiction: str
     license_type: str
-    revision_id: UUID
     action: str
 
 
@@ -98,6 +96,7 @@ class ProviderRevertedSummary:
 class RollbackResults:
     """Complete results of a rollback operation."""
 
+    execution_name: str
     skipped_provider_details: list[ProviderSkippedDetails] = field(default_factory=list)
     failed_provider_details: list[ProviderFailedDetails] = field(default_factory=list)
     reverted_provider_summaries: list[ProviderRevertedSummary] = field(default_factory=list)
@@ -105,6 +104,7 @@ class RollbackResults:
     def to_dict(self) -> dict:
         """Convert to dictionary for S3 storage."""
         return {
+            'executionName': self.execution_name,
             'skippedProviderDetails': [
                 {
                     'providerId': detail.provider_id,
@@ -136,7 +136,6 @@ class RollbackResults:
                         {
                             'jurisdiction': license_record.jurisdiction,
                             'licenseType': license_record.license_type,
-                            'revisionId': str(license_record.revision_id),
                             'action': license_record.action,
                         }
                         for license_record in summary.licenses_reverted
@@ -145,7 +144,6 @@ class RollbackResults:
                         {
                             'jurisdiction': privilege.jurisdiction,
                             'licenseType': privilege.license_type,
-                            'revisionId': str(privilege.revision_id),
                             'action': privilege.action,
                         }
                         for privilege in summary.privileges_reverted
@@ -160,6 +158,7 @@ class RollbackResults:
     def from_dict(cls, data: dict) -> 'RollbackResults':
         """Create from dictionary loaded from S3."""
         return cls(
+            execution_name=data.get('executionName', ''),
             skipped_provider_details=[
                 ProviderSkippedDetails(
                     provider_id=detail['providerId'],
@@ -191,7 +190,6 @@ class RollbackResults:
                         RevertedLicense(
                             jurisdiction=reverted_license['jurisdiction'],
                             license_type=reverted_license['licenseType'],
-                            revision_id=reverted_license['revisionId'],
                             action=reverted_license['action'],
                         )
                         for reverted_license in summary.get('licensesReverted', [])
@@ -200,7 +198,6 @@ class RollbackResults:
                         RevertedPrivilege(
                             jurisdiction=reverted_privilege['jurisdiction'],
                             license_type=reverted_privilege['licenseType'],
-                            revision_id=reverted_privilege['revisionId'],
                             action=reverted_privilege['action'],
                         )
                         for reverted_privilege in summary.get('privilegesReverted', [])
@@ -295,7 +292,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
     results_s3_key = f'licenseUploadRollbacks/{execution_name}/results.json'
 
     # Load existing results if this is a continuation
-    existing_results = _load_results_from_s3(results_s3_key)
+    existing_results = _load_results_from_s3(results_s3_key, execution_name)
 
     # Initialize counters
     providers_reverted = len(existing_results.reverted_provider_summaries)
@@ -323,7 +320,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                     f'Continuing from provider {continue_from_provider_id} (index {start_index}). '
                     f'{len(affected_provider_ids_list)} providers remaining to process.'
                 )
-            except ValueError as e:
+            except ValueError:
                 # Provider ID in event input not found in list
                 # Log error and raise exception
                 logger.error(
@@ -331,7 +328,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                     continue_from_provider_id=continue_from_provider_id,
                     affected_provider_ids_list=affected_provider_ids_list,
                 )
-                raise e
+                raise
 
         # Process each provider
         for provider_id in affected_provider_ids_list:
@@ -368,6 +365,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                 start_datetime=start_datetime,
                 end_datetime=end_datetime,
                 rollback_reason=rollback_reason,
+                execution_name=execution_name,
             )
 
             # Update results based on outcome
@@ -382,7 +380,12 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                 existing_results.failed_provider_details.append(result)
 
         # All providers processed successfully
-        logger.info('Rollback complete', providers_processed=providers_processed)
+        logger.info('Rollback complete',
+                    providers_processed=providers_processed,
+                    providers_skipped=providers_skipped,
+                    providers_reverted=providers_reverted,
+                    providers_failed=providers_failed
+                    )
 
         # Write final results to S3
         _write_results_to_s3(results_s3_key, existing_results)
@@ -398,7 +401,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
 
     except ClientError as e:
         logger.error(f'Error during rollback: {str(e)}')
-        raise e
+        raise
 
 
 def _query_gsi_for_affected_providers(
@@ -469,6 +472,7 @@ def _process_provider_rollback(
     start_datetime: datetime,
     end_datetime: datetime,
     rollback_reason: str,
+    execution_name: str,
 ) -> ProviderRevertedSummary | ProviderSkippedDetails | ProviderFailedDetails:
     """
     Process rollback for a single provider.
@@ -502,7 +506,7 @@ def _process_provider_rollback(
         )
 
     # Publish events for successful rollback
-    _publish_revert_events(result, compact, rollback_reason, start_datetime, end_datetime)
+    _publish_revert_events(result, compact, rollback_reason, start_datetime, end_datetime, execution_name)
     logger.info('Provider rollback successful', provider_id=provider_id)
     return result
 
@@ -787,7 +791,6 @@ def _build_and_execute_revert_transactions(
                             RevertedPrivilege(
                                 jurisdiction=privilege_record.jurisdiction,
                                 license_type=privilege_record.licenseType,
-                                revision_id=uuid4(),
                                 action='REACTIVATED',
                             )
                         )
@@ -841,7 +844,6 @@ def _build_and_execute_revert_transactions(
                 RevertedLicense(
                     jurisdiction=license_record.jurisdiction,
                     license_type=license_record.licenseType,
-                    revision_id=uuid4(),
                     action='DELETE',
                 )
             )
@@ -874,7 +876,6 @@ def _build_and_execute_revert_transactions(
                 RevertedLicense(
                     jurisdiction=license_record.jurisdiction,
                     license_type=license_record.licenseType,
-                    revision_id=uuid4(),
                     action='REVERT',
                 )
             )
@@ -897,13 +898,14 @@ def _build_and_execute_revert_transactions(
     transaction_items = primary_record_transaction_items + update_record_transactions_items
 
     if not transaction_items:
-        logger.warning('No transaction items to execute')
-        return ProviderRevertedSummary(
-            provider_id=provider_id,
-            licenses_reverted=reverted_licenses,
-            privileges_reverted=reverted_privileges,
-            updates_deleted=updates_deleted_sks,
-        )
+        # This should never happen, as it means that somehow the GSI query returned this provider id within
+        # the search results, but the provider was not either skipped over or had something to revert as we expect.
+        # If we do get here, we will exit the lambda in a failed state, as there is something unexpected happening that
+        # needs to be investigated before we attempt to roll back any other providers.
+        message = ('No transaction items to execute for provider. This is an unexpected state that should be '
+                   'investigated before attempting to roll back any other providers')
+        logger.error(message, provider_id=provider_id)
+        raise CCInternalException(message=f'{message} provider_id: {provider_id}')
 
     _perform_transaction(transaction_items, provider_id)
     try:
@@ -970,6 +972,7 @@ def _publish_revert_events(
     rollback_reason: str,
     start_datetime: datetime,
     end_datetime: datetime,
+    execution_name: str,
 ):
     """
     Publish revert events for all reverted licenses and privileges.
@@ -979,6 +982,7 @@ def _publish_revert_events(
     :param rollback_reason: The reason for the rollback
     :param start_datetime: The start time of the rollback window
     :param end_datetime: The end time of the rollback window
+    :param execution_name: The execution name for the rollback operation
     """
     with EventBatchWriter(config.events_client) as event_writer:
         # Publish license revert events
@@ -993,7 +997,7 @@ def _publish_revert_events(
                     rollback_reason=rollback_reason,
                     start_time=start_datetime,
                     end_time=end_datetime,
-                    revision_id=reverted_license.revision_id,
+                    execution_name=execution_name,
                     event_batch_writer=event_writer,
                 )
             except Exception as e:  # noqa BLE001
@@ -1007,7 +1011,6 @@ def _publish_revert_events(
                     rollback_reason=rollback_reason,
                     start_time=start_datetime,
                     end_time=end_datetime,
-                    revision_id=reverted_license.revision_id,
                     error=str(e),
                 )
 
@@ -1023,7 +1026,7 @@ def _publish_revert_events(
                     rollback_reason=rollback_reason,
                     start_time=start_datetime,
                     end_time=end_datetime,
-                    revision_id=reverted_privilege.revision_id,
+                    execution_name=execution_name,
                     event_batch_writer=event_writer,
                 )
             except Exception as e:  # noqa BLE001
@@ -1037,12 +1040,11 @@ def _publish_revert_events(
                     rollback_reason=rollback_reason,
                     start_time=start_datetime,
                     end_time=end_datetime,
-                    revision_id=reverted_privilege.revision_id,
                     error=str(e),
                 )
 
 
-def _load_results_from_s3(key: str) -> RollbackResults:
+def _load_results_from_s3(key: str, execution_name: str) -> RollbackResults:
     """Load existing results from S3."""
     try:
         response = config.s3_client.get_object(Bucket=config.disaster_recovery_results_bucket_name, Key=key)
@@ -1050,7 +1052,7 @@ def _load_results_from_s3(key: str) -> RollbackResults:
         return RollbackResults.from_dict(data)
     except config.s3_client.exceptions.NoSuchKey:
         # First execution, no existing results
-        return RollbackResults()
+        return RollbackResults(execution_name=execution_name)
     except Exception as e:
         logger.error(f'Error loading results from S3: {str(e)}')
         raise

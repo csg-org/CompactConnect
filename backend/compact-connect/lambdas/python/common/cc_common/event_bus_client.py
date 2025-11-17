@@ -8,9 +8,11 @@ from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
     InvestigationEventDetailSchema,
     LicenseDeactivationDetailSchema,
+    LicenseRevertDetailSchema,
     PrivilegeIssuanceDetailSchema,
     PrivilegePurchaseEventDetailSchema,
     PrivilegeRenewalDetailSchema,
+    PrivilegeRevertDetailSchema,
 )
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.utils import ResponseEncoder
@@ -448,7 +450,7 @@ class EventBusClient:
         rollback_reason: str,
         start_time: datetime,
         end_time: datetime,
-        revision_id: UUID,
+        execution_name: str,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -457,16 +459,14 @@ class EventBusClient:
         :param source: The source of the event
         :param compact: The compact name
         :param provider_id: The provider ID
-        :param jurisdiction: The jurisdiction of the license
-        :param license_type: The license type
+        :param jurisdiction: The jurisdiction of the license.
+        :param license_type: The license type.
         :param rollback_reason: The reason for the rollback
         :param start_time: The start time of the rollback window
         :param end_time: The end time of the rollback window
-        :param revision_id: The revision ID of the reverted license
+        :param execution_name: The execution name for the rollback operation
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
-        from cc_common.data_model.schema.data_event.api import LicenseRevertDetailSchema
-
         event_detail = {
             'compact': compact,
             'providerId': provider_id,
@@ -475,11 +475,12 @@ class EventBusClient:
             'rollbackReason': rollback_reason,
             'startTime': start_time,
             'endTime': end_time,
-            'revisionId': revision_id,
+            'RollbackExecutionName': execution_name,
             'eventTime': config.current_standard_datetime,
         }
 
         license_revert_detail_schema = LicenseRevertDetailSchema()
+        license_revert_detail_schema.validate(event_detail)
         deserialized_detail = license_revert_detail_schema.dump(event_detail)
 
         self._publish_event(
@@ -493,13 +494,13 @@ class EventBusClient:
         self,
         source: str,
         compact: str,
-        provider_id: UUID,
+        provider_id: str,
         jurisdiction: str,
         license_type: str,
         rollback_reason: str,
         start_time: datetime,
         end_time: datetime,
-        revision_id: UUID,
+        execution_name: str,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -513,11 +514,9 @@ class EventBusClient:
         :param rollback_reason: The reason for the rollback
         :param start_time: The start time of the rollback window
         :param end_time: The end time of the rollback window
-        :param revision_id: The revision ID of the reverted privilege
+        :param execution_name: The execution name for the rollback operation
         :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
         """
-        from cc_common.data_model.schema.data_event.api import PrivilegeRevertDetailSchema
-
         event_detail = {
             'compact': compact,
             'providerId': provider_id,
@@ -526,11 +525,12 @@ class EventBusClient:
             'rollbackReason': rollback_reason,
             'startTime': start_time,
             'endTime': end_time,
-            'revisionId': revision_id,
+            'RollbackExecutionName': execution_name,
             'eventTime': config.current_standard_datetime,
         }
 
         privilege_revert_detail_schema = PrivilegeRevertDetailSchema()
+        privilege_revert_detail_schema.validate(event_detail)
         deserialized_detail = privilege_revert_detail_schema.dump(event_detail)
 
         self._publish_event(

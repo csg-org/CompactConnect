@@ -794,6 +794,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify the structure of the results
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [
                     {
@@ -802,8 +803,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': original_license.jurisdiction,
                                 'licenseType': original_license.licenseType,
-                                # random UUID, we won't check for it here
-                                'revisionId': ANY,
                             }
                         ],
                         'privilegesReverted': [],
@@ -828,6 +827,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify the structure of the results
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [
                     {
@@ -836,8 +836,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'DELETE',
                                 'jurisdiction': new_license.jurisdiction,
                                 'licenseType': new_license.licenseType,
-                                # random UUID, we won't check for it here
-                                'revisionId': ANY,
                             }
                         ],
                         'privilegesReverted': [],
@@ -863,6 +861,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify the structure of the results
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [
                     {
@@ -871,8 +870,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': self.license_jurisdiction,
                                 'licenseType': privilege.licenseType,
-                                # random UUID, we won't check for it here
-                                'revisionId': ANY,
                             }
                         ],
                         'privilegesReverted': [
@@ -880,8 +877,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REACTIVATED',
                                 'jurisdiction': privilege.jurisdiction,
                                 'licenseType': privilege.licenseType,
-                                # random UUID, we won't check for it here
-                                'revisionId': ANY,
                             }
                         ],
                         'providerId': self.provider_id,
@@ -914,6 +909,7 @@ class TestRollbackLicenseUpload(TstFunction):
         )
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
@@ -951,6 +947,7 @@ class TestRollbackLicenseUpload(TstFunction):
         )
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
@@ -989,6 +986,7 @@ class TestRollbackLicenseUpload(TstFunction):
         )
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
@@ -1023,6 +1021,7 @@ class TestRollbackLicenseUpload(TstFunction):
         expected_reason_message = 'Provider update occurred after rollback start time. Manual review required.'
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [],
                 'skippedProviderDetails': [
@@ -1062,6 +1061,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify the structure of the results contains failed provider details
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [
                     {
                         'error': 'Failed to rollback updates for provider. Manual review required: Validation error: '
@@ -1079,7 +1079,6 @@ class TestRollbackLicenseUpload(TstFunction):
         """Test that rollback can load existing S3 results and append new data without deleting previous data."""
         from uuid import uuid4
 
-        test_revision_id = str(uuid4())
         existing_skipped_provider_id = str(uuid4())
         existing_reverted_provider_id = str(uuid4())
         existing_failed_provider_id = str(uuid4())
@@ -1096,6 +1095,7 @@ class TestRollbackLicenseUpload(TstFunction):
 
         # Create existing results data in the format that from_dict expects (camelCase for all keys)
         existing_results_data = {
+            'executionName': MOCK_EXECUTION_NAME,
             'skippedProviderDetails': [
                 {
                     'providerId': existing_skipped_provider_id,
@@ -1124,7 +1124,6 @@ class TestRollbackLicenseUpload(TstFunction):
                         {
                             'jurisdiction': 'tx',
                             'licenseType': 'audiologist',
-                            'revisionId': test_revision_id,
                             'action': 'REVERT',
                         }
                     ],
@@ -1148,6 +1147,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Note: All keys should now be camelCase for consistency
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'skippedProviderDetails': [
                     {
                         'providerId': existing_skipped_provider_id,
@@ -1176,7 +1176,6 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'jurisdiction': 'tx',
                                 'licenseType': 'audiologist',
-                                'revisionId': ANY,
                                 'action': 'REVERT',
                             }
                         ],
@@ -1190,7 +1189,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': self.license_jurisdiction,
                                 'licenseType': ANY,
-                                'revisionId': ANY,
                             }
                         ],
                         'privilegesReverted': [
@@ -1198,7 +1196,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REACTIVATED',
                                 'jurisdiction': 'ne',
                                 'licenseType': ANY,
-                                'revisionId': ANY,
                             }
                         ],
                         'updatesDeleted': ANY,
@@ -1252,14 +1249,6 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(0, result_first['providersFailed'])
         self.assertEqual(mock_second_provider_id, result_first['continueFromProviderId'])
 
-        # Verify: S3 results contain first provider with revision id
-        s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
-        s3_obj = self.config.s3_client.get_object(Bucket=self.config.disaster_recovery_results_bucket_name, Key=s3_key)
-        first_results_data = json.loads(s3_obj['Body'].read().decode('utf-8'))
-
-        # grab the revision id from the results which we will use when asserting on the final object
-        revision_id = first_results_data['revertedProviderSummaries'][0]['licensesReverted'][0]['revisionId']
-
         # Execute: Second invocation (continue from where we left off)
         # Reset mock time for second invocation
         mock_time.time.side_effect = [0, 1]  # Won't timeout this time
@@ -1281,6 +1270,7 @@ class TestRollbackLicenseUpload(TstFunction):
         # Should have 2 reverted providers
         self.assertEqual(
             {
+                'executionName': MOCK_EXECUTION_NAME,
                 'failedProviderDetails': [],
                 'revertedProviderSummaries': [
                     {
@@ -1289,7 +1279,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
                                 'licenseType': 'speech-language pathologist',
-                                'revisionId': revision_id,
                             }
                         ],
                         'privilegesReverted': [],
@@ -1304,8 +1293,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
                                 'licenseType': 'speech-language pathologist',
-                                # unknown random UUID, we won't check for it here
-                                'revisionId': ANY,
                             }
                         ],
                         'privilegesReverted': [],
@@ -1319,6 +1306,56 @@ class TestRollbackLicenseUpload(TstFunction):
             },
             final_results_data,
         )
+
+    @patch('handlers.rollback_license_upload.config.event_bus_client')
+    def test_event_bus_client_called_with_expected_arguments_for_revert_events(self, mock_event_bus_client):
+        """Test that event bus client methods are called with expected arguments when publishing revert events."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # Setup: License was updated during upload and privilege was deactivated
+        # This scenario will trigger both license and privilege revert events
+        original_license, license_update, updated_license = self._when_provider_had_license_updated_from_upload(
+            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
+        )
+        privilege, privilege_update = self._when_provider_had_privilege_deactivated_from_upload()
+
+        # Execute: Perform rollback
+        event = self._generate_test_event()
+        result = rollback_license_upload(event, Mock())
+
+        # Assert: Rollback completed successfully
+        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(result['providersReverted'], 1)
+
+        # Verify: publish_license_revert_event was called with expected arguments
+        expected_license_kwargs = {
+            'source': 'org.compactconnect.disaster-recovery',
+            'compact': self.compact,
+            'provider_id': self.provider_id,
+            'jurisdiction': self.license_jurisdiction,
+            'license_type': original_license.licenseType,
+            'rollback_reason': 'Test rollback',
+            'start_time': self.default_start_datetime,
+            'end_time': self.default_end_datetime,
+            'execution_name': MOCK_EXECUTION_NAME,
+            'event_batch_writer': ANY,
+        }
+        mock_event_bus_client.publish_license_revert_event.assert_called_once_with(**expected_license_kwargs)
+
+        # Verify: publish_privilege_revert_event was called with expected arguments
+        expected_privilege_kwargs = {
+            'source': 'org.compactconnect.disaster-recovery',
+            'compact': self.compact,
+            'provider_id': self.provider_id,
+            'jurisdiction': privilege.jurisdiction,
+            'license_type': privilege.licenseType,
+            'rollback_reason': 'Test rollback',
+            'start_time': self.default_start_datetime,
+            'end_time': self.default_end_datetime,
+            'execution_name': MOCK_EXECUTION_NAME,
+            'event_batch_writer': ANY,
+        }
+        mock_event_bus_client.publish_privilege_revert_event.assert_called_once_with(**expected_privilege_kwargs)
 
     def test_transaction_failure_is_logged_and_provider_marked_as_failed(self):
         """Test that transaction failures are properly logged and the provider is marked as failed."""
