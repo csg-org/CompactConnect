@@ -21,15 +21,16 @@
                 aria-live="assertive"
                 role="status"
             >
-                <div class="description-container">{{ $t('account.autoLogoutWarningDescription') }}</div>
-                <div class="action-button-row">
-                    <InputButton
-                        id="auto-logout-cancel-button"
-                        class="action-button auto-logout-cancel-button"
-                        :label="$t('account.autoLogoutStaySignedIn')"
-                        :onClick="staySignedIn"
-                    />
-                </div>
+                <form class="auto-logout-form" @submit.prevent="staySignedIn">
+                    <div class="description-container">{{ $t('account.autoLogoutWarningDescription') }}</div>
+                    <div class="action-button-row">
+                        <InputSubmit
+                            :formInput="formData.stayLoggedIn"
+                            class="action-button auto-logout-cancel-button"
+                            :label="$t('account.autoLogoutStaySignedIn')"
+                        />
+                    </div>
+                </form>
             </div>
         </template>
     </Modal>

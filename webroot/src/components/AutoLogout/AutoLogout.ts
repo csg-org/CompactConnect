@@ -7,23 +7,25 @@
 
 import {
     Component,
-    Vue,
+    mixins,
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { nextTick } from 'vue';
+import { reactive, nextTick } from 'vue';
 import { autoLogoutConfig } from '@/app.config';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Modal from '@components/Modal/Modal.vue';
-import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import { FormInput } from '@/models/FormInput/FormInput.model';
 
 @Component({
     name: 'AutoLogout',
     components: {
         Modal,
-        InputButton,
+        InputSubmit,
     },
 })
-class AutoLogout extends Vue {
+class AutoLogout extends mixins(MixinForm) {
     //
     // Data
     //
@@ -49,6 +51,7 @@ class AutoLogout extends Vue {
     //
     async created() {
         if (this.userStore.isLoggedIn) {
+            this.initFormInputs();
             this.startAutoLogoutInactivityTimer();
         }
     }
@@ -67,6 +70,15 @@ class AutoLogout extends Vue {
     //
     // Methods
     //
+    initFormInputs(): void {
+        this.formData = reactive({
+            stayLoggedIn: new FormInput({
+                isSubmitInput: true,
+                id: 'auto-logout-cancel-button',
+            }),
+        });
+    }
+
     startAutoLogoutInactivityTimer(): void {
         const { isLoggedIn, isAutoLogoutWarning } = this.userStore;
         const abortController = new AbortController();
