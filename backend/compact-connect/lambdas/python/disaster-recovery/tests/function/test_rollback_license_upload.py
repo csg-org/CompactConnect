@@ -1065,7 +1065,7 @@ class TestRollbackLicenseUpload(TstFunction):
                 'failedProviderDetails': [
                     {
                         'error': 'Failed to rollback updates for provider. Manual review required: Validation error: '
-                                 "{'jurisdictionUploadedLicenseStatus': ['Must be one of: active, inactive.']}",
+                        "{'jurisdictionUploadedLicenseStatus': ['Must be one of: active, inactive.']}",
                         'providerId': self.provider_id,
                     }
                 ],

@@ -2,13 +2,10 @@ import json
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from uuid import UUID, uuid4
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from marshmallow import ValidationError
-
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema.common import LICENSE_UPLOAD_UPDATE_CATEGORIES, UpdateCategory
@@ -18,7 +15,8 @@ from cc_common.data_model.schema.privilege import PrivilegeData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCNotFoundException, CCInternalException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
+from marshmallow import ValidationError
 
 # Maximum time window for rollback (1 week in seconds)
 # this is set as a safety net to prevent accidental rollback over large time period
@@ -28,8 +26,10 @@ MAX_ROLLBACK_WINDOW_SECONDS = 7 * 24 * 60 * 60
 # Privilege update category for license deactivations
 PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY = UpdateCategory.LICENSE_DEACTIVATION
 
+
 class ProviderRollbackFailedException(Exception):
     """Custom exception that is thrown when a provider fails to rollback"""
+
     def __init__(self, message: str):
         self.message = message
         super().__init__(message)
@@ -380,12 +380,13 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                 existing_results.failed_provider_details.append(result)
 
         # All providers processed successfully
-        logger.info('Rollback complete',
-                    providers_processed=providers_processed,
-                    providers_skipped=providers_skipped,
-                    providers_reverted=providers_reverted,
-                    providers_failed=providers_failed
-                    )
+        logger.info(
+            'Rollback complete',
+            providers_processed=providers_processed,
+            providers_skipped=providers_skipped,
+            providers_reverted=providers_reverted,
+            providers_failed=providers_failed,
+        )
 
         # Write final results to S3
         _write_results_to_s3(results_s3_key, existing_results)
@@ -536,7 +537,7 @@ def _perform_transaction(transaction_items: list[dict], provider_id: str) -> Non
         try:
             config.provider_table.meta.client.transact_write_items(TransactItems=batch)
             logger.info(f'Executed batch {i // 100 + 1} with {len(batch)} items')
-        except Exception as e:
+        except ClientError as e:
             # Extract all SKs from the failed transaction batch for debugging
             failed_sks = [_extract_sk_from_transaction_item(item) for item in batch]
             # filter out null values
@@ -550,7 +551,7 @@ def _perform_transaction(transaction_items: list[dict], provider_id: str) -> Non
                 failed_sks=failed_sks,
                 error=str(e),
             )
-            raise ProviderRollbackFailedException(message=str(e))
+            raise ProviderRollbackFailedException(message=str(e)) from e
 
 
 def _check_for_orphaned_update_records(
@@ -674,7 +675,6 @@ def _build_and_execute_revert_transactions(
     except ValidationError as e:
         logger.info('provider record data failed schema validation. Skipping provider', exc_info=e)
         raise ProviderRollbackFailedException(message=f'Validation error: {str(e)}') from e
-
 
     # Step 1: Check for license update records without top-level license records
     orphaned_update_check = _check_for_orphaned_update_records(provider_records)
@@ -902,23 +902,30 @@ def _build_and_execute_revert_transactions(
         # the search results, but the provider was not either skipped over or had something to revert as we expect.
         # If we do get here, we will exit the lambda in a failed state, as there is something unexpected happening that
         # needs to be investigated before we attempt to roll back any other providers.
-        message = ('No transaction items to execute for provider. This is an unexpected state that should be '
-                   'investigated before attempting to roll back any other providers')
+        message = (
+            'No transaction items to execute for provider. This is an unexpected state that should be '
+            'investigated before attempting to roll back any other providers'
+        )
         logger.error(message, provider_id=provider_id)
         raise CCInternalException(message=f'{message} provider_id: {provider_id}')
 
     _perform_transaction(transaction_items, provider_id)
     try:
         # Now read all the license records for the provider and update the provider record
-        provider_records_after_rollback = config.data_client.get_provider_user_records(compact=compact, provider_id=provider_id)
+        provider_records_after_rollback = config.data_client.get_provider_user_records(
+            compact=compact, provider_id=provider_id
+        )
         top_level_provider_record: ProviderData = provider_records_after_rollback.get_provider_record()
-    except CCNotFoundException | CCInternalException as e:
+    except (CCNotFoundException, CCInternalException) as e:
         # This would most likely happen if the top level provider record was somehow deleted by another process.
         # We don't ever expect to get into this state, so we are going to let this bubble to the top and end the entire
         # process, to ensure we are not putting the system into a worse state.
-        logger.error('Expected top level provider record not found after rollback. '
-                     'Ending workflow to prevent risk of data corruption.',
-                     provider_id=provider_id, exc_info=e)
+        logger.error(
+            'Expected top level provider record not found after rollback. '
+            'Ending workflow to prevent risk of data corruption.',
+            provider_id=provider_id,
+            exc_info=e,
+        )
         raise
 
     # Create a new list for provider record updates (all first tier items)
@@ -940,10 +947,12 @@ def _build_and_execute_revert_transactions(
             # We never expect this to happen, since license records should not have been removed if there were any
             # privilege or other non-upload records found for the provider. If we hit this case, we will end the
             # entire process to ensure we are not putting the system into a worse state.
-            message = ('No licenses found for provider after rollback, but other record types still exist. '
-                       'Killing process to prevent potential data corruption.')
+            message = (
+                'No licenses found for provider after rollback, but other record types still exist. '
+                'Killing process to prevent potential data corruption.'
+            )
             logger.error(message, provider_id=provider_id)
-            raise CCInternalException(message=str(message))
+            raise CCInternalException(message=str(message))  # noqa: B904
 
         logger.info('Only top level provider record found. Deleting record', provider_id=provider_id)
         serialized_provider_record = top_level_provider_record.serialize_to_database_record()
