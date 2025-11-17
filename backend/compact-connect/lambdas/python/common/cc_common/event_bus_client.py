@@ -16,6 +16,7 @@ from cc_common.data_model.schema.data_event.api import (
 )
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.utils import ResponseEncoder
+from marshmallow import ValidationError
 
 
 class EventBusClient:
@@ -475,13 +476,15 @@ class EventBusClient:
             'rollbackReason': rollback_reason,
             'startTime': start_time,
             'endTime': end_time,
-            'RollbackExecutionName': execution_name,
+            'rollbackExecutionName': execution_name,
             'eventTime': config.current_standard_datetime,
         }
 
         license_revert_detail_schema = LicenseRevertDetailSchema()
-        license_revert_detail_schema.validate(event_detail)
         deserialized_detail = license_revert_detail_schema.dump(event_detail)
+        validation_errors = license_revert_detail_schema.validate(deserialized_detail)
+        if validation_errors:
+            raise ValidationError(message=validation_errors)
 
         self._publish_event(
             source=source,
@@ -525,13 +528,15 @@ class EventBusClient:
             'rollbackReason': rollback_reason,
             'startTime': start_time,
             'endTime': end_time,
-            'RollbackExecutionName': execution_name,
+            'rollbackExecutionName': execution_name,
             'eventTime': config.current_standard_datetime,
         }
 
         privilege_revert_detail_schema = PrivilegeRevertDetailSchema()
-        privilege_revert_detail_schema.validate(event_detail)
         deserialized_detail = privilege_revert_detail_schema.dump(event_detail)
+        validation_errors = privilege_revert_detail_schema.validate(deserialized_detail)
+        if validation_errors:
+            raise ValidationError(message=validation_errors)
 
         self._publish_event(
             source=source,

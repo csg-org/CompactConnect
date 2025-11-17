@@ -684,7 +684,7 @@ def _build_and_execute_revert_transactions(
     # Step 2: Check provider updates - any after start_datetime make provider ineligible
     provider_updates = provider_records.get_all_provider_update_records()
     for update in provider_updates:
-        if update.dateOfUpdate >= upload_window_start_datetime:
+        if update.createDate >= upload_window_start_datetime:
             ineligible_updates.append(
                 IneligibleUpdate(
                     record_type='providerUpdate',

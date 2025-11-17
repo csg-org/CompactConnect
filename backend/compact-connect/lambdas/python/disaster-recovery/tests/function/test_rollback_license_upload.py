@@ -450,6 +450,8 @@ class TestRollbackLicenseUpload(TstFunction):
             value_overrides={
                 'providerId': self.provider_id,
                 'compact': self.compact,
+                # home jurisdiction was changed during license upload window
+                'createDate': self.default_upload_datetime,
                 'updateType': self.update_categories.HOME_JURISDICTION_CHANGE,
                 'previous': {**self.provider_data.to_dict()},
                 'updatedValues': {
