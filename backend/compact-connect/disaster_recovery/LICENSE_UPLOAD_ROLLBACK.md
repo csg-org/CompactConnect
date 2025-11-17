@@ -13,8 +13,9 @@ The system will automatically determine which providers had their license record
 Before starting the rollback:
 
 1. ✅ **Verify the Problem**: Confirm which jurisdiction uploaded bad data for which compact(s)
-2. ✅ **Determine Time Window**: Identify the exact start and end times (UTC) of the problematic uploads
-3. ✅ **Stakeholder Notification**: Coordinate with relevant state administrators and other stakeholders
+2. ✅ **Disable automated access for Jurisdiction**: If jurisdiction has API credentials for automated uploads, disable those credentials to prevent further data changes until system has been recovered. To do this, determine which Cognito app client(s) the jurisdiction is using for the compact(s) and delete the appropriate app client(s) from the State Auth Cognito user pool.
+3. ✅ **Determine Time Window**: Identify the exact start and end times (UTC) of the problematic uploads
+4. ✅ **Stakeholder Notification**: Coordinate with relevant state administrators and other stakeholders
 
 ### Step 1: Gather Required Information
 
