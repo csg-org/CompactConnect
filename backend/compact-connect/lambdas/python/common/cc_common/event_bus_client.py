@@ -2,6 +2,8 @@ import json
 from datetime import date, datetime
 from uuid import UUID
 
+from marshmallow import ValidationError
+
 from cc_common.config import config
 from cc_common.data_model.schema.common import InvestigationAgainstEnum
 from cc_common.data_model.schema.data_event.api import (
@@ -16,7 +18,6 @@ from cc_common.data_model.schema.data_event.api import (
 )
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.utils import ResponseEncoder
-from marshmallow import ValidationError
 
 
 class EventBusClient:

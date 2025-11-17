@@ -2,6 +2,10 @@
 from datetime import date
 from urllib.parse import quote
 
+from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.validate import Length
+
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
@@ -29,9 +33,6 @@ from cc_common.data_model.schema.fields import (
 from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
-from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
-from marshmallow.validate import Length
 
 
 @BaseRecordSchema.register_schema('license')
