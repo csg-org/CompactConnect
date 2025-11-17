@@ -7,14 +7,18 @@ from uuid import UUID, uuid4
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
+from marshmallow import ValidationError
+
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema.common import LICENSE_UPLOAD_UPDATE_CATEGORIES, UpdateCategory
+from cc_common.data_model.schema.license import LicenseData
+from cc_common.data_model.schema.license.record import LicenseRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCNotFoundException, CCInternalException
 
 # Maximum time window for rollback (1 week in seconds)
 # this is set as a safety net to prevent accidental rollback over large time period
@@ -23,6 +27,12 @@ MAX_ROLLBACK_WINDOW_SECONDS = 7 * 24 * 60 * 60
 
 # Privilege update category for license deactivations
 PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY = UpdateCategory.LICENSE_DEACTIVATION
+
+class ProviderRollbackFailedException(Exception):
+    """Custom exception that is thrown when a provider fails to rollback"""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(message)
 
 
 # Data classes for rollback operations
@@ -247,8 +257,8 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
 
     # Parse and validate datetime parameters
     try:
-        start_datetime = datetime.fromisoformat(start_datetime_str.replace('Z', '+00:00'))
-        end_datetime = datetime.fromisoformat(end_datetime_str.replace('Z', '+00:00'))
+        start_datetime = datetime.fromisoformat(start_datetime_str)
+        end_datetime = datetime.fromisoformat(end_datetime_str)
     except ValueError as e:
         logger.error(f'Invalid datetime format: {str(e)}')
         return {
@@ -471,18 +481,9 @@ def _process_provider_rollback(
     logger.info('Processing provider rollback', provider_id=provider_id)
 
     try:
-        # Fetch all provider records including all update tiers
-        provider_records = config.data_client.get_provider_user_records(
-            compact=compact,
-            provider_id=provider_id,
-            # tier three includes all update records for the provider
-            include_update_tier=UpdateTierEnum.TIER_THREE,
-        )
-
         # Build transactions and check eligibility in a single pass
         # If ineligible updates are found, this will return a ProviderSkippedDetails
         result = _build_and_execute_revert_transactions(
-            provider_records=provider_records,
             upload_window_start_datetime=start_datetime,
             upload_window_end_datetime=end_datetime,
             compact=compact,
@@ -493,8 +494,8 @@ def _process_provider_rollback(
         # If provider was skipped due to ineligibility, return early
         if isinstance(result, ProviderSkippedDetails):
             return result
-    except Exception as e:  # noqa BLE001
-        logger.error(f'Error processing provider rollback: {str(e)}', provider_id=provider_id, exc_info=True)
+    except ProviderRollbackFailedException as e:  # noqa BLE001
+        logger.error('Error processing provider rollback', provider_id=provider_id, exc_info=e)
         return ProviderFailedDetails(
             provider_id=provider_id,
             error=f'Failed to rollback updates for provider. Manual review required: {str(e)}',
@@ -545,7 +546,7 @@ def _perform_transaction(transaction_items: list[dict], provider_id: str) -> Non
                 failed_sks=failed_sks,
                 error=str(e),
             )
-            raise
+            raise ProviderRollbackFailedException(message=str(e))
 
 
 def _check_for_orphaned_update_records(
@@ -594,7 +595,6 @@ def _check_for_orphaned_update_records(
 
 
 def _build_and_execute_revert_transactions(
-    provider_records: ProviderUserRecords,
     upload_window_start_datetime: datetime,
     upload_window_end_datetime: datetime,
     compact: str,
@@ -611,9 +611,6 @@ def _build_and_execute_revert_transactions(
 
     Returns either a summary of what was reverted or details about why the provider was skipped.
     """
-    from cc_common.data_model.schema.license import LicenseData
-    from cc_common.data_model.schema.license.record import LicenseRecordSchema
-
     # Split transaction lists into first tier/second tier lists (license/privilege/provider first tier, updates second)
     # then merge the two lists into a single list of transaction items
     primary_record_transaction_items = []  # License, privilege, and provider records
@@ -629,9 +626,8 @@ def _build_and_execute_revert_transactions(
         """
         Add a Put operation to the appropriate list.
 
-        Args:
-            item: The item to put
-            update_record: True if the item is an update record, False if it is a primary record
+        :param item: The item to put
+        :param update_record: True if the item is an update record, False if it is a primary record
         """
         transaction_item = {
             'Put': {
@@ -648,10 +644,9 @@ def _build_and_execute_revert_transactions(
         """
         Add a Delete operation.
 
-        Args:
-            pk: Partition key
-            sk: Sort key - used to determine if this is an update record
-            update_record: True if the item is an update record, False if it is a primary record
+        :param pk: Partition key
+        :param sk: Sort key - used to determine if this is an update record
+        :param update_record: True if the item is an update record, False if it is a primary record
         """
         transaction_item = {
             'Delete': {
@@ -663,6 +658,19 @@ def _build_and_execute_revert_transactions(
             update_record_transactions_items.append(transaction_item)
         else:
             primary_record_transaction_items.append(transaction_item)
+
+    # Fetch all provider records including all update tiers
+    try:
+        provider_records = config.data_client.get_provider_user_records(
+            compact=compact,
+            provider_id=provider_id,
+            # tier three includes all update records for the provider
+            include_update_tier=UpdateTierEnum.TIER_THREE,
+        )
+    except ValidationError as e:
+        logger.info('provider record data failed schema validation. Skipping provider', exc_info=e)
+        raise ProviderRollbackFailedException(message=f'Validation error: {str(e)}') from e
+
 
     # Step 1: Check for license update records without top-level license records
     orphaned_update_check = _check_for_orphaned_update_records(provider_records)
@@ -898,27 +906,44 @@ def _build_and_execute_revert_transactions(
         )
 
     _perform_transaction(transaction_items, provider_id)
-
-    # Now read all the license records for the provider and update the provider record
-    # Fetch all provider records including all update tiers
-    provider_records = config.data_client.get_provider_user_records(compact=compact, provider_id=provider_id)
-    top_level_provider_record: ProviderData = provider_records.get_provider_record()
-    privilege_records: list[PrivilegeData] = provider_records.get_privilege_records()
+    try:
+        # Now read all the license records for the provider and update the provider record
+        provider_records_after_rollback = config.data_client.get_provider_user_records(compact=compact, provider_id=provider_id)
+        top_level_provider_record: ProviderData = provider_records_after_rollback.get_provider_record()
+    except CCNotFoundException | CCInternalException as e:
+        # This would most likely happen if the top level provider record was somehow deleted by another process.
+        # We don't ever expect to get into this state, so we are going to let this bubble to the top and end the entire
+        # process, to ensure we are not putting the system into a worse state.
+        logger.error('Expected top level provider record not found after rollback. '
+                     'Ending workflow to prevent risk of data corruption.',
+                     provider_id=provider_id, exc_info=e)
+        raise
 
     # Create a new list for provider record updates (all first tier items)
     primary_record_transaction_items.clear()
 
     try:
-        best_license = provider_records.find_best_license_in_current_known_licenses()
-        provider_record = ProviderRecordUtility.populate_provider_record(
+        privilege_records: list[PrivilegeData] = provider_records_after_rollback.get_privilege_records()
+        best_license = provider_records_after_rollback.find_best_license_in_current_known_licenses()
+        updated_provider_record = ProviderRecordUtility.populate_provider_record(
             current_provider_record=top_level_provider_record,
             license_record=best_license.to_dict(),
             privilege_records=[privilege.to_dict() for privilege in privilege_records],
         )
-        add_put(provider_record.serialize_to_database_record(), update_record=False)
+        add_put(updated_provider_record.serialize_to_database_record(), update_record=False)
     except CCNotFoundException:
-        # all licenses for the provider were removed as part of the rollback,
-        # the provider record needs to be removed as well
+        # All licenses for the provider were removed as part of the rollback, meaning the provider
+        # needs to be removed as well. We first check to make sure there are no other record types
+        if len(provider_records_after_rollback.provider_records) > 1:
+            # We never expect this to happen, since license records should not have been removed if there were any
+            # privilege or other non-upload records found for the provider. If we hit this case, we will end the
+            # entire process to ensure we are not putting the system into a worse state.
+            message = ('No licenses found for provider after rollback, but other record types still exist. '
+                       'Killing process to prevent potential data corruption.')
+            logger.error(message, provider_id=provider_id)
+            raise CCInternalException(message=str(message))
+
+        logger.info('Only top level provider record found. Deleting record', provider_id=provider_id)
         serialized_provider_record = top_level_provider_record.serialize_to_database_record()
         add_delete(pk=serialized_provider_record['pk'], sk=serialized_provider_record['sk'], update_record=False)
 

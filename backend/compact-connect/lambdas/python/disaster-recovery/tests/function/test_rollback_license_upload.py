@@ -1047,35 +1047,33 @@ class TestRollbackLicenseUpload(TstFunction):
             results_data,
         )
 
-    def test_expected_s3_object_stored_when_provider_fails_during_rollback(self):
-        """Test that failed provider details are correctly stored in S3 results when an exception occurs."""
-        # Setup: License was updated during upload
-        self._when_provider_had_license_updated_from_upload(
+    def test_expected_s3_object_stored_when_provider_schema_validation_fails_during_rollback(self):
+        """Test that failed provider details are correctly stored in S3 results when a validation exception occurs."""
+        # Setup: License was updated during upload, but one update record has invalid field
+        original_license, license_update, updated_license = self._when_provider_had_license_updated_from_upload(
             license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
         )
+        serialized_license = updated_license.serialize_to_database_record()
+        serialized_license['jurisdictionUploadedLicenseStatus'] = 'foo'
+        self.config.provider_table.put_item(Item=serialized_license)
 
-        # Mock get_provider_user_records to raise an exception when called during rollback
-        mock_error_message = 'Database connection error'
-        with patch.object(
-            self.config.data_client, 'get_provider_user_records', side_effect=Exception(mock_error_message)
-        ):
-            results_data = self._perform_rollback_and_get_s3_object()
+        results_data = self._perform_rollback_and_get_s3_object()
 
-            # Verify the structure of the results contains failed provider details
-            self.assertEqual(
-                {
-                    'failedProviderDetails': [
-                        {
-                            'error': f'Failed to rollback updates for provider. '
-                            f'Manual review required: {mock_error_message}',
-                            'providerId': self.provider_id,
-                        }
-                    ],
-                    'revertedProviderSummaries': [],
-                    'skippedProviderDetails': [],
-                },
-                results_data,
-            )
+        # Verify the structure of the results contains failed provider details
+        self.assertEqual(
+            {
+                'failedProviderDetails': [
+                    {
+                        'error': 'Failed to rollback updates for provider. Manual review required: Validation error: '
+                                 "{'jurisdictionUploadedLicenseStatus': ['Must be one of: active, inactive.']}",
+                        'providerId': self.provider_id,
+                    }
+                ],
+                'revertedProviderSummaries': [],
+                'skippedProviderDetails': [],
+            },
+            results_data,
+        )
 
     def test_rollback_handles_loading_existing_s3_results_and_appends_new_data(self):
         """Test that rollback can load existing S3 results and append new data without deleting previous data."""
