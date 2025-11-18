@@ -355,8 +355,6 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                     'executionName': execution_name,
                 }
 
-            providers_processed += 1
-
             # Process the provider
             result = _process_provider_rollback(
                 provider_id=provider_id,
@@ -368,16 +366,29 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
                 execution_name=execution_name,
             )
 
+            providers_processed += 1
+
             # Update results based on outcome
             if isinstance(result, ProviderRevertedSummary):
                 providers_reverted += 1
                 existing_results.reverted_provider_summaries.append(result)
+                logger.info('Provider reverted successfully', provider_id=provider_id)
             elif isinstance(result, ProviderSkippedDetails):
                 providers_skipped += 1
                 existing_results.skipped_provider_details.append(result)
+                logger.info('Provider skipped due to ineligibility', provider_id=provider_id)
             elif isinstance(result, ProviderFailedDetails):
                 providers_failed += 1
                 existing_results.failed_provider_details.append(result)
+                logger.info('Provider failed to revert', provider_id=provider_id, error=result.error)
+
+            logger.info(
+                'processed provider',
+                total_providers_processed=providers_processed,
+                providers_reverted=providers_reverted,
+                providers_skipped=providers_skipped,
+                providers_failed=providers_failed,
+            )
 
         # All providers processed successfully
         logger.info(
@@ -508,7 +519,6 @@ def _process_provider_rollback(
 
     # Publish events for successful rollback
     _publish_revert_events(result, compact, rollback_reason, start_datetime, end_datetime, execution_name)
-    logger.info('Provider rollback successful', provider_id=provider_id)
     return result
 
 
