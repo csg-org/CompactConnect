@@ -43,7 +43,7 @@ You'll need the following information for the execution:
 1. Click **"Start Execution"**
 2. Enter a descriptive execution name (this will be used for the S3 results folder):
    ```
-   rollback-aslp-oh-2025-01-15
+   rollback-aslp-oh-2020-01-15
    ```
    
 3. Paste the following JSON input (replace values with your specific parameters):
