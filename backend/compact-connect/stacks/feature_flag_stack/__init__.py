@@ -124,20 +124,6 @@ class FeatureFlagStack(AppStack):
             environment_name=environment_name,
         )
 
-        self.duplicate_ssn_upload_check_flag = FeatureFlagResource(
-            self,
-            'DuplicateSsnUploadCheckFlag',
-            provider=self.provider,  # Shared provider
-            flag_name='duplicate-ssn-upload-check-flag',
-            # Low risk update, we will automatically enable for every environment
-            auto_enable_envs=[
-                FeatureFlagEnvironmentName.TEST,
-                FeatureFlagEnvironmentName.BETA,
-                FeatureFlagEnvironmentName.PROD,
-            ],
-            environment_name=environment_name,
-        )
-
     def _create_common_provider(self, environment_name: str) -> Provider:
         # Create shared Lambda function for managing all feature flags
         # This function is reused across all FeatureFlagResource instances

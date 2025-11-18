@@ -14,8 +14,6 @@ from cc_common.data_model.schema.license.api import (
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException
 
-# initialize flag outside of handler so the flag is cached for the lifecycle of the lambda execution environment
-from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
 from cc_common.utils import (
     ResponseEncoder,
     api_handler,
@@ -24,11 +22,6 @@ from cc_common.utils import (
 )
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
-
-duplicate_ssn_check_flag_enabled = is_feature_enabled(
-    FeatureFlagEnum.DUPLICATE_SSN_UPLOAD_CHECK_FLAG, fail_default=True
-)
-
 
 @api_handler
 @authorize_compact_jurisdiction(action='write')
@@ -160,15 +153,14 @@ def process_bulk_upload_file(
                     validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
                     # verify that this ssn has not been used previously in the same batch
                     license_ssn = validated_license['ssn']
-                    if duplicate_ssn_check_flag_enabled:
-                        matched_ssn_index = ssns_in_file_upload.get(license_ssn)
-                        if matched_ssn_index:
-                            raise ValidationError(
-                                message=f'Duplicate License SSN detected. SSN matches with record '
-                                f'{matched_ssn_index}. Every record must have a unique SSN within the same '
-                                f'file.'
-                            )
-                        ssns_in_file_upload.update({license_ssn: i + 1})
+                    matched_ssn_index = ssns_in_file_upload.get(license_ssn)
+                    if matched_ssn_index:
+                        raise ValidationError(
+                            message=f'Duplicate License SSN detected. SSN matches with record '
+                            f'{matched_ssn_index}. Every record must have a unique SSN within the same '
+                            f'file.'
+                        )
+                    ssns_in_file_upload.update({license_ssn: i + 1})
                 except TypeError as e:
                     # This will be raised, if `raw_license` includes compact and/or jurisdiction fields
                     logger.error('License contains unsupported fields', fields=list(raw_license.keys()), exc_info=e)

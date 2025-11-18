@@ -12,4 +12,3 @@ class FeatureFlagEnum(StrEnum):
     TEST_FLAG = 'test-flag'
     # runtime flags
     ENCUMBRANCE_MULTI_CATEGORY_FLAG = 'encumbrance-multi-category-flag'
-    DUPLICATE_SSN_UPLOAD_CHECK_FLAG = 'duplicate-ssn-upload-check-flag'

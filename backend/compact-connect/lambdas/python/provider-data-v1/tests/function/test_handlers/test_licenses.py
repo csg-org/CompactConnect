@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 from common_test.sign_request import sign_request
@@ -8,12 +8,8 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-mock_flag_client = MagicMock()
-mock_flag_client.return_value = True
-
 
 @mock_aws
-@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestLicenses(TstFunction):
     def setUp(self):
