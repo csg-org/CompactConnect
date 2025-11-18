@@ -1,5 +1,6 @@
 # ruff: noqa: F403, F405 star import of test constants file
 import json
+from copy import deepcopy
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -647,6 +648,38 @@ class TestDataGenerator:
         config.compact_configuration_table.put_item(Item=jurisdiction_config_record)
 
         return jurisdiction_config
+
+    @staticmethod
+    def generate_default_transaction(value_overrides: dict | None = None):
+        """Generate a default transaction"""
+        from cc_common.data_model.schema.transaction import TransactionData
+
+        # We'll fill in any missing batch values with defaults
+        default_batch = deepcopy(DEFAULT_COMPACT_TRANSACTION_BATCH)
+        if value_overrides and 'batch' in value_overrides.keys():
+            default_batch.update(value_overrides.pop('batch'))
+
+        default_transaction = {
+            'transactionProcessor': 'authorize.net',
+            'transactionId': DEFAULT_COMPACT_TRANSACTION_ID,
+            'batch': default_batch,
+            'lineItems': [
+                DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM,
+                DEFAULT_COMPACT_TRANSACTION_COMPACT_LINE_ITEM,
+                DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM,
+            ],
+            'compact': DEFAULT_COMPACT,
+            'licenseeId': DEFAULT_PROVIDER_ID,
+            'responseCode': '1',
+            'settleAmount': '113.50',
+            'submitTimeUTC': '2024-01-01T12:00:00.000Z',
+            'transactionStatus': 'settledSuccessfully',
+            'transactionType': 'authCaptureTransaction',
+        }
+        if value_overrides:
+            default_transaction.update(value_overrides)
+
+        return TransactionData.create_new(default_transaction)
 
     @staticmethod
     def put_compact_active_member_jurisdictions(
