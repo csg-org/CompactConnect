@@ -43,7 +43,7 @@ class TestCognitoUserBackup(TestCase):
         PythonCommonLayerVersions(
             common_stack,
             'CommonLayers',
-            compatible_runtimes=[Runtime.PYTHON_3_13],
+            compatible_runtimes=[Runtime.PYTHON_3_14],
         )
 
         cls.stack = Stack(cls.app, 'TestStack')

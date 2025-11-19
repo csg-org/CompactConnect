@@ -228,9 +228,9 @@ class TstAppABC(ABC):
             self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ['email'])
             self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ['email'])
 
-        self._inspect_data_events_table(persistent_stack, persistent_stack_template)
-        self._inspect_ssn_table(persistent_stack, persistent_stack_template)
-        self._inspect_backup_resources(persistent_stack, persistent_stack_template)
+            self._inspect_data_events_table(persistent_stack, persistent_stack_template)
+            self._inspect_ssn_table(persistent_stack, persistent_stack_template)
+            self._inspect_backup_resources(persistent_stack, persistent_stack_template)
 
     def _inspect_ssn_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         ssn_key_logical_id = persistent_stack.get_logical_id(persistent_stack.ssn_table.key.node.default_child)

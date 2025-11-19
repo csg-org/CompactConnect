@@ -174,7 +174,9 @@ class SSNTable(Table):
                         region=stack.region,
                         account=stack.account,
                         resource='table',
-                        resource_name=f'{self.table_name}/index/{self.ssn_index_name}',
+                        # We have to use the constant here, because using `self.table_name` here creates a circular
+                        # reference in the resulting template.
+                        resource_name=f'{SSN_TABLE_NAME}/index/{self.ssn_index_name}',
                     ),
                 ],
             )
