@@ -142,8 +142,9 @@ for *both required and optional signature auth endpoints*).
 #### Python Example
 
 We maintain an example implementation, which we use to test and validate our own authentication mechanism
-[here](../lambdas/python/common/common_test/sign_request.py). You can use this as a reference for your own
-implementation.
+[here](../lambdas/python/common/common_test/sign_request.py) and some example HTTP request data in a text file
+[here](../lambdas/python/common/tests/resources/signature_auth_examples.txt). You can use this as a reference for your
+own implementation.
 
 ### Key Management
 

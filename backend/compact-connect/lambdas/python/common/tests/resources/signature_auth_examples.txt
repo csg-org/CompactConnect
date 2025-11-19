@@ -1,0 +1,145 @@
+================================================================================
+Signature Authentication Examples
+================================================================================
+
+This document provides example HTTP requests demonstrating the
+CompactConnect signature authentication scheme.
+
+Each example includes:
+  1. The raw HTTP request with signature headers
+  2. The plaintext string that was signed
+  3. The base64-encoded string that was signed
+
+================================================================================
+
+Example 1: GET /v1/compacts/aslp/jurisdictions/al/providers/query
+--------------------------------------------------------------------------------
+
+Raw HTTP Request:
+
+GET /v1/compacts/aslp/jurisdictions/al/providers/query?limit=10&offset=0&status=active HTTP/1.1
+Host: api.example.com
+Content-Type: application/json
+User-Agent: CompactConnect-Client/1.0
+X-Algorithm: ECDSA-SHA256
+X-Timestamp: 2025-11-18T20:39:47.299159Z
+X-Nonce: 753e75a390774b7faaa8831a77eb6be4
+X-Key-Id: test-key-001
+X-Signature: MEUCIQDJB+rNp/0vr5x/aXbBIppyi6lHdUMFAfkk6AIQpD277AIgTm2X/CAcFJyO4gU98x0KqfVjwIG9Q1WNVWTs1HDiwZA=
+
+
+Plaintext String to Sign:
+
+GET
+/v1/compacts/aslp/jurisdictions/al/providers/query
+limit=10&offset=0&status=active
+2025-11-18T20:39:47.299159Z
+753e75a390774b7faaa8831a77eb6be4
+test-key-001
+
+
+Base64-Encoded String to Sign:
+
+R0VUCi92MS9jb21wYWN0cy9hc2xwL2p1cmlzZGljdGlvbnMvYWwvcHJvdmlkZXJzL3F1ZXJ5CmxpbWl0PTEwJm9mZnNldD0wJnN0YXR1cz1hY3RpdmUKMjAyNS0xMS0xOFQyMDozOTo0Ny4yOTkxNTlaCjc1M2U3NWEzOTA3NzRiN2ZhYWE4ODMxYTc3ZWI2YmU0CnRlc3Qta2V5LTAwMQ==
+
+
+================================================================================
+
+Example 2: POST /v1/compacts/aslp/jurisdictions/al/providers
+--------------------------------------------------------------------------------
+
+Raw HTTP Request:
+
+POST /v1/compacts/aslp/jurisdictions/al/providers?validate=true HTTP/1.1
+Host: api.example.com
+Content-Type: application/json
+User-Agent: CompactConnect-Client/1.0
+X-Algorithm: ECDSA-SHA256
+X-Timestamp: 2025-11-18T20:39:47.308195Z
+X-Nonce: 7da26c6cb66a4fd2ad137afb4c5e8c4a
+X-Key-Id: test-key-002
+X-Signature: MEQCIDI6WiwTS6ZNYEsHRUFCTy8X/Sa5JpfArVM4TOvFujGnAiA1a4Ma6MCU2NweFVsNnB4ZWXUr7NQRdohVPY4feKsMJA==
+
+
+Plaintext String to Sign:
+
+POST
+/v1/compacts/aslp/jurisdictions/al/providers
+validate=true
+2025-11-18T20:39:47.308195Z
+7da26c6cb66a4fd2ad137afb4c5e8c4a
+test-key-002
+
+
+Base64-Encoded String to Sign:
+
+UE9TVAovdjEvY29tcGFjdHMvYXNscC9qdXJpc2RpY3Rpb25zL2FsL3Byb3ZpZGVycwp2YWxpZGF0ZT10cnVlCjIwMjUtMTEtMThUMjA6Mzk6NDcuMzA4MTk1Wgo3ZGEyNmM2Y2I2NmE0ZmQyYWQxMzdhZmI0YzVlOGM0YQp0ZXN0LWtleS0wMDI=
+
+
+================================================================================
+
+Example 3: GET /v1/compacts/aslp/jurisdictions/al/providers/12345
+--------------------------------------------------------------------------------
+
+Raw HTTP Request:
+
+GET /v1/compacts/aslp/jurisdictions/al/providers/12345 HTTP/1.1
+Host: api.example.com
+Content-Type: application/json
+User-Agent: CompactConnect-Client/1.0
+X-Algorithm: ECDSA-SHA256
+X-Timestamp: 2025-11-18T20:39:47.308296Z
+X-Nonce: bc4340855ef1483aa69bcf91368becbe
+X-Key-Id: test-key-003
+X-Signature: MEUCIQDOm302tChMchtofb1n9bVNpCPaia/VCWWPrK16Dip8MwIgXH/M+HFoqv69+wo84jmHZnAw1B4IoFU6RQ+B+v9ZS18=
+
+
+Plaintext String to Sign:
+
+GET
+/v1/compacts/aslp/jurisdictions/al/providers/12345
+
+2025-11-18T20:39:47.308296Z
+bc4340855ef1483aa69bcf91368becbe
+test-key-003
+
+
+Base64-Encoded String to Sign:
+
+R0VUCi92MS9jb21wYWN0cy9hc2xwL2p1cmlzZGljdGlvbnMvYWwvcHJvdmlkZXJzLzEyMzQ1CgoyMDI1LTExLTE4VDIwOjM5OjQ3LjMwODI5NloKYmM0MzQwODU1ZWYxNDgzYWE2OWJjZjkxMzY4YmVjYmUKdGVzdC1rZXktMDAz
+
+
+================================================================================
+
+Example 4: POST /path
+--------------------------------------------------------------------------------
+
+Raw HTTP Request:
+
+POST /path?a=1&b=value%20two HTTP/1.1
+Host: api.example.com
+Content-Type: application/json
+User-Agent: CompactConnect-Client/1.0
+X-Algorithm: ECDSA-SHA256
+X-Timestamp: 2025-11-11T19:09:53Z
+X-Nonce: 54ebdc56-4eae-4627-94e1-11ff27a3ec88
+X-Key-Id: eLicenseKey
+X-Signature: MEYCIQCXzKEPheBUp2UeDGIY/aN4KDjW0TcedI7QnJBqcjNcXAIhAPSMlZF82qBwzE1trHvkdRvrHPFfqxfnfrlrqpMOCXKU
+
+
+Plaintext String to Sign:
+
+POST
+/path
+a=1&b=value%20two
+2025-11-11T19:09:53Z
+54ebdc56-4eae-4627-94e1-11ff27a3ec88
+eLicenseKey
+
+
+Base64-Encoded String to Sign:
+
+UE9TVAovcGF0aAphPTEmYj12YWx1ZSUyMHR3bwoyMDI1LTExLTExVDE5OjA5OjUzWgo1NGViZGM1Ni00ZWFlLTQ2MjctOTRlMS0xMWZmMjdhM2VjODgKZUxpY2Vuc2VLZXk=
+
+
+================================================================================

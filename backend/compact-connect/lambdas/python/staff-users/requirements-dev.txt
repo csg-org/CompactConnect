@@ -4,14 +4,14 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/staff-users/requirements-dev.in
 #
-boto3==1.40.56
+boto3==1.40.76
     # via moto
-botocore==1.40.56
+botocore==1.40.76
     # via
     #   boto3
     #   moto
     #   s3transfer
-certifi==2025.10.5
+certifi==2025.11.12
     # via requests
 cffi==2.0.0
     # via cryptography
@@ -23,7 +23,7 @@ cryptography==46.0.3
     #   moto
 docker==7.1.0
     # via moto
-faker==28.4.1
+faker==37.12.0
     # via -r lambdas/python/staff-users/requirements-dev.in
 idna==3.11
     # via requests
@@ -33,22 +33,21 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-joserfc==1.4.0
+joserfc==1.4.3
     # via moto
 markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-moto[cognitoidp,dynamodb,s3]==5.1.15
+moto[cognitoidp,dynamodb,s3]==5.1.17
     # via -r lambdas/python/staff-users/requirements-dev.in
-py-partiql-parser==0.6.1
+py-partiql-parser==0.6.3
     # via moto
 pycparser==2.23
     # via cffi
 python-dateutil==2.9.0.post0
     # via
     #   botocore
-    #   faker
     #   moto
 pyyaml==6.0.3
     # via
@@ -65,6 +64,8 @@ s3transfer==0.14.0
     # via boto3
 six==1.17.0
     # via python-dateutil
+tzdata==2025.2
+    # via faker
 urllib3==2.5.0
     # via
     #   botocore

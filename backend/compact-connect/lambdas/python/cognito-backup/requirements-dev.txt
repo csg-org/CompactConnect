@@ -4,19 +4,19 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/cognito-backup/requirements-dev.in
 #
-aws-lambda-powertools==3.22.0
+aws-lambda-powertools==3.23.0
     # via -r lambdas/python/cognito-backup/requirements-dev.in
-boto3==1.40.56
+boto3==1.40.76
     # via
     #   -r lambdas/python/cognito-backup/requirements-dev.in
     #   moto
-botocore==1.40.56
+botocore==1.40.76
     # via
     #   -r lambdas/python/cognito-backup/requirements-dev.in
     #   boto3
     #   moto
     #   s3transfer
-certifi==2025.10.5
+certifi==2025.11.12
     # via requests
 cffi==2.0.0
     # via cryptography
@@ -37,25 +37,25 @@ jmespath==1.0.1
     #   aws-lambda-powertools
     #   boto3
     #   botocore
-joserfc==1.4.0
+joserfc==1.4.3
     # via moto
 markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-moto[cognitoidp,s3]==5.1.15
+moto[cognitoidp,s3]==5.1.17
     # via -r lambdas/python/cognito-backup/requirements-dev.in
 packaging==25.0
     # via pytest
 pluggy==1.6.0
     # via pytest
-py-partiql-parser==0.6.1
+py-partiql-parser==0.6.3
     # via moto
 pycparser==2.23
     # via cffi
 pygments==2.19.2
     # via pytest
-pytest==8.4.2
+pytest==9.0.1
     # via -r lambdas/python/cognito-backup/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via

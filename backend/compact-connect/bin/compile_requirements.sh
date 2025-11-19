@@ -16,8 +16,11 @@ pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/disas
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/disaster-recovery/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/provider-data-v1/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/provider-data-v1/requirements.in
-pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/purchases/requirements-dev.in
-pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/purchases/requirements.in
+# The purchases lambda requires Python<=3.12, which is older than everything else in this project, so we have
+# to install that separately, if we want to be developing with Python>=3.13 for the rest of the project, to
+# avoid installation failures
+# pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/purchases/requirements-dev.in
+# pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/purchases/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/staff-user-pre-token/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/staff-user-pre-token/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/staff-users/requirements-dev.in
