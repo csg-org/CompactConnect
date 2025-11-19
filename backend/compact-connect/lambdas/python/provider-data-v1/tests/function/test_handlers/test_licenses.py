@@ -408,15 +408,15 @@ class TestLicenses(TstFunction):
         # The user has write permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
-        
+
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data_1 = json.load(f)
-        
+
         # Create second license with same SSN but different license type
         license_data_2 = license_data_1.copy()
         license_data_1['licenseType'] = 'audiologist'
         license_data_2['licenseType'] = 'speech-language pathologist'
-        
+
         event['body'] = json.dumps([license_data_1, license_data_2])
 
         # Add signature authentication headers
@@ -425,7 +425,7 @@ class TestLicenses(TstFunction):
         resp = post_licenses(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
-        
+
         # assert that the messages were sent to the preprocessing queue
         queue_messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
         self.assertEqual(2, len(queue_messages))

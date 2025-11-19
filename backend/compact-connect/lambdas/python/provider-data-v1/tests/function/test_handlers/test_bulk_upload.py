@@ -366,7 +366,8 @@ class TestProcessObjects(TstFunction):
             '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active\n'
             '123-45-6789,1234567890,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,speech-language pathologist,Active'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,speech-language pathologist,'
+            'Active'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
