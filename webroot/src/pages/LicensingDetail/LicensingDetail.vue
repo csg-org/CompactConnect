@@ -11,6 +11,10 @@
             <LoadingSpinner v-show="isLoading"></LoadingSpinner>
         </transition>
         <div class="licensee-detail-container">
+            <div v-if="isLicenseeUnderInvestigation" class="licensee-alert">
+                <AlertIcon v-if="$matches.tablet.min" class="alert-icon" />
+                {{ licenseeInvestigationAlertContent }}
+            </div>
             <div class="licensee-header">
                 <div class="breadcrumbs">
                     <router-link class="breadcrumb-link" :to="{ name: 'Licensing', params: { compact } }">

@@ -17,6 +17,7 @@ import {
     EligibilityStatus
 } from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
+import { Investigation } from '@models/Investigation/Investigation.model';
 import { State } from '@models/State/State.model';
 import moment from 'moment';
 import { StatsigClient } from '@statsig/js-client';
@@ -327,6 +328,59 @@ export class Licensee implements InterfaceLicensee {
     public hasEncumbranceLiftedWithinWaitPeriod(): boolean {
         return this.privileges?.some((privilege: License) =>
             privilege.isLatestLiftedEncumbranceWithinWaitPeriod()) || false;
+    }
+
+    public hasUnderInvestigationLicenses(): boolean {
+        return this.licenses?.some((license: License) => license.isUnderInvestigation()) || false;
+    }
+
+    public hasUnderInvestigationPrivileges(): boolean {
+        return this.privileges?.some((privilege: License) => privilege.isUnderInvestigation()) || false;
+    }
+
+    public isUnderInvestigation(): boolean {
+        return this.hasUnderInvestigationLicenses() || this.hasUnderInvestigationPrivileges();
+    }
+
+    public underInvestigationStates(): Array<State> {
+        const investigationStates: Array<State> = [];
+        const investigationStatesAbbrev: Array<string> = [];
+
+        this.licenses?.forEach((license: License) => {
+            if (license.isUnderInvestigation()) {
+                license.investigations?.forEach((investigation: Investigation) => {
+                    const investigationState = investigation.state;
+                    const investigationStateAbbrev = investigation.state?.abbrev;
+
+                    if (investigation.isActive()
+                        && investigationState
+                        && investigationStateAbbrev
+                        && !investigationStatesAbbrev.includes(investigationStateAbbrev)) {
+                        investigationStates.push(investigationState);
+                        investigationStatesAbbrev.push(investigationStateAbbrev);
+                    }
+                });
+            }
+        });
+
+        this.privileges?.forEach((privilege: License) => {
+            if (privilege.isUnderInvestigation()) {
+                privilege.investigations?.forEach((investigation: Investigation) => {
+                    const investigationState = investigation.state;
+                    const investigationStateAbbrev = investigation.state?.abbrev;
+
+                    if (investigation.isActive()
+                        && investigationState
+                        && investigationStateAbbrev
+                        && !investigationStatesAbbrev.includes(investigationStateAbbrev)) {
+                        investigationStates.push(investigationState);
+                        investigationStatesAbbrev.push(investigationStateAbbrev);
+                    }
+                });
+            }
+        });
+
+        return investigationStates;
     }
 
     public purchaseEligibleLicenses(): Array<License> {

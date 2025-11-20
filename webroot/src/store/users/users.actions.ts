@@ -192,6 +192,66 @@ export default {
     unencumberLicenseFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.UNENCUMBER_LICENSE_FAILURE, error);
     },
+    // CREATE INVESTIGATION FOR USER LICENSE
+    createInvestigationLicenseRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+    }: any) => {
+        commit(MutationTypes.CREATE_INVESTIGATION_LICENSE_REQUEST);
+        return dataApi.createLicenseInvestigation(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType
+        ).then(async (response) => {
+            dispatch('createInvestigationLicenseSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('createInvestigationLicenseFailure', error);
+            throw error;
+        });
+    },
+    createInvestigationLicenseSuccess: ({ commit }) => {
+        commit(MutationTypes.CREATE_INVESTIGATION_LICENSE_SUCCESS);
+    },
+    createInvestigationLicenseFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_INVESTIGATION_LICENSE_FAILURE, error);
+    },
+    // UPDATE INVESTIGATION FOR USER LICENSE
+    updateInvestigationLicenseRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+        investigationId,
+        encumbrance
+    }: any) => {
+        commit(MutationTypes.UPDATE_INVESTIGATION_LICENSE_REQUEST);
+        return dataApi.updateLicenseInvestigation(
+            compact,
+            licenseeId,
+            licenseState,
+            licenseType,
+            investigationId,
+            encumbrance
+        ).then(async (response) => {
+            dispatch('updateInvestigationLicenseSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('updateInvestigationLicenseFailure', error);
+            throw error;
+        });
+    },
+    updateInvestigationLicenseSuccess: ({ commit }) => {
+        commit(MutationTypes.UPDATE_INVESTIGATION_LICENSE_SUCCESS);
+    },
+    updateInvestigationLicenseFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.UPDATE_INVESTIGATION_LICENSE_FAILURE, error);
+    },
     // DELETE USER PRIVILEGE
     deletePrivilegeRequest: async ({ commit, dispatch }, {
         compact,
@@ -289,6 +349,66 @@ export default {
     },
     unencumberPrivilegeFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.UNENCUMBER_PRIVILEGE_FAILURE, error);
+    },
+    // CREATE INVESTIGATION FOR USER PRIVILEGE
+    createInvestigationPrivilegeRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+    }: any) => {
+        commit(MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_REQUEST);
+        return dataApi.createPrivilegeInvestigation(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType
+        ).then(async (response) => {
+            dispatch('createInvestigationPrivilegeSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('createInvestigationPrivilegeFailure', error);
+            throw error;
+        });
+    },
+    createInvestigationPrivilegeSuccess: ({ commit }) => {
+        commit(MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_SUCCESS);
+    },
+    createInvestigationPrivilegeFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_FAILURE, error);
+    },
+    // UPDATE INVESTIGATION FOR USER PRIVILEGE
+    updateInvestigationPrivilegeRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType,
+        investigationId,
+        encumbrance
+    }: any) => {
+        commit(MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_REQUEST);
+        return dataApi.updatePrivilegeInvestigation(
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+            investigationId,
+            encumbrance
+        ).then(async (response) => {
+            dispatch('updateInvestigationPrivilegeSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('updateInvestigationPrivilegeFailure', error);
+            throw error;
+        });
+    },
+    updateInvestigationPrivilegeSuccess: ({ commit }) => {
+        commit(MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_SUCCESS);
+    },
+    updateInvestigationPrivilegeFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_FAILURE, error);
     },
     // SET THE STORE STATE
     setStoreUsersPrevLastKey: ({ commit }, prevLastKey) => {

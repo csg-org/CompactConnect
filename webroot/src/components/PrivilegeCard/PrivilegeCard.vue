@@ -64,6 +64,26 @@
                         >
                             {{ $t('licensing.unencumber') }}
                         </li>
+                        <li
+                            v-if="isCurrentUserPrivilegeStateAdmin"
+                            class="privilege-menu-item new-section"
+                            role="button"
+                            @click="toggleAddInvestigationModal"
+                            @keyup.enter="toggleAddInvestigationModal"
+                            tabindex="0"
+                        >
+                            {{ $t('licensing.addInvestigation') }}
+                        </li>
+                        <li
+                            v-if="isCurrentUserPrivilegeStateAdmin && isUnderInvestigation"
+                            class="privilege-menu-item"
+                            role="button"
+                            @click="toggleEndInvestigationModal"
+                            @keyup.enter="toggleEndInvestigationModal"
+                            tabindex="0"
+                        >
+                            {{ $t('licensing.endInvestigation') }}
+                        </li>
                     </ul>
                 </transition>
             </div>
@@ -171,21 +191,25 @@
                                 :isEnabled="isMockPopulateEnabled"
                                 @selected="mockPopulate"
                             />
-                            <div class="form-row input-container static-input">
-                                <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
-                                <div class="static-value">{{ licenseeName }}</div>
+                            <div class="form-row static-container">
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
+                                    <div class="static-value">{{ licenseeName }}</div>
+                                </div>
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('common.state') }}</div>
+                                    <div class="static-value">{{ stateContent }}</div>
+                                </div>
                             </div>
-                            <div class="form-row input-container static-input">
-                                <div class="input-label static-label">{{ $t('common.state') }}</div>
-                                <div class="static-value">{{ stateContent }}</div>
-                            </div>
-                            <div class="form-row input-container static-input">
-                                <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
-                                <div class="static-value">{{ privilegeId }}</div>
-                            </div>
-                            <div class="form-row input-container static-input">
-                                <div class="input-label static-label">{{ $t('licensing.privilegeType') }}</div>
-                                <div class="static-value">{{ privilegeTypeAbbrev }}</div>
+                            <div class="form-row static-container">
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
+                                    <div class="static-value">{{ privilegeId }}</div>
+                                </div>
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.privilegeType') }}</div>
+                                    <div class="static-value">{{ privilegeTypeAbbrev }}</div>
+                                </div>
                             </div>
                             <div class="form-row">
                                 <InputSelect :formInput="formData.encumberModalDisciplineAction" />
@@ -381,6 +405,245 @@
                             class="unencumber-modal-cancel-button"
                             :label="$t('common.close')"
                             :onClick="closeUnencumberPrivilegeModal"
+                        />
+                    </div>
+                </template>
+            </Modal>
+            <Modal
+                v-if="isAddInvestigationModalDisplayed"
+                modalId="add-investigation-privilege-modal"
+                class="privilege-edit-modal add-investigation-privilege-modal"
+                :title="!isAddInvestigationModalSuccess ? $t('licensing.confirmPrivilegeInvestigationStartTitle') : ' '"
+                :showActions="false"
+                @keydown.tab="focusTrapAddInvestigationModal($event)"
+                @keyup.esc="closeAddInvestigationModal"
+            >
+                <template v-slot:content>
+                    <div
+                        v-if="!isAddInvestigationModalSuccess"
+                        class="modal-content add-investigation-modal-content"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        {{ $t('licensing.confirmPrivilegeInvestigationStartSubtext') }}
+                        <form class="privilege-edit-form" @submit.prevent="submitAddInvestigation">
+                            <div class="add-investigation-form-input-container">
+                            <div class="form-row static-container">
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.practitionerName') }}</div>
+                                    <div class="static-value">{{ licenseeName }}</div>
+                                </div>
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('common.state') }}</div>
+                                    <div class="static-value">{{ stateContent }}</div>
+                                </div>
+                            </div>
+                            <div class="form-row static-container">
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
+                                    <div class="static-value">{{ privilegeId }}</div>
+                                </div>
+                                <div class="static-input">
+                                    <div class="input-label static-label">{{ $t('licensing.privilegeType') }}</div>
+                                    <div class="static-value">{{ privilegeTypeAbbrev }}</div>
+                                </div>
+                            </div>
+                            </div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="add-investigation-modal-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeAddInvestigationModal"
+                                    :isEnabled="!isFormLoading"
+                                />
+                                <InputSubmit
+                                    class="action-button submit-button continue-button"
+                                    :formInput="formData.addInvestigationModalContinue"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('licensing.confirmPrivilegeInvestigationStartSubmit')"
+                                    :isWarning="true"
+                                    :isEnabled="!isFormLoading"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                    <div v-else
+                        class="modal-content add-investigation-modal-content modal-content-success"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <form class="add-investigation-success-form" @submit.prevent="closeAddInvestigationModal">
+                            <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
+                            <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationStartSuccess') }}</h1>
+                            <div class="success-container">
+                                <div class="input-label static-label">{{ licenseeName }}</div>
+                                <div class="static-value">{{ privilegeId }}</div>
+                            </div>
+                            <InputSubmit
+                                :formInput="formData.addInvestigationModalContinue"
+                                class="add-investigation-modal-cancel-button"
+                                :label="$t('common.close')"
+                            />
+                        </form>
+                    </div>
+                </template>
+            </Modal>
+            <Modal
+                v-if="isEndInvestigationModalDisplayed"
+                modalId="end-investigation-privilege-modal"
+                class="privilege-edit-modal end-investigation-privilege-modal"
+                :title="endInvestigationModalTitle"
+                :showActions="false"
+                @keydown.tab="focusTrapEndInvestigationModal($event)"
+                @keyup.esc="closeEndInvestigationModal"
+            >
+                <template v-slot:content>
+                    <div v-if="!isEndInvestigationModalConfirm && !isEndInvestigationModalSuccess"
+                        class="modal-content end-investigation-modal-content"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <form
+                            id="end-investigation-modal-form"
+                            class="privilege-edit-form end-investigation-privilege-form"
+                            @submit.prevent="continueToEndInvestigationConfirm"
+                        >
+                            <div class="end-investigation-privilege-form-input-container">
+                            <MockPopulate
+                                v-if="isMockPopulateEnabled"
+                                :isEnabled="isMockPopulateEnabled"
+                                @selected="mockPopulate"
+                            />
+                            <div
+                                v-for="(investigation, index) in investigations"
+                                :key="investigation.id || index"
+                                class="form-row end-investigation-row"
+                            >
+                                <div
+                                    class="end-investigation-select"
+                                    :class="{
+                                        'selected': isInvestigationSelected(investigation),
+                                        'inactive': investigation.hasEndDate(),
+                                    }"
+                                    @click="!investigation.hasEndDate()
+                                        && clickEndInvestigationItem(investigation, $event)"
+                                    @keyup.space="!investigation.hasEndDate()
+                                        && clickEndInvestigationItem(investigation, $event)"
+                                >
+                                    <InputCheckbox
+                                        v-if="!investigation.hasEndDate()"
+                                        :formInput="formData[`end-investigation-data-${investigation.id}`]"
+                                        class="end-investigation-checkbox-input"
+                                    />
+                                    <div v-else class="inactive-category">
+                                        {{ formData[`end-investigation-data-${investigation.id}`].label }}
+                                    </div>
+                                    <div class="investigation-dates">
+                                        <span v-if="investigation.hasEndDate()">
+                                            {{ $t('licensing.investigationEndedOn', {
+                                                date: investigation.endDateDisplay()
+                                            }) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="end-investigation-modal-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeEndInvestigationModal"
+                                    :isEnabled="!isFormLoading"
+                                />
+                                <InputSubmit
+                                    class="action-button submit-button continue-button"
+                                    :formInput="formData.endInvestigationModalContinue"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('common.continue')"
+                                    :isEnabled="isFormValid && !isFormLoading && selectedInvestigation"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                    <div
+                        v-else-if="isEndInvestigationModalConfirm && !isEndInvestigationModalSuccess"
+                        class="modal-content end-investigation-modal-content"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <p class="info-block">
+                            {{ $t('licensing.confirmPrivilegeInvestigationEndSubtext1', {
+                                date: selectedInvestigation.startDateDisplay()
+                            }) }}
+                        </p>
+                        <p class="info-block">
+                            {{ $t('licensing.confirmPrivilegeInvestigationEndSubtext2') }}
+                        </p>
+                        <div class="action-button-row">
+                            <InputButton
+                                id="end-investigation-modal-cancel-button"
+                                class="action-button end-investigation-modal-cancel-button"
+                                :label="$t('common.cancel')"
+                                :isTransparent="true"
+                                :onClick="closeEndInvestigationModal"
+                                :isEnabled="!isFormLoading"
+                            />
+                            <InputButton
+                                id="end-investigation-modal-no-encumbrance"
+                                class="action-button end-investigation-modal-no-encumbrance"
+                                :label="$t('licensing.confirmPrivilegeInvestigationEndSubmitWithoutEncumber')"
+                                :onClick="submitEndInvestigationWithoutEncumbrance"
+                                :isEnabled="!isFormLoading"
+                            />
+                            <InputButton
+                                id="submit-modal-continue"
+                                class="action-button end-investigation-modal-with-encumbrance"
+                                :label="$t('licensing.confirmPrivilegeInvestigationEndSubmitWithEncumber')"
+                                :isWarning="true"
+                                :onClick="submitEndInvestigationWithEncumbrance"
+                                :isEnabled="!isFormLoading"
+                            />
+                        </div>
+                    </div>
+                    <div v-else
+                        class="modal-content end-investigation-modal-content modal-content-success"
+                        tabindex="0"
+                        aria-live="polite"
+                        role="status"
+                    >
+                        <div class="icon-container"><CheckCircleIcon aria-hidden="true" /></div>
+                        <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationEndSuccess') }}</h1>
+                        <div class="success-container">
+                            <div class="input-label static-label">{{ licenseeName }}</div>
+                            <div class="static-value">{{ privilegeId }}</div>
+                        </div>
+                        <InputButton
+                            id="end-investigation-modal-cancel-button"
+                            class="end-investigation-modal-cancel-button"
+                            :label="$t('common.close')"
+                            :onClick="closeEndInvestigationModal"
                         />
                     </div>
                 </template>

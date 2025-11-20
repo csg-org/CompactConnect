@@ -35,6 +35,7 @@ import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { AdverseAction } from '@/models/AdverseAction/AdverseAction.model';
+import { Investigation } from '@/models/Investigation/Investigation.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import Joi from 'joi';
 import moment from 'moment';
@@ -68,8 +69,15 @@ class PrivilegeCard extends mixins(MixinForm) {
     isEncumberPrivilegeModalSuccess = false;
     isUnencumberPrivilegeModalDisplayed = false;
     isUnencumberPrivilegeModalSuccess = false;
+    isAddInvestigationModalDisplayed = false;
+    isAddInvestigationModalSuccess = false;
+    isEndInvestigationModalDisplayed = false;
+    isEndInvestigationModalConfirm = false;
+    isEndInvestigationModalSuccess = false;
     encumbranceInputs: Array<FormInput> = [];
     selectedEncumbrances: Array<AdverseAction> = [];
+    investigationInputs: Array<FormInput> = [];
+    selectedInvestigation: Investigation | null = null;
     modalErrorMessage = '';
 
     //
@@ -186,12 +194,28 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.isEncumbered() || false;
     }
 
+    get isUnderInvestigation(): boolean {
+        return this.privilege?.isUnderInvestigation() || false;
+    }
+
     get disciplineContent(): string {
-        return (this.isEncumbered) ? this.$t('licensing.encumbered') : this.$t('licensing.noDiscipline');
+        let content = this.$t('licensing.noDiscipline');
+
+        if (this.isEncumbered) {
+            content = this.$t('licensing.encumbered');
+        } else if (this.isUnderInvestigation) {
+            content = this.$t('licensing.underInvestigationStatus');
+        }
+
+        return content;
     }
 
     get adverseActions(): Array<AdverseAction> {
         return this.privilege?.adverseActions || [];
+    }
+
+    get investigations(): Array<Investigation> {
+        return this.privilege?.investigations || [];
     }
 
     get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
@@ -224,8 +248,24 @@ class PrivilegeCard extends mixins(MixinForm) {
         return options;
     }
 
+    get endInvestigationModalTitle(): string {
+        let modalTitle = this.$t('licensing.confirmLicenseInvestigationEndSelectTitle');
+
+        if (this.isEndInvestigationModalSuccess) {
+            modalTitle = ' ';
+        } else if (this.isEndInvestigationModalConfirm) {
+            modalTitle = this.$t('licensing.confirmLicenseInvestigationEndTitle');
+        }
+
+        return modalTitle;
+    }
+
     get isUnencumberSubmitEnabled(): boolean {
         return Boolean(this.isFormValid && !this.isFormLoading && this.selectedEncumbrances.length);
+    }
+
+    get isEndInvestigationSubmitEnabled(): boolean {
+        return Boolean(this.isFormValid && !this.isFormLoading && this.selectedInvestigation);
     }
 
     get isMockPopulateEnabled(): boolean {
@@ -242,6 +282,10 @@ class PrivilegeCard extends mixins(MixinForm) {
             this.initFormInputsEncumberPrivilege();
         } else if (this.isUnencumberPrivilegeModalDisplayed) {
             this.initFormInputsUnencumberPrivilege();
+        } else if (this.isAddInvestigationModalDisplayed) {
+            this.initFormInputsAddInvestigation();
+        } else if (this.isEndInvestigationModalDisplayed) {
+            this.initFormInputsEndInvestigation();
         }
     }
 
@@ -330,6 +374,38 @@ class PrivilegeCard extends mixins(MixinForm) {
 
             this.formData[`adverse-action-data-${adverseActionId}`] = adverseActionInput;
             this.encumbranceInputs.push(adverseActionInput);
+        });
+    }
+
+    initFormInputsAddInvestigation(): void {
+        this.formData = reactive({
+            addInvestigationModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+        this.watchFormInputs();
+    }
+
+    initFormInputsEndInvestigation(): void {
+        this.formData = reactive({
+            endInvestigationModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+
+        this.investigations.forEach((investigation: Investigation) => {
+            const investigationId = investigation.id;
+            const investigationInput = new FormInput({
+                id: `end-investigation-data-${investigationId}`,
+                name: `end-investigation-data-${investigationId}`,
+                label: this.$t('licensing.investigationStartedOn', { date: investigation.startDateDisplay() }),
+                isDisabled: Boolean(investigation.endDate),
+            });
+
+            this.formData[`end-investigation-data-${investigationId}`] = investigationInput;
+            this.investigationInputs.push(investigationInput);
         });
     }
 
@@ -454,6 +530,7 @@ class PrivilegeCard extends mixins(MixinForm) {
         event?.preventDefault();
         this.isEncumberPrivilegeModalDisplayed = false;
         this.isEncumberPrivilegeModalSuccess = false;
+        this.selectedInvestigation = null;
     }
 
     focusTrapEncumberPrivilegeModal(event: KeyboardEvent): void {
@@ -490,25 +567,54 @@ class PrivilegeCard extends mixins(MixinForm) {
                 privilegeTypeAbbrev
             } = this;
 
-            await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
-                compact: compactType,
-                licenseeId,
-                privilegeState: stateAbbrev,
-                licenseType: privilegeTypeAbbrev.toLowerCase(),
-                encumbranceType: this.formData.encumberModalDisciplineAction.value,
-                ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                    ? {
-                        npdbCategories: this.formData.encumberModalNpdbCategories.value,
-                    }
-                    : {
-                        npdbCategory: this.formData.encumberModalNpdbCategory.value,
-                    }
-                ),
-                startDate: this.formData.encumberModalStartDate.value,
-            }).catch((err) => {
-                this.modalErrorMessage = err?.message || this.$t('common.error');
-                this.isFormError = true;
-            });
+            if (this.selectedInvestigation) {
+                // Submit the encumbrance as part of a selected investigation update
+                const investigationId = this.selectedInvestigation?.id;
+
+                await this.$store.dispatch(`users/updateInvestigationPrivilegeRequest`, {
+                    compact: compactType,
+                    licenseeId,
+                    privilegeState: stateAbbrev,
+                    licenseType: privilegeTypeAbbrev.toLowerCase(),
+                    investigationId,
+                    encumbrance: {
+                        encumbranceType: this.formData.encumberModalDisciplineAction.value,
+                        ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                            ? {
+                                npdbCategories: this.formData.encumberModalNpdbCategories.value,
+                            }
+                            : {
+                                npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                            }
+                        ),
+                        startDate: this.formData.encumberModalStartDate.value,
+                    },
+                }).catch((err) => {
+                    this.modalErrorMessage = err?.message || this.$t('common.error');
+                    this.isFormError = true;
+                });
+            } else {
+                // Submit the encumbrance on its own
+                await this.$store.dispatch(`users/encumberPrivilegeRequest`, {
+                    compact: compactType,
+                    licenseeId,
+                    privilegeState: stateAbbrev,
+                    licenseType: privilegeTypeAbbrev.toLowerCase(),
+                    encumbranceType: this.formData.encumberModalDisciplineAction.value,
+                    ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                        ? {
+                            npdbCategories: this.formData.encumberModalNpdbCategories.value,
+                        }
+                        : {
+                            npdbCategory: this.formData.encumberModalNpdbCategory.value,
+                        }
+                    ),
+                    startDate: this.formData.encumberModalStartDate.value,
+                }).catch((err) => {
+                    this.modalErrorMessage = err?.message || this.$t('common.error');
+                    this.isFormError = true;
+                });
+            }
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
@@ -587,7 +693,7 @@ class PrivilegeCard extends mixins(MixinForm) {
         this.validateAll();
     }
 
-    getFirstEnabledFormInputId(): string {
+    getFirstEnabledUnencumberFormInputId(): string {
         const { formData } = this;
         const firstEnabledFormInput: string = Object.keys(formData)
             .filter((key) => key !== 'unencumberModalContinue')
@@ -615,7 +721,7 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     focusTrapUnencumberPrivilegeModal(event: KeyboardEvent): void {
         const { isUnencumberSubmitEnabled } = this;
-        const firstEnabledInputId = this.getFirstEnabledFormInputId();
+        const firstEnabledInputId = this.getFirstEnabledUnencumberFormInputId();
         const firstTabIndex = document.getElementById(firstEnabledInputId);
         const lastTabIndex = (isUnencumberSubmitEnabled)
             ? document.getElementById('submit-modal-continue')
@@ -679,6 +785,240 @@ class PrivilegeCard extends mixins(MixinForm) {
         }
     }
 
+    // =======================================================
+    //                    ADD INVESTIGATION
+    // =======================================================
+    async toggleAddInvestigationModal(): Promise<void> {
+        this.resetForm();
+        this.isAddInvestigationModalDisplayed = !this.isAddInvestigationModalDisplayed;
+
+        if (this.isAddInvestigationModalDisplayed) {
+            this.initFormInputs();
+        }
+    }
+
+    closeAddInvestigationModal(event?: Event): void {
+        event?.preventDefault();
+        this.isAddInvestigationModalDisplayed = false;
+        this.isAddInvestigationModalSuccess = false;
+    }
+
+    focusTrapAddInvestigationModal(event: KeyboardEvent): void {
+        const { isAddInvestigationModalSuccess } = this;
+        const firstTabIndex = (isAddInvestigationModalSuccess)
+            ? document.getElementById('submit-modal-continue')
+            : document.getElementById('add-investigation-modal-cancel-button');
+        let lastTabIndex = document.getElementById('submit-modal-continue');
+
+        if (!this.isAddInvestigationModalSuccess && (!this.isFormValid || this.isFormLoading)) {
+            lastTabIndex = document.getElementById('add-investigation-modal-cancel-button');
+        }
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitAddInvestigation(): Promise<void> {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.modalErrorMessage = '';
+
+            const {
+                currentCompactType: compactType,
+                licenseeId,
+                stateAbbrev,
+                privilegeTypeAbbrev
+            } = this;
+
+            await this.$store.dispatch(`users/createInvestigationPrivilegeRequest`, {
+                compact: compactType,
+                licenseeId,
+                privilegeState: stateAbbrev,
+                licenseType: privilegeTypeAbbrev.toLowerCase(),
+            }).catch((err) => {
+                this.modalErrorMessage = err?.message || this.$t('common.error');
+                this.isFormError = true;
+            });
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+                await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
+                this.isAddInvestigationModalSuccess = true;
+            }
+
+            this.endFormLoading();
+        }
+    }
+
+    // =======================================================
+    //                    END INVESTIGATION
+    // =======================================================
+    clickEndInvestigationItem(investigation: Investigation, event?: PointerEvent | KeyboardEvent): void {
+        const { srcElement, type } = event || {};
+        const investigationId = investigation?.id;
+        const nodeType = (srcElement as Element)?.nodeName;
+
+        // Handle wrapped checkbox input so that the wrapper events act the same as the nested checkbox input
+        if (nodeType === 'INPUT') {
+            if (type === 'keyup') {
+                event?.preventDefault();
+            }
+            event?.stopPropagation();
+        } else if (nodeType === 'LABEL') {
+            event?.preventDefault();
+        }
+
+        if (investigationId) {
+            const formInput = this.formData[`end-investigation-data-${investigationId}`];
+            const existingValue = Boolean(formInput?.value);
+
+            if (formInput) {
+                formInput.value = !existingValue;
+
+                if (formInput.value) {
+                    this.addEndInvestigationFormData(investigation);
+                } else {
+                    this.removeEndInvestigationFormData();
+                }
+            }
+        }
+    }
+
+    async addEndInvestigationFormData(investigation: Investigation): Promise<void> {
+        if (investigation) {
+            this.selectedInvestigation = investigation;
+            this.investigationInputs.forEach((input: FormInput) => {
+                if (input.id !== `end-investigation-data-${investigation.id}`) {
+                    input.value = '';
+                }
+            });
+
+            this.watchFormInputs();
+            this.validateAll();
+        }
+    }
+
+    removeEndInvestigationFormData(): void {
+        this.selectedInvestigation = null;
+        this.watchFormInputs();
+        this.validateAll();
+    }
+
+    getFirstEnabledEndInvestigationFormInputId(): string {
+        const { formData } = this;
+        const firstEnabledFormInput: string = Object.keys(formData)
+            .filter((key) => key !== 'endInvestigationModalContinue')
+            .find((key) => !formData[key].isDisabled) || '';
+        const firstEnabledInputId = formData[firstEnabledFormInput]?.id || 'end-investigation-modal-cancel-button';
+
+        return firstEnabledInputId;
+    }
+
+    async toggleEndInvestigationModal(): Promise<void> {
+        this.resetForm();
+        this.isEndInvestigationModalDisplayed = !this.isEndInvestigationModalDisplayed;
+
+        if (this.isEndInvestigationModalDisplayed) {
+            this.initFormInputs();
+        }
+    }
+
+    closeEndInvestigationModal(event?: Event, keepSelectedInvestigation = false): void {
+        event?.preventDefault();
+
+        if (!keepSelectedInvestigation) {
+            this.selectedInvestigation = null;
+        }
+
+        this.isEndInvestigationModalDisplayed = false;
+        this.isEndInvestigationModalConfirm = false;
+        this.isEndInvestigationModalSuccess = false;
+    }
+
+    focusTrapEndInvestigationModal(event: KeyboardEvent): void {
+        const {
+            isEndInvestigationModalConfirm,
+            isEndInvestigationModalSuccess,
+            isEndInvestigationSubmitEnabled
+        } = this;
+        const firstEnabledInputId = (isEndInvestigationModalConfirm || isEndInvestigationModalSuccess)
+            ? 'end-investigation-modal-cancel-button'
+            : this.getFirstEnabledEndInvestigationFormInputId();
+        const firstTabIndex = document.getElementById(firstEnabledInputId);
+        const lastTabIndex = (isEndInvestigationSubmitEnabled && !isEndInvestigationModalSuccess)
+            ? document.getElementById('submit-modal-continue')
+            : document.getElementById('end-investigation-modal-cancel-button');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    continueToEndInvestigationConfirm(): void {
+        this.isEndInvestigationModalConfirm = true;
+    }
+
+    submitEndInvestigationWithEncumbrance(): void {
+        this.closeEndInvestigationModal(undefined, true);
+        this.toggleEncumberPrivilegeModal();
+    }
+
+    async submitEndInvestigationWithoutEncumbrance(): Promise<void> {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.modalErrorMessage = '';
+
+            const {
+                currentCompactType: compactType,
+                licenseeId,
+                stateAbbrev,
+                privilegeTypeAbbrev,
+            } = this;
+            const investigationId = this.selectedInvestigation?.id;
+
+            await this.$store.dispatch(`users/updateInvestigationPrivilegeRequest`, {
+                compact: compactType,
+                licenseeId,
+                privilegeState: stateAbbrev,
+                licenseType: privilegeTypeAbbrev.toLowerCase(),
+                investigationId,
+            }).catch((err) => {
+                this.modalErrorMessage = err?.message || this.$t('common.error');
+                this.isFormError = true;
+            });
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+                await this.$store.dispatch('license/getLicenseeRequest', { compact: compactType, licenseeId });
+                this.isEndInvestigationModalConfirm = false;
+                this.isEndInvestigationModalSuccess = true;
+            }
+
+            this.endFormLoading();
+        }
+    }
+
     async focusTrapTeleportedDatepicker(formInput: FormInput, isOpen: boolean): Promise<void> {
         if (isOpen) {
             await nextTick();
@@ -690,6 +1030,10 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     isEncumbranceSelected(adverseAction: AdverseAction): boolean {
         return this.selectedEncumbrances.some((selected: AdverseAction) => selected.id === adverseAction.id);
+    }
+
+    isInvestigationSelected(investigation: Investigation): boolean {
+        return this.selectedInvestigation?.id === investigation.id;
     }
 
     dateDisplayFormat(unformattedDate: string): string {
@@ -721,6 +1065,15 @@ class PrivilegeCard extends mixins(MixinForm) {
                     this.clickUnencumberItem(adverseAction);
                     await nextTick();
                     this.formData[`adverse-action-end-date-${adverseAction.id}`].value = moment().format('YYYY-MM-DD');
+                }));
+            await nextTick();
+            this.validateAll({ asTouched: true });
+        } else if (this.isEndInvestigationModalDisplayed) {
+            await Promise.all(this.investigations
+                .filter((investigation) => !investigation.hasEndDate())
+                .map(async (investigation) => {
+                    this.clickEndInvestigationItem(investigation);
+                    await nextTick();
                 }));
             await nextTick();
             this.validateAll({ asTouched: true });
