@@ -18,6 +18,7 @@ from stacks.reporting_stack import ReportingStack
 from stacks.state_api_stack import StateApiStack
 from stacks.state_auth import StateAuthStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
+from stacks.vpc_stack import VpcStack
 
 
 class BackendStage(Stage):
@@ -37,6 +38,16 @@ class BackendStage(Stage):
         standard_tags = StandardTags(**self.node.get_context('tags'), environment=environment_name)
 
         environment = Environment(account=environment_context['account_id'], region=environment_context['region'])
+
+        # VPC Stack - provides networking infrastructure for OpenSearch and Lambda functions
+        self.vpc_stack = VpcStack(
+            self,
+            'VpcStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+        )
 
         self.persistent_stack = PersistentStack(
             self,
