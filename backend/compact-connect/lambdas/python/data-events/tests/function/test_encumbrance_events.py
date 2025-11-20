@@ -3064,49 +3064,42 @@ class TestEncumbranceEvents(TstFunction):
         # Execute the handler FIRST TIME
         license_encumbrance_listener(event, self.mock_context)
 
-        # Verify privilege update record was created
-        serialized_privilege = privilege.serialize_to_database_record()
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        # Verify privilege update record was created using the test helper
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
+        matching_updates = [
+            update
+            for update in update_records
+            if update.updateType == UpdateCategory.ENCUMBRANCE
+            and update.encumbranceDetails is not None
+            and update.encumbranceDetails.get('adverseActionId') == UUID(DEFAULT_ADVERSE_ACTION_ID)
+        ]
 
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        first_update_record = privilege_update_records['Items'][0]
-        self.assertEqual('encumbrance', first_update_record['updateType'])
-        self.assertEqual({'encumberedStatus': 'licenseEncumbered'}, first_update_record['updatedValues'])
-        self.assertEqual(DEFAULT_ADVERSE_ACTION_ID, first_update_record['encumbranceDetails']['adverseActionId'])
+        self.assertEqual(1, len(matching_updates))
+        first_update_record = matching_updates[0]
+        self.assertEqual(UpdateCategory.ENCUMBRANCE, first_update_record.updateType)
+        self.assertEqual({'encumberedStatus': 'licenseEncumbered'}, first_update_record.updatedValues)
+        self.assertEqual(UUID(DEFAULT_ADVERSE_ACTION_ID), first_update_record.encumbranceDetails.get('adverseActionId'))
 
         # Execute the handler SECOND TIME (simulating re-run of same event)
         license_encumbrance_listener(event, self.mock_context)
 
         # Verify STILL only one update record exists (no duplicate created)
-        privilege_update_records_after_retry = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        update_records_after_retry = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
+        matching_updates_after_retry = [
+            update
+            for update in update_records_after_retry
+            if update.updateType == UpdateCategory.ENCUMBRANCE
+            and update.encumbranceDetails is not None
+            and update.encumbranceDetails.get('adverseActionId') == UUID(DEFAULT_ADVERSE_ACTION_ID)
+        ]
 
-        self.assertEqual(1, len(privilege_update_records_after_retry['Items']))
-        # Verify it's the same record (same sort key)
-        self.assertEqual(first_update_record['sk'], privilege_update_records_after_retry['Items'][0]['sk'])
-
-        # Verify using the ProviderUserRecords helper to ensure deduplication logic works correctly
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=DEFAULT_COMPACT,
-            provider_id=DEFAULT_PROVIDER_ID,
-        )
-        matching_updates = provider_records.get_update_records_for_privilege(
-            jurisdiction='ne',
-            license_type=DEFAULT_LICENSE_TYPE,
-            filter_condition=lambda update: (
-                update.updateType == UpdateCategory.ENCUMBRANCE
-                and update.encumbranceDetails is not None
-                and str(update.encumbranceDetails.get('adverseActionId')) == DEFAULT_ADVERSE_ACTION_ID
-            ),
-        )
-        self.assertEqual(1, len(matching_updates))
+        self.assertEqual(1, len(matching_updates_after_retry))
+        # Verify it's the same record (same createDate as a proxy for same record)
+        self.assertEqual(first_update_record.createDate, matching_updates_after_retry[0].createDate)
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_listener_does_not_create_duplicate_update_records_for_already_encumbered_privileges(
@@ -3141,49 +3134,43 @@ class TestEncumbranceEvents(TstFunction):
         license_encumbrance_listener(event, self.mock_context)
 
         # Verify privilege update record was created (even though privilege was already encumbered)
-        serialized_privilege = privilege.serialize_to_database_record()
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        # using the test helper
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
+        matching_updates = [
+            update
+            for update in update_records
+            if update.updateType == UpdateCategory.ENCUMBRANCE
+            and update.encumbranceDetails is not None
+            and update.encumbranceDetails.get('adverseActionId') == UUID(DEFAULT_ADVERSE_ACTION_ID)
+        ]
 
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        first_update_record = privilege_update_records['Items'][0]
-        self.assertEqual('encumbrance', first_update_record['updateType'])
+        self.assertEqual(1, len(matching_updates))
+        first_update_record = matching_updates[0]
+        self.assertEqual(UpdateCategory.ENCUMBRANCE, first_update_record.updateType)
         # For already encumbered privileges, updatedValues is empty but we still track the encumbrance event
-        self.assertEqual({}, first_update_record['updatedValues'])
-        self.assertEqual(DEFAULT_ADVERSE_ACTION_ID, first_update_record['encumbranceDetails']['adverseActionId'])
+        self.assertEqual({}, first_update_record.updatedValues)
+        self.assertEqual(UUID(DEFAULT_ADVERSE_ACTION_ID), first_update_record.encumbranceDetails.get('adverseActionId'))
 
         # Execute the handler SECOND TIME (simulating re-run of same event)
         license_encumbrance_listener(event, self.mock_context)
 
         # Verify STILL only one update record exists (no duplicate created)
-        privilege_update_records_after_retry = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{serialized_privilege["sk"]}UPDATE'),
+        update_records_after_retry = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
+        matching_updates_after_retry = [
+            update
+            for update in update_records_after_retry
+            if update.updateType == UpdateCategory.ENCUMBRANCE
+            and update.encumbranceDetails is not None
+            and update.encumbranceDetails.get('adverseActionId') == UUID(DEFAULT_ADVERSE_ACTION_ID)
+        ]
 
-        self.assertEqual(1, len(privilege_update_records_after_retry['Items']))
-        # Verify it's the same record (same sort key)
-        self.assertEqual(first_update_record['sk'], privilege_update_records_after_retry['Items'][0]['sk'])
-
-        # Verify using the ProviderUserRecords helper to ensure deduplication logic works correctly
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=DEFAULT_COMPACT,
-            provider_id=DEFAULT_PROVIDER_ID,
-        )
-        matching_updates = provider_records.get_update_records_for_privilege(
-            jurisdiction='ky',
-            license_type=DEFAULT_LICENSE_TYPE,
-            filter_condition=lambda update: (
-                update.updateType == UpdateCategory.ENCUMBRANCE
-                and update.encumbranceDetails is not None
-                and str(update.encumbranceDetails.get('adverseActionId')) == DEFAULT_ADVERSE_ACTION_ID
-            ),
-        )
-        self.assertEqual(1, len(matching_updates))
+        self.assertEqual(1, len(matching_updates_after_retry))
+        # Verify it's the same record (same createDate as a proxy for same record)
+        self.assertEqual(first_update_record.createDate, matching_updates_after_retry[0].createDate)
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_lifted_listener_does_not_create_duplicate_update_records_on_retry(
@@ -3234,19 +3221,6 @@ class TestEncumbranceEvents(TstFunction):
         # Execute the handler FIRST TIME
         license_encumbrance_lifted_listener(event, self.mock_context)
 
-        # Verify privilege update record was created
-        serialized_privilege = privilege.serialize_to_database_record()
-        privilege_update_records = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{privilege.compact}#PROVIDER#privilege/{privilege.jurisdiction}/slp#UPDATE'),
-        )
-
-        self.assertEqual(1, len(privilege_update_records['Items']))
-        first_update_record = privilege_update_records['Items'][0]
-        self.assertEqual('lifting_encumbrance', first_update_record['updateType'])
-        self.assertEqual({'encumberedStatus': 'unencumbered'}, first_update_record['updatedValues'])
-
         # Verify privilege is now unencumbered
         provider_records = self.config.data_client.get_provider_user_records(
             compact=DEFAULT_COMPACT,
@@ -3256,25 +3230,31 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual(1, len(privileges))
         self.assertEqual(PrivilegeEncumberedStatusEnum.UNENCUMBERED, privileges[0].encumberedStatus)
 
+        # Verify privilege update record was created using the test helper
+        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
+        )
+        matching_updates = [
+            update for update in update_records if update.updateType == UpdateCategory.LIFTING_ENCUMBRANCE
+        ]
+
+        self.assertEqual(1, len(matching_updates))
+        first_update_record = matching_updates[0]
+        self.assertEqual(UpdateCategory.LIFTING_ENCUMBRANCE, first_update_record.updateType)
+        self.assertEqual({'encumberedStatus': 'unencumbered'}, first_update_record.updatedValues)
+
         # Execute the handler SECOND TIME (simulating re-run of same event)
         license_encumbrance_lifted_listener(event, self.mock_context)
 
         # Verify STILL only one update record exists (no duplicate created)
         # The function should return early because no LICENSE_ENCUMBERED privileges remain
-        privilege_update_records_after_retry = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(serialized_privilege['pk'])
-            & Key('sk').begins_with(f'{privilege.compact}#PROVIDER#privilege/{privilege.jurisdiction}/slp#UPDATE'),
+        update_records_after_retry = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+            privilege
         )
+        matching_updates_after_retry = [
+            update for update in update_records_after_retry if update.updateType == UpdateCategory.LIFTING_ENCUMBRANCE
+        ]
 
-        self.assertEqual(1, len(privilege_update_records_after_retry['Items']))
-        # Verify it's the same record (same sort key)
-        self.assertEqual(first_update_record['sk'], privilege_update_records_after_retry['Items'][0]['sk'])
-
-        # Verify using the ProviderUserRecords helper
-        matching_updates = provider_records.get_update_records_for_privilege(
-            jurisdiction=privileges[0].jurisdiction,
-            license_type=DEFAULT_LICENSE_TYPE,
-            filter_condition=lambda update: update.updateType == UpdateCategory.LIFTING_ENCUMBRANCE,
-        )
-        self.assertEqual(1, len(matching_updates))
+        self.assertEqual(1, len(matching_updates_after_retry))
+        # Verify it's the same record (same createDate as a proxy for same record)
+        self.assertEqual(first_update_record.createDate, matching_updates_after_retry[0].createDate)

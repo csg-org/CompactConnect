@@ -2,7 +2,7 @@ import time
 from datetime import date, datetime
 from datetime import time as dtime
 from urllib.parse import quote
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.conditions import Attr, Key
@@ -2613,7 +2613,7 @@ class DataClient:
         compact: str,
         provider_id: str,
         jurisdiction: str,
-        adverse_action_id: str,
+        adverse_action_id: UUID,
         license_type_abbreviation: str,
         effective_date: date,
     ) -> list[PrivilegeData]:
@@ -2626,7 +2626,7 @@ class DataClient:
         :param str compact: The compact name.
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
-        :param adverse_action_id: The ID of the adverse action.
+        :param UUID adverse_action_id: The ID of the adverse action.
         :param str license_type_abbreviation: The license type abbreviation.
         :param date effective_date: effective date of the encumbrance on the license and therefore privilege.
         :return: List of privileges that were encumbered
@@ -2708,7 +2708,7 @@ class DataClient:
                 filter_condition=lambda update: (
                     update.updateType == UpdateCategory.ENCUMBRANCE
                     and update.encumbranceDetails is not None
-                    and str(update.encumbranceDetails.get('adverseActionId')) == adverse_action_id
+                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
                 ),
             )
 
@@ -2762,7 +2762,7 @@ class DataClient:
                 filter_condition=lambda update: (
                     update.updateType == UpdateCategory.ENCUMBRANCE
                     and update.encumbranceDetails is not None
-                    and str(update.encumbranceDetails.get('adverseActionId')) == adverse_action_id
+                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
                 ),
             )
 
