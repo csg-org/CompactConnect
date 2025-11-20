@@ -161,8 +161,6 @@ class SSNTable(Table):
                 actions=[
                     'dynamodb:GetItem',
                     'dynamodb:Query',
-                    'dynamodb:DescribeTable',
-                    'dynamodb:GetRecords',
                     'dynamodb:ConditionCheckItem',
                 ],
                 principals=[StarPrincipal()],

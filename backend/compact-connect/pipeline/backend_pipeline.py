@@ -144,7 +144,7 @@ class BackendPipeline(BasePipeline):
                     {
                         'phases': {
                             'install': {
-                                'runtime-versions': {'python': '3.13', 'nodejs': '22.x'},
+                                'runtime-versions': {'python': '3.14', 'nodejs': '24.x'},
                             }
                         }
                     }

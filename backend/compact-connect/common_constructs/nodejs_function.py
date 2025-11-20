@@ -75,7 +75,7 @@ class NodejsFunction(CdkNodejsFunction):
         super().__init__(
             scope,
             construct_id,
-            runtime=Runtime.NODEJS_22_X,
+            runtime=Runtime.NODEJS_24_X,
             entry=os.path.join(lambda_dir, 'handler.ts'),
             deps_lock_file_path=os.path.join(nodejs_dir, 'yarn.lock'),
             bundling=BundlingOptions(

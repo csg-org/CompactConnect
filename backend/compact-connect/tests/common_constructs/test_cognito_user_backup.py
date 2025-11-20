@@ -141,7 +141,7 @@ class TestCognitoUserBackup(TestCase):
         lambda_props = lambda_functions[lambda_logical_id]['Properties']
 
         # Verify function configuration
-        self.assertEqual(lambda_props['Runtime'], 'python3.13')
+        self.assertEqual(lambda_props['Runtime'], 'python3.14')
         self.assertEqual(lambda_props['Timeout'], 900)  # 15 minutes
         self.assertEqual(lambda_props['MemorySize'], 512)
 

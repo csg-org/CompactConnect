@@ -34,6 +34,16 @@
       "Effect": "Deny",
       "Principal": "*",
       "Resource": "*"
+    },
+    {
+      "Action": [
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:GetItem",
+        "dynamodb:Query"
+      ],
+      "Effect": "Deny",
+      "Principal": "*",
+      "NotResource": "arn:aws:dynamodb:us-east-1:111122223333:table/ssn-table-DataEventsLog/index/ssnIndex"
     }
   ],
   "Version": "2012-10-17"
