@@ -125,7 +125,7 @@
                 z-index: 1;
                 display: flex;
                 flex-direction: column;
-                min-width: 16rem;
+                min-width: 18rem;
                 padding: 0.6rem 0.8rem;
                 border-radius: 12px;
                 background-color: @white;
@@ -153,6 +153,22 @@
                     &.disabled {
                         font-weight: @fontWeight;
                         cursor: default;
+                    }
+
+                    &.new-section {
+                        margin-top: 0.4rem;
+                        padding-top: 1rem;
+
+                        &::before {
+                            position: absolute;
+                            top: 0;
+                            left: 0.8rem;
+                            width: calc(100% - 1.6rem);
+                            height: 1px;
+                            margin-bottom: 0.4rem;
+                            background-color: @lightGrey;
+                            content: '';
+                        }
                     }
                 }
             }
@@ -244,6 +260,16 @@
 
                     .form-row {
                         margin-bottom: 1.6rem;
+
+                        &.static-container {
+                            display: flex;
+                            flex-direction: column;
+
+                            @media @desktopWidth {
+                                flex-direction: row;
+                                margin-bottom: 0.2rem;
+                            }
+                        }
                     }
 
                     #notes {
@@ -251,16 +277,22 @@
                         border-color: @fontColor;
                     }
 
-                    .encumber-license-form-input-container {
+                    .encumber-license-form-input-container,
+                    .add-investigation-form-input-container {
                         padding: 1.6rem;
                         border-radius: 8px;
                         background-color: @veryLightGrey;
                     }
 
-                    .unencumber-row {
+                    .unencumber-row,
+                    .end-investigation-row {
                         display: flex;
                         flex-direction: column;
                         margin-bottom: 3.2rem;
+
+                        &.end-investigation-row {
+                            margin-bottom: 1.2rem;
+                        }
 
                         @media @desktopWidth {
                             flex-direction: row;
@@ -272,14 +304,29 @@
                             margin: 0;
                         }
 
-                        .unencumber-select {
+                        .unencumber-select,
+                        .end-investigation-select {
                             display: flex;
                             flex-direction: column;
-                            margin-bottom: 0.4rem;
                             padding: 1rem 0.6rem;
                             border: 1px solid @midGrey;
                             border-radius: 12px;
                             cursor: pointer;
+
+                            &.end-investigation-select {
+                                width: 100%;
+                                padding-top: 1.4rem;
+                                padding-bottom: 1rem;
+                            }
+
+                            &.unencumber-select {
+                                margin-bottom: 0.4rem;
+
+                                @media @desktopWidth {
+                                    width: 65%;
+                                    margin-bottom: 0;
+                                }
+                            }
 
                             &.selected {
                                 border-color: @fontColor;
@@ -289,11 +336,6 @@
                             &.inactive {
                                 background-color: @veryLightGrey;
                                 cursor: auto;
-                            }
-
-                            @media @desktopWidth {
-                                width: 65%;
-                                margin-bottom: 0;
                             }
 
                             .inactive-category {
@@ -307,7 +349,8 @@
                                 padding-left: 3rem;
                             }
 
-                            .encumbrance-dates {
+                            .encumbrance-dates,
+                            .investigation-dates {
                                 padding-left: 3rem;
                                 color: darken(@darkGrey, 10%);
                                 font-size: @fontSize;
@@ -323,13 +366,40 @@
                     }
                 }
 
-                .static-label {
-                    margin-bottom: 0.2rem;
-                    font-weight: @fontWeightBold;
+                .add-investigation-success-form {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
                 }
 
-                .static-value {
-                    font-size: 1.7rem;
+                .static-input {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+
+                    &:not(:last-child) {
+                        margin-bottom: 1.2rem;
+                    }
+
+                    @media @desktopWidth {
+                        width: 50%;
+                    }
+
+                    .static-label {
+                        margin-bottom: 0.2rem;
+                        font-weight: @fontWeightBold;
+                        font-size: @fontSize;
+                    }
+
+                    .static-value {
+                        overflow: hidden;
+                        font-size: @fontSize;
+                        text-overflow: ellipsis;
+                    }
+                }
+
+                .info-block {
+                    margin-bottom: 2rem;
                 }
 
                 .form-field-error {

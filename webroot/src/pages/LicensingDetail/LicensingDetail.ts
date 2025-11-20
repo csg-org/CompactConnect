@@ -12,6 +12,7 @@ import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import MilitaryAffiliationInfoBlock from '@components/MilitaryAffiliationInfoBlock/MilitaryAffiliationInfoBlock.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
+import AlertIcon from '@components/Icons/AlertTriangle/AlertTriangle.vue';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
 import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import { CompactType } from '@models/Compact/Compact.model';
@@ -28,6 +29,7 @@ import { dataApi } from '@network/data.api';
         LicenseCard,
         PrivilegeCard,
         CollapseCaretButton,
+        AlertIcon,
         LicenseIcon,
         MilitaryAffiliationInfoBlock,
         ExpirationExplanationIcon
@@ -104,6 +106,25 @@ export default class LicensingDetail extends Vue {
         }
 
         return storeRecord;
+    }
+
+    get isLicenseeUnderInvestigation(): boolean {
+        return this.licensee?.isUnderInvestigation() || false;
+    }
+
+    get licenseeInvestigationAlertContent(): string {
+        const investigationStates = this.licensee?.underInvestigationStates() || [];
+        const statesContent = (investigationStates.length === 1)
+            ? investigationStates[0].name()
+            : this.$t('licensing.underInvestigationAlertMultipleLocations');
+        let alertContent = '';
+
+        if (investigationStates.length) {
+            alertContent += `${this.$t('licensing.underInvestigationAlertLocation', { locations: statesContent })}
+            ${this.$t('licensing.underInvestigationAlertStatus')}`;
+        }
+
+        return alertContent;
     }
 
     get licenseeNameDisplay(): string {

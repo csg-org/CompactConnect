@@ -18,6 +18,7 @@ import {
     EligibilityStatus
 } from '@models/License/License.model';
 import { MilitaryAffiliation } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
+import { Investigation } from '@models/Investigation/Investigation.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 import moment from 'moment';
@@ -90,6 +91,10 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
         expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
+        expect(licensee.hasUnderInvestigationLicenses()).to.equal(false);
+        expect(licensee.hasUnderInvestigationPrivileges()).to.equal(false);
+        expect(licensee.isUnderInvestigation()).to.equal(false);
+        expect(licensee.underInvestigationStates()).to.matchPattern([]);
     });
     it('should create a Licensee with specific values', () => {
         const data = {
@@ -198,6 +203,10 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
         expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
+        expect(licensee.hasUnderInvestigationLicenses()).to.equal(false);
+        expect(licensee.hasUnderInvestigationPrivileges()).to.equal(false);
+        expect(licensee.isUnderInvestigation()).to.equal(false);
+        expect(licensee.underInvestigationStates()).to.matchPattern([]);
     });
     it('should create a Licensee with specific values (empty state name fallbacks)', () => {
         const licensee = new Licensee();
@@ -497,6 +506,10 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
         expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
+        expect(licensee.hasUnderInvestigationLicenses()).to.equal(false);
+        expect(licensee.hasUnderInvestigationPrivileges()).to.equal(false);
+        expect(licensee.isUnderInvestigation()).to.equal(false);
+        expect(licensee.underInvestigationStates()).to.matchPattern([]);
     });
     it('should create a Licensee with specific values through serializer (with inactive best license)', () => {
         const data = {
@@ -631,6 +644,10 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedPrivileges()).to.equal(false);
         expect(licensee.isEncumbered()).to.equal(false);
         expect(licensee.hasEncumbranceLiftedWithinWaitPeriod()).to.equal(false);
+        expect(licensee.hasUnderInvestigationLicenses()).to.equal(false);
+        expect(licensee.hasUnderInvestigationPrivileges()).to.equal(false);
+        expect(licensee.isUnderInvestigation()).to.equal(false);
+        expect(licensee.underInvestigationStates()).to.matchPattern([]);
     });
     it('should create a Licensee with specific values through serializer (with initiliazing military status)', () => {
         const data = {
@@ -1110,6 +1127,50 @@ describe('Licensee model', () => {
         expect(licensee.hasEncumberedLicenses()).to.equal(true);
         expect(licensee.hasEncumberedPrivileges()).to.equal(true);
         expect(licensee.isEncumbered()).to.equal(true);
+    });
+    it('should create a Licensee with under-investigation licenses and privileges', () => {
+        const homeState = new State({ abbrev: 'co' });
+        const underInvestigationLicense = new License({
+            issueState: homeState,
+            licenseNumber: 'investigation-license',
+            status: LicenseStatus.ACTIVE,
+            eligibility: EligibilityStatus.ELIGIBLE,
+            investigations: [new Investigation({
+                state: new State({ abbrev: 'al' }),
+                startDate: moment().subtract(1, 'day').format(serverDateFormat),
+                updateDate: moment().add(1, 'day').format(serverDateFormat),
+            })],
+        });
+        const underInvestigationPrivilege = new License({
+            licenseNumber: 'investigation-privilege',
+            investigations: [
+                new Investigation({
+                    state: new State({ abbrev: 'al' }),
+                    startDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    updateDate: moment().add(1, 'day').format(serverDateFormat),
+                }),
+                new Investigation({
+                    state: new State({ abbrev: 'co' }),
+                    startDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    updateDate: moment().add(1, 'day').format(serverDateFormat),
+                }),
+            ],
+        });
+        const licensee = new Licensee({
+            homeJurisdiction: homeState,
+            licenses: [underInvestigationLicense],
+            privileges: [underInvestigationPrivilege],
+        });
+
+        // Test encumbered methods
+        expect(licensee.hasUnderInvestigationLicenses()).to.equal(true);
+        expect(licensee.hasUnderInvestigationPrivileges()).to.equal(true);
+        expect(licensee.isUnderInvestigation()).to.equal(true);
+        expect(licensee.underInvestigationStates()).to.matchPattern([
+            new State({ abbrev: 'al' }),
+            new State({ abbrev: 'co' }),
+        ]);
+        expect(licensee.canPurchasePrivileges()).to.equal(true);
     });
     it(`should handle 'unknown' currentHomeJurisdiction by falling back to licenseJurisdiction`, () => {
         const data = {

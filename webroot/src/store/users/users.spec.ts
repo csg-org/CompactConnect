@@ -246,6 +246,56 @@ describe('Users Store Mutations', () => {
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully create license investigation request', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_INVESTIGATION_LICENSE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully create license investigation failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.CREATE_INVESTIGATION_LICENSE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully create license investigation success', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_INVESTIGATION_LICENSE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update license investigation request', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_INVESTIGATION_LICENSE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update license investigation failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.UPDATE_INVESTIGATION_LICENSE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully update license investigation success', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_INVESTIGATION_LICENSE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully delete privilege request', () => {
         const state = {};
 
@@ -317,6 +367,56 @@ describe('Users Store Mutations', () => {
         const state = {};
 
         mutations[MutationTypes.UNENCUMBER_PRIVILEGE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully create privilege investigation request', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully create privilege investigation failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully create privilege investigation success', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update privilege investigation request', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update privilege investigation failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully update privilege investigation success', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_SUCCESS](state);
 
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
@@ -720,6 +820,100 @@ describe('Users Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_LICENSE_SUCCESS]);
     });
+    it('should successfully start create license investigation request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const licenseState = 'co';
+        const licenseType = 'test';
+
+        await actions.createInvestigationLicenseRequest({ commit, dispatch }, {
+            compact, licenseeId, licenseState, licenseType
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start create license investigation request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.createInvestigationLicenseRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed license investigation create');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('createInvestigationLicenseFailure');
+    });
+    it('should successfully start create license investigation failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.createInvestigationLicenseFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_LICENSE_FAILURE, error]);
+    });
+    it('should successfully start create license investigation success', () => {
+        const commit = sinon.spy();
+
+        actions.createInvestigationLicenseSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_LICENSE_SUCCESS]);
+    });
+    it('should successfully start update license investigation request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const licenseState = 'co';
+        const licenseType = 'test';
+        const investigationId = '1';
+        const encumbrance = {};
+
+        await actions.updateInvestigationLicenseRequest({ commit, dispatch }, {
+            compact, licenseeId, licenseState, licenseType, investigationId, encumbrance
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start update license investigation request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.updateInvestigationLicenseRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed license investigation update');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_LICENSE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('updateInvestigationLicenseFailure');
+    });
+    it('should successfully start update license investigation failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.updateInvestigationLicenseFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_LICENSE_FAILURE, error]);
+    });
+    it('should successfully start update license investigation success', () => {
+        const commit = sinon.spy();
+
+        actions.updateInvestigationLicenseSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_LICENSE_SUCCESS]);
+    });
     it('should successfully start delete-privilege request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
@@ -862,6 +1056,100 @@ describe('Users Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.UNENCUMBER_PRIVILEGE_SUCCESS]);
+    });
+    it('should successfully start create privilege investigation request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const licenseState = 'co';
+        const licenseType = 'test';
+
+        await actions.createInvestigationPrivilegeRequest({ commit, dispatch }, {
+            compact, licenseeId, licenseState, licenseType
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start create privilege investigation request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.createInvestigationPrivilegeRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed privilege investigation create');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('createInvestigationPrivilegeFailure');
+    });
+    it('should successfully start create privilege investigation failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.createInvestigationPrivilegeFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_FAILURE, error]);
+    });
+    it('should successfully start create privilege investigation success', () => {
+        const commit = sinon.spy();
+
+        actions.createInvestigationPrivilegeSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_INVESTIGATION_PRIVILEGE_SUCCESS]);
+    });
+    it('should successfully start update privilege investigation request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const licenseState = 'co';
+        const licenseType = 'test';
+        const investigationId = '1';
+        const encumbrance = {};
+
+        await actions.updateInvestigationPrivilegeRequest({ commit, dispatch }, {
+            compact, licenseeId, licenseState, licenseType, investigationId, encumbrance
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start update privilege investigation request (intentional error)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.updateInvestigationPrivilegeRequest({ commit, dispatch }, {}).catch((error) => {
+            expect(error).to.be.an('error').with.property('message', 'failed privilege investigation update');
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args[0]).to.equal('updateInvestigationPrivilegeFailure');
+    });
+    it('should successfully start update privilege investigation failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.updateInvestigationPrivilegeFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_FAILURE, error]);
+    });
+    it('should successfully start update privilege investigation success', () => {
+        const commit = sinon.spy();
+
+        actions.updateInvestigationPrivilegeSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_INVESTIGATION_PRIVILEGE_SUCCESS]);
     });
     it('should successfully set user', () => {
         const commit = sinon.spy();

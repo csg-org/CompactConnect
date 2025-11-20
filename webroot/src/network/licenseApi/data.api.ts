@@ -317,6 +317,77 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * POST Create License Investigation for a licensee.
+     * @param  {string}           compact         The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId      The Licensee ID.
+     * @param  {string}           licenseState    The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType     The license type.
+     * @return {Promise<object>}                  The server response.
+     */
+    public async createLicenseInvestigation(
+        compact: string,
+        licenseeId: string,
+        licenseState: string,
+        licenseType: string
+    ) {
+        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation`, {});
+
+        return serverResponse;
+    }
+
+    /**
+     * PATCH Update License Investigation for a licensee.
+     * @param  {string}        compact         The compact string ID (aslp, octp, coun).
+     * @param  {string}        licenseeId      The Licensee ID.
+     * @param  {string}        licenseState    The 2-character state abbreviation for the License.
+     * @param  {string}        licenseType     The license type.
+     * @param  {string}        investigationId The Investigation ID.
+     * @param  {object}        [encumbrance]   Optional encumbrance config to add to the license.
+     *   @param  {string}        encumbranceType The discipline action type.
+     *   @param  {string}        npdbCategory    The NPDB category name.
+     *   @param  {Array<string>} npdbCategories  The NPDB category list.
+     *   @param  {string}        startDate       The encumber start date.
+     * @return {Promise<object>}               The server response.
+     */
+    public async updateLicenseInvestigation(
+        compact: string,
+        licenseeId: string,
+        licenseState: string,
+        licenseType: string,
+        investigationId: string,
+        encumbrance?: {
+            encumbranceType: string,
+            npdbCategory: string,
+            npdbCategories: Array<string>,
+            startDate: string
+        }
+    ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
+        const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation/${investigationId}`, {
+            action: 'close',
+            ...(encumbrance
+                ? {
+                    encumbrance: {
+                        encumbranceType: encumbrance.encumbranceType,
+                        ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                            ? {
+                                clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
+                            }
+                            : {
+                                clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
+                            }
+                        ),
+                        encumbranceEffectiveDate: encumbrance.startDate,
+                    },
+                }
+                : {}
+            ),
+        });
+
+        return serverResponse;
+    }
+
+    /**
      * DELETE Privilege for a licensee.
      * @param  {string}           compact        The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId     The Licensee ID.
@@ -398,6 +469,77 @@ export class LicenseDataApi implements DataApiInterface {
     ) {
         const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance/${encumbranceId}`, {
             effectiveLiftDate: endDate,
+        });
+
+        return serverResponse;
+    }
+
+    /**
+     * POST Create Privilege Investigation for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType    The license type.
+     * @return {Promise<object>}                 The server response.
+     */
+    public async createPrivilegeInvestigation(
+        compact: string,
+        licenseeId: string,
+        privilegeState: string,
+        licenseType: string
+    ) {
+        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/investigation`, {});
+
+        return serverResponse;
+    }
+
+    /**
+     * PATCH Update Privilege Investigation for a licensee.
+     * @param  {string}          compact         The compact string ID (aslp, octp, coun).
+     * @param  {string}          licenseeId      The Licensee ID.
+     * @param  {string}          privilegeState  The 2-character state abbreviation for the Privilege.
+     * @param  {string}          licenseType     The license type.
+     * @param  {string}          investigationId The Investigation ID.
+     * @param  {object}          [encumbrance]   Optional encumbrance config to add to the privilege.
+     *   @param  {string}          encumbranceType The discipline action type.
+     *   @param  {string}          npdbCategory    The NPDB category name.
+     *   @param  {Array<string>}   npdbCategories  The NPDB category list.
+     *   @param  {string}          startDate       The encumber start date.
+     * @return {Promise<object>}                 The server response.
+     */
+    public async updatePrivilegeInvestigation(
+        compact: string,
+        licenseeId: string,
+        privilegeState: string,
+        licenseType: string,
+        investigationId: string,
+        encumbrance?: {
+            encumbranceType: string,
+            npdbCategory: string,
+            npdbCategories: Array<string>,
+            startDate: string
+        }
+    ) {
+        const { $features } = (window as any).Vue?.config?.globalProperties || {};
+        const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/investigation/${investigationId}`, {
+            action: 'close',
+            ...(encumbrance
+                ? {
+                    encumbrance: {
+                        encumbranceType: encumbrance.encumbranceType,
+                        ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
+                            ? {
+                                clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
+                            }
+                            : {
+                                clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
+                            }
+                        ),
+                        encumbranceEffectiveDate: encumbrance.startDate,
+                    },
+                }
+                : {}
+            ),
         });
 
         return serverResponse;
