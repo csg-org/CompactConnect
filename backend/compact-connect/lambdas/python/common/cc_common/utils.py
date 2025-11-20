@@ -431,7 +431,7 @@ class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
 
 
 def sqs_handler(fn: Callable):
-    """Process messages from the ingest queue.
+    """Process messages from an SQS queue.
 
     This handler uses batch item failure reporting:
     https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html
@@ -462,6 +462,68 @@ def sqs_handler(fn: Callable):
             except Exception as e:  # noqa: BLE001 broad-exception-caught
                 logger.error('Failed to process message', exc_info=e)
                 batch_failures.append({'itemIdentifier': record['messageId']})
+        logger.info('Completed batch', batch_failures=len(batch_failures))
+        return {'batchItemFailures': batch_failures}
+
+    return process_messages
+
+
+def sqs_handler_with_notification_tracking(fn: Callable):
+    """
+    Process messages from SQS with notification tracking capabilities.
+
+    This decorator provides a generic pattern for tracking notification delivery state
+    across SQS message retries. It creates a NotificationTracker and passes it as a
+    parameter to the handler function.
+
+    The handler function should accept (message: dict, tracker: NotificationTracker) as parameters.
+    """
+
+    @wraps(fn)
+    @metrics.log_metrics
+    @logger.inject_lambda_context
+    def process_messages(event, context: LambdaContext):  # noqa: ARG001 unused-argument
+        records = event['Records']
+        logger.info('Starting batch with notification tracking', batch_count=len(records))
+        batch_failures = []
+
+        for record in records:
+            try:
+                message = json.loads(record['body'])
+                message_id = record['messageId']
+
+                # Extract compact from message detail for notification tracking
+                compact = message.get('detail', {}).get('compact')
+                if not compact:
+                    logger.warning('No compact found in message, skipping notification tracking', message_id=message_id)
+                    # Still process the message but without tracking
+                    fn(message, None)
+                    continue
+
+                # Create notification tracker and pass as parameter
+                from cc_common.event_state_client import NotificationTracker
+
+                tracker = NotificationTracker(compact=compact, message_id=message_id)
+
+                logger.info(
+                    'Processing message with notification tracking',
+                    message_id=message_id,
+                    compact=compact,
+                    message_attributes=record.get('messageAttributes'),
+                )
+                fn(message, tracker)
+
+            # When we receive a batch of messages from SQS, letting an exception escape all the way back to AWS is
+            # really undesirable. Instead, we're going to catch _almost_ any exception raised, note what message we
+            # were processing, and report those item failures back to AWS.
+            except Exception as e:  # noqa: BLE001 broad-exception-caught
+                logger.error(
+                    'Failed to process message with notification tracking',
+                    exception=str(e),
+                    message_id=record['messageId'],
+                )
+                batch_failures.append({'itemIdentifier': record['messageId']})
+
         logger.info('Completed batch', batch_failures=len(batch_failures))
         return {'batchItemFailures': batch_failures}
 
@@ -850,6 +912,7 @@ def _get_recaptcha_secret() -> str:
             raise CCInternalException('Failed to load reCAPTCHA secret') from e
     return _RECAPTCHA_SECRET
 
+
 def verify_recaptcha(token: str) -> bool:
     """Verify the reCAPTCHA token with Google's API."""
 
@@ -910,3 +973,22 @@ def verify_password(hashed_password: str, password: str) -> bool:
     except Exception as e:
         logger.error('Failed to verify password', error=str(e))
         raise CCInternalException('Failed to verify password') from e
+
+
+def to_uuid(uuid: str, on_error: str) -> UUID:
+    """
+    Parse a str to a UUID, raising CCInvalidRequestException if invalid.
+
+    This should be used for all UUID path parameters to validate and normalize
+    input before processing, preventing malformed UUIDs from causing unexpected
+    errors deeper in the application.
+
+    :param str uuid: The string representation of a UUID to parse
+    :param str on_error: Custom error message to include in the exception
+    :return: A validated UUID object
+    :raises CCInvalidRequestException: If the string is not a valid UUID
+    """
+    try:
+        return UUID(uuid)
+    except ValueError as e:
+        raise CCInvalidRequestException(on_error) from e

@@ -90,8 +90,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "format": "date-time",
             "type": "string"
           },
           "licenseStatus": {
@@ -228,8 +227,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "previous": {
@@ -618,8 +616,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "encumbranceType": {
@@ -656,6 +653,125 @@
               "type": "object"
             },
             "type": "array"
+          },
+          "investigations": {
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "investigation"
+                  ],
+                  "type": "string"
+                },
+                "compact": {
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ],
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "investigationId": {
+                  "type": "string"
+                },
+                "jurisdiction": {
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy"
+                  ],
+                  "type": "string"
+                },
+                "licenseType": {
+                  "type": "string"
+                },
+                "dateOfUpdate": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "creationDate": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "submittingUser": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "compact",
+                "providerId",
+                "investigationId",
+                "jurisdiction",
+                "licenseType",
+                "dateOfUpdate",
+                "creationDate",
+                "submittingUser"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "investigationStatus": {
+            "description": "Status indicating if the license is under investigation",
+            "enum": [
+              "underInvestigation"
+            ],
+            "type": "string"
           },
           "npi": {
             "pattern": "^[0-9]{10}$",
@@ -880,8 +996,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "previous": {
@@ -978,8 +1093,7 @@
                       "type": "string"
                     },
                     "dateOfUpdate": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "format": "date-time",
                       "type": "string"
                     },
                     "compactTransactionId": {
@@ -1188,8 +1302,7 @@
                       "type": "string"
                     },
                     "dateOfUpdate": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "format": "date-time",
                       "type": "string"
                     },
                     "compactTransactionId": {
@@ -1430,8 +1543,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "encumbranceType": {
@@ -1468,6 +1580,125 @@
               "type": "object"
             },
             "type": "array"
+          },
+          "investigations": {
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "investigation"
+                  ],
+                  "type": "string"
+                },
+                "compact": {
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ],
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "investigationId": {
+                  "type": "string"
+                },
+                "jurisdiction": {
+                  "enum": [
+                    "al",
+                    "ak",
+                    "az",
+                    "ar",
+                    "ca",
+                    "co",
+                    "ct",
+                    "de",
+                    "dc",
+                    "fl",
+                    "ga",
+                    "hi",
+                    "id",
+                    "il",
+                    "in",
+                    "ia",
+                    "ks",
+                    "ky",
+                    "la",
+                    "me",
+                    "md",
+                    "ma",
+                    "mi",
+                    "mn",
+                    "ms",
+                    "mo",
+                    "mt",
+                    "ne",
+                    "nv",
+                    "nh",
+                    "nj",
+                    "nm",
+                    "ny",
+                    "nc",
+                    "nd",
+                    "oh",
+                    "ok",
+                    "or",
+                    "pa",
+                    "pr",
+                    "ri",
+                    "sc",
+                    "sd",
+                    "tn",
+                    "tx",
+                    "ut",
+                    "vt",
+                    "va",
+                    "vi",
+                    "wa",
+                    "wv",
+                    "wi",
+                    "wy"
+                  ],
+                  "type": "string"
+                },
+                "licenseType": {
+                  "type": "string"
+                },
+                "dateOfUpdate": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "creationDate": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "submittingUser": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "compact",
+                "providerId",
+                "investigationId",
+                "jurisdiction",
+                "licenseType",
+                "dateOfUpdate",
+                "creationDate",
+                "submittingUser"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "investigationStatus": {
+            "description": "Status indicating if the privilege is under investigation",
+            "enum": [
+              "underInvestigation"
+            ],
+            "type": "string"
           },
           "type": {
             "enum": [
@@ -1561,8 +1792,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "format": "date-time",
             "type": "string"
           },
           "compactTransactionId": {
@@ -1696,8 +1926,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "format": "date-time",
             "type": "string"
           },
           "providerId": {
@@ -2046,8 +2275,7 @@
       "type": "string"
     },
     "dateOfUpdate": {
-      "format": "date",
-      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+      "format": "date-time",
       "type": "string"
     }
   },

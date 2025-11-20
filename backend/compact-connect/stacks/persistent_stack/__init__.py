@@ -1,4 +1,6 @@
 from aws_cdk import Duration, RemovalPolicy
+from aws_cdk.aws_cloudwatch import Alarm
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
@@ -335,6 +337,15 @@ class PersistentStack(AppStack):
                 **self.common_env_vars,
             },
         )
+        self.email_notification_service_failure_alarm = Alarm(
+            self,
+            'EmailNotificationServiceFailureAlarm',
+            metric=self.email_notification_service_lambda.metric_errors(),
+            evaluation_periods=1,
+            threshold=1,
+            alarm_description='Email notification service has failed to send an email.',
+        )
+        self.email_notification_service_failure_alarm.add_alarm_action(SnsAction(self.alarm_topic))
 
         # Grant permissions to read compact configurations
         self.compact_configuration_table.grant_read_data(self.email_notification_service_lambda)
@@ -459,6 +470,10 @@ class PersistentStack(AppStack):
         """
         Creates and stores UI application configuration in SSM Parameter Store for use in the UI stack and
         frontend deployment stack.
+
+        NOTE:: These parameters represent Frontend dependencies on the backend app. If any values are changed
+            or new parameters are introduced, be sure to explicitly plan the deploy sequencing between back- and
+            front-ends so that these dependencies are properly resolved.
         """
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
         frontend_app_config = PersistentStackFrontendAppConfigUtility()

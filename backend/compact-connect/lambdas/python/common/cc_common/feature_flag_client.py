@@ -79,7 +79,7 @@ def is_feature_enabled(
         ):
     """
     try:
-        logger.info("checking status of feature flag", flag_name=flag_name)
+        logger.info('checking status of feature flag', flag_name=flag_name)
         api_base_url = _get_api_base_url()
         endpoint_url = f'{api_base_url}/v1/flags/{flag_name}/check'
 

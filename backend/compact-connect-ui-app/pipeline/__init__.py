@@ -3,6 +3,7 @@ from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_sns import ITopic
 from common_constructs.base_pipeline_stack import (
+    ALLOWED_ENVIRONMENT_NAMES,
     BETA_ENVIRONMENT_NAME,
     PROD_ENVIRONMENT_NAME,
     TEST_ENVIRONMENT_NAME,
@@ -79,6 +80,12 @@ class BaseFrontendPipelineStack(BasePipelineStack):
             environment_context=environment_context,
         )
 
+    def _get_frontend_pipeline_name(self):
+        if self.environment_name not in ALLOWED_ENVIRONMENT_NAMES:
+            raise ValueError(f'Environment name must be one of {ALLOWED_ENVIRONMENT_NAMES}')
+
+        return f'{self.environment_name}-compactConnect-frontendPipeline'
+
 
 class TestFrontendPipelineStack(BaseFrontendPipelineStack):
     """Pipeline stack for the test frontend environment."""
@@ -103,9 +110,6 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             **kwargs,
         )
 
-        # Allows us to override the default branching scheme for the test environment, via context variable
-        pre_prod_trigger_branch = self.pipeline_environment_context.get('pre_prod_trigger_branch', 'development')
-
         self.pre_prod_frontend_pipeline = FrontendPipeline(
             self,
             'TestFrontendPipeline',
@@ -113,7 +117,7 @@ class TestFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            source_branch=pre_prod_trigger_branch,
+            git_tag_trigger_pattern='ui-test-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -165,7 +169,9 @@ class BetaFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            source_branch='main',
+            # We will explicitly tie beta deploys to the production tag, because we always want the
+            # beta environment code to mirror production.
+            git_tag_trigger_pattern='ui-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -217,7 +223,7 @@ class ProdFrontendPipelineStack(BaseFrontendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            source_branch='main',
+            git_tag_trigger_pattern='ui-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,

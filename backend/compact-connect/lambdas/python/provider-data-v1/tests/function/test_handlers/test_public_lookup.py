@@ -450,6 +450,7 @@ class TestPublicGetProvider(TstFunction):
             expected_provider.pop('licenses')
             expected_provider['privileges'][0].pop('attestations')
             expected_provider['privileges'][0].pop('compactTransactionId')
+            expected_provider['privileges'][0].pop('investigations')
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')

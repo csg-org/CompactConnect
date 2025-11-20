@@ -13,13 +13,13 @@ from aws_cdk.aws_s3 import BucketEncryption, IBucket
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import IParameter
 from aws_cdk.pipelines import CodeBuildOptions, CodeBuildStep, CodePipelineSource
-from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
+from common_constructs.base_pipeline import BasePipeline
 from common_constructs.base_pipeline_stack import CCPipelineType
 from common_constructs.bucket import Bucket
 
 
-class BackendPipeline(CdkCodePipeline):
+class BackendPipeline(BasePipeline):
     """
     Stack for creating the Backend CodePipeline resources.
 
@@ -28,8 +28,10 @@ class BackendPipeline(CdkCodePipeline):
     2. The Frontend Pipeline then deploys the frontend application using those resources
 
     Deployment Flow:
-    - IS triggered by GitHub pushes (trigger_on_push=True)
-    - Triggers the Frontend Pipeline after successful deployment
+    - Automatically triggered by git tags matching the specified pattern (e.g., 'cc-prod-*')
+
+    The pipeline is configured with an invalid branch name to ensure it can only be executed
+    with explicit git tag/commit ID specifications, enforcing tag-based deployments only.
     """
 
     def __init__(
@@ -41,7 +43,7 @@ class BackendPipeline(CdkCodePipeline):
         github_repo_string: str,
         cdk_path: str,
         connection_arn: str,
-        trigger_branch: str,
+        git_tag_trigger_pattern: str,
         access_logs_bucket: IBucket,
         encryption_key: IKey,
         alarm_topic: ITopic,
@@ -51,6 +53,31 @@ class BackendPipeline(CdkCodePipeline):
         removal_policy: RemovalPolicy,
         **kwargs,
     ):
+        """
+        Initialize the BackendPipeline.
+
+        :param scope: The parent construct (BasePipelineStack instance).
+        :param construct_id: The construct ID for this pipeline, used for naming resources.
+        :param pipeline_name: The name of the CodePipeline pipeline.
+        :param github_repo_string: The GitHub repository string in the format 'owner/repo',
+            used for the source connection.
+        :param cdk_path: The path to the CDK directory where synthesis commands will be executed.
+        :param connection_arn: The ARN of the AWS CodeStar connection for GitHub integration.
+            Format: arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
+        :param git_tag_trigger_pattern: The git tag pattern (glob format) that will automatically
+            trigger the pipeline (e.g., 'cc-prod-*', 'cc-test-*').
+        :param access_logs_bucket: The S3 bucket used for storing server access logs for the
+            artifact bucket.
+        :param encryption_key: The KMS key used to encrypt the artifact bucket and alarm topic.
+        :param alarm_topic: The SNS topic used for pipeline notifications and alarms.
+        :param ssm_parameter: The SSM parameter that the synth project needs read access to.
+        :param pipeline_stack_name: The name of the CloudFormation stack that contains this pipeline.
+            Used by the self-mutation step to deploy pipeline changes.
+        :param environment_context: Dictionary containing environment context with 'account_id' and
+            'region' keys for the pipeline environment.
+        :param removal_policy: The removal policy for the artifact bucket (e.g., DESTROY or RETAIN).
+        :param **kwargs: Additional keyword arguments passed to the BasePipeline constructor.
+        """
         artifact_bucket = Bucket(
             scope,
             f'{construct_id}ArtifactsBucket',
@@ -80,6 +107,9 @@ class BackendPipeline(CdkCodePipeline):
             scope,
             construct_id,
             pipeline_name=pipeline_name,
+            pipeline_stack_name=pipeline_stack_name,
+            github_repo_string=github_repo_string,
+            git_tag_trigger_pattern=git_tag_trigger_pattern,
             pipeline_type=PipelineType.V2,
             artifact_bucket=artifact_bucket,
             role=pipeline_role,
@@ -88,8 +118,8 @@ class BackendPipeline(CdkCodePipeline):
                 'Synth',
                 input=CodePipelineSource.connection(
                     repo_string=github_repo_string,
-                    branch=trigger_branch,
-                    trigger_on_push=True,
+                    branch=self._INVALID_BRANCH_NAME,
+                    trigger_on_push=False,
                     # Arn format:
                     # arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
                     connection_arn=connection_arn,

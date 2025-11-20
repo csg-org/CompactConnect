@@ -283,10 +283,18 @@ there on, the pipelines should integrate as designed.
 
 Once the pipelines are established with the above steps, deployments will be automatically handled:
 
-- Pushes to the `development` branch will trigger the test backend pipeline, which will then trigger the test frontend
-  pipeline
-- Pushes to the `main` branch will trigger both the beta and production backend pipelines, which will then trigger
-  their respective frontend pipelines.
+- Tags pushed with the pattern, `cc-test-*` will trigger the backend `test` pipeline to deploy
+- Tags pushed with the pattern, `cc-prod-*` will trigger the backend `beta` and `prod` pipelines to deploy
+
+> *Note:* The frontend app has dependencies on the backend, in the form of parameters like
+> S3 bucket urls, cognito domains, etc. If those change, you will need to explicitly plan
+> the deploys so that the backend completes before the frontend starts to resolve the dependency.
+>
+> Currently, we include a [GitHub Action](../../.github/workflows/auto-tag-test-deployments.yml) that automatically
+> tags all pushed commits to `main` with a `cc-test-*` and `ui-test-*` tag. Because there is no coordination between
+> pipelines for these, now independent, services, they go out in parallel to the `test` environment. If these
+> cross-app dependencies change, you will need to manually create an additional `ui-test-*` tag after the backend
+> deploy completes, to resolve the cross-app dependencies.
 
 ## StatSig Feature Flag Setup
 [Back to top](#compact-connect---backend-developer-documentation)

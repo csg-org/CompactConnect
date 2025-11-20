@@ -6,6 +6,7 @@ from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
+from stacks.event_state_stack import EventStateStack
 from stacks.feature_flag_stack import FeatureFlagStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
@@ -50,6 +51,16 @@ class BackendStage(Stage):
         # Backup infrastructure is now created as a nested stack within PersistentStack
         # if backups are enabled for this environment
         self.backup_infrastructure_stack = self.persistent_stack.backup_infrastructure_stack
+
+        self.event_state_stack = EventStateStack(
+            self,
+            'EventStateStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+        )
 
         self.provider_users_stack = ProviderUsersStack(
             self,
@@ -149,6 +160,7 @@ class BackendStage(Stage):
                 standard_tags=standard_tags,
                 environment_name=environment_name,
                 persistent_stack=self.persistent_stack,
+                event_state_stack=self.event_state_stack,
             )
 
             self.reporting_stack = ReportingStack(

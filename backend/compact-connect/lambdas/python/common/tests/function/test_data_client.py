@@ -1,7 +1,7 @@
 import json
 from datetime import UTC, date, datetime
 from unittest.mock import patch
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException
@@ -15,6 +15,10 @@ from tests.function import TstFunction
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestDataClient(TstFunction):
     sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
+
+    def setUp(self):
+        super().setUp()
+        self.maxDiff = None
 
     def test_get_provider(self):
         from cc_common.data_model.data_client import DataClient
@@ -61,10 +65,10 @@ class TestDataClient(TstFunction):
         for item in resp['items']:
             self.assertNotIn('something_unexpected', item)
 
-    def _load_provider_data(self) -> str:
+    def _load_provider_data(self) -> UUID:
         with open('tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)
-        provider_id = provider_record['providerId']
+        provider_id = UUID(provider_record['providerId'])
         provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
         self._provider_table.put_item(Item=provider_record)
 
@@ -725,7 +729,7 @@ class TestDataClient(TstFunction):
             'pk': f'aslp#PROVIDER#{provider_id}',
             'sk': 'aslp#PROVIDER#privilege/ne/aud#',
             'type': 'privilege',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'compact': 'aslp',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
@@ -769,7 +773,7 @@ class TestDataClient(TstFunction):
                     'pk': f'aslp#PROVIDER#{provider_id}',
                     'sk': 'aslp#PROVIDER#privilege/ne/aud#',
                     'type': 'privilege',
-                    'providerId': provider_id,
+                    'providerId': str(provider_id),
                     'compact': 'aslp',
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
@@ -790,7 +794,7 @@ class TestDataClient(TstFunction):
                     'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/aac682a76e1182a641a1b40dd606ae51',
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
-                    'providerId': provider_id,
+                    'providerId': str(provider_id),
                     'compact': 'aslp',
                     'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ne',
@@ -866,7 +870,7 @@ class TestDataClient(TstFunction):
             'pk': f'aslp#PROVIDER#{provider_id}',
             'sk': 'aslp#PROVIDER#privilege/ne/aud#',
             'type': 'privilege',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'compact': 'aslp',
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
@@ -888,7 +892,7 @@ class TestDataClient(TstFunction):
             'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
-            'providerId': provider_id,
+            'providerId': str(provider_id),
             'compact': 'aslp',
             'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'jurisdiction': 'ne',
@@ -1028,3 +1032,887 @@ class TestDataClient(TstFunction):
         finally:
             # Restore the original query method
             self.config.provider_table.query = original_query
+
+    def test_create_privilege_investigation_success(self):
+        """Test successful creation of privilege investigation"""
+        from cc_common.data_model.data_client import DataClient
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # Create investigation data using test data generator
+        investigation = self.test_data_generator.generate_default_investigation(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'ne',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'privilege',
+            }
+        )
+
+        # Call the method
+        client.create_investigation(investigation)
+
+        # Verify investigation record was created
+        investigation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#')
+        )['Items']
+
+        self.assertEqual(1, len(investigation_records))
+        investigation_record = investigation_records[0]
+
+        # Verify the complete investigation record structure
+        expected_investigation = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
+            'type': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'investigationAgainst': 'privilege',
+            'investigationId': str(investigation.investigationId),
+            'submittingUser': str(investigation.submittingUser),
+            'creationDate': investigation.creationDate.isoformat(),
+        }
+        # Pop dynamic fields that we don't want to assert on
+        investigation_record.pop('dateOfUpdate')
+
+        self.assertEqual(expected_investigation, investigation_record)
+
+        # Verify privilege record was updated with investigation status
+        privilege_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').eq('aslp#PROVIDER#privilege/ne/slp#')
+        )['Items']
+
+        self.assertEqual(1, len(privilege_records))
+        privilege_record = privilege_records[0]
+        self.assertEqual('underInvestigation', privilege_record['investigationStatus'])
+
+        # Verify update record was created
+        update_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#UPDATE#')
+        )['Items']
+
+        self.assertEqual(1, len(update_records))
+        update_record = update_records[0]
+
+        # Verify the complete update record structure
+        expected_update = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'type': 'privilegeUpdate',
+            'updateType': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'createDate': investigation.creationDate.isoformat(),
+            'effectiveDate': investigation.creationDate.isoformat(),
+            'previous': {
+                'administratorSetStatus': 'active',
+                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                'compactTransactionId': '1234567890',
+                'dateOfExpiration': '2025-04-04',
+                'dateOfIssuance': '2016-05-05T12:59:59+00:00',
+                'dateOfRenewal': '2020-05-05T12:59:59+00:00',
+                'dateOfUpdate': '2020-05-05T12:59:59+00:00',
+                'licenseJurisdiction': 'oh',
+                'privilegeId': 'SLP-NE-1',
+            },
+            'updatedValues': {
+                'investigationStatus': 'underInvestigation',
+            },
+            'investigationDetails': {
+                'investigationId': str(investigation.investigationId),
+            },
+        }
+        # Pop dynamic fields that we don't want to assert on
+        update_record.pop('dateOfUpdate')
+        update_record.pop('sk')
+
+        self.assertEqual(expected_update, update_record)
+
+    def test_create_license_investigation_success(self):
+        """Test successful creation of license investigation"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.investigation import InvestigationData
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # Create investigation data
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'oh',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'license',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': str(uuid4()),
+            }
+        )
+
+        # Call the method
+        client.create_investigation(investigation)
+
+        # Verify investigation record was created
+        investigation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#INVESTIGATION#')
+        )['Items']
+
+        self.assertEqual(1, len(investigation_records))
+        investigation_record = investigation_records[0]
+
+        # Verify the complete investigation record structure
+        expected_investigation = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
+            'type': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'oh',
+            'licenseType': 'speech-language pathologist',
+            'investigationAgainst': 'license',
+            'investigationId': str(investigation.investigationId),
+            'submittingUser': str(investigation.submittingUser),
+            'creationDate': investigation.creationDate.isoformat(),
+        }
+        # Pop dynamic fields that we don't want to assert on
+        investigation_record.pop('dateOfUpdate')
+
+        self.assertEqual(expected_investigation, investigation_record)
+
+        # Verify license record was updated with investigation status
+        license_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').eq('aslp#PROVIDER#license/oh/slp#')
+        )['Items']
+
+        self.assertEqual(1, len(license_records))
+        license_record = license_records[0]
+        self.assertEqual('underInvestigation', license_record['investigationStatus'])
+
+        # Verify update record was created
+        update_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#UPDATE#')
+        )['Items']
+
+        self.assertEqual(1, len(update_records))
+        update_record = update_records[0]
+
+        # Verify the complete update record structure
+        expected_update = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'type': 'licenseUpdate',
+            'updateType': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'oh',
+            'licenseType': 'speech-language pathologist',
+            'createDate': investigation.creationDate.isoformat(),
+            'effectiveDate': investigation.creationDate.isoformat(),
+            'previous': {
+                'npi': '0608337260',
+                'licenseNumber': 'A0608337260',
+                'ssnLastFour': '1234',
+                'givenName': 'Björk',
+                'middleName': 'Gunnar',
+                'familyName': 'Guðmundsdóttir',
+                'dateOfUpdate': '2024-06-06T12:59:59+00:00',
+                'dateOfIssuance': '2010-06-06',
+                'dateOfRenewal': '2020-04-04',
+                'dateOfExpiration': '2025-04-04',
+                'dateOfBirth': '1985-06-06',
+                'homeAddressStreet1': '123 A St.',
+                'homeAddressStreet2': 'Apt 321',
+                'homeAddressCity': 'Columbus',
+                'homeAddressState': 'oh',
+                'homeAddressPostalCode': '43004',
+                'emailAddress': 'björk@example.com',
+                'phoneNumber': '+13213214321',
+                'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+            },
+            'updatedValues': {
+                'investigationStatus': 'underInvestigation',
+            },
+            'investigationDetails': {
+                'investigationId': str(investigation.investigationId),
+            },
+        }
+        # Pop dynamic fields that we don't want to assert on
+        update_record.pop('dateOfUpdate')
+        update_record.pop('sk')
+
+        self.assertEqual(expected_update, update_record)
+
+    def test_create_privilege_investigation_privilege_not_found(self):
+        """Test creation of privilege investigation when privilege doesn't exist"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.investigation import InvestigationData
+        from cc_common.exceptions import CCNotFoundException
+
+        # Load test data, privilege in Nebraska, license in Ohio
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # Create investigation data for non-existent privilege (no privilege in Ohio)
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': str(provider_id),
+                'compact': 'aslp',
+                'jurisdiction': 'oh',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'privilege',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': str(uuid4()),
+            }
+        )
+
+        # Call the method and expect exception
+        with self.assertRaises(CCNotFoundException) as context:
+            client.create_investigation(investigation)
+
+        self.assertIn('Privilege not found', str(context.exception))
+
+    def test_create_license_investigation_license_not_found(self):
+        """Test creation of license investigation when license doesn't exist"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.investigation import InvestigationData
+        from cc_common.exceptions import CCNotFoundException
+
+        # Load test data, privilege in Nebraska, license in Ohio
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # Create investigation data for non-existent license (no license in Nebraska)
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': str(provider_id),
+                'compact': 'aslp',
+                'jurisdiction': 'ne',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'license',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': str(uuid4()),
+            }
+        )
+
+        # Call the method and expect exception
+        with self.assertRaises(CCNotFoundException) as context:
+            client.create_investigation(investigation)
+
+        self.assertIn('License not found', str(context.exception))
+
+    def test_close_privilege_investigation_success(self):
+        """Test successful closing of privilege investigation"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.data_model.schema.investigation import InvestigationData
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # First create an investigation
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'ne',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'privilege',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': uuid4(),
+            }
+        )
+
+        client.create_investigation(investigation)
+
+        # Now close the investigation
+        closing_user = str(uuid4())
+        client.close_investigation(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='ne',
+            license_type_abbreviation='slp',
+            investigation_id=investigation.investigationId,
+            closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+        )
+
+        # Verify investigation record was updated with close information
+        investigation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#')
+        )['Items']
+
+        self.assertEqual(1, len(investigation_records))
+        investigation_record = investigation_records[0]
+
+        # Verify the investigation record was updated with close information
+        expected_investigation_close = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
+            'type': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'investigationAgainst': 'privilege',
+            'investigationId': str(investigation.investigationId),
+            'submittingUser': str(investigation.submittingUser),
+            'creationDate': investigation.creationDate.isoformat(),
+            'closeDate': investigation.creationDate.isoformat(),
+            'closingUser': closing_user,
+        }
+        # Pop dynamic fields that we don't want to assert on
+        investigation_record.pop('dateOfUpdate')
+
+        self.assertEqual(expected_investigation_close, investigation_record)
+
+        # Verify privilege record no longer has investigation status
+        privilege_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').eq('aslp#PROVIDER#privilege/ne/slp#')
+        )['Items']
+
+        self.assertEqual(1, len(privilege_records))
+        privilege_record = privilege_records[0]
+        self.assertNotIn('investigationStatus', privilege_record)
+
+        # Verify update record was created for closure
+        update_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#UPDATE#')
+        )['Items']
+
+        # Should have 2 update records: one for creation, one for closure
+        self.assertEqual(2, len(update_records))
+
+        # Find the closure update record
+        closure_update = None
+        for update_record in update_records:
+            if update_record.get('updateType') == 'closingInvestigation':
+                closure_update = update_record
+                break
+
+        self.assertIsNotNone(closure_update, 'Closure update record not found!')
+
+        # Verify the complete closure update record structure
+        expected_closure_update = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'type': 'privilegeUpdate',
+            'updateType': 'closingInvestigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'createDate': investigation.creationDate.isoformat(),
+            'effectiveDate': investigation.creationDate.isoformat(),
+            'previous': {
+                'administratorSetStatus': 'active',
+                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                'compactTransactionId': '1234567890',
+                'dateOfExpiration': '2025-04-04',
+                'dateOfIssuance': '2016-05-05T12:59:59+00:00',
+                'dateOfRenewal': '2020-05-05T12:59:59+00:00',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                'licenseJurisdiction': 'oh',
+                'privilegeId': 'SLP-NE-1',
+                'investigationStatus': 'underInvestigation',
+            },
+            'updatedValues': {},
+            'removedValues': ['investigationStatus'],
+        }
+        # Pop dynamic fields that we don't want to assert on
+        closure_update.pop('dateOfUpdate')
+        closure_update.pop('sk')
+        # Only pop compactTransactionIdGSIPK if it exists
+        if 'compactTransactionIdGSIPK' in closure_update:
+            closure_update.pop('compactTransactionIdGSIPK')
+
+        self.assertEqual(expected_closure_update, closure_update)
+
+    def test_close_license_investigation_success(self):
+        """Test successful closing of license investigation"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.data_model.schema.investigation import InvestigationData
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # First create an investigation
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'oh',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'license',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': str(uuid4()),
+            }
+        )
+
+        client.create_investigation(investigation)
+
+        # Now close the investigation
+        closing_user = str(uuid4())
+        close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+        client.close_investigation(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='oh',
+            license_type_abbreviation='slp',
+            investigation_id=investigation.investigationId,
+            closing_user=closing_user,
+            close_date=close_date,
+            investigation_against=InvestigationAgainstEnum.LICENSE,
+        )
+
+        # Verify investigation record was updated with close information
+        investigation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#INVESTIGATION#')
+        )['Items']
+
+        self.assertEqual(1, len(investigation_records))
+        investigation_record = investigation_records[0]
+
+        # Verify the investigation record was updated with close information
+        expected_investigation_close = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
+            'type': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'oh',
+            'licenseType': 'speech-language pathologist',
+            'investigationAgainst': 'license',
+            'investigationId': str(investigation.investigationId),
+            'submittingUser': str(investigation.submittingUser),
+            'creationDate': investigation.creationDate.isoformat(),
+            'closeDate': close_date.isoformat(),
+            'closingUser': closing_user,
+        }
+        # Pop dynamic fields that we don't want to assert on
+        investigation_record.pop('dateOfUpdate')
+
+        self.assertEqual(expected_investigation_close, investigation_record)
+
+        # Verify license record no longer has investigation status
+        license_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').eq('aslp#PROVIDER#license/oh/slp#')
+        )['Items']
+
+        self.assertEqual(1, len(license_records))
+        license_record = license_records[0]
+        self.assertNotIn('investigationStatus', license_record)
+
+        # Verify update record was created for closure
+        update_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#UPDATE#')
+        )['Items']
+
+        # Should have 2 update records: one for creation, one for closure
+        self.assertEqual(2, len(update_records))
+
+        # Find the closure update record
+        closure_update = None
+        for update_record in update_records:
+            if update_record.get('updateType') == 'closingInvestigation':
+                closure_update = update_record
+                break
+
+        self.assertIsNotNone(closure_update, 'Closure update not found!')
+
+        # Verify the complete closure update record structure
+        expected_closure_update = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'type': 'licenseUpdate',
+            'updateType': 'closingInvestigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'oh',
+            'licenseType': 'speech-language pathologist',
+            'createDate': investigation.creationDate.isoformat(),
+            'effectiveDate': investigation.creationDate.isoformat(),
+            'previous': {
+                'npi': '0608337260',
+                'licenseNumber': 'A0608337260',
+                'ssnLastFour': '1234',
+                'givenName': 'Björk',
+                'middleName': 'Gunnar',
+                'familyName': 'Guðmundsdóttir',
+                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                'dateOfIssuance': '2010-06-06',
+                'dateOfRenewal': '2020-04-04',
+                'dateOfExpiration': '2025-04-04',
+                'dateOfBirth': '1985-06-06',
+                'homeAddressStreet1': '123 A St.',
+                'homeAddressStreet2': 'Apt 321',
+                'homeAddressCity': 'Columbus',
+                'homeAddressState': 'oh',
+                'homeAddressPostalCode': '43004',
+                'emailAddress': 'björk@example.com',
+                'phoneNumber': '+13213214321',
+                'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+                'investigationStatus': 'underInvestigation',
+            },
+            'updatedValues': {},
+            'removedValues': ['investigationStatus'],
+        }
+        # Pop dynamic fields that we don't want to assert on
+        closure_update.pop('dateOfUpdate')
+        closure_update.pop('sk')
+
+        self.assertEqual(expected_closure_update, closure_update)
+
+    def test_close_privilege_investigation_not_found(self):
+        """Test closing privilege investigation when investigation doesn't exist"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.exceptions import CCNotFoundException
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # Try to close a non-existent investigation
+        with self.assertRaises(CCNotFoundException) as context:
+            client.close_investigation(
+                compact='aslp',
+                provider_id=provider_id,
+                jurisdiction='ne',
+                license_type_abbreviation='slp',
+                investigation_id=uuid4(),
+                closing_user=str(uuid4()),
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+            )
+
+        self.assertIn('Investigation not found', str(context.exception))
+
+    def test_close_license_investigation_not_found(self):
+        """Test closing license investigation when investigation doesn't exist"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.exceptions import CCNotFoundException
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # Try to close a non-existent investigation
+        with self.assertRaises(CCNotFoundException) as context:
+            client.close_investigation(
+                compact='aslp',
+                provider_id=provider_id,
+                jurisdiction='oh',
+                license_type_abbreviation='slp',
+                investigation_id=uuid4(),
+                closing_user=str(uuid4()),
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                investigation_against=InvestigationAgainstEnum.LICENSE,
+            )
+
+        self.assertIn('Investigation not found', str(context.exception))
+
+    def test_close_privilege_investigation_already_closed(self):
+        """Test closing privilege investigation when investigation was already closed"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.data_model.schema.investigation import InvestigationData
+        from cc_common.exceptions import CCNotFoundException
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # First create an investigation
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'ne',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'privilege',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': uuid4(),
+            }
+        )
+
+        client.create_investigation(investigation)
+
+        # Now close the investigation
+        closing_user = str(uuid4())
+        client.close_investigation(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='ne',
+            license_type_abbreviation='slp',
+            investigation_id=investigation.investigationId,
+            closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+        )
+        with self.assertRaises(CCNotFoundException) as context:
+            client.close_investigation(
+                compact='aslp',
+                provider_id=provider_id,
+                jurisdiction='ne',
+                license_type_abbreviation='slp',
+                investigation_id=investigation.investigationId,
+                closing_user=closing_user,
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+            )
+
+        self.assertIn('Investigation not found', str(context.exception))
+
+    def test_close_license_investigation_already_closed(self):
+        """Test closing license investigation when investigation was already closed"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.data_model.schema.investigation import InvestigationData
+        from cc_common.exceptions import CCNotFoundException
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # First create an investigation
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'oh',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'license',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': uuid4(),
+            }
+        )
+
+        client.create_investigation(investigation)
+
+        # Now close the investigation
+        closing_user = str(uuid4())
+        client.close_investigation(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='oh',
+            license_type_abbreviation='slp',
+            investigation_id=investigation.investigationId,
+            closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.LICENSE,
+        )
+        with self.assertRaises(CCNotFoundException) as context:
+            client.close_investigation(
+                compact='aslp',
+                provider_id=provider_id,
+                jurisdiction='oh',
+                license_type_abbreviation='slp',
+                investigation_id=investigation.investigationId,
+                closing_user=closing_user,
+                close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                investigation_against=InvestigationAgainstEnum.LICENSE,
+            )
+
+        self.assertIn('Investigation not found', str(context.exception))
+
+    def test_close_privilege_investigation_with_encumbrance(self):
+        """Test closing privilege investigation with encumbrance creation"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.data_model.schema.investigation import InvestigationData
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # First create an investigation
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'ne',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'privilege',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': uuid4(),
+            }
+        )
+
+        client.create_investigation(investigation)
+
+        # Now close the investigation with encumbrance creation
+        closing_user = str(uuid4())
+        resulting_encumbrance_id = uuid4()
+
+        close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+        client.close_investigation(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='ne',
+            license_type_abbreviation='slp',
+            investigation_id=investigation.investigationId,
+            closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.PRIVILEGE,
+            resulting_encumbrance_id=resulting_encumbrance_id,
+        )
+
+        # Verify investigation record was updated with close information and encumbrance reference
+        investigation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#')
+        )['Items']
+
+        self.assertEqual(1, len(investigation_records))
+        investigation_record = investigation_records[0]
+
+        # Verify the investigation record was updated with close information and encumbrance reference
+        expected_investigation_close = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
+            'type': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'ne',
+            'licenseType': 'speech-language pathologist',
+            'investigationAgainst': 'privilege',
+            'investigationId': str(investigation.investigationId),
+            'submittingUser': str(investigation.submittingUser),
+            'creationDate': investigation.creationDate.isoformat(),
+            'closeDate': close_date.isoformat(),
+            'closingUser': closing_user,
+            'resultingEncumbranceId': str(resulting_encumbrance_id),
+        }
+        # Pop dynamic fields that we don't want to assert on
+        investigation_record.pop('dateOfUpdate')
+
+        self.assertEqual(expected_investigation_close, investigation_record)
+
+    def test_close_license_investigation_with_encumbrance(self):
+        """Test closing license investigation with encumbrance creation"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+        from cc_common.data_model.schema.investigation import InvestigationData
+
+        # Load test data
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        # First create an investigation
+        investigation = InvestigationData.create_new(
+            {
+                'providerId': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'oh',
+                'licenseTypeAbbreviation': 'slp',
+                'licenseType': 'speech-language pathologist',
+                'investigationAgainst': 'license',
+                'submittingUser': str(uuid4()),
+                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+                'investigationId': uuid4(),
+            }
+        )
+
+        client.create_investigation(investigation)
+
+        # Now close the investigation with encumbrance creation
+        closing_user = str(uuid4())
+        resulting_encumbrance_id = uuid4()
+
+        close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+        client.close_investigation(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='oh',
+            license_type_abbreviation='slp',
+            investigation_id=investigation.investigationId,
+            closing_user=closing_user,
+            close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
+            investigation_against=InvestigationAgainstEnum.LICENSE,
+            resulting_encumbrance_id=resulting_encumbrance_id,
+        )
+
+        # Verify investigation record was updated with close information and encumbrance reference
+        investigation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#INVESTIGATION#')
+        )['Items']
+
+        self.assertEqual(1, len(investigation_records))
+        investigation_record = investigation_records[0]
+
+        # Verify the investigation record was updated with close information and encumbrance reference
+        expected_investigation_close = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
+            'type': 'investigation',
+            'compact': 'aslp',
+            'providerId': str(provider_id),
+            'jurisdiction': 'oh',
+            'licenseType': 'speech-language pathologist',
+            'investigationAgainst': 'license',
+            'investigationId': str(investigation.investigationId),
+            'submittingUser': str(investigation.submittingUser),
+            'creationDate': investigation.creationDate.isoformat(),
+            'closeDate': close_date.isoformat(),
+            'closingUser': closing_user,
+            'resultingEncumbranceId': str(resulting_encumbrance_id),
+        }
+        # Pop dynamic fields that we don't want to assert on
+        investigation_record.pop('dateOfUpdate')
+
+        self.assertEqual(expected_investigation_close, investigation_record)

@@ -1,5 +1,5 @@
 from marshmallow.fields import Decimal, List, String
-from marshmallow.validate import OneOf, Range, Regexp
+from marshmallow.validate import OneOf, Range, Regexp, Validator
 
 from cc_common.config import config
 from cc_common.data_model.schema.common import (
@@ -8,6 +8,8 @@ from cc_common.data_model.schema.common import (
     CompactEligibilityStatus,
     EncumbranceType,
     HomeJurisdictionChangeStatusEnum,
+    InvestigationAgainstEnum,
+    InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
     PrivilegeEncumberedStatusEnum,
@@ -67,7 +69,11 @@ class CompactEligibility(String):
 
 class UpdateType(String):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, validate=OneOf([entry.value for entry in UpdateCategory]), **kwargs)
+        # Merge any provided validators with our new desired one
+        validate = kwargs.pop('validate', [])
+        if isinstance(validate, Validator):
+            validate = [validate]
+        super().__init__(*args, validate=[OneOf([entry.value for entry in UpdateCategory]), *validate], **kwargs)
 
 
 class LicenseEncumberedStatusField(String):
@@ -78,6 +84,11 @@ class LicenseEncumberedStatusField(String):
 class PrivilegeEncumberedStatusField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in PrivilegeEncumberedStatusEnum]), **kwargs)
+
+
+class InvestigationStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in InvestigationStatusEnum]), **kwargs)
 
 
 class HomeJurisdictionChangeStatusField(String):
@@ -114,6 +125,11 @@ class EncumbranceTypeField(String):
 class ClinicalPrivilegeActionCategoryField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in ClinicalPrivilegeActionCategory]), **kwargs)
+
+
+class InvestigationAgainstField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in InvestigationAgainstEnum]), **kwargs)
 
 
 class PositiveDecimal(Decimal):

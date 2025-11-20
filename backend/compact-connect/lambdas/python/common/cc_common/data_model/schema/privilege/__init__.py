@@ -81,6 +81,10 @@ class PrivilegeData(CCDataClass):
         return self._data.get('licenseDeactivatedStatus')
 
     @property
+    def investigationStatus(self) -> str | None:
+        return self._data.get('investigationStatus')
+
+    @property
     def status(self) -> str:
         """
         Read-only property that returns the active/inactive status of the privilege.

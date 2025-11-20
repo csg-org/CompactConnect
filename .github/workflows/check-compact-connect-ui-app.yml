@@ -103,7 +103,7 @@ jobs:
         run: "pip install -r backend/compact-connect-ui-app/requirements-dev.txt"
 
       - name: Install all Python dependencies
-        run: "cd backend/compact-connect-ui-app; bin/sync_deps.sh"
+        run: "cd backend/compact-connect; pip install -U 'pip<25.3'; bin/sync_deps.sh"
 
       - name: Test backend
         run: "cd backend/compact-connect-ui-app; bin/run_tests.sh -l all -no"

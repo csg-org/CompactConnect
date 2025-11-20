@@ -18,6 +18,7 @@ class TstLambdas(TestCase):
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
+                'EVENT_STATE_TABLE_NAME': 'event-state-table',
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': 'email-notification-service',
@@ -103,7 +104,9 @@ class TstLambdas(TestCase):
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above
         import cc_common.config
+        from common_test.test_data_generator import TestDataGenerator
 
         cls.config = cc_common.config._Config()  # noqa: SLF001 protected-access
         cc_common.config.config = cls.config
         cls.mock_context = MagicMock(name='MockLambdaContext', spec=LambdaContext)
+        cls.test_data_generator = TestDataGenerator

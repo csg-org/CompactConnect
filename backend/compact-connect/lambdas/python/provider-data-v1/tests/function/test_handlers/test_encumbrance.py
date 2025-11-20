@@ -1,6 +1,7 @@
 import json
 from datetime import UTC, date, datetime, timedelta
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key
 from cc_common.exceptions import CCInternalException
@@ -71,7 +72,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
                 'pathParameters': {
                     'compact': test_privilege_record.compact,
-                    'providerId': test_privilege_record.providerId,
+                    'providerId': str(test_privilege_record.providerId),
                     'jurisdiction': test_privilege_record.jurisdiction,
                     'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
                         compact=test_privilege_record.compact, license_type=test_privilege_record.licenseType
@@ -446,7 +447,7 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
                 'pathParameters': {
                     'compact': test_license_record.compact,
-                    'providerId': test_license_record.providerId,
+                    'providerId': str(test_license_record.providerId),
                     'jurisdiction': test_license_record.jurisdiction,
                     'licenseType': self.test_data_generator.get_license_type_abbr_for_license_type(
                         compact=test_license_record.compact, license_type=test_license_record.licenseType
@@ -805,9 +806,9 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
         privilege_record, _ = self._setup_privilege_with_adverse_action()
 
-        # Use a non-existent adverse action ID
+        # Use a non-existent adverse action ID (valid UUID format that doesn't exist)
         event = self._generate_lift_encumbrance_event(
-            privilege_record, type('MockAdverseAction', (), {'adverseActionId': 'non-existent-id'})()
+            privilege_record, type('MockAdverseAction', (), {'adverseActionId': str(uuid4())})()
         )
 
         response = encumbrance_handler(event, self.mock_context)
@@ -1170,9 +1171,9 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
 
         license_record, _ = self._setup_license_with_adverse_action()
 
-        # Use a non-existent adverse action ID
+        # Use a non-existent adverse action ID (valid UUID format that doesn't exist)
         event = self._generate_lift_encumbrance_event(
-            license_record, type('MockAdverseAction', (), {'adverseActionId': 'non-existent-id'})()
+            license_record, type('MockAdverseAction', (), {'adverseActionId': str(uuid4())})()
         )
 
         response = encumbrance_handler(event, self.mock_context)

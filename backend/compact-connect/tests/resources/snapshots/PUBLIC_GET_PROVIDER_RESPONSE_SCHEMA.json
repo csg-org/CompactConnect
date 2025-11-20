@@ -163,8 +163,7 @@
             "type": "string"
           },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "format": "date-time",
             "type": "string"
           },
           "privilegeId": {
@@ -290,8 +289,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 },
                 "previous": {
@@ -319,8 +317,7 @@
                       "type": "string"
                     },
                     "dateOfUpdate": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "format": "date-time",
                       "type": "string"
                     },
                     "licenseJurisdiction": {
@@ -421,8 +418,7 @@
                       "type": "string"
                     },
                     "dateOfUpdate": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "format": "date-time",
                       "type": "string"
                     },
                     "licenseJurisdiction": {
@@ -612,8 +608,7 @@
                   "type": "string"
                 },
                 "dateOfUpdate": {
-                  "format": "date",
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "format": "date-time",
                   "type": "string"
                 }
               },
@@ -877,8 +872,7 @@
       "type": "string"
     },
     "dateOfUpdate": {
-      "format": "date",
-      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+      "format": "date-time",
       "type": "string"
     }
   },

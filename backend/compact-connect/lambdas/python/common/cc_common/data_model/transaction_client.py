@@ -3,7 +3,8 @@ from datetime import UTC, datetime, timedelta
 from boto3.dynamodb.conditions import Key
 
 from cc_common.config import _Config, logger
-from cc_common.data_model.schema.transaction.record import TransactionRecordSchema, UnsettledTransactionRecordSchema
+from cc_common.data_model.schema.transaction import TransactionData
+from cc_common.data_model.schema.transaction.record import UnsettledTransactionRecordSchema
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 
@@ -14,21 +15,18 @@ class TransactionClient:
     def __init__(self, config: _Config):
         self.config = config
 
-    def store_transactions(self, transactions: list[dict]) -> None:
+    def store_transactions(self, transactions: list[TransactionData]) -> None:
         """
         Store transaction records in DynamoDB.
 
-        :param compact: The compact name
         :param transactions: List of transaction records to store
         """
         with self.config.transaction_history_table.batch_writer() as batch:
             for transaction in transactions:
                 # Convert UTC timestamp to epoch for sorting
-                transaction_processor = transaction['transactionProcessor']
+                transaction_processor = transaction.transactionProcessor
                 if transaction_processor == AUTHORIZE_DOT_NET_CLIENT_TYPE:
-                    transaction_schema = TransactionRecordSchema()
-
-                    serialized_record = transaction_schema.dump(transaction)
+                    serialized_record = transaction.serialize_to_database_record()
                     batch.put_item(Item=serialized_record)
                 else:
                     raise ValueError(f'Unsupported transaction processor: {transaction_processor}')
@@ -80,6 +78,49 @@ class TransactionClient:
 
         return all_items
 
+    def get_most_recent_transaction_for_compact(self, compact: str) -> TransactionData:
+        """
+        Get the most recent transaction for a compact.
+
+        Starts by querying the current month's partition key (based on config.current_standard_datetime),
+        then sequentially queries previous months until a record is found.
+
+        :param compact: The compact name
+        :return: The most recent transaction for the compact
+        :raises ValueError: If no transactions are found for the compact
+        """
+        # Start with the current month
+        current_date = self.config.current_standard_datetime.replace(day=1)
+        # During normal operations, the most recent transaction should be no more than two days old, if there were any
+        # transactions in that period. We'll look back up to three months, which should cover most reasonable
+        # situations.
+        max_months_to_check = 3
+
+        for _ in range(max_months_to_check):
+            month_key = current_date.strftime('%Y-%m')
+            pk = f'COMPACT#{compact}#TRANSACTIONS#MONTH#{month_key}'
+
+            # Query for the most recent transaction in this month (descending order, limit 1)
+            response = self.config.transaction_history_table.query(
+                KeyConditionExpression=Key('pk').eq(pk),
+                ScanIndexForward=False,  # Descending order (most recent first)
+                Limit=1,
+            )
+
+            items = response.get('Items', [])
+            if items:
+                # Found a transaction, return it
+                return TransactionData.from_database_record(items[0])
+
+            # Move to previous month
+            if current_date.month == 1:
+                current_date = current_date.replace(year=current_date.year - 1, month=12)
+            else:
+                current_date = current_date.replace(month=current_date.month - 1)
+
+        # No transactions found after checking max_months_to_check months
+        raise ValueError(f'No transactions found for compact: {compact}')
+
     def _query_transactions_for_month(
         self,
         compact: str,
@@ -122,10 +163,13 @@ class TransactionClient:
 
     def _set_privilege_id_in_line_item(self, line_items: list[dict], item_id_prefix: str, privilege_id: str):
         for line_item in line_items:
-            if line_item.get('itemId').lower().startswith(item_id_prefix.lower()):
+            item_id = line_item.get('itemId')
+            if item_id and item_id.lower().startswith(item_id_prefix.lower()):
                 line_item['privilegeId'] = privilege_id
 
-    def add_privilege_information_to_transactions(self, compact: str, transactions: list[dict]) -> list[dict]:
+    def add_privilege_information_to_transactions(
+        self, compact: str, transactions: list[TransactionData]
+    ) -> list[TransactionData]:
         """
         Add privilege and licensee IDs to transaction line items based on the jurisdiction they were purchased for.
 
@@ -134,7 +178,7 @@ class TransactionClient:
         :return: Modified list of transactions with privilege and licensee IDs added to line items
         """
         for transaction in transactions:
-            line_items = transaction['lineItems']
+            line_items = transaction.lineItems
             # Extract jurisdictions from line items with format priv:{compact}-{jurisdiction}-{license type abbr}
             jurisdictions_to_process = set()
             for line_item in line_items:
@@ -145,7 +189,7 @@ class TransactionClient:
                     jurisdictions_to_process.add(jurisdiction)
 
             # Query for privilege records using the GSI
-            gsi_pk = f'COMPACT#{compact}#TX#{transaction["transactionId"]}#'
+            gsi_pk = f'COMPACT#{compact}#TX#{transaction.transactionId}#'
             response = self.config.provider_table.query(
                 IndexName=self.config.compact_transaction_id_gsi_name,
                 KeyConditionExpression=Key('compactTransactionIdGSIPK').eq(gsi_pk),
@@ -157,9 +201,9 @@ class TransactionClient:
                 logger.error(
                     'No privilege records found for this transaction id.',
                     compact=compact,
-                    transaction_id=transaction['transactionId'],
+                    transaction_id=transaction.transactionId,
                     # attempt to grab the licensee id from the authorize.net data, which may be invalid if it was masked
-                    licensee_id=transaction['licenseeId'],
+                    licensee_id=transaction.licenseeId,
                 )
                 # We mark the data as UNKNOWN so it still shows up in the history,
                 # and move onto the next transaction
@@ -182,16 +226,16 @@ class TransactionClient:
                 logger.error(
                     'More than one matching provider id found for a transaction id.',
                     compact=compact,
-                    transaction_id=transaction['transactionId'],
+                    transaction_id=transaction.transactionId,
                     # attempt to grab the licensee id from the authorize.net data, which may be invalid if it was masked
-                    provider_ids=transaction['licenseeId'],
+                    provider_ids=transaction.licenseeId,
                 )
 
             # The licensee id recorded in Authorize.net cannot be trusted, as Authorize.net masks any values that look
             # like a credit card number (consecutive digits separated by dashes). We need to grab the provider id from
             # the privileges associated with this transaction and set the licensee id on the transaction to that value
             # to ensure it is valid.
-            transaction['licenseeId'] = provider_ids.pop()
+            transaction.update({'licenseeId': provider_ids.pop()})
 
             # Process each privilege record
             for jurisdiction in jurisdictions_to_process:
@@ -220,15 +264,16 @@ class TransactionClient:
                         'No matching jurisdiction privilege record found for transaction. '
                         'Cannot determine privilege id for this transaction',
                         compact=compact,
-                        transactionId=transaction['transactionId'],
+                        transactionId=transaction.transactionId,
                         jurisdiction=jurisdiction,
-                        provider_id=transaction['licenseeId'],
+                        provider_id=transaction.licenseeId,
                         matching_privilege_records=response.get('Items', []),
                     )
                     # we set the privilege id to UNKNOWN, so that it will be visible in the report
                     self._set_privilege_id_in_line_item(
                         line_items=line_items, item_id_prefix=item_id_prefix, privilege_id='UNKNOWN'
                     )
+            transaction.update({'lineItems': line_items})
 
         return transactions
 
@@ -269,7 +314,7 @@ class TransactionClient:
                 error=str(e),
             )
 
-    def reconcile_unsettled_transactions(self, compact: str, settled_transactions: list[dict]) -> list[str]:
+    def reconcile_unsettled_transactions(self, compact: str, settled_transactions: list[TransactionData]) -> list[str]:
         """
         Reconcile unsettled transactions with settled transactions and detect old unsettled transactions.
 
@@ -297,7 +342,7 @@ class TransactionClient:
             return []
 
         # Create a set of settled transaction IDs for efficient lookup
-        settled_transaction_ids = {tx['transactionId'] for tx in settled_transactions}
+        settled_transaction_ids = {tx.transactionId for tx in settled_transactions}
 
         # Separate matched and unmatched unsettled transactions
         matched_unsettled = []
@@ -315,7 +360,7 @@ class TransactionClient:
                 'Deleting matched unsettled transactions',
                 compact=compact,
                 count=len(matched_unsettled),
-                settled_transaction_ids=settled_transaction_ids
+                settled_transaction_ids=settled_transaction_ids,
             )
             with self.config.transaction_history_table.batch_writer() as batch:
                 for tx in matched_unsettled:
@@ -324,6 +369,16 @@ class TransactionClient:
         # Check for unsettled transactions older than 48 hours
         cutoff_time = datetime.now(UTC) - timedelta(hours=48)
         old_unsettled_transactions = []
+
+        # We expect that all transactions we process from Authorize.net will match a record we have already
+        # created at the time of purchase, as an unsettled transaction. Any mismatch is an error.
+        matched_unsettled_transaction_ids = {tx['transactionId'] for tx in matched_unsettled}
+        unmatched_settled_transaction_ids = settled_transaction_ids - matched_unsettled_transaction_ids
+        if unmatched_settled_transaction_ids:
+            logger.error(
+                'Unable to reconcile some transactions from Authorize.Net with our unsettled transactions',
+                unreconciled_transactions=unmatched_settled_transaction_ids
+            )
 
         for unsettled_tx in unmatched_unsettled:
             transaction_date = datetime.fromisoformat(unsettled_tx['transactionDate'])

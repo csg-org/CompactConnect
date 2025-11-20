@@ -244,6 +244,22 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
         # The hashes should now be different
         self.assertNotEqual(change_hash, schema.hash_changes(schema.dump(alternate_record)))
 
+    def test_invalid_if_missing_investigation_details_when_update_type_is_investigation(self):
+        from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
+
+        with open('tests/resources/dynamo/license-update.json') as f:
+            privilege_data = json.load(f)
+        # Privilege investigation updates require an 'investigationDetails' fields
+        privilege_data['updateType'] = 'investigation'
+
+        with self.assertRaises(ValidationError) as context:
+            LicenseUpdateRecordSchema().load(privilege_data)
+
+        self.assertEqual(
+            {'investigationDetails': ['This field is required when update was investigation type']},
+            context.exception.messages,
+        )
+
 
 class TestLicenseIngestSchema(TstLambdas):
     def test_calculated_status_to_jurisdiction_uploaded_status(self):

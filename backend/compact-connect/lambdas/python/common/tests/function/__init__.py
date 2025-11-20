@@ -43,6 +43,7 @@ class TstFunction(TstLambdas):
         self.create_transaction_history_table()
         self.create_license_preprocessing_queue()
         self.create_rate_limiting_table()
+        self.create_event_state_table()
 
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._compact_configuration_table.meta.client.get_waiter('table_exists')
@@ -51,7 +52,7 @@ class TstFunction(TstLambdas):
         waiter.wait(TableName=self._users_table.name)
         waiter.wait(TableName=self._transaction_history_table.name)
         waiter.wait(TableName=self._rate_limiting_table.name)
-
+        waiter.wait(TableName=self._event_state_table.name)
         # Create a new Cognito user pool
         cognito_client = boto3.client('cognito-idp')
         user_pool_name = 'TestUserPool'
@@ -81,6 +82,29 @@ class TstFunction(TstLambdas):
             TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
             BillingMode='PAY_PER_REQUEST',
+        )
+
+    def create_event_state_table(self):
+        self._event_state_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerId', 'AttributeType': 'S'},
+                {'AttributeName': 'eventTime', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['EVENT_STATE_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': 'providerId-eventTime-index',
+                    'KeySchema': [
+                        {'AttributeName': 'providerId', 'KeyType': 'HASH'},
+                        {'AttributeName': 'eventTime', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                }
+            ],
         )
 
     def create_users_table(self):
@@ -187,6 +211,7 @@ class TstFunction(TstLambdas):
         self._transaction_history_table.delete()
         self._license_preprocessing_queue.delete()
         self._rate_limiting_table.delete()
+        self._event_state_table.delete()
 
         waiter = self._users_table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)
@@ -195,6 +220,7 @@ class TstFunction(TstLambdas):
         waiter.wait(TableName=self._transaction_history_table.name)
         waiter.wait(TableName=self._ssn_table.name)
         waiter.wait(TableName=self._rate_limiting_table.name)
+        waiter.wait(TableName=self._event_state_table.name)
 
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')

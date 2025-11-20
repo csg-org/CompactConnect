@@ -1,0 +1,64 @@
+{
+  "properties": {
+    "action": {
+      "enum": [
+        "close"
+      ],
+      "type": "string"
+    },
+    "encumbrance": {
+      "additionalProperties": false,
+      "description": "Encumbrance data to create",
+      "properties": {
+        "encumbranceEffectiveDate": {
+          "description": "The effective date of the encumbrance",
+          "format": "date",
+          "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+          "type": "string"
+        },
+        "encumbranceType": {
+          "description": "The type of encumbrance",
+          "enum": [
+            "fine",
+            "reprimand",
+            "required supervision",
+            "completion of continuing education",
+            "public reprimand",
+            "probation",
+            "injunctive action",
+            "suspension",
+            "revocation",
+            "denial",
+            "surrender of license",
+            "modification of previous action-extension",
+            "modification of previous action-reduction",
+            "other monitoring",
+            "other adjudicated action not listed"
+          ],
+          "type": "string"
+        },
+        "clinicalPrivilegeActionCategory": {
+          "description": "(Deprecated) The category of clinical privilege action. Use clinicalPrivilegeActionCategories instead.",
+          "type": "string"
+        },
+        "clinicalPrivilegeActionCategories": {
+          "description": "The categories of clinical privilege action",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "encumbranceEffectiveDate",
+        "encumbranceType"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}
