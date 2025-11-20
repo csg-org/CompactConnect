@@ -3087,8 +3087,10 @@ class TestEncumbranceEvents(TstFunction):
         license_encumbrance_listener(event, self.mock_context)
 
         # Verify STILL only one update record exists (no duplicate created)
-        update_records_after_retry = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-            privilege
+        update_records_after_retry = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                privilege
+            )
         )
         matching_updates_after_retry = [
             update
@@ -3158,8 +3160,10 @@ class TestEncumbranceEvents(TstFunction):
         license_encumbrance_listener(event, self.mock_context)
 
         # Verify STILL only one update record exists (no duplicate created)
-        update_records_after_retry = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-            privilege
+        update_records_after_retry = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                privilege
+            )
         )
         matching_updates_after_retry = [
             update
@@ -3249,8 +3253,10 @@ class TestEncumbranceEvents(TstFunction):
 
         # Verify STILL only one update record exists (no duplicate created)
         # The function should return early because no LICENSE_ENCUMBERED privileges remain
-        update_records_after_retry = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-            privilege
+        update_records_after_retry = (
+            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
+                privilege
+            )
         )
         matching_updates_after_retry = [
             update for update in update_records_after_retry if update.updateType == UpdateCategory.LIFTING_ENCUMBRANCE
