@@ -1,0 +1,7 @@
+# Requirements for create_provider_index.py script
+# Install with: pip install -r create_provider_index_requirements.txt
+
+boto3>=1.26.0
+opensearch-py>=2.0.0
+requests-aws4auth>=1.1.0
+
