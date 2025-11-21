@@ -15,9 +15,11 @@ from stacks.notification_stack import NotificationStack
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.reporting_stack import ReportingStack
+from stacks.search_persistent_stack import SearchPersistentStack
 from stacks.state_api_stack import StateApiStack
 from stacks.state_auth import StateAuthStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
+from stacks.vpc_stack import VpcStack
 
 
 class BackendStage(Stage):
@@ -37,6 +39,30 @@ class BackendStage(Stage):
         standard_tags = StandardTags(**self.node.get_context('tags'), environment=environment_name)
 
         environment = Environment(account=environment_context['account_id'], region=environment_context['region'])
+
+        # VPC Stack - provides networking infrastructure for OpenSearch and Lambda functions
+        self.vpc_stack = VpcStack(
+            self,
+            'VpcStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+        )
+
+        # Search Persistent Stack - OpenSearch Domain for advanced provider search
+        # currently not deploying to prod or beta to reduce costs until search api functionality is completed
+        # to reduce costs
+        if environment_name != 'prod' and environment_name != 'beta':
+            self.search_persistent_stack = SearchPersistentStack(
+                self,
+                'SearchPersistentStack',
+                env=environment,
+                environment_context=environment_context,
+                standard_tags=standard_tags,
+                environment_name=environment_name,
+                vpc_stack=self.vpc_stack,
+            )
 
         self.persistent_stack = PersistentStack(
             self,
