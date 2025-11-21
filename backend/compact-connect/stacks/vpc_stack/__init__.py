@@ -11,7 +11,10 @@ from aws_cdk.aws_ec2 import (
     SubnetType,
     Vpc,
 )
+from aws_cdk.aws_iam import ServicePrincipal
+from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, RetentionDays
+from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -43,6 +46,14 @@ class VpcStack(AppStack):
         # Determine removal policy based on environment
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
+        self.vpc_encryption_key = Key(
+            self,
+            'VpcEncryptionKey',
+            enable_key_rotation=True,
+            alias=f'{self.stack_name}-vpc-encryption-key',
+            removal_policy=removal_policy,
+        )
+
         # Create VPC with private subnets across multiple availability zones
         self.vpc = Vpc(
             self,
@@ -62,12 +73,17 @@ class VpcStack(AppStack):
             enable_dns_support=True,
         )
 
+        # grant access to Cloudwatch logs for vpc encryption key
+        logs_principal = ServicePrincipal('logs.amazonaws.com')
+        self.vpc_encryption_key.grant_encrypt_decrypt(logs_principal)
+
         # Create VPC Flow Logs for monitoring network traffic
         flow_log_group = LogGroup(
             self,
             'VpcFlowLogGroup',
             retention=RetentionDays.ONE_MONTH,
             removal_policy=removal_policy,
+            encryption_key=self.vpc_encryption_key
         )
 
         self.vpc.add_flow_log(
@@ -81,6 +97,32 @@ class VpcStack(AppStack):
         self.logs_vpc_endpoint = self.vpc.add_interface_endpoint(
             'LogsVpcEndpoint',
             service=InterfaceVpcEndpointAwsService.CLOUDWATCH_LOGS,
+        )
+
+        # Suppress CdkNag warnings for the auto-generated VPC endpoint security group
+        # These warnings occur because CDK creates security group rules with intrinsic functions
+        # that CdkNag cannot fully evaluate at synthesis time
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            path=self.logs_vpc_endpoint.node.path,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-EC23',
+                    'reason': 'VPC endpoint security groups are automatically managed by CDK. Inbound rules are '
+                    'appropriately restricted to HTTPS (port 443) from VPC CIDR block.',
+                },
+                {
+                    'id': 'HIPAA.Security-EC2RestrictedCommonPorts',
+                    'reason': 'VPC endpoint security groups are automatically managed by CDK. Only HTTPS (port 443) '
+                    'is allowed for CloudWatch Logs communication.',
+                },
+                {
+                    'id': 'HIPAA.Security-EC2RestrictedSSH',
+                    'reason': 'VPC endpoint security groups are automatically managed by CDK. SSH is not enabled on '
+                    'this security group.',
+                },
+            ],
+            apply_to_children=True,
         )
 
         # VPC Endpoint for DynamoDB
