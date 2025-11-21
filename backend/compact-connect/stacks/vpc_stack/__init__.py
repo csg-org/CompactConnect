@@ -25,7 +25,7 @@ class VpcStack(AppStack):
 
     This stack provides network infrastructure including:
     - VPC with private subnets across multiple availability zones
-    - VPC endpoints for AWS services (CloudWatch Logs, S3, etc.)
+    - VPC endpoints for AWS services (CloudWatch Logs, DynamoDB)
     - Security groups for OpenSearch and Lambda functions
     - VPC Flow Logs for network monitoring
     """
