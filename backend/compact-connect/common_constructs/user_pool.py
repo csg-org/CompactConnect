@@ -144,10 +144,10 @@ class UserPool(CdkUserPool):
         )
 
     def add_custom_app_client_domain(
-            self,
-            hosted_zone: IHostedZone,
-            scope: Construct,
-            app_client_domain_prefix: str,
+        self,
+        hosted_zone: IHostedZone,
+        scope: Construct,
+        app_client_domain_prefix: str,
     ):
         """
         Creates a custom subdomain for the cognito app client in the form of:
@@ -159,17 +159,11 @@ class UserPool(CdkUserPool):
         domain_name = f'{domain_prefix}.{hosted_zone.zone_name}'
         cert_id = f'{app_client_domain_prefix}AuthCert'
         cert = Certificate(
-            scope,
-            cert_id,
-            domain_name=domain_name,
-            validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
+            scope, cert_id, domain_name=domain_name, validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
         )
         domain = self.add_domain(
             f'{app_client_domain_prefix}UserPoolDomain',
-            custom_domain=CustomDomainOptions(
-                certificate=cert,
-                domain_name=domain_name
-            ),
+            custom_domain=CustomDomainOptions(certificate=cert, domain_name=domain_name),
             managed_login_version=ManagedLoginVersion.NEWER_MANAGED_LOGIN,
         )
 
@@ -195,7 +189,7 @@ class UserPool(CdkUserPool):
                     'id': 'AwsSolutions-IAM5',
                     'appliesTo': ['Resource::*'],
                     'reason': 'This is an AWS-managed custom resource Lambda that requires wildcard permissions'
-                              'to describe CloudFront distributions.',
+                    'to describe CloudFront distributions.',
                 }
             ],
         )
@@ -211,7 +205,7 @@ class UserPool(CdkUserPool):
                     'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                     ],
-                    'reason': 'This is an AWS-managed custom resource Lambda that uses the standard execution role.'
+                    'reason': 'This is an AWS-managed custom resource Lambda that uses the standard execution role.',
                 }
             ],
         )
@@ -227,12 +221,12 @@ class UserPool(CdkUserPool):
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',
                     'reason': 'This is an AWS-managed custom resource Lambda used only during deployment.'
-                              'A DLQ is not necessary.',
+                    'A DLQ is not necessary.',
                 },
                 {
                     'id': 'HIPAA.Security-LambdaInsideVPC',
                     'reason': 'This is an AWS-managed custom resource Lambda that needs internet access to'
-                              'describe CloudFront distributions.',
+                    'describe CloudFront distributions.',
                 },
             ],
         )
@@ -240,8 +234,8 @@ class UserPool(CdkUserPool):
         self.app_client_custom_domain = domain
 
     def add_default_app_client_domain(
-            self,
-            non_custom_domain_prefix: str,
+        self,
+        non_custom_domain_prefix: str,
     ):
         """
         Creates a cognito based sub domain in the form of:

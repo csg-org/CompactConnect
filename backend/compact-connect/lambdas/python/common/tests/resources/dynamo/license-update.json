@@ -1,6 +1,8 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "aslp#PROVIDER#license/oh/slp#UPDATE#1586264399/34702de3dc08e64922605a6b18f3838b",
+  "sk": "aslp#UPDATE#3#license/oh/slp/2024-11-08T23:59:59+00:00/34702de3dc08e64922605a6b18f3838b",
+  "licenseUploadDateGSIPK": "C#aslp#J#oh#D#2024-11",
+  "licenseUploadDateGSISK": "TIME#1731110399#LT#slp#PID#89a6377e-c3a5-40e5-bca5-317ec854c570",
   "type": "licenseUpdate",
   "updateType": "renewal",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",

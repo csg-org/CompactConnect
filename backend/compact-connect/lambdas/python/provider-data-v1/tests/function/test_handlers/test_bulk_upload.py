@@ -343,8 +343,8 @@ class TestProcessObjects(TstFunction):
                             'dateOfExpiration': '2026-01-01',
                         },
                         'errors': [
-                            'Duplicate License SSN detected. SSN matches with record 1. '
-                            'Every record must have a unique SSN within the same file.'
+                            'Duplicate License SSN detected for license type audiologist. SSN matches with record 1. '
+                            'Every record must have a unique SSN per license type within the same file.'
                         ],
                     }
                 ),
@@ -352,6 +352,56 @@ class TestProcessObjects(TstFunction):
             }
 
             self.assertEqual(expected_entry, call_args)
+
+    def test_bulk_upload_allows_repeated_ssns_for_different_license_types(self):
+        """Test that duplicate SSNs within a CSV upload are allowed if the license types are different."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        # Create CSV content that includes duplicate SSNs but different license types
+        csv_content = (
+            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
+            ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
+            ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
+            '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active\n'
+            '123-45-6789,1234567890,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,speech-language pathologist,'
+            'Active'
+        )
+
+        # Upload the CSV content directly to the mock S3 bucket
+        object_key = f'aslp/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        # Simulate the s3 bucket event
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        parse_bulk_upload_file(event, self.mock_context)
+
+        # Verify that both messages were sent to the preprocessing queue
+        messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(2, len(messages))
+
+        message_data_1 = json.loads(messages[0].body)
+        message_data_2 = json.loads(messages[1].body)
+
+        # Verify the license types are correct
+        # Messages might not be in order, so we check both
+        license_types = {message_data_1['licenseType'], message_data_2['licenseType']}
+        self.assertEqual({'audiologist', 'speech-language pathologist'}, license_types)
+
+        # Verify SSNs are the same
+        self.assertEqual(message_data_1['ssn'], '123-45-6789')
+        self.assertEqual(message_data_2['ssn'], '123-45-6789')
 
     def test_bulk_upload_handles_bom_character(self):
         """Test that CSV files with BOM characters are handled correctly."""

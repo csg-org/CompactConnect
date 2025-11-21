@@ -1,11 +1,16 @@
-from aws_cdk import RemovalPolicy
+from aws_cdk import RemovalPolicy, Stack
 from aws_cdk.aws_dynamodb import Table
 from aws_cdk.aws_iam import PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
+from aws_cdk.aws_s3 import BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership
+from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.disaster_recovery_stack.license_upload_rollback_step_function import (
+    LicenseUploadRollbackStepFunctionConstruct,
+)
 from stacks.disaster_recovery_stack.restore_dynamo_db_table_step_function import (
     RestoreDynamoDbTableStepFunctionConstruct,
 )
@@ -56,6 +61,35 @@ class DisasterRecoveryStack(AppStack):
             )
         )
 
+        # Create S3 bucket for license upload rollback results
+        stack = Stack.of(self)
+        self.disaster_recovery_results_bucket = Bucket(
+            self,
+            'DisasterRecoveryResultsBucket',
+            encryption=BucketEncryption.KMS,
+            encryption_key=self.dr_shared_encryption_key,
+            removal_policy=removal_policy,
+            auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
+            versioned=True,
+            enforce_ssl=True,
+            block_public_access=BlockPublicAccess.BLOCK_ALL,
+            object_ownership=ObjectOwnership.BUCKET_OWNER_ENFORCED,
+            server_access_logs_bucket=persistent_stack.access_logs_bucket,
+            server_access_logs_prefix=f'_logs/{stack.account}/{stack.region}/{self.node.path}/DisasterRecoveryResultsBucket/',
+        )
+
+        # Suppress replication requirement - replication to a logs archive account may be added as a future enhancement
+        NagSuppressions.add_resource_suppressions(
+            self.disaster_recovery_results_bucket,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-S3BucketReplicationEnabled',
+                    'reason': 'This bucket is for generating one time'
+                    ' results of the rollback workflow and is not intended to be replicated.',
+                },
+            ],
+        )
+
         # Create Step Functions for restoring DynamoDB tables
         self.dr_workflows = {}
 
@@ -75,6 +109,15 @@ class DisasterRecoveryStack(AppStack):
         # Enable DR for the SSN table with special handling for security
         self.dr_workflows[persistent_stack.ssn_table.table_name] = self._create_ssn_dynamodb_table_dr_recovery_workflow(
             ssn_table=persistent_stack.ssn_table
+        )
+
+        # Create License Upload Rollback workflow
+        self.license_upload_rollback_workflow = LicenseUploadRollbackStepFunctionConstruct(
+            self,
+            'LicenseUploadRollback',
+            persistent_stack=persistent_stack,
+            rollback_results_bucket=self.disaster_recovery_results_bucket,
+            dr_shared_encryption_key=self.dr_shared_encryption_key,
         )
 
     def _create_dynamodb_table_dr_recovery_workflow(self, table: Table, shared_persistent_stack_key: Key):

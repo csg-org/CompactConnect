@@ -176,6 +176,10 @@ class ProviderUpdateData(CCDataClass):
         return self._data['compact']
 
     @property
+    def createDate(self) -> str:
+        return self._data['createDate']
+
+    @property
     def previous(self) -> dict:
         return self._data['previous']
 

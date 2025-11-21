@@ -822,6 +822,7 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(
             {
                 'compact': provider_data.compact,
+                'createDate': update_data.createDate,
                 'dateOfUpdate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
                 'previous': {
                     'compact': provider_data.compact,

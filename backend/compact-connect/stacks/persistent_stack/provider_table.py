@@ -48,6 +48,7 @@ class ProviderTable(Table):
         self.provider_date_of_update_index_name = 'providerDateOfUpdate'
         self.license_gsi_name = 'licenseGSI'
         self.compact_transaction_gsi_name = 'compactTransactionIdGSI'
+        self.license_upload_date_gsi_name = 'licenseUploadDateGSI'
 
         self.add_global_secondary_index(
             index_name=self.provider_fam_giv_mid_index_name,
@@ -80,6 +81,17 @@ class ProviderTable(Table):
                 'jurisdiction',
                 'type',
                 'compactTransactionId',
+                'providerId',
+            ],
+        )
+        # in this case, we only need to include the provider id since this GSI is used to
+        # determine which providers were associated with a particular license upload time
+        self.add_global_secondary_index(
+            index_name=self.license_upload_date_gsi_name,
+            partition_key=Attribute(name='licenseUploadDateGSIPK', type=AttributeType.STRING),
+            sort_key=Attribute(name='licenseUploadDateGSISK', type=AttributeType.STRING),
+            projection_type=ProjectionType.INCLUDE,
+            non_key_attributes=[
                 'providerId',
             ],
         )

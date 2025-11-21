@@ -1005,7 +1005,10 @@
         "resetAccountErrorTitle": "Error de verificación",
         "resetAccountErrorSubtext": "Si intenta reutilizar un enlace que le enviaron, tenga en cuenta que los enlaces solo son válidos por un corto período de tiempo y solo se pueden usar una vez.",
         "resetAccountActionLogin": "Ir a iniciar sesión",
-        "resetAccountActionDashboard": "Ir al panel de control"
+        "resetAccountActionDashboard": "Ir al panel de control",
+        "autoLogoutWarningTitle": "¿Estás ahí todavía?",
+        "autoLogoutWarningDescription": "Has estado inactivo durante un tiempo. Por tu seguridad, tu sesión se cerrará pronto.",
+        "autoLogoutStaySignedIn": "Mantente conectado"
     },
     "privacyPolicy": {
         "title": "Política de Privacidad",

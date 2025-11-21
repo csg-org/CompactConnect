@@ -392,12 +392,43 @@ class TestLicenses(TstFunction):
             {
                 'message': 'Invalid license records in request. See errors for more detail.',
                 'errors': {
-                    'SSN': 'Same SSN detected on multiple rows. '
-                    'Every record must have a unique SSN within the same request.',
+                    'SSN': 'Same SSN for the same license type detected on multiple rows. '
+                    'Every record must have a unique SSN per license type within the same request.',
                 },
             },
             json.loads(resp['body']),
         )
+
+    def test_post_licenses_succeeds_with_same_ssn_different_license_types(self):
+        from handlers.licenses import post_licenses
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has write permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data_1 = json.load(f)
+
+        # Create second license with same SSN but different license type
+        license_data_2 = license_data_1.copy()
+        license_data_1['licenseType'] = 'audiologist'
+        license_data_2['licenseType'] = 'speech-language pathologist'
+
+        event['body'] = json.dumps([license_data_1, license_data_2])
+
+        # Add signature authentication headers
+        event = self._create_signed_event(event)
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # assert that the messages were sent to the preprocessing queue
+        queue_messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(2, len(queue_messages))
 
     def test_post_licenses_strips_whitespace_from_string_fields(self):
         """Test that whitespace is stripped from all string fields in license data."""

@@ -148,6 +148,7 @@ def process_bulk_upload_file(
     failed_validation_count = 0
     # track which ssns were included in this file to detect duplicates,
     # which are not allowed within the same file upload
+    # We track by (ssn, licenseType) tuple to allow same SSN for different license types
     ssns_in_file_upload = {}
 
     with EventBatchWriter(config.events_client) as event_writer:
@@ -158,17 +159,18 @@ def process_bulk_upload_file(
                     # dict() here, because it prevents `compact` and `jurisdiction` from being allowed in the
                     # raw_license
                     validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
-                    # verify that this ssn has not been used previously in the same batch
-                    license_ssn = validated_license['ssn']
+                    # verify that this ssn/licenseType combination has not been used previously in the same batch
+                    ssn_key = (validated_license['ssn'], validated_license['licenseType'])
                     if duplicate_ssn_check_flag_enabled:
-                        matched_ssn_index = ssns_in_file_upload.get(license_ssn)
+                        matched_ssn_index = ssns_in_file_upload.get(ssn_key)
                         if matched_ssn_index:
                             raise ValidationError(
-                                message=f'Duplicate License SSN detected. SSN matches with record '
-                                f'{matched_ssn_index}. Every record must have a unique SSN within the same '
-                                f'file.'
+                                message=f'Duplicate License SSN detected for license type '
+                                f'{validated_license["licenseType"]}. SSN matches with record '
+                                f'{matched_ssn_index}. Every record must have a unique SSN per license type '
+                                f'within the same file.'
                             )
-                        ssns_in_file_upload.update({license_ssn: i + 1})
+                        ssns_in_file_upload.update({ssn_key: i + 1})
                 except TypeError as e:
                     # This will be raised, if `raw_license` includes compact and/or jurisdiction fields
                     logger.error('License contains unsupported fields', fields=list(raw_license.keys()), exc_info=e)
