@@ -55,7 +55,7 @@ class VpcStack(AppStack):
             subnet_configuration=[
                 SubnetConfiguration(
                     name='private_subnet',
-                    subnet_type=SubnetType.PRIVATE_WITH_EGRESS,
+                    subnet_type=SubnetType.PRIVATE_ISOLATED,
                 ),
             ],
             enable_dns_hostnames=True,
@@ -113,5 +113,5 @@ class VpcStack(AppStack):
         self.opensearch_security_group.add_ingress_rule(
             peer=self.lambda_security_group,
             connection=Port.tcp(443),
-            description='Security group for OpenSearch Domain',
+            description='Allow HTTPS traffic from Lambda functions',
         )
