@@ -4,10 +4,18 @@
 #
 #    pip-compile requirements-dev.in
 #
+argon2-cffi==25.1.0
+    # via -r requirements-dev.in
+argon2-cffi-bindings==25.1.0
+    # via argon2-cffi
+aws-lambda-powertools==3.23.0
+    # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
 boto3==1.40.76
-    # via moto
+    # via
+    #   -r requirements-dev.in
+    #   moto
 botocore==1.40.76
     # via
     #   boto3
@@ -22,7 +30,9 @@ cachecontrol[filecache]==0.14.4
 certifi==2025.11.12
     # via requests
 cffi==2.0.0
-    # via cryptography
+    # via
+    #   argon2-cffi-bindings
+    #   cryptography
 charset-normalizer==3.4.4
     # via requests
 click==8.3.1
@@ -32,7 +42,9 @@ coverage[toml]==7.12.0
     #   -r requirements-dev.in
     #   pytest-cov
 cryptography==46.0.3
-    # via moto
+    # via
+    #   -r requirements-dev.in
+    #   moto
 cyclonedx-python-lib==9.1.0
     # via pip-audit
 defusedxml==0.7.1
@@ -51,6 +63,7 @@ jinja2==3.1.6
     # via moto
 jmespath==1.0.1
     # via
+    #   aws-lambda-powertools
     #   boto3
     #   botocore
 license-expression==30.4.4
@@ -61,6 +74,8 @@ markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
+marshmallow==3.26.1
+    # via -r requirements-dev.in
 mdurl==0.1.2
     # via markdown-it-py
 moto[dynamodb,s3]==5.1.17
@@ -72,6 +87,7 @@ packageurl-python==0.17.5
 packaging==25.0
     # via
     #   build
+    #   marshmallow
     #   pip-audit
     #   pip-requirements-parser
     #   pytest
@@ -121,6 +137,7 @@ pyyaml==6.0.3
     #   responses
 requests==2.32.5
     # via
+    #   -r requirements-dev.in
     #   cachecontrol
     #   docker
     #   moto
@@ -140,6 +157,8 @@ sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
     # via pip-audit
+typing-extensions==4.15.0
+    # via aws-lambda-powertools
 tzdata==2025.2
     # via faker
 urllib3==2.5.0

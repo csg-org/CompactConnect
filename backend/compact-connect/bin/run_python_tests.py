@@ -33,8 +33,8 @@ TEST_DIRS = (
     'lambdas/python/staff-user-pre-token',
     'lambdas/python/staff-users',
     '.',  # CDK tests
-    # Save Authorize.net tests for last, since special dependencies make that runtime different
-    'lambdas/python/purchases',
+    # Exclude Authorize.net tests, since special dependencies make that runtime different
+    # 'lambdas/python/purchases',
 )
 
 
