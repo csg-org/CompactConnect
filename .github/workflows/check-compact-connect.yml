@@ -122,14 +122,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Change to purchases lambda dir
-        run: 'cd backend/compact-connect/lambdas/python/purchases'
-
       - name: Install dependencies
-        run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r backend/compact-connect/requirements-dev.txt"
+        run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r requirements.txt"
 
       - name: Install dev dependencies
-        run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r backend/compact-connect/requirements-dev.txt"
+        run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r requirements-dev.txt"
 
       - name: Lint Code
         run: "cd backend/compact-connect/lambdas/python/purchases; ruff check $(git ls-files '*.py')"
