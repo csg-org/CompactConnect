@@ -193,7 +193,7 @@ class TestRollbackLicenseUpload(TstFunction):
             }
         )
 
-        # old update record before upload window (e.g., RENEWAL)
+        # old update record before upload window
         existing_update = self.test_data_generator.put_default_license_update_record_in_provider_table(
             {
                 'providerId': provider_id,
@@ -1146,7 +1146,6 @@ class TestRollbackLicenseUpload(TstFunction):
         final_results_data = self._perform_rollback_and_get_s3_object()
 
         # Verify: All existing data is preserved and new data is appended
-        # Note: All keys should now be camelCase for consistency
         self.assertEqual(
             {
                 'executionName': MOCK_EXECUTION_NAME,

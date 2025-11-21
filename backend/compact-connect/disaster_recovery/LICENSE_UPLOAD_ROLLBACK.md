@@ -15,19 +15,20 @@ Before starting the rollback:
 1. ✅ **Verify the Problem**: Confirm which jurisdiction uploaded bad data for which compact(s)
 2. ✅ **Disable automated access for Jurisdiction**: If jurisdiction has API credentials for automated uploads, disable those credentials to prevent further data changes until system has been recovered. To do this, determine which Cognito app client(s) the jurisdiction is using for the compact(s) and delete the appropriate app client(s) from the State Auth Cognito user pool.
 3. ✅ **Determine Time Window**: Identify the exact start and end times (UTC) of the problematic uploads
-4. ✅ **Stakeholder Notification**: Coordinate with relevant state administrators and other stakeholders
+4. ✅ **Determine When Rollback Should be Performed**: Depending on the severity of the issue and scale of records that need to be rolled back, determine if the rollback needs to be performed as soon as possible or if it can be performed outside of peak traffic hours. When possible, it is recommended to perform rollbacks during periods of low traffic. While the risk is low, there is a narrow race condition (.2 second window based on load testing) where a license record may be modified by another part of the system after the rollback system checked for updates and the modification could be removed by the rollback. Running the rollback when traffic is low reduces this risk even further.  
+5. ✅ **Stakeholder Notification**: Coordinate with relevant state administrators and other stakeholders. Ensure jurisdiction is aware they should not attempt to upload any more license data until the rollback has been completed.
 
 ### Step 1: Gather Required Information
 
 You'll need the following information for the execution:
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `compact` | The compact abbreviation (lowercase) | `"aslp"`, `"octp"`, `"counseling"` |
-| `jurisdiction` | The state/jurisdiction code (lowercase) | `"oh"`, `"ky"`, `"ne"` |
-| `startDateTime` | UTC timestamp when problematic uploads began | `"2020-01-15T08:00:00Z"` |
-| `endDateTime` | UTC timestamp when problematic uploads ended | `"2020-01-15T17:59:59Z"` |
-| `rollbackReason` | Description for audit trail | `"Invalid license data uploaded by OH staff"` |
+| Parameter | Description                                              | Example |
+|-----------|----------------------------------------------------------|---------|
+| `compact` | The compact abbreviation (lowercase)                     | `"aslp"`, `"octp"`, `"counseling"` |
+| `jurisdiction` | The state/jurisdiction code (lowercase)                  | `"oh"`, `"ky"`, `"ne"` |
+| `startDateTime` | UTC timestamp when problematic uploads began (inclusive) | `"2020-01-15T08:00:00Z"` |
+| `endDateTime` | UTC timestamp when problematic uploads ended (inclusive) | `"2020-01-15T17:59:59Z"` |
+| `rollbackReason` | Description for audit trail                              | `"Invalid license data uploaded by OH staff"` |
 
 **Important Notes:**
 - All timestamps must be in UTC
@@ -188,3 +189,5 @@ These events include:
 - The rollback reason
 - Time window information
 - Revision IDs for tracking
+
+These events purely for auditing purposes. They are not currently referenced by any downstream processes.
