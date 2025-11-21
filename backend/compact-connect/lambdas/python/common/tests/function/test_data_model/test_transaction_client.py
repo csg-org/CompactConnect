@@ -261,9 +261,7 @@ class TestTransactionClient(TstFunction):
         )  # Two unmatched transactions remain
 
     @patch('cc_common.data_model.transaction_client.logger')
-    def test_reconcile_unsettled_transactions_logs_error_when_settled_transactions_not_matched(
-        self, mock_logger
-    ):
+    def test_reconcile_unsettled_transactions_logs_error_when_settled_transactions_not_matched(self, mock_logger):
         """
         Test that reconcile_unsettled_transactions logs an error when settled transactions don't match unsettled ones.
         """

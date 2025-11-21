@@ -140,6 +140,10 @@ class LicenseData(CCDataClass):
     def investigationStatus(self) -> str | None:
         return self._data.get('investigationStatus')
 
+    @property
+    def firstUploadDate(self) -> datetime | None:
+        return self._data.get('firstUploadDate')
+
 
 class LicenseUpdateData(CCDataClass):
     """

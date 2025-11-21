@@ -37,6 +37,10 @@ class _Config:
         return os.environ['AWS_DEFAULT_REGION']
 
     @property
+    def license_upload_rollback_step_function_arn(self):
+        return os.environ['CC_TEST_ROLLBACK_STEP_FUNCTION_ARN']
+
+    @property
     def provider_user_dynamodb_table(self):
         return boto3.resource('dynamodb').Table(os.environ['CC_TEST_PROVIDER_DYNAMO_TABLE_NAME'])
 

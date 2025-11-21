@@ -12,6 +12,7 @@ from cc_common.data_model.schema.provider.api import (
     StateProviderDetailGeneralResponseSchema,
     StateProviderDetailPrivateResponseSchema,
 )
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.signature_auth import optional_signature_auth, required_signature_auth
 from cc_common.utils import (
@@ -147,7 +148,10 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
         raise CCInvalidRequestException('Missing required field') from e
 
     with logger.append_context_keys(compact=compact, provider_id=provider_id, jurisdiction=jurisdiction):
-        provider_user_records = config.data_client.get_provider_user_records(compact=compact, provider_id=provider_id)
+        # Collect all main provider records and privilege update records, which are included in tier one.
+        provider_user_records = config.data_client.get_provider_user_records(
+            compact=compact, provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_ONE
+        )
 
         # Get caller's scopes to determine private data access
         scopes = get_event_scopes(event)

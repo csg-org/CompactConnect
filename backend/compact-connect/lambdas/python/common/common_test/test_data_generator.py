@@ -14,7 +14,7 @@ from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationDa
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.utils import ResponseEncoder
 
 from common_test.test_constants import *
@@ -101,15 +101,15 @@ class TestDataGenerator:
     ) -> list[PrivilegeUpdateData]:
         """
         Helper method to query update records from the database using the provider data class instance.
-
-        All of our update records use the same pk as the actual record that is being updated. The sk of the actual
-        record is the prefix for all the update records. Using this pattern, we can query for all of the update records
-        that have been written for the given record.
         """
         serialized_record = privilege_data.serialize_to_database_record()
+        from cc_common.config import config
+
+        license_type_abbr = config.license_type_abbreviations[privilege_data.compact][privilege_data.licenseType]
+        sk_prefix = f'{privilege_data.compact}#UPDATE#1#privilege/{privilege_data.jurisdiction}/{license_type_abbr}/'
 
         privilege_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
-            serialized_record['pk'], f'{serialized_record["sk"]}UPDATE'
+            serialized_record['pk'], sk_prefix
         )
 
         return [PrivilegeUpdateData.from_database_record(update_record) for update_record in privilege_update_records]
@@ -125,9 +125,31 @@ class TestDataGenerator:
         """
         serialized_record = provider_record.serialize_to_database_record()
 
-        return TestDataGenerator._query_records_by_pk_and_sk_prefix(
-            serialized_record['pk'], f'{serialized_record["sk"]}#UPDATE'
+        sk_prefix = f'{provider_record.compact}#UPDATE#2#provider'
+
+        return TestDataGenerator._query_records_by_pk_and_sk_prefix(serialized_record['pk'], sk_prefix)
+
+    @staticmethod
+    def query_license_update_records_for_given_record_from_database(
+        license_data: LicenseData,
+    ) -> list[LicenseUpdateData]:
+        """
+        Helper method to query update records from the database using the license data class instance.
+
+        All of our update records use the same pk as the actual record that is being updated. The sk prefix
+        for license updates follows the tier pattern: {compact}#UPDATE#3#license/{jurisdiction}/{license_type_abbr}/
+        """
+        serialized_record = license_data.serialize_to_database_record()
+        from cc_common.config import config
+
+        license_type_abbr = config.license_type_abbreviations[license_data.compact][license_data.licenseType]
+        sk_prefix = f'{license_data.compact}#UPDATE#3#license/{license_data.jurisdiction}/{license_type_abbr}/'
+
+        license_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
+            serialized_record['pk'], sk_prefix
         )
+
+        return [LicenseUpdateData.from_database_record(update_record) for update_record in license_update_records]
 
     @staticmethod
     def generate_default_adverse_action(value_overrides: dict | None = None) -> AdverseActionData:
@@ -308,6 +330,20 @@ class TestDataGenerator:
         return LicenseUpdateData.create_new(license_update)
 
     @staticmethod
+    def put_default_license_update_record_in_provider_table(
+        value_overrides: dict | None = None,
+    ) -> LicenseUpdateData:
+        """
+        Creates a default license update and stores it in the provider table.
+        """
+        update_data = TestDataGenerator.generate_default_license_update(value_overrides)
+        update_record = update_data.serialize_to_database_record()
+
+        TestDataGenerator.store_record_in_provider_table(update_record)
+
+        return update_data
+
+    @staticmethod
     def generate_default_privilege(value_overrides: dict | None = None) -> PrivilegeData:
         """Generate a default privilege"""
         default_privilege = {
@@ -459,6 +495,58 @@ class TestDataGenerator:
         TestDataGenerator.store_record_in_provider_table(provider_record)
 
         return provider_data
+
+    @staticmethod
+    def generate_default_provider_update(
+        value_overrides: dict | None = None, previous_provider: ProviderData | None = None
+    ) -> ProviderUpdateData:
+        """Generate a default provider update"""
+        if previous_provider is None:
+            previous_provider = TestDataGenerator.generate_default_provider()
+
+        # Ensure previous provider has dateOfUpdate for the previous field
+        previous_dict = previous_provider.to_dict()
+        if 'dateOfUpdate' not in previous_dict:
+            previous_dict['dateOfUpdate'] = datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME)
+
+        provider_update = {
+            'updateType': DEFAULT_PROVIDER_UPDATE_TYPE,
+            'providerId': DEFAULT_PROVIDER_ID,
+            'compact': DEFAULT_COMPACT,
+            'type': PROVIDER_UPDATE_RECORD_TYPE,
+            'previous': previous_dict,
+            'createDate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME),
+            'updatedValues': {
+                'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
+                'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
+            },
+            'dateOfUpdate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME),
+        }
+        if value_overrides:
+            provider_update.update(value_overrides)
+
+        return ProviderUpdateData.create_new(provider_update)
+
+    @staticmethod
+    def put_default_provider_update_record_in_provider_table(
+        value_overrides: dict | None = None, date_of_update_override: str = None
+    ) -> ProviderUpdateData:
+        """
+        Creates a default provider update record and stores it in the provider table.
+
+        :param value_overrides: Optional dictionary to override default values
+        :param date_of_update_override: optional date for date of update to be shown on provider record
+        :return: The ProviderUpdateData instance that was stored
+        """
+        provider_update_data = TestDataGenerator.generate_default_provider_update(value_overrides)
+        provider_update_record = provider_update_data.serialize_to_database_record()
+        if date_of_update_override:
+            provider_update_record['dateOfUpdate'] = date_of_update_override
+
+        TestDataGenerator.store_record_in_provider_table(provider_update_record)
+
+        # recreate data object to ensure it picks up the dateOfUpdate change
+        return ProviderUpdateData.from_database_record(provider_update_record)
 
     @staticmethod
     def _override_date_of_update_for_record(data_class: CCDataClass, date_of_update: datetime):

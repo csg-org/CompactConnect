@@ -1,10 +1,12 @@
 import json
+from copy import deepcopy
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
+from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
@@ -113,15 +115,7 @@ def ingest_license_message(message: dict):
             # We fully JSON serialize then load again so that we have a completely independent copy of the data
             posted_license_record = license_record_schema.load(json.loads(dumped_license))
 
-            dynamo_transactions = [
-                # Put the posted license
-                {
-                    'Put': {
-                        'TableName': config.provider_table_name,
-                        'Item': TypeSerializer().serialize(json.loads(dumped_license))['M'],
-                    },
-                },
-            ]
+            dynamo_transactions = []
 
             home_jurisdiction = None
             try:
@@ -169,6 +163,26 @@ def ingest_license_message(message: dict):
                     dynamo_transactions=dynamo_transactions,
                     data_events=data_events,
                 )
+                # now grab the firstUploadDate from the existing record if available and put it in the posted_license
+                # for the license upload date GSI
+                if existing_license.get('firstUploadDate'):
+                    posted_license_record['firstUploadDate'] = existing_license.get('firstUploadDate')
+            else:
+                # If this is the first time creating the license record,
+                # set the firstUploadDate to the current time for license upload date GSI tracking
+                posted_license_record['firstUploadDate'] = config.current_standard_datetime
+
+            # write the record to the table to reflect the latest values from the upload
+            license_data = LicenseData.create_new(deepcopy(posted_license_record))
+            dynamo_transactions.append(
+                {
+                    'Put': {
+                        'TableName': config.provider_table_name,
+                        'Item': TypeSerializer().serialize(license_data.serialize_to_database_record())['M'],
+                    }
+                }
+            )
+
             licenses_organized.setdefault(posted_license_record['jurisdiction'], {})
             licenses_organized[posted_license_record['jurisdiction']][posted_license_record['licenseType']] = (
                 posted_license_record
@@ -219,7 +233,8 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     :param list dynamo_transactions: The dynamodb transaction array to append records to
     """
     # Remove fields that are calculated at runtime, not stored in the database
-    dynamic_keys = {'dateOfUpdate', 'status'}
+    # uploadDate is metadata tracking when the license was first uploaded, not part of the license data
+    dynamic_keys = {'dateOfUpdate', 'status', 'uploadDate'}
     updated_values = {
         key: value
         for key, value in new_license.items()
@@ -312,6 +327,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             'licenseType': existing_license['licenseType'],
             'createDate': now,
             'effectiveDate': now,
+            'uploadDate': now,  # Track when this update was created during upload
             'previous': existing_license,
             'updatedValues': updated_values,
             # We'll only include the removed values field if there are some

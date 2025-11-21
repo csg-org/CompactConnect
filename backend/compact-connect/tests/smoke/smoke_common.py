@@ -33,7 +33,10 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 os.environ['LICENSE_TYPES'] = json.dumps(LICENSE_TYPES)
 
 # We have to import this after we've added the common lib to our path and environment
-from cc_common.data_model.provider_record_util import ProviderUserRecords  # noqa: E402
+from cc_common.data_model.provider_record_util import ProviderUserRecords  # noqa: E402 F401
+
+# importing this here so it can be easily referenced in the rollback upload tests
+from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData  # noqa: E402 F401
 from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
 
 _TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
@@ -257,11 +260,25 @@ def get_provider_user_records(compact: str, provider_id: str) -> ProviderUserRec
     :return: ProviderUserRecords instance containing all records for this provider
     """
     # Query the provider database for all records
-    query_result = config.provider_user_dynamodb_table.query(
-        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-    )
+    resp = {'Items': []}
+    last_evaluated_key = None
+    while True:
+        pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+        # Grab all records under the provider partition
+        query_resp = config.provider_user_dynamodb_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}'),
+            ConsistentRead=True,
+            **pagination,
+        )
 
-    return ProviderUserRecords(query_result['Items'])
+        resp['Items'].extend(query_resp.get('Items', []))
+
+        last_evaluated_key = query_resp.get('LastEvaluatedKey')
+        if not last_evaluated_key:
+            break
+
+    return ProviderUserRecords(resp['Items'])
 
 
 def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, data_overrides: dict = None):
@@ -468,6 +485,119 @@ def cleanup_test_provider_records(provider_id: str, compact: str):
 
     except Exception as e:  # noqa: BLE001
         logger.warning(f'Error during cleanup: {str(e)}')
+
+
+def create_test_app_client(client_name: str, compact: str, jurisdiction: str):
+    """
+    Create a test app client in Cognito for authentication testing.
+
+    :param client_name: Name for the test app client
+    :param compact: Compact abbreviation
+    :param jurisdiction: Jurisdiction abbreviation
+    :return: Dictionary containing client_id and client_secret
+    """
+    logger.info(f'Creating test app client: {client_name}')
+
+    try:
+        cognito_client = boto3.client('cognito-idp')
+
+        # Create the user pool client
+        response = cognito_client.create_user_pool_client(
+            UserPoolId=config.cognito_state_auth_user_pool_id,
+            ClientName=client_name,
+            PreventUserExistenceErrors='ENABLED',
+            GenerateSecret=True,
+            TokenValidityUnits={'AccessToken': 'minutes'},
+            AccessTokenValidity=15,
+            AllowedOAuthFlowsUserPoolClient=True,
+            AllowedOAuthFlows=['client_credentials'],
+            AllowedOAuthScopes=[f'{compact}/readGeneral', f'{jurisdiction}/{compact}.write'],
+        )
+
+        user_pool_client = response.get('UserPoolClient', {})
+        client_id = user_pool_client.get('ClientId')
+        client_secret = user_pool_client.get('ClientSecret')
+
+        if not client_id or not client_secret:
+            raise SmokeTestFailureException('Failed to extract client ID or secret from AWS response')
+
+        logger.info(f'Successfully created test app client with ID: {client_id}')
+        return {'client_id': client_id, 'client_secret': client_secret}
+
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        error_message = e.response['Error']['Message']
+        logger.error(f'Failed to create app client: {error_code} - {error_message}')
+        raise SmokeTestFailureException(f'Failed to create app client: {error_code} - {error_message}') from e
+
+
+def delete_test_app_client(client_id: str):
+    """Delete the test app client from Cognito."""
+    try:
+        cognito_client = boto3.client('cognito-idp')
+        cognito_client.delete_user_pool_client(UserPoolId=config.cognito_state_auth_user_pool_id, ClientId=client_id)
+        logger.info(f'Successfully deleted test app client: {client_id}')
+    except ClientError as e:
+        logger.error(f'Failed to delete app client {client_id}: {str(e)}')
+        # Don't raise here as this is cleanup
+
+
+def get_client_credentials_token(client_id: str, client_secret: str, compact: str, jurisdiction: str):
+    """
+    Get an access token using client credentials flow.
+
+    :param client_id: The client ID
+    :param client_secret: The client secret
+    :param compact: Compact abbreviation
+    :param jurisdiction: Jurisdiction abbreviation
+    :return: Access token
+    """
+    try:
+        auth_url = config.state_auth_url
+
+        # Prepare the request data for client credentials flow
+        data = {
+            'grant_type': 'client_credentials',
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'scope': f'{compact}/readGeneral {jurisdiction}/{compact}.write',
+        }
+
+        headers = {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json'}
+
+        response = requests.post(auth_url, data=data, headers=headers, timeout=10)
+
+        if response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to get access token. Status: {response.status_code}, Response: {response.text}'
+            )
+
+        token_data = response.json()
+        access_token = token_data.get('access_token')
+
+        if not access_token:
+            raise SmokeTestFailureException('No access token in response')
+
+        logger.info('Successfully obtained access token using client credentials')
+        return access_token
+
+    except requests.RequestException as e:
+        logger.error(f'Failed to get client credentials token: {str(e)}')
+        raise SmokeTestFailureException(f'Failed to get client credentials token: {str(e)}') from e
+
+
+def get_client_auth_headers(client_id: str, client_secret: str, compact: str, jurisdiction: str):
+    """
+    Get authentication headers for client credentials flow.
+
+    :param client_id: The client ID
+    :param client_secret: The client secret
+    :param compact: Compact abbreviation
+    :param jurisdiction: Jurisdiction abbreviation
+    :return: Headers dictionary with Authorization header
+    """
+    access_token = get_client_credentials_token(client_id, client_secret, compact, jurisdiction)
+    return {'Authorization': f'Bearer {access_token}'}
 
 
 def generate_opaque_data(card_number: str):

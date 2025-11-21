@@ -17,12 +17,6 @@ class TstFunction(TstLambdas):
 
     def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
-        self.mock_destination_table_name = 'Test-PersistentStack-ProviderTableEC5D0597-TQ2RIO6VVBRE'
-        self.mock_destination_table_arn = (
-            f'arn:aws:dynamodb:us-east-1:767398110685:table/{self.mock_destination_table_name}'
-        )
-        self.mock_source_table_name = 'Recovered-ProviderTableEC5D0597-TQ2RIO6VVBRE'
-        self.mock_source_table_arn = f'arn:aws:dynamodb:us-east-1:767398110685:table/{self.mock_source_table_name}'
         self.build_resources()
 
         # these must be imported within the tests, since they import modules which require
@@ -39,30 +33,7 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         # in the case of DR, the lambda sync solution should be table agnostic, since we are performing the same
         # cleanup and restoration process regardless of the table that is being recovered
-        self.mock_source_table = self.create_mock_table(table_name=self.mock_source_table_name)
-        self.mock_destination_table = self.create_mock_table(table_name=self.mock_destination_table_name)
         self.create_provider_table()
-        self.create_rollback_results_bucket()
-        self.create_event_bus()
-
-    def create_rollback_results_bucket(self):
-        self._rollback_results_bucket = boto3.resource('s3').create_bucket(
-            Bucket=os.environ['DISASTER_RECOVERY_RESULTS_BUCKET_NAME']
-        )
-
-    def create_event_bus(self):
-        self._event_bus = boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
-
-    def create_mock_table(self, table_name: str):
-        return boto3.resource('dynamodb').create_table(
-            AttributeDefinitions=[
-                {'AttributeName': 'pk', 'AttributeType': 'S'},
-                {'AttributeName': 'sk', 'AttributeType': 'S'},
-            ],
-            TableName=table_name,
-            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
-            BillingMode='PAY_PER_REQUEST',
-        )
 
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
@@ -121,9 +92,4 @@ class TstFunction(TstLambdas):
         )
 
     def delete_resources(self):
-        self.mock_source_table.delete()
-        self.mock_destination_table.delete()
         self._provider_table.delete()
-        self._rollback_results_bucket.objects.delete()
-        self._rollback_results_bucket.delete()
-        boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])

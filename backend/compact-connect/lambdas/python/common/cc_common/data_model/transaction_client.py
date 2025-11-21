@@ -377,7 +377,7 @@ class TransactionClient:
         if unmatched_settled_transaction_ids:
             logger.error(
                 'Unable to reconcile some transactions from Authorize.Net with our unsettled transactions',
-                unreconciled_transactions=unmatched_settled_transaction_ids
+                unreconciled_transactions=unmatched_settled_transaction_ids,
             )
 
         for unsettled_tx in unmatched_unsettled:
