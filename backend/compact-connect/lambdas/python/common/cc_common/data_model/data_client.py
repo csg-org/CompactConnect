@@ -3010,7 +3010,7 @@ class DataClient:
         compact: str,
         provider_id: str,
         jurisdiction: str,
-        adverse_action_id: str,
+        adverse_action_id: UUID,
         license_type_abbreviation: str,
         effective_date: date,
     ) -> list[PrivilegeData]:
@@ -3023,7 +3023,7 @@ class DataClient:
         :param str compact: The compact name.
         :param str provider_id: The provider ID.
         :param str jurisdiction: The jurisdiction of the license.
-        :param adverse_action_id: The ID of the adverse action.
+        :param UUID adverse_action_id: The ID of the adverse action.
         :param str license_type_abbreviation: The license type abbreviation.
         :param date effective_date: effective date of the encumbrance on the license and therefore privilege.
         :return: List of privileges that were encumbered
@@ -3097,6 +3097,27 @@ class DataClient:
         )
 
         for privilege_data in unencumbered_privileges_associated_with_license:
+            # Check if an update record already exists for this adverse action
+            # to avoid creating duplicate update records if the event flow is re-run
+            existing_updates = provider_user_records.get_update_records_for_privilege(
+                jurisdiction=privilege_data.jurisdiction,
+                license_type=privilege_data.licenseType,
+                filter_condition=lambda update: (
+                    update.updateType == UpdateCategory.ENCUMBRANCE
+                    and update.encumbranceDetails is not None
+                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
+                ),
+            )
+
+            if existing_updates:
+                logger.info(
+                    'Update record already exists for this adverse action. Skipping duplicate creation.',
+                    privilege_jurisdiction=privilege_data.jurisdiction,
+                    privilege_license_type=privilege_data.licenseType,
+                    adverse_action_id=adverse_action_id,
+                )
+                continue
+
             now = config.current_standard_datetime
 
             # Create privilege update record
@@ -3130,6 +3151,27 @@ class DataClient:
             )
 
         for encumbered_privilege in previously_encumbered_privileges_associated_with_license:
+            # Check if an update record already exists for this adverse action
+            # to avoid creating duplicate update records if the event flow is re-run
+            existing_updates = provider_user_records.get_update_records_for_privilege(
+                jurisdiction=encumbered_privilege.jurisdiction,
+                license_type=encumbered_privilege.licenseType,
+                filter_condition=lambda update: (
+                    update.updateType == UpdateCategory.ENCUMBRANCE
+                    and update.encumbranceDetails is not None
+                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
+                ),
+            )
+
+            if existing_updates:
+                logger.info(
+                    'Update record already exists for this adverse action. Skipping duplicate creation.',
+                    privilege_jurisdiction=encumbered_privilege.jurisdiction,
+                    privilege_license_type=encumbered_privilege.licenseType,
+                    adverse_action_id=adverse_action_id,
+                )
+                continue
+
             now = config.current_standard_datetime
 
             # Create privilege update record
