@@ -252,6 +252,22 @@ describe('Use Store Mutations', () => {
 
         expect(state.refreshTokenTimeoutId).to.equal(timeoutId);
     });
+    it('should successfully set auto logout timeout id', () => {
+        const state = {};
+        const timeoutId = 1;
+
+        mutations[MutationTypes.SET_LOGOUT_TIMEOUT_ID](state, timeoutId);
+
+        expect(state.autoLogoutTimeoutId).to.equal(timeoutId);
+    });
+    it('should successfully update auto logout warning', () => {
+        const state = {};
+        const isWarning = true;
+
+        mutations[MutationTypes.UPDATE_AUTO_LOGOUT_WARNING](state, isWarning);
+
+        expect(state.isAutoLogoutWarning).to.equal(isWarning);
+    });
     it('should successfully upload military affiliation request', () => {
         const state = {};
 
@@ -773,6 +789,43 @@ describe('User Store Actions', async () => {
         actions.updateAuthTokens({ dispatch }, { tokenResponse, authType });
 
         expect(dispatch.callCount).to.equal(2);
+    });
+    it('should successfully start auto logout inactivity timer', () => {
+        const dispatch = sinon.spy();
+        const state = { isLoggedIn: true };
+
+        actions.startAutoLogoutInactivityTimer({ dispatch, state });
+
+        expect(dispatch.callCount).to.equal(2);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['clearAutoLogoutTimeout']);
+        expect([dispatch.secondCall.args[0]]).to.matchPattern(['setAutoLogoutTimeout']);
+    });
+    it('should successfully set auto logout timeout (staff)', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { isLoggedInAsStaff: true };
+
+        actions.setAutoLogoutTimeout({ commit, dispatch, state });
+
+        expect(commit.calledOnce).to.equal(true);
+    });
+    it('should successfully set auto logout timeout (licensee)', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const state = { isLoggedInAsLicensee: true };
+
+        actions.setAutoLogoutTimeout({ commit, dispatch, state });
+
+        expect(commit.calledOnce).to.equal(true);
+    });
+    it('should successfully clear auto logout timeout', () => {
+        const commit = sinon.spy();
+        const state = { autoLogoutTimeoutId: 1 };
+
+        actions.clearAutoLogoutTimeout({ commit, state });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_LOGOUT_TIMEOUT_ID, null]);
     });
     it('should successfully clear session stores', () => {
         const dispatch = sinon.spy();

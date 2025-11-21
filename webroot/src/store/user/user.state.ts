@@ -26,6 +26,8 @@ export interface State {
     isLoadingCompactStates: boolean;
     isLoadingPrivilegePurchaseOptions: boolean;
     refreshTokenTimeoutId: number | null;
+    isAutoLogoutWarning: boolean;
+    autoLogoutTimeoutId: number | null;
     currentCompact: Compact | null;
     purchase: PurchaseFlowState;
     error: any | null;
@@ -41,6 +43,8 @@ export const state: State = {
     isLoadingCompactStates: false,
     isLoadingPrivilegePurchaseOptions: false,
     refreshTokenTimeoutId: null,
+    isAutoLogoutWarning: false,
+    autoLogoutTimeoutId: null,
     currentCompact: null,
     purchase: new PurchaseFlowState(),
     error: null,

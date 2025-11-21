@@ -21,6 +21,7 @@ import {
 import { CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
+import AutoLogout from '@components/AutoLogout/AutoLogout.vue';
 import { StatsigUser } from '@statsig/js-client';
 import moment from 'moment';
 
@@ -29,6 +30,7 @@ import moment from 'moment';
     components: {
         PageContainer,
         Modal,
+        AutoLogout,
     },
     emits: [
         'trigger-scroll-behavior'

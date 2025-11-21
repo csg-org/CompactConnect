@@ -11,7 +11,8 @@ import {
     authStorage,
     AuthTypes,
     tokens,
-    AUTH_TYPE
+    AUTH_TYPE,
+    autoLogoutConfig
 } from '@/app.config';
 import localStorage from '@store/local.storage';
 import { Compact } from '@models/Compact/Compact.model';
@@ -274,6 +275,49 @@ export default {
 
         clearTimeout(refreshTokenTimeoutId);
         commit(MutationTypes.SET_REFRESH_TIMEOUT_ID, null);
+    },
+    startAutoLogoutInactivityTimer: ({ dispatch, state }) => {
+        const { isLoggedIn, isAutoLogoutWarning } = state;
+
+        dispatch('clearAutoLogoutTimeout');
+
+        if (isLoggedIn && !isAutoLogoutWarning) {
+            dispatch('setAutoLogoutTimeout');
+        }
+    },
+    setAutoLogoutTimeout: async ({ commit, dispatch, state }) => {
+        const { isLoggedInAsStaff, isLoggedInAsLicensee } = state;
+        let initiateInMs = autoLogoutConfig.INACTIVITY_TIMER_DEFAULT_MS; // Default inactivity timer
+
+        if (isLoggedInAsStaff) {
+            initiateInMs = autoLogoutConfig.INACTIVITY_TIMER_STAFF_MS; // Inactivity timer for Staff
+        } else if (isLoggedInAsLicensee) {
+            initiateInMs = autoLogoutConfig.INACTIVITY_TIMER_LICENSEE_MS; // Inactivity timer for Licensees
+        }
+
+        const initiateAutoLogout = () => {
+            dispatch('clearAutoLogoutTimeout');
+            dispatch('updateAutoLogoutWarning', true);
+            autoLogoutConfig.LOG(`auto logout warning: ${state.isAutoLogoutWarning}`);
+        };
+        const timeoutId = setTimeout(initiateAutoLogout, initiateInMs);
+
+        autoLogoutConfig.LOG(`timer started in store`);
+
+        commit(MutationTypes.SET_LOGOUT_TIMEOUT_ID, timeoutId);
+    },
+    clearAutoLogoutTimeout: ({ commit, state }) => {
+        const { autoLogoutTimeoutId } = state;
+
+        if (autoLogoutTimeoutId) {
+            clearTimeout(autoLogoutTimeoutId);
+            autoLogoutConfig.LOG(`timer cleared in store`);
+        }
+
+        commit(MutationTypes.SET_LOGOUT_TIMEOUT_ID, null);
+    },
+    updateAutoLogoutWarning: ({ commit }, isWarning) => {
+        commit(MutationTypes.UPDATE_AUTO_LOGOUT_WARNING, isWarning);
     },
     clearSessionStores: ({ dispatch }) => {
         dispatch('resetStoreUser');
