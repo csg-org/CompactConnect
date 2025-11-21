@@ -15,6 +15,7 @@ from stacks.notification_stack import NotificationStack
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.reporting_stack import ReportingStack
+from stacks.search_persistent_stack import SearchPersistentStack
 from stacks.state_api_stack import StateApiStack
 from stacks.state_auth import StateAuthStack
 from stacks.transaction_monitoring_stack import TransactionMonitoringStack
@@ -48,6 +49,20 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             environment_name=environment_name,
         )
+
+        # Search Persistent Stack - OpenSearch Domain for advanced provider search
+        # currently not deploying to prod or beta to reduce costs until search api functionality is completed
+        # to reduce costs
+        if environment_name != 'prod' and environment_name != 'beta':
+            self.search_persistent_stack = SearchPersistentStack(
+                self,
+                'SearchPersistentStack',
+                env=environment,
+                environment_context=environment_context,
+                standard_tags=standard_tags,
+                environment_name=environment_name,
+                vpc_stack=self.vpc_stack,
+            )
 
         self.persistent_stack = PersistentStack(
             self,
