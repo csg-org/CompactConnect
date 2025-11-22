@@ -29,7 +29,7 @@ class PythonFunction(CdkPythonFunction):
         construct_id: str,
         *,
         lambda_dir: str,
-        runtime: Runtime = Runtime.PYTHON_3_13,
+        runtime: Runtime = Runtime.PYTHON_3_14,
         log_retention: RetentionDays = RetentionDays.INFINITE,
         alarm_topic: ITopic = None,
         role: IRole = None,

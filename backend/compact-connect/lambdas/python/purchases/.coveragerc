@@ -1,0 +1,14 @@
+[run]
+
+omit =
+  */site-packages/*
+  */smoke-test/*
+  */tests/*
+  */bin/*
+  */lambdas/python/common/*
+
+[report]
+skip_empty = true
+
+[html]
+directory = coverage

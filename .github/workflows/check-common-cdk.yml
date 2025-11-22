@@ -17,12 +17,12 @@ jobs:
   LintPython:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.14'
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       - name: Install dev dependencies
         run: "pip install -r backend/common-cdk/requirements-dev.in"
@@ -38,12 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.14'
 
       - name: Install dev dependencies
         run: "pip install -r backend/common-cdk/requirements-dev.in"

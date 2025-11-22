@@ -8,7 +8,7 @@
 
 ---
 ## Prerequisites
-* **[Node](https://github.com/creationix/nvm#installation) `22.X`**
+* **[Node](https://github.com/creationix/nvm#installation) `24.X`**
 * **[Yarn](https://yarnpkg.com/en/) `1.22.22`**
     * `npm install --global yarn@1.22.22`
 * **[Mocha](https://mochajs.org/) `10.x.x`+**

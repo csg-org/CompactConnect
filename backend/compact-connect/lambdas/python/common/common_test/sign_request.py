@@ -46,13 +46,8 @@ def sign_request(
     :param private_key_pem: PEM-encoded ECDSA private key
     :return: Dictionary containing headers to add to request
     """
-    # Sort and URL-encode query parameters
-    sorted_params = '&'.join(
-        f'{quote(str(k), safe="")}={quote(str(v), safe="")}' for k, v in sorted(query_params.items())
-    )
 
-    # Create signature string
-    signature_string = '\n'.join([method, path, sorted_params, timestamp, nonce, key_id])
+    signature_string = get_string_to_sign(method, path, query_params, timestamp, nonce, key_id)
 
     # Load private key
     private_key = serialization.load_pem_private_key(private_key_pem.encode(), password=None)
@@ -68,3 +63,16 @@ def sign_request(
         'X-Key-Id': key_id,
         'X-Signature': base64.b64encode(signature).decode(),
     }
+
+
+def get_string_to_sign(method: str, path: str, query_params: dict, timestamp: str, nonce: str, key_id: str) -> str:
+    """
+    Get the string to sign for a request.
+    """
+    # Sort and URL-encode query parameters
+    sorted_params = '&'.join(
+        f'{quote(str(k), safe="")}={quote(str(v), safe="")}' for k, v in sorted(query_params.items())
+    )
+
+    # Create signature string
+    return '\n'.join([method, path, sorted_params, timestamp, nonce, key_id])

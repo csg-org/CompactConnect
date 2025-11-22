@@ -17,12 +17,12 @@ jobs:
   LintPython:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.14'
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       - name: Install dev dependencies
         run: "pip install -r backend/compact-connect/requirements-dev.txt"
@@ -39,16 +39,16 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
 
       # Setup Node
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v6
         with:
-          node-version: '22.1.0'
+          node-version: '24.11.1'
 
       # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v4
@@ -75,18 +75,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.14'
 
       # Setup Node
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v6
         with:
-          node-version: '22.1.0'
+          node-version: '24.11.1'
 
       # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v4
@@ -109,3 +109,31 @@ jobs:
 
       - name: Test backend
         run: "cd backend/compact-connect; bin/run_tests.sh -l all -no"
+
+  # The purchases lambda Python version has to be held back because of its Authorize.net dependency
+  # so we will check it separately
+  TestAndLintPurchases:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r requirements.txt"
+
+      - name: Install dev dependencies
+        run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r requirements-dev.txt"
+
+      - name: Lint Code
+        run: "cd backend/compact-connect/lambdas/python/purchases; ruff check $(git ls-files '*.py')"
+
+      - name: Check Dependencies
+        # Ignore pip vulnerability that does not affect Python 3.12+
+        run: "pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph"
+
+      - name: Test backend
+        run: "cd backend/compact-connect/lambdas/python/purchases; PYTHONPATH=../common pytest tests --cov --cov-fail-under=90"

@@ -124,7 +124,7 @@ class UIDistribution(Distribution):
             scope,
             'CSPFunction',
             code=Code.from_inline(csp_function_code),
-            runtime=Runtime.NODEJS_22_X,
+            runtime=Runtime.NODEJS_24_X,
             handler='index.handler',
         )
 
