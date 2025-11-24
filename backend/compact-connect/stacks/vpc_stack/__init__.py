@@ -19,6 +19,11 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 
+PRIVATE_SUBNET_ONE_NAME = 'privateSubnet1'
+PRIVATE_SUBNET_TWO_NAME = 'privateSubnet2'
+PRIVATE_SUBNET_THREE_NAME = 'privateSubnet3'
+
+
 class VpcStack(AppStack):
     """
     Stack for VPC resources needed for OpenSearch Domain and Lambda functions.
@@ -101,9 +106,9 @@ class VpcStack(AppStack):
         # By locking in the CIDR blocks, we can safely add more AZs or public subnets in the future without
         # CloudFormation errors.
         private_cidrs = ['10.0.0.0/20', '10.0.16.0/20', '10.0.32.0/20']
-        self._assign_subnet_cidr('privateSubnet1', private_cidrs[0])
-        self._assign_subnet_cidr('privateSubnet2', private_cidrs[1])
-        self._assign_subnet_cidr('privateSubnet3', private_cidrs[2])
+        self._assign_subnet_cidr(PRIVATE_SUBNET_ONE_NAME, private_cidrs[0])
+        self._assign_subnet_cidr(PRIVATE_SUBNET_TWO_NAME, private_cidrs[1])
+        self._assign_subnet_cidr(PRIVATE_SUBNET_THREE_NAME, private_cidrs[2])
 
         # grant access to Cloudwatch logs for vpc encryption key
         logs_principal = ServicePrincipal('logs.amazonaws.com')

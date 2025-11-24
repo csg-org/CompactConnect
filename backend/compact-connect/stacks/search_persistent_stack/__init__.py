@@ -14,11 +14,11 @@ from aws_cdk.aws_opensearchservice import (
     ZoneAwarenessConfig,
 )
 from cdk_nag import NagSuppressions
+from common_constructs.constants import PROD_ENV_NAME
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.constants import PROD_ENV_NAME
-from stacks.vpc_stack import VpcStack
+from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
 
 
 class SearchPersistentStack(AppStack):
@@ -77,6 +77,8 @@ class SearchPersistentStack(AppStack):
         capacity_config = self._get_capacity_config(environment_name)
         # determine AZ awareness based on environment
         zone_awareness_config = self._get_zone_awareness_config(environment_name)
+        # Determine subnet selection based on environment
+        vpc_subnets = self._get_vpc_subnets(environment_name, vpc_stack)
 
         opensearch_app_log_group = LogGroup(
             self,
@@ -131,7 +133,7 @@ class SearchPersistentStack(AppStack):
             capacity=capacity_config,
             # VPC configuration for network isolation
             vpc=vpc_stack.vpc,
-            vpc_subnets=[SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)],
+            vpc_subnets=vpc_subnets,
             security_groups=[vpc_stack.opensearch_security_group],
             # EBS volume configuration
             ebs=EbsOptions(enabled=True, volume_size=20 if environment_name == 'prod' else 10),
@@ -210,6 +212,53 @@ class SearchPersistentStack(AppStack):
 
         # non-prod environments only use one data node, hence we don't enable zone awareness
         return ZoneAwarenessConfig(enabled=False)
+
+    def _get_vpc_subnets(self, environment_name: str, vpc_stack: VpcStack) -> list[SubnetSelection]:
+        """
+        Determine VPC subnet selection based on environment.
+
+        Production: All private isolated subnets (3 AZs) for zone awareness and high availability
+        Non-prod: Single subnet (privateSubnet1 with CIDR 10.0.0.0/20) for single-node deployment
+
+        param environment_name: The deployment environment name
+        param vpc_stack: The VPC stack containing the private subnets
+
+        return: List of SubnetSelection with appropriate subnet configuration
+        """
+        if environment_name == PROD_ENV_NAME:
+            # Production: Use all private isolated subnets from the VPC.
+            # VPC is configured with max_azs=3, so this will select exactly 3 subnets
+            return [SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)]
+
+        # Non-prod: Single-node deployment explicitly uses privateSubnet1 (CIDR 10.0.0.0/20)
+        # OpenSearch requires exactly one subnet for single-node deployments
+        # We explicitly find the subnet by its construct name to guarantee consistency
+        private_subnet1 = self._find_subnet_by_name(vpc_stack.vpc, PRIVATE_SUBNET_ONE_NAME)
+        return [SubnetSelection(subnets=[private_subnet1])]
+
+    def _find_subnet_by_name(self, vpc, subnet_name: str):
+        """
+        Find a specific subnet by its logical construct name in the VPC.
+
+        This provides a guaranteed, explicit reference to a specific subnet regardless of
+        CDK's internal list ordering, which is critical for stateful resources like OpenSearch.
+
+        param vpc: The VPC construct containing the subnet
+        param subnet_name: The logical name of the subnet (e.g., 'privateSubnet1')
+
+        return: The ISubnet instance
+
+        raises ValueError: If the subnet cannot be found
+        """
+        # Navigate the construct tree to find the subnet by name
+        subnet_construct = vpc.node.try_find_child(subnet_name)
+        if subnet_construct is None:
+            raise ValueError(
+                f'Subnet {subnet_name} not found in VPC construct tree. '
+                f'Available children: {[c.node.id for c in vpc.node.children]}'
+            )
+
+        return subnet_construct
 
     def _add_opensearch_suppressions(self, environment_name: str):
         """

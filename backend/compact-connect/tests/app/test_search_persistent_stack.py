@@ -164,4 +164,42 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             },
         )
 
+    def test_sandbox_uses_expected_private_subnet(self):
+        """
+        Test that the OpenSearch Domain in sandbox uses expected private Subnet.
+
+        For non-prod single-node deployments, OpenSearch must use exactly one subnet.
+        We explicitly select privateSubnet1 (CIDR 10.0.0.0/20) to ensure deterministic
+        placement across deployments.
+
+        This test verifies that OpenSearch references the specific subnet we expect,
+        not just any arbitrary subnet from the VPC.
+        """
+        search_stack = self.app.sandbox_backend_stage.search_persistent_stack
+        search_template = Template.from_stack(search_stack)
+
+        # Get the OpenSearch Domain's subnet configuration
+        opensearch_resources = search_template.find_resources('AWS::OpenSearchService::Domain')
+        opensearch_properties = list(opensearch_resources.values())[0]['Properties']
+        vpc_options = opensearch_properties['VPCOptions']
+        subnet_ids = vpc_options['SubnetIds']
+
+        # For sandbox (non-prod), should use exactly one subnet
+        self.assertEqual(len(subnet_ids), 1, 'Sandbox OpenSearch should use exactly one subnet')
+
+        # Get the subnet reference from OpenSearch
+        opensearch_subnet_ref = subnet_ids[0]
+        # Extract the export name that OpenSearch is importing
+        import_value = opensearch_subnet_ref['Fn::ImportValue']
+
+        # Verify OpenSearch is importing the correct subnet (privateSubnet1)
+        # The import_value should reference the export name of privateSubnet1
+        # The export name contains the construct name, which includes 'privateSubnet1'
+        self.assertIn(
+            'privateSubnet1',
+            str(import_value),
+            f'OpenSearch should import privateSubnet1, but is importing: {import_value}. '
+            'This is critical for deterministic subnet placement in non-prod environments.'
+        )
+
 
