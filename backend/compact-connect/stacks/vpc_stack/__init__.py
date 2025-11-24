@@ -28,6 +28,23 @@ class VpcStack(AppStack):
     - VPC endpoints for AWS services (CloudWatch Logs, DynamoDB)
     - Security groups for OpenSearch and Lambda functions
     - VPC Flow Logs for network monitoring
+
+    IMPORTANT - VPC Subnet CIDR Allocation Strategy:
+    =================================================
+    This VPC uses explicit CIDR block overrides to prevent conflicts when expanding.
+    Each subnet CIDR is locked in using CloudFormation property overrides, which
+    allows safe addition of more AZs/subnets in the future without deployment failures.
+
+    Current allocation from 10.0.0.0/16 VPC CIDR:
+    - Private subnets (3 AZs): 10.0.0.0/20, 10.0.16.0/20, 10.0.32.0/20 (4096 IPs each)
+    - Reserved for future expansion: 10.0.48.0/20, 10.0.64.0/20, etc.
+
+    To add more subnets in the future:
+    1. Increase max_azs (e.g., from 3 to 4)
+    2. Add new CIDR blocks to the private_cidrs list (e.g., '10.0.48.0/20')
+    3. Deploy - existing subnets won't be modified due to explicit CIDR overrides
+
+    Solution reference: https://github.com/aws/aws-cdk/issues/24708#issuecomment-1665795316
     """
 
     def __init__(
@@ -55,6 +72,7 @@ class VpcStack(AppStack):
         )
 
         # Create VPC with private subnets across multiple availability zones
+        # Using explicit CIDR allocation to allow future expansion without conflicts
         self.vpc = Vpc(
             self,
             'CompactConnectVpc',
@@ -62,16 +80,30 @@ class VpcStack(AppStack):
             create_internet_gateway=False,
             nat_gateways=0,
             ip_addresses=IpAddresses.cidr('10.0.0.0/16'),
-            max_azs=3,  # Use up to 3 availability zones for high availability
+            # Use 3 AZs for high availability
+            # CDK will automatically select 3 AZs from the region
+            max_azs=3,
             subnet_configuration=[
                 SubnetConfiguration(
-                    name='private_subnet',
+                    name='private',
                     subnet_type=SubnetType.PRIVATE_ISOLATED,
+                    # cidr_mask is set to 20 to provide /20 subnets (4096 IPs each)
+                    # However, we explicitly override the CIDR blocks below to lock them in
+                    cidr_mask=20,
                 ),
             ],
             enable_dns_hostnames=True,
             enable_dns_support=True,
         )
+
+        # Explicitly set CIDR blocks for each subnet to prevent conflicts when expanding VPC
+        # This follows the solution from: https://github.com/aws/aws-cdk/issues/24708#issuecomment-1665795316
+        # By locking in the CIDR blocks, we can safely add more AZs or public subnets in the future without
+        # CloudFormation errors.
+        private_cidrs = ['10.0.0.0/20', '10.0.16.0/20', '10.0.32.0/20']
+        self._assign_subnet_cidr('privateSubnet1', private_cidrs[0])
+        self._assign_subnet_cidr('privateSubnet2', private_cidrs[1])
+        self._assign_subnet_cidr('privateSubnet3', private_cidrs[2])
 
         # grant access to Cloudwatch logs for vpc encryption key
         logs_principal = ServicePrincipal('logs.amazonaws.com')
@@ -157,3 +189,28 @@ class VpcStack(AppStack):
             connection=Port.tcp(443),
             description='Allow HTTPS traffic from Lambda functions',
         )
+
+    def _assign_subnet_cidr(self, subnet_name: str, cidr: str):
+        """
+        Explicitly assign a CIDR block to a subnet by overriding the CloudFormation property.
+
+        This prevents CIDR conflicts when adding more AZs to the VPC in the future.
+        Without this override, CloudFormation attempts to reassign CIDR blocks when subnets/AZs are added,
+        causing deployment failures with "CIDR conflict" errors. See https://github.com/aws/aws-cdk/issues/24708
+
+        param subnet_name: The logical name of the subnet (e.g., 'privateSubnet1')
+        param cidr: The CIDR block to assign (e.g., '10.0.0.0/20')
+        """
+
+        # Navigate the construct tree to find the subnet
+        subnet_construct = self.vpc.node.try_find_child(subnet_name)
+        if subnet_construct is None:
+            raise ValueError(f'Subnet {subnet_name} not found in VPC')
+
+        # Get the underlying CloudFormation subnet resource
+        cfn_subnet = subnet_construct.node.try_find_child('Subnet')
+        if cfn_subnet is None:
+            raise ValueError(f'CloudFormation Subnet resource not found for {subnet_name}')
+
+        # Override the CIDR block property
+        cfn_subnet.add_property_override('CidrBlock', cidr)

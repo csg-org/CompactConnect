@@ -187,3 +187,51 @@ class TestVpcStack(TstAppABC, TestCase):
                 'SourceSecurityGroupId': {'Fn::GetAtt': [lambda_sg_logical_id, 'GroupId']},
             },
         )
+
+    def test_explicit_subnet_cidr_blocks(self):
+        """
+        Test that subnet CIDR blocks are explicitly set to allow future VPC expansion.
+
+        This verifies that each subnet has its CIDR block locked in via CloudFormation
+        property overrides. This prevents CIDR conflicts when adding more AZs in the future.
+
+        CIDR allocation from 10.0.0.0/16 VPC:
+        - Subnet 1 (AZ 1): 10.0.0.0/20   (10.0.0.0 - 10.0.15.255, 4096 IPs)
+        - Subnet 2 (AZ 2): 10.0.16.0/20  (10.0.16.0 - 10.0.31.255, 4096 IPs)
+        - Subnet 3 (AZ 3): 10.0.32.0/20  (10.0.32.0 - 10.0.47.255, 4096 IPs)
+        - Reserved for future: 10.0.48.0/20 and beyond
+
+        Reference: https://github.com/aws/aws-cdk/issues/24708#issuecomment-1665795316
+        """
+        vpc_stack = self.app.sandbox_backend_stage.vpc_stack
+        vpc_template = Template.from_stack(vpc_stack)
+
+        # Get all subnet resources
+        subnet_resources = vpc_template.find_resources('AWS::EC2::Subnet')
+
+        # Filter to only private subnets (those without MapPublicIpOnLaunch)
+        private_subnets = []
+        for logical_id, subnet in subnet_resources.items():
+            properties = subnet.get('Properties', {})
+            # Private subnets don't have MapPublicIpOnLaunch or it's set to false
+            if not properties.get('MapPublicIpOnLaunch', False):
+                private_subnets.append((logical_id, properties))
+
+        # Verify we have exactly 3 private subnets
+        self.assertEqual(
+            3, len(private_subnets), f'Expected exactly 3 private subnets, found {len(private_subnets)}'
+        )
+
+        # Expected CIDR blocks for the 3 private subnets
+        expected_cidr_blocks = ['10.0.0.0/20', '10.0.16.0/20', '10.0.32.0/20']
+
+        # Extract and sort the CIDR blocks from the subnets
+        actual_cidr_blocks = sorted([subnet[1]['CidrBlock'] for subnet in private_subnets])
+
+        # Verify the CIDR blocks match our expected explicit allocation
+        self.assertEqual(
+            expected_cidr_blocks,
+            actual_cidr_blocks,
+            'Subnet CIDR blocks do not match expected explicit allocation. '
+            'This is critical for preventing conflicts when expanding the VPC.',
+        )
