@@ -3252,7 +3252,8 @@ class TestEncumbranceEvents(TstFunction):
         license_encumbrance_lifted_listener(event, self.mock_context)
 
         # Verify STILL only one update record exists (no duplicate created)
-        # The function should return early because no LICENSE_ENCUMBERED privileges remain
+        # license_encumbrance_lifted_listener will skip creating privilege updates because it only
+        # does so on LICENSE_ENCUMBERED privileges and none of those would remain
         update_records_after_retry = (
             self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
                 privilege
