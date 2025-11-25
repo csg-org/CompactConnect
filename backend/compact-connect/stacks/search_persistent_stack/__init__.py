@@ -313,11 +313,11 @@ class SearchPersistentStack(AppStack):
                 namespace='AWS/ES',
                 metric_name='FreeStorageSpace',
                 dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': self.account},
-                # check every day to avoid alerting on spikes
-                period=Duration.days(1),
+                # check twice a day
+                period=Duration.hours(12),
                 statistic='Minimum',
             ),
-            evaluation_periods=1,  # 1 day
+            evaluation_periods=1,  # Notify the moment the storage space is less than 50%
             threshold=storage_threshold_mb,
             comparison_operator=ComparisonOperator.LESS_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
@@ -340,12 +340,12 @@ class SearchPersistentStack(AppStack):
                 period=Duration.minutes(5),
                 statistic='Maximum',
             ),
-            evaluation_periods=3,  # 15 minutes sustained
-            threshold=60,
+            evaluation_periods=6,  # 30 minutes sustained
+            threshold=70,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=(
-                f'OpenSearch Domain {self.domain.domain_name} JVM memory pressure is above 60%. '
+                f'OpenSearch Domain {self.domain.domain_name} JVM memory pressure is above 70%. '
                 'This indicates the cluster is using a significant portion of its heap memory. '
                 'Consider scaling to larger instance types if pressure continues to increase.'
             ),
@@ -369,7 +369,7 @@ class SearchPersistentStack(AppStack):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=(
                 f'OpenSearch Domain {self.domain.domain_name} CPU utilization has been above 60% for 15 minutes. '
-                'This indicates sustained high load. Consider scaling to larger instance types '
+                'This indicates sustained high load. Review metrics and consider scaling to larger instance types '
                 'or adding more data nodes to distribute the load.'
             ),
         ).add_alarm_action(SnsAction(self.alarm_topic))
