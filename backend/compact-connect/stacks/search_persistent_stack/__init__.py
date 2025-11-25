@@ -1,4 +1,6 @@
-from aws_cdk import RemovalPolicy
+from aws_cdk import Duration, RemovalPolicy
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_ec2 import SubnetSelection, SubnetType
 from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
@@ -14,6 +16,7 @@ from aws_cdk.aws_opensearchservice import (
     ZoneAwarenessConfig,
 )
 from cdk_nag import NagSuppressions
+from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.constants import PROD_ENV_NAME
 from common_constructs.stack import AppStack
 from constructs import Construct
@@ -72,6 +75,25 @@ class SearchPersistentStack(AppStack):
         # Grant cloudwatch service principal permission to use the key
         log_principal = ServicePrincipal('logs.amazonaws.com')
         self.opensearch_encryption_key.grant_encrypt_decrypt(log_principal)
+
+        # Create dedicated KMS key for alarm topic encryption
+        search_alarm_encryption_key = Key(
+            self,
+            'SearchAlarmEncryptionKey',
+            enable_key_rotation=True,
+            alias=f'{self.stack_name}-search-alarm-encryption-key',
+            removal_policy=removal_policy,
+        )
+
+        # Create alarm topic for OpenSearch capacity and health monitoring
+        notifications = environment_context.get('notifications', {})
+        self.alarm_topic = AlarmTopic(
+            self,
+            'SearchAlarmTopic',
+            master_key=search_alarm_encryption_key,
+            email_subscriptions=notifications.get('email', []),
+            slack_subscriptions=notifications.get('slack', []),
+        )
 
         # Determine instance type and capacity based on environment
         capacity_config = self._get_capacity_config(environment_name)
@@ -160,6 +182,9 @@ class SearchPersistentStack(AppStack):
 
         # Add CDK Nag suppressions for OpenSearch Domain
         self._add_opensearch_suppressions(environment_name)
+
+        # Add capacity monitoring alarms for proactive scaling
+        self._add_capacity_alarms(environment_name)
 
     def _get_capacity_config(self, environment_name: str) -> CapacityConfig:
         """
@@ -260,6 +285,94 @@ class SearchPersistentStack(AppStack):
             )
 
         return subnet_construct
+
+    def _add_capacity_alarms(self, environment_name: str):
+        """
+        Add CloudWatch alarms to monitor OpenSearch capacity and alert before hitting limits.
+
+        These proactive thresholds give the DevOps team time to plan scaling activities:
+        - Free Storage Space < 50% of allocated capacity
+        - JVM Memory Pressure > 60%
+        - CPU Utilization > 60%
+
+        param environment_name: The deployment environment name
+        """
+        # Get the volume size for calculating storage threshold
+        volume_size_gb = 20 if environment_name == PROD_ENV_NAME else 10
+        # 50% threshold in MB (FreeStorageSpace metric is reported in megabytes)
+        # Formula: GB * 1024 MB/GB * 0.5 for 50% threshold
+        storage_threshold_mb = volume_size_gb * 1024 * 0.5
+
+        # Alarm: Free Storage Space < 50%
+        # This gives ample time to plan capacity increases before hitting critical levels
+        # Note: FreeStorageSpace metric is reported in megabytes (MB)
+        Alarm(
+            self,
+            'FreeStorageSpaceAlarm',
+            metric=Metric(
+                namespace='AWS/ES',
+                metric_name='FreeStorageSpace',
+                dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': self.account},
+                # check every day to avoid alerting on spikes
+                period=Duration.days(1),
+                statistic='Minimum',
+            ),
+            evaluation_periods=1,  # 1 day
+            threshold=storage_threshold_mb,
+            comparison_operator=ComparisonOperator.LESS_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                f'OpenSearch Domain {self.domain.domain_name} free storage space has dropped below 50% '
+                f'({storage_threshold_mb}MB of {volume_size_gb * 1024}MB allocated EBS volume). '
+                'Consider planning to increase EBS volume size or scaling the cluster.'
+            ),
+        ).add_alarm_action(SnsAction(self.alarm_topic))
+
+        # Alarm: JVM Memory Pressure > 60%
+        # Sustained high memory pressure indicates need for instance scaling
+        Alarm(
+            self,
+            'JVMMemoryPressureAlarm',
+            metric=Metric(
+                namespace='AWS/ES',
+                metric_name='JVMMemoryPressure',
+                dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': self.account},
+                period=Duration.minutes(5),
+                statistic='Maximum',
+            ),
+            evaluation_periods=3,  # 15 minutes sustained
+            threshold=60,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                f'OpenSearch Domain {self.domain.domain_name} JVM memory pressure is above 60%. '
+                'This indicates the cluster is using a significant portion of its heap memory. '
+                'Consider scaling to larger instance types if pressure continues to increase.'
+            ),
+        ).add_alarm_action(SnsAction(self.alarm_topic))
+
+        # Alarm: CPU Utilization > 60%
+        # Sustained high CPU indicates need for more compute capacity
+        Alarm(
+            self,
+            'CPUUtilizationAlarm',
+            metric=Metric(
+                namespace='AWS/ES',
+                metric_name='CPUUtilization',
+                dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': self.account},
+                period=Duration.minutes(5),
+                statistic='Average',
+            ),
+            evaluation_periods=3,  # 15 minutes sustained
+            threshold=60,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                f'OpenSearch Domain {self.domain.domain_name} CPU utilization has been above 60% for 15 minutes. '
+                'This indicates sustained high load. Consider scaling to larger instance types '
+                'or adding more data nodes to distribute the load.'
+            ),
+        ).add_alarm_action(SnsAction(self.alarm_topic))
 
     def _add_opensearch_suppressions(self, environment_name: str):
         """

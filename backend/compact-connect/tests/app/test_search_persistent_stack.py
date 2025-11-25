@@ -164,6 +164,57 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             },
         )
 
+    def test_capacity_alarms_configured(self):
+        """
+        Test that capacity monitoring alarms are configured for proactive scaling.
+
+        Verifies three critical alarms:
+        1. Free Storage Space < 50% threshold
+        2. JVM Memory Pressure > 60% threshold
+        3. CPU Utilization > 60% threshold
+
+        These alarms give DevOps team time to plan scaling activities before hitting limits.
+        """
+        search_stack = self.app.sandbox_backend_stage.search_persistent_stack
+        search_template = Template.from_stack(search_stack)
+
+        # Verify Free Storage Space Alarm
+        # Note: FreeStorageSpace is reported in megabytes (MB), not bytes
+        search_template.has_resource_properties(
+            'AWS::CloudWatch::Alarm',
+            {
+                'MetricName': 'FreeStorageSpace',
+                'Namespace': 'AWS/ES',
+                'Threshold': 5120,  # 5GB in MB (50% of 10GB = 5GB = 5120MB for sandbox)
+                'ComparisonOperator': 'LessThanThreshold',
+                'EvaluationPeriods': 1,
+            },
+        )
+
+        # Verify JVM Memory Pressure Alarm
+        search_template.has_resource_properties(
+            'AWS::CloudWatch::Alarm',
+            {
+                'MetricName': 'JVMMemoryPressure',
+                'Namespace': 'AWS/ES',
+                'Threshold': 60,
+                'ComparisonOperator': 'GreaterThanThreshold',
+                'EvaluationPeriods': 3,
+            },
+        )
+
+        # Verify CPU Utilization Alarm
+        search_template.has_resource_properties(
+            'AWS::CloudWatch::Alarm',
+            {
+                'MetricName': 'CPUUtilization',
+                'Namespace': 'AWS/ES',
+                'Threshold': 60,
+                'ComparisonOperator': 'GreaterThanThreshold',
+                'EvaluationPeriods': 3,  # 15 minutes sustained
+            },
+        )
+
     def test_sandbox_uses_expected_private_subnet(self):
         """
         Test that the OpenSearch Domain in sandbox uses expected private Subnet.
