@@ -104,6 +104,7 @@ class SearchPersistentStack(AppStack):
 
         # Create CloudWatch Logs resource policy to allow OpenSearch to write logs
         # This is done manually to avoid CDK creating an auto-generated Lambda function
+        # The resource ARNs must include ':*' to grant permissions on log streams within the log groups
         ResourcePolicy(
             self,
             'OpenSearchLogsResourcePolicy',
@@ -116,9 +117,9 @@ class SearchPersistentStack(AppStack):
                         'logs:CreateLogStream',
                     ],
                     resources=[
-                        opensearch_app_log_group.log_group_arn,
-                        slow_search_log_group.log_group_arn,
-                        slow_index_log_group.log_group_arn,
+                        f'{opensearch_app_log_group.log_group_arn}:*',
+                        f'{slow_search_log_group.log_group_arn}:*',
+                        f'{slow_index_log_group.log_group_arn}:*',
                     ],
                 ),
             ],
