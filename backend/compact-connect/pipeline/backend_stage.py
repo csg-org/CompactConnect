@@ -50,20 +50,6 @@ class BackendStage(Stage):
             environment_name=environment_name,
         )
 
-        # Search Persistent Stack - OpenSearch Domain for advanced provider search
-        # currently not deploying to prod or beta to reduce costs until search api functionality is completed
-        # to reduce costs
-        if environment_name != 'prod' and environment_name != 'beta':
-            self.search_persistent_stack = SearchPersistentStack(
-                self,
-                'SearchPersistentStack',
-                env=environment,
-                environment_context=environment_context,
-                standard_tags=standard_tags,
-                environment_name=environment_name,
-                vpc_stack=self.vpc_stack,
-            )
-
         self.persistent_stack = PersistentStack(
             self,
             'PersistentStack',
@@ -246,3 +232,17 @@ class BackendStage(Stage):
         # Explicitly declare the dependency to ensure proper deployment order
         self.data_migration_stack.add_dependency(self.api_stack)
         self.data_migration_stack.add_dependency(self.event_listener_stack)
+
+        # Search Persistent Stack - OpenSearch Domain for advanced provider search
+        # currently not deploying to prod or beta to reduce costs until search api functionality is completed
+        # to reduce costs
+        if environment_name != 'prod' and environment_name != 'beta':
+            self.search_persistent_stack = SearchPersistentStack(
+                self,
+                'SearchPersistentStack',
+                env=environment,
+                environment_context=environment_context,
+                standard_tags=standard_tags,
+                environment_name=environment_name,
+                vpc_stack=self.vpc_stack,
+            )

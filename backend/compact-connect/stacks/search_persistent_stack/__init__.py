@@ -17,10 +17,11 @@ from aws_cdk.aws_opensearchservice import (
 )
 from cdk_nag import NagSuppressions
 from common_constructs.alarm_topic import AlarmTopic
-from common_constructs.constants import PROD_ENV_NAME
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.constants import PROD_ENV_NAME
+from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
 from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
 
 PROD_EBS_VOLUME_SIZE = 25
@@ -159,7 +160,7 @@ class SearchPersistentStack(AppStack):
             capacity=capacity_config,
             # VPC configuration for network isolation
             vpc=vpc_stack.vpc,
-            vpc_subnets=vpc_subnets,
+            vpc_subnets=[vpc_subnets],
             security_groups=[vpc_stack.opensearch_security_group],
             # EBS volume configuration
             ebs=EbsOptions(
@@ -190,6 +191,14 @@ class SearchPersistentStack(AppStack):
             # Domain removal policy
             removal_policy=removal_policy,
             zone_awareness=zone_awareness_config,
+        )
+
+        self.index_manager_custom_resource = IndexManagerCustomResource(
+            self,
+            construct_id='indexManager',
+            opensearch_domain=self.domain,
+            vpc_stack=vpc_stack,
+            vpc_subnets=vpc_subnets,
         )
 
         # Add CDK Nag suppressions for OpenSearch Domain
@@ -251,7 +260,7 @@ class SearchPersistentStack(AppStack):
         # non-prod environments only use one data node, hence we don't enable zone awareness
         return ZoneAwarenessConfig(enabled=False)
 
-    def _get_vpc_subnets(self, environment_name: str, vpc_stack: VpcStack) -> list[SubnetSelection]:
+    def _get_vpc_subnets(self, environment_name: str, vpc_stack: VpcStack) -> SubnetSelection:
         """
         Determine VPC subnet selection based on environment.
 
@@ -266,13 +275,13 @@ class SearchPersistentStack(AppStack):
         if environment_name == PROD_ENV_NAME:
             # Production: Use all private isolated subnets from the VPC.
             # VPC is configured with max_azs=3, so this will select exactly 3 subnets
-            return [SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)]
+            return SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)
 
         # Non-prod: Single-node deployment explicitly uses privateSubnet1 (CIDR 10.0.0.0/20)
         # OpenSearch requires exactly one subnet for single-node deployments
         # We explicitly find the subnet by its construct name to guarantee consistency
         private_subnet1 = self._find_subnet_by_name(vpc_stack.vpc, PRIVATE_SUBNET_ONE_NAME)
-        return [SubnetSelection(subnets=[private_subnet1])]
+        return SubnetSelection(subnets=[private_subnet1])
 
     def _find_subnet_by_name(self, vpc, subnet_name: str):
         """

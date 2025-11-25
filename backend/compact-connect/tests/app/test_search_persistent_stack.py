@@ -30,6 +30,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         search_stack = self.app.sandbox_backend_stage.search_persistent_stack
         search_template = Template.from_stack(search_stack)
 
+
         # Verify exactly one OpenSearch Domain is created
         search_template.resource_count_is('AWS::OpenSearchService::Domain', 1)
 
@@ -197,9 +198,9 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             {
                 'MetricName': 'JVMMemoryPressure',
                 'Namespace': 'AWS/ES',
-                'Threshold': 60,
+                'Threshold': 70,
                 'ComparisonOperator': 'GreaterThanThreshold',
-                'EvaluationPeriods': 3,
+                'EvaluationPeriods': 6,
             },
         )
 

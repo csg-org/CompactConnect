@@ -169,6 +169,15 @@ class VpcStack(AppStack):
             service=GatewayVpcEndpointAwsService.DYNAMODB,
         )
 
+        # VPC Endpoint for S3
+        # This is needed for our custom resource which manages OpenSearch indices to access
+        # the CloudFormation S3 bucket without internet access
+        self.s3_vpc_endpoint = self.vpc.add_gateway_endpoint(
+            'S3VpcEndpoint',
+            service=GatewayVpcEndpointAwsService.S3,
+        )
+
+
         # Security Group for Lambda Functions
         # This will control inbound and outbound traffic for Lambda functions that interact with OpenSearch
         self.lambda_security_group = SecurityGroup(

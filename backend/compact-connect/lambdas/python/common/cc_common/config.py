@@ -22,6 +22,20 @@ class _Config:
     presigned_post_ttl_seconds = 3600
     default_page_size = 100
 
+    @property
+    def environment_region(self):
+        """
+        Returns the region name of the region the lambda is running in.
+        """
+        return os.environ['AWS_REGION']
+
+    @property
+    def opensearch_host_endpoint(self):
+        """
+        Returns the region name of the region the lambda is running in.
+        """
+        return os.environ['OPENSEARCH_HOST_ENDPOINT']
+
     @cached_property
     def cognito_client(self):
         return boto3.client('cognito-idp')
