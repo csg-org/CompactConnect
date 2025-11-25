@@ -215,6 +215,27 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             },
         )
 
+    def test_multi_index_queries_disabled(self):
+        """
+        Test that multi-index queries are disabled for security.
+
+        This verifies that the advanced option 'rest.action.multi.allow_explicit_index' is set to 'false',
+        which prevents queries from targeting multiple indices in a single request.
+        This is a security control to ensure queries remain scoped to a single index.
+        """
+        search_stack = self.app.sandbox_backend_stage.search_persistent_stack
+        search_template = Template.from_stack(search_stack)
+
+        # Verify the advanced option is set to prevent multi-index queries
+        search_template.has_resource_properties(
+            'AWS::OpenSearchService::Domain',
+            {
+                'AdvancedOptions': {
+                    'rest.action.multi.allow_explicit_index': 'false',
+                },
+            },
+        )
+
     def test_sandbox_uses_expected_private_subnet(self):
         """
         Test that the OpenSearch Domain in sandbox uses expected private Subnet.

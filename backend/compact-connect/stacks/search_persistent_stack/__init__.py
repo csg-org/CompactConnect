@@ -23,6 +23,9 @@ from constructs import Construct
 
 from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
 
+PROD_EBS_VOLUME_SIZE = 25
+NON_PROD_EBS_VOLUME_SIZE = 10
+
 
 class SearchPersistentStack(AppStack):
     """
@@ -159,12 +162,21 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=vpc_subnets,
             security_groups=[vpc_stack.opensearch_security_group],
             # EBS volume configuration
-            ebs=EbsOptions(enabled=True, volume_size=20 if environment_name == 'prod' else 10),
+            ebs=EbsOptions(
+                enabled=True,
+                volume_size=PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE
+            ),
             # Encryption settings
             encryption_at_rest=EncryptionAtRestOptions(enabled=True, kms_key=self.opensearch_encryption_key),
             node_to_node_encryption=True,
             enforce_https=True,
             tls_security_policy=TLSSecurityPolicy.TLS_1_2,
+            # Advanced security options
+            advanced_options={
+                # Prevent queries from accessing multiple indices in a single request
+                # This is a security control to ensure queries are scoped to a single index
+                'rest.action.multi.allow_explicit_index': 'false',
+            },
             logging=LoggingOptions(
                 app_log_enabled=True,
                 app_log_group=opensearch_app_log_group,
@@ -298,7 +310,7 @@ class SearchPersistentStack(AppStack):
         param environment_name: The deployment environment name
         """
         # Get the volume size for calculating storage threshold
-        volume_size_gb = 20 if environment_name == PROD_ENV_NAME else 10
+        volume_size_gb = PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE
         # 50% threshold in MB (FreeStorageSpace metric is reported in megabytes)
         # Formula: GB * 1024 MB/GB * 0.5 for 50% threshold
         storage_threshold_mb = volume_size_gb * 1024 * 0.5
