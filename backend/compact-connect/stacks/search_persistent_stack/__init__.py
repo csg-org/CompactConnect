@@ -1,8 +1,8 @@
-from aws_cdk import Duration, RemovalPolicy
+from aws_cdk import Duration, Fn, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_ec2 import SubnetSelection, SubnetType
-from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal
+from aws_cdk.aws_iam import Effect, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, ResourcePolicy, RetentionDays
 from aws_cdk.aws_opensearchservice import (
@@ -79,6 +79,30 @@ class SearchPersistentStack(AppStack):
         # Grant cloudwatch service principal permission to use the key
         log_principal = ServicePrincipal('logs.amazonaws.com')
         self.opensearch_encryption_key.grant_encrypt_decrypt(log_principal)
+
+        # Create IAM roles for Lambda functions that need OpenSearch access
+        self.opensearch_ingest_lambda_role = Role(
+            self,
+            'OpenSearchIngestLambdaRole',
+            assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            description='IAM role for Ingest Lambda function that needs write access to OpenSearch Domain',
+        )
+
+        self.opensearch_index_manager_lambda_role = Role(
+            self,
+            'OpenSearchIndexManagerLambdaRole',
+            assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            description='IAM role for index manager Lambda function that needs read/write access to OpenSearch Domain',
+        )
+
+        # Create IAM role for Lambda functions access OpenSearch through API
+        # this role only needs read access
+        self.search_api_lambda_role = Role(
+            self,
+            'SearchApiLambdaRole',
+            assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            description='IAM role for Search API Lambda functions that need read access to OpenSearch Domain',
+        )
 
         # Create dedicated KMS key for alarm topic encryption
         search_alarm_encryption_key = Key(
@@ -193,12 +217,52 @@ class SearchPersistentStack(AppStack):
             zone_awareness=zone_awareness_config,
         )
 
+        opensearch_ingest_access_policy = PolicyStatement(
+                effect=Effect.ALLOW,
+                principals=[self.opensearch_ingest_lambda_role],
+                actions=[
+                    'es:ESHttpPost',
+                    'es:ESHttpPut',
+                ],
+                resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
+            )
+        opensearch_index_manager_access_policy = PolicyStatement(
+            effect=Effect.ALLOW,
+            principals=[self.opensearch_index_manager_lambda_role],
+            actions=[
+                'es:ESHttpGet',
+                'es:ESHttpPost',
+                'es:ESHttpPut',
+            ],
+            resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
+        )
+        opensearch_search_api_access_policy = PolicyStatement(
+            effect=Effect.ALLOW,
+            principals=[self.search_api_lambda_role],
+            actions=[
+                'es:ESHttpGet',
+            ],
+            resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
+        )
+        # add access policy to restrict access to set of roles
+        self.domain.add_access_policies(
+            opensearch_ingest_access_policy,
+            opensearch_index_manager_access_policy,
+            opensearch_search_api_access_policy
+        )
+        # grant lambda roles access to domain
+        self.domain.grant_read(self.search_api_lambda_role)
+        self.domain.grant_write(self.opensearch_ingest_lambda_role)
+        self.domain.grant_read_write(self.opensearch_index_manager_lambda_role)
+
+
         self.index_manager_custom_resource = IndexManagerCustomResource(
             self,
             construct_id='indexManager',
             opensearch_domain=self.domain,
             vpc_stack=vpc_stack,
             vpc_subnets=vpc_subnets,
+            lambda_role=self.opensearch_index_manager_lambda_role
         )
 
         # Add CDK Nag suppressions for OpenSearch Domain

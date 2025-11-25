@@ -1,6 +1,7 @@
 import os
 
 from aws_cdk import CustomResource, Duration
+from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_opensearchservice import Domain
 from aws_cdk.custom_resources import Provider
@@ -28,6 +29,7 @@ class IndexManagerCustomResource(Construct):
             opensearch_domain: Domain,
             vpc_stack: VpcStack,
             vpc_subnets: list[Subnet],
+            lambda_role: IRole
     ):
         """
         Initialize the IndexManagerCustomResource construct.
@@ -49,6 +51,7 @@ class IndexManagerCustomResource(Construct):
             index=os.path.join('handlers', 'manage_opensearch_indices.py'),
             lambda_dir='search',
             handler='on_event',
+            role=lambda_role,
             log_retention=RetentionDays.ONE_MONTH,
             environment={
                 'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
