@@ -1,4 +1,4 @@
-from cc_common.config import logger, config
+from cc_common.config import config, logger
 from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
 from opensearch_client import OpenSearchClient
 

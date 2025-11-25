@@ -189,7 +189,7 @@ class SearchPersistentStack(AppStack):
             # EBS volume configuration
             ebs=EbsOptions(
                 enabled=True,
-                volume_size=PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE
+                volume_size=PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE,
             ),
             # Encryption settings
             encryption_at_rest=EncryptionAtRestOptions(enabled=True, kms_key=self.opensearch_encryption_key),
@@ -218,14 +218,14 @@ class SearchPersistentStack(AppStack):
         )
 
         opensearch_ingest_access_policy = PolicyStatement(
-                effect=Effect.ALLOW,
-                principals=[self.opensearch_ingest_lambda_role],
-                actions=[
-                    'es:ESHttpPost',
-                    'es:ESHttpPut',
-                ],
-                resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
-            )
+            effect=Effect.ALLOW,
+            principals=[self.opensearch_ingest_lambda_role],
+            actions=[
+                'es:ESHttpPost',
+                'es:ESHttpPut',
+            ],
+            resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
+        )
         opensearch_index_manager_access_policy = PolicyStatement(
             effect=Effect.ALLOW,
             principals=[self.opensearch_index_manager_lambda_role],
@@ -246,15 +246,12 @@ class SearchPersistentStack(AppStack):
         )
         # add access policy to restrict access to set of roles
         self.domain.add_access_policies(
-            opensearch_ingest_access_policy,
-            opensearch_index_manager_access_policy,
-            opensearch_search_api_access_policy
+            opensearch_ingest_access_policy, opensearch_index_manager_access_policy, opensearch_search_api_access_policy
         )
         # grant lambda roles access to domain
         self.domain.grant_read(self.search_api_lambda_role)
         self.domain.grant_write(self.opensearch_ingest_lambda_role)
         self.domain.grant_read_write(self.opensearch_index_manager_lambda_role)
-
 
         self.index_manager_custom_resource = IndexManagerCustomResource(
             self,
@@ -262,7 +259,7 @@ class SearchPersistentStack(AppStack):
             opensearch_domain=self.domain,
             vpc_stack=vpc_stack,
             vpc_subnets=vpc_subnets,
-            lambda_role=self.opensearch_index_manager_lambda_role
+            lambda_role=self.opensearch_index_manager_lambda_role,
         )
 
         # Add CDK Nag suppressions for OpenSearch Domain
@@ -474,16 +471,16 @@ class SearchPersistentStack(AppStack):
                 {
                     'id': 'AwsSolutions-OS3',
                     'reason': 'Access to this domain is restricted by Access Policies and VPC security groups.'
-                              'The data in the domain is only accessible by the ingest lambda which indexes the'
-                              'documents and the search API lambda which can only be accessed by authenticated staff'
-                              'users in CompactConnect.',
+                    'The data in the domain is only accessible by the ingest lambda which indexes the'
+                    'documents and the search API lambda which can only be accessed by authenticated staff'
+                    'users in CompactConnect.',
                 },
                 {
                     'id': 'AwsSolutions-OS5',
                     'reason': 'Access to this domain is restricted by Access Policies and VPC security groups.'
-                              'The data in the domain is only accessible by the ingest lambda which indexes the'
-                              'documents and the search API lambda which can only be accessed by authenticated staff'
-                              'users in CompactConnect.',
+                    'The data in the domain is only accessible by the ingest lambda which indexes the'
+                    'documents and the search API lambda which can only be accessed by authenticated staff'
+                    'users in CompactConnect.',
                 },
             ],
             apply_to_children=True,
@@ -495,15 +492,14 @@ class SearchPersistentStack(AppStack):
                     {
                         'id': 'AwsSolutions-OS4',
                         'reason': 'Dedicated master nodes are only used in production environments with multiple data '
-                                  'nodes. Single-node non-prod environments do not require dedicated master nodes.',
+                        'nodes. Single-node non-prod environments do not require dedicated master nodes.',
                     },
                     {
                         'id': 'AwsSolutions-OS7',
                         'reason': 'Zone awareness with standby is only enabled for production environments with '
-                                  'multiple nodes. Single-node test environments do not require multi-AZ '
-                                  'configuration.',
+                        'multiple nodes. Single-node test environments do not require multi-AZ '
+                        'configuration.',
                     },
                 ],
                 apply_to_children=True,
             )
-

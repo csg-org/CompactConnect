@@ -218,9 +218,7 @@ class TestVpcStack(TstAppABC, TestCase):
                 private_subnets.append((logical_id, properties))
 
         # Verify we have exactly 3 private subnets
-        self.assertEqual(
-            3, len(private_subnets), f'Expected exactly 3 private subnets, found {len(private_subnets)}'
-        )
+        self.assertEqual(3, len(private_subnets), f'Expected exactly 3 private subnets, found {len(private_subnets)}')
 
         # Expected CIDR blocks for the 3 private subnets
         expected_cidr_blocks = ['10.0.0.0/20', '10.0.16.0/20', '10.0.32.0/20']

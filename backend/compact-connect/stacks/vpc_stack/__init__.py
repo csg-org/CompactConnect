@@ -18,7 +18,6 @@ from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-
 PRIVATE_SUBNET_ONE_NAME = 'privateSubnet1'
 PRIVATE_SUBNET_TWO_NAME = 'privateSubnet2'
 PRIVATE_SUBNET_THREE_NAME = 'privateSubnet3'
@@ -120,7 +119,7 @@ class VpcStack(AppStack):
             'VpcFlowLogGroup',
             retention=RetentionDays.ONE_MONTH,
             removal_policy=removal_policy,
-            encryption_key=self.vpc_encryption_key
+            encryption_key=self.vpc_encryption_key,
         )
 
         self.vpc.add_flow_log(
@@ -176,7 +175,6 @@ class VpcStack(AppStack):
             'S3VpcEndpoint',
             service=GatewayVpcEndpointAwsService.S3,
         )
-
 
         # Security Group for Lambda Functions
         # This will control inbound and outbound traffic for Lambda functions that interact with OpenSearch

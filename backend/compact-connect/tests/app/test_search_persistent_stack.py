@@ -30,7 +30,6 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         search_stack = self.app.sandbox_backend_stage.search_persistent_stack
         search_template = Template.from_stack(search_stack)
 
-
         # Verify exactly one OpenSearch Domain is created
         search_template.resource_count_is('AWS::OpenSearchService::Domain', 1)
 
@@ -123,7 +122,9 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
                 },
                 'EncryptionAtRestOptions': {
                     'Enabled': True,
-                    'KmsKeyId': {"Ref": encryption_key_logical_id, }
+                    'KmsKeyId': {
+                        'Ref': encryption_key_logical_id,
+                    },
                 },
             },
         )
@@ -272,7 +273,5 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             'privateSubnet1',
             str(import_value),
             f'OpenSearch should import privateSubnet1, but is importing: {import_value}. '
-            'This is critical for deterministic subnet placement in non-prod environments.'
+            'This is critical for deterministic subnet placement in non-prod environments.',
         )
-
-

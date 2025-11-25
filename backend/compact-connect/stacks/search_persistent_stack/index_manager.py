@@ -23,13 +23,13 @@ class IndexManagerCustomResource(Construct):
     """
 
     def __init__(
-            self,
-            scope: Construct,
-            construct_id: str,
-            opensearch_domain: Domain,
-            vpc_stack: VpcStack,
-            vpc_subnets: list[Subnet],
-            lambda_role: IRole
+        self,
+        scope: Construct,
+        construct_id: str,
+        opensearch_domain: Domain,
+        vpc_stack: VpcStack,
+        vpc_subnets: list[Subnet],
+        lambda_role: IRole,
     ):
         """
         Initialize the IndexManagerCustomResource construct.
@@ -61,7 +61,7 @@ class IndexManagerCustomResource(Construct):
             memory_size=256,
             vpc=vpc_stack.vpc,
             vpc_subnets=vpc_subnets,
-            security_groups=[vpc_stack.lambda_security_group]
+            security_groups=[vpc_stack.lambda_security_group],
         )
         # grant resource ability to create and check indices
         opensearch_domain.grant_read_write(self.manage_function)
@@ -74,8 +74,8 @@ class IndexManagerCustomResource(Construct):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The grant_read_write method requires wildcard permissions on the OpenSearch domain to '
-                              'create, read, and manage indices. This is appropriate for an index management function '
-                              'that needs to operate on all indices in the domain.',
+                    'create, read, and manage indices. This is appropriate for an index management function '
+                    'that needs to operate on all indices in the domain.',
                 },
             ],
         )
@@ -91,8 +91,8 @@ class IndexManagerCustomResource(Construct):
                 {
                     'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
                     'reason': 'We do not log sensitive data to CloudWatch, and operational visibility of system'
-                              ' logs to operators with credentials for the AWS account is desired. Encryption is not'
-                              ' appropriate here.',
+                    ' logs to operators with credentials for the AWS account is desired. Encryption is not'
+                    ' appropriate here.',
                 },
             ],
         )
@@ -117,7 +117,7 @@ class IndexManagerCustomResource(Construct):
                 {
                     'id': 'HIPAA.Security-LambdaConcurrency',
                     'reason': 'This function is only run at deploy time, by CloudFormation and has no need for '
-                              'concurrency limits.',
+                    'concurrency limits.',
                 },
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',
@@ -134,7 +134,7 @@ class IndexManagerCustomResource(Construct):
                 {
                     'id': 'AwsSolutions-IAM4',
                     'reason': 'The Provider framework requires AWS managed policies (AWSLambdaBasicExecutionRole) '
-                              'for its service role. We do not control these policies.',
+                    'for its service role. We do not control these policies.',
                 },
             ],
         )
@@ -146,8 +146,8 @@ class IndexManagerCustomResource(Construct):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The Provider framework requires wildcard permissions to invoke the Lambda function. '
-                              'This is a standard pattern for custom resource providers and is necessary for the '
-                              'framework to manage the custom resource lifecycle.',
+                    'This is a standard pattern for custom resource providers and is necessary for the '
+                    'framework to manage the custom resource lifecycle.',
                 },
             ],
         )
