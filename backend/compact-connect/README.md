@@ -29,10 +29,10 @@ To deploy this app, you will need:
    > Note: The [purchases lambda](./lambdas/python/purchases) depends on the
    > [Authorize.Net python sdk](https://github.com/AuthorizeNet/sdk-python/issues/164), which is barely maintained at
    > present, and is not yet compatible with Python 3.13. Due to that restriction, we have to hold back the python
-   > version of just this lambda, so that the entire project is not impacted. For local development, this means that,
-   > at least for this one lambda, developers will have to have a dedicated python environment, held back at Python
-   > 3.12. That environment and its dependencies will have to be maintained separately from those of the rest of the
-   > project, which can all share a common virtual environment and common dependencies, without excessive risk of
+   > version of just this lambda package, so that the entire project is not impacted. For local development, this means
+   > that, at least for lambdas that use this package, developers will have to have a dedicated python environment, held
+   > back at Python 3.12. That environment and its dependencies will have to be maintained separately from those of the
+   > rest of the project, which can all share a common virtual environment and common dependencies, without excessive risk of
    > version conflicts.
 3) Otherwise, follow the [Prerequisites section](https://cdkworkshop.com/15-prerequisites.html) of the CDK workshop to
    prepare your system to work with AWS-CDK, including a NodeJS install.
