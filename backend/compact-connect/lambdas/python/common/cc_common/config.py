@@ -32,7 +32,7 @@ class _Config:
     @property
     def opensearch_host_endpoint(self):
         """
-        Returns the region name of the region the lambda is running in.
+        Returns the OpenSearch host endpoint for the domain.
         """
         return os.environ['OPENSEARCH_HOST_ENDPOINT']
 

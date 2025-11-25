@@ -1,6 +1,7 @@
 import os
 
 from aws_cdk import CustomResource, Duration
+from aws_cdk.aws_ec2 import SubnetSelection
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_logs import LogGroup, RetentionDays
 from aws_cdk.aws_opensearchservice import Domain
@@ -8,7 +9,6 @@ from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
 from common_constructs.stack import Stack
 from constructs import Construct
-from moto.ec2.models.subnets import Subnet
 
 from common_constructs.python_function import PythonFunction
 from stacks.vpc_stack import VpcStack
@@ -28,7 +28,7 @@ class IndexManagerCustomResource(Construct):
         construct_id: str,
         opensearch_domain: Domain,
         vpc_stack: VpcStack,
-        vpc_subnets: list[Subnet],
+        vpc_subnets: SubnetSelection,
         lambda_role: IRole,
     ):
         """
@@ -44,7 +44,6 @@ class IndexManagerCustomResource(Construct):
         stack = Stack.of(scope)
 
         # Create Lambda function for managing OpenSearch indices
-        # This function is reused across all FeatureFlagResource instances
         self.manage_function = PythonFunction(
             self,
             'IndexManagerFunction',
