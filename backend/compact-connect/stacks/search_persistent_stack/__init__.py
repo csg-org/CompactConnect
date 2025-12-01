@@ -231,6 +231,7 @@ class SearchPersistentStack(AppStack):
             principals=[self.opensearch_index_manager_lambda_role],
             actions=[
                 'es:ESHttpGet',
+                'es:ESHttpHead',  # Required for index_exists() checks
                 'es:ESHttpPost',
                 'es:ESHttpPut',
             ],
@@ -532,25 +533,25 @@ class SearchPersistentStack(AppStack):
                                 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                             ],
                             'reason': 'This is an AWS-managed custom resource Lambda created by CDK to manage '
-                                      'OpenSearch domain access policies. It uses the standard execution role.',
+                            'OpenSearch domain access policies. It uses the standard execution role.',
                         },
                         {
                             'id': 'AwsSolutions-IAM5',
                             'appliesTo': ['Action::kms:Describe*', 'Action::kms:List*'],
                             'reason': 'This is an AWS-managed custom resource Lambda that requires KMS permissions to '
-                                      'access the encryption key used by the OpenSearch domain.',
+                            'access the encryption key used by the OpenSearch domain.',
                         },
                         {
                             'id': 'HIPAA.Security-LambdaDLQ',
                             'reason': 'This is an AWS-managed custom resource Lambda used only during deployment to '
-                                      'manage OpenSearch access policies. A DLQ is not necessary for deployment-time '
-                                      'functions.',
+                            'manage OpenSearch access policies. A DLQ is not necessary for deployment-time '
+                            'functions.',
                         },
                         {
                             'id': 'HIPAA.Security-LambdaInsideVPC',
                             'reason': 'This is an AWS-managed custom resource Lambda that needs internet access to '
-                                      'manage OpenSearch domain access policies via AWS APIs. VPC placement is not '
-                                      'required.',
+                            'manage OpenSearch domain access policies via AWS APIs. VPC placement is not '
+                            'required.',
                         },
                     ],
                     apply_to_children=True,
@@ -567,7 +568,8 @@ class SearchPersistentStack(AppStack):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'The lambda role is used to grant access to the OpenSearch domain.',
+                    'reason': 'This lambda role access is restricted to the specific'
+                    'OpenSearch domain and its indices within the VPC.',
                 },
             ],
             apply_to_children=True,
