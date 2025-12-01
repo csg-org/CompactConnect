@@ -21,7 +21,9 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from common_constructs.constants import PROD_ENV_NAME
+from stacks.persistent_stack import PersistentStack
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
+from stacks.search_persistent_stack.populate_provider_documents_handler import PopulateProviderDocumentsHandler
 from stacks.search_persistent_stack.search_providers_handler import SearchProvidersHandler
 from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
 
@@ -55,6 +57,7 @@ class SearchPersistentStack(AppStack):
         environment_name: str,
         environment_context: dict,
         vpc_stack: VpcStack,
+        persistent_stack: PersistentStack,
         **kwargs,
     ):
         super().__init__(
@@ -276,6 +279,20 @@ class SearchPersistentStack(AppStack):
             vpc_stack=vpc_stack,
             vpc_subnets=vpc_subnets,
             lambda_role=self.search_api_lambda_role,
+            alarm_topic=self.alarm_topic,
+        )
+
+        # Create the populate provider documents handler for manual invocation
+        # This handler is used to bulk index provider documents from DynamoDB into OpenSearch
+        self.populate_provider_documents_handler = PopulateProviderDocumentsHandler(
+            self,
+            construct_id='populateProviderDocumentsHandler',
+            opensearch_domain=self.domain,
+            vpc_stack=vpc_stack,
+            vpc_subnets=vpc_subnets,
+            lambda_role=self.opensearch_ingest_lambda_role,
+            provider_table=persistent_stack.provider_table,
+            provider_date_of_update_index_name=persistent_stack.provider_table.provider_date_of_update_index_name,
             alarm_topic=self.alarm_topic,
         )
 

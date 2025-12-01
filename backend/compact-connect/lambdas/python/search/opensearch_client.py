@@ -31,3 +31,32 @@ class OpenSearchClient:
         :return: The search response from OpenSearch
         """
         return self._client.search(index=index_name, body=body)
+
+    def index_document(self, index_name: str, document_id: str, document: dict) -> dict:
+        """
+        Index a single document into the specified index.
+
+        :param index_name: The name of the index to write to
+        :param document_id: The unique identifier for the document
+        :param document: The document to index
+        :return: The response from OpenSearch
+        """
+        return self._client.index(index=index_name, id=document_id, body=document)
+
+    def bulk_index(self, index_name: str, documents: list[dict], id_field: str = 'providerId') -> dict:
+        """
+        Bulk index multiple documents into the specified index.
+
+        :param index_name: The name of the index to write to
+        :param documents: List of documents to index
+        :param id_field: The field name to use as the document ID (default: 'providerId')
+        :return: The bulk response from OpenSearch
+        """
+        if not documents:
+            return {'items': [], 'errors': False}
+
+        actions = []
+        for doc in documents:
+            actions.append({'index': {'_index': index_name, '_id': doc[id_field]}})
+            actions.append(doc)
+        return self._client.bulk(body=actions)

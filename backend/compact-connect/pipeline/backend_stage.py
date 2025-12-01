@@ -246,6 +246,7 @@ class BackendStage(Stage):
                 standard_tags=standard_tags,
                 environment_name=environment_name,
                 vpc_stack=self.vpc_stack,
+                persistent_stack=self.persistent_stack,
             )
 
             self.search_api_stack = SearchApiStack(
