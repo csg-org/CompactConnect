@@ -122,6 +122,10 @@ class IndexManagerCustomResource(Construct):
                     'id': 'HIPAA.Security-LambdaDLQ',
                     'reason': 'This is a synchronous function that runs at deploy time. It does not need a DLQ',
                 },
+                {
+                    'id': 'HIPAA.Security-LambdaInsideVPC',
+                    'reason': 'Provider framework lambda is managed by AWS and does not function inside a VPC',
+                },
             ],
         )
 

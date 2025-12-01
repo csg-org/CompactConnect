@@ -248,6 +248,9 @@ class SearchPersistentStack(AppStack):
         self.domain.add_access_policies(
             opensearch_ingest_access_policy, opensearch_index_manager_access_policy, opensearch_search_api_access_policy
         )
+        # CDK creates a lambda function to manage the access policies, we need to add suppressions for it
+        self._add_access_policy_lambda_suppressions()
+
         # grant lambda roles access to domain
         self.domain.grant_read(self.search_api_lambda_role)
         self.domain.grant_write(self.opensearch_ingest_lambda_role)
@@ -267,6 +270,10 @@ class SearchPersistentStack(AppStack):
 
         # Add capacity monitoring alarms for proactive scaling
         self._add_capacity_alarms(environment_name)
+
+        # Add CDK Nag suppressions for Index Manager Custom Resource
+        self._add_opensearch_lambda_role_suppressions(self.search_api_lambda_role)
+        self._add_opensearch_lambda_role_suppressions(self.opensearch_ingest_lambda_role)
 
     def _get_capacity_config(self, environment_name: str) -> CapacityConfig:
         """
@@ -503,3 +510,65 @@ class SearchPersistentStack(AppStack):
                 ],
                 apply_to_children=True,
             )
+
+    def _add_access_policy_lambda_suppressions(self):
+        """
+        Add CDK Nag suppressions for the auto-generated Lambda function created by add_access_policies.
+
+        The CDK Domain.add_access_policies() method creates an AwsCustomResource Lambda to manage
+        the domain's access policy. CDK generates these with IDs starting with 'AWS' followed by a hash.
+        We find these dynamically to avoid relying on a specific hash value.
+        """
+        # Find auto-generated Lambda constructs by looking for children with IDs starting with 'AWS'
+        # These are created by CDK's AwsCustomResource for managing domain access policies
+        for child in self.node.children:
+            if child.node.id.startswith('AWS'):
+                NagSuppressions.add_resource_suppressions(
+                    child,
+                    suppressions=[
+                        {
+                            'id': 'AwsSolutions-IAM4',
+                            'appliesTo': [
+                                'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                            ],
+                            'reason': 'This is an AWS-managed custom resource Lambda created by CDK to manage '
+                                      'OpenSearch domain access policies. It uses the standard execution role.',
+                        },
+                        {
+                            'id': 'AwsSolutions-IAM5',
+                            'appliesTo': ['Action::kms:Describe*', 'Action::kms:List*'],
+                            'reason': 'This is an AWS-managed custom resource Lambda that requires KMS permissions to '
+                                      'access the encryption key used by the OpenSearch domain.',
+                        },
+                        {
+                            'id': 'HIPAA.Security-LambdaDLQ',
+                            'reason': 'This is an AWS-managed custom resource Lambda used only during deployment to '
+                                      'manage OpenSearch access policies. A DLQ is not necessary for deployment-time '
+                                      'functions.',
+                        },
+                        {
+                            'id': 'HIPAA.Security-LambdaInsideVPC',
+                            'reason': 'This is an AWS-managed custom resource Lambda that needs internet access to '
+                                      'manage OpenSearch domain access policies via AWS APIs. VPC placement is not '
+                                      'required.',
+                        },
+                    ],
+                    apply_to_children=True,
+                )
+
+    def _add_opensearch_lambda_role_suppressions(self, lambda_role: Role):
+        """
+        Add CDK Nag suppressions for OpenSearch Lambda role configuration.
+
+        param environment_name: The deployment environment name
+        """
+        NagSuppressions.add_resource_suppressions(
+            lambda_role,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The lambda role is used to grant access to the OpenSearch domain.',
+                },
+            ],
+            apply_to_children=True,
+        )
