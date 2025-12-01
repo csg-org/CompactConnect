@@ -242,6 +242,7 @@ class SearchPersistentStack(AppStack):
             principals=[self.search_api_lambda_role],
             actions=[
                 'es:ESHttpGet',
+                'es:ESHttpHead',
             ],
             resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
         )
