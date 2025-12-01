@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
-import { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
+import { LicenseSearchLegacy } from '@components/Licensee/LicenseeSearchLegacy/LicenseeSearchLegacy.vue';
 
 export interface State {
     model: Array<any> | null;
@@ -13,7 +13,7 @@ export interface State {
     lastKey: string | null;
     isLoading: boolean;
     error: any | null;
-    search: LicenseSearch;
+    search: LicenseSearchLegacy;
 }
 
 export const state: State = {

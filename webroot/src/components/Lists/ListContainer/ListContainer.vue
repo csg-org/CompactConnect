@@ -21,16 +21,16 @@
                 :sortChange="sortChange"
                 :sortingId="listId"
             />
-            <Pagination
+            <PaginationLegacy
                 ariaLabel="Top Pagination"
-                v-if="hasRecords && !excludeTopPagination"
+                v-if="isLegacyPaging && hasRecords && !excludeTopPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
                 :pagingPrevKey="pagingPrevKey"
                 :pagingNextKey="pagingNextKey"
                 :pageChange="pageChange"
                 :pageSizeConfig="pageSizeConfig"
-            ></Pagination>
+            ></PaginationLegacy>
         </div>
         <div class="table-container" role="table">
             <slot name="headers" v-if="$matches.tablet.min"></slot>
@@ -52,17 +52,17 @@
             <div v-else class="no-records" role="row" tabindex="0"><span role="cell">{{ emptyMessage }}</span></div>
         </div>
         <div class="filter-bar">
-            <Pagination
+            <PaginationLegacy
                 ariaLabel="Bottom Pagination"
                 class="bottom-pagination"
-                v-if="hasRecords && !excludeBottomPagination"
+                v-if="isLegacyPaging && hasRecords && !excludeBottomPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
                 :pagingPrevKey="pagingPrevKey"
                 :pagingNextKey="pagingNextKey"
                 :pageChange="pageChange"
                 :pageSizeConfig="pageSizeConfig"
-            ></Pagination>
+            ></PaginationLegacy>
         </div>
     </div>
 </template>

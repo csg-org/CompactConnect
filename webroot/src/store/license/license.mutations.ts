@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
-import { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
+import { LicenseSearchLegacy } from '@components/Licensee/LicenseeSearchLegacy/LicenseeSearchLegacy.vue';
 
 export enum MutationTypes {
     GET_LICENSEES_REQUEST = '[License] Get Licensees Request',
@@ -97,7 +97,7 @@ export default {
             console.warn('Cannot remove Licensee with null ID from the store:');
         }
     },
-    [MutationTypes.STORE_UPDATE_SEARCH]: (state: any, search: LicenseSearch) => {
+    [MutationTypes.STORE_UPDATE_SEARCH]: (state: any, search: LicenseSearchLegacy) => {
         state.search = search;
     },
     [MutationTypes.STORE_RESET_SEARCH]: (state: any) => {
