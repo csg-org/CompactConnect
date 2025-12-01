@@ -11,11 +11,12 @@ from .api_model import ApiModel
 class V1Api:
     """v1 of the State API"""
 
-    def __init__(self,
-                 root: IResource,
-                 persistent_stack: persistent_stack.PersistentStack,
-                 search_persistent_stack: search_persistent_stack.SearchPersistentStack
-                 ):
+    def __init__(
+        self,
+        root: IResource,
+        persistent_stack: persistent_stack.PersistentStack,
+        search_persistent_stack: search_persistent_stack.SearchPersistentStack,
+    ):
         super().__init__()
         from stacks.search_api_stack.api import SearchApi
 
@@ -51,4 +52,3 @@ class V1Api:
             search_persistent_stack=search_persistent_stack,
             api_model=self.api_model,
         )
-

@@ -250,7 +250,9 @@ class ApiModel:
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
                 'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-                'jurisdictionUploadedLicenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                'jurisdictionUploadedLicenseStatus': JsonSchema(
+                    type=JsonSchemaType.STRING, enum=['active', 'inactive']
+                ),
                 'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
                 'jurisdictionUploadedCompactEligibility': JsonSchema(
                     type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']

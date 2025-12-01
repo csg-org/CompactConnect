@@ -27,9 +27,7 @@ class SearchApi(CCApi):
         from stacks.search_api_stack.v1_api import V1Api
 
         self.v1_api = V1Api(
-            self.root,
-            persistent_stack=persistent_stack,
-            search_persistent_stack=search_persistent_stack
+            self.root, persistent_stack=persistent_stack, search_persistent_stack=search_persistent_stack
         )
 
     @cached_property

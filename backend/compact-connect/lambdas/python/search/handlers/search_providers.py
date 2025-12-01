@@ -4,7 +4,6 @@ from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSche
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler
 from marshmallow import ValidationError
-
 from opensearch_client import OpenSearchClient
 
 # Default and maximum page sizes for search results
