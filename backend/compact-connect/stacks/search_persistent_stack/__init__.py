@@ -419,7 +419,7 @@ class SearchPersistentStack(AppStack):
             ),
         ).add_alarm_action(SnsAction(self.alarm_topic))
 
-        # Alarm: JVM Memory Pressure > 60%
+        # Alarm: JVM Memory Pressure > 70%
         # Sustained high memory pressure indicates need for instance scaling
         Alarm(
             self,
