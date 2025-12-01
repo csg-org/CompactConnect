@@ -21,3 +21,13 @@ class OpenSearchClient:
 
     def index_exists(self, index_name: str) -> bool:
         return self._client.indices.exists(index=index_name)
+
+    def search(self, index_name: str, body: dict) -> dict:
+        """
+        Execute a search query against the specified index.
+
+        :param index_name: The name of the index to search
+        :param body: The OpenSearch query body
+        :return: The search response from OpenSearch
+        """
+        return self._client.search(index=index_name, body=body)

@@ -15,6 +15,7 @@ from stacks.notification_stack import NotificationStack
 from stacks.persistent_stack import PersistentStack
 from stacks.provider_users import ProviderUsersStack
 from stacks.reporting_stack import ReportingStack
+from stacks.search_api_stack import SearchApiStack
 from stacks.search_persistent_stack import SearchPersistentStack
 from stacks.state_api_stack import StateApiStack
 from stacks.state_auth import StateAuthStack
@@ -245,4 +246,15 @@ class BackendStage(Stage):
                 standard_tags=standard_tags,
                 environment_name=environment_name,
                 vpc_stack=self.vpc_stack,
+            )
+
+            self.search_api_stack = SearchApiStack(
+                self,
+                'SearchAPIStack',
+                env=environment,
+                environment_context=environment_context,
+                standard_tags=standard_tags,
+                environment_name=environment_name,
+                persistent_stack=self.persistent_stack,
+                search_persistent_stack=self.search_persistent_stack,
             )

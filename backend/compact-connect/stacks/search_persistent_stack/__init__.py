@@ -22,6 +22,7 @@ from constructs import Construct
 
 from common_constructs.constants import PROD_ENV_NAME
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
+from stacks.search_persistent_stack.search_providers_handler import SearchProvidersHandler
 from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
 
 PROD_EBS_VOLUME_SIZE = 25
@@ -265,6 +266,17 @@ class SearchPersistentStack(AppStack):
             vpc_stack=vpc_stack,
             vpc_subnets=vpc_subnets,
             lambda_role=self.opensearch_index_manager_lambda_role,
+        )
+
+        # Create the search providers handler for API Gateway integration
+        self.search_providers_handler = SearchProvidersHandler(
+            self,
+            construct_id='searchProvidersHandler',
+            opensearch_domain=self.domain,
+            vpc_stack=vpc_stack,
+            vpc_subnets=vpc_subnets,
+            lambda_role=self.search_api_lambda_role,
+            alarm_topic=self.alarm_topic,
         )
 
         # Add CDK Nag suppressions for OpenSearch Domain

@@ -449,3 +449,35 @@ class StateProviderDetailGeneralResponseSchema(ForgivingSchema):
 
     privileges = List(Nested(StatePrivilegeGeneralResponseSchema, required=True, allow_none=False))
     providerUIUrl = String(required=True, allow_none=False)
+
+
+class SearchProvidersRequestSchema(CCRequestSchema):
+    """
+    Schema for advanced search providers requests.
+
+    This schema is used to validate incoming requests to the advanced search providers API endpoint.
+    It accepts an OpenSearch DSL query body for flexible querying of the provider index.
+
+    The request body closely mirrors OpenSearch DSL for pagination using `search_after`.
+    See: https://docs.opensearch.org/latest/search-plugins/searching-data/paginate/#the-search_after-parameter
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
+    query = Raw(required=True, allow_none=False)
+
+    # Pagination parameters following OpenSearch DSL
+    # 'from' is a reserved word in Python, so we use 'from_' with data_key='from'
+    from_ = Integer(required=False, allow_none=False, data_key='from')
+    size = Integer(required=False, allow_none=False)
+
+    # Sort order - required when using search_after pagination
+    # Example: [{"providerId": "asc"}, {"dateOfUpdate": "desc"}]
+    sort = Raw(required=False, allow_none=False)
+
+    # The search_after parameter for cursor-based pagination
+    # This should be the 'sort' values from the last hit of the previous page
+    # Example: ["provider-uuid-123", "2024-01-15T10:30:00Z"]
+    search_after = Raw(required=False, allow_none=False)
