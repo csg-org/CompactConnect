@@ -8,7 +8,7 @@ class OpenSearchIndexManager(CustomResourceHandler):
     Custom resource handler to create OpenSearch indices for compacts.
     """
 
-    def on_create(self, _properties: dict) -> None:
+    def on_create(self, _properties: dict) -> CustomResourceResponse | None:
         """
         Create the indices on creation.
         """
@@ -20,7 +20,7 @@ class OpenSearchIndexManager(CustomResourceHandler):
             index_name = f'compact_{compact}_providers'
             self._create_provider_index(client, index_name)
 
-    def on_update(self, properties: dict) -> None:
+    def on_update(self, properties: dict) -> CustomResourceResponse | None:
         """
         No-op on update.
         """

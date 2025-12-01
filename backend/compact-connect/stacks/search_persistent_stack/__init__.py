@@ -383,7 +383,7 @@ class SearchPersistentStack(AppStack):
 
         These proactive thresholds give the DevOps team time to plan scaling activities:
         - Free Storage Space < 50% of allocated capacity
-        - JVM Memory Pressure > 60%
+        - JVM Memory Pressure > 70%
         - CPU Utilization > 60%
 
         param environment_name: The deployment environment name

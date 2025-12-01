@@ -172,7 +172,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
 
         Verifies three critical alarms:
         1. Free Storage Space < 50% threshold
-        2. JVM Memory Pressure > 60% threshold
+        2. JVM Memory Pressure > 70% threshold
         3. CPU Utilization > 60% threshold
 
         These alarms give DevOps team time to plan scaling activities before hitting limits.
