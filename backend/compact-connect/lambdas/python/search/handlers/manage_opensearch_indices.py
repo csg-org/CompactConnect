@@ -100,14 +100,17 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'licenseNumber': {'type': 'keyword'},
             'givenName': {
                 'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
                 'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
             },
             'middleName': {
                 'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
                 'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
             },
             'familyName': {
                 'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
                 'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
             },
             'suffix': {'type': 'keyword'},
@@ -118,6 +121,7 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'homeAddressStreet2': {'type': 'text'},
             'homeAddressCity': {
                 'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
                 'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
             },
             'homeAddressState': {'type': 'keyword'},
@@ -168,17 +172,22 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'settings': {
                 'index': {
                     'number_of_shards': 1,
-                    'number_of_replicas': 0,
-                    'refresh_interval': '1s',
+                    # no replicas for non-prod envs (since there is only one data node)
+                    # one replica for prod
+                    'number_of_replicas': 0 if config.environment_name != 'prod' else 1,
                 },
                 'analysis': {
+                    # this custom analyzer is recommended by Opensearch when you have international character
+                    # sets, and you want to support searching by their closest ASCII equivalents.
+                    # See https://docs.opensearch.org/latest/analyzers/token-filters/asciifolding/
+                    'filter': {'custom_ascii_folding': {'type': 'asciifolding', 'preserve_original': True}},
                     'analyzer': {
-                        'name_analyzer': {
+                        'custom_ascii_analyzer': {
                             'type': 'custom',
                             'tokenizer': 'standard',
-                            'filter': ['lowercase', 'asciifolding'],
+                            'filter': ['lowercase', 'custom_ascii_folding'],
                         }
-                    }
+                    },
                 },
             },
             'mappings': {
@@ -195,17 +204,17 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'npi': {'type': 'keyword'},
                     'givenName': {
                         'type': 'text',
-                        'analyzer': 'name_analyzer',
+                        'analyzer': 'custom_ascii_analyzer',
                         'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
                     },
                     'middleName': {
                         'type': 'text',
-                        'analyzer': 'name_analyzer',
+                        'analyzer': 'custom_ascii_analyzer',
                         'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
                     },
                     'familyName': {
                         'type': 'text',
-                        'analyzer': 'name_analyzer',
+                        'analyzer': 'custom_ascii_analyzer',
                         'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
                     },
                     'suffix': {'type': 'keyword'},
@@ -214,7 +223,7 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
                     'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
                     'privilegeJurisdictions': {'type': 'keyword'},
-                    'providerFamGivMid': {'type': 'text', 'analyzer': 'name_analyzer'},
+                    'providerFamGivMid': {'type': 'keyword'},
                     'providerDateOfUpdate': {'type': 'date'},
                     'birthMonthDay': {'type': 'keyword'},
                     # Nested arrays
