@@ -183,8 +183,7 @@ class SearchPersistentStack(AppStack):
         self.domain = Domain(
             self,
             'ProviderSearchDomain',
-            # TODO - set this to OPENSEARCH_3_1 after runtime migration PR is merged
-            version=EngineVersion.OPENSEARCH_2_19,
+            version=EngineVersion.OPENSEARCH_3_3,
             capacity=capacity_config,
             # VPC configuration for network isolation
             vpc=vpc_stack.vpc,
@@ -254,9 +253,10 @@ class SearchPersistentStack(AppStack):
                 'es:ESHttpPost',
             ],
             # define all compact indices to restrict the policy to the search operation
-            resources=[Fn.join(delimiter='',
-                               list_of_values=[self.domain.domain_arn, f'/compact_{compact}_providers/_search'])
-                       for compact in persistent_stack.get_list_of_compact_abbreviations()],
+            resources=[
+                Fn.join(delimiter='', list_of_values=[self.domain.domain_arn, f'/compact_{compact}_providers/_search'])
+                for compact in persistent_stack.get_list_of_compact_abbreviations()
+            ],
         )
         # add access policy to restrict access to set of roles
         self.domain.add_access_policies(
@@ -566,6 +566,11 @@ class SearchPersistentStack(AppStack):
                 NagSuppressions.add_resource_suppressions(
                     child,
                     suppressions=[
+                        {
+                            'id': 'AwsSolutions-L1',
+                            'reason': 'This is an AWS-managed custom resource Lambda created by CDK to manage '
+                            'OpenSearch domain access policies. We cannot specify the runtime version.',
+                        },
                         {
                             'id': 'AwsSolutions-IAM4',
                             'appliesTo': [
