@@ -196,6 +196,9 @@ def main():
     parser.add_argument(
         '-i', '--internal', action='store_true', help='Use internal API specification files instead of regular ones'
     )
+    parser.add_argument(
+        '-s', '--search', action='store_true', help='Use search API specification files'
+    )
 
     args = parser.parse_args()
 
@@ -203,9 +206,16 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     workspace_dir = os.path.dirname(script_dir)
 
-    # Determine the base directory based on the internal flag
-    base_dir = os.path.join('internal', 'api-specification') if args.internal else os.path.join('api-specification')
-    postman_dir = os.path.join('internal', 'postman') if args.internal else os.path.join('postman')
+    # Determine the base directory based on the flags
+    if args.search:
+        base_dir = os.path.join('search-internal', 'api-specification')
+        postman_dir = os.path.join('search-internal', 'postman')
+    elif args.internal:
+        base_dir = os.path.join('internal', 'api-specification')
+        postman_dir = os.path.join('internal', 'postman')
+    else:
+        base_dir = os.path.join('api-specification')
+        postman_dir = os.path.join('postman')
 
     openapi_path = os.path.join(workspace_dir, 'docs', base_dir, 'latest-oas30.json')
     tmp_path = os.path.join(workspace_dir, 'tmp.json')
@@ -215,7 +225,7 @@ def main():
     generate_postman_collection(openapi_path, tmp_path)
 
     try:
-        # Load the generated and existing collections
+        # Load the generated collection
         with open(tmp_path) as f:
             new_collection = json.load(f)
         with open(postman_path) as f:

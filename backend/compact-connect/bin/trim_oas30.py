@@ -35,6 +35,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '-i', '--internal', action='store_true', help='Use internal API specification files instead of regular ones'
     )
+    parser.add_argument(
+        '-s', '--search', action='store_true', help='Use search API specification files'
+    )
 
     args = parser.parse_args()
 
@@ -42,12 +45,13 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
     workspace_dir = os.path.dirname(script_dir)
 
-    # Determine the base directory based on the internal flag
-    base_dir = (
-        os.path.join('docs', 'internal', 'api-specification')
-        if args.internal
-        else os.path.join('docs', 'api-specification')
-    )
+    # Determine the base directory based on the flags
+    if args.search:
+        base_dir = os.path.join('docs', 'search-internal', 'api-specification')
+    elif args.internal:
+        base_dir = os.path.join('docs', 'internal', 'api-specification')
+    else:
+        base_dir = os.path.join('docs', 'api-specification')
     file_path = os.path.join(workspace_dir, base_dir, 'latest-oas30.json')
 
     with open(file_path) as f:
