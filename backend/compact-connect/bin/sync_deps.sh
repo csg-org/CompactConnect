@@ -20,8 +20,6 @@ pip-sync \
   lambdas/python/disaster-recovery/requirements.txt \
   lambdas/python/provider-data-v1/requirements-dev.txt \
   lambdas/python/provider-data-v1/requirements.txt \
-  lambdas/python/purchases/requirements-dev.txt \
-  lambdas/python/purchases/requirements.txt \
   lambdas/python/search/requirements-dev.txt \
   lambdas/python/search/requirements.txt \
   lambdas/python/staff-user-pre-token/requirements-dev.txt \
