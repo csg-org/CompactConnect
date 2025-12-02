@@ -241,18 +241,28 @@ class SearchPersistentStack(AppStack):
             ],
             resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
         )
-        opensearch_search_api_access_policy = PolicyStatement(
+        # Search API policy - restricted to _search endpoint only
+        # POST is required for _search queries even though they are read-only operations
+        # because OpenSearch's search API uses POST to send the query DSL body.
+        # By restricting the resource to /_search, we prevent POST from being used
+        # for document indexing or other write operations.
+        # See: https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ac.html
+        opensearch_search_api_policy = PolicyStatement(
             effect=Effect.ALLOW,
             principals=[self.search_api_lambda_role],
             actions=[
-                'es:ESHttpGet',
-                'es:ESHttpHead',
+                'es:ESHttpPost',
             ],
-            resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
+            # define all compact indices to restrict the policy to the search operation
+            resources=[Fn.join(delimiter='',
+                               list_of_values=[self.domain.domain_arn, f'/compact_{compact}_providers/_search'])
+                       for compact in persistent_stack.get_list_of_compact_abbreviations()],
         )
         # add access policy to restrict access to set of roles
         self.domain.add_access_policies(
-            opensearch_ingest_access_policy, opensearch_index_manager_access_policy, opensearch_search_api_access_policy
+            opensearch_ingest_access_policy,
+            opensearch_index_manager_access_policy,
+            opensearch_search_api_policy,
         )
         # CDK creates a lambda function to manage the access policies, we need to add suppressions for it
         self._add_access_policy_lambda_suppressions()
