@@ -18,6 +18,10 @@ class TstLambdas(TestCase):
                 'AWS_REGION': 'us-east-1',
                 'ENVIRONMENT_NAME': 'test',
                 'COMPACTS': '["aslp", "octp", "coun"]',
+                'PROVIDER_TABLE_NAME': 'provider-table',
+                'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
+                'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
+                'LICENSE_GSI_NAME': 'licenseGSI',
                 'OPENSEARCH_HOST_ENDPOINT': 'vpc-providersearchd-5bzuqxhpxffk-w6dkpddu.us-east-1.es.amazonaws.com',
                 'JURISDICTIONS': json.dumps(
                     [
@@ -75,6 +79,19 @@ class TstLambdas(TestCase):
                         'wi',
                         'wy',
                     ]
+                ),
+                'LICENSE_TYPES': json.dumps(
+                    {
+                        'aslp': [
+                            {'name': 'audiologist', 'abbreviation': 'aud'},
+                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        ],
+                        'octp': [
+                            {'name': 'occupational therapist', 'abbreviation': 'ot'},
+                            {'name': 'occupational therapy assistant', 'abbreviation': 'ota'},
+                        ],
+                        'coun': [{'name': 'licensed professional counselor', 'abbreviation': 'lpc'}],
+                    },
                 ),
             },
         )

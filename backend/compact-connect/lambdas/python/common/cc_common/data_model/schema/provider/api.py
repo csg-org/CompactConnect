@@ -131,7 +131,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     # This date is determined by the license records uploaded by a state
-    # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Raw(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
 

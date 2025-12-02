@@ -1,3 +1,6 @@
+import os
+
+import boto3
 from moto import mock_aws
 
 from tests import TstLambdas
@@ -9,8 +12,74 @@ class TstFunction(TstLambdas):
 
     def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
+        # we want to see any diffs in failed tests, regardless of how large the object is
+        self.maxDiff = None
+
+        self.build_resources()
         # This must be imported within the tests, since they import modules which require
         # environment variables that are not set until the TstLambdas class is initialized
         from common_test.test_data_generator import TestDataGenerator
 
         self.test_data_generator = TestDataGenerator
+
+        self.addCleanup(self.delete_resources)
+
+    def build_resources(self):
+        self.create_provider_table()
+
+    def delete_resources(self):
+        self._provider_table.delete()
+
+    def create_provider_table(self):
+        self._provider_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerFamGivMid', 'AttributeType': 'S'},
+                {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseGSIPK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseGSISK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseUploadDateGSIPK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseUploadDateGSISK', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['PROVIDER_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['PROV_FAM_GIV_MID_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerFamGivMid', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerDateOfUpdate', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['LICENSE_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'licenseGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseGSISK', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': 'licenseUploadDateGSI',
+                    'KeySchema': [
+                        {'AttributeName': 'licenseUploadDateGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseUploadDateGSISK', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE',
+                        'NonKeyAttributes': ['providerId'],
+                    },
+                },
+            ],
+        )
