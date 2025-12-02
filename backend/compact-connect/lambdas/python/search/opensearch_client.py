@@ -36,8 +36,8 @@ class OpenSearchClient:
         """
         Index a single document into the specified index.
 
-        :param index_name: The name of the index to write to
-        :param document_id: The unique identifier for the document
+        :param index_name: The name of the index to write to.
+        :param document_id: The unique identifier for the document.
         :param document: The document to index
         :return: The response from OpenSearch
         """
@@ -57,6 +57,10 @@ class OpenSearchClient:
 
         actions = []
         for doc in documents:
-            actions.append({'index': {'_index': index_name, '_id': doc[id_field]}})
+            # Note: We specify the index via the `index` parameter in the bulk() call below,
+            # not in the action metadata. This is required because the OpenSearch domain has
+            # `rest.action.multi.allow_explicit_index: false` which prevents specifying
+            # indices in the request body for security purposes.
+            actions.append({'index': {'_id': doc[id_field]}})
             actions.append(doc)
-        return self._client.bulk(body=actions)
+        return self._client.bulk(body=actions, index=index_name)
