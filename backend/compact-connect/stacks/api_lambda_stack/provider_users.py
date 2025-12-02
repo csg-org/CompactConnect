@@ -556,7 +556,7 @@ class ProviderUsersLambdas:
             description='Provider registration handler dummy function',
             handler='handler',
             code=Code.from_inline('def handler(*args, **kwargs):\n    return'),
-            runtime=Runtime.PYTHON_3_13,
+            runtime=Runtime.PYTHON_3_14,
             log_retention=RetentionDays.ONE_DAY,  # Triggers creation of the LogRetention custom resource
         )
         # Pin the exports here until the ApiStack clears it from its template

@@ -215,6 +215,10 @@ class UserPool(CdkUserPool):
             f'{stack.node.path}/AWS679f53fac002430cb0da5b7982bd2287/Resource',
             suppressions=[
                 {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'We do not maintain this lambda runtime. It will be updated with future CDK versions'
+                },
+                {
                     'id': 'HIPAA.Security-LambdaDLQ',
                     'reason': 'This is an AWS-managed custom resource Lambda used only during deployment.'
                     'A DLQ is not necessary.',

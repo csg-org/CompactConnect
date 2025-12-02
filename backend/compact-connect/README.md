@@ -23,9 +23,17 @@ This is an [AWS-CDK](https://aws.amazon.com/cdk/) based project for the backend 
 
 To deploy this app, you will need:
 1) Access to an AWS account
-2) Python>=3.13 installed on your machine, preferably through a virtual environment management tool like
+2) Python>=3.14 installed on your machine, preferably through a virtual environment management tool like
    [pyenv](https://github.com/pyenv/pyenv), for clean management of virtual environments across multiple Python
    versions.
+   > Note: The [purchases lambda](./lambdas/python/purchases) depends on the
+   > [Authorize.Net python sdk](https://github.com/AuthorizeNet/sdk-python/issues/164), which is barely maintained at
+   > present, and is not yet compatible with Python 3.13. Due to that restriction, we have to hold back the python
+   > version of just this lambda package, so that the entire project is not impacted. For local development, this means
+   > that, at least for lambdas that use this package, developers will have to have a dedicated python environment, held
+   > back at Python 3.12. That environment and its dependencies will have to be maintained separately from those of the
+   > rest of the project, which can all share a common virtual environment and common dependencies, without excessive risk of
+   > version conflicts.
 3) Otherwise, follow the [Prerequisites section](https://cdkworkshop.com/15-prerequisites.html) of the CDK workshop to
    prepare your system to work with AWS-CDK, including a NodeJS install.
 4) Follow the steps in the [Installing Dependencies](#installing-dependencies) section.
@@ -69,6 +77,18 @@ For development work there are additional requirements in `requirements-dev.txt`
 
 To add additional dependencies, for example other CDK libraries, just add them to the `requirements.in` file and rerun
 `pip-compile requirements.in`, then `pip install -r requirements.txt` command.
+
+### Convenience scripts
+
+To simplify dependency installation in this project, which includes many runtimes with similar dependencies, maintain
+the dependency files with two convenience scripts, which manage the file contents for _most_ runtimes (See Note below),
+[compile_requirements.sh](./bin/compile_requirements.sh), and installs the defined dependencies,
+[sync_deps.sh](./bin/sync_deps.sh).
+
+> Note: Due to its dependency on the Authorize.Net python sdk, the [purchases lambda](./lambdas/python/purchases)
+> dependencies have to be maintained separately from the rest of the project. You can update the requirements files for
+> that lambda directly with the `pip-compile` command, and install dependencies into your python enviornment dedicated
+> to that lambda with the `pip-sync` command.
 
 ## Local Development
 [Back to top](#compact-connect---backend-developer-documentation)
