@@ -7,9 +7,11 @@ class TestOpenSearchClient(TestCase):
 
     def _create_client_with_mock(self):
         """Create an OpenSearchClient with a mocked internal client."""
-        with patch('opensearch_client.boto3'), patch('opensearch_client.config'), patch(
-            'opensearch_client.OpenSearch'
-        ) as mock_opensearch_class:
+        with (
+            patch('opensearch_client.boto3'),
+            patch('opensearch_client.config'),
+            patch('opensearch_client.OpenSearch') as mock_opensearch_class,
+        ):
             mock_internal_client = MagicMock()
             mock_opensearch_class.return_value = mock_internal_client
 
@@ -101,7 +103,10 @@ class TestOpenSearchClient(TestCase):
             {'providerId': 'provider-1', 'givenName': 'John', 'familyName': 'Doe'},
             {'providerId': 'provider-2', 'givenName': 'Jane', 'familyName': 'Smith'},
         ]
-        expected_response = {'errors': False, 'items': [{'index': {'_id': 'provider-1'}}, {'index': {'_id': 'provider-2'}}]}
+        expected_response = {
+            'errors': False,
+            'items': [{'index': {'_id': 'provider-1'}}, {'index': {'_id': 'provider-2'}}],
+        }
         mock_internal_client.bulk.return_value = expected_response
 
         result = client.bulk_index(index_name=index_name, documents=documents)
@@ -152,7 +157,3 @@ class TestOpenSearchClient(TestCase):
 
         mock_internal_client.bulk.assert_not_called()
         self.assertEqual({'items': [], 'errors': False}, result)
-
-
-
-
