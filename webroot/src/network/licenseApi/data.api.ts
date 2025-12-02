@@ -218,6 +218,25 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * GET Licensees (Search - Staff).
+     * @param  {RequestParamsInterfaceLocal} [params={}] The request query parameters config.
+     * @return {Promise<object>}                         Response metadata + an array of licensees.
+     */
+    public async getLicenseesSearchStaff(params: RequestParamsInterfaceLocal = {}) {
+        //
+        // @TODO: Replace with new OpenSearch endpoint once available
+        //
+        const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
+        const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/query`, requestParams);
+        const { providers } = serverReponse;
+        const response = {
+            licensees: providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+        };
+
+        return response;
+    }
+
+    /**
      * GET Licensee by ID.
      * @param  {string}          licenseeId A licensee ID.
      * @return {Promise<object>}            A licensee server response.

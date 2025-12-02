@@ -36,6 +36,18 @@ export default {
             dispatch('getLicenseesFailure', error);
         });
     },
+    getLicenseesSearchRequest: async ({ commit, dispatch }, { params }: any) => {
+        commit(MutationTypes.GET_LICENSEES_REQUEST);
+
+        const apiRequest = dataApi.getLicenseesSearchStaff;
+
+        await apiRequest(params).then(async ({ licensees }) => {
+            await dispatch('setStoreLicensees', licensees);
+            dispatch('getLicenseesSuccess', licensees);
+        }).catch((error) => {
+            dispatch('getLicenseesFailure', error);
+        });
+    },
     getLicenseesSuccess: ({ commit }) => {
         commit(MutationTypes.GET_LICENSEES_SUCCESS);
     },

@@ -128,6 +128,15 @@ export class DataApi {
     }
 
     /**
+     * GET Licensees (Search - Staff).
+     * @param  {object}         [params] The request query parameters config.
+     * @return {Promise<Array>}          An array of users server response.
+     */
+    public getLicenseesSearchStaff(params) {
+        return licenseDataApi.getLicenseesSearchStaff(params);
+    }
+
+    /**
      * GET Licensee by ID.
      * @param  {string}          compact    A compact type.
      * @param  {string}          licenseeId A licensee ID.

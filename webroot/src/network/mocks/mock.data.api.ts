@@ -182,6 +182,18 @@ export class DataApi {
         }));
     }
 
+    // Get Licensees (Search - Staff)
+    public getLicenseesSearchStaff(params: any = {}) {
+        const records = licensees.providers
+            .concat(licensees.providers)
+            .concat(licensees.providers);
+
+        return wait(500).then(() => ({
+            licensees: records.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            params,
+        }));
+    }
+
     // Get Licensee by ID
     public getLicensee(compact, licenseeId) {
         const serverResponse = licensees.providers.find((item) => item.providerId === licenseeId);

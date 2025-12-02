@@ -7,6 +7,7 @@
 
 <template>
     <Section class="licensing-list-section">
+        <!-- <LicenseeListLegacy listId="licensees" /> -->
         <LicenseeList listId="licensees" />
     </Section>
 </template>

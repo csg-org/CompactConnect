@@ -4,3 +4,53 @@
 //
 //  Created by InspiringApps on 12/1/2025.
 //
+
+.pagination-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+
+    &.bottom-pagination {
+        margin-top: 1.6rem;
+    }
+
+    .pagination-list {
+        display: flex;
+        margin-bottom: 1.0rem;
+
+        .pagination-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3.2rem;
+            height: 3.2rem;
+            color: @midGrey;
+        }
+
+        .selected {
+            color: @primaryColor;
+            font-weight: @fontWeightBold;
+        }
+
+        .clickable {
+            cursor: pointer;
+        }
+
+        .caret {
+            border: 0.1rem solid @lightGrey;
+            border-radius: @borderRadiusSmall;
+
+            svg {
+                width: 1.2rem;
+                height: 1.2rem;
+            }
+        }
+    }
+
+    .page-size {
+        margin-bottom: 3.2rem;
+        margin-left: 1.6rem;
+    }
+}

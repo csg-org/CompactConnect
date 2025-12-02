@@ -31,6 +31,14 @@
                 :pageChange="pageChange"
                 :pageSizeConfig="pageSizeConfig"
             ></PaginationLegacy>
+            <Pagination
+                ariaLabel="Top Pagination"
+                v-if="!isLegacyPaging && hasRecords && !excludeTopPagination"
+                :paginationId="listId"
+                :listSize="listTotalSize"
+                :pageChange="pageChange"
+                :pageSizeConfig="pageSizeConfig"
+            ></Pagination>
         </div>
         <div class="table-container" role="table">
             <slot name="headers" v-if="$matches.tablet.min"></slot>
@@ -63,6 +71,15 @@
                 :pageChange="pageChange"
                 :pageSizeConfig="pageSizeConfig"
             ></PaginationLegacy>
+            <Pagination
+                ariaLabel="Bottom Pagination"
+                class="bottom-pagination"
+                v-if="!isLegacyPaging && hasRecords && !excludeBottomPagination"
+                :paginationId="listId"
+                :listSize="listTotalSize"
+                :pageChange="pageChange"
+                :pageSizeConfig="pageSizeConfig"
+            ></Pagination>
         </div>
     </div>
 </template>

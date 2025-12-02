@@ -13,6 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import MixinListManipulation from '@/components/Lists/_mixins/ListManipulation.mixin';
 import PaginationLegacy from '@components/Lists/PaginationLegacy/PaginationLegacy.vue';
+import Pagination from '@components/Lists/Pagination/Pagination.vue';
 import Sorting from '@components/Lists/Sorting/Sorting.vue';
 import CompactToggle from '@components/Lists/CompactToggle/CompactToggle.vue';
 
@@ -20,6 +21,7 @@ import CompactToggle from '@components/Lists/CompactToggle/CompactToggle.vue';
     name: 'ListContainer',
     components: {
         PaginationLegacy,
+        Pagination,
         Sorting,
         CompactToggle,
     },
