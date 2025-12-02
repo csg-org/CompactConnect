@@ -68,16 +68,11 @@ def populate_provider_documents(event: dict, context: LambdaContext):  # noqa: A
                 dynamo_pagination['lastKey'] = last_key
 
             # Query providers from the GSI
-            try:
-                result = data_client.get_providers_sorted_by_updated(
-                    compact=compact,
-                    scan_forward=True,
-                    pagination=dynamo_pagination,
-                )
-            except Exception as e:
-                logger.exception('Failed to query providers from GSI', compact=compact, error=str(e))
-                stats['errors'].append({'compact': compact, 'error': f'GSI query failed: {str(e)}'})
-                break
+            result = data_client.get_providers_sorted_by_updated(
+                compact=compact,
+                scan_forward=True,
+                pagination=dynamo_pagination,
+            )
 
             providers = result.get('items', [])
             last_key = result.get('pagination', {}).get('lastKey')

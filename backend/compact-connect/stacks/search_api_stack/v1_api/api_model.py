@@ -47,7 +47,9 @@ class ApiModel:
                     'size': JsonSchema(
                         type=JsonSchemaType.INTEGER,
                         minimum=1,
-                        maximum=1000,
+                        # setting low limit for now, as this search endpoint is only used by the UI client,
+                        # and we don't anticipate needing to support more than 100 records per request
+                        maximum=100,
                         description='Number of results to return',
                     ),
                     'sort': JsonSchema(

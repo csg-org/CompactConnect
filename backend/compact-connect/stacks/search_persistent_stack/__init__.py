@@ -292,7 +292,6 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=vpc_subnets,
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
-            provider_date_of_update_index_name=persistent_stack.provider_table.provider_date_of_update_index_name,
             alarm_topic=self.alarm_topic,
         )
 
@@ -508,16 +507,16 @@ class SearchPersistentStack(AppStack):
             suppressions=[
                 {
                     'id': 'AwsSolutions-OS3',
-                    'reason': 'Access to this domain is restricted by Access Policies and VPC security groups.'
-                    'The data in the domain is only accessible by the ingest lambda which indexes the'
-                    'documents and the search API lambda which can only be accessed by authenticated staff'
+                    'reason': 'Access to this domain is restricted by Access Policies and VPC security groups. '
+                    'The data in the domain is only accessible by the ingest lambda which indexes the '
+                    'documents and the search API lambda which can only be accessed by authenticated staff '
                     'users in CompactConnect.',
                 },
                 {
                     'id': 'AwsSolutions-OS5',
-                    'reason': 'Access to this domain is restricted by Access Policies and VPC security groups.'
-                    'The data in the domain is only accessible by the ingest lambda which indexes the'
-                    'documents and the search API lambda which can only be accessed by authenticated staff'
+                    'reason': 'Access to this domain is restricted by Access Policies and VPC security groups. '
+                    'The data in the domain is only accessible by the ingest lambda which indexes the '
+                    'documents and the search API lambda which can only be accessed by authenticated staff '
                     'users in CompactConnect.',
                 },
             ],
@@ -598,7 +597,7 @@ class SearchPersistentStack(AppStack):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'This lambda role access is restricted to the specific'
+                    'reason': 'This lambda role access is restricted to the specific '
                     'OpenSearch domain and its indices within the VPC.',
                 },
             ],

@@ -32,7 +32,7 @@ test_provider_id_mapping = {
 
 @mock_aws
 class TestPopulateProviderDocuments(TstFunction):
-    """Test suite for OpenSearchIndexManager custom resource."""
+    """Test suite for populate provider documents handler."""
 
     def setUp(self):
         super().setUp()
