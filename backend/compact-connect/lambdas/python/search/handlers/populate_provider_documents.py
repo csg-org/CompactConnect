@@ -9,10 +9,13 @@ This Lambda is intended to be invoked manually through the AWS console for
 initial data population or re-indexing operations.
 """
 
+import json
+
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import CCNotFoundException
+from cc_common.utils import ResponseEncoder
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
 
@@ -109,7 +112,11 @@ def populate_provider_documents(event: dict, context: LambdaContext):  # noqa: A
                     # Sanitize using ProviderGeneralResponseSchema
                     schema = ProviderGeneralResponseSchema()
                     sanitized_document = schema.load(api_response)
-                    documents_to_index.append(sanitized_document)
+
+                    # run the full provider document through our ResponseEncoder to convert sets
+                    # to lists (e.g., privilegeJurisdictions) and datetime objects to strings for JSON serialization
+                    serializable_document = json.loads(json.dumps(sanitized_document, cls=ResponseEncoder))
+                    documents_to_index.append(serializable_document)
 
                 except CCNotFoundException:
                     logger.warning('Provider not found when fetching records', provider_id=provider_id, compact=compact)

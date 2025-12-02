@@ -1,6 +1,4 @@
-from datetime import date, datetime, timedelta, timezone
 from unittest.mock import Mock, call, patch
-from uuid import UUID
 
 from common_test.test_constants import (
     DEFAULT_LICENSE_EXPIRATION_DATE,
@@ -70,14 +68,13 @@ class TestPopulateProviderDocuments(TstFunction):
 
     def _generate_expected_call_for_document(self, compact):
         # Use timezone(timedelta(0), '+0000') to match how the code creates UTC timezone
-        utc_tz = timezone(timedelta(0), '+0000')
         return call(
             index_name=f'compact_{compact}_providers',
             documents=[
                 {
-                    'providerId': UUID(test_provider_id_mapping[compact]),
+                    'providerId': test_provider_id_mapping[compact],
                     'type': 'provider',
-                    'dateOfUpdate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME).replace(tzinfo=utc_tz),
+                    'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATETIME,
                     'compact': compact,
                     'licenseJurisdiction': 'oh',
                     'currentHomeJurisdiction': 'oh',
@@ -87,19 +84,17 @@ class TestPopulateProviderDocuments(TstFunction):
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
                     'familyName': f'test{compact}FamilyName',
-                    'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_EXPIRATION_DATE),
+                    'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
                     'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
                     'jurisdictionUploadedLicenseStatus': 'active',
                     'jurisdictionUploadedCompactEligibility': 'eligible',
-                    'privilegeJurisdictions': {'ne'},
+                    'privilegeJurisdictions': ['ne'],
                     'birthMonthDay': '06-06',
                     'licenses': [
                         {
-                            'providerId': UUID(test_provider_id_mapping[compact]),
+                            'providerId': test_provider_id_mapping[compact],
                             'type': 'license',
-                            'dateOfUpdate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE).replace(
-                                tzinfo=utc_tz
-                            ),
+                            'dateOfUpdate': DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
                             'compact': compact,
                             'jurisdiction': 'oh',
                             'licenseType': test_license_type_mapping[compact],
@@ -113,9 +108,9 @@ class TestPopulateProviderDocuments(TstFunction):
                             'givenName': f'test{compact}GivenName',
                             'middleName': 'Gunnar',
                             'familyName': f'test{compact}FamilyName',
-                            'dateOfIssuance': date.fromisoformat(DEFAULT_LICENSE_ISSUANCE_DATE),
-                            'dateOfRenewal': date.fromisoformat(DEFAULT_LICENSE_RENEWAL_DATE),
-                            'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_EXPIRATION_DATE),
+                            'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
+                            'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
+                            'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
                             'homeAddressStreet1': '123 A St.',
                             'homeAddressStreet2': 'Apt 321',
                             'homeAddressCity': 'Columbus',
