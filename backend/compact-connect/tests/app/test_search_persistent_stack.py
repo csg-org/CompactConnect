@@ -44,7 +44,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         search_template.has_resource_properties(
             'AWS::OpenSearchService::Domain',
             {
-                'EngineVersion': 'OpenSearch_2.19',
+                'EngineVersion': 'OpenSearch_3.1',
             },
         )
 
