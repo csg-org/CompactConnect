@@ -25,7 +25,7 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import ResponseEncoder
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
@@ -110,6 +110,8 @@ def populate_provider_documents(event: dict, context: LambdaContext):
         # so it's only valid for that compact (which is now the first in compacts_to_process).
         # For all subsequent compacts, we start from the beginning with last_key = None.
         last_key = starting_last_key if compact_index == 0 else None
+        # Track the key used to fetch the current batch (needed for retry on indexing failure)
+        batch_start_key = last_key
         has_more = True
 
         while has_more:
@@ -126,8 +128,14 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
                 # Index any remaining documents before returning
                 if documents_to_index:
-                    indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index, stats)
-                    compact_stats['providers_indexed'] += indexed_count
+                    try:
+                        indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
+                        compact_stats['providers_indexed'] += indexed_count
+                    except CCInternalException as e:
+                        # Indexing failed after retries, return pagination info for manual retry
+                        return _build_error_response(
+                            stats, compact_stats, compact, batch_start_key, str(e),
+                        )
 
                 # Update stats for current compact
                 stats['total_providers_processed'] += compact_stats['providers_processed']
@@ -162,6 +170,9 @@ def populate_provider_documents(event: dict, context: LambdaContext):
             if last_key:
                 dynamo_pagination['lastKey'] = last_key
 
+            # Save the key used to fetch this batch (for retry if indexing fails)
+            batch_start_key = last_key
+
             # Query providers from the GSI
             result = data_client.get_providers_sorted_by_updated(
                 compact=compact,
@@ -195,7 +206,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                     provider_user_records = data_client.get_provider_user_records(
                         compact=compact,
                         provider_id=provider_id,
-                        consistent_read=False,  # Eventual consistency is fine for indexing
+                        consistent_read=True,
                     )
 
                     # Generate API response object with all nested records
@@ -235,14 +246,26 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
                 # Bulk index when batch is full
                 if len(documents_to_index) >= OPENSEARCH_BULK_SIZE:
-                    indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index, stats)
-                    compact_stats['providers_indexed'] += indexed_count
-                    documents_to_index = []
+                    try:
+                        indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
+                        compact_stats['providers_indexed'] += indexed_count
+                        documents_to_index = []
+                    except CCInternalException as e:
+                        # Indexing failed after retries, return pagination info for manual retry
+                        return _build_error_response(
+                            stats, compact_stats, compact, batch_start_key, str(e),
+                        )
 
         # Index any remaining documents for this compact
         if documents_to_index:
-            indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index, stats)
-            compact_stats['providers_indexed'] += indexed_count
+            try:
+                indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
+                compact_stats['providers_indexed'] += indexed_count
+            except CCInternalException as e:
+                # Indexing failed after retries, return pagination info for manual retry
+                return _build_error_response(
+                    stats, compact_stats, compact, batch_start_key, str(e),
+                )
 
         # Update overall stats
         stats['total_providers_processed'] += compact_stats['providers_processed']
@@ -273,63 +296,93 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     return stats
 
 
-def _bulk_index_documents(
-    opensearch_client: OpenSearchClient, index_name: str, documents: list[dict], stats: dict
-) -> int:
+def _build_error_response(
+    stats: dict, compact_stats: dict, compact: str, batch_start_key: dict | None, error_message: str
+) -> dict:
+    """
+    Build an error response with pagination info for retry after indexing failure.
+
+    :param stats: The overall statistics dictionary
+    :param compact_stats: The current compact's statistics
+    :param compact: The compact being processed when the error occurred
+    :param batch_start_key: The pagination key used to fetch the batch that failed to index
+    :param error_message: The error message from the failed indexing attempt
+    :return: Response dictionary with error info and pagination for retry
+    """
+    logger.error(
+        'Bulk indexing failed after retries, returning pagination info for retry',
+        compact=compact,
+        batch_start_key=batch_start_key,
+        error=error_message,
+    )
+
+    # Update stats for current compact
+    stats['total_providers_processed'] += compact_stats['providers_processed']
+    stats['total_providers_indexed'] += compact_stats['providers_indexed']
+    stats['total_providers_failed'] += compact_stats['providers_failed']
+    if compact_stats['providers_processed'] > 0:
+        stats['compacts_processed'].append(
+            {
+                'compact': compact,
+                **compact_stats,
+            }
+        )
+
+    # Return pagination info for retry - use batch_start_key so the failed batch is re-fetched
+    stats['completed'] = False
+    stats['resumeFrom'] = {
+        'startingCompact': compact,
+        'startingLastKey': batch_start_key,
+    }
+    stats['errors'].append(
+        {
+            'compact': compact,
+            'error': error_message,
+        }
+    )
+
+    return stats
+
+
+def _bulk_index_documents(opensearch_client: OpenSearchClient, index_name: str, documents: list[dict]) -> int:
     """
     Bulk index documents into OpenSearch.
 
     :param opensearch_client: The OpenSearch client
     :param index_name: The index to write to
     :param documents: List of documents to index
-    :param stats: Statistics dictionary to update with errors
     :return: Number of successfully indexed documents
+    :raises CCInternalException: If bulk indexing fails after max retry attempts
     """
     if not documents:
         return 0
 
-    try:
-        response = opensearch_client.bulk_index(index_name=index_name, documents=documents)
+    # This will raise CCInternalException if all retries fail
+    response = opensearch_client.bulk_index(index_name=index_name, documents=documents)
 
-        # Check for errors in the bulk response
-        if response.get('errors'):
-            error_count = 0
-            for item in response.get('items', []):
-                index_result = item.get('index', {})
-                if index_result.get('error'):
-                    error_count += 1
-                    logger.warning(
-                        'Bulk index item error',
-                        document_id=index_result.get('_id'),
-                        error=index_result.get('error'),
-                    )
-            logger.warning(
-                'Bulk index completed with errors',
-                index_name=index_name,
-                total_documents=len(documents),
-                error_count=error_count,
-            )
-            return len(documents) - error_count
-
-        logger.info(
-            'Indexed documents',
+    # Check for errors in the bulk response (individual document failures, not connection issues)
+    if response.get('errors'):
+        error_count = 0
+        for item in response.get('items', []):
+            index_result = item.get('index', {})
+            if index_result.get('error'):
+                error_count += 1
+                logger.warning(
+                    'Bulk index item error',
+                    document_id=index_result.get('_id'),
+                    error=index_result.get('error'),
+                )
+        logger.warning(
+            'Bulk index completed with errors',
             index_name=index_name,
-            document_count=len(documents),
+            total_documents=len(documents),
+            error_count=error_count,
         )
-        return len(documents)
+        return len(documents) - error_count
 
-    except Exception as e:
-        logger.exception(
-            'Failed to bulk index documents',
-            index_name=index_name,
-            document_count=len(documents),
-            error=str(e),
-        )
-        stats['errors'].append(
-            {
-                'index': index_name,
-                'error': f'Bulk index failed: {str(e)}',
-                'document_count': len(documents),
-            }
-        )
-        return 0
+    logger.info(
+        'Indexed documents',
+        index_name=index_name,
+        document_count=len(documents),
+    )
+    return len(documents)

@@ -251,3 +251,78 @@ class TestPopulateProviderDocuments(TstFunction):
         bulk_index_calls = mock_client_instance.bulk_index.call_args_list
         self.assertEqual(self._generate_expected_call_for_document('octp'), bulk_index_calls[0])
         self.assertEqual(self._generate_expected_call_for_document('coun'), bulk_index_calls[1])
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_returns_pagination_info_when_bulk_indexing_fails_after_retries(self, mock_opensearch_client):
+        """Test that the handler returns pagination info when bulk indexing fails after max retries.
+
+        This test verifies:
+        1. When CCInternalException is raised by bulk_index, the handler catches it
+        2. The response includes resumeFrom with the batch_start_key for retry
+        3. The developer can use this info to retry from the exact point of failure
+        """
+        from cc_common.exceptions import CCInternalException
+
+        from handlers.populate_provider_documents import TIME_THRESHOLD_MS, populate_provider_documents
+
+        # Set up the mock opensearch client to raise CCInternalException on second compact
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+
+        # First compact (aslp) succeeds, second compact (octp) fails with CCInternalException
+        mock_client_instance.bulk_index.side_effect = [
+            {'items': [], 'errors': False},  # aslp succeeds
+            CCInternalException('Connection timeout after 5 retries'),  # octp fails
+        ]
+
+        compacts = ['aslp', 'octp', 'coun']
+        # Add a provider and license record for each compact
+        for compact in compacts:
+            self._put_test_provider_and_license_record_in_dynamodb_table(compact)
+
+        # Mock the context to always return time above the cutoff threshold
+        mock_context = MagicMock()
+        mock_context.get_remaining_time_in_millis.return_value = TIME_THRESHOLD_MS + 60000
+
+        # Run the handler
+        result = populate_provider_documents({}, mock_context)
+
+        # Verify the result indicates incomplete processing
+        self.assertFalse(result['completed'])
+        self.assertIn('resumeFrom', result)
+
+        # Verify resumeFrom points to octp with the batch_start_key (None since it's the first batch)
+        self.assertEqual('octp', result['resumeFrom']['startingCompact'])
+        # startingLastKey should be None since it was the first batch of octp
+        self.assertIsNone(result['resumeFrom']['startingLastKey'])
+
+        # Verify aslp was indexed but octp was not
+        self.assertEqual(1, result['total_providers_indexed'])
+
+        # Verify errors list contains the failure info
+        self.assertEqual(1, len(result['errors']))
+        self.assertEqual('octp', result['errors'][0]['compact'])
+        self.assertIn('Connection timeout', result['errors'][0]['error'])
+
+        # Now verify that using resumeFrom allows completing the indexing
+        mock_opensearch_client.reset_mock()
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+        mock_client_instance.bulk_index.return_value = {'items': [], 'errors': False}
+
+        # Build the resume event from the first result
+        resume_event = {
+            'startingCompact': result['resumeFrom']['startingCompact'],
+            'startingLastKey': result['resumeFrom']['startingLastKey'],
+        }
+
+        # Run the second invocation
+        second_result = populate_provider_documents(resume_event, mock_context)
+
+        # Verify second invocation completed successfully
+        self.assertTrue(second_result['completed'])
+        self.assertNotIn('resumeFrom', second_result)
+
+        # Verify octp and coun were indexed
+        self.assertEqual(2, second_result['total_providers_indexed'])
+        self.assertEqual(2, mock_client_instance.bulk_index.call_count)

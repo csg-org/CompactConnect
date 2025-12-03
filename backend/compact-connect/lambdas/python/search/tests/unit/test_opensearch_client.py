@@ -1,6 +1,8 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+from opensearchpy.exceptions import ConnectionTimeout, TransportError
+
 
 class TestOpenSearchClient(TestCase):
     """Test suite for OpenSearchClient to verify internal client calls."""
@@ -122,6 +124,7 @@ class TestOpenSearchClient(TestCase):
         mock_internal_client.bulk.assert_called_once_with(
             body=expected_actions,
             index=index_name,
+            timeout=30
         )
         self.assertEqual(expected_response, result)
 
@@ -147,6 +150,7 @@ class TestOpenSearchClient(TestCase):
         mock_internal_client.bulk.assert_called_once_with(
             body=expected_actions,
             index=index_name,
+            timeout=30
         )
 
     def test_bulk_index_returns_early_for_empty_documents(self):
@@ -157,3 +161,101 @@ class TestOpenSearchClient(TestCase):
 
         mock_internal_client.bulk.assert_not_called()
         self.assertEqual({'items': [], 'errors': False}, result)
+
+    @patch('opensearch_client.time.sleep')
+    def test_bulk_index_retries_on_connection_timeout_and_succeeds(self, mock_sleep):
+        """Test that bulk_index retries on ConnectionTimeout and eventually succeeds."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        documents = [{'providerId': 'provider-1', 'givenName': 'John'}]
+        expected_response = {'errors': False, 'items': [{'index': {'_id': 'provider-1'}}]}
+
+        # First two calls fail with ConnectionTimeout, third succeeds
+        mock_internal_client.bulk.side_effect = [
+            ConnectionTimeout('Connection timed out', 503, 'some error'),
+            ConnectionTimeout('Connection timed out', 503, 'some error'),
+            expected_response,
+        ]
+
+        result = client.bulk_index(index_name=index_name, documents=documents)
+
+        # Verify bulk was called 3 times
+        self.assertEqual(3, mock_internal_client.bulk.call_count)
+        # Verify sleep was called with exponential backoff (1s, 2s)
+        self.assertEqual(2, mock_sleep.call_count)
+        mock_sleep.assert_any_call(1)
+        mock_sleep.assert_any_call(2)
+        # Verify we got the successful response
+        self.assertEqual(expected_response, result)
+
+    @patch('opensearch_client.time.sleep')
+    def test_bulk_index_retries_on_transport_error_and_succeeds(self, mock_sleep):
+        """Test that bulk_index retries on TransportError and eventually succeeds."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        documents = [{'providerId': 'provider-1', 'givenName': 'John'}]
+        expected_response = {'errors': False, 'items': [{'index': {'_id': 'provider-1'}}]}
+
+        # First call fails with TransportError, second succeeds
+        mock_internal_client.bulk.side_effect = [
+            TransportError(503, 'ReadTimeout'),
+            expected_response,
+        ]
+
+        result = client.bulk_index(index_name=index_name, documents=documents)
+
+        # Verify bulk was called 2 times
+        self.assertEqual(2, mock_internal_client.bulk.call_count)
+        # Verify sleep was called once
+        self.assertEqual(1, mock_sleep.call_count)
+        self.assertEqual(expected_response, result)
+
+    @patch('opensearch_client.time.sleep')
+    def test_bulk_index_raises_cc_internal_exception_after_max_retries(self, mock_sleep):
+        """Test that bulk_index raises CCInternalException after all retry attempts fail."""
+        from cc_common.exceptions import CCInternalException
+        from opensearch_client import MAX_RETRY_ATTEMPTS
+
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        documents = [{'providerId': 'provider-1', 'givenName': 'John'}]
+
+        # All calls fail with ConnectionTimeout
+        mock_internal_client.bulk.side_effect = ConnectionTimeout('Connection timed out', 503, 'some error')
+
+        with self.assertRaises(CCInternalException) as context:
+            client.bulk_index(index_name=index_name, documents=documents)
+
+        # Verify bulk was called MAX_RETRY_ATTEMPTS times
+        self.assertEqual(MAX_RETRY_ATTEMPTS, mock_internal_client.bulk.call_count)
+        # Verify sleep was called MAX_RETRY_ATTEMPTS - 1 times (no sleep after last failure)
+        self.assertEqual(MAX_RETRY_ATTEMPTS - 1, mock_sleep.call_count)
+        # Verify the exception message contains useful info
+        self.assertIn('Failed to bulk index', str(context.exception))
+        self.assertIn(index_name, str(context.exception))
+        self.assertIn(str(MAX_RETRY_ATTEMPTS), str(context.exception))
+
+    @patch('opensearch_client.time.sleep')
+    def test_bulk_index_exponential_backoff_caps_at_max(self, mock_sleep):
+        """Test that exponential backoff is capped at MAX_BACKOFF_SECONDS."""
+        from opensearch_client import MAX_BACKOFF_SECONDS
+
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        documents = [{'providerId': 'provider-1', 'givenName': 'John'}]
+
+        # All calls fail
+        mock_internal_client.bulk.side_effect = ConnectionTimeout('Connection timed out', 503, 'some error')
+
+        with self.assertRaises(Exception):
+            client.bulk_index(index_name=index_name, documents=documents)
+
+        # Verify backoff values: 1, 2, 4, 8 (all should be <= MAX_BACKOFF_SECONDS)
+        # With MAX_RETRY_ATTEMPTS = 5, we have 4 sleeps
+        sleep_calls = [call[0][0] for call in mock_sleep.call_args_list]
+        for sleep_value in sleep_calls:
+            self.assertLessEqual(sleep_value, MAX_BACKOFF_SECONDS)
