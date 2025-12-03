@@ -48,7 +48,6 @@ class PopulateProviderDocumentsHandler(Construct):
         :param vpc_subnets: The VPC subnets for Lambda deployment
         :param lambda_role: The IAM role for the Lambda function (should have OpenSearch write access)
         :param provider_table: The DynamoDB provider table
-        :param provider_date_of_update_index_name: The name of the providerDateOfUpdate GSI
         :param alarm_topic: The SNS topic for alarms
         """
         super().__init__(scope, construct_id)

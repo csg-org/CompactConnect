@@ -201,7 +201,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
                 'Namespace': 'AWS/ES',
                 'Threshold': 70,
                 'ComparisonOperator': 'GreaterThanThreshold',
-                'EvaluationPeriods': 6,
+                'EvaluationPeriods': 3,
             },
         )
 
