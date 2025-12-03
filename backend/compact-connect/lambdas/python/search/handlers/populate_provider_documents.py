@@ -7,6 +7,17 @@ into OpenSearch.
 
 This Lambda is intended to be invoked manually through the AWS console for
 initial data population or re-indexing operations.
+
+The Lambda supports pagination across multiple invocations. If processing
+cannot complete within 12 minutes, it will return the current compact and
+last pagination key. The developer can then re-invoke the Lambda with this
+output as input to continue processing.
+
+Example input for resumption:
+{
+    "startingCompact": "aslp",
+    "startingLastKey": {"pk": "...", "sk": "..."}
+}
 """
 
 import json
@@ -21,11 +32,14 @@ from opensearch_client import OpenSearchClient
 
 # Batch size for DynamoDB pagination
 DYNAMODB_PAGE_SIZE = 1000
-# Batch size for OpenSearch bulk indexing
-OPENSEARCH_BULK_SIZE = 100
+# Batch size for OpenSearch bulk indexing (1 provider averages ~2KB, 1000 * 2KB = 2MB)
+OPENSEARCH_BULK_SIZE = 1000
+# Time threshold in milliseconds - stop when less than 3 minutes remain
+# This leaves a 3-minute buffer before the 15-minute Lambda timeout
+TIME_THRESHOLD_MS = 60 * 3000
 
 
-def populate_provider_documents(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def populate_provider_documents(event: dict, context: LambdaContext):
     """
     Populate OpenSearch indices with provider documents.
 
@@ -33,12 +47,21 @@ def populate_provider_documents(event: dict, context: LambdaContext):  # noqa: A
     retrieves complete provider records, sanitizes them using ProviderGeneralResponseSchema,
     and bulk indexes them into the appropriate compact-specific OpenSearch index.
 
-    :param event: Lambda event (not used, but required for Lambda signature)
+    If processing cannot complete within 13 minutes, the function returns pagination
+    information that can be passed as input to continue processing.
+
+    :param event: Lambda event with optional pagination parameters:
+        - startingCompact: The compact to start/resume processing from
+        - startingLastKey: The DynamoDB pagination key to resume from
     :param context: Lambda context
-    :return: Summary of indexing operation
+    :return: Summary of indexing operation, including pagination info if incomplete
     """
     data_client = config.data_client
     opensearch_client = OpenSearchClient()
+
+    # Get optional pagination parameters from event for resumption
+    starting_compact = event.get('startingCompact')
+    starting_last_key = event.get('startingLastKey')
 
     # Track statistics
     stats = {
@@ -47,9 +70,30 @@ def populate_provider_documents(event: dict, context: LambdaContext):  # noqa: A
         'total_providers_failed': 0,
         'compacts_processed': [],
         'errors': [],
+        'completed': True,  # Will be set to False if we need to paginate
     }
 
-    for compact in config.compacts:
+    # Determine which compacts to process
+    compacts_to_process = config.compacts
+
+    # If resuming, skip compacts before the starting compact
+    if starting_compact:
+        if starting_compact in compacts_to_process:
+            start_index = compacts_to_process.index(starting_compact)
+            compacts_to_process = compacts_to_process[start_index:]
+            logger.info(
+                'Resuming from compact',
+                starting_compact=starting_compact,
+                starting_last_key=starting_last_key,
+            )
+        else:
+            logger.warning(
+                'Starting compact not found, processing all compacts',
+                starting_compact=starting_compact,
+            )
+            starting_last_key = None  # Reset last key if compact not found
+
+    for compact_index, compact in enumerate(compacts_to_process):
         logger.info('Processing compact', compact=compact)
         index_name = f'compact_{compact}_providers'
 
@@ -61,10 +105,58 @@ def populate_provider_documents(event: dict, context: LambdaContext):  # noqa: A
         }
 
         # Track pagination state
-        last_key = None
+        # Use starting_last_key only for the first compact being processed (resumption case).
+        # The starting_last_key is specific to the compact that was being processed when we timed out,
+        # so it's only valid for that compact (which is now the first in compacts_to_process).
+        # For all subsequent compacts, we start from the beginning with last_key = None.
+        last_key = starting_last_key if compact_index == 0 else None
         has_more = True
 
         while has_more:
+            # Check if we're running out of time before starting a new batch
+            remaining_time_ms = context.get_remaining_time_in_millis()
+            if remaining_time_ms < TIME_THRESHOLD_MS:
+                # We need to stop and return pagination info for resumption
+                logger.info(
+                    'Approaching time limit, returning pagination info',
+                    remaining_time_ms=remaining_time_ms,
+                    current_compact=compact,
+                    last_key=last_key,
+                )
+
+                # Index any remaining documents before returning
+                if documents_to_index:
+                    indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index, stats)
+                    compact_stats['providers_indexed'] += indexed_count
+
+                # Update stats for current compact
+                stats['total_providers_processed'] += compact_stats['providers_processed']
+                stats['total_providers_indexed'] += compact_stats['providers_indexed']
+                stats['total_providers_failed'] += compact_stats['providers_failed']
+                if compact_stats['providers_processed'] > 0:
+                    stats['compacts_processed'].append(
+                        {
+                            'compact': compact,
+                            **compact_stats,
+                        }
+                    )
+
+                # Return pagination info for resumption
+                stats['completed'] = False
+                stats['resumeFrom'] = {
+                    'startingCompact': compact,
+                    'startingLastKey': last_key,
+                }
+
+                logger.info(
+                    'Returning for pagination',
+                    total_providers_processed=stats['total_providers_processed'],
+                    total_providers_indexed=stats['total_providers_indexed'],
+                    resume_from=stats['resumeFrom'],
+                )
+
+                return stats
+
             # Build pagination parameters
             dynamo_pagination = {'pageSize': DYNAMODB_PAGE_SIZE}
             if last_key:
