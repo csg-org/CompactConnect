@@ -196,9 +196,7 @@ def main():
     parser.add_argument(
         '-i', '--internal', action='store_true', help='Use internal API specification files instead of regular ones'
     )
-    parser.add_argument(
-        '-s', '--search', action='store_true', help='Use search API specification files'
-    )
+    parser.add_argument('-s', '--search', action='store_true', help='Use search API specification files')
 
     args = parser.parse_args()
 

@@ -216,7 +216,7 @@ class UserPool(CdkUserPool):
             suppressions=[
                 {
                     'id': 'AwsSolutions-L1',
-                    'reason': 'We do not maintain this lambda runtime. It will be updated with future CDK versions'
+                    'reason': 'We do not maintain this lambda runtime. It will be updated with future CDK versions',
                 },
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',

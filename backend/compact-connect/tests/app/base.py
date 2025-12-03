@@ -270,26 +270,31 @@ class TstAppABC(ABC):
             {
                 'Properties': {
                     'KeyPolicy': {
-                        'Statement': Match.array_with([
-                            {
-                                'Action': 'kms:*',
-                                'Effect': 'Allow',
-                                'Principal': {'AWS': f'arn:aws:iam::{persistent_stack.account}:root'},
-                                'Resource': '*',
-                            },
-                            {
-                                'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
-                                'Condition': {
-                                    'StringNotEquals': {
-                                        'aws:PrincipalArn': principal_arn_array,
-                                        'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
-                                    }
+                        'Statement': Match.array_with(
+                            [
+                                {
+                                    'Action': 'kms:*',
+                                    'Effect': 'Allow',
+                                    'Principal': {'AWS': f'arn:aws:iam::{persistent_stack.account}:root'},
+                                    'Resource': '*',
                                 },
-                                'Effect': 'Deny',
-                                'Principal': '*',
-                                'Resource': '*',
-                            },
-                        ]),
+                                {
+                                    'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
+                                    'Condition': {
+                                        'StringNotEquals': {
+                                            'aws:PrincipalArn': principal_arn_array,
+                                            'aws:PrincipalServiceName': [
+                                                'dynamodb.amazonaws.com',
+                                                'events.amazonaws.com',
+                                            ],
+                                        }
+                                    },
+                                    'Effect': 'Deny',
+                                    'Principal': '*',
+                                    'Resource': '*',
+                                },
+                            ]
+                        ),
                         'Version': '2012-10-17',
                     }
                 }
@@ -305,59 +310,53 @@ class TstAppABC(ABC):
                     'TableName': 'ssn-table-DataEventsLog',
                     'ResourcePolicy': {
                         'PolicyDocument': {
-                            'Statement': Match.array_with([
-                                {
-                                    'Effect': 'Deny',
-                                    'Principal': '*',
-                                    'Resource': '*',
-                                    'Action': 'dynamodb:CreateBackup',
-                                    'Condition': {
-                                        'StringNotEquals': {
-                                            'aws:PrincipalServiceName': 'dynamodb.amazonaws.com'
-                                        }
-                                    }
-                                },
-                                {
-                                    'Effect': 'Deny',
-                                    'Principal': '*',
-                                    'Resource': '*',
-                                    'Action': [
-                                        'dynamodb:BatchGetItem',
-                                        'dynamodb:BatchWriteItem',
-                                        'dynamodb:PartiQL*',
-                                        'dynamodb:Scan',
-                                    ],
-                                    'Condition': {
-                                        'StringNotEquals': {
-                                            'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
-                                            'aws:PrincipalArn': Match.any_value(),
-                                        }
+                            'Statement': Match.array_with(
+                                [
+                                    {
+                                        'Effect': 'Deny',
+                                        'Principal': '*',
+                                        'Resource': '*',
+                                        'Action': 'dynamodb:CreateBackup',
+                                        'Condition': {
+                                            'StringNotEquals': {'aws:PrincipalServiceName': 'dynamodb.amazonaws.com'}
+                                        },
                                     },
-                                },
-                                {
-                                    "Action": [
-                                        "dynamodb:ConditionCheckItem",
-                                        "dynamodb:GetItem",
-                                        "dynamodb:Query"
-                                    ],
-                                    "Effect": "Deny",
-                                    "Principal": "*",
-                                    "NotResource": Match.string_like_regexp(
-                                        f"arn:aws:dynamodb:{persistent_stack.region}:{persistent_stack.account}:table/ssn-table-DataEventsLog/index/ssnIndex"
-                                    )
-                                },
-                            ])
+                                    {
+                                        'Effect': 'Deny',
+                                        'Principal': '*',
+                                        'Resource': '*',
+                                        'Action': [
+                                            'dynamodb:BatchGetItem',
+                                            'dynamodb:BatchWriteItem',
+                                            'dynamodb:PartiQL*',
+                                            'dynamodb:Scan',
+                                        ],
+                                        'Condition': {
+                                            'StringNotEquals': {
+                                                'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
+                                                'aws:PrincipalArn': Match.any_value(),
+                                            }
+                                        },
+                                    },
+                                    {
+                                        'Action': ['dynamodb:ConditionCheckItem', 'dynamodb:GetItem', 'dynamodb:Query'],
+                                        'Effect': 'Deny',
+                                        'Principal': '*',
+                                        'NotResource': Match.string_like_regexp(
+                                            f'arn:aws:dynamodb:{persistent_stack.region}:{persistent_stack.account}:table/ssn-table-DataEventsLog/index/ssnIndex'
+                                        ),
+                                    },
+                                ]
+                            )
                         }
                     },
                     'SSESpecification': {
-                        'KMSMasterKeyId': {
-                            'Fn::GetAtt': [ssn_key_logical_id, 'Arn']
-                        },
+                        'KMSMasterKeyId': {'Fn::GetAtt': [ssn_key_logical_id, 'Arn']},
                         'SSEEnabled': True,
                         'SSEType': 'KMS',
-                    }
+                    },
                 }
-            }
+            },
         )
 
     def _inspect_backup_resources(self, persistent_stack: PersistentStack, persistent_stack_template: Template):

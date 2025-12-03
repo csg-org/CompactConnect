@@ -568,4 +568,3 @@ class ProviderSearchDomain(Construct):
             ],
             apply_to_children=True,
         )
-
