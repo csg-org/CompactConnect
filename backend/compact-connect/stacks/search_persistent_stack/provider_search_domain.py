@@ -417,7 +417,7 @@ class ProviderSearchDomain(Construct):
                 period=Duration.minutes(5),
                 statistic='Average',
             ),
-            evaluation_periods=3,  # 30 minutes sustained
+            evaluation_periods=3,  # 15 minutes sustained
             threshold=70,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,

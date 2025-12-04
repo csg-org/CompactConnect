@@ -47,7 +47,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     retrieves complete provider records, sanitizes them using ProviderGeneralResponseSchema,
     and bulk indexes them into the appropriate compact-specific OpenSearch index.
 
-    If processing cannot complete within 13 minutes, the function returns pagination
+    If processing cannot complete within 12 minutes, the function returns pagination
     information that can be passed as input to continue processing.
 
     :param event: Lambda event with optional pagination parameters:
