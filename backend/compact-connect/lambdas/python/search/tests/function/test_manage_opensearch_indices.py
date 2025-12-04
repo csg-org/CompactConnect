@@ -212,6 +212,8 @@ class TestOpenSearchIndexManager(TstFunction):
                                 },
                                 'type': 'nested',
                             },
+                            'militaryStatus': {'type': 'keyword'},
+                            'militaryStatusNote': {'type': 'text'},
                             'npi': {'type': 'keyword'},
                             'privilegeJurisdictions': {'type': 'keyword'},
                             'privileges': {

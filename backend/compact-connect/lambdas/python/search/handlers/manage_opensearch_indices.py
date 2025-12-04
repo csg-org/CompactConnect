@@ -226,6 +226,8 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'providerFamGivMid': {'type': 'keyword'},
                     'providerDateOfUpdate': {'type': 'date'},
                     'birthMonthDay': {'type': 'keyword'},
+                    'militaryStatus': {'type': 'keyword'},
+                    'militaryStatusNote': {'type': 'text'},
                     # Nested arrays
                     'licenses': {'type': 'nested', 'properties': license_properties},
                     'privileges': {'type': 'nested', 'properties': privilege_properties},
