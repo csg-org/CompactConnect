@@ -188,8 +188,8 @@ class TestPopulateProviderDocuments(TstFunction):
         from handlers.populate_provider_documents import TIME_THRESHOLD_MS, populate_provider_documents
 
         # Time values for mocking (in milliseconds)
-        PLENTY_OF_TIME_MS = TIME_THRESHOLD_MS + 60000  # Above threshold, continue processing
-        LOW_TIME_MS = TIME_THRESHOLD_MS - 1000  # Below threshold, trigger timeout
+        time_before_cutoff = TIME_THRESHOLD_MS + 60000  # before cutoff time, continue processing
+        time_after_cutoff = TIME_THRESHOLD_MS - 1000  # after cutoff time, trigger timeout
 
         # Set up the mock opensearch client
         mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
@@ -204,7 +204,7 @@ class TestPopulateProviderDocuments(TstFunction):
         # - Call 1: Processing aslp, plenty of time -> continue
         # - Call 2: About to process octp, low time -> timeout and return
         mock_context = MagicMock()
-        mock_context.get_remaining_time_in_millis.side_effect = [PLENTY_OF_TIME_MS, LOW_TIME_MS]
+        mock_context.get_remaining_time_in_millis.side_effect = [time_before_cutoff, time_after_cutoff]
 
         # Run the first invocation
         first_result = populate_provider_documents({}, mock_context)
@@ -228,7 +228,7 @@ class TestPopulateProviderDocuments(TstFunction):
         # Mock time to allow completion - needs enough calls for both octp and coun
         # - Call 1: Processing octp, plenty of time -> continue
         # - Call 2: Processing coun, plenty of time -> continue
-        mock_context.get_remaining_time_in_millis.side_effect = [PLENTY_OF_TIME_MS, PLENTY_OF_TIME_MS]
+        mock_context.get_remaining_time_in_millis.side_effect = [time_before_cutoff, time_before_cutoff]
 
         # Build the resume event from the first result
         resume_event = {
@@ -262,7 +262,6 @@ class TestPopulateProviderDocuments(TstFunction):
         3. The developer can use this info to retry from the exact point of failure
         """
         from cc_common.exceptions import CCInternalException
-
         from handlers.populate_provider_documents import TIME_THRESHOLD_MS, populate_provider_documents
 
         # Set up the mock opensearch client to raise CCInternalException on second compact

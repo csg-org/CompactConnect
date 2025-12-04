@@ -134,7 +134,11 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                     except CCInternalException as e:
                         # Indexing failed after retries, return pagination info for manual retry
                         return _build_error_response(
-                            stats, compact_stats, compact, batch_start_key, str(e),
+                            stats,
+                            compact_stats,
+                            compact,
+                            batch_start_key,
+                            str(e),
                         )
 
                 # Update stats for current compact
@@ -234,15 +238,6 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                     )
                     compact_stats['providers_failed'] += 1
                     continue
-                except Exception as e:
-                    logger.exception(
-                        'Unexpected error processing provider',
-                        provider_id=provider_id,
-                        compact=compact,
-                        error=str(e),
-                    )
-                    compact_stats['providers_failed'] += 1
-                    continue
 
                 # Bulk index when batch is full
                 if len(documents_to_index) >= OPENSEARCH_BULK_SIZE:
@@ -253,7 +248,11 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                     except CCInternalException as e:
                         # Indexing failed after retries, return pagination info for manual retry
                         return _build_error_response(
-                            stats, compact_stats, compact, batch_start_key, str(e),
+                            stats,
+                            compact_stats,
+                            compact,
+                            batch_start_key,
+                            str(e),
                         )
 
         # Index any remaining documents for this compact
@@ -264,7 +263,11 @@ def populate_provider_documents(event: dict, context: LambdaContext):
             except CCInternalException as e:
                 # Indexing failed after retries, return pagination info for manual retry
                 return _build_error_response(
-                    stats, compact_stats, compact, batch_start_key, str(e),
+                    stats,
+                    compact_stats,
+                    compact,
+                    batch_start_key,
+                    str(e),
                 )
 
         # Update overall stats

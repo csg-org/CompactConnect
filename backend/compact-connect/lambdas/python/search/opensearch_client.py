@@ -23,7 +23,6 @@ class OpenSearchClient:
             verify_certs=True,
             connection_class=RequestsHttpConnection,
             pool_maxsize=20,
-
         )
 
     def create_index(self, index_name: str, index_mapping: dict) -> None:

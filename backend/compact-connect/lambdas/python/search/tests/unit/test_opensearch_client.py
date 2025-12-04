@@ -1,6 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+from cc_common.exceptions import CCInternalException
 from opensearchpy.exceptions import ConnectionTimeout, TransportError
 
 
@@ -121,11 +122,7 @@ class TestOpenSearchClient(TestCase):
             {'index': {'_id': 'provider-2'}},
             {'providerId': 'provider-2', 'givenName': 'Jane', 'familyName': 'Smith'},
         ]
-        mock_internal_client.bulk.assert_called_once_with(
-            body=expected_actions,
-            index=index_name,
-            timeout=30
-        )
+        mock_internal_client.bulk.assert_called_once_with(body=expected_actions, index=index_name, timeout=30)
         self.assertEqual(expected_response, result)
 
     def test_bulk_index_uses_custom_id_field(self):
@@ -147,11 +144,7 @@ class TestOpenSearchClient(TestCase):
             {'index': {'_id': 'custom-2'}},
             {'customId': 'custom-2', 'name': 'Document 2'},
         ]
-        mock_internal_client.bulk.assert_called_once_with(
-            body=expected_actions,
-            index=index_name,
-            timeout=30
-        )
+        mock_internal_client.bulk.assert_called_once_with(body=expected_actions, index=index_name, timeout=30)
 
     def test_bulk_index_returns_early_for_empty_documents(self):
         """Test that bulk_index returns early without calling the internal client for empty documents."""
@@ -251,7 +244,7 @@ class TestOpenSearchClient(TestCase):
         # All calls fail
         mock_internal_client.bulk.side_effect = ConnectionTimeout('Connection timed out', 503, 'some error')
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(CCInternalException):
             client.bulk_index(index_name=index_name, documents=documents)
 
         # Verify backoff values: 1, 2, 4, 8 (all should be <= MAX_BACKOFF_SECONDS)
