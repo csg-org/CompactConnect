@@ -9,9 +9,9 @@ from stacks import search_persistent_stack
 from .api_model import ApiModel
 
 
-class ProviderSearch:
+class PrivilegeSearch:
     """
-    These endpoints are used by state IT systems to view provider records
+    Endpoint for searching privileges in the OpenSearch domain.
     """
 
     def __init__(
@@ -28,32 +28,29 @@ class ProviderSearch:
         self.api: CCApi = resource.api
         self.api_model = api_model
 
-        # Create the nested resources used by endpoints
-        self.provider_resource = self.resource.add_resource('{providerId}')
-
-        self._add_search_providers(
+        self._add_search_privileges(
             method_options=method_options,
             search_persistent_stack=search_persistent_stack,
         )
 
-    def _add_search_providers(
+    def _add_search_privileges(
         self,
         method_options: MethodOptions,
         search_persistent_stack: search_persistent_stack.SearchPersistentStack,
     ):
         search_resource = self.resource.add_resource('search')
 
-        # Get the search providers handler from the search persistent stack
+        # Get the search handler from the search persistent stack (same handler as provider search)
         handler = search_persistent_stack.search_handler.handler
 
         search_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
-            request_models={'application/json': self.api_model.search_providers_request_model},
+            request_models={'application/json': self.api_model.search_privileges_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={'application/json': self.api_model.search_providers_response_model},
+                    response_models={'application/json': self.api_model.search_privileges_response_model},
                 ),
             ],
             integration=LambdaIntegration(handler, timeout=Duration.seconds(29)),
@@ -62,3 +59,4 @@ class ProviderSearch:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes,
         )
+

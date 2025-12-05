@@ -10,7 +10,7 @@ from stacks.persistent_stack import PersistentStack
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
 from stacks.search_persistent_stack.populate_provider_documents_handler import PopulateProviderDocumentsHandler
 from stacks.search_persistent_stack.provider_search_domain import ProviderSearchDomain
-from stacks.search_persistent_stack.search_providers_handler import SearchProvidersHandler
+from stacks.search_persistent_stack.search_handler import SearchHandler
 from stacks.vpc_stack import VpcStack
 
 
@@ -121,9 +121,9 @@ class SearchPersistentStack(AppStack):
         )
 
         # Create the search providers handler for API Gateway integration
-        self.search_providers_handler = SearchProvidersHandler(
+        self.search_handler = SearchHandler(
             self,
-            construct_id='searchProvidersHandler',
+            construct_id='searchHandler',
             opensearch_domain=self.provider_search_domain.domain,
             vpc_stack=vpc_stack,
             vpc_subnets=self.provider_search_domain.vpc_subnets,

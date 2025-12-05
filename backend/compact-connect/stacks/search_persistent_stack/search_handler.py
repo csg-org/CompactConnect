@@ -14,12 +14,12 @@ from common_constructs.python_function import PythonFunction
 from stacks.vpc_stack import VpcStack
 
 
-class SearchProvidersHandler(Construct):
+class SearchHandler(Construct):
     """
-    Construct for the Search Providers Lambda function.
+    Construct for the Search Lambda function.
 
     This construct creates the Lambda function that handles search requests
-    against the OpenSearch domain for provider records.
+    against the OpenSearch domain for both provider and privilege records.
     """
 
     def __init__(
@@ -33,7 +33,7 @@ class SearchProvidersHandler(Construct):
         alarm_topic: ITopic,
     ):
         """
-        Initialize the SearchProvidersHandler construct.
+        Initialize the SearchHandler construct.
 
         :param scope: The scope of the construct
         :param construct_id: The id of the construct
@@ -46,14 +46,14 @@ class SearchProvidersHandler(Construct):
         super().__init__(scope, construct_id)
         stack = Stack.of(scope)
 
-        # Create Lambda function for searching providers
+        # Create Lambda function for searching providers and privileges
         self.handler = PythonFunction(
             self,
             'SearchProvidersFunction',
-            description='Search providers handler for OpenSearch queries',
-            index=os.path.join('handlers', 'search_providers.py'),
+            description='Search handler for OpenSearch queries',
+            index=os.path.join('handlers', 'search.py'),
             lambda_dir='search',
-            handler='search_providers',
+            handler='search_api_handler',
             role=lambda_role,
             log_retention=RetentionDays.ONE_MONTH,
             environment={
