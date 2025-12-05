@@ -6,9 +6,9 @@
 #
 aws-lambda-powertools==3.23.0
     # via -r lambdas/python/cognito-backup/requirements.in
-boto3==1.42.1
+boto3==1.42.3
     # via -r lambdas/python/cognito-backup/requirements.in
-botocore==1.42.1
+botocore==1.42.3
     # via
     #   -r lambdas/python/cognito-backup/requirements.in
     #   boto3
@@ -26,5 +26,5 @@ six==1.17.0
     # via python-dateutil
 typing-extensions==4.15.0
     # via aws-lambda-powertools
-urllib3==2.5.0
+urllib3==2.6.0
     # via botocore

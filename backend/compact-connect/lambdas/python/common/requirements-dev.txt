@@ -16,21 +16,21 @@ aws-sam-translator==1.105.0
     # via cfn-lint
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.42.1
+boto3==1.42.3
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.41.5
+boto3-stubs[full]==1.42.3
     # via -r lambdas/python/common/requirements-dev.in
-boto3-stubs-full==1.41.5
+boto3-stubs-full==1.42.3
     # via boto3-stubs
-botocore==1.42.1
+botocore==1.42.3
     # via
     #   aws-xray-sdk
     #   boto3
     #   moto
     #   s3transfer
-botocore-stubs==1.42.1
+botocore-stubs==1.42.3
     # via boto3-stubs
 certifi==2025.11.12
     # via requests
@@ -150,7 +150,7 @@ six==1.17.0
     #   rfc3339-validator
 sympy==1.14.0
     # via cfn-lint
-types-awscrt==0.29.1
+types-awscrt==0.29.2
     # via botocore-stubs
 types-s3transfer==0.15.0
     # via boto3-stubs
@@ -166,7 +166,7 @@ typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via faker
-urllib3==2.5.0
+urllib3==2.6.0
     # via
     #   botocore
     #   docker

@@ -58,7 +58,7 @@ pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.5.2
     # via -r requirements-dev.in
-platformdirs==4.5.0
+platformdirs==4.5.1
     # via pip-audit
 pluggy==1.6.0
     # via
@@ -88,7 +88,7 @@ requests==2.32.5
     #   pip-audit
 rich==14.2.0
     # via pip-audit
-ruff==0.14.7
+ruff==0.14.8
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
@@ -100,7 +100,7 @@ typing-extensions==4.15.0
     # via cyclonedx-python-lib
 tzdata==2025.2
     # via faker
-urllib3==2.5.0
+urllib3==2.6.0
     # via requests
 wheel==0.45.1
     # via pip-tools
