@@ -154,7 +154,7 @@ class ProviderSearchDomain(Construct):
         self.domain = Domain(
             self,
             'Domain',
-            version=EngineVersion.OPENSEARCH_3_1,
+            version=EngineVersion.OPENSEARCH_3_3,
             capacity=capacity_config,
             # VPC configuration for network isolation
             vpc=vpc_stack.vpc,
@@ -366,8 +366,10 @@ class ProviderSearchDomain(Construct):
 
         These proactive thresholds give the DevOps team time to plan scaling activities:
         - Free Storage Space < 50% of allocated capacity
-        - JVM Memory Pressure > 70%
-        - CPU Utilization > 60%
+        - JVM Memory Pressure > 85%
+        - CPU Utilization > 70%
+        - Cluster Status (red/yellow) for critical and degraded states
+        - Automated Snapshot Failure for backup issues
 
         :param environment_name: The deployment environment name
         :param alarm_topic: The SNS topic to send alarm notifications to
@@ -405,7 +407,7 @@ class ProviderSearchDomain(Construct):
             ),
         ).add_alarm_action(SnsAction(alarm_topic))
 
-        # Alarm: JVM Memory Pressure > 70%
+        # Alarm: JVM Memory Pressure > 85%
         # Sustained high memory pressure indicates need for instance scaling
         Alarm(
             self,
@@ -415,20 +417,20 @@ class ProviderSearchDomain(Construct):
                 metric_name='JVMMemoryPressure',
                 dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': stack.account},
                 period=Duration.minutes(5),
-                statistic='Average',
+                statistic='Maximum',
             ),
             evaluation_periods=3,  # 15 minutes sustained
-            threshold=70,
+            threshold=85,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=(
-                f'OpenSearch Domain {self.domain.domain_name} JVM memory pressure is above 70%. '
+                f'OpenSearch Domain {self.domain.domain_name} JVM memory pressure is above 85%. '
                 'This indicates the cluster is using a significant portion of its heap memory. '
                 'Consider scaling to larger instance types if pressure continues to increase.'
             ),
         ).add_alarm_action(SnsAction(alarm_topic))
 
-        # Alarm: CPU Utilization > 60%
+        # Alarm: CPU Utilization > 70%
         # Sustained high CPU indicates need for more compute capacity
         Alarm(
             self,
@@ -441,13 +443,80 @@ class ProviderSearchDomain(Construct):
                 statistic='Average',
             ),
             evaluation_periods=3,  # 15 minutes sustained
-            threshold=60,
+            threshold=70,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=(
-                f'OpenSearch Domain {self.domain.domain_name} CPU utilization has been above 60% for 15 minutes. '
+                f'OpenSearch Domain {self.domain.domain_name} CPU utilization has been above 70% for 15 minutes. '
                 'This indicates sustained high load. Review metrics and consider scaling to larger instance types '
                 'or adding more data nodes to distribute the load.'
+            ),
+        ).add_alarm_action(SnsAction(alarm_topic))
+
+        # Alarm: Cluster Status RED - Critical
+        # Red status indicates critical issues requiring immediate attention
+        Alarm(
+            self,
+            'ClusterStatusRedAlarm',
+            metric=Metric(
+                namespace='AWS/ES',
+                metric_name='ClusterStatus.red',
+                dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': stack.account},
+                period=Duration.minutes(1),
+                statistic='Sum',
+            ),
+            evaluation_periods=1,  # Alert immediately when red
+            threshold=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                f'OpenSearch Domain {self.domain.domain_name} cluster status is RED. '
+                'This indicates critical issues requiring immediate attention. '
+                'Check cluster health and consider scaling if resource-constrained.'
+            ),
+        ).add_alarm_action(SnsAction(alarm_topic))
+
+        # Alarm: Cluster Status YELLOW - Degraded
+        # Yellow status indicates degraded state that should be monitored
+        Alarm(
+            self,
+            'ClusterStatusYellowAlarm',
+            metric=Metric(
+                namespace='AWS/ES',
+                metric_name='ClusterStatus.yellow',
+                dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': stack.account},
+                period=Duration.minutes(5),
+                statistic='Sum',
+            ),
+            evaluation_periods=1,  # Alert when yellow status is detected
+            threshold=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                f'OpenSearch Domain {self.domain.domain_name} cluster status is YELLOW. '
+                'This indicates degraded state. Monitor closely and consider scaling if persistent.'
+            ),
+        ).add_alarm_action(SnsAction(alarm_topic))
+
+        # Alarm: Automated Snapshot Failure
+        # Snapshot failures may indicate resource constraints or other issues
+        Alarm(
+            self,
+            'AutomatedSnapshotFailureAlarm',
+            metric=Metric(
+                namespace='AWS/ES',
+                metric_name='AutomatedSnapshotFailure',
+                dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': stack.account},
+                period=Duration.hours(1),
+                statistic='Sum',
+            ),
+            evaluation_periods=1,
+            threshold=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                f'OpenSearch Domain {self.domain.domain_name} automated snapshot has failed. '
+                'This may indicate resource constraints or other issues requiring investigation.'
             ),
         ).add_alarm_action(SnsAction(alarm_topic))
 

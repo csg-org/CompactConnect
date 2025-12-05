@@ -44,7 +44,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         search_template.has_resource_properties(
             'AWS::OpenSearchService::Domain',
             {
-                'EngineVersion': 'OpenSearch_3.1',
+                'EngineVersion': 'OpenSearch_3.3',
             },
         )
 
@@ -170,10 +170,13 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         """
         Test that capacity monitoring alarms are configured for proactive scaling.
 
-        Verifies three critical alarms:
+        Verifies six critical alarms:
         1. Free Storage Space < 50% threshold
-        2. JVM Memory Pressure > 70% threshold
-        3. CPU Utilization > 60% threshold
+        2. JVM Memory Pressure > 85% threshold
+        3. CPU Utilization > 70% threshold
+        4. Cluster Status RED for critical issues
+        5. Cluster Status YELLOW for degraded state
+        6. Automated Snapshot Failure for backup issues
 
         These alarms give DevOps team time to plan scaling activities before hitting limits.
         """
@@ -199,7 +202,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             {
                 'MetricName': 'JVMMemoryPressure',
                 'Namespace': 'AWS/ES',
-                'Threshold': 70,
+                'Threshold': 85,
                 'ComparisonOperator': 'GreaterThanThreshold',
                 'EvaluationPeriods': 3,
             },
@@ -211,9 +214,45 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             {
                 'MetricName': 'CPUUtilization',
                 'Namespace': 'AWS/ES',
-                'Threshold': 60,
+                'Threshold': 70,
                 'ComparisonOperator': 'GreaterThanThreshold',
                 'EvaluationPeriods': 3,  # 15 minutes sustained
+            },
+        )
+
+        # Verify Cluster Status RED Alarm
+        search_template.has_resource_properties(
+            'AWS::CloudWatch::Alarm',
+            {
+                'MetricName': 'ClusterStatus.red',
+                'Namespace': 'AWS/ES',
+                'Threshold': 1,
+                'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
+                'EvaluationPeriods': 1,
+            },
+        )
+
+        # Verify Cluster Status YELLOW Alarm
+        search_template.has_resource_properties(
+            'AWS::CloudWatch::Alarm',
+            {
+                'MetricName': 'ClusterStatus.yellow',
+                'Namespace': 'AWS/ES',
+                'Threshold': 1,
+                'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
+                'EvaluationPeriods': 1,
+            },
+        )
+
+        # Verify Automated Snapshot Failure Alarm
+        search_template.has_resource_properties(
+            'AWS::CloudWatch::Alarm',
+            {
+                'MetricName': 'AutomatedSnapshotFailure',
+                'Namespace': 'AWS/ES',
+                'Threshold': 1,
+                'ComparisonOperator': 'GreaterThanThreshold',
+                'EvaluationPeriods': 1,
             },
         )
 
