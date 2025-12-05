@@ -28,8 +28,12 @@ class SearchPersistentStack(AppStack):
     - Non-prod (sandbox/test/beta): t3.small.search, 1 node
     - Prod: m7g.medium.search, 3 master + 3 data nodes (with standby)
 
-    Note: Prod deployment is currently conditional and will not deploy until the full
-    advanced search API is implemented.
+    IMPORTANT NOTE: Updating the OpenSearch domain may require a blue/green deployment, which is known to get stuck
+    on occasion requiring AWS support intervention (every time we attempted to update the engine version during
+    development, the deployment never completed). If you intend to update any field that will require a blue/green
+    deployment as described here: https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes.html
+    Note that worse case scenario, you may have to delete the entire stack, re-deploy it, and re-index all the data from
+    the provider table. In light of this, DO NOT place any resources in this stack that should never be deleted.
     """
 
     def __init__(

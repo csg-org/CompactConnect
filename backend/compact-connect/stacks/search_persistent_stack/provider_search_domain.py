@@ -154,6 +154,15 @@ class ProviderSearchDomain(Construct):
         self.domain = Domain(
             self,
             'Domain',
+            # IMPORTANT NOTE: updating the engine version requires a blue/green deployment, which is known to get stuck
+            # on occasion requiring AWS support intervention. If you intend to update this field, or any other field
+            # that will require a blue/green deployment as described here:
+            # https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes.html
+            # You should consider working with stakeholders to schedule a maintenance window during low-traffic periods
+            # where advanced search may become inaccessible during the update. During development, we found that if a
+            # blue/green deployment became stuck, the search endpoints were still able to serve data, but the
+            # CloudFormation deployment would fail waiting for the domain to become active. Worst case scenario,
+            # both the search API and search persistent stacks needed to be destroyed, redeployed, and re-indexed.
             version=EngineVersion.OPENSEARCH_3_3,
             capacity=capacity_config,
             # VPC configuration for network isolation
