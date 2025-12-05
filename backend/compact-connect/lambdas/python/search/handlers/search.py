@@ -196,7 +196,7 @@ def _parse_and_validate_request_body(event: dict) -> dict:
     """
     try:
         schema = SearchProvidersRequestSchema()
-        return schema.loads(event['body'])
+        return schema.loads(event.get('body', '{}'))
     except ValidationError as e:
         logger.warning('Invalid request body', errors=e.messages)
         raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
