@@ -59,4 +59,3 @@ class PrivilegeSearch:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes,
         )
-
