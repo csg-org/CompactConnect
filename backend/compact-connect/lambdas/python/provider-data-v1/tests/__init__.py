@@ -97,6 +97,11 @@ class TstLambdas(TestCase):
                             {'name': 'audiologist', 'abbreviation': 'aud'},
                             {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
                         ],
+                        'octp': [
+                            {'name': 'occupational therapist', 'abbreviation': 'ot'},
+                            {'name': 'occupational therapy assistant', 'abbreviation': 'ota'},
+                        ],
+                        'coun': [{'name': 'licensed professional counselor', 'abbreviation': 'lpc'}],
                     },
                 ),
             },
