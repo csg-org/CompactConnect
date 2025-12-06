@@ -1,2 +1,4 @@
 # common requirements are managed in the common-python requirements.in file
 authorizenet>=1.1.6, <2
+# explicitly setting this transitive dependency to pick vulnerability patch
+urllib3>=2.6.0, <3

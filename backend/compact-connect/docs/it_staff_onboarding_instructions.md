@@ -1,4 +1,4 @@
-﻿# CompactConnect Automated License Data Upload Instructions (Beta Release)
+﻿# CompactConnect Automated License Data Upload Instructions
 
 ## Overview
 
@@ -61,8 +61,7 @@ Follow these steps to obtain an access token and make requests to the CompactCon
 ### Step 1: Generate an Access Token
 
 You must first obtain an access token to authenticate your API requests. The access token will be used in the
-Authorization header of subsequent API calls. While the following curl command demonstrates how to generate a token for
-the **beta** environment, you should implement this authentication flow in your application's programming language using
+Authorization header of subsequent API calls. While the following curl command demonstrates how to generate a token, you should implement this authentication flow in your application's programming language using
 appropriate HTTPS request libraries:
 
 > **Note**: When copying commands, be careful of line breaks. You may need to remove any extra spaces or
@@ -104,10 +103,10 @@ AWS documentation: https://docs.aws.amazon.com/cognito/latest/developerguide/tok
 - Your application should request a new token before the current one expires
 - Store the `access_token` value for use in API requests
 
-### Step 2: Upload License Data to the Beta Environment (JSON POST Endpoint)
+### Step 2: Upload License Data (JSON POST Endpoint)
 
 The CompactConnect License API can be called through a POST REST endpoint which takes in a list of license record
-objects. The following curl command example demonstrates how to upload license data into the **beta** environment, but
+objects. The following curl command example demonstrates how to upload license data, but
 you should implement this API call in your application's programming language using appropriate HTTPS request libraries.
 You will need to replace the example payload with valid license data that includes the correct license types for your
 specific compact. See the

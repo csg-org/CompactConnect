@@ -1,0 +1,1 @@
+moto[dynamodb]>=5.0.12, <6
