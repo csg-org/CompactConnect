@@ -7,6 +7,7 @@ from stacks.search_persistent_stack.export_results_bucket import ExportResultsBu
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
 from stacks.search_persistent_stack.populate_provider_documents_handler import PopulateProviderDocumentsHandler
 from stacks.search_persistent_stack.provider_search_domain import ProviderSearchDomain
+from stacks.search_persistent_stack.provider_update_ingest_handler import ProviderUpdateIngestHandler
 from stacks.search_persistent_stack.search_handler import SearchHandler
 from stacks.vpc_stack import VpcStack
 
@@ -130,5 +131,19 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
+            alarm_topic=persistent_stack.alarm_topic,
+        )
+
+        # Create the provider update ingest handler for DynamoDB stream processing
+        # This handler processes real-time updates from the provider table stream
+        self.provider_update_ingest_handler = ProviderUpdateIngestHandler(
+            self,
+            construct_id='providerUpdateIngestHandler',
+            opensearch_domain=self.domain,
+            vpc_stack=vpc_stack,
+            vpc_subnets=self.provider_search_domain.vpc_subnets,
+            lambda_role=self.opensearch_ingest_lambda_role,
+            provider_table=persistent_stack.provider_table,
+            encryption_key=self.opensearch_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
         )
