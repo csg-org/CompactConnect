@@ -20,15 +20,13 @@ Example input for resumption:
 }
 """
 
-import json
-
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import config, logger
-from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
-from cc_common.exceptions import CCInternalException, CCNotFoundException
-from cc_common.utils import ResponseEncoder
 from marshmallow import ValidationError
+
+from cc_common.config import config, logger
+from cc_common.exceptions import CCInternalException
 from opensearch_client import OpenSearchClient
+from utils import process_single_provider
 
 # Batch size for DynamoDB pagination
 DYNAMODB_PAGE_SIZE = 1000
@@ -206,32 +204,16 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                     continue
 
                 try:
-                    # Get complete provider records
-                    provider_user_records = data_client.get_provider_user_records(
-                        compact=compact,
-                        provider_id=provider_id,
-                        consistent_read=True,
-                    )
+                    # Use the shared utility to process the provider
+                    serializable_document = process_single_provider(data_client, compact, provider_id)
+                    if serializable_document:
+                        documents_to_index.append(serializable_document)
+                    else:
+                        compact_stats['providers_failed'] += 1
 
-                    # Generate API response object with all nested records
-                    api_response = provider_user_records.generate_api_response_object()
-
-                    # Sanitize using ProviderGeneralResponseSchema
-                    schema = ProviderGeneralResponseSchema()
-                    sanitized_document = schema.load(api_response)
-
-                    # run the full provider document through our ResponseEncoder to convert sets
-                    # to lists (e.g., privilegeJurisdictions) and datetime objects to strings for JSON serialization
-                    serializable_document = json.loads(json.dumps(sanitized_document, cls=ResponseEncoder))
-                    documents_to_index.append(serializable_document)
-
-                except CCNotFoundException:
-                    logger.warning('Provider not found when fetching records', provider_id=provider_id, compact=compact)
-                    compact_stats['providers_failed'] += 1
-                    continue
-                except ValidationError as e:
+                except ValidationError as e:  # noqa: BLE001
                     logger.warning(
-                        'Failed to sanitize provider record',
+                        'Failed to process provider record',
                         provider_id=provider_id,
                         compact=compact,
                         errors=e.messages,

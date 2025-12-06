@@ -6,6 +6,7 @@ from aws_cdk.aws_dynamodb import (
     BillingMode,
     PointInTimeRecoverySpecification,
     ProjectionType,
+    StreamViewType,
     Table,
     TableEncryption,
 )
@@ -42,6 +43,7 @@ class ProviderTable(Table):
             deletion_protection=True if removal_policy == RemovalPolicy.RETAIN else False,
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
+            stream=StreamViewType.NEW_AND_OLD_IMAGES,
             **kwargs,
         )
         self.provider_fam_giv_mid_index_name = 'providerFamGivMid'
