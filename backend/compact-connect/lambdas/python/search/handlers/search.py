@@ -5,7 +5,7 @@ from cc_common.data_model.schema.provider.api import (
     SearchProvidersRequestSchema,
     StatePrivilegeGeneralResponseSchema,
 )
-from cc_common.exceptions import CCInvalidRequestException, CCInvalidRequestCustomResponseException
+from cc_common.exceptions import CCInvalidRequestCustomResponseException, CCInvalidRequestException
 from cc_common.utils import api_handler
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient

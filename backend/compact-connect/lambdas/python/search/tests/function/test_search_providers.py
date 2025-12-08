@@ -155,15 +155,19 @@ class TestSearchProviders(TstFunction):
     def test_search_size_capped_at_max(self, mock_opensearch_client):
         """Test that size parameter is capped at MAX_SIZE (100)."""
         from handlers.search import search_api_handler
+
         # Request size larger than MAX_SIZE
         event = self._create_api_event('aslp', body={'query': {'match_all': {}}, 'size': 500})
 
         result = search_api_handler(event, self.mock_context)
         self.assertEqual(400, result['statusCode'])
-        self.assertEqual({"message":
-                              "Invalid request: "
-                              "{'size': ['Must be greater than or equal to 1 and less than or equal to 100.']}"},
-                         json.loads(result['body']))
+        self.assertEqual(
+            {
+                'message': 'Invalid request: '
+                "{'size': ['Must be greater than or equal to 1 and less than or equal to 100.']}"
+            },
+            json.loads(result['body']),
+        )
 
     @patch('handlers.search.OpenSearchClient')
     def test_search_with_sort_parameter(self, mock_opensearch_client):
