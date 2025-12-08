@@ -1,11 +1,7 @@
-from aws_cdk import RemovalPolicy
 from aws_cdk.aws_iam import Role, ServicePrincipal
-from aws_cdk.aws_kms import Key
-from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.constants import PROD_ENV_NAME
 from stacks.persistent_stack import PersistentStack
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
 from stacks.search_persistent_stack.populate_provider_documents_handler import PopulateProviderDocumentsHandler
@@ -51,9 +47,6 @@ class SearchPersistentStack(AppStack):
             scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
         )
 
-        # Determine removal policy based on environment
-        removal_policy = RemovalPolicy.RETAIN if environment_name == PROD_ENV_NAME else RemovalPolicy.DESTROY
-
         # Create IAM roles for Lambda functions that need OpenSearch access
         self.opensearch_ingest_lambda_role = Role(
             self,
@@ -76,15 +69,6 @@ class SearchPersistentStack(AppStack):
             'SearchApiLambdaRole',
             assumed_by=ServicePrincipal('lambda.amazonaws.com'),
             description='IAM role for Search API Lambda functions that need read access to OpenSearch Domain',
-        )
-
-        # Create dedicated KMS key for alarm topic encryption
-        search_alarm_encryption_key = Key(
-            self,
-            'SearchAlarmEncryptionKey',
-            enable_key_rotation=True,
-            alias=f'{self.stack_name}-search-alarm-encryption-key',
-            removal_policy=removal_policy,
         )
 
         # Create the OpenSearch domain and associated resources
