@@ -31,6 +31,14 @@ class OpenSearchClient:
     def index_exists(self, index_name: str) -> bool:
         return self._client.indices.exists(index=index_name)
 
+    def alias_exists(self, alias_name: str) -> bool:
+        """Check if an alias exists."""
+        return self._client.indices.exists_alias(name=alias_name)
+
+    def create_alias(self, index_name: str, alias_name: str) -> None:
+        """Create an alias pointing to the specified index."""
+        self._client.indices.put_alias(index=index_name, name=alias_name)
+
     def search(self, index_name: str, body: dict) -> dict:
         """
         Execute a search query against the specified index.

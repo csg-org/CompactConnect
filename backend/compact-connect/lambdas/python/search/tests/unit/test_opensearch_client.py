@@ -52,6 +52,41 @@ class TestOpenSearchClient(TestCase):
         mock_internal_client.indices.exists.assert_called_once_with(index=index_name)
         self.assertTrue(result)
 
+    def test_alias_exists_calls_internal_client_with_expected_arguments(self):
+        """Test that alias_exists calls the internal client's indices.exists_alias method correctly."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        alias_name = 'test_alias'
+        mock_internal_client.indices.exists_alias.return_value = True
+
+        result = client.alias_exists(alias_name=alias_name)
+
+        mock_internal_client.indices.exists_alias.assert_called_once_with(name=alias_name)
+        self.assertTrue(result)
+
+    def test_alias_exists_returns_false_when_alias_does_not_exist(self):
+        """Test that alias_exists returns False when the alias does not exist."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        alias_name = 'nonexistent_alias'
+        mock_internal_client.indices.exists_alias.return_value = False
+
+        result = client.alias_exists(alias_name=alias_name)
+
+        mock_internal_client.indices.exists_alias.assert_called_once_with(name=alias_name)
+        self.assertFalse(result)
+
+    def test_create_alias_calls_internal_client_with_expected_arguments(self):
+        """Test that create_alias calls the internal client's indices.put_alias method correctly."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index_v1'
+        alias_name = 'test_alias'
+
+        client.create_alias(index_name=index_name, alias_name=alias_name)
+
+        mock_internal_client.indices.put_alias.assert_called_once_with(index=index_name, name=alias_name)
+
     def test_search_calls_internal_client_with_expected_arguments(self):
         """Test that search calls the internal client's search method correctly."""
         client, mock_internal_client = self._create_client_with_mock()

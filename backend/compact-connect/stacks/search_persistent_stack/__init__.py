@@ -87,16 +87,6 @@ class SearchPersistentStack(AppStack):
             removal_policy=removal_policy,
         )
 
-        # Create alarm topic for OpenSearch capacity and health monitoring
-        notifications = environment_context.get('notifications', {})
-        self.alarm_topic = AlarmTopic(
-            self,
-            'SearchAlarmTopic',
-            master_key=search_alarm_encryption_key,
-            email_subscriptions=notifications.get('email', []),
-            slack_subscriptions=notifications.get('slack', []),
-        )
-
         # Create the OpenSearch domain and associated resources
         self.provider_search_domain = ProviderSearchDomain(
             self,
@@ -104,7 +94,7 @@ class SearchPersistentStack(AppStack):
             environment_name=environment_name,
             vpc_stack=vpc_stack,
             compact_abbreviations=persistent_stack.get_list_of_compact_abbreviations(),
-            alarm_topic=self.alarm_topic,
+            alarm_topic=persistent_stack.alarm_topic,
             ingest_lambda_role=self.opensearch_ingest_lambda_role,
             index_manager_lambda_role=self.opensearch_index_manager_lambda_role,
             search_api_lambda_role=self.search_api_lambda_role,
@@ -122,6 +112,7 @@ class SearchPersistentStack(AppStack):
             vpc_stack=vpc_stack,
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.opensearch_index_manager_lambda_role,
+            environment_name=environment_name,
         )
 
         # Create the search providers handler for API Gateway integration
@@ -132,7 +123,7 @@ class SearchPersistentStack(AppStack):
             vpc_stack=vpc_stack,
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.search_api_lambda_role,
-            alarm_topic=self.alarm_topic,
+            alarm_topic=persistent_stack.alarm_topic,
         )
 
         # Create the populate provider documents handler for manual invocation
@@ -145,5 +136,5 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
-            alarm_topic=self.alarm_topic,
+            alarm_topic=persistent_stack.alarm_topic,
         )

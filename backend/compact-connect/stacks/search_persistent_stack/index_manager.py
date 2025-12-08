@@ -10,8 +10,17 @@ from cdk_nag import NagSuppressions
 from common_constructs.stack import Stack
 from constructs import Construct
 
+from common_constructs.constants import PROD_ENV_NAME
 from common_constructs.python_function import PythonFunction
 from stacks.vpc_stack import VpcStack
+
+# Index configuration constants
+# Non-prod environments use a single data node, so no replicas are needed
+# Production uses 3 data nodes across 3 AZs, so 1 replica ensures data availability
+NON_PROD_NUMBER_OF_SHARDS = 1
+NON_PROD_NUMBER_OF_REPLICAS = 0
+PROD_NUMBER_OF_SHARDS = 1
+PROD_NUMBER_OF_REPLICAS = 1
 
 
 class IndexManagerCustomResource(Construct):
@@ -19,7 +28,8 @@ class IndexManagerCustomResource(Construct):
     Custom resource for managing OpenSearch indices.
 
     This construct creates a CloudFormation custom resource that populates the OpenSearch Domain with the needed
-    provider indices.
+    provider indices. Indices are created with versioned names (e.g., compact_aslp_providers_v1) and aliases
+    (e.g., compact_aslp_providers) to enable safe blue-green migrations in the future.
     """
 
     def __init__(
@@ -30,6 +40,7 @@ class IndexManagerCustomResource(Construct):
         vpc_stack: VpcStack,
         vpc_subnets: SubnetSelection,
         lambda_role: IRole,
+        environment_name: str,
     ):
         """
         Initialize the IndexManagerCustomResource construct.
@@ -39,6 +50,8 @@ class IndexManagerCustomResource(Construct):
         :param opensearch_domain: The reference to the OpenSearch domain resource
         :param vpc_stack: The VPC stack
         :param vpc_subnets: The VPC subnets
+        :param lambda_role: The IAM role for the Lambda function
+        :param environment_name: The deployment environment name (e.g., 'prod', 'test')
         """
         super().__init__(scope, construct_id)
         stack = Stack.of(scope)
@@ -155,12 +168,34 @@ class IndexManagerCustomResource(Construct):
             ],
         )
 
+        # Determine index configuration based on environment
+        number_of_shards, number_of_replicas = self._get_index_configuration(environment_name)
+
         # Create custom resource for managing indices
-        # This custom resource will create the 'compact_{compact}_providers' indices
-        # with the appropriate mappings once the domain is ready
+        # This custom resource will create versioned indices (e.g., 'compact_aslp_providers_v1')
+        # with aliases (e.g., 'compact_aslp_providers') for each compact.
+        # The alias abstraction enables safe blue-green migrations for future mapping changes.
         self.index_manager = CustomResource(
             self,
             'IndexManagerCustomResource',
             resource_type='Custom::IndexManager',
             service_token=provider.service_token,
+            properties={
+                'numberOfShards': number_of_shards,
+                'numberOfReplicas': number_of_replicas,
+            },
         )
+
+    def _get_index_configuration(self, environment_name: str) -> tuple[int, int]:
+        """
+        Determine OpenSearch index configuration based on environment.
+
+        Non-prod environments use a single data node, so no replicas are needed.
+        Production uses 3 data nodes across 3 AZs, so 1 replica ensures data availability.
+
+        :param environment_name: The deployment environment name
+        :return: Tuple of (number_of_shards, number_of_replicas)
+        """
+        if environment_name == PROD_ENV_NAME:
+            return PROD_NUMBER_OF_SHARDS, PROD_NUMBER_OF_REPLICAS
+        return NON_PROD_NUMBER_OF_SHARDS, NON_PROD_NUMBER_OF_REPLICAS

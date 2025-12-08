@@ -2,23 +2,51 @@ from cc_common.config import config, logger
 from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
 from opensearch_client import OpenSearchClient
 
+# Initial index version for new deployments
+INITIAL_INDEX_VERSION = 'v1'
+
 
 class OpenSearchIndexManager(CustomResourceHandler):
     """
     Custom resource handler to create OpenSearch indices for compacts.
+
+    Creates versioned indices (e.g., compact_aslp_providers_v1) with aliases
+    (e.g., compact_aslp_providers) to enable safe blue-green migrations for
+    future mapping changes. Queries use the alias, allowing the underlying
+    index to be swapped without application changes.
+    See https://docs.opensearch.org/latest/im-plugin/index-alias/
     """
 
-    def on_create(self, _properties: dict) -> CustomResourceResponse | None:
+    def on_create(self, properties: dict) -> CustomResourceResponse | None:
         """
-        Create the indices on creation.
+        Create the versioned indices and aliases on creation.
         """
         logger.info('Connecting to OpenSearch domain')
         client = OpenSearchClient()
 
+        # Get index configuration from custom resource properties
+        number_of_shards = int(properties['numberOfShards'])
+        number_of_replicas = int(properties['numberOfReplicas'])
+
+        logger.info(
+            'Index configuration',
+            number_of_shards=number_of_shards,
+            number_of_replicas=number_of_replicas,
+        )
+
         compacts = config.compacts
         for compact in compacts:
-            index_name = f'compact_{compact}_providers'
-            self._create_provider_index(client, index_name)
+            # Create versioned index name (e.g., compact_aslp_providers_v1)
+            index_name = f'compact_{compact}_providers_{INITIAL_INDEX_VERSION}'
+            # Create alias name (e.g., compact_aslp_providers)
+            alias_name = f'compact_{compact}_providers'
+            self._create_provider_index_with_alias(
+                client=client,
+                index_name=index_name,
+                alias_name=alias_name,
+                number_of_shards=number_of_shards,
+                number_of_replicas=number_of_replicas,
+            )
 
     def on_update(self, properties: dict) -> CustomResourceResponse | None:
         """
@@ -30,20 +58,53 @@ class OpenSearchIndexManager(CustomResourceHandler):
         No-op on delete.
         """
 
-    def _create_provider_index(self, client: OpenSearchClient, index_name: str) -> None:
+    def _create_provider_index_with_alias(
+        self,
+        client: OpenSearchClient,
+        index_name: str,
+        alias_name: str,
+        number_of_shards: int,
+        number_of_replicas: int,
+    ) -> None:
         """
-        Create the provider index in OpenSearch if it doesn't exist.
+        Create the provider index and alias in OpenSearch if they don't exist.
+
+        :param client: The OpenSearch client
+        :param index_name: The versioned index name (e.g., compact_aslp_providers_v1)
+        :param alias_name: The alias name (e.g., compact_aslp_providers)
+        :param number_of_shards: Number of primary shards for the index
+        :param number_of_replicas: Number of replica shards for the index
         """
-        if client.index_exists(index_name):
-            logger.info(f"Index '{index_name}' already exists. Skipping creation.")
+        # Check if the alias already exists (meaning an index version is already set up)
+        if client.alias_exists(alias_name):
+            logger.info(f"Alias '{alias_name}' already exists. Skipping index and alias creation.")
             return
+
+        # Check if the index already exists (edge case: index exists but alias doesn't)
+        if client.index_exists(index_name):
+            logger.info(f"Index '{index_name}' already exists. Creating alias only.")
+            client.create_alias(index_name, alias_name)
+            logger.info(f"Alias '{alias_name}' -> '{index_name}' created successfully.")
+            return
+
+        # Create the index with the specified configuration
         logger.info(f"Creating index '{index_name}'...")
-        client.create_index(index_name, self._get_provider_index_mapping())
+        index_mapping = self._get_provider_index_mapping(number_of_shards, number_of_replicas)
+        client.create_index(index_name, index_mapping)
         logger.info(f"Index '{index_name}' created successfully.")
 
-    def _get_provider_index_mapping(self) -> dict:
+        # Create the alias pointing to the new index
+        logger.info(f"Creating alias '{alias_name}' -> '{index_name}'...")
+        client.create_alias(index_name, alias_name)
+        logger.info(f"Alias '{alias_name}' -> '{index_name}' created successfully.")
+
+    def _get_provider_index_mapping(self, number_of_shards: int, number_of_replicas: int) -> dict:
         """
         Define the index mapping for provider documents.
+
+        :param number_of_shards: Number of primary shards for the index
+        :param number_of_replicas: Number of replica shards for the index
+        :return: The index mapping dictionary
         """
         # Nested schema for AttestationVersion
         attestation_version_properties = {
@@ -171,10 +232,8 @@ class OpenSearchIndexManager(CustomResourceHandler):
         return {
             'settings': {
                 'index': {
-                    'number_of_shards': 1,
-                    # no replicas for non-prod envs (since there is only one data node)
-                    # one replica for prod
-                    'number_of_replicas': 0 if config.environment_name != 'prod' else 1,
+                    'number_of_shards': number_of_shards,
+                    'number_of_replicas': number_of_replicas,
                 },
                 'analysis': {
                     # this custom analyzer is recommended by Opensearch when you have international character

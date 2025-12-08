@@ -182,7 +182,7 @@ class ProviderSearchDomain(Construct):
             # Advanced security options
             advanced_options={
                 # Prevent queries from accessing multiple indices in a single request
-                # This is a security control to ensure queries are scoped to a single index
+                # This is a security control to ensure queries are scoped to a single index, and thus a single compact
                 'rest.action.multi.allow_explicit_index': 'false',
             },
             logging=LoggingOptions(
