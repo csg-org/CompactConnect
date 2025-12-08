@@ -251,7 +251,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
                 'MetricName': 'AutomatedSnapshotFailure',
                 'Namespace': 'AWS/ES',
                 'Threshold': 1,
-                'ComparisonOperator': 'GreaterThanThreshold',
+                'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
                 'EvaluationPeriods': 1,
             },
         )
