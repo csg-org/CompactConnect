@@ -113,7 +113,7 @@ class TestSearchProviders(TstFunction):
 
         # Verify the search was called with correct parameters
         mock_client_instance.search.assert_called_once_with(
-            index_name='compact_aslp_providers', body={'query': {'match_all': {}}, 'size': 10}
+            index_name='compact_aslp_providers', body={'query': {'match_all': {}}, 'size': 100}
         )
 
         # Verify response structure
@@ -146,7 +146,7 @@ class TestSearchProviders(TstFunction):
             index_name='compact_aslp_providers',
             body={
                 'query': {'bool': {'must': [{'match': {'givenName': 'John'}}, {'term': {'licenseStatus': 'active'}}]}},
-                'size': 10,
+                'size': 100,
                 'from': 20,
             },
         )
@@ -155,17 +155,15 @@ class TestSearchProviders(TstFunction):
     def test_search_size_capped_at_max(self, mock_opensearch_client):
         """Test that size parameter is capped at MAX_SIZE (100)."""
         from handlers.search import search_api_handler
-
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
-
         # Request size larger than MAX_SIZE
         event = self._create_api_event('aslp', body={'query': {'match_all': {}}, 'size': 500})
 
-        search_api_handler(event, self.mock_context)
-
-        call_args = mock_client_instance.search.call_args
-        search_body = call_args.kwargs['body']
-        self.assertEqual(100, search_body['size'])  # Capped at MAX_SIZE
+        result = search_api_handler(event, self.mock_context)
+        self.assertEqual(400, result['statusCode'])
+        self.assertEqual({"message":
+                              "Invalid request: "
+                              "{'size': ['Must be greater than or equal to 1 and less than or equal to 100.']}"},
+                         json.loads(result['body']))
 
     @patch('handlers.search.OpenSearchClient')
     def test_search_with_sort_parameter(self, mock_opensearch_client):
@@ -191,7 +189,7 @@ class TestSearchProviders(TstFunction):
             index_name='compact_aslp_providers',
             body={
                 'query': {'match_all': {}},
-                'size': 10,
+                'size': 100,
                 'sort': sort_config,
                 'search_after': search_after_values,
             },

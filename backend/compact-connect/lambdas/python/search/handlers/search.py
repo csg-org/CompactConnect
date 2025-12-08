@@ -5,14 +5,15 @@ from cc_common.data_model.schema.provider.api import (
     SearchProvidersRequestSchema,
     StatePrivilegeGeneralResponseSchema,
 )
-from cc_common.exceptions import CCInvalidRequestException
+from cc_common.exceptions import CCInvalidRequestException, CCInvalidRequestCustomResponseException
 from cc_common.utils import api_handler
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
 
 # Default and maximum page sizes for search results
-DEFAULT_SIZE = 10
-MAX_SIZE = 100
+MAX_PROVIDER_PAGE_SIZE = 100
+PRIVILEGE_SEARCH_PAGE_SIZE = 2000
+MAX_MATCH_TOTAL_ALLOWED = 10000
 
 
 @api_handler
@@ -59,7 +60,7 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     body = _parse_and_validate_request_body(event)
 
     # Build the OpenSearch search body
-    search_body = _build_opensearch_search_body(body)
+    search_body = _build_opensearch_search_body(body, size_override=MAX_PROVIDER_PAGE_SIZE)
 
     # Build the index name for this compact
     index_name = f'compact_{compact}_providers'
@@ -116,6 +117,20 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
     Privileges are extracted from provider documents and combined with license data.
     Pagination follows OpenSearch DSL using `from`/`size` or `search_after` with `sort`.
 
+    If the query includes a nested query on privileges with `inner_hits`, only the matched
+    privileges will be returned. Otherwise, all privileges for matching providers are returned.
+
+    Example nested query with inner_hits:
+    {
+        "query": {
+            "nested": {
+                "path": "privileges",
+                "query": { "term": { "privileges.jurisdiction": "ky" } },
+                "inner_hits": {}
+            }
+        }
+    }
+
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     :return: Dictionary with privileges array and pagination metadata
@@ -126,7 +141,7 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
     body = _parse_and_validate_request_body(event)
 
     # Build the OpenSearch search body
-    search_body = _build_opensearch_search_body(body)
+    search_body = _build_opensearch_search_body(body, size_override=PRIVILEGE_SEARCH_PAGE_SIZE)
 
     # Build the index name for this compact
     index_name = f'compact_{compact}_providers'
@@ -140,7 +155,15 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
     # Extract hits from the response
     hits_data = response.get('hits', {})
     hits = hits_data.get('hits', [])
-    total = hits_data.get('total', {})
+    total = hits_data['total']
+
+    if total['value'] >= MAX_MATCH_TOTAL_ALLOWED:
+        logger.info('request scope too large for current implementation, returning 400 with custom response')
+        raise CCInvalidRequestCustomResponseException(
+            response_body={
+                'message': 'Search scope too broad. Please narrow your search.',
+            }
+        )
 
     # Extract and flatten privileges from provider records
     flattened_privileges = []
@@ -150,8 +173,23 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
     for hit in hits:
         provider = hit.get('_source', {})
         try:
-            # Extract privileges and flatten them with license data
-            provider_privileges = _extract_flattened_privileges(provider)
+            # Check if inner_hits are present for privileges
+            # If so, use only the matched privileges; otherwise, use all privileges
+            inner_hits = hit.get('inner_hits', {})
+            privileges_inner_hits = inner_hits.get('privileges', {}).get('hits', {}).get('hits', [])
+
+            if privileges_inner_hits:
+                # Use only the privileges that matched the nested query
+                matched_privileges = [ih.get('_source', {}) for ih in privileges_inner_hits]
+                provider_privileges = _extract_flattened_privileges_from_list(
+                    privileges=matched_privileges,
+                    licenses=provider.get('licenses', []),
+                    provider=provider,
+                )
+            else:
+                # No inner_hits, return all privileges for this provider
+                provider_privileges = _extract_flattened_privileges(provider)
+
             for flattened_privilege in provider_privileges:
                 try:
                     # Sanitize using StatePrivilegeGeneralResponseSchema
@@ -202,7 +240,7 @@ def _parse_and_validate_request_body(event: dict) -> dict:
         raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
 
 
-def _build_opensearch_search_body(body: dict) -> dict:
+def _build_opensearch_search_body(body: dict, size_override: int) -> dict:
     """
     Build the OpenSearch search body from the validated request.
 
@@ -220,8 +258,7 @@ def _build_opensearch_search_body(body: dict) -> dict:
     if from_param is not None:
         search_body['from'] = from_param
 
-    size = body.get('size', DEFAULT_SIZE)
-    search_body['size'] = min(size, MAX_SIZE)
+    search_body['size'] = body.get('size', size_override)
 
     # Add sort if provided - required for search_after pagination
     sort = body.get('sort')
@@ -241,7 +278,7 @@ def _build_opensearch_search_body(body: dict) -> dict:
 
 def _extract_flattened_privileges(provider: dict) -> list[dict]:
     """
-    Extract and flatten privileges from a provider document.
+    Extract and flatten all privileges from a provider document.
 
     This function combines privilege data with license data to create flattened
     privilege records similar to what the state API returns.
@@ -252,6 +289,29 @@ def _extract_flattened_privileges(provider: dict) -> list[dict]:
     privileges = provider.get('privileges', [])
     licenses = provider.get('licenses', [])
 
+    return _extract_flattened_privileges_from_list(
+        privileges=privileges,
+        licenses=licenses,
+        provider=provider,
+    )
+
+
+def _extract_flattened_privileges_from_list(
+    privileges: list[dict],
+    licenses: list[dict],
+    provider: dict,
+) -> list[dict]:
+    """
+    Flatten a list of privileges by combining with license data.
+
+    This function is used both for extracting all privileges from a provider document
+    and for processing only the matched privileges from inner_hits.
+
+    :param privileges: List of privilege records to flatten
+    :param licenses: List of license records from the provider
+    :param provider: Provider document (for email and provider_id logging)
+    :return: List of flattened privilege records
+    """
     if not privileges:
         return []
 

@@ -1,9 +1,9 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import timedelta
 
-from marshmallow import ValidationError, validates_schema
+from marshmallow import ValidationError, validates_schema, Schema
 from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Nested, Raw, String
-from marshmallow.validate import Length, OneOf, Regexp
+from marshmallow.validate import Length, OneOf, Regexp, Range
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import CCRequestSchema
@@ -450,7 +450,7 @@ class StateProviderDetailGeneralResponseSchema(ForgivingSchema):
     providerUIUrl = String(required=True, allow_none=False)
 
 
-class SearchProvidersRequestSchema(CCRequestSchema):
+class SearchProvidersRequestSchema(Schema):
     """
     Schema for advanced search providers requests.
 
@@ -470,7 +470,7 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     # Pagination parameters following OpenSearch DSL
     # 'from' is a reserved word in Python, so we use 'from_' with data_key='from'
     from_ = Integer(required=False, allow_none=False, data_key='from')
-    size = Integer(required=False, allow_none=False)
+    size = Integer(required=False, allow_none=False, validate=Range(min=1, max=100))
 
     # Sort order - required when using search_after pagination
     # Example: [{"providerId": "asc"}, {"dateOfUpdate": "desc"}]

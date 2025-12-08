@@ -271,6 +271,451 @@ class TestSearchPrivileges(TstFunction):
         self.assertIn('lastSort', body)
         self.assertEqual(['provider-uuid-123', '2024-01-15T10:30:00+00:00'], body['lastSort'])
 
+    @patch('handlers.search.OpenSearchClient')
+    def test_privilege_search_with_inner_hits_returns_only_matched_privileges(self, mock_opensearch_client):
+        """Test that when inner_hits are present, only matched privileges are returned."""
+        from handlers.search import search_api_handler
+
+        provider_id = '00000000-0000-0000-0000-000000000001'
+        compact = 'aslp'
+
+        # Create a provider with multiple privileges but inner_hits only matches one
+        hit = {
+            '_index': f'compact_{compact}_providers',
+            '_id': provider_id,
+            '_score': 1.0,
+            '_source': {
+                'providerId': provider_id,
+                'type': 'provider',
+                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                'compact': compact,
+                'licenseJurisdiction': 'oh',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+                'givenName': 'John',
+                'familyName': 'Doe',
+                'dateOfExpiration': '2025-12-31',
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+                'birthMonthDay': '06-15',
+                'licenses': [
+                    {
+                        'providerId': provider_id,
+                        'type': 'license-home',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'compact': compact,
+                        'jurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'licenseStatus': 'active',
+                        'compactEligibility': 'eligible',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
+                        'givenName': 'John',
+                        'familyName': 'Doe',
+                        'dateOfIssuance': '2020-01-01',
+                        'dateOfRenewal': '2024-01-01',
+                        'dateOfExpiration': '2025-12-31',
+                        'npi': '1234567890',
+                        'licenseNumber': 'AUD-12345',
+                    }
+                ],
+                # Provider has THREE privileges
+                'privileges': [
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'ky',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-01-15',
+                        'dateOfRenewal': '2024-01-15',
+                        'dateOfExpiration': '2025-01-15',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'administratorSetStatus': 'active',
+                        'privilegeId': 'PRIV-KY-001',
+                        'status': 'active',
+                    },
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'ne',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-02-01',
+                        'dateOfRenewal': '2024-02-01',
+                        'dateOfExpiration': '2025-02-01',
+                        'dateOfUpdate': '2024-02-01T10:30:00+00:00',
+                        'administratorSetStatus': 'active',
+                        'privilegeId': 'PRIV-NE-001',
+                        'status': 'active',
+                    },
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'co',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-03-01',
+                        'dateOfRenewal': '2024-03-01',
+                        'dateOfExpiration': '2025-03-01',
+                        'dateOfUpdate': '2024-03-01T10:30:00+00:00',
+                        'administratorSetStatus': 'inactive',
+                        'privilegeId': 'PRIV-CO-001',
+                        'status': 'inactive',
+                    },
+                ],
+            },
+            # inner_hits only contains the KY privilege (simulating a nested query for jurisdiction: ky)
+            'inner_hits': {
+                'privileges': {
+                    'hits': {
+                        'total': {'value': 1, 'relation': 'eq'},
+                        'hits': [
+                            {
+                                '_index': f'compact_{compact}_providers',
+                                '_id': provider_id,
+                                '_nested': {'field': 'privileges', 'offset': 0},
+                                '_score': 1.0,
+                                '_source': {
+                                    'type': 'privilege',
+                                    'providerId': provider_id,
+                                    'compact': compact,
+                                    'jurisdiction': 'ky',
+                                    'licenseJurisdiction': 'oh',
+                                    'licenseType': 'audiologist',
+                                    'dateOfIssuance': '2024-01-15',
+                                    'dateOfRenewal': '2024-01-15',
+                                    'dateOfExpiration': '2025-01-15',
+                                    'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                                    'administratorSetStatus': 'active',
+                                    'privilegeId': 'PRIV-KY-001',
+                                    'status': 'active',
+                                },
+                            }
+                        ],
+                    }
+                }
+            },
+        }
+
+        search_response = {
+            'hits': {
+                'total': {'value': 1, 'relation': 'eq'},
+                'hits': [hit],
+            }
+        }
+        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
+
+        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        body = json.loads(response['body'])
+
+        # Should only return 1 privilege (from inner_hits), not all 3
+        self.assertEqual(1, len(body['privileges']))
+        self.assertEqual('PRIV-KY-001', body['privileges'][0]['privilegeId'])
+        self.assertEqual('ky', body['privileges'][0]['jurisdiction'])
+
+    @patch('handlers.search.OpenSearchClient')
+    def test_privilege_search_with_multiple_inner_hits_returns_all_matched(self, mock_opensearch_client):
+        """Test that when inner_hits contains multiple matches, all are returned."""
+        from handlers.search import search_api_handler
+
+        provider_id = '00000000-0000-0000-0000-000000000001'
+        compact = 'aslp'
+
+        # Create a provider with multiple privileges, inner_hits matches two of them
+        hit = {
+            '_index': f'compact_{compact}_providers',
+            '_id': provider_id,
+            '_score': 1.0,
+            '_source': {
+                'providerId': provider_id,
+                'type': 'provider',
+                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                'compact': compact,
+                'licenseJurisdiction': 'oh',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+                'givenName': 'John',
+                'familyName': 'Doe',
+                'dateOfExpiration': '2025-12-31',
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+                'birthMonthDay': '06-15',
+                'licenses': [
+                    {
+                        'providerId': provider_id,
+                        'type': 'license-home',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'compact': compact,
+                        'jurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'licenseStatus': 'active',
+                        'compactEligibility': 'eligible',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
+                        'givenName': 'John',
+                        'familyName': 'Doe',
+                        'dateOfIssuance': '2020-01-01',
+                        'dateOfRenewal': '2024-01-01',
+                        'dateOfExpiration': '2025-12-31',
+                        'npi': '1234567890',
+                        'licenseNumber': 'AUD-12345',
+                    }
+                ],
+                # Provider has THREE privileges
+                'privileges': [
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'ky',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-01-15',
+                        'dateOfRenewal': '2024-01-15',
+                        'dateOfExpiration': '2025-01-15',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'administratorSetStatus': 'active',
+                        'privilegeId': 'PRIV-KY-001',
+                        'status': 'active',
+                    },
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'ne',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-02-01',
+                        'dateOfRenewal': '2024-02-01',
+                        'dateOfExpiration': '2025-02-01',
+                        'dateOfUpdate': '2024-02-01T10:30:00+00:00',
+                        'administratorSetStatus': 'active',
+                        'privilegeId': 'PRIV-NE-001',
+                        'status': 'active',
+                    },
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'co',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-03-01',
+                        'dateOfRenewal': '2024-03-01',
+                        'dateOfExpiration': '2025-03-01',
+                        'dateOfUpdate': '2024-03-01T10:30:00+00:00',
+                        'administratorSetStatus': 'inactive',
+                        'privilegeId': 'PRIV-CO-001',
+                        'status': 'inactive',
+                    },
+                ],
+            },
+            # inner_hits contains TWO active privileges (simulating nested query for status: active)
+            'inner_hits': {
+                'privileges': {
+                    'hits': {
+                        'total': {'value': 2, 'relation': 'eq'},
+                        'hits': [
+                            {
+                                '_index': f'compact_{compact}_providers',
+                                '_id': provider_id,
+                                '_nested': {'field': 'privileges', 'offset': 0},
+                                '_score': 1.0,
+                                '_source': {
+                                    'type': 'privilege',
+                                    'providerId': provider_id,
+                                    'compact': compact,
+                                    'jurisdiction': 'ky',
+                                    'licenseJurisdiction': 'oh',
+                                    'licenseType': 'audiologist',
+                                    'dateOfIssuance': '2024-01-15',
+                                    'dateOfRenewal': '2024-01-15',
+                                    'dateOfExpiration': '2025-01-15',
+                                    'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                                    'administratorSetStatus': 'active',
+                                    'privilegeId': 'PRIV-KY-001',
+                                    'status': 'active',
+                                },
+                            },
+                            {
+                                '_index': f'compact_{compact}_providers',
+                                '_id': provider_id,
+                                '_nested': {'field': 'privileges', 'offset': 1},
+                                '_score': 1.0,
+                                '_source': {
+                                    'type': 'privilege',
+                                    'providerId': provider_id,
+                                    'compact': compact,
+                                    'jurisdiction': 'ne',
+                                    'licenseJurisdiction': 'oh',
+                                    'licenseType': 'audiologist',
+                                    'dateOfIssuance': '2024-02-01',
+                                    'dateOfRenewal': '2024-02-01',
+                                    'dateOfExpiration': '2025-02-01',
+                                    'dateOfUpdate': '2024-02-01T10:30:00+00:00',
+                                    'administratorSetStatus': 'active',
+                                    'privilegeId': 'PRIV-NE-001',
+                                    'status': 'active',
+                                },
+                            },
+                        ],
+                    }
+                }
+            },
+        }
+
+        search_response = {
+            'hits': {
+                'total': {'value': 1, 'relation': 'eq'},
+                'hits': [hit],
+            }
+        }
+        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
+
+        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        body = json.loads(response['body'])
+
+        # Should return 2 privileges (from inner_hits), not all 3
+        self.assertEqual(2, len(body['privileges']))
+        privilege_ids = [p['privilegeId'] for p in body['privileges']]
+        self.assertIn('PRIV-KY-001', privilege_ids)
+        self.assertIn('PRIV-NE-001', privilege_ids)
+        self.assertNotIn('PRIV-CO-001', privilege_ids)
+
+    @patch('handlers.search.OpenSearchClient')
+    def test_privilege_search_without_inner_hits_returns_all_privileges(self, mock_opensearch_client):
+        """Test that without inner_hits, all privileges for matching providers are returned."""
+        from handlers.search import search_api_handler
+
+        provider_id = '00000000-0000-0000-0000-000000000001'
+        compact = 'aslp'
+
+        # Create a provider with multiple privileges and NO inner_hits
+        hit = {
+            '_index': f'compact_{compact}_providers',
+            '_id': provider_id,
+            '_score': 1.0,
+            '_source': {
+                'providerId': provider_id,
+                'type': 'provider',
+                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                'compact': compact,
+                'licenseJurisdiction': 'oh',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+                'givenName': 'John',
+                'familyName': 'Doe',
+                'dateOfExpiration': '2025-12-31',
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+                'birthMonthDay': '06-15',
+                'licenses': [
+                    {
+                        'providerId': provider_id,
+                        'type': 'license-home',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'compact': compact,
+                        'jurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'licenseStatus': 'active',
+                        'compactEligibility': 'eligible',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
+                        'givenName': 'John',
+                        'familyName': 'Doe',
+                        'dateOfIssuance': '2020-01-01',
+                        'dateOfRenewal': '2024-01-01',
+                        'dateOfExpiration': '2025-12-31',
+                        'npi': '1234567890',
+                        'licenseNumber': 'AUD-12345',
+                    }
+                ],
+                # Provider has THREE privileges
+                'privileges': [
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'ky',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-01-15',
+                        'dateOfRenewal': '2024-01-15',
+                        'dateOfExpiration': '2025-01-15',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'administratorSetStatus': 'active',
+                        'privilegeId': 'PRIV-KY-001',
+                        'status': 'active',
+                    },
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'ne',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-02-01',
+                        'dateOfRenewal': '2024-02-01',
+                        'dateOfExpiration': '2025-02-01',
+                        'dateOfUpdate': '2024-02-01T10:30:00+00:00',
+                        'administratorSetStatus': 'active',
+                        'privilegeId': 'PRIV-NE-001',
+                        'status': 'active',
+                    },
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': compact,
+                        'jurisdiction': 'co',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-03-01',
+                        'dateOfRenewal': '2024-03-01',
+                        'dateOfExpiration': '2025-03-01',
+                        'dateOfUpdate': '2024-03-01T10:30:00+00:00',
+                        'administratorSetStatus': 'inactive',
+                        'privilegeId': 'PRIV-CO-001',
+                        'status': 'inactive',
+                    },
+                ],
+            },
+            # No inner_hits - regular query without nested
+        }
+
+        search_response = {
+            'hits': {
+                'total': {'value': 1, 'relation': 'eq'},
+                'hits': [hit],
+            }
+        }
+        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
+
+        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        body = json.loads(response['body'])
+
+        # Should return ALL 3 privileges since there are no inner_hits
+        self.assertEqual(3, len(body['privileges']))
+        privilege_ids = [p['privilegeId'] for p in body['privileges']]
+        self.assertIn('PRIV-KY-001', privilege_ids)
+        self.assertIn('PRIV-NE-001', privilege_ids)
+        self.assertIn('PRIV-CO-001', privilege_ids)
+
     def test_unsupported_route_returns_400(self):
         """Test that unsupported routes return a 400 error."""
         from handlers.search import search_api_handler
