@@ -28,22 +28,22 @@ class PrivilegeSearch:
         self.api: CCApi = resource.api
         self.api_model = api_model
 
-        self._add_search_privileges(
+        self._add_export_privileges(
             method_options=method_options,
             search_persistent_stack=search_persistent_stack,
         )
 
-    def _add_search_privileges(
+    def _add_export_privileges(
         self,
         method_options: MethodOptions,
         search_persistent_stack: search_persistent_stack.SearchPersistentStack,
     ):
-        search_resource = self.resource.add_resource('search')
+        export_resource = self.resource.add_resource('export')
 
         # Get the search handler from the search persistent stack (same handler as provider search)
         handler = search_persistent_stack.search_handler.handler
 
-        search_resource.add_method(
+        privilege_search = export_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.search_privileges_request_model},

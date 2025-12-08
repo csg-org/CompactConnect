@@ -289,6 +289,10 @@ class _Config:
         return os.environ['TRANSACTION_REPORTS_BUCKET_NAME']
 
     @property
+    def export_results_bucket_name(self):
+        return os.environ['EXPORT_RESULTS_BUCKET_NAME']
+
+    @property
     def transaction_history_table_name(self):
         return os.environ['TRANSACTION_HISTORY_TABLE_NAME']
 

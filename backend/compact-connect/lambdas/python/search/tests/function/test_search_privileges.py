@@ -7,17 +7,17 @@ from . import TstFunction
 
 
 @mock_aws
-class TestSearchPrivileges(TstFunction):
-    """Test suite for search_api_handler - privilege search functionality."""
+class TestExportPrivileges(TstFunction):
+    """Test suite for search_api_handler - privilege export functionality."""
 
     def setUp(self):
         super().setUp()
 
     def _create_api_event(self, compact: str, body: dict = None) -> dict:
-        """Create a standard API Gateway event for search_privileges."""
+        """Create a standard API Gateway event for export_privileges."""
         return {
-            'resource': '/v1/compacts/{compact}/privileges/search',
-            'path': f'/v1/compacts/{compact}/privileges/search',
+            'resource': '/v1/compacts/{compact}/privileges/export',
+            'path': f'/v1/compacts/{compact}/privileges/export',
             'httpMethod': 'POST',
             'headers': {
                 'accept': 'application/json',
@@ -30,7 +30,7 @@ class TestSearchPrivileges(TstFunction):
             'queryStringParameters': None,
             'pathParameters': {'compact': compact},
             'requestContext': {
-                'resourcePath': '/v1/compacts/{compact}/privileges/search',
+                'resourcePath': '/v1/compacts/{compact}/privileges/export',
                 'httpMethod': 'POST',
                 'authorizer': {
                     'claims': {
@@ -134,8 +134,8 @@ class TestSearchPrivileges(TstFunction):
         return hit
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_search_returns_flattened_privileges(self, mock_opensearch_client):
-        """Test that privilege search returns flattened privilege records."""
+    def test_privilege_export_returns_presigned_url(self, mock_opensearch_client):
+        """Test that privilege export returns a presigned URL to a CSV file."""
         from handlers.search import search_api_handler
 
         # Create a mock response with provider hits containing privileges
@@ -155,30 +155,38 @@ class TestSearchPrivileges(TstFunction):
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
 
-        # Verify response structure has 'privileges' instead of 'providers'
-        self.assertIn('privileges', body)
-        self.assertNotIn('providers', body)
-        self.assertEqual(1, len(body['privileges']))
+        # Verify response contains fileUrl
+        self.assertIn('fileUrl', body)
+        self.assertIsInstance(body['fileUrl'], str)
+        # Verify the URL contains expected parts
+        self.assertIn('test-export-results-bucket', body['fileUrl'])
+        self.assertIn('compact/aslp/privilegeSearch', body['fileUrl'])
+        self.assertIn('test-user-id', body['fileUrl'])  # caller user id from event
+        self.assertIn('export.csv', body['fileUrl'])
 
-        # Verify the flattened privilege has both privilege and license fields
-        privilege = body['privileges'][0]
-        self.assertEqual('statePrivilege', privilege['type'])
-        self.assertEqual('00000000-0000-0000-0000-000000000001', privilege['providerId'])
-        self.assertEqual('ky', privilege['jurisdiction'])
-        self.assertEqual('oh', privilege['licenseJurisdiction'])
-        self.assertEqual('audiologist', privilege['licenseType'])
-        self.assertEqual('PRIV-001', privilege['privilegeId'])
-        self.assertEqual('active', privilege['status'])
+        # Verify the CSV file was uploaded to S3 by checking the bucket
+        import boto3
 
-        # Verify license fields were merged
-        self.assertEqual('John', privilege['givenName'])
-        self.assertEqual('Doe', privilege['familyName'])
-        self.assertEqual('1234567890', privilege['npi'])
-        self.assertEqual('AUD-12345', privilege['licenseNumber'])
+        s3_client = boto3.client('s3')
+        response = s3_client.list_objects_v2(
+            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+        )
+        self.assertEqual(1, response['KeyCount'])
+
+        # Get the CSV content and verify it contains the expected data
+        key = response['Contents'][0]['Key']
+        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
+        csv_content = csv_obj['Body'].read().decode('utf-8')
+
+        # Verify CSV contains header and data
+        self.assertIn('type,providerId,compact,jurisdiction', csv_content)
+        self.assertIn('statePrivilege', csv_content)
+        self.assertIn('00000000-0000-0000-0000-000000000001', csv_content)
+        self.assertIn('PRIV-001', csv_content)
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_search_with_empty_results(self, mock_opensearch_client):
-        """Test that privilege search returns empty array when no results."""
+    def test_privilege_export_with_empty_results_returns_empty_csv(self, mock_opensearch_client):
+        """Test that privilege export with no results returns a presigned URL to an empty CSV."""
         from handlers.search import search_api_handler
 
         search_response = {
@@ -195,11 +203,29 @@ class TestSearchPrivileges(TstFunction):
 
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertEqual({'privileges': [], 'total': {'relation': 'eq', 'value': 0}}, body)
+
+        # Verify response contains fileUrl
+        self.assertIn('fileUrl', body)
+
+        # Verify the CSV file was uploaded with only headers
+        import boto3
+
+        s3_client = boto3.client('s3')
+        response = s3_client.list_objects_v2(
+            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+        )
+        key = response['Contents'][0]['Key']
+        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
+        csv_content = csv_obj['Body'].read().decode('utf-8')
+
+        # CSV should have header row but no data rows
+        lines = csv_content.strip().split('\n')
+        self.assertEqual(1, len(lines))  # Only header row
+        self.assertIn('type,providerId,compact', lines[0])
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_search_skips_provider_without_privileges(self, mock_opensearch_client):
-        """Test that providers without privileges don't add entries."""
+    def test_privilege_export_skips_provider_without_privileges(self, mock_opensearch_client):
+        """Test that providers without privileges result in empty CSV data rows."""
         from handlers.search import search_api_handler
 
         # Create a provider hit without privileges
@@ -239,16 +265,30 @@ class TestSearchPrivileges(TstFunction):
 
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertEqual(0, len(body['privileges']))
+
+        # Verify response contains fileUrl
+        self.assertIn('fileUrl', body)
+
+        # Verify the CSV has only headers (no data rows)
+        import boto3
+
+        s3_client = boto3.client('s3')
+        response = s3_client.list_objects_v2(
+            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+        )
+        key = response['Contents'][0]['Key']
+        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
+        csv_content = csv_obj['Body'].read().decode('utf-8')
+
+        lines = csv_content.strip().split('\n')
+        self.assertEqual(1, len(lines))  # Only header row
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_search_includes_last_sort(self, mock_opensearch_client):
-        """Test that lastSort is included in privilege search response."""
+    def test_privilege_export_anonymous_user_when_no_auth(self, mock_opensearch_client):
+        """Test that export uses 'anonymous' when no auth claims are present."""
         from handlers.search import search_api_handler
 
-        mock_hit = self._create_mock_provider_hit_with_privileges(
-            sort_values=['provider-uuid-123', '2024-01-15T10:30:00+00:00']
-        )
+        mock_hit = self._create_mock_provider_hit_with_privileges()
         search_response = {
             'hits': {
                 'total': {'value': 1, 'relation': 'eq'},
@@ -257,23 +297,39 @@ class TestSearchPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event(
-            'aslp',
-            body={
-                'query': {'match_all': {}},
-                'sort': [{'providerId': 'asc'}],
+        # Create event without auth claims
+        event = {
+            'resource': '/v1/compacts/{compact}/privileges/export',
+            'path': '/v1/compacts/aslp/privileges/export',
+            'httpMethod': 'POST',
+            'headers': {
+                'Content-Type': 'application/json',
+                'origin': 'https://example.org',
             },
-        )
+            'multiValueHeaders': {},
+            'queryStringParameters': None,
+            'pathParameters': {'compact': 'aslp'},
+            'requestContext': {
+                'resourcePath': '/v1/compacts/{compact}/privileges/export',
+                'httpMethod': 'POST',
+                # No authorizer
+            },
+            'body': json.dumps({'query': {'match_all': {}}}),
+            'isBase64Encoded': False,
+        }
 
         response = search_api_handler(event, self.mock_context)
 
+        self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertIn('lastSort', body)
-        self.assertEqual(['provider-uuid-123', '2024-01-15T10:30:00+00:00'], body['lastSort'])
+
+        # Verify the URL contains 'anonymous' instead of user id
+        self.assertIn('fileUrl', body)
+        self.assertIn('caller/anonymous/', body['fileUrl'])
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_search_with_inner_hits_returns_only_matched_privileges(self, mock_opensearch_client):
-        """Test that when inner_hits are present, only matched privileges are returned."""
+    def test_privilege_export_with_inner_hits_exports_only_matched_privileges(self, mock_opensearch_client):
+        """Test that when inner_hits are present, only matched privileges are exported to CSV."""
         from handlers.search import search_api_handler
 
         provider_id = '00000000-0000-0000-0000-000000000001'
@@ -416,14 +472,29 @@ class TestSearchPrivileges(TstFunction):
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
 
-        # Should only return 1 privilege (from inner_hits), not all 3
-        self.assertEqual(1, len(body['privileges']))
-        self.assertEqual('PRIV-KY-001', body['privileges'][0]['privilegeId'])
-        self.assertEqual('ky', body['privileges'][0]['jurisdiction'])
+        # Verify response contains fileUrl
+        self.assertIn('fileUrl', body)
+
+        # Verify the CSV contains only the matched privilege
+        import boto3
+
+        s3_client = boto3.client('s3')
+        response = s3_client.list_objects_v2(
+            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+        )
+        key = response['Contents'][0]['Key']
+        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
+        csv_content = csv_obj['Body'].read().decode('utf-8')
+
+        lines = csv_content.strip().split('\n')
+        self.assertEqual(2, len(lines))  # Header + 1 data row
+        self.assertIn('PRIV-KY-001', csv_content)
+        self.assertNotIn('PRIV-NE-001', csv_content)
+        self.assertNotIn('PRIV-CO-001', csv_content)
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_search_with_multiple_inner_hits_returns_all_matched(self, mock_opensearch_client):
-        """Test that when inner_hits contains multiple matches, all are returned."""
+    def test_privilege_export_with_multiple_inner_hits_exports_all_matched(self, mock_opensearch_client):
+        """Test that when inner_hits contains multiple matches, all are exported to CSV."""
         from handlers.search import search_api_handler
 
         provider_id = '00000000-0000-0000-0000-000000000001'
@@ -587,16 +658,29 @@ class TestSearchPrivileges(TstFunction):
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
 
-        # Should return 2 privileges (from inner_hits), not all 3
-        self.assertEqual(2, len(body['privileges']))
-        privilege_ids = [p['privilegeId'] for p in body['privileges']]
-        self.assertIn('PRIV-KY-001', privilege_ids)
-        self.assertIn('PRIV-NE-001', privilege_ids)
-        self.assertNotIn('PRIV-CO-001', privilege_ids)
+        # Verify response contains fileUrl
+        self.assertIn('fileUrl', body)
+
+        # Verify the CSV contains only the 2 matched privileges
+        import boto3
+
+        s3_client = boto3.client('s3')
+        response = s3_client.list_objects_v2(
+            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+        )
+        key = response['Contents'][0]['Key']
+        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
+        csv_content = csv_obj['Body'].read().decode('utf-8')
+
+        lines = csv_content.strip().split('\n')
+        self.assertEqual(3, len(lines))  # Header + 2 data rows
+        self.assertIn('PRIV-KY-001', csv_content)
+        self.assertIn('PRIV-NE-001', csv_content)
+        self.assertNotIn('PRIV-CO-001', csv_content)
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_search_without_inner_hits_returns_all_privileges(self, mock_opensearch_client):
-        """Test that without inner_hits, all privileges for matching providers are returned."""
+    def test_privilege_export_without_inner_hits_exports_all_privileges(self, mock_opensearch_client):
+        """Test that without inner_hits, all privileges for matching providers are exported."""
         from handlers.search import search_api_handler
 
         provider_id = '00000000-0000-0000-0000-000000000001'
@@ -709,12 +793,25 @@ class TestSearchPrivileges(TstFunction):
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
 
-        # Should return ALL 3 privileges since there are no inner_hits
-        self.assertEqual(3, len(body['privileges']))
-        privilege_ids = [p['privilegeId'] for p in body['privileges']]
-        self.assertIn('PRIV-KY-001', privilege_ids)
-        self.assertIn('PRIV-NE-001', privilege_ids)
-        self.assertIn('PRIV-CO-001', privilege_ids)
+        # Verify response contains fileUrl
+        self.assertIn('fileUrl', body)
+
+        # Verify the CSV contains all 3 privileges
+        import boto3
+
+        s3_client = boto3.client('s3')
+        response = s3_client.list_objects_v2(
+            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+        )
+        key = response['Contents'][0]['Key']
+        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
+        csv_content = csv_obj['Body'].read().decode('utf-8')
+
+        lines = csv_content.strip().split('\n')
+        self.assertEqual(4, len(lines))  # Header + 3 data rows
+        self.assertIn('PRIV-KY-001', csv_content)
+        self.assertIn('PRIV-NE-001', csv_content)
+        self.assertIn('PRIV-CO-001', csv_content)
 
     def test_unsupported_route_returns_400(self):
         """Test that unsupported routes return a 400 error."""

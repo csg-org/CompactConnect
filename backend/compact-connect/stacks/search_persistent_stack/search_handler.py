@@ -5,6 +5,7 @@ from aws_cdk.aws_ec2 import SubnetSelection
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_opensearchservice import Domain
+from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from common_constructs.stack import Stack
@@ -31,6 +32,7 @@ class SearchHandler(Construct):
         vpc_subnets: SubnetSelection,
         lambda_role: IRole,
         alarm_topic: ITopic,
+        export_results_bucket: IBucket,
     ):
         """
         Initialize the SearchHandler construct.
@@ -42,6 +44,7 @@ class SearchHandler(Construct):
         :param vpc_subnets: The VPC subnets for Lambda deployment
         :param lambda_role: The IAM role for the Lambda function
         :param alarm_topic: The SNS topic for alarms
+        :param export_results_bucket: The S3 bucket for storing export result CSV files
         """
         super().__init__(scope, construct_id)
         stack = Stack.of(scope)
@@ -58,6 +61,7 @@ class SearchHandler(Construct):
             log_retention=RetentionDays.ONE_MONTH,
             environment={
                 'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
+                'EXPORT_RESULTS_BUCKET_NAME': export_results_bucket.bucket_name,
                 **stack.common_env_vars,
             },
             timeout=Duration.seconds(29),
@@ -71,6 +75,12 @@ class SearchHandler(Construct):
         # Grant the handler read access to the OpenSearch domain
         opensearch_domain.grant_read(self.handler)
 
+        # Grant the handler write access to the export results bucket
+        export_results_bucket.grant_write(self.handler)
+
+        # Grant the handler permission to generate presigned URLs for the export results bucket
+        export_results_bucket.grant_read(self.handler)
+
         # Add CDK Nag suppressions for the Lambda function's IAM role
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -80,7 +90,9 @@ class SearchHandler(Construct):
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The grant_read method requires wildcard permissions on the OpenSearch domain to '
                     'read from indices. This is appropriate for a search function that needs to query '
-                    'provider indices in the domain.',
+                    'provider indices in the domain. Additionally, grant_write and grant_read on the S3 bucket '
+                    'use wildcard permissions for object-level operations which is required for writing and '
+                    'generating presigned URLs for export result CSV files.',
                 },
             ],
         )

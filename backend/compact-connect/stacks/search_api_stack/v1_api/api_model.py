@@ -74,16 +74,39 @@ class ApiModel:
         return self.api._v1_search_providers_request_model
 
     @property
+    def _export_privileges_request_schema(self) -> JsonSchema:
+        """
+        Return the export privileges request schema.
+
+        This schema is similar to the search request schema but without pagination parameters.
+        The export endpoint does not support pagination - it returns all results as a CSV file.
+        """
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            additional_properties=False,
+            required=['query'],
+            properties={
+                'query': JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    description='The OpenSearch query body',
+                ),
+            },
+        )
+
+    @property
     def search_privileges_request_model(self) -> Model:
         """
-        Return the search privileges request model, which should only be created once per API.
+        Return the export privileges request model, which should only be created once per API.
+
+        This model is used for the privilege export endpoint and does not include
+        pagination parameters (size, from, search_after).
         """
         if hasattr(self.api, '_v1_search_privileges_request_model'):
             return self.api._v1_search_privileges_request_model
         self.api._v1_search_privileges_request_model = self.api.add_model(
-            'V1SearchPrivilegesRequestModel',
-            description='Search privileges request model following OpenSearch DSL',
-            schema=self._common_search_request_schema,
+            'V1ExportPrivilegesRequestModel',
+            description='Export privileges request model - query only, no pagination',
+            schema=self._export_privileges_request_schema,
         )
         return self.api._v1_search_privileges_request_model
 
@@ -127,85 +150,24 @@ class ApiModel:
 
     @property
     def search_privileges_response_model(self) -> Model:
-        """Return the search privileges response model, which should only be created once per API"""
+        """Return the export privileges response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_search_privileges_response_model'):
             return self.api._v1_search_privileges_response_model
         self.api._v1_search_privileges_response_model = self.api.add_model(
-            'V1SearchPrivilegesResponseModel',
-            description='Search privileges response model',
+            'V1ExportPrivilegesResponseModel',
+            description='Export privileges response model with presigned URL to CSV file',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['privileges', 'total'],
+                required=['fileUrl'],
                 properties={
-                    'privileges': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        items=self._flattened_privilege_response_schema,
-                    ),
-                    'total': self._search_response_total_schema,
-                    'lastSort': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='Sort values from the last hit to use with search_after for the next page',
+                    'fileUrl': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Presigned URL to download the CSV file containing the export results',
                     ),
                 },
             ),
         )
         return self.api._v1_search_privileges_response_model
-
-    @property
-    def _flattened_privilege_response_schema(self):
-        """
-        Schema for flattened privilege response - combines privilege and license data.
-        This mirrors StatePrivilegeGeneralResponseSchema for the search API.
-        """
-        stack: AppStack = AppStack.of(self.api)
-
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            required=[
-                'type',
-                'providerId',
-                'compact',
-                'jurisdiction',
-                'licenseType',
-                'privilegeId',
-                'status',
-                'compactEligibility',
-                'dateOfExpiration',
-                'dateOfIssuance',
-                'dateOfRenewal',
-                'dateOfUpdate',
-                'familyName',
-                'givenName',
-                'licenseJurisdiction',
-                'licenseStatus',
-            ],
-            properties={
-                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['statePrivilege']),
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-                'licenseType': JsonSchema(type=JsonSchemaType.STRING),
-                'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
-                'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-                'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
-                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                'familyName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'givenName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'licenseJurisdiction': JsonSchema(
-                    type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
-                ),
-                'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-                # Optional fields
-                'middleName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'suffix': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
-            },
-        )
 
     @property
     def _providers_response_schema(self):

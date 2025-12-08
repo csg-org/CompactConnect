@@ -1,5 +1,8 @@
+import csv
+import io
+
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import logger
+from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import (
     ProviderGeneralResponseSchema,
     SearchProvidersRequestSchema,
@@ -14,6 +17,34 @@ from opensearch_client import OpenSearchClient
 MAX_PROVIDER_PAGE_SIZE = 100
 PRIVILEGE_SEARCH_PAGE_SIZE = 2000
 MAX_MATCH_TOTAL_ALLOWED = 10000
+
+# Presigned URL expiration time in seconds (1 minute)
+PRESIGNED_URL_EXPIRATION_SECONDS = 60
+
+# CSV field names for privilege export
+PRIVILEGE_CSV_FIELDS = [
+    'type',
+    'providerId',
+    'compact',
+    'jurisdiction',
+    'licenseType',
+    'privilegeId',
+    'status',
+    'compactEligibility',
+    'dateOfExpiration',
+    'dateOfIssuance',
+    'dateOfRenewal',
+    'dateOfUpdate',
+    'familyName',
+    'givenName',
+    'middleName',
+    'suffix',
+    'licenseJurisdiction',
+    'licenseStatus',
+    'licenseStatusName',
+    'licenseNumber',
+    'npi',
+]
 
 
 @api_handler
@@ -34,8 +65,8 @@ def search_api_handler(event: dict, context: LambdaContext):
     match api_method:
         case ('POST', '/v1/compacts/{compact}/providers/search'):
             return _search_providers(event, context)
-        case ('POST', '/v1/compacts/{compact}/privileges/search'):
-            return _search_privileges(event, context)
+        case ('POST', '/v1/compacts/{compact}/privileges/export'):
+            return _export_privileges(event, context)
 
     # If we get here, the method/resource combination is not supported
     raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
@@ -109,13 +140,12 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     return response_body
 
 
-def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
-    Search privileges using OpenSearch.
+    Export privileges to a CSV file in S3 and return a presigned URL for download.
 
-    This endpoint accepts an OpenSearch DSL query body and returns flattened privilege records.
-    Privileges are extracted from provider documents and combined with license data.
-    Pagination follows OpenSearch DSL using `from`/`size` or `search_after` with `sort`.
+    This endpoint accepts an OpenSearch DSL query body, retrieves all matching privilege records,
+    converts them to CSV format, stores the file in S3, and returns a presigned URL for download.
 
     If the query includes a nested query on privileges with `inner_hits`, only the matched
     privileges will be returned. Otherwise, all privileges for matching providers are returned.
@@ -133,20 +163,23 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
-    :return: Dictionary with privileges array and pagination metadata
+    :return: Dictionary with fileUrl containing presigned URL to download the CSV file
     """
     compact = event['pathParameters']['compact']
 
-    # Parse and validate the request body using the schema
-    body = _parse_and_validate_request_body(event)
+    # Get the caller's cognito user id
+    caller_user_id = _get_caller_user_id(event)
 
-    # Build the OpenSearch search body
-    search_body = _build_opensearch_search_body(body, size_override=PRIVILEGE_SEARCH_PAGE_SIZE)
+    # Parse and validate the request body using the schema
+    body = _parse_and_validate_export_request_body(event)
+
+    # Build the OpenSearch search body (no pagination for export)
+    search_body = _build_export_search_body(body)
 
     # Build the index name for this compact
     index_name = f'compact_{compact}_providers'
 
-    logger.info('Executing OpenSearch privilege search', compact=compact, index_name=index_name)
+    logger.info('Executing OpenSearch privilege export', compact=compact, index_name=index_name)
 
     # Execute the search
     client = OpenSearchClient()
@@ -167,7 +200,6 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
 
     # Extract and flatten privileges from provider records
     flattened_privileges = []
-    last_sort = None
     privilege_schema = StatePrivilegeGeneralResponseSchema()
 
     for hit in hits:
@@ -202,8 +234,6 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
                         privilege_id=flattened_privilege.get('privilegeId'),
                         errors=e.messages,
                     )
-            # Track the sort values from the last hit for search_after pagination
-            last_sort = hit.get('sort')
         except Exception as e:  # noqa: BLE001 broad-exception-caught
             logger.warning(
                 'Failed to process provider privileges',
@@ -211,17 +241,37 @@ def _search_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
                 error=str(e),
             )
 
-    # Build response following OpenSearch DSL structure
-    response_body = {
-        'privileges': flattened_privileges,
-        'total': total,
-    }
+    logger.info('Found privileges to export', count=len(flattened_privileges))
 
-    # Include sort values from last hit to enable search_after pagination
-    if last_sort is not None:
-        response_body['lastSort'] = last_sort
+    # Generate CSV content from the flattened privileges
+    csv_content = _generate_csv_content(flattened_privileges)
 
-    return response_body
+    # Generate S3 key path
+    request_datetime = config.current_standard_datetime.isoformat()
+    s3_key = f'compact/{compact}/privilegeSearch/caller/{caller_user_id}/time/{request_datetime}/export.csv'
+
+    # Upload CSV to S3
+    logger.info('Uploading CSV to S3', bucket=config.export_results_bucket_name, key=s3_key)
+    config.s3_client.put_object(
+        Bucket=config.export_results_bucket_name,
+        Key=s3_key,
+        Body=csv_content.encode('utf-8'),
+        ContentType='text/csv',
+    )
+
+    # Generate presigned URL for download
+    presigned_url = config.s3_client.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket': config.export_results_bucket_name,
+            'Key': s3_key,
+        },
+        ExpiresIn=PRESIGNED_URL_EXPIRATION_SECONDS,
+    )
+
+    logger.info('Generated presigned URL for export', url_expires_in=PRESIGNED_URL_EXPIRATION_SECONDS)
+
+    return {'fileUrl': presigned_url}
 
 
 def _parse_and_validate_request_body(event: dict) -> dict:
@@ -238,6 +288,44 @@ def _parse_and_validate_request_body(event: dict) -> dict:
     except ValidationError as e:
         logger.warning('Invalid request body', errors=e.messages)
         raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
+
+
+def _parse_and_validate_export_request_body(event: dict) -> dict:
+    """
+    Parse and validate the request body for export endpoints.
+
+    Export endpoints only accept the query parameter, no pagination.
+
+    :param event: API Gateway event
+    :return: Validated request body with query
+    :raises CCInvalidRequestException: If the request body is invalid
+    """
+    import json
+
+    try:
+        body = json.loads(event.get('body', '{}'))
+        if 'query' not in body:
+            raise CCInvalidRequestException('Request body must contain a query')
+        return body
+    except json.JSONDecodeError as e:
+        logger.warning('Invalid JSON in request body', error=str(e))
+        raise CCInvalidRequestException('Invalid JSON in request body') from e
+
+
+def _get_caller_user_id(event: dict) -> str:
+    """
+    Get the caller's cognito user id from the event.
+
+    :param event: API Gateway event
+    :return: The caller's user id (sub claim from cognito token)
+    :raises CCInvalidRequestException: If user id cannot be extracted
+    """
+    try:
+        return event['requestContext']['authorizer']['claims']['sub']
+    except (KeyError, TypeError) as e:
+        logger.warning('Could not extract user id from event', error=str(e))
+        # For public endpoints without authorization, use 'anonymous'
+        return 'anonymous'
 
 
 def _build_opensearch_search_body(body: dict, size_override: int) -> dict:
@@ -274,6 +362,41 @@ def _build_opensearch_search_body(body: dict, size_override: int) -> dict:
             raise CCInvalidRequestException('sort is required when using search_after pagination')
 
     return search_body
+
+
+def _build_export_search_body(body: dict) -> dict:
+    """
+    Build the OpenSearch search body for export requests.
+
+    Export requests do not support pagination - they return all results up to MAX_MATCH_TOTAL_ALLOWED.
+
+    :param body: Validated request body
+    :return: OpenSearch search body
+    """
+    return {
+        'query': body.get('query', {'match_all': {}}),
+        'size': PRIVILEGE_SEARCH_PAGE_SIZE,
+    }
+
+
+def _generate_csv_content(privileges: list[dict]) -> str:
+    """
+    Generate CSV content from a list of privilege records.
+
+    :param privileges: List of flattened privilege records
+    :return: CSV content as a string
+    """
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=PRIVILEGE_CSV_FIELDS, extrasaction='ignore')
+
+    # Write header row
+    writer.writeheader()
+
+    # Write data rows
+    for privilege in privileges:
+        writer.writerow(privilege)
+
+    return output.getvalue()
 
 
 def _extract_flattened_privileges(provider: dict) -> list[dict]:

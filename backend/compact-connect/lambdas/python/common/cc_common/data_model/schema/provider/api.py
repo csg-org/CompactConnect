@@ -1,9 +1,9 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import timedelta
 
-from marshmallow import ValidationError, validates_schema, Schema
+from marshmallow import Schema, ValidationError, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Nested, Raw, String
-from marshmallow.validate import Length, OneOf, Regexp, Range
+from marshmallow.validate import Length, OneOf, Range, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import CCRequestSchema

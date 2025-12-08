@@ -26,9 +26,16 @@ class TstFunction(TstLambdas):
 
     def build_resources(self):
         self.create_provider_table()
+        self.create_export_results_bucket()
 
     def delete_resources(self):
         self._provider_table.delete()
+        # must delete all objects in the bucket before deleting the bucket
+        self._bucket.objects.delete()
+        self._bucket.delete()
+    def create_export_results_bucket(self):
+        """Create the mock S3 bucket for export results"""
+        self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['EXPORT_RESULTS_BUCKET_NAME'])
 
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
