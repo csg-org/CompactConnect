@@ -639,7 +639,7 @@ class TestExportPrivileges(TstFunction):
         self.assertIn('Unsupported method or resource', body['message'])
 
     def test_missing_scopes_returns_403(self):
-        """Test that unsupported routes return a 400 error."""
+        """Test that missing auth scope returns a 403 error."""
         from handlers.search import search_api_handler
 
         # Create event with unsupported route

@@ -334,7 +334,7 @@ class TestSearchProviders(TstFunction):
             self.assertEqual(f'compact_{compact}_providers', call_args.kwargs['index_name'])
 
     def test_missing_scopes_returns_403(self):
-        """Test that unsupported routes return a 400 error."""
+        """Test that missing auth scope returns a 403 error."""
         from handlers.search import search_api_handler
 
         # Create event with unsupported route
