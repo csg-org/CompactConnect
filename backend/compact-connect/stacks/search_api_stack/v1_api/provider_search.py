@@ -46,7 +46,7 @@ class ProviderSearch:
         # Get the search providers handler from the search persistent stack
         handler = search_persistent_stack.search_handler.handler
 
-        search_resource.add_method(
+        self.provider_search_endpoint = search_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.search_providers_request_model},

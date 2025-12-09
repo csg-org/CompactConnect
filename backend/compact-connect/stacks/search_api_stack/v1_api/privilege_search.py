@@ -43,7 +43,7 @@ class PrivilegeSearch:
         # Get the search handler from the search persistent stack (same handler as provider search)
         handler = search_persistent_stack.search_handler.handler
 
-        privilege_search = export_resource.add_method(
+        self.privilege_search_export_endpoint = export_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.search_privileges_request_model},
