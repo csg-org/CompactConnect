@@ -65,7 +65,9 @@ class SearchHandler(Construct):
                 **stack.common_env_vars,
             },
             timeout=Duration.seconds(29),
-            memory_size=256,
+            # memory slightly larger to manage pulling down privilege reports for CSV export
+            # and to improve performance of search in general
+            memory_size=2048,
             vpc=vpc_stack.vpc,
             vpc_subnets=vpc_subnets,
             security_groups=[vpc_stack.lambda_security_group],
