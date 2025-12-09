@@ -3,6 +3,7 @@ import io
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import (
     ExportPrivilegesRequestSchema,
     ProviderGeneralResponseSchema,
@@ -10,11 +11,12 @@ from cc_common.data_model.schema.provider.api import (
     StatePrivilegeGeneralResponseSchema,
 )
 from cc_common.exceptions import (
+    CCInternalException,
     CCInvalidRequestCustomResponseException,
     CCInvalidRequestException,
     CCNotFoundException,
 )
-from cc_common.utils import api_handler
+from cc_common.utils import api_handler, authorize_compact_level_only_action
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
 
@@ -50,8 +52,8 @@ PRIVILEGE_CSV_FIELDS = [
 ]
 
 
-# TODO - add auth wrapper to check for readGeneral scope after testing
 @api_handler
+@authorize_compact_level_only_action(action=CCPermissionsAction.READ_GENERAL)
 def search_api_handler(event: dict, context: LambdaContext):
     """
     Main entry point for search API.
@@ -327,9 +329,10 @@ def _get_caller_user_id(event: dict) -> str:
     try:
         return event['requestContext']['authorizer']['claims']['sub']
     except (KeyError, TypeError) as e:
-        logger.warning('Could not extract user id from event', error=str(e))
-        # TODO - remove this after testing and raise errors
-        return 'anonymous'
+        # the api auth wrapper should have detected this earlier, so if get here there is an issue with the
+        # setup. Raise an internal exception
+        logger.error('Could not extract user id from event', error=str(e))
+        raise CCInternalException('Could not determine caller id for privilege report export') from e
 
 
 def _build_opensearch_search_body(body: dict, size_override: int) -> dict:

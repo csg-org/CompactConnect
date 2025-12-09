@@ -13,10 +13,16 @@ class TestExportPrivileges(TstFunction):
     def setUp(self):
         super().setUp()
 
-    def _create_api_event(self, compact: str, body: dict = None) -> dict:
+    def _create_api_event(
+        self,
+        compact: str,
+        body: dict = None,
+        resource_override: str = None,
+        scopes_override: str = None,
+    ) -> dict:
         """Create a standard API Gateway event for export_privileges."""
         return {
-            'resource': '/v1/compacts/{compact}/privileges/export',
+            'resource': '/v1/compacts/{compact}/privileges/export' if not resource_override else resource_override,
             'path': f'/v1/compacts/{compact}/privileges/export',
             'httpMethod': 'POST',
             'headers': {
@@ -36,6 +42,7 @@ class TestExportPrivileges(TstFunction):
                     'claims': {
                         'sub': 'test-user-id',
                         'cognito:username': 'test-user',
+                        'scope': f'openid email {compact}/readGeneral' if not scopes_override else scopes_override,
                     }
                 },
             },
@@ -623,33 +630,23 @@ class TestExportPrivileges(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with unsupported route
-        event = {
-            'resource': '/v1/compacts/{compact}/unknown/search',
-            'path': '/v1/compacts/aslp/unknown/search',
-            'httpMethod': 'POST',
-            'headers': {
-                'Content-Type': 'application/json',
-                'origin': 'https://example.org',
-            },
-            'multiValueHeaders': {},
-            'queryStringParameters': None,
-            'pathParameters': {'compact': 'aslp'},
-            'requestContext': {
-                'resourcePath': '/v1/compacts/{compact}/unknown/search',
-                'httpMethod': 'POST',
-                'authorizer': {
-                    'claims': {
-                        'sub': 'test-user-id',
-                        'cognito:username': 'test-user',
-                    }
-                },
-            },
-            'body': json.dumps({'query': {'match_all': {}}}),
-            'isBase64Encoded': False,
-        }
+        event = self._create_api_event(compact='aslp', resource_override='/v1/compacts/aslp/unknown/search')
 
         response = search_api_handler(event, self.mock_context)
 
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertIn('Unsupported method or resource', body['message'])
+
+    def test_missing_scopes_returns_403(self):
+        """Test that unsupported routes return a 400 error."""
+        from handlers.search import search_api_handler
+
+        # Create event with unsupported route
+        event = self._create_api_event(compact='aslp', scopes_override='openid email')
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(403, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Access denied', body['message'])
