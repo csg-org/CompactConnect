@@ -4,9 +4,10 @@ import io
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import (
+    ExportPrivilegesRequestSchema,
     ProviderGeneralResponseSchema,
     SearchProvidersRequestSchema,
-    StatePrivilegeGeneralResponseSchema, ExportPrivilegesRequestSchema,
+    StatePrivilegeGeneralResponseSchema,
 )
 from cc_common.exceptions import (
     CCInvalidRequestCustomResponseException,
@@ -47,6 +48,7 @@ PRIVILEGE_CSV_FIELDS = [
     'licenseNumber',
     'npi',
 ]
+
 
 # TODO - add auth wrapper to check for readGeneral scope after testing
 @api_handler

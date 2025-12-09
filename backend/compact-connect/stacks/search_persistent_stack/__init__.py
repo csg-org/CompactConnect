@@ -29,7 +29,7 @@ class SearchPersistentStack(AppStack):
     on occasion requiring AWS support intervention (every time we attempted to update the engine version during
     development, the deployment never completed). If you intend to update any field that will require a blue/green
     deployment as described here: https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes.html
-    Note that worse case scenario, you may have to delete the entire stack, re-deploy it, and re-index all the data from
+    Note that worst case scenario, you may have to delete the entire stack, re-deploy it, and re-index all the data from
     the provider table. In light of this, DO NOT place any resources in this stack that should never be deleted.
     """
 

@@ -456,10 +456,19 @@ class TestExportPrivileges(TstFunction):
         csv_content = csv_obj['Body'].read().decode('utf-8')
 
         lines = csv_content.strip().split('\n')
-        self.assertEqual(3, len(lines))# Header + 2 data rows
-        self.assertEqual('type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber,npi\r', lines[0])
-        self.assertEqual('statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r', lines[1])
-        self.assertEqual('statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ne,audiologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,AUD-12345,1234567890', lines[2])
+        self.assertEqual(3, len(lines))  # Header + 2 data rows
+        self.assertEqual(
+            'type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber,npi\r',
+            lines[0],
+        )
+        self.assertEqual(
+            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            lines[1],
+        )
+        self.assertEqual(
+            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ne,audiologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,AUD-12345,1234567890',
+            lines[2],
+        )
 
     @patch('handlers.search.OpenSearchClient')
     def test_privilege_export_without_inner_hits_exports_all_privileges(self, mock_opensearch_client):
@@ -592,11 +601,22 @@ class TestExportPrivileges(TstFunction):
 
         lines = csv_content.strip().split('\n')
         self.assertEqual(4, len(lines))  # Header + 3 data rows
-        self.assertEqual('type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber,npi\r', lines[0])
-        self.assertEqual('statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r', lines[1])
-        self.assertEqual('statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ne,audiologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,AUD-12345,1234567890\r', lines[2])
-        self.assertEqual('statePrivilege,00000000-0000-0000-0000-000000000001,aslp,co,audiologist,PRIV-CO-001,inactive,eligible,2025-03-01,2024-03-01,2024-03-01,Doe,John,,,oh,active,,AUD-12345,1234567890', lines[3])
-
+        self.assertEqual(
+            'type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber,npi\r',
+            lines[0],
+        )
+        self.assertEqual(
+            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            lines[1],
+        )
+        self.assertEqual(
+            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ne,audiologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            lines[2],
+        )
+        self.assertEqual(
+            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,co,audiologist,PRIV-CO-001,inactive,eligible,2025-03-01,2024-03-01,2024-03-01,Doe,John,,,oh,active,,AUD-12345,1234567890',
+            lines[3],
+        )
 
     def test_unsupported_route_returns_400(self):
         """Test that unsupported routes return a 400 error."""
