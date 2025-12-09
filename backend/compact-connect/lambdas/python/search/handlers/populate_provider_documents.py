@@ -21,12 +21,11 @@ Example input for resumption:
 """
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from marshmallow import ValidationError
-
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException
+from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import process_single_provider
+from utils import generate_provider_opensearch_document
 
 # Batch size for DynamoDB pagination
 DYNAMODB_PAGE_SIZE = 1000
@@ -205,7 +204,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
                 try:
                     # Use the shared utility to process the provider
-                    serializable_document = process_single_provider(data_client, compact, provider_id)
+                    serializable_document = generate_provider_opensearch_document(data_client, compact, provider_id)
                     if serializable_document:
                         documents_to_index.append(serializable_document)
                     else:

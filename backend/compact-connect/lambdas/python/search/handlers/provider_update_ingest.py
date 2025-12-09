@@ -12,9 +12,10 @@ are sent to the dead letter queue.
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
+from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import process_providers_for_indexing
+from utils import generate_provider_opensearch_document
 
 
 def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001
@@ -60,12 +61,12 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
         # The format is {'S': 'value'} for string attributes
         compact = _extract_string_value(image.get('compact'))
         provider_id = _extract_string_value(image.get('providerId'))
+        record_type = _extract_string_value(image.get('type'))
 
         if not compact or not provider_id:
-            logger.warning(
+            logger.error(
                 'Record missing required fields',
-                compact=compact,
-                provider_id=provider_id,
+                record_type=record_type,
                 sequence_number=sequence_number,
             )
             continue
@@ -83,20 +84,31 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
     failed_providers: set[tuple[str, str]] = set()  # (compact, provider_id) pairs that failed
 
     for compact, provider_ids in providers_by_compact.items():
-        if not provider_ids:
-            continue
-
         index_name = f'compact_{compact}_providers'
         logger.info('Processing providers for compact', compact=compact, provider_count=len(provider_ids))
 
         # Use the shared utility to process providers
-        documents, failed_count = process_providers_for_indexing(compact, provider_ids)
+        data_client = config.data_client
+        documents = []
 
-        if failed_count > 0:
+        for provider_id in provider_ids:
+            try:
+                document = generate_provider_opensearch_document(data_client, compact, provider_id)
+                documents.append(document)
+            except (CCNotFoundException, ValidationError) as e:
+                logger.warning(
+                    'Failed to process provider for indexing',
+                    provider_id=provider_id,
+                    compact=compact,
+                    error=str(e),
+                )
+                failed_providers.add((compact, provider_id))
+
+        if failed_providers:
             logger.warning(
                 'Some providers failed processing',
                 compact=compact,
-                failed_count=failed_count,
+                failed_count=len(failed_providers),
                 successful_count=len(documents),
             )
 
@@ -111,7 +123,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                         index_result = item.get('index', {})
                         if index_result.get('error'):
                             doc_id = index_result.get('_id')
-                            logger.warning(
+                            logger.error(
                                 'Document indexing failed',
                                 document_id=doc_id,
                                 error=index_result.get('error'),

@@ -97,8 +97,11 @@ class ProviderUpdateIngestHandler(Construct):
         self.handler.add_event_source(
             DynamoEventSource(
                 provider_table,
-                starting_position=StartingPosition.LATEST,
+                starting_position=StartingPosition.TRIM_HORIZON,
                 batch_size=1000,
+                # Setting this to 15 seconds to give downstream updates time to be batched with initial
+                # updates to reduce the number of provider update calls. This can be adjusted as needed
+                max_batching_window=Duration.seconds(15),
                 bisect_batch_on_error=True,
                 retry_attempts=3,
                 on_failure=SqsDlq(self.dlq),
