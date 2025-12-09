@@ -168,6 +168,7 @@ class TestSearchProviders(TstFunction):
             },
             json.loads(result['body']),
         )
+        mock_opensearch_client.assert_not_called()
 
     @patch('handlers.search.OpenSearchClient')
     def test_search_with_sort_parameter(self, mock_opensearch_client):

@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import timedelta
 
-from marshmallow import Schema, ValidationError, validates_schema
+from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, OneOf, Range, Regexp
 
@@ -450,7 +450,7 @@ class StateProviderDetailGeneralResponseSchema(ForgivingSchema):
     providerUIUrl = String(required=True, allow_none=False)
 
 
-class SearchProvidersRequestSchema(Schema):
+class SearchProvidersRequestSchema(CCRequestSchema):
     """
     Schema for advanced search providers requests.
 
@@ -469,7 +469,7 @@ class SearchProvidersRequestSchema(Schema):
 
     # Pagination parameters following OpenSearch DSL
     # 'from' is a reserved word in Python, so we use 'from_' with data_key='from'
-    from_ = Integer(required=False, allow_none=False, data_key='from')
+    from_ = Integer(required=False, allow_none=False, data_key='from', validate=Range(min=0, max=9900))
     size = Integer(required=False, allow_none=False, validate=Range(min=1, max=100))
 
     # Sort order - required when using search_after pagination

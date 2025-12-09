@@ -63,7 +63,7 @@ class SearchPersistentStack(AppStack):
             description='IAM role for index manager Lambda function that needs read/write access to OpenSearch Domain',
         )
 
-        # Create IAM role for Lambda functions access OpenSearch through API
+        # Create IAM role for Lambda functions that access OpenSearch through API
         # this role only needs read access
         self.search_api_lambda_role = Role(
             self,
