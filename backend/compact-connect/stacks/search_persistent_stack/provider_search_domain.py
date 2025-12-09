@@ -121,7 +121,7 @@ class ProviderSearchDomain(Construct):
         )
 
         # Create CloudWatch Logs resource policy to allow OpenSearch to write logs
-        # This is done manually to avoid CDK creating an auto-generated Lambda function
+        # This is set here to avoid CDK creating an auto-generated Lambda function
         # The resource ARNs must include ':*' to grant permissions on log streams within the log groups
         ResourcePolicy(
             self,
