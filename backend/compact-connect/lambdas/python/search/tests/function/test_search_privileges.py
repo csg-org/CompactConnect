@@ -185,8 +185,8 @@ class TestExportPrivileges(TstFunction):
         self.assertIn('PRIV-001', csv_content)
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_export_with_empty_results_returns_empty_csv(self, mock_opensearch_client):
-        """Test that privilege export with no results returns a presigned URL to an empty CSV."""
+    def test_privilege_export_with_empty_results_returns_404(self, mock_opensearch_client):
+        """Test that privilege export with no results returns a 404 error."""
         from handlers.search import search_api_handler
 
         search_response = {
@@ -201,31 +201,26 @@ class TestExportPrivileges(TstFunction):
 
         response = search_api_handler(event, self.mock_context)
 
-        self.assertEqual(200, response['statusCode'])
+        self.assertEqual(404, response['statusCode'])
         body = json.loads(response['body'])
 
-        # Verify response contains fileUrl
-        self.assertIn('fileUrl', body)
+        # Verify response contains error message
+        self.assertIn('message', body)
+        self.assertEqual('The search parameters did not match any privileges.', body['message'])
 
-        # Verify the CSV file was uploaded with only headers
+        # Verify no CSV file was uploaded to S3
         import boto3
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
             Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
         )
-        key = response['Contents'][0]['Key']
-        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
-        csv_content = csv_obj['Body'].read().decode('utf-8')
-
-        # CSV should have header row but no data rows
-        lines = csv_content.strip().split('\n')
-        self.assertEqual(1, len(lines))  # Only header row
-        self.assertIn('type,providerId,compact', lines[0])
+        # Should have no objects
+        self.assertEqual(0, response.get('KeyCount', 0))
 
     @patch('handlers.search.OpenSearchClient')
-    def test_privilege_export_skips_provider_without_privileges(self, mock_opensearch_client):
-        """Test that providers without privileges result in empty CSV data rows."""
+    def test_privilege_export_skips_provider_without_privileges_returns_404(self, mock_opensearch_client):
+        """Test that providers without privileges result in a 404 error."""
         from handlers.search import search_api_handler
 
         # Create a provider hit without privileges
@@ -263,234 +258,22 @@ class TestExportPrivileges(TstFunction):
 
         response = search_api_handler(event, self.mock_context)
 
-        self.assertEqual(200, response['statusCode'])
+        self.assertEqual(404, response['statusCode'])
         body = json.loads(response['body'])
 
-        # Verify response contains fileUrl
-        self.assertIn('fileUrl', body)
+        # Verify response contains error message
+        self.assertIn('message', body)
+        self.assertEqual('The search parameters did not match any privileges.', body['message'])
 
-        # Verify the CSV has only headers (no data rows)
+        # Verify no CSV file was uploaded to S3
         import boto3
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
             Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
         )
-        key = response['Contents'][0]['Key']
-        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
-        csv_content = csv_obj['Body'].read().decode('utf-8')
-
-        lines = csv_content.strip().split('\n')
-        self.assertEqual(1, len(lines))  # Only header row
-
-    @patch('handlers.search.OpenSearchClient')
-    def test_privilege_export_anonymous_user_when_no_auth(self, mock_opensearch_client):
-        """Test that export uses 'anonymous' when no auth claims are present."""
-        from handlers.search import search_api_handler
-
-        mock_hit = self._create_mock_provider_hit_with_privileges()
-        search_response = {
-            'hits': {
-                'total': {'value': 1, 'relation': 'eq'},
-                'hits': [mock_hit],
-            }
-        }
-        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
-
-        # Create event without auth claims
-        event = {
-            'resource': '/v1/compacts/{compact}/privileges/export',
-            'path': '/v1/compacts/aslp/privileges/export',
-            'httpMethod': 'POST',
-            'headers': {
-                'Content-Type': 'application/json',
-                'origin': 'https://example.org',
-            },
-            'multiValueHeaders': {},
-            'queryStringParameters': None,
-            'pathParameters': {'compact': 'aslp'},
-            'requestContext': {
-                'resourcePath': '/v1/compacts/{compact}/privileges/export',
-                'httpMethod': 'POST',
-                # No authorizer
-            },
-            'body': json.dumps({'query': {'match_all': {}}}),
-            'isBase64Encoded': False,
-        }
-
-        response = search_api_handler(event, self.mock_context)
-
-        self.assertEqual(200, response['statusCode'])
-        body = json.loads(response['body'])
-
-        # Verify the URL contains 'anonymous' instead of user id
-        self.assertIn('fileUrl', body)
-        self.assertIn('caller/anonymous/', body['fileUrl'])
-
-    @patch('handlers.search.OpenSearchClient')
-    def test_privilege_export_with_inner_hits_exports_only_matched_privileges(self, mock_opensearch_client):
-        """Test that when inner_hits are present, only matched privileges are exported to CSV."""
-        from handlers.search import search_api_handler
-
-        provider_id = '00000000-0000-0000-0000-000000000001'
-        compact = 'aslp'
-
-        # Create a provider with multiple privileges but inner_hits only matches one
-        hit = {
-            '_index': f'compact_{compact}_providers',
-            '_id': provider_id,
-            '_score': 1.0,
-            '_source': {
-                'providerId': provider_id,
-                'type': 'provider',
-                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                'compact': compact,
-                'licenseJurisdiction': 'oh',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-                'givenName': 'John',
-                'familyName': 'Doe',
-                'dateOfExpiration': '2025-12-31',
-                'jurisdictionUploadedLicenseStatus': 'active',
-                'jurisdictionUploadedCompactEligibility': 'eligible',
-                'birthMonthDay': '06-15',
-                'licenses': [
-                    {
-                        'providerId': provider_id,
-                        'type': 'license-home',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'compact': compact,
-                        'jurisdiction': 'oh',
-                        'licenseType': 'audiologist',
-                        'licenseStatus': 'active',
-                        'compactEligibility': 'eligible',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'John',
-                        'familyName': 'Doe',
-                        'dateOfIssuance': '2020-01-01',
-                        'dateOfRenewal': '2024-01-01',
-                        'dateOfExpiration': '2025-12-31',
-                        'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
-                    }
-                ],
-                # Provider has THREE privileges
-                'privileges': [
-                    {
-                        'type': 'privilege',
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': 'ky',
-                        'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
-                        'dateOfIssuance': '2024-01-15',
-                        'dateOfRenewal': '2024-01-15',
-                        'dateOfExpiration': '2025-01-15',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'administratorSetStatus': 'active',
-                        'privilegeId': 'PRIV-KY-001',
-                        'status': 'active',
-                    },
-                    {
-                        'type': 'privilege',
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': 'ne',
-                        'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
-                        'dateOfIssuance': '2024-02-01',
-                        'dateOfRenewal': '2024-02-01',
-                        'dateOfExpiration': '2025-02-01',
-                        'dateOfUpdate': '2024-02-01T10:30:00+00:00',
-                        'administratorSetStatus': 'active',
-                        'privilegeId': 'PRIV-NE-001',
-                        'status': 'active',
-                    },
-                    {
-                        'type': 'privilege',
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': 'co',
-                        'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
-                        'dateOfIssuance': '2024-03-01',
-                        'dateOfRenewal': '2024-03-01',
-                        'dateOfExpiration': '2025-03-01',
-                        'dateOfUpdate': '2024-03-01T10:30:00+00:00',
-                        'administratorSetStatus': 'inactive',
-                        'privilegeId': 'PRIV-CO-001',
-                        'status': 'inactive',
-                    },
-                ],
-            },
-            # inner_hits only contains the KY privilege (simulating a nested query for jurisdiction: ky)
-            'inner_hits': {
-                'privileges': {
-                    'hits': {
-                        'total': {'value': 1, 'relation': 'eq'},
-                        'hits': [
-                            {
-                                '_index': f'compact_{compact}_providers',
-                                '_id': provider_id,
-                                '_nested': {'field': 'privileges', 'offset': 0},
-                                '_score': 1.0,
-                                '_source': {
-                                    'type': 'privilege',
-                                    'providerId': provider_id,
-                                    'compact': compact,
-                                    'jurisdiction': 'ky',
-                                    'licenseJurisdiction': 'oh',
-                                    'licenseType': 'audiologist',
-                                    'dateOfIssuance': '2024-01-15',
-                                    'dateOfRenewal': '2024-01-15',
-                                    'dateOfExpiration': '2025-01-15',
-                                    'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                                    'administratorSetStatus': 'active',
-                                    'privilegeId': 'PRIV-KY-001',
-                                    'status': 'active',
-                                },
-                            }
-                        ],
-                    }
-                }
-            },
-        }
-
-        search_response = {
-            'hits': {
-                'total': {'value': 1, 'relation': 'eq'},
-                'hits': [hit],
-            }
-        }
-        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
-
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
-
-        response = search_api_handler(event, self.mock_context)
-
-        self.assertEqual(200, response['statusCode'])
-        body = json.loads(response['body'])
-
-        # Verify response contains fileUrl
-        self.assertIn('fileUrl', body)
-
-        # Verify the CSV contains only the matched privilege
-        import boto3
-
-        s3_client = boto3.client('s3')
-        response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
-        )
-        key = response['Contents'][0]['Key']
-        csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
-        csv_content = csv_obj['Body'].read().decode('utf-8')
-
-        lines = csv_content.strip().split('\n')
-        self.assertEqual(2, len(lines))  # Header + 1 data row
-        self.assertIn('PRIV-KY-001', csv_content)
-        self.assertNotIn('PRIV-NE-001', csv_content)
-        self.assertNotIn('PRIV-CO-001', csv_content)
+        # Should have no objects
+        self.assertEqual(0, response.get('KeyCount', 0))
 
     @patch('handlers.search.OpenSearchClient')
     def test_privilege_export_with_multiple_inner_hits_exports_all_matched(self, mock_opensearch_client):

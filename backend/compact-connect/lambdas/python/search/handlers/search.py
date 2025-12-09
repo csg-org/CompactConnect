@@ -8,7 +8,11 @@ from cc_common.data_model.schema.provider.api import (
     SearchProvidersRequestSchema,
     StatePrivilegeGeneralResponseSchema,
 )
-from cc_common.exceptions import CCInvalidRequestCustomResponseException, CCInvalidRequestException
+from cc_common.exceptions import (
+    CCInvalidRequestCustomResponseException,
+    CCInvalidRequestException,
+    CCNotFoundException,
+)
 from cc_common.utils import api_handler
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
@@ -46,7 +50,7 @@ PRIVILEGE_CSV_FIELDS = [
     'npi',
 ]
 
-
+# TODO - add auth wrapper to check for readGeneral scope after testing
 @api_handler
 def search_api_handler(event: dict, context: LambdaContext):
     """
@@ -243,6 +247,10 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
 
     logger.info('Found privileges to export', count=len(flattened_privileges))
 
+    # If no privileges were found, return 404
+    if not flattened_privileges:
+        raise CCNotFoundException('The search parameters did not match any privileges.')
+
     # Generate CSV content from the flattened privileges
     csv_content = _generate_csv_content(flattened_privileges)
 
@@ -324,7 +332,7 @@ def _get_caller_user_id(event: dict) -> str:
         return event['requestContext']['authorizer']['claims']['sub']
     except (KeyError, TypeError) as e:
         logger.warning('Could not extract user id from event', error=str(e))
-        # For public endpoints without authorization, use 'anonymous'
+        # TODO - remove this after testing and raise errors
         return 'anonymous'
 
 
