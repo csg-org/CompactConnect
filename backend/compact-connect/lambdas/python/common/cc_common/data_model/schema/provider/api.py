@@ -480,3 +480,18 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     # This should be the 'sort' values from the last hit of the previous page
     # Example: ["provider-uuid-123", "2024-01-15T10:30:00Z"]
     search_after = Raw(required=False, allow_none=False)
+
+
+class ExportPrivilegesRequestSchema(CCRequestSchema):
+    """
+    Schema for Exporting list of privileges into CSV file.
+
+    This schema is used to validate incoming requests to the advanced search providers API endpoint.
+    It accepts an OpenSearch DSL query body for flexible querying of the provider index.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
+    query = Raw(required=True, allow_none=False)
