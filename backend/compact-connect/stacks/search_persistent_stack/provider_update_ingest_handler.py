@@ -161,7 +161,7 @@ class ProviderUpdateIngestHandler(Construct):
             [
                 {
                     'id': 'AwsSolutions-SQS3',
-                    'reason': 'This is already a dead letter queue for the DynamoDB stream event source.',
+                    'reason': 'This queue serves as a dead letter queue for the DynamoDB stream event source.',
                 },
             ],
         )

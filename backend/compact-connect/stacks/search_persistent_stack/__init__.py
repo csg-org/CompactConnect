@@ -145,5 +145,5 @@ class SearchPersistentStack(AppStack):
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
             encryption_key=self.opensearch_encryption_key,
-            alarm_topic=self.alarm_topic,
+            alarm_topic=persistent_stack.alarm_topic,
         )
