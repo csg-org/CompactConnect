@@ -188,6 +188,10 @@ export class DataApi {
             .concat(licensees.providers)
             .concat(licensees.providers);
 
+        console.log(`raw params:`);
+        console.log(params);
+        console.log(``);
+
         return wait(500).then(() => ({
             licensees: records.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
             params,

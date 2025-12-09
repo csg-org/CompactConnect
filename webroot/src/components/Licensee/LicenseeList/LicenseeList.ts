@@ -17,7 +17,7 @@ import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import CloseX from '@components/Icons/CloseX/CloseX.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
-import { RequestParamsInterfaceLocal } from '@network/licenseApi/data.api';
+import { SearchParamsInterfaceLocal } from '@network/licenseApi/data.api';
 import { State } from '@models/State/State.model';
 
 @Component({
@@ -117,14 +117,14 @@ class LicenseeList extends Vue {
         return displayLastName;
     }
 
-    get searchDisplayState(): string {
-        const { state } = this.searchParams;
+    get searchDisplayHomeState(): string {
+        const { homeState } = this.searchParams;
         const { searchDisplayCompact, searchDisplayFirstName, searchDisplayLastName } = this;
         const delimiter = (searchDisplayCompact || searchDisplayFirstName || searchDisplayLastName) ? ', ' : '';
         let displayState = '';
 
-        if (state) {
-            const stateModel = new State({ abbrev: state });
+        if (homeState) {
+            const stateModel = new State({ abbrev: homeState });
 
             displayState = `${delimiter}${stateModel.name()}`;
         }
@@ -137,14 +137,14 @@ class LicenseeList extends Vue {
             searchDisplayCompact,
             searchDisplayFirstName,
             searchDisplayLastName,
-            searchDisplayState
+            searchDisplayHomeState
         } = this;
 
         return [
             searchDisplayCompact,
             searchDisplayFirstName,
             searchDisplayLastName,
-            searchDisplayState
+            searchDisplayHomeState
         ].join('').trim();
     }
 
@@ -165,7 +165,6 @@ class LicenseeList extends Vue {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
-            ssnMaskedPartial: () => this.$t('licensing.ssn'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             privilegeStatesDisplay: () => this.$t('licensing.privileges'),
             statusDisplay: () => this.$t('licensing.status'),
@@ -251,7 +250,7 @@ class LicenseeList extends Vue {
         const { option, direction } = sorting || {};
         const pagination = this.paginationStore.paginationMap[this.listId];
         const { page, size } = pagination || {};
-        const requestConfig: RequestParamsInterfaceLocal = {};
+        const requestConfig: SearchParamsInterfaceLocal = {};
 
         // Sorting params
         if (option) {
@@ -265,12 +264,7 @@ class LicenseeList extends Vue {
         }
 
         if (direction) {
-            const serverSortDirectionMap = {
-                asc: 'ascending',
-                desc: 'descending',
-            };
-
-            requestConfig.sortDirection = serverSortDirectionMap[direction];
+            requestConfig.sortDirection = direction;
         }
 
         // Search params
@@ -288,8 +282,32 @@ class LicenseeList extends Vue {
         if (searchParams?.lastName) {
             requestConfig.licenseeLastName = searchParams.lastName;
         }
-        if (searchParams?.state) {
-            requestConfig.jurisdiction = searchParams.state.toLowerCase();
+        if (searchParams?.homeState) {
+            requestConfig.homeState = searchParams.homeState.toLowerCase();
+        }
+        if (searchParams?.privilegeState) {
+            requestConfig.privilegeState = searchParams.privilegeState.toLowerCase();
+        }
+        if (searchParams?.privilegePurchaseStartDate) {
+            requestConfig.privilegePurchaseStartDate = searchParams.privilegePurchaseStartDate;
+        }
+        if (searchParams?.privilegePurchaseEndDate) {
+            requestConfig.privilegePurchaseEndDate = searchParams.privilegePurchaseEndDate;
+        }
+        if (searchParams?.militaryStatus) {
+            requestConfig.militaryStatus = searchParams.militaryStatus;
+        }
+        if (searchParams?.investigationStatus) {
+            requestConfig.investigationStatus = searchParams.investigationStatus;
+        }
+        if (searchParams?.encumberStartDate) {
+            requestConfig.encumberStartDate = searchParams.encumberStartDate;
+        }
+        if (searchParams?.encumberEndDate) {
+            requestConfig.encumberEndDate = searchParams.encumberEndDate;
+        }
+        if (searchParams?.npi) {
+            requestConfig.npi = searchParams.npi;
         }
 
         // Make fetch request

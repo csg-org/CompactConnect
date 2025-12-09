@@ -77,7 +77,11 @@
         "gender": "Género",
         "race": "Raza",
         "ethnicity": "Origen étnico",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha de finalización",
         "finish": "Termina",
+        "all": "Todo",
+        "any": "Cualquier",
         "cannotBeUndone": "Esta acción no se puede deshacer.",
         "daysOfTheWeek": {
             "monday": {
@@ -565,7 +569,9 @@
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
         "privilege": "Privilegio",
+        "privilegeState": "Estado privilegiado",
         "privilegeSummary": "Resumen de privilegios",
+        "privilegePurchased": "Privilegio adquirido",
         "recentPrivilegesTitle": "Privilegios recientes",
         "pastPrivilegesTitle": "Privilegios pasados",
         "licenseDetails": "Detalles de la licencia",
@@ -599,6 +605,8 @@
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseNumber": "Número de licencia",
+        "npi": "NPI",
+        "searchPlaceholderNpi": "Introducir NPI",
         "licenseExpirationDate": "Fecha de vencimiento de la licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
         "generateVerification": "Generar documento de verificación",
@@ -625,7 +633,9 @@
         "attestations": "Certificaciones",
         "investigations": "Investigaciones",
         "underInvestigation": "Actualmente estoy bajo investigación",
+        "underInvestigationSearch": "Bajo investigación",
         "notUnderInvestigation": "NO estoy bajo investigación",
+        "notUnderInvestigationSearch": "No bajo investigación",
         "discipline": "Disciplina",
         "provisionOfInformation": "Suministro de información veraz",
         "militaryAffiliation": "Afiliación militar",
@@ -698,6 +708,7 @@
         "confirmPrivilegeInvestigationEndSubmitWithEncumber": "Agregar gravamen",
         "confirmPrivilegeInvestigationEndSuccess": "Esta investigación ha concluido y no se ha añadido ningún gravamen.",
         "underInvestigationStatus": "Investigación",
+        "underInvestigationStatusSearch": "Estado de la investigación",
         "underInvestigationAlertLocation": "Este practicante está bajo investigación en {locations}.",
         "underInvestigationAlertMultipleLocations": "múltiples estados",
         "underInvestigationAlertStatus": "Los privilegios aún se pueden utilizar mientras se está bajo investigación.",
@@ -897,6 +908,24 @@
     "military": {
         "militaryStatusTitle": "Estado militar",
         "updateMilitaryStatusTitle": "Actualizar el estado militar",
+        "militaryStatusOptions": [
+            {
+                "key": "pending",
+                "name": "Pendiente"
+            },
+            {
+                "key": "approved",
+                "name": "Aprobado"
+            },
+            {
+                "key": "denied",
+                "name": "Denegado"
+            },
+            {
+                "key": "notApplicable",
+                "name": "No aplicable"
+            }
+        ],
         "militaryDiscountText": "Descuento Militar",
         "viewMilitaryStatus": "Ver estado militar",
         "affiliationType": "Tipo de afiliación",

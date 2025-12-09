@@ -12,22 +12,38 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    nextTick
+} from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
+import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import SearchIcon from '@components/Icons/LicenseSearchAlt/LicenseSearchAlt.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
+import moment from 'moment';
 
 export interface LicenseSearch {
     compact?: string;
     firstName?: string;
     lastName?: string;
-    state?: string;
+    homeState?: string;
+    privilegeState?: string;
+    privilegePurchaseStartDate?: string;
+    privilegePurchaseEndDate?: string;
+    militaryStatus?: string;
+    investigationStatus?: string;
+    encumberStartDate?: string;
+    encumberEndDate?: string;
+    npi?: string;
 }
 
 @Component({
@@ -35,8 +51,10 @@ export interface LicenseSearch {
     components: {
         InputText,
         InputSelect,
+        InputDate,
         InputSubmit,
         SearchIcon,
+        MockPopulate,
     },
     emits: [ 'searchParams' ],
 })
@@ -62,7 +80,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.userStore.currentCompact?.type;
     }
 
-    get compactOptions(): Array<any> {
+    get compactOptions(): Array<{ value: string, name: string | ComputedRef }> {
         const options = this.$tm('compacts').map((compact) => ({
             value: compact.key,
             name: compact.name,
@@ -84,21 +102,46 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.userStore.currentCompact?.memberStates || [];
     }
 
-    get stateOptions(): Array<any> {
-        const compactMemberStates = this.compactStates.map((state) => ({
-            value: state.abbrev, name: state.name()
-        }));
-        const defaultSelectOption: any = { value: '' };
+    get stateOptions(): Array<{ value: string | undefined, name: string | ComputedRef }> {
+        const compactMemberStates: Array<{ value: string | undefined, name: string | ComputedRef }> = this.compactStates
+            .map((state) => ({
+                value: state.abbrev, name: state.name()
+            }));
 
-        if (!compactMemberStates.length) {
-            defaultSelectOption.name = '';
-        } else {
-            defaultSelectOption.name = computed(() => this.$t('common.selectOption'));
-        }
-
-        compactMemberStates.unshift(defaultSelectOption);
+        compactMemberStates.unshift({
+            value: '',
+            name: (compactMemberStates.length) ? computed(() => this.$t('common.selectOption')) : '',
+        });
 
         return compactMemberStates;
+    }
+
+    get militaryStatusOptions(): Array<{ value: string, name: string | ComputedRef }> {
+        const options = this.$tm('military.militaryStatusOptions').map((option) => ({
+            value: option.key,
+            name: option.name,
+        }));
+
+        options.unshift({
+            value: '',
+            name: computed(() => this.$t('common.selectOption')),
+        });
+
+        return options;
+    }
+
+    get investigationStatusOptions(): Array<{ value: string, name: string | ComputedRef }> {
+        const options = [
+            { value: '', name: computed(() => this.$t('common.selectOption')) },
+            { value: 'under-investigation', name: computed(() => this.$t('licensing.underInvestigationSearch')) },
+            { value: 'not-under-investigation', name: computed(() => this.$t('licensing.notUnderInvestigationSearch')) },
+        ];
+
+        return options;
+    }
+
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
     }
 
     //
@@ -124,13 +167,67 @@ class LicenseeSearch extends mixins(MixinForm) {
                 value: this.searchParams.lastName || '',
                 enforceMax: true,
             }),
-            state: new FormInput({
-                id: 'state',
-                name: 'state',
-                label: computed(() => this.$t('common.stateJurisdiction')),
+            homeState: new FormInput({
+                id: 'home-state',
+                name: 'home-state',
+                label: computed(() => this.$t('licensing.homeState')),
                 valueOptions: this.stateOptions,
-                value: this.searchParams.state || '',
+                value: this.searchParams.homeState || '',
                 isDisabled: computed(() => this.enableCompactSelect && !this.compactType),
+            }),
+            privilegeState: new FormInput({
+                id: 'privilege-state',
+                name: 'privilege-state',
+                label: computed(() => this.$t('licensing.privilegeState')),
+                valueOptions: this.stateOptions,
+                value: this.searchParams.privilegeState || '',
+            }),
+            privilegePurchaseStartDate: new FormInput({
+                id: 'privilege-purchase-start-date',
+                name: 'privilege-purchase-start-date',
+                label: computed(() => this.$t('common.startDate')),
+                value: this.searchParams.privilegePurchaseStartDate || '',
+            }),
+            privilegePurchaseEndDate: new FormInput({
+                id: 'privilege-purchase-end-date',
+                name: 'privilege-purchase-end-date',
+                label: computed(() => this.$t('common.endDate')),
+                value: this.searchParams.privilegePurchaseEndDate || '',
+            }),
+            militaryStatus: new FormInput({
+                id: 'military-status',
+                name: 'military-status',
+                label: computed(() => this.$t('military.militaryStatusTitle')),
+                valueOptions: this.militaryStatusOptions,
+                value: this.searchParams.militaryStatus || '',
+            }),
+            investigationStatus: new FormInput({
+                id: 'investigation-status',
+                name: 'investigation-status',
+                label: computed(() => this.$t('licensing.underInvestigationStatusSearch')),
+                valueOptions: this.investigationStatusOptions,
+                value: this.searchParams.investigationStatus || '',
+            }),
+            encumberStartDate: new FormInput({
+                id: 'encumber-start-date',
+                name: 'encumber-start-date',
+                label: computed(() => this.$t('common.startDate')),
+                value: this.searchParams.encumberStartDate || '',
+            }),
+            encumberEndDate: new FormInput({
+                id: 'encumber-end-date',
+                name: 'encumber-end-date',
+                label: computed(() => this.$t('common.endDate')),
+                value: this.searchParams.encumberEndDate || '',
+            }),
+            npi: new FormInput({
+                id: 'npi',
+                name: 'npi',
+                label: computed(() => this.$t('licensing.npi')),
+                placeholder: computed(() => this.$t('licensing.searchPlaceholderNpi')),
+                validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
+                value: this.searchParams.npi || '',
+                enforceMax: true,
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -171,7 +268,15 @@ class LicenseeSearch extends mixins(MixinForm) {
                 'compact',
                 'firstName',
                 'lastName',
-                'state'
+                'homeState',
+                'privilegeState',
+                'privilegePurchaseStartDate',
+                'privilegePurchaseEndDate',
+                'militaryStatus',
+                'investigationStatus',
+                'encumberStartDate',
+                'encumberEndDate',
+                'npi',
             ];
             const searchProps: LicenseSearch = {};
 
@@ -180,6 +285,26 @@ class LicenseeSearch extends mixins(MixinForm) {
 
             this.endFormLoading();
         }
+    }
+
+    async mockPopulate(): Promise<void> {
+        this.formData.firstName.value = 'Test';
+        this.formData.lastName.value = 'User';
+        this.formData.homeState.value = 'co';
+        this.formData.privilegeState.value = 'co';
+        this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
+        this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
+        this.formData.militaryStatus.value = 'approved';
+        this.formData.investigationStatus.value = 'under-investigation';
+        this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
+        this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
+        this.formData.npi.value = 'ABC123';
+
+        this.validateAll({ asTouched: true });
+        await nextTick();
+        const submitButton = document.getElementById('submit');
+
+        submitButton?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     //

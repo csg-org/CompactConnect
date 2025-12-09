@@ -76,8 +76,12 @@
         "gender": "Gender",
         "race": "Race",
         "ethnicity": "Ethnicity",
+        "startDate": "Start date",
+        "endDate": "End date",
         "welcome": "Welcome",
         "finish": "Finish",
+        "all": "All",
+        "any": "Any",
         "cannotBeUndone": "This action cannot be undone.",
         "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
@@ -578,9 +582,11 @@
         "licenseExpiredMessage": "Your license has expired.",
         "searchLabel": "Edit search",
         "searchPlaceholderName": "Enter name",
-        "homeState": "Home State",
+        "homeState": "Home state",
         "stateOfHomeLicense": "State of home license",
         "licenseNumber": "License number",
+        "npi": "NPI",
+        "searchPlaceholderNpi": "Enter NPI",
         "licenseExpirationDate": "License expiration date",
         "residenceLocation": "Residence location",
         "generateVerification": "Generate verification doc",
@@ -588,6 +594,8 @@
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "privilege": "Privilege",
+        "privilegeState": "Privilege state",
+        "privilegePurchased": "Privilege purchased",
         "privilegeSummary": "Privilege summary",
         "recentPrivilegesTitle": "Recent privileges",
         "birthMonthDay": "Birth month-day",
@@ -639,7 +647,9 @@
         "attestations": "Attestations",
         "investigations": "Investigations",
         "underInvestigation": "I AM currently under investigation",
+        "underInvestigationSearch": "Under investigation",
         "notUnderInvestigation": "I am NOT under investigation",
+        "notUnderInvestigationSearch": "Not under investigation",
         "discipline": "Discipline",
         "provisionOfInformation": "Provision of true information",
         "militaryAffiliation": "Military affiliation",
@@ -714,6 +724,7 @@
         "confirmPrivilegeInvestigationEndSubmitWithEncumber": "Add encumbrance",
         "confirmPrivilegeInvestigationEndSuccess": "This investigation has ended and no encumbrance was added.",
         "underInvestigationStatus": "Investigation",
+        "underInvestigationStatusSearch": "Investigation status",
         "underInvestigationAlertLocation": "This practitioner is under investigation in {locations}.",
         "underInvestigationAlertMultipleLocations": "multiple states",
         "underInvestigationAlertStatus": "Privileges can still be used while under investigation.",
@@ -914,6 +925,24 @@
         "militaryStatusTitle": "Military status",
         "updateMilitaryStatusTitle": "Update military status",
         "viewMilitaryStatus": "View military status",
+        "militaryStatusOptions": [
+            {
+                "key": "pending",
+                "name": "Pending"
+            },
+            {
+                "key": "approved",
+                "name": "Approved"
+            },
+            {
+                "key": "denied",
+                "name": "Denied"
+            },
+            {
+                "key": "notApplicable",
+                "name": "Not applicable"
+            }
+        ],
         "militaryDiscountText": "Military Discount",
         "affiliationType": "Affiliation Type",
         "uploadedDocuments": "Military Affiliation Documents",

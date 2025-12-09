@@ -12,18 +12,18 @@
         <div v-else class="search-title">{{ $t('licensing.searchTitle') }}</div>
         <div v-if="!isPublicSearch" class="search-subtext">{{ $t('licensing.searchSubtext') }}</div>
         <form @submit.prevent="handleSubmit" class="search-form">
+            <div class="search-form-row">
+                <MockPopulate
+                    :isEnabled="isMockPopulateEnabled"
+                    @selected="mockPopulate"
+                    class="mock-populate search-input"
+                />
+            </div>
             <div class="search-form-row" v-if="enableCompactSelect">
                 <InputSelect
                     :formInput="formData.compact"
                     class="search-input state-select"
                     @input="updateCurrentCompact"
-                />
-            </div>
-            <div class="search-form-row">
-                <InputSelect
-                    :formInput="formData.state"
-                    class="search-input state-select"
-                    :title="(formData.state.isDisabled) ? $t('licensing.searchStateDisabled') : ''"
                 />
             </div>
             <div class="search-form-row">
@@ -36,6 +36,97 @@
                 <InputText
                     :formInput="formData.lastName"
                     class="search-input last-name-input"
+                />
+            </div>
+            <div class="search-form-row">
+                <InputSelect
+                    :formInput="formData.homeState"
+                    class="search-input home-state-select"
+                    :title="(formData.homeState.isDisabled) ? $t('licensing.searchStateDisabled') : ''"
+                />
+            </div>
+            <div class="search-form-row">
+                <InputSelect
+                    :formInput="formData.privilegeState"
+                    class="search-input privilege-state-select"
+                />
+            </div>
+            <div class="search-form-row">
+                <div
+                    class="date-section-label search-input"
+                    aria-label="$t('licensing.privilegePurchased')"
+                    tabindex="0"
+                >
+                    {{ $t('licensing.privilegePurchased') }}
+                </div>
+            </div>
+            <div class="search-form-row date-range">
+                <InputDate
+                    class="search-input date-range-input"
+                    :formInput="formData.privilegePurchaseStartDate"
+                    :yearRange="[2025, new Date().getFullYear()]"
+                    :maxDate="new Date()"
+                    :preventMinMaxNavigation="true"
+                    :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                    :startDate="new Date()"
+                />
+                <span class="date-range-separator">-</span>
+                <InputDate
+                    class="search-input date-range-input"
+                    :formInput="formData.privilegePurchaseEndDate"
+                    :yearRange="[2025, new Date().getFullYear()]"
+                    :maxDate="new Date()"
+                    :preventMinMaxNavigation="true"
+                    :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                    :startDate="new Date()"
+                />
+            </div>
+            <div class="search-form-row">
+                <InputSelect
+                    :formInput="formData.militaryStatus"
+                    class="search-input military-status-select"
+                />
+            </div>
+            <div class="search-form-row">
+                <InputSelect
+                    :formInput="formData.investigationStatus"
+                    class="search-input investigation-status-select"
+                />
+            </div>
+            <div class="search-form-row">
+                <div
+                    class="date-section-label search-input"
+                    aria-label="$t('licensing.encumbered')"
+                    tabindex="0"
+                >
+                    {{ $t('licensing.encumbered') }}
+                </div>
+            </div>
+            <div class="search-form-row date-range">
+                <InputDate
+                    class="search-input date-range-input"
+                    :formInput="formData.encumberStartDate"
+                    :yearRange="[2025, new Date().getFullYear()]"
+                    :maxDate="new Date()"
+                    :preventMinMaxNavigation="true"
+                    :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                    :startDate="new Date()"
+                />
+                <span class="date-range-separator">-</span>
+                <InputDate
+                    class="search-input date-range-input"
+                    :formInput="formData.encumberEndDate"
+                    :yearRange="[2025, new Date().getFullYear()]"
+                    :maxDate="new Date()"
+                    :preventMinMaxNavigation="true"
+                    :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                    :startDate="new Date()"
+                />
+            </div>
+            <div class="search-form-row">
+                <InputText
+                    :formInput="formData.npi"
+                    class="search-input npi-input"
                 />
             </div>
             <div class="search-form-row">

@@ -6,17 +6,18 @@
 //
 
 import { authStorage, tokens, FeatureGates } from '@/app.config';
-import axios, { AxiosInstance } from 'axios';
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import {
     requestError,
     requestSuccess,
     responseSuccess,
     responseError
 } from '@network/licenseApi/interceptors';
-import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { SortDirection } from '@store/sorting/sorting.state';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { LicenseHistoryItemSerializer, LicenseHistoryItem } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
+import axios, { AxiosInstance } from 'axios';
 
 export interface RequestParamsInterfaceLocal {
     isPublic?: boolean;
@@ -51,6 +52,45 @@ export interface RequestParamsInterfaceRemote {
         givenName?: string,
         familyName?: string,
     },
+}
+
+export interface SearchParamsInterfaceLocal {
+    isPublic?: boolean;
+    compact?: string;
+    licenseeFirstName?: string;
+    licenseeLastName?: string;
+    homeState?: string;
+    privilegeState?: string;
+    privilegePurchaseStartDate?: string;
+    privilegePurchaseEndDate?: string;
+    militaryStatus?: string;
+    investigationStatus?: string;
+    encumberStartDate?: string;
+    encumberEndDate?: string;
+    npi?: string;
+    pageSize?: number;
+    pageNumber?: number;
+    sortBy?: string;
+    sortDirection?: string;
+}
+
+export interface SearchParamsInterfaceRemote {
+    from?: number;
+    size?: number;
+    sort?: Array<{
+        [key: string]: {
+            order?: string,
+        }
+    }>;
+    query?: any;
+    // query?: {
+    //     match_all?: object,
+    //     bool?: {
+    //         must: Array<{
+    //             [key: string]: any,
+    //         }>,
+    //     },
+    // };
 }
 
 export interface DataApiInterface {
@@ -167,6 +207,181 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * Prep a query request for Search requests.
+     * @param  {SearchParamsInterfaceLocal}  params The request query parameters config.
+     * @return {SearchParamsInterfaceRemote}        The request query body.
+     */
+    public prepRequestSearchParams(params: SearchParamsInterfaceLocal = {}): SearchParamsInterfaceRemote {
+        const {
+            licenseeFirstName,
+            licenseeLastName,
+            homeState,
+            privilegeState,
+            privilegePurchaseStartDate,
+            privilegePurchaseEndDate,
+            militaryStatus,
+            investigationStatus,
+            encumberStartDate,
+            encumberEndDate,
+            npi,
+            pageSize,
+            pageNumber,
+            sortBy,
+            sortDirection,
+        } = params;
+        const hasSearchTerms = Boolean(
+            licenseeFirstName
+            || licenseeLastName
+            || homeState
+            || privilegeState
+            || privilegePurchaseStartDate
+            || privilegePurchaseEndDate
+            || militaryStatus
+            || investigationStatus
+            || encumberStartDate
+            || encumberEndDate
+            || npi
+        );
+        const requestParams: SearchParamsInterfaceRemote = {};
+
+        // QUERY
+        // https://docs.opensearch.org/latest/query-dsl/
+        if (hasSearchTerms) {
+            requestParams.query = {
+                bool: {
+                    must: [],
+                },
+            };
+            const conditions = requestParams.query.bool.must;
+
+            if (licenseeFirstName) {
+                conditions.push({ match_phrase_prefix: { givenName: licenseeFirstName }});
+            }
+            if (licenseeLastName) {
+                conditions.push({ match_phrase_prefix: { familyName: licenseeLastName }});
+            }
+            if (homeState) {
+                conditions.push({ term: { licenseJurisdiction: homeState }});
+            }
+            if (privilegeState) {
+                conditions.push({
+                    nested: {
+                        path: 'privileges',
+                        query: {
+                            term: { privilegeJurisdiction: privilegeState },
+                        },
+                        inner_hits: {}
+                    },
+                });
+            }
+            if (privilegePurchaseStartDate || privilegePurchaseEndDate) {
+                const condition = {
+                    nested: {
+                        path: 'privileges',
+                        query: {
+                            range: {
+                                dateOfIssuance: {},
+                            },
+                        },
+                        inner_hits: {}
+                    },
+                };
+                const conditionRule: { gte?: string, lte?: string } = condition.nested.query.range.dateOfIssuance;
+
+                if (privilegePurchaseStartDate) {
+                    conditionRule.gte = privilegePurchaseStartDate;
+                }
+                if (privilegePurchaseEndDate) {
+                    conditionRule.lte = privilegePurchaseEndDate;
+                }
+
+                conditions.push(condition);
+            }
+            if (militaryStatus) {
+                conditions.push({ term: { militaryStatus }});
+            }
+            if (investigationStatus) {
+                // conditions.push({ term: { investigationStatus }});
+                if (investigationStatus === 'under-investigation') {
+                    conditions.push({
+                        nested: {
+                            path: 'investigations',
+                            query: {
+                                term: { type: 'investigation' },
+                            },
+                            inner_hits: {}
+                        },
+                    });
+                } else {
+                    conditions.push({
+                        nested: {
+                            path: 'investigations',
+                            query: {
+                                must_not: [{
+                                    term: { type: 'investigation' },
+                                }],
+                            },
+                            inner_hits: {}
+                        },
+                    });
+                }
+            }
+            if (encumberStartDate || encumberEndDate) {
+                const condition = {
+                    nested: {
+                        path: 'adverseActions',
+                        query: {
+                            range: {
+                                effectiveStartDate: {},
+                            },
+                        },
+                        inner_hits: {}
+                    },
+                };
+                const conditionRule: { gte?: string, lte?: string } = condition.nested.query.range.effectiveStartDate;
+
+                if (encumberStartDate) {
+                    conditionRule.gte = encumberStartDate;
+                }
+                if (encumberEndDate) {
+                    conditionRule.lte = encumberEndDate;
+                }
+
+                conditions.push(condition);
+            }
+            if (npi) {
+                conditions.push({ match: { npi }});
+            }
+        } else {
+            requestParams.query = {
+                match_all: {},
+            };
+        }
+
+        // PAGING
+        // https://docs.opensearch.org/latest/search-plugins/searching-data/paginate/#the-from-and-size-parameters
+        if (pageSize) {
+            requestParams.size = pageSize;
+
+            if (pageNumber) {
+                requestParams.from = pageSize * (pageNumber - 1);
+            }
+        }
+
+        // SORT
+        // https://docs.opensearch.org/latest/search-plugins/searching-data/sort/
+        if (sortBy) {
+            requestParams.sort = [{
+                [sortBy]: {
+                    order: sortDirection || SortDirection.asc,
+                },
+            }];
+        }
+
+        return requestParams;
+    }
+
+    /**
      * POST Create Licensee Account
      * @param  {string}        compact A compact type.
      * @param  {object}        data    The user request data.
@@ -219,21 +434,31 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * GET Licensees (Search - Staff).
-     * @param  {RequestParamsInterfaceLocal} [params={}] The request query parameters config.
-     * @return {Promise<object>}                         Response metadata + an array of licensees.
+     * @param  {SearchParamsInterfaceLocal} [params={}] The request query parameters config.
+     * @return {Promise<object>}                        Response metadata + an array of licensees.
      */
-    public async getLicenseesSearchStaff(params: RequestParamsInterfaceLocal = {}) {
-        //
-        // @TODO: Replace with new OpenSearch endpoint once available
-        //
-        const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
-        const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/query`, requestParams);
-        const { providers } = serverReponse;
-        const response = {
-            licensees: providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
-        };
+    public async getLicenseesSearchStaff(params: SearchParamsInterfaceLocal = {}) {
+        const requestParams: SearchParamsInterfaceRemote = this.prepRequestSearchParams(params);
 
-        return response;
+        console.log(`request params:`);
+        console.log(requestParams);
+        console.log(JSON.stringify(requestParams, null, 2));
+        console.log(``);
+
+        // const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/search`, requestParams);
+        // const { total = {}, providers } = serverReponse;
+        // const { value: totalMatchCount } = total;
+        // const response = {
+        //     totalMatchCount,
+        //     licensees: providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+        // };
+        //
+        // return response;
+
+        return {
+            totalMatchCount: 0,
+            licensees: [],
+        };
     }
 
     /**
