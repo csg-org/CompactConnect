@@ -6,7 +6,7 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import (
     ProviderGeneralResponseSchema,
     SearchProvidersRequestSchema,
-    StatePrivilegeGeneralResponseSchema,
+    StatePrivilegeGeneralResponseSchema, ExportPrivilegesRequestSchema,
 )
 from cc_common.exceptions import (
     CCInvalidRequestCustomResponseException,
@@ -19,7 +19,6 @@ from opensearch_client import OpenSearchClient
 
 # Default and maximum page sizes for search results
 MAX_PROVIDER_PAGE_SIZE = 100
-PRIVILEGE_SEARCH_PAGE_SIZE = 2000
 MAX_MATCH_TOTAL_ALLOWED = 10000
 
 # Presigned URL expiration time in seconds (1 minute)
@@ -38,7 +37,6 @@ PRIVILEGE_CSV_FIELDS = [
     'dateOfExpiration',
     'dateOfIssuance',
     'dateOfRenewal',
-    'dateOfUpdate',
     'familyName',
     'givenName',
     'middleName',
@@ -177,7 +175,7 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
     # Parse and validate the request body using the schema
     body = _parse_and_validate_export_request_body(event)
 
-    # Build the OpenSearch search body (no pagination for export)
+    # Build the OpenSearch search body
     search_body = _build_export_search_body(body)
 
     # Build the index name for this compact
@@ -308,16 +306,12 @@ def _parse_and_validate_export_request_body(event: dict) -> dict:
     :return: Validated request body with query
     :raises CCInvalidRequestException: If the request body is invalid
     """
-    import json
-
     try:
-        body = json.loads(event.get('body', '{}'))
-        if 'query' not in body:
-            raise CCInvalidRequestException('Request body must contain a query')
-        return body
-    except json.JSONDecodeError as e:
-        logger.warning('Invalid JSON in request body', error=str(e))
-        raise CCInvalidRequestException('Invalid JSON in request body') from e
+        schema = ExportPrivilegesRequestSchema()
+        return schema.loads(event.get('body', '{}'))
+    except ValidationError as e:
+        logger.warning('Invalid request body', errors=e.messages)
+        raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
 
 
 def _get_caller_user_id(event: dict) -> str:
@@ -345,7 +339,7 @@ def _build_opensearch_search_body(body: dict, size_override: int) -> dict:
     :raises CCInvalidRequestException: If search_after is used without sort
     """
     search_body = {
-        'query': body.get('query', {'match_all': {}}),
+        'query': body['query'],
     }
 
     # Add pagination parameters following OpenSearch DSL
@@ -376,14 +370,16 @@ def _build_export_search_body(body: dict) -> dict:
     """
     Build the OpenSearch search body for export requests.
 
-    Export requests do not support pagination - they return all results up to MAX_MATCH_TOTAL_ALLOWED.
+    Export requests retrieve all matching results in a single request, up to MAX_MATCH_TOTAL_ALLOWED.
+    OpenSearch's default index.max_result_window is 10,000, which aligns with our limit.
+    If there are more results than the limit, the export will fail with a 400 error.
 
     :param body: Validated request body
     :return: OpenSearch search body
     """
     return {
         'query': body.get('query', {'match_all': {}}),
-        'size': PRIVILEGE_SEARCH_PAGE_SIZE,
+        'size': MAX_MATCH_TOTAL_ALLOWED,
     }
 
 
