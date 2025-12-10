@@ -11,6 +11,7 @@ import {
     Prop,
     toNative
 } from 'vue-facing-decorator';
+import { serverDateFormat, displayDateFormat } from '@/app.config';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import LicenseeSearch, { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
@@ -19,6 +20,7 @@ import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
 import { SearchParamsInterfaceLocal } from '@network/licenseApi/data.api';
 import { State } from '@models/State/State.model';
+import moment from 'moment';
 
 @Component({
     name: 'LicenseeList',
@@ -94,58 +96,112 @@ class LicenseeList extends Vue {
         return (this.isPublicSearch) ? this.userStore.currentCompact?.abbrev() || '' : '';
     }
 
-    get searchDisplayFirstName(): string {
-        const delimiter = (this.searchDisplayCompact) ? ', ' : '';
-        let displayFirstName = '';
+    get searchDisplayFullName(): string {
+        const { firstName = '', lastName = '' } = this.searchParams;
 
-        if (this.searchParams.firstName) {
-            displayFirstName = `${delimiter}${this.searchParams.firstName}` || '';
-        }
-
-        return displayFirstName;
-    }
-
-    get searchDisplayLastName(): string {
-        const delimiter = (this.searchDisplayCompact && !this.searchDisplayFirstName) ? ', ' : '';
-        const subDelimiter = (this.searchDisplayFirstName) ? ' ' : '';
-        let displayLastName = '';
-
-        if (this.searchParams.lastName) {
-            displayLastName = `${delimiter}${subDelimiter}${this.searchParams.lastName}` || '';
-        }
-
-        return displayLastName;
+        return `${firstName} ${lastName}`.trim();
     }
 
     get searchDisplayHomeState(): string {
         const { homeState } = this.searchParams;
-        const { searchDisplayCompact, searchDisplayFirstName, searchDisplayLastName } = this;
-        const delimiter = (searchDisplayCompact || searchDisplayFirstName || searchDisplayLastName) ? ', ' : '';
-        let displayState = '';
 
-        if (homeState) {
-            const stateModel = new State({ abbrev: homeState });
+        return (homeState) ? `${this.$t('licensing.homeState')}: ${new State({ abbrev: homeState }).name()}` : '';
+    }
 
-            displayState = `${delimiter}${stateModel.name()}`;
+    get searchDisplayPrivilegeState(): string {
+        const { privilegeState } = this.searchParams;
+
+        return (privilegeState) ? `${this.$t('licensing.privilegeState')}: ${new State({ abbrev: privilegeState }).name()}` : '';
+    }
+
+    get searchDisplayPrivilegePurchaseDates(): string {
+        const { privilegePurchaseStartDate = '', privilegePurchaseEndDate = '' } = this.searchParams;
+        let displayDates = '';
+
+        if (privilegePurchaseStartDate || privilegePurchaseEndDate) {
+            const startDate = (privilegePurchaseStartDate)
+                ? moment(privilegePurchaseStartDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+            const endDate = (privilegePurchaseEndDate)
+                ? moment(privilegePurchaseEndDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+
+            displayDates = `${this.$t('licensing.purchaseDate')}: ${startDate}-${endDate}`;
         }
 
-        return displayState;
+        return displayDates;
+    }
+
+    get searchDisplayMilitaryStatus(): string {
+        const { militaryStatus } = this.searchParams;
+        let displayStatus = '';
+
+        if (militaryStatus) {
+            const statusOptions = this.$tm('military.militaryStatusOptions') || [];
+            const selectedOption = statusOptions.find((statusOption) => statusOption.key === militaryStatus);
+
+            if (selectedOption?.name) {
+                displayStatus = `${this.$t('military.militaryStatusTitle')}: ${selectedOption.name}`;
+            }
+        }
+
+        return displayStatus;
+    }
+
+    get searchDisplayInvestigationStatus(): string {
+        const { investigationStatus } = this.searchParams;
+        let displayStatus = '';
+
+        if (investigationStatus) {
+            const statusOptions = this.$tm('licensing.investigationStatusOptions') || [];
+            const selectedOption = statusOptions.find((statusOption) => statusOption.key === investigationStatus);
+
+            if (selectedOption?.name) {
+                displayStatus = `${selectedOption.name}`;
+            }
+        }
+
+        return displayStatus;
+    }
+
+    get searchDisplayEncumberDates(): string {
+        const { encumberStartDate = '', encumberEndDate = '' } = this.searchParams;
+        let displayDates = '';
+
+        if (encumberStartDate || encumberEndDate) {
+            const startDate = (encumberStartDate)
+                ? moment(encumberStartDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+            const endDate = (encumberEndDate)
+                ? moment(encumberEndDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+
+            displayDates = `${this.$t('licensing.encumbered')}: ${startDate}-${endDate}`;
+        }
+
+        return displayDates;
+    }
+
+    get searchDisplayNpi(): string {
+        const { npi = '' } = this.searchParams;
+
+        return (npi) ? `${this.$t('licensing.npi')}: ${npi}`.trim() : '';
     }
 
     get searchDisplayAll(): string {
-        const {
-            searchDisplayCompact,
-            searchDisplayFirstName,
-            searchDisplayLastName,
-            searchDisplayHomeState
-        } = this;
+        const joined = [
+            this.searchDisplayCompact,
+            this.searchDisplayFullName,
+            this.searchDisplayHomeState,
+            this.searchDisplayPrivilegeState,
+            this.searchDisplayPrivilegePurchaseDates,
+            this.searchDisplayMilitaryStatus,
+            this.searchDisplayInvestigationStatus,
+            this.searchDisplayEncumberDates,
+            this.searchDisplayNpi
+        ].join(', ').trim();
 
-        return [
-            searchDisplayCompact,
-            searchDisplayFirstName,
-            searchDisplayLastName,
-            searchDisplayHomeState
-        ].join('').trim();
+        return joined.replace(/(^[,\s]+)|([,\s]+$)/g, '').replace(/(,\s)\1+/g, ', ');
     }
 
     get sortOptions(): Array<any> {

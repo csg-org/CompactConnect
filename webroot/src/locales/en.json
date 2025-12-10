@@ -626,6 +626,7 @@
         "status": "Status",
         "expired": "Expired",
         "issueDate": "Issue Date",
+        "purchaseDate": "Purchase date",
         "activeFrom": "Active from",
         "state": "State",
         "issued": "Issued",
@@ -647,9 +648,17 @@
         "attestations": "Attestations",
         "investigations": "Investigations",
         "underInvestigation": "I AM currently under investigation",
-        "underInvestigationSearch": "Under investigation",
         "notUnderInvestigation": "I am NOT under investigation",
-        "notUnderInvestigationSearch": "Not under investigation",
+        "investigationStatusOptions": [
+            {
+                "key": "underInvestigation",
+                "name": "Under investigation"
+            },
+            {
+                "key": "notUnderInvestigation",
+                "name": "Not under investigation"
+            }
+        ],
         "discipline": "Discipline",
         "provisionOfInformation": "Provision of true information",
         "militaryAffiliation": "Military affiliation",

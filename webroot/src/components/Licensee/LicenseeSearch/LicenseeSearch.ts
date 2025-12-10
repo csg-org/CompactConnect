@@ -131,11 +131,15 @@ class LicenseeSearch extends mixins(MixinForm) {
     }
 
     get investigationStatusOptions(): Array<{ value: string, name: string | ComputedRef }> {
-        const options = [
-            { value: '', name: computed(() => this.$t('common.selectOption')) },
-            { value: 'under-investigation', name: computed(() => this.$t('licensing.underInvestigationSearch')) },
-            { value: 'not-under-investigation', name: computed(() => this.$t('licensing.notUnderInvestigationSearch')) },
-        ];
+        const options = this.$tm('licensing.investigationStatusOptions').map((option) => ({
+            value: option.key,
+            name: option.name,
+        }));
+
+        options.unshift({
+            value: '',
+            name: computed(() => this.$t('common.selectOption')),
+        });
 
         return options;
     }
@@ -287,6 +291,25 @@ class LicenseeSearch extends mixins(MixinForm) {
         }
     }
 
+    resetForm(): void {
+        this.formData.firstName.value = '';
+        this.formData.lastName.value = '';
+        this.formData.homeState.value = '';
+        this.formData.privilegeState.value = '';
+        this.formData.privilegePurchaseStartDate.value = '';
+        this.formData.privilegePurchaseEndDate.value = '';
+        this.formData.militaryStatus.value = '';
+        this.formData.investigationStatus.value = '';
+        this.formData.encumberStartDate.value = '';
+        this.formData.encumberEndDate.value = '';
+        this.formData.npi.value = '';
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
+    }
+
     async mockPopulate(): Promise<void> {
         this.formData.firstName.value = 'Test';
         this.formData.lastName.value = 'User';
@@ -295,7 +318,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
         this.formData.militaryStatus.value = 'approved';
-        this.formData.investigationStatus.value = 'under-investigation';
+        this.formData.investigationStatus.value = 'underInvestigation';
         this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
         this.formData.npi.value = 'ABC123';
@@ -311,7 +334,8 @@ class LicenseeSearch extends mixins(MixinForm) {
     // Watch
     //
     @Watch('compactStates') updateStateInput() {
-        this.formData.state.valueOptions = this.stateOptions;
+        this.formData.homeState.valueOptions = this.stateOptions;
+        this.formData.privilegeState.valueOptions = this.stateOptions;
     }
 }
 

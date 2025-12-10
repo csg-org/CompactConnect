@@ -268,7 +268,7 @@ export class LicenseDataApi implements DataApiInterface {
                     nested: {
                         path: 'privileges',
                         query: {
-                            term: { privilegeJurisdiction: privilegeState },
+                            term: { 'privileges.jurisdiction': privilegeState },
                         },
                         inner_hits: {}
                     },
@@ -279,21 +279,37 @@ export class LicenseDataApi implements DataApiInterface {
                     nested: {
                         path: 'privileges',
                         query: {
-                            range: {
-                                dateOfIssuance: {},
+                            bool: {
+                                should: [
+                                    {
+                                        range: {
+                                            'privileges.dateOfIssuance': {},
+                                        },
+                                    },
+                                    {
+                                        range: {
+                                            'privileges.dateOfRenewal': {},
+                                        },
+                                    },
+                                ],
+                                minimum_should_match: 1,
                             },
                         },
                         inner_hits: {}
                     },
                 };
-                const conditionRule: { gte?: string, lte?: string } = condition.nested.query.range.dateOfIssuance;
+                const conditionRules = condition.nested.query.bool.should;
 
-                if (privilegePurchaseStartDate) {
-                    conditionRule.gte = privilegePurchaseStartDate;
-                }
-                if (privilegePurchaseEndDate) {
-                    conditionRule.lte = privilegePurchaseEndDate;
-                }
+                conditionRules.forEach(({ range }) => {
+                    Object.keys(range).forEach((nestedDateKey) => {
+                        if (privilegePurchaseStartDate) {
+                            range[nestedDateKey].gte = privilegePurchaseStartDate;
+                        }
+                        if (privilegePurchaseEndDate) {
+                            range[nestedDateKey].lte = privilegePurchaseEndDate;
+                        }
+                    });
+                });
 
                 conditions.push(condition);
             }
@@ -307,7 +323,7 @@ export class LicenseDataApi implements DataApiInterface {
                         nested: {
                             path: 'investigations',
                             query: {
-                                term: { type: 'investigation' },
+                                term: { 'investigations.type': 'investigation' },
                             },
                             inner_hits: {}
                         },
@@ -318,7 +334,7 @@ export class LicenseDataApi implements DataApiInterface {
                             path: 'investigations',
                             query: {
                                 must_not: [{
-                                    term: { type: 'investigation' },
+                                    term: { 'investigations.type': 'investigation' },
                                 }],
                             },
                             inner_hits: {}
@@ -332,13 +348,13 @@ export class LicenseDataApi implements DataApiInterface {
                         path: 'adverseActions',
                         query: {
                             range: {
-                                effectiveStartDate: {},
+                                'adverseActions.effectiveStartDate': {},
                             },
                         },
                         inner_hits: {}
                     },
                 };
-                const conditionRule: { gte?: string, lte?: string } = condition.nested.query.range.effectiveStartDate;
+                const conditionRule: { gte?: string, lte?: string } = condition.nested.query.range['adverseActions.effectiveStartDate'];
 
                 if (encumberStartDate) {
                     conditionRule.gte = encumberStartDate;

@@ -598,6 +598,7 @@
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
+        "purchaseDate": "Fecha de compra",
         "activeFrom": "Activo desde",
         "expirationDate": "Fecha de caducidad",
         "expiration": "Vencimiento",
@@ -633,9 +634,17 @@
         "attestations": "Certificaciones",
         "investigations": "Investigaciones",
         "underInvestigation": "Actualmente estoy bajo investigación",
-        "underInvestigationSearch": "Bajo investigación",
         "notUnderInvestigation": "NO estoy bajo investigación",
-        "notUnderInvestigationSearch": "No bajo investigación",
+        "investigationStatusOptions": [
+            {
+                "key": "underInvestigation",
+                "name": "Bajo investigación"
+            },
+            {
+                "key": "notUnderInvestigation",
+                "name": "No bajo investigación"
+            }
+        ],
         "discipline": "Disciplina",
         "provisionOfInformation": "Suministro de información veraz",
         "militaryAffiliation": "Afiliación militar",

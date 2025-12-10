@@ -184,15 +184,15 @@ export class DataApi {
 
     // Get Licensees (Search - Staff)
     public getLicenseesSearchStaff(params: any = {}) {
+        const pages = 10;
         const records = licensees.providers
+            .concat(licensees.providers)
+            .concat(licensees.providers)
             .concat(licensees.providers)
             .concat(licensees.providers);
 
-        console.log(`raw params:`);
-        console.log(params);
-        console.log(``);
-
         return wait(500).then(() => ({
+            totalMatchCount: records.length * pages,
             licensees: records.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
             params,
         }));

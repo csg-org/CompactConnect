@@ -26,30 +26,39 @@
             justify-content: center;
             width: 3.2rem;
             height: 3.2rem;
-            color: @midGrey;
-        }
-
-        .selected {
             color: @primaryColor;
             font-weight: @fontWeightBold;
-        }
 
-        .clickable {
-            cursor: pointer;
-        }
+            &:not(.caret) {
+                margin: 0 0.2rem;
+                border: 0.1rem solid @primaryColor;
+                border-radius: @borderRadiusSmall;
+            }
 
-        .caret {
-            border: 0.1rem solid @lightGrey;
-            border-radius: @borderRadiusSmall;
+            &.clickable {
+                cursor: pointer;
+            }
 
-            svg {
-                width: 1.2rem;
-                height: 1.2rem;
+            &.selected {
+                color: @white;
+                background-color: @primaryColor;
+            }
+
+            &.caret {
+                svg {
+                    width: 1.4rem;
+                    height: 1.4rem;
+                }
+
+                &.clickable svg {
+                    fill: @primaryColor;
+                }
             }
         }
     }
 
     .page-size {
+        display: none;
         margin-bottom: 3.2rem;
         margin-left: 1.6rem;
     }

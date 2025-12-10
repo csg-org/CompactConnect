@@ -41,7 +41,8 @@ export default {
 
         const apiRequest = dataApi.getLicenseesSearchStaff;
 
-        await apiRequest(params).then(async ({ licensees }) => {
+        await apiRequest(params).then(async ({ totalMatchCount, licensees }) => {
+            await dispatch('setStoreLicenseeCount', totalMatchCount);
             await dispatch('setStoreLicensees', licensees);
             dispatch('getLicenseesSuccess', licensees);
         }).catch((error) => {

@@ -37,7 +37,7 @@
                 class="pagination-item caret"
                 :aria-label="$t('paging.nextPage')"
             >
-                <RightCaretIcon :class="{ clickable: !isLastPage }" />
+                <RightCaretIcon />
             </li>
         </ul>
         <InputSelect
