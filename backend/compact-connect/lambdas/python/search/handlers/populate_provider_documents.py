@@ -427,7 +427,6 @@ def _retry_failed_ingest_events(compact: str, opensearch_client: OpenSearchClien
             'completed': True,
         }
 
-    index_name = f'compact_{compact}_providers'
     documents_to_index = []
     compact_stats = {
         'providers_processed': 0,
