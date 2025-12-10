@@ -19,7 +19,7 @@ def generate_provider_opensearch_document(data_client, compact: str, provider_id
     :param data_client: The data client for accessing DynamoDB
     :param compact: The compact abbreviation
     :param provider_id: The provider ID to process
-    :return: Sanitized document ready for indexing, or None if processing failed
+    :return: Sanitized document ready for indexing
     :raises CCNotFoundException: If the provider is not found
     :raises ValidationError: If the provider data fails schema validation
     """
