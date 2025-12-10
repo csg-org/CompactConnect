@@ -808,16 +808,16 @@ class TestProviderUpdateIngest(TstFunction):
         # Verify that a record was written to the search event state table
         response = self.config.search_event_state_table.get_item(
             Key={
-                'pk': f'COMPACT#aslp#PROVIDER#{MOCK_ASLP_PROVIDER_ID}',
-                'sk': 'SEQUENCE#12345',
+                'pk': 'COMPACT#aslp#FAILED_INGEST',
+                'sk': f'PROVIDER#{MOCK_ASLP_PROVIDER_ID}#SEQUENCE#12345',
             }
         )
 
         self.assertEqual(
             {
                 'compact': 'aslp',
-                'pk': f'COMPACT#aslp#PROVIDER#{MOCK_ASLP_PROVIDER_ID}',
-                'sk': 'SEQUENCE#12345',
+                'pk': 'COMPACT#aslp#FAILED_INGEST',
+                'sk': f'PROVIDER#{MOCK_ASLP_PROVIDER_ID}#SEQUENCE#12345',
                 'providerId': MOCK_ASLP_PROVIDER_ID,
                 'sequenceNumber': '12345',
                 # verify that TTL is set

@@ -19,7 +19,6 @@ def generate_provider_opensearch_document(compact: str, provider_id: str) -> dic
     """
     Process a single provider and return the sanitized document ready for indexing.
 
-    :param data_client: The data client for accessing DynamoDB
     :param compact: The compact abbreviation
     :param provider_id: The provider ID to process
     :return: Sanitized document ready for indexing
@@ -44,59 +43,62 @@ def generate_provider_opensearch_document(compact: str, provider_id: str) -> dic
     return json.loads(json.dumps(sanitized_document, cls=ResponseEncoder))
 
 
-def record_failed_indexing(
+def record_failed_indexing_batch(
+    failures: list[dict[str, str]],
     *,
-    compact: str,
-    provider_id: str,
-    sequence_number: str,
     ttl_days: int = 7,
 ) -> None:
     """
-    Record a failed indexing operation to the search event state table.
+    Record multiple failed indexing operations to the search event state table using batch writes.
 
-    This method stores the compact, provider ID, and sequence number so that
-    developers can replay failed indexing operations.
+    This method stores the compact, provider ID, and sequence number for each failure so that
+    developers can replay failed indexing operations. Uses DynamoDB batch writer for efficient
+    bulk writes.
 
-    :param compact: The compact abbreviation (e.g., 'aslp')
-    :param provider_id: The provider ID that failed to index
-    :param sequence_number: The DynamoDB stream sequence number of the failed record
+    :param failures: List of failure records, each containing 'compact', 'provider_id', and 'sequence_number'
     :param ttl_days: TTL in days (default 7 days)
     """
-    # Build partition and sort keys
-    # PK: COMPACT#{compact}#PROVIDER#{provider_id} - allows querying all failures for a provider
-    # SK: SEQUENCE#{sequence_number} - allows identifying the specific stream record
-    pk = f'COMPACT#{compact}#PROVIDER#{provider_id}'
-    sk = f'SEQUENCE#{sequence_number}'
+    if not failures:
+        return
 
     # Calculate TTL (Unix timestamp in seconds)
     ttl = int(time.time()) + int(timedelta(days=ttl_days).total_seconds())
 
-    # Build item
-    item = {
-        'pk': pk,
-        'sk': sk,
-        'compact': compact,
-        'providerId': provider_id,
-        'sequenceNumber': sequence_number,
-        'ttl': ttl,
-    }
-
-    # Write to table
+    # Use batch writer for efficient bulk writes
     try:
-        config.search_event_state_table.put_item(Item=item)
+        with config.search_event_state_table.batch_writer() as batch:
+            for failure in failures:
+                compact = failure['compact']
+                provider_id = failure['provider_id']
+                sequence_number = failure['sequence_number']
+
+                # Build partition and sort keys
+                # PK: COMPACT#{compact}#FAILED_INGEST - allows querying all failures for a provider
+                # SK: PROVIDER#{provider_id}#SEQUENCE#{sequence_number} - allows identifying the specific stream record
+                pk = f'COMPACT#{compact}#FAILED_INGEST'
+                sk = f'PROVIDER#{provider_id}#SEQUENCE#{sequence_number}'
+
+                # Build item
+                item = {
+                    'pk': pk,
+                    'sk': sk,
+                    'compact': compact,
+                    'providerId': provider_id,
+                    'sequenceNumber': sequence_number,
+                    'ttl': ttl,
+                }
+
+                batch.put_item(Item=item)
+
         logger.info(
-            'Recorded failed indexing operation',
-            compact=compact,
-            provider_id=provider_id,
-            sequence_number=sequence_number,
+            'Recorded failed indexing operations in batch',
+            failure_count=len(failures),
             ttl_days=ttl_days,
         )
     except Exception as e:  # noqa: BLE001
         # Log error but don't fail the handler - this is tracking data, not critical path
         logger.error(
-            'Failed to record indexing failure in event state table',
-            compact=compact,
-            provider_id=provider_id,
-            sequence_number=sequence_number,
+            'Failed to record indexing failures in event state table',
+            failure_count=len(failures),
             error=str(e),
         )

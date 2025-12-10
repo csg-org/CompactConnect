@@ -15,7 +15,7 @@ from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import generate_provider_opensearch_document, record_failed_indexing
+from utils import generate_provider_opensearch_document, record_failed_indexing_batch
 
 
 def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001
@@ -197,16 +197,21 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
 
     # Build batch item failures response for failed providers
     # Map back from failed providers to their sequence numbers
-    # Also record failures in the event state table for retry purposes
+    # Also collect failures to record in the event state table for retry purposes
+    failures_to_record = []
     for sequence_number, (compact, provider_id) in record_mapping.items():
         if provider_id in failed_providers[compact]:
             batch_item_failures.append({'itemIdentifier': sequence_number})
-            # Record the failure in the event state table for retry
-            record_failed_indexing(
-                compact=compact,
-                provider_id=provider_id,
-                sequence_number=sequence_number,
-            )
+            # Collect failure information for batch recording
+            failures_to_record.append({
+                'compact': compact,
+                'provider_id': provider_id,
+                'sequence_number': sequence_number,
+            })
+
+    # Record all failures in the event state table using batch writer (for replays)
+    if failures_to_record:
+        record_failed_indexing_batch(failures_to_record)
 
     if batch_item_failures:
         logger.warning('Reporting batch item failures', failure_count=len(batch_item_failures))
