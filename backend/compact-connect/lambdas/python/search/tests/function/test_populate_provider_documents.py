@@ -56,6 +56,28 @@ class TestPopulateProviderDocuments(TstFunction):
             date_of_update_override=DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
         )
 
+    def _put_failed_ingest_record_in_search_event_state_table(
+        self, compact: str, provider_id: str, sequence_number: str
+    ):
+        """Put a failed ingest record in the search event state table for testing."""
+        import time
+        from datetime import timedelta
+
+        pk = f'COMPACT#{compact}#FAILED_INGEST'
+        sk = f'PROVIDER#{provider_id}#SEQUENCE#{sequence_number}'
+        ttl = int(time.time()) + int(timedelta(days=7).total_seconds())
+
+        self.config.search_event_state_table.put_item(
+            Item={
+                'pk': pk,
+                'sk': sk,
+                'compact': compact,
+                'providerId': provider_id,
+                'sequenceNumber': sequence_number,
+                'ttl': ttl,
+            }
+        )
+
     def _when_testing_mock_opensearch_client(self, mock_opensearch_client, bulk_index_response: dict = None):
         if not bulk_index_response:
             bulk_index_response = {'items': [], 'errors': False}
@@ -325,3 +347,62 @@ class TestPopulateProviderDocuments(TstFunction):
         # Verify octp and coun were indexed
         self.assertEqual(2, second_result['total_providers_indexed'])
         self.assertEqual(2, mock_client_instance.bulk_index.call_count)
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_retry_ingest_failures_for_compact_indexes_only_failed_providers(self, mock_opensearch_client):
+        """Test that retry_ingest_failures_for_compact only indexes providers from the search event state table.
+
+        This test verifies:
+        1. A failed ingest record is put in the search event state table
+        2. A provider record exists in the provider table
+        3. When 'retry_ingest_failures_for_compact' is passed, only that provider is indexed
+        4. The opensearch_client is called with the correct provider document
+        """
+        from handlers.populate_provider_documents import populate_provider_documents
+
+        # Set up the mock opensearch client
+        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        compact = 'aslp'
+        provider_id = MOCK_ASLP_PROVIDER_ID
+        sequence_number = '12345'
+
+        # Put a failed ingest record in the search event state table
+        self._put_failed_ingest_record_in_search_event_state_table(compact, provider_id, sequence_number)
+
+        # Put provider and license records in the provider table
+        self._put_test_provider_and_license_record_in_dynamodb_table(compact)
+
+        # Create event with retry_ingest_failures_for_compact
+        event = {'retry_ingest_failures_for_compact': compact}
+
+        # Mock context (not used in retry path, but required for handler signature)
+        mock_context = MagicMock()
+
+        # Run the handler
+        result = populate_provider_documents(event, mock_context)
+
+        # Assert that the OpenSearchClient was instantiated
+        mock_opensearch_client.assert_called_once()
+
+        # Assert that bulk_index was called exactly once (only for the failed provider)
+        self.assertEqual(1, mock_client_instance.bulk_index.call_count)
+
+        # Verify the call was made with the correct provider document
+        bulk_index_calls = mock_client_instance.bulk_index.call_args_list
+        expected_call = self._generate_expected_call_for_document(compact)
+        self.assertEqual(expected_call, bulk_index_calls[0])
+
+        # Verify the result statistics
+        self.assertEqual(
+            {
+                'compacts_processed': [
+                    {'compact': compact, 'providers_failed': 0, 'providers_indexed': 1, 'providers_processed': 1}
+                ],
+                'completed': True,
+                'total_providers_failed': 0,
+                'total_providers_indexed': 1,
+                'total_providers_processed': 1,
+            },
+            result,
+        )

@@ -15,7 +15,8 @@ from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import generate_provider_opensearch_document, record_failed_indexing_batch
+from search_event_state_client import record_failed_indexing_batch
+from utils import generate_provider_opensearch_document
 
 
 def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001
@@ -203,11 +204,13 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
         if provider_id in failed_providers[compact]:
             batch_item_failures.append({'itemIdentifier': sequence_number})
             # Collect failure information for batch recording
-            failures_to_record.append({
-                'compact': compact,
-                'provider_id': provider_id,
-                'sequence_number': sequence_number,
-            })
+            failures_to_record.append(
+                {
+                    'compact': compact,
+                    'provider_id': provider_id,
+                    'sequence_number': sequence_number,
+                }
+            )
 
     # Record all failures in the event state table using batch writer (for replays)
     if failures_to_record:

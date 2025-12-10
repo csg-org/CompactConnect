@@ -104,8 +104,8 @@ class SearchPersistentStack(AppStack):
             removal_policy=removal_policy,
         )
 
-        # Grant the ingest role access to the search event state table for tracking failures
-        self.search_event_state_table.grant_write_data(self.opensearch_ingest_lambda_role)
+        # Grant the ingest role access to the search event state table for tracking and retrying failures
+        self.search_event_state_table.grant_read_write_data(self.opensearch_ingest_lambda_role)
 
         # Create the export results bucket for temporary CSV files
         self.export_results_bucket = ExportResultsBucket(
@@ -148,6 +148,7 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
+            search_event_state_table=self.search_event_state_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
 
