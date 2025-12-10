@@ -81,7 +81,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
     # Process providers and bulk index by compact
     opensearch_client = OpenSearchClient()
     batch_item_failures = []
-    failed_providers: set[tuple[str, str]] = set()  # (compact, provider_id) pairs that failed
+    failed_providers: dict[str, set] = {compact: set() for compact in config.compacts}
 
     for compact, provider_ids in providers_by_compact.items():
         index_name = f'compact_{compact}_providers'
@@ -102,13 +102,13 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                     compact=compact,
                     error=str(e),
                 )
-                failed_providers.add((compact, provider_id))
+                failed_providers[compact].add(provider_id)
 
         if failed_providers:
             logger.warning(
                 'Some providers failed processing',
                 compact=compact,
-                failed_count=len(failed_providers),
+                failed_count=len(failed_providers[compact]),
                 successful_count=len(documents),
             )
 
@@ -128,7 +128,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                                 document_id=doc_id,
                                 error=index_result.get('error'),
                             )
-                            failed_providers.add((compact, doc_id))
+                            failed_providers[compact].add(doc_id)
 
                 logger.info(
                     'Bulk indexed documents',
@@ -146,12 +146,12 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                 )
                 # Mark all providers in this compact as failed
                 for provider_id in provider_ids:
-                    failed_providers.add((compact, provider_id))
+                    failed_providers[compact].add(provider_id)
 
     # Build batch item failures response for failed providers
     # Map back from failed providers to their sequence numbers
     for sequence_number, (compact, provider_id) in record_mapping.items():
-        if (compact, provider_id) in failed_providers:
+        if provider_id in failed_providers[compact]:
             batch_item_failures.append({'itemIdentifier': sequence_number})
 
     if batch_item_failures:

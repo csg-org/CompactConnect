@@ -205,12 +205,9 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                 try:
                     # Use the shared utility to process the provider
                     serializable_document = generate_provider_opensearch_document(data_client, compact, provider_id)
-                    if serializable_document:
-                        documents_to_index.append(serializable_document)
-                    else:
-                        compact_stats['providers_failed'] += 1
+                    documents_to_index.append(serializable_document)
 
-                except ValidationError as e:  # noqa: BLE001
+                except ValidationError as e:
                     logger.warning(
                         'Failed to process provider record',
                         provider_id=provider_id,
