@@ -607,3 +607,87 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify no batch item failures for REMOVE event
         self.assertEqual({'batchItemFailures': []}, result)
+
+    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    def test_provider_deleted_from_index_when_no_records_found(self, mock_opensearch_client):
+        """Test that when no provider records are found (CCNotFoundException), bulk_delete is called.
+
+        This scenario occurs when a provider is completely removed from the system,
+        such as during a license upload rollback. The handler should call bulk_delete
+        to remove the provider document from the OpenSearch index.
+        """
+        from handlers.provider_update_ingest import provider_update_ingest_handler
+
+        # Set up mock OpenSearch client
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+        mock_client_instance.bulk_index.return_value = {'items': [], 'errors': False}
+        mock_client_instance.bulk_delete.return_value = {'items': [], 'errors': False}
+
+        # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
+
+        # Create a DynamoDB stream event for a provider that no longer exists
+        event = {
+            'Records': [
+                self._create_dynamodb_stream_record(
+                    compact='aslp',
+                    provider_id=MOCK_ASLP_PROVIDER_ID,
+                    sequence_number='12345',
+                    event_name='REMOVE',
+                    include_old_image=False,
+                )
+            ]
+        }
+
+        # Run the handler
+        mock_context = MagicMock()
+        result = provider_update_ingest_handler(event, mock_context)
+
+        # Assert that the OpenSearchClient was instantiated
+        mock_opensearch_client.assert_called_once()
+
+        # Assert that bulk_index was NOT called (no documents to index)
+        mock_client_instance.bulk_index.assert_not_called()
+
+        # Assert that bulk_delete WAS called with the correct parameters
+        self.assertEqual(1, mock_client_instance.bulk_delete.call_count)
+        call_args = mock_client_instance.bulk_delete.call_args
+        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
+        self.assertEqual([MOCK_ASLP_PROVIDER_ID], call_args.kwargs['document_ids'])
+
+        # Verify no batch item failures (deletion is expected behavior, not a failure)
+        self.assertEqual({'batchItemFailures': []}, result)
+
+    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    def test_bulk_delete_failure_returns_batch_item_failure(self, mock_opensearch_client):
+        """Test that when bulk_delete fails, the provider is returned in batchItemFailures."""
+        from cc_common.exceptions import CCInternalException
+        from handlers.provider_update_ingest import provider_update_ingest_handler
+
+        # Set up mock OpenSearch client - bulk_delete raises exception
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+        mock_client_instance.bulk_delete.side_effect = CCInternalException('Connection timeout after 5 retries')
+
+        # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
+
+        # Create a DynamoDB stream event for a provider that no longer exists
+        event = {
+            'Records': [
+                self._create_dynamodb_stream_record(
+                    compact='aslp',
+                    provider_id=MOCK_ASLP_PROVIDER_ID,
+                    sequence_number='12345',
+                    event_name='REMOVE',
+                    include_old_image=False,
+                )
+            ]
+        }
+
+        # Run the handler
+        mock_context = MagicMock()
+        result = provider_update_ingest_handler(event, mock_context)
+
+        # Verify that the batch item failure is returned
+        self.assertEqual(1, len(result['batchItemFailures']))
+        self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])

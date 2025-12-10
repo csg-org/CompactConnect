@@ -88,6 +88,34 @@ class OpenSearchClient:
 
         return self._bulk_index_with_retry(actions=actions, index_name=index_name, document_count=len(documents))
 
+    def bulk_delete(self, index_name: str, document_ids: list[str]) -> dict:
+        """
+        Bulk delete multiple documents from the specified index.
+
+        This method implements retry logic with exponential backoff to handle transient
+        connection issues (e.g., ConnectionTimeout, TransportError). If all retry attempts
+        fail, a CCInternalException is raised to signal the caller to handle the failure.
+
+        :param index_name: The name of the index to delete from
+        :param document_ids: List of document IDs to delete
+        :return: The bulk response from OpenSearch
+        :raises CCInternalException: If all retry attempts fail due to connection issues
+        """
+        if not document_ids:
+            return {'items': [], 'errors': False}
+
+        actions = []
+        for doc_id in document_ids:
+            # Note: We specify the index via the `index` parameter in the bulk() call below,
+            # not in the action metadata. This is required because the OpenSearch domain has
+            # `rest.action.multi.allow_explicit_index: false` which prevents specifying
+            # indices in the request body for security purposes.
+            actions.append({'delete': {'_id': doc_id}})
+
+        return self._bulk_operation_with_retry(
+            actions=actions, index_name=index_name, operation_count=len(document_ids), operation_type='delete'
+        )
+
     def _bulk_index_with_retry(self, actions: list, index_name: str, document_count: int) -> dict:
         """
         Execute bulk index with retry logic and exponential backoff.
@@ -95,6 +123,23 @@ class OpenSearchClient:
         :param actions: The bulk actions to execute
         :param index_name: The name of the index to write to
         :param document_count: Number of documents being indexed (for logging)
+        :return: The bulk response from OpenSearch
+        :raises CCInternalException: If all retry attempts fail
+        """
+        return self._bulk_operation_with_retry(
+            actions=actions, index_name=index_name, operation_count=document_count, operation_type='index'
+        )
+
+    def _bulk_operation_with_retry(
+        self, actions: list, index_name: str, operation_count: int, operation_type: str
+    ) -> dict:
+        """
+        Execute bulk operation with retry logic and exponential backoff.
+
+        :param actions: The bulk actions to execute
+        :param index_name: The name of the index to operate on
+        :param operation_count: Number of operations being performed (for logging)
+        :param operation_type: Type of operation ('index' or 'delete') for logging
         :return: The bulk response from OpenSearch
         :raises CCInternalException: If all retry attempts fail
         """
@@ -108,12 +153,12 @@ class OpenSearchClient:
                 last_exception = e
                 if attempt < MAX_RETRY_ATTEMPTS:
                     logger.warning(
-                        'Bulk index attempt failed, retrying with backoff',
+                        f'Bulk {operation_type} attempt failed, retrying with backoff',
                         attempt=attempt,
                         max_attempts=MAX_RETRY_ATTEMPTS,
                         backoff_seconds=backoff_seconds,
                         index_name=index_name,
-                        document_count=document_count,
+                        operation_count=operation_count,
                         error=str(e),
                     )
                     time.sleep(backoff_seconds)
@@ -121,15 +166,15 @@ class OpenSearchClient:
                     backoff_seconds = min(backoff_seconds * 2, MAX_BACKOFF_SECONDS)
                 else:
                     logger.error(
-                        'Bulk index failed after max retry attempts',
+                        f'Bulk {operation_type} failed after max retry attempts',
                         attempts=MAX_RETRY_ATTEMPTS,
                         index_name=index_name,
-                        document_count=document_count,
+                        operation_count=operation_count,
                         error=str(e),
                     )
 
         # All retry attempts failed
         raise CCInternalException(
-            f'Failed to bulk index {document_count} documents to {index_name} after {MAX_RETRY_ATTEMPTS} attempts. '
-            f'Last error: {last_exception}'
+            f'Failed to bulk {operation_type} {operation_count} documents to {index_name} '
+            f'after {MAX_RETRY_ATTEMPTS} attempts. Last error: {last_exception}'
         )

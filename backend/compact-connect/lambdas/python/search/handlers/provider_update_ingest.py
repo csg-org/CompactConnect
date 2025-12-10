@@ -90,12 +90,23 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
         # Use the shared utility to process providers
         data_client = config.data_client
         documents = []
+        providers_to_delete = []  # Provider IDs that no longer exist and need to be deleted from the index
 
         for provider_id in provider_ids:
             try:
                 document = generate_provider_opensearch_document(data_client, compact, provider_id)
                 documents.append(document)
-            except (CCNotFoundException, ValidationError) as e:
+            except CCNotFoundException as e:
+                # if no provider records are found, the provider needs to be deleted from the index
+                logger.warning(
+                    'No provider records found. This may occur if a license upload rollback was performed or if records'
+                    'were manually deleted. Will delete provider document from index.',
+                    provider_id=provider_id,
+                    compact=compact,
+                    error=str(e),
+                )
+                providers_to_delete.append(provider_id)
+            except ValidationError as e:
                 logger.warning(
                     'Failed to process provider for indexing',
                     provider_id=provider_id,
@@ -104,7 +115,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                 )
                 failed_providers[compact].add(provider_id)
 
-        if failed_providers:
+        if failed_providers[compact]:
             logger.warning(
                 'Some providers failed processing',
                 compact=compact,
@@ -146,6 +157,44 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                 )
                 # Mark all providers in this compact as failed
                 for provider_id in provider_ids:
+                    failed_providers[compact].add(provider_id)
+
+        # Bulk delete providers that no longer exist
+        if providers_to_delete:
+            try:
+                response = opensearch_client.bulk_delete(index_name=index_name, document_ids=providers_to_delete)
+
+                # Check for individual delete failures
+                if response.get('errors'):
+                    for item in response.get('items', []):
+                        delete_result = item.get('delete', {})
+                        if delete_result.get('error'):
+                            doc_id = delete_result.get('_id')
+                            # 404 (not_found) is not an error for delete - the document was already gone
+                            if delete_result.get('status') != 404:
+                                logger.error(
+                                    'Document deletion failed',
+                                    document_id=doc_id,
+                                    error=delete_result.get('error'),
+                                )
+                                failed_providers[compact].add(doc_id)
+
+                logger.info(
+                    'Bulk deleted documents',
+                    index_name=index_name,
+                    document_count=len(providers_to_delete),
+                    had_errors=response.get('errors', False),
+                )
+            except CCInternalException as e:
+                # All deletes for this compact failed
+                logger.error(
+                    'Failed to bulk delete documents after retries',
+                    index_name=index_name,
+                    document_count=len(providers_to_delete),
+                    error=str(e),
+                )
+                # Mark all providers to delete as failed
+                for provider_id in providers_to_delete:
                     failed_providers[compact].add(provider_id)
 
     # Build batch item failures response for failed providers
