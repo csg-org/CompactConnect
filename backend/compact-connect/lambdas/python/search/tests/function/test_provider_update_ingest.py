@@ -691,3 +691,62 @@ class TestProviderUpdateIngest(TstFunction):
         # Verify that the batch item failure is returned
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
+
+    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    def test_bulk_delete_404_not_found_does_not_return_batch_item_failure(self, mock_opensearch_client):
+        """Test that when bulk_delete returns 404 (document not found), it is NOT treated as a failure.
+
+        This scenario occurs when a provider document has already been deleted from OpenSearch
+        (e.g., a previous delete succeeded, or the document never existed in the index).
+        The 404 response should be ignored since the desired end state (document not in index)
+        has been achieved.
+        """
+        from handlers.provider_update_ingest import provider_update_ingest_handler
+
+        # Set up mock OpenSearch client - bulk_delete returns 404 not_found response
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+
+        # Simulate OpenSearch bulk delete response when document doesn't exist
+        mock_client_instance.bulk_delete.return_value = {
+            'errors': True,  # OpenSearch reports this as an "error" even though it's just not found
+            'items': [
+                {
+                    'delete': {
+                        '_index': 'compact_aslp_providers',
+                        '_id': MOCK_ASLP_PROVIDER_ID,
+                        'status': 404,
+                        'result': 'not_found',
+                        'error': {
+                            'type': 'document_missing_exception',
+                            'reason': f'[_doc][{MOCK_ASLP_PROVIDER_ID}]: document missing',
+                        },
+                    }
+                }
+            ],
+        }
+
+        # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
+
+        # Create a DynamoDB stream event for a provider that no longer exists
+        event = {
+            'Records': [
+                self._create_dynamodb_stream_record(
+                    compact='aslp',
+                    provider_id=MOCK_ASLP_PROVIDER_ID,
+                    sequence_number='12345',
+                    event_name='REMOVE',
+                    include_old_image=False,
+                )
+            ]
+        }
+
+        # Run the handler
+        mock_context = MagicMock()
+        result = provider_update_ingest_handler(event, mock_context)
+
+        # Assert that bulk_delete was called
+        self.assertEqual(1, mock_client_instance.bulk_delete.call_count)
+
+        # Verify NO batch item failures - 404 is not treated as an error
+        self.assertEqual({'batchItemFailures': []}, result)
