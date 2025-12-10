@@ -18,6 +18,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from stacks.search_persistent_stack.search_event_state_table import SearchEventStateTable
 from stacks.vpc_stack import VpcStack
 
 
@@ -41,6 +42,7 @@ class ProviderUpdateIngestHandler(Construct):
         vpc_subnets: SubnetSelection,
         lambda_role: IRole,
         provider_table: ITable,
+        search_event_state_table: SearchEventStateTable,
         encryption_key: IKey,
         alarm_topic: ITopic,
     ):
@@ -54,6 +56,7 @@ class ProviderUpdateIngestHandler(Construct):
         :param vpc_subnets: The VPC subnets for Lambda deployment
         :param lambda_role: The IAM role for the Lambda function (should have OpenSearch write access)
         :param provider_table: The DynamoDB provider table with stream enabled
+        :param search_event_state_table: The DynamoDB table for tracking failed indexing operations
         :param encryption_key: The KMS encryption key for the SQS queue
         :param alarm_topic: The SNS topic for alarms
         """
@@ -82,6 +85,7 @@ class ProviderUpdateIngestHandler(Construct):
             environment={
                 'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
                 'PROVIDER_TABLE_NAME': provider_table.table_name,
+                'SEARCH_EVENT_STATE_TABLE_NAME': search_event_state_table.table_name,
                 **stack.common_env_vars,
             },
             # Allow enough time for processing large batches

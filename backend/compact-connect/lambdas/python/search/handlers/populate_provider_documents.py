@@ -204,7 +204,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
                 try:
                     # Use the shared utility to process the provider
-                    serializable_document = generate_provider_opensearch_document(data_client, compact, provider_id)
+                    serializable_document = generate_provider_opensearch_document(compact, provider_id)
                     documents_to_index.append(serializable_document)
 
                 except ValidationError as e:

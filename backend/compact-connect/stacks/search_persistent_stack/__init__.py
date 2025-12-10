@@ -1,13 +1,16 @@
+from aws_cdk import RemovalPolicy
 from aws_cdk.aws_iam import Role, ServicePrincipal
 from common_constructs.stack import AppStack
 from constructs import Construct
 
+from common_constructs.constants import PROD_ENV_NAME
 from stacks.persistent_stack import PersistentStack
 from stacks.search_persistent_stack.export_results_bucket import ExportResultsBucket
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
 from stacks.search_persistent_stack.populate_provider_documents_handler import PopulateProviderDocumentsHandler
 from stacks.search_persistent_stack.provider_search_domain import ProviderSearchDomain
 from stacks.search_persistent_stack.provider_update_ingest_handler import ProviderUpdateIngestHandler
+from stacks.search_persistent_stack.search_event_state_table import SearchEventStateTable
 from stacks.search_persistent_stack.search_handler import SearchHandler
 from stacks.vpc_stack import VpcStack
 
@@ -90,6 +93,20 @@ class SearchPersistentStack(AppStack):
         self.domain = self.provider_search_domain.domain
         self.opensearch_encryption_key = self.provider_search_domain.encryption_key
 
+        # Determine removal policy based on environment
+        removal_policy = RemovalPolicy.RETAIN if environment_name == PROD_ENV_NAME else RemovalPolicy.DESTROY
+
+        # Create the search event state table for tracking failed indexing operations
+        self.search_event_state_table = SearchEventStateTable(
+            self,
+            'SearchEventStateTable',
+            encryption_key=self.opensearch_encryption_key,
+            removal_policy=removal_policy,
+        )
+
+        # Grant the ingest role access to the search event state table for tracking failures
+        self.search_event_state_table.grant_write_data(self.opensearch_ingest_lambda_role)
+
         # Create the export results bucket for temporary CSV files
         self.export_results_bucket = ExportResultsBucket(
             self,
@@ -144,6 +161,7 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
+            search_event_state_table=self.search_event_state_table,
             encryption_key=self.opensearch_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
         )

@@ -15,7 +15,7 @@ from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import generate_provider_opensearch_document
+from utils import generate_provider_opensearch_document, record_failed_indexing
 
 
 def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001
@@ -87,15 +87,13 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
         index_name = f'compact_{compact}_providers'
         logger.info('Processing providers for compact', compact=compact, provider_count=len(provider_ids))
 
-        # Use the shared utility to process providers
-        data_client = config.data_client
-        documents = []
+        documents_to_index = []
         providers_to_delete = []  # Provider IDs that no longer exist and need to be deleted from the index
 
         for provider_id in provider_ids:
             try:
-                document = generate_provider_opensearch_document(data_client, compact, provider_id)
-                documents.append(document)
+                document = generate_provider_opensearch_document(compact, provider_id)
+                documents_to_index.append(document)
             except CCNotFoundException as e:
                 # if no provider records are found, the provider needs to be deleted from the index
                 logger.warning(
@@ -117,16 +115,16 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
 
         if failed_providers[compact]:
             logger.warning(
-                'Some providers failed processing',
+                'Some providers failed serialization',
                 compact=compact,
                 failed_count=len(failed_providers[compact]),
-                successful_count=len(documents),
+                successful_count=len(documents_to_index),
             )
 
         # Bulk index the documents
-        if documents:
+        if documents_to_index:
             try:
-                response = opensearch_client.bulk_index(index_name=index_name, documents=documents)
+                response = opensearch_client.bulk_index(index_name=index_name, documents=documents_to_index)
 
                 # Check for individual document failures
                 if response.get('errors'):
@@ -144,7 +142,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                 logger.info(
                     'Bulk indexed documents',
                     index_name=index_name,
-                    document_count=len(documents),
+                    document_count=len(documents_to_index),
                     had_errors=response.get('errors', False),
                 )
             except CCInternalException as e:
@@ -152,7 +150,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                 logger.error(
                     'Failed to bulk index documents after retries',
                     index_name=index_name,
-                    document_count=len(documents),
+                    document_count=len(documents_to_index),
                     error=str(e),
                 )
                 # Mark all providers in this compact as failed
@@ -199,9 +197,16 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
 
     # Build batch item failures response for failed providers
     # Map back from failed providers to their sequence numbers
+    # Also record failures in the event state table for retry purposes
     for sequence_number, (compact, provider_id) in record_mapping.items():
         if provider_id in failed_providers[compact]:
             batch_item_failures.append({'itemIdentifier': sequence_number})
+            # Record the failure in the event state table for retry
+            record_failed_indexing(
+                compact=compact,
+                provider_id=provider_id,
+                sequence_number=sequence_number,
+            )
 
     if batch_item_failures:
         logger.warning('Reporting batch item failures', failure_count=len(batch_item_failures))

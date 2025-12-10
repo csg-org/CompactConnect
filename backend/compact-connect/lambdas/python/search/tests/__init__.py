@@ -24,6 +24,7 @@ class TstLambdas(TestCase):
                 'LICENSE_GSI_NAME': 'licenseGSI',
                 'OPENSEARCH_HOST_ENDPOINT': 'vpc-providersearchd-5bzuqxhpxffk-w6dkpddu.us-east-1.es.amazonaws.com',
                 'EXPORT_RESULTS_BUCKET_NAME': 'test-export-results-bucket',
+                'SEARCH_EVENT_STATE_TABLE_NAME': 'search-event-state-table',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',

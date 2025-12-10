@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import ANY, MagicMock, Mock, patch
 
 from common_test.test_constants import (
     DEFAULT_LICENSE_EXPIRATION_DATE,
@@ -750,3 +750,78 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify NO batch item failures - 404 is not treated as an error
         self.assertEqual({'batchItemFailures': []}, result)
+
+    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    def test_failed_indexing_recorded_in_event_state_table(self, mock_opensearch_client):
+        """Test that failed indexing operations are recorded in the search event state table.
+
+        When a provider fails to index (e.g., validation error or OpenSearch error),
+        the handler should record the failure in the search event state table with the compact,
+        provider ID, and sequence number for retry purposes.
+        """
+        from handlers.provider_update_ingest import provider_update_ingest_handler
+
+        # Set up mock OpenSearch client - bulk_index returns error for one document
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+
+        # Simulate OpenSearch returning an error for one document
+        mock_client_instance.bulk_index.return_value = {
+            'errors': True,
+            'items': [
+                {
+                    'index': {
+                        '_id': MOCK_ASLP_PROVIDER_ID,
+                        '_index': 'compact_aslp_providers',
+                        'status': 400,
+                        'error': {
+                            'type': 'mapper_parsing_exception',
+                            'reason': 'failed to parse field',
+                        },
+                    }
+                }
+            ],
+        }
+
+        # Create provider and license records in DynamoDB
+        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
+
+        # Create DynamoDB stream event
+        event = {
+            'Records': [
+                self._create_dynamodb_stream_record(
+                    compact='aslp',
+                    provider_id=MOCK_ASLP_PROVIDER_ID,
+                    sequence_number='12345',
+                )
+            ]
+        }
+
+        # Run the handler
+        mock_context = MagicMock()
+        result = provider_update_ingest_handler(event, mock_context)
+
+        # Verify that the batch item failure is returned
+        self.assertEqual(1, len(result['batchItemFailures']))
+        self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
+
+        # Verify that a record was written to the search event state table
+        response = self.config.search_event_state_table.get_item(
+            Key={
+                'pk': f'COMPACT#aslp#PROVIDER#{MOCK_ASLP_PROVIDER_ID}',
+                'sk': 'SEQUENCE#12345',
+            }
+        )
+
+        self.assertEqual(
+            {
+                'compact': 'aslp',
+                'pk': f'COMPACT#aslp#PROVIDER#{MOCK_ASLP_PROVIDER_ID}',
+                'sk': 'SEQUENCE#12345',
+                'providerId': MOCK_ASLP_PROVIDER_ID,
+                'sequenceNumber': '12345',
+                # verify that TTL is set
+                'ttl': ANY,
+            },
+            response['Item'],
+        )

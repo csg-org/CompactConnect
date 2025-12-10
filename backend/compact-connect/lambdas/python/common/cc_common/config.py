@@ -322,6 +322,20 @@ class _Config:
 
         return EventStateClient(self)
 
+    @property
+    def search_event_state_table_name(self):
+        return os.environ['SEARCH_EVENT_STATE_TABLE_NAME']
+
+    @property
+    def search_event_state_table(self):
+        return boto3.resource('dynamodb').Table(self.search_event_state_table_name)
+
+    @cached_property
+    def search_event_state_client(self):
+        from search.search_event_state_client import SearchEventStateClient
+
+        return SearchEventStateClient(self)
+
     @cached_property
     def allowed_origins(self):
         return json.loads(os.environ['ALLOWED_ORIGINS'])
