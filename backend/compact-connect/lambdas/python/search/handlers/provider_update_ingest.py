@@ -99,7 +99,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                 # if no provider records are found, the provider needs to be deleted from the index
                 logger.warning(
                     'No provider records found. This may occur if a license upload rollback was performed or if records'
-                    'were manually deleted. Will delete provider document from index.',
+                    ' were manually deleted. Will delete provider document from index.',
                     provider_id=provider_id,
                     compact=compact,
                     error=str(e),
@@ -118,7 +118,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
             logger.warning(
                 'Some providers failed serialization',
                 compact=compact,
-                failed_count=len(failed_providers[compact]),
+                failed_provider_ids=failed_providers[compact],
                 successful_count=len(documents_to_index),
             )
 

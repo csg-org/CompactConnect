@@ -43,7 +43,8 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
     This function can operate in two modes:
     1. Normal mode: Scans all providers in the provider table using the providerDateOfUpdate GSI
-    2. Retry mode: Re-indexes providers that previously failed ingestion (when 'retry_ingest_failures_for_compact' is provided)
+    2. Retry mode: Re-indexes providers that previously failed ingestion (when 'retry_ingest_failures_for_compact'
+    is provided)
 
     Retrieves complete provider records, sanitizes them using ProviderGeneralResponseSchema,
     and bulk indexes them into the appropriate OpenSearch indices.
@@ -102,7 +103,6 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
     for compact_index, compact in enumerate(compacts_to_process):
         logger.info('Processing compact', compact=compact)
-        index_name = f'compact_{compact}_providers'
 
         documents_to_index = []
         compact_stats = {
@@ -134,19 +134,17 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                 )
 
                 # Index any remaining documents before returning
-                if documents_to_index:
-                    try:
-                        indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
-                        compact_stats['providers_indexed'] += indexed_count
-                    except CCInternalException as e:
-                        # Indexing failed after retries, return pagination info for manual retry
-                        return _build_error_response(
-                            stats,
-                            compact_stats,
-                            compact,
-                            batch_start_key,
-                            str(e),
-                        )
+                try:
+                    _index_records_and_track_stats(documents_to_index, compact, opensearch_client, compact_stats)
+                except CCInternalException as e:
+                    # Indexing failed after retries, return pagination info for manual retry
+                    return _build_error_response(
+                        stats,
+                        compact_stats,
+                        compact,
+                        batch_start_key,
+                        str(e),
+                    )
 
                 # Update stats for current compact
                 stats['total_providers_processed'] += compact_stats['providers_processed']
@@ -230,8 +228,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                 # Bulk index when batch is full
                 if len(documents_to_index) >= OPENSEARCH_BULK_SIZE:
                     try:
-                        indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
-                        compact_stats['providers_indexed'] += indexed_count
+                        _index_records_and_track_stats(documents_to_index, compact, opensearch_client, compact_stats)
                         documents_to_index = []
                     except CCInternalException as e:
                         # Indexing failed after retries, return pagination info for manual retry
@@ -246,8 +243,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
         # Index any remaining documents for this compact
         if documents_to_index:
             try:
-                indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
-                compact_stats['providers_indexed'] += indexed_count
+                _index_records_and_track_stats(documents_to_index, compact, opensearch_client, compact_stats)
             except CCInternalException as e:
                 # Indexing failed after retries, return pagination info for manual retry
                 return _build_error_response(
@@ -285,6 +281,23 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     )
 
     return stats
+
+
+def _index_records_and_track_stats(
+    documents_to_index: list[dict], compact: str, opensearch_client: OpenSearchClient, compact_stats: dict
+):
+    index_name = f'compact_{compact}_providers'
+    if documents_to_index:
+        failed_ids = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
+        compact_stats['providers_indexed'] += len(documents_to_index) - len(failed_ids)
+        if failed_ids:
+            compact_stats['providers_failed'] += len(failed_ids)
+            logger.warning(
+                'Some documents failed to index in batch',
+                compact=compact,
+                failed_count=len(failed_ids),
+                failed_document_ids=list(failed_ids),
+            )
 
 
 def _build_error_response(
@@ -335,48 +348,50 @@ def _build_error_response(
     return stats
 
 
-def _bulk_index_documents(opensearch_client: OpenSearchClient, index_name: str, documents: list[dict]) -> int:
+def _bulk_index_documents(opensearch_client: OpenSearchClient, index_name: str, documents: list[dict]) -> set[str]:
     """
     Bulk index documents into OpenSearch.
 
     :param opensearch_client: The OpenSearch client
     :param index_name: The index to write to
     :param documents: List of documents to index
-    :return: Number of successfully indexed documents
+    :return: Set of failed document IDs (empty set if all documents succeeded)
     :raises CCInternalException: If bulk indexing fails after max retry attempts
     """
     if not documents:
-        return 0
+        return set()
 
     # This will raise CCInternalException if all retries fail
     response = opensearch_client.bulk_index(index_name=index_name, documents=documents)
 
     # Check for errors in the bulk response (individual document failures, not connection issues)
     if response.get('errors'):
-        error_count = 0
+        failed_ids = set()
         for item in response.get('items', []):
             index_result = item.get('index', {})
             if index_result.get('error'):
-                error_count += 1
+                doc_id = index_result.get('_id')
+                failed_ids.add(doc_id)
                 logger.warning(
                     'Bulk index item error',
-                    document_id=index_result.get('_id'),
+                    document_id=doc_id,
                     error=index_result.get('error'),
                 )
         logger.warning(
             'Bulk index completed with errors',
             index_name=index_name,
             total_documents=len(documents),
-            error_count=error_count,
+            error_count=len(failed_ids),
+            failed_document_ids=list(failed_ids),
         )
-        return len(documents) - error_count
+        return failed_ids
 
     logger.info(
         'Indexed documents',
         index_name=index_name,
         document_count=len(documents),
     )
-    return len(documents)
+    return set()
 
 
 def _retry_failed_ingest_events(compact: str, opensearch_client: OpenSearchClient) -> dict:
@@ -441,8 +456,7 @@ def _retry_failed_ingest_events(compact: str, opensearch_client: OpenSearchClien
         # Bulk index when batch is full
         if len(documents_to_index) >= OPENSEARCH_BULK_SIZE:
             try:
-                indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
-                compact_stats['providers_indexed'] += indexed_count
+                _index_records_and_track_stats(documents_to_index, compact, opensearch_client, compact_stats)
                 documents_to_index = []
             except CCInternalException as e:
                 logger.error(
@@ -456,8 +470,7 @@ def _retry_failed_ingest_events(compact: str, opensearch_client: OpenSearchClien
     # Index any remaining documents
     if documents_to_index:
         try:
-            indexed_count = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
-            compact_stats['providers_indexed'] += indexed_count
+            _index_records_and_track_stats(documents_to_index, compact, opensearch_client, compact_stats)
         except CCInternalException as e:
             logger.error('Failed to index remaining documents during retry', error=str(e))
             compact_stats['providers_failed'] += len(documents_to_index)
