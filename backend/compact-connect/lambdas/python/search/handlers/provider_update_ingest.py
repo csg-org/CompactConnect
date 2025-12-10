@@ -161,28 +161,16 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
         # Bulk delete providers that no longer exist
         if providers_to_delete:
             try:
-                response = opensearch_client.bulk_delete(index_name=index_name, document_ids=providers_to_delete)
-
-                # Check for individual delete failures
-                if response.get('errors'):
-                    for item in response.get('items', []):
-                        delete_result = item.get('delete', {})
-                        if delete_result.get('error'):
-                            doc_id = delete_result.get('_id')
-                            # 404 (not_found) is not an error for delete - the document was already gone
-                            if delete_result.get('status') != 404:
-                                logger.error(
-                                    'Document deletion failed',
-                                    provider_id=doc_id,
-                                    error=delete_result.get('error'),
-                                )
-                                failed_providers[compact].add(doc_id)
+                failed_provider_ids = opensearch_client.bulk_delete(
+                    index_name=index_name, document_ids=providers_to_delete
+                )
+                failed_providers[compact].update(failed_provider_ids)
 
                 logger.info(
                     'Bulk deleted documents',
                     index_name=index_name,
                     document_count=len(providers_to_delete),
-                    had_errors=response.get('errors', False),
+                    failed_provider_ids=list(failed_provider_ids),
                 )
             except CCInternalException as e:
                 # All deletes for this compact failed

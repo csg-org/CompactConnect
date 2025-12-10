@@ -88,7 +88,7 @@ class OpenSearchClient:
 
         return self._bulk_index_with_retry(actions=actions, index_name=index_name, document_count=len(documents))
 
-    def bulk_delete(self, index_name: str, document_ids: list[str]) -> dict:
+    def bulk_delete(self, index_name: str, document_ids: list[str]) -> set[str]:
         """
         Bulk delete multiple documents from the specified index.
 
@@ -98,11 +98,12 @@ class OpenSearchClient:
 
         :param index_name: The name of the index to delete from
         :param document_ids: List of document IDs to delete
-        :return: The bulk response from OpenSearch
+        :return: A list of document ids that failed to delete (if any)
         :raises CCInternalException: If all retry attempts fail due to connection issues
         """
+        failed_document_ids = set()
         if not document_ids:
-            return {'items': [], 'errors': False}
+            return failed_document_ids
 
         actions = []
         for doc_id in document_ids:
@@ -112,9 +113,26 @@ class OpenSearchClient:
             # indices in the request body for security purposes.
             actions.append({'delete': {'_id': doc_id}})
 
-        return self._bulk_operation_with_retry(
+        response = self._bulk_operation_with_retry(
             actions=actions, index_name=index_name, operation_count=len(document_ids), operation_type='delete'
         )
+
+        # Check for individual delete failures
+        if response.get('errors'):
+            for item in response.get('items', []):
+                delete_result = item.get('delete', {})
+                if delete_result.get('error'):
+                    doc_id = delete_result.get('_id')
+                    # 404 (not_found) is not an error for delete - the document was already gone
+                    if delete_result.get('status') != 404:
+                        logger.error(
+                            'Document deletion failed',
+                            provider_id=doc_id,
+                            error=delete_result.get('error'),
+                        )
+                        failed_document_ids.add(doc_id)
+
+        return failed_document_ids
 
     def _bulk_index_with_retry(self, actions: list, index_name: str, document_count: int) -> dict:
         """

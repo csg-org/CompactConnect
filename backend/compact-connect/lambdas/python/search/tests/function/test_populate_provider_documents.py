@@ -397,11 +397,88 @@ class TestPopulateProviderDocuments(TstFunction):
         self.assertEqual(
             {
                 'compacts_processed': [
-                    {'compact': compact, 'providers_failed': 0, 'providers_indexed': 1, 'providers_processed': 1}
+                    {
+                        'compact': compact,
+                        'providers_failed': 0,
+                        'providers_indexed': 1,
+                        'providers_deleted': 0,
+                        'providers_processed': 1,
+                    }
                 ],
                 'completed': True,
                 'total_providers_failed': 0,
+                'total_providers_deleted': 0,
                 'total_providers_indexed': 1,
+                'total_providers_processed': 1,
+            },
+            result,
+        )
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_retry_ingest_failures_deletes_providers_when_not_found(self, mock_opensearch_client):
+        """Test that retry_ingest_failures_for_compact deletes providers from index when CCNotFoundException is raised.
+
+        This test verifies:
+        1. A failed ingest record is put in the search event state table
+        2. NO provider records exist in the provider table (simulating deletion/rollback)
+        3. When 'retry_ingest_failures_for_compact' is passed, bulk_delete is called
+        4. The provider is deleted from the OpenSearch index
+        5. Statistics reflect the deletion
+        """
+        from handlers.populate_provider_documents import populate_provider_documents
+
+        # Set up the mock opensearch client
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+        mock_client_instance.bulk_index.return_value = set()
+        mock_client_instance.bulk_delete.return_value = set()
+
+        compact = 'aslp'
+        provider_id = MOCK_ASLP_PROVIDER_ID
+        sequence_number = '12345'
+
+        # Put a failed ingest record in the search event state table
+        self._put_failed_ingest_record_in_search_event_state_table(compact, provider_id, sequence_number)
+
+        # Do NOT create provider records in the provider table - this simulates the provider being deleted
+
+        # Create event with retry_ingest_failures_for_compact
+        event = {'retry_ingest_failures_for_compact': compact}
+
+        # Mock context (not used in retry path, but required for handler signature)
+        mock_context = MagicMock()
+
+        # Run the handler
+        result = populate_provider_documents(event, mock_context)
+
+        # Assert that the OpenSearchClient was instantiated
+        mock_opensearch_client.assert_called_once()
+
+        # Assert that bulk_index was NOT called (no documents to index)
+        mock_client_instance.bulk_index.assert_not_called()
+
+        # Assert that bulk_delete WAS called with the correct parameters
+        self.assertEqual(1, mock_client_instance.bulk_delete.call_count)
+        call_args = mock_client_instance.bulk_delete.call_args
+        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
+        self.assertEqual([MOCK_ASLP_PROVIDER_ID], call_args.kwargs['document_ids'])
+
+        # Verify the result statistics
+        self.assertEqual(
+            {
+                'compacts_processed': [
+                    {
+                        'compact': compact,
+                        'providers_deleted': 1,
+                        'providers_failed': 0,
+                        'providers_indexed': 0,
+                        'providers_processed': 1,
+                    }
+                ],
+                'completed': True,
+                'total_providers_deleted': 1,
+                'total_providers_failed': 0,
+                'total_providers_indexed': 0,
                 'total_providers_processed': 1,
             },
             result,
