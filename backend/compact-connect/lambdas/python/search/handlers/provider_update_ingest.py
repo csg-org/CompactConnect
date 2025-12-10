@@ -136,7 +136,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                             doc_id = index_result.get('_id')
                             logger.error(
                                 'Document indexing failed',
-                                document_id=doc_id,
+                                provider_id=doc_id,
                                 error=index_result.get('error'),
                             )
                             failed_providers[compact].add(doc_id)
@@ -174,7 +174,7 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                             if delete_result.get('status') != 404:
                                 logger.error(
                                     'Document deletion failed',
-                                    document_id=doc_id,
+                                    provider_id=doc_id,
                                     error=delete_result.get('error'),
                                 )
                                 failed_providers[compact].add(doc_id)
