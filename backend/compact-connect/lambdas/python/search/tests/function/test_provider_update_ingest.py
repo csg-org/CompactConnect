@@ -1,5 +1,5 @@
 import json
-from unittest.mock import ANY, MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 from common_test.test_constants import (
     DEFAULT_LICENSE_EXPIRATION_DATE,

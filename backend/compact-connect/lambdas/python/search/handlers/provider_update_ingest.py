@@ -189,6 +189,12 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
     # Map back from failed providers to their SQS message IDs
     for message_id, (compact, provider_id) in record_mapping.items():
         if provider_id in failed_providers[compact]:
+            logger.info(
+                'Returning message id in batch item failures for failed provider',
+                compact=compact,
+                provider_id=provider_id,
+                message_id=message_id,
+            )
             batch_item_failures.append({'itemIdentifier': message_id})
 
     if batch_item_failures:

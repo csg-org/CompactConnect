@@ -1,9 +1,7 @@
-from aws_cdk import RemovalPolicy
 from aws_cdk.aws_iam import Role, ServicePrincipal
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.constants import PROD_ENV_NAME
 from stacks.persistent_stack import PersistentStack
 from stacks.search_persistent_stack.export_results_bucket import ExportResultsBucket
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
