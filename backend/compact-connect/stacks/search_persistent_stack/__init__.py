@@ -1,4 +1,5 @@
 from aws_cdk.aws_iam import Role, ServicePrincipal
+from aws_cdk.aws_logs import QueryDefinition, QueryString
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -157,4 +158,30 @@ class SearchPersistentStack(AppStack):
             provider_table=persistent_stack.provider_table,
             target_queue=self.provider_update_ingest_handler.queue,
             encryption_key=self.opensearch_encryption_key,
+        )
+
+        # add log insights for provider ingest
+        QueryDefinition(
+            self,
+            'IngestQuery',
+            query_definition_name=f'{self.node.id}/ProviderUpdateIngest',
+            query_string=QueryString(
+                fields=['@timestamp', '@log', 'level', 'message', 'compact', 'provider_id', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp asc',
+            ),
+            log_groups=[self.provider_update_ingest_handler.handler.log_group],
+        )
+
+        # add log insights for search requests
+        QueryDefinition(
+            self,
+            'SearchLambdaQuery',
+            query_definition_name=f'{self.node.id}/SearchAPILambda',
+            query_string=QueryString(
+                fields=['@timestamp', '@log', 'level', 'message', 'compact', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp asc',
+            ),
+            log_groups=[self.search_handler.handler.log_group],
         )
