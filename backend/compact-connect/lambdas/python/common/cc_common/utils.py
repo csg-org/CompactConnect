@@ -468,6 +468,54 @@ def sqs_handler(fn: Callable):
     return process_messages
 
 
+def sqs_batch_handler(fn: Callable):
+    """Process a batch of messages from an SQS queue, passing all messages to the handler at once.
+
+    This handler is similar to sqs_handler but passes ALL messages to the decorated function
+    at once, allowing for batch processing, deduplication, and bulk operations. The decorated
+    function is responsible for returning the batchItemFailures response directly.
+
+    This handler uses batch item failure reporting:
+    https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html
+
+    The decorated function receives a list of records, where each record contains:
+    - 'messageId': The SQS message ID (used for batch item failure reporting)
+    - 'body': The parsed JSON body of the SQS message
+
+    The decorated function must return: {'batchItemFailures': [{'itemIdentifier': messageId}, ...]}
+    """
+
+    @wraps(fn)
+    @metrics.log_metrics
+    @logger.inject_lambda_context
+    def process_messages(event, context: LambdaContext):  # noqa: ARG001 unused-argument
+        sqs_records = event.get('Records', [])
+        logger.info('Starting batch processing', batch_count=len(sqs_records))
+
+        if not sqs_records:
+            logger.info('No records to process')
+            return {'batchItemFailures': []}
+
+        # Parse all SQS message bodies and create records with messageId for failure tracking
+        records = []
+        for sqs_record in sqs_records:
+            message_id = sqs_record['messageId']
+            try:
+                body = json.loads(sqs_record['body'])
+                records.append({'messageId': message_id, 'body': body})
+            except json.JSONDecodeError as e:
+                # If we can't parse the message body, log error but don't fail the whole batch
+                logger.error('Failed to parse SQS message body', message_id=message_id, exc_info=e)
+                # We can't process this message, but we also shouldn't retry it since it's malformed
+                # So we don't add it to failures - it will be deleted from the queue
+
+        # Call the decorated function with all parsed records
+        # The function is responsible for returning {'batchItemFailures': [...]}
+        return fn(records)
+
+    return process_messages
+
+
 def sqs_handler_with_notification_tracking(fn: Callable):
     """
     Process messages from SQS with notification tracking capabilities.

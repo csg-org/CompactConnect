@@ -1,27 +1,29 @@
 """
-Lambda handler to process DynamoDB stream events and index provider documents into OpenSearch.
+Lambda handler to process SQS messages containing DynamoDB stream events and index
+provider documents into OpenSearch.
 
-This Lambda is triggered by DynamoDB streams from the provider table. It processes
-events in batches, deduplicates provider IDs by compact, and bulk indexes the
-sanitized provider documents into the appropriate OpenSearch indices.
+This Lambda is triggered by SQS (via EventBridge Pipe from DynamoDB streams) from
+the provider table. It processes events in batches, deduplicates provider IDs by
+compact, and bulk indexes the sanitized provider documents into the appropriate
+OpenSearch indices.
 
-The handler supports partial batch failures using the reportBatchItemFailures
-response type, allowing successful records to be processed while failed records
-are sent to the dead letter queue.
+The handler uses the @sqs_batch_handler decorator which passes all SQS messages
+to the handler at once, enabling batch processing and deduplication. The handler
+returns batchItemFailures directly for partial success handling.
 """
 
-from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException, CCNotFoundException
+from cc_common.utils import sqs_batch_handler
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from search_event_state_client import record_failed_indexing_batch
 from utils import generate_provider_opensearch_document
 
 
-def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001
+@sqs_batch_handler
+def provider_update_ingest_handler(records: list[dict]) -> dict:
     """
-    Process DynamoDB stream events and index provider documents into OpenSearch.
+    Process DynamoDB stream events from SQS and index provider documents into OpenSearch.
 
     This function:
     1. Creates a set for each compact to deduplicate provider IDs
@@ -29,33 +31,32 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
     3. Processes each unique provider by compact using the shared utility
     4. Bulk indexes the documents into the appropriate OpenSearch index
 
-    :param event: DynamoDB stream event containing records
-    :param context: Lambda context
+    :param records: List of SQS records, each containing 'messageId' and 'body' (DynamoDB stream record)
     :return: Response with batch item failures for partial success handling
     """
-    records = event.get('Records', [])
-
     if not records:
         logger.info('No records to process')
         return {'batchItemFailures': []}
 
-    logger.info('Processing DynamoDB stream batch', record_count=len(records))
+    logger.info('Processing SQS batch with DynamoDB stream records', record_count=len(records))
 
     # Create a set for each compact to deduplicate provider IDs
     providers_by_compact: dict[str, set[str]] = {compact: set() for compact in config.compacts}
 
-    # Track which sequence numbers correspond to which compact/provider for failure reporting
-    record_mapping: dict[str, tuple[str, str]] = {}  # sequence_number -> (compact, provider_id)
+    # Track which message IDs correspond to which compact/provider for failure reporting
+    record_mapping: dict[str, tuple[str, str]] = {}  # message_id -> (compact, provider_id)
 
     # Extract compact and providerId from each record
     for record in records:
-        sequence_number = record.get('dynamodb', {}).get('SequenceNumber')
+        message_id = record['messageId']
+        # The body contains the DynamoDB stream record sent via EventBridge Pipe
+        stream_record = record['body']
 
         # Try to get the data from NewImage first, fall back to OldImage for deletes
-        image = record.get('dynamodb', {}).get('NewImage') or record.get('dynamodb', {}).get('OldImage')
+        image = stream_record.get('dynamodb', {}).get('NewImage') or stream_record.get('dynamodb', {}).get('OldImage')
 
         if not image:
-            logger.warning('Record has no image data', record=record)
+            logger.error('Record has no image data', message_id=message_id, record=stream_record)
             continue
 
         # Extract compact and providerId from the DynamoDB image
@@ -68,14 +69,14 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
             logger.error(
                 'Record missing required fields',
                 record_type=record_type,
-                sequence_number=sequence_number,
+                message_id=message_id,
             )
             continue
 
-        # Add to the appropriate compact's set (deduplication happens automatically)
+        # Add to the appropriate compact's set to dedup provider ids
         if compact in providers_by_compact:
             providers_by_compact[compact].add(provider_id)
-            record_mapping[sequence_number] = (compact, provider_id)
+            record_mapping[message_id] = (compact, provider_id)
         else:
             logger.warning('Unknown compact in record', compact=compact, provider_id=provider_id)
 
@@ -185,24 +186,10 @@ def provider_update_ingest_handler(event: dict, context: LambdaContext) -> dict:
                     failed_providers[compact].add(provider_id)
 
     # Build batch item failures response for failed providers
-    # Map back from failed providers to their sequence numbers
-    # Also collect failures to record in the event state table for retry purposes
-    failures_to_record = []
-    for sequence_number, (compact, provider_id) in record_mapping.items():
+    # Map back from failed providers to their SQS message IDs
+    for message_id, (compact, provider_id) in record_mapping.items():
         if provider_id in failed_providers[compact]:
-            batch_item_failures.append({'itemIdentifier': sequence_number})
-            # Collect failure information for batch recording
-            failures_to_record.append(
-                {
-                    'compact': compact,
-                    'provider_id': provider_id,
-                    'sequence_number': sequence_number,
-                }
-            )
-
-    # Record all failures in the event state table using batch writer (for replays)
-    if failures_to_record:
-        record_failed_indexing_batch(failures_to_record)
+            batch_item_failures.append({'itemIdentifier': message_id})
 
     if batch_item_failures:
         logger.warning('Reporting batch item failures', failure_count=len(batch_item_failures))

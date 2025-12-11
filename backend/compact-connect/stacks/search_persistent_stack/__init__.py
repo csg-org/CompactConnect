@@ -10,6 +10,7 @@ from stacks.search_persistent_stack.index_manager import IndexManagerCustomResou
 from stacks.search_persistent_stack.populate_provider_documents_handler import PopulateProviderDocumentsHandler
 from stacks.search_persistent_stack.provider_search_domain import ProviderSearchDomain
 from stacks.search_persistent_stack.provider_update_ingest_handler import ProviderUpdateIngestHandler
+from stacks.search_persistent_stack.provider_update_ingest_pipe import ProviderUpdateIngestPipe
 from stacks.search_persistent_stack.search_event_state_table import SearchEventStateTable
 from stacks.search_persistent_stack.search_handler import SearchHandler
 from stacks.vpc_stack import VpcStack
@@ -152,8 +153,8 @@ class SearchPersistentStack(AppStack):
             alarm_topic=persistent_stack.alarm_topic,
         )
 
-        # Create the provider update ingest handler for DynamoDB stream processing
-        # This handler processes real-time updates from the provider table stream
+        # Create the provider update ingest handler for SQS-based stream processing
+        # This handler processes real-time updates from the provider table stream via EventBridge Pipe -> SQS
         self.provider_update_ingest_handler = ProviderUpdateIngestHandler(
             self,
             construct_id='providerUpdateIngestHandler',
@@ -165,4 +166,14 @@ class SearchPersistentStack(AppStack):
             search_event_state_table=self.search_event_state_table,
             encryption_key=self.opensearch_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
+        )
+
+        # Create the EventBridge Pipe to connect DynamoDB stream to SQS queue
+        # This pipe reads from the provider table stream and sends events to the ingest handler's queue
+        self.provider_update_ingest_pipe = ProviderUpdateIngestPipe(
+            self,
+            construct_id='providerUpdateIngestPipe',
+            provider_table=persistent_stack.provider_table,
+            target_queue=self.provider_update_ingest_handler.queue,
+            encryption_key=self.opensearch_encryption_key,
         )

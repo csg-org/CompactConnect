@@ -1,3 +1,4 @@
+import json
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 from common_test.test_constants import (
@@ -194,14 +195,19 @@ class TestProviderUpdateIngest(TstFunction):
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
 
-        # Create a DynamoDB stream event
+        # Create an SQS event with DynamoDB stream record in the body
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                )
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                        )
+                    ),
+                }
             ]
         }
 
@@ -234,27 +240,42 @@ class TestProviderUpdateIngest(TstFunction):
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
 
-        # Create multiple DynamoDB stream events for the SAME provider (simulating multiple updates)
+        # Create multiple SQS records for the SAME provider (simulating multiple updates)
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                    event_name='INSERT',
-                ),
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12346',
-                    event_name='MODIFY',
-                ),
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12347',
-                    event_name='MODIFY',
-                ),
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-1',
+                            event_name='INSERT',
+                        )
+                    ),
+                },
+                {
+                    'messageId': '12346',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-2',
+                            event_name='MODIFY',
+                        )
+                    ),
+                },
+                {
+                    'messageId': '12347',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-3',
+                            event_name='MODIFY',
+                        )
+                    ),
+                },
             ]
         }
 
@@ -294,14 +315,19 @@ class TestProviderUpdateIngest(TstFunction):
         serialized_provider['compact'] = 'foo'
         self.config.provider_table.put_item(Item=serialized_provider)
 
-        # Create DynamoDB stream event for the provider without complete records
+        # Create SQS event with DynamoDB stream record in the body
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                )
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                        )
+                    ),
+                }
             ]
         }
 
@@ -309,7 +335,7 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify that the batch item failure is returned with the sequence number
+        # Verify that the batch item failure is returned with the message ID
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
@@ -352,19 +378,29 @@ class TestProviderUpdateIngest(TstFunction):
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
         self._put_test_provider_and_license_record_in_dynamodb_table('octp')
 
-        # Create DynamoDB stream events for both providers
+        # Create SQS events with DynamoDB stream records in the body for both providers
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                ),
-                self._create_dynamodb_stream_record(
-                    compact='octp',
-                    provider_id=MOCK_OCTP_PROVIDER_ID,
-                    sequence_number='12346',
-                ),
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-1',
+                        )
+                    ),
+                },
+                {
+                    'messageId': '12346',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='octp',
+                            provider_id=MOCK_OCTP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-2',
+                        )
+                    ),
+                },
             ]
         }
 
@@ -372,7 +408,7 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify that only the failed document's sequence number is in batchItemFailures
+        # Verify that only the failed document's message ID is in batchItemFailures
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12346', result['batchItemFailures'][0]['itemIdentifier'])
 
@@ -391,19 +427,29 @@ class TestProviderUpdateIngest(TstFunction):
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
         self._put_test_provider_and_license_record_in_dynamodb_table('octp')
 
-        # Create DynamoDB stream events for both providers
+        # Create SQS events with DynamoDB stream records in the body for both providers
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                ),
-                self._create_dynamodb_stream_record(
-                    compact='octp',
-                    provider_id=MOCK_OCTP_PROVIDER_ID,
-                    sequence_number='12346',
-                ),
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-1',
+                        )
+                    ),
+                },
+                {
+                    'messageId': '12346',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='octp',
+                            provider_id=MOCK_OCTP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-2',
+                        )
+                    ),
+                },
             ]
         }
 
@@ -428,19 +474,29 @@ class TestProviderUpdateIngest(TstFunction):
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
         self._put_test_provider_and_license_record_in_dynamodb_table('octp')
 
-        # Create DynamoDB stream events for both compacts
+        # Create SQS events with DynamoDB stream records in the body for both compacts
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                ),
-                self._create_dynamodb_stream_record(
-                    compact='octp',
-                    provider_id=MOCK_OCTP_PROVIDER_ID,
-                    sequence_number='12346',
-                ),
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-1',
+                        )
+                    ),
+                },
+                {
+                    'messageId': '12346',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='octp',
+                            provider_id=MOCK_OCTP_PROVIDER_ID,
+                            sequence_number='some-sequence-number-2',
+                        )
+                    ),
+                },
             ]
         }
 
@@ -498,16 +554,21 @@ class TestProviderUpdateIngest(TstFunction):
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
 
-        # Create a DynamoDB stream event for INSERT (no OldImage)
+        # Create an SQS event with DynamoDB stream record in the body for INSERT (no OldImage)
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                    event_name='INSERT',
-                    include_old_image=False,  # INSERT events don't have OldImage
-                )
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                            event_name='INSERT',
+                            include_old_image=False,  # INSERT events don't have OldImage
+                        )
+                    ),
+                }
             ]
         }
 
@@ -579,14 +640,19 @@ class TestProviderUpdateIngest(TstFunction):
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
 
-        # Create a DynamoDB stream event for REMOVE (only OldImage, no NewImage)
+        # Create an SQS event with DynamoDB stream record in the body for REMOVE (only OldImage, no NewImage)
         event = {
             'Records': [
-                self._create_dynamodb_stream_record_with_old_image_only(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                )
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record_with_old_image_only(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                        )
+                    ),
+                }
             ]
         }
 
@@ -626,16 +692,21 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
 
-        # Create a DynamoDB stream event for a provider that no longer exists
+        # Create an SQS event with DynamoDB stream record in the body for a provider that no longer exists
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                    event_name='REMOVE',
-                    include_old_image=False,
-                )
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                            event_name='REMOVE',
+                            include_old_image=False,
+                        )
+                    ),
+                }
             ]
         }
 
@@ -671,16 +742,21 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
 
-        # Create a DynamoDB stream event for a provider that no longer exists
+        # Create an SQS event with DynamoDB stream record in the body for a provider that no longer exists
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                    event_name='REMOVE',
-                    include_old_image=False,
-                )
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                            event_name='REMOVE',
+                            include_old_image=False,
+                        )
+                    ),
+                }
             ]
         }
 
@@ -688,7 +764,7 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify that the batch item failure is returned
+        # Verify that the batch item failure is returned with the message ID
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
@@ -731,13 +807,18 @@ class TestProviderUpdateIngest(TstFunction):
         # Create a DynamoDB stream event for a provider that no longer exists
         event = {
             'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                    event_name='REMOVE',
-                    include_old_image=False,
-                )
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='aslp',
+                            provider_id=MOCK_ASLP_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                            event_name='REMOVE',
+                            include_old_image=False,
+                        )
+                    ),
+                }
             ]
         }
 
@@ -750,78 +831,3 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify NO batch item failures - 404 is not treated as an error
         self.assertEqual({'batchItemFailures': []}, result)
-
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
-    def test_failed_indexing_recorded_in_event_state_table(self, mock_opensearch_client):
-        """Test that failed indexing operations are recorded in the search event state table.
-
-        When a provider fails to index (e.g., validation error or OpenSearch error),
-        the handler should record the failure in the search event state table with the compact,
-        provider ID, and sequence number for retry purposes.
-        """
-        from handlers.provider_update_ingest import provider_update_ingest_handler
-
-        # Set up mock OpenSearch client - bulk_index returns error for one document
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-
-        # Simulate OpenSearch returning an error for one document
-        mock_client_instance.bulk_index.return_value = {
-            'errors': True,
-            'items': [
-                {
-                    'index': {
-                        '_id': MOCK_ASLP_PROVIDER_ID,
-                        '_index': 'compact_aslp_providers',
-                        'status': 400,
-                        'error': {
-                            'type': 'mapper_parsing_exception',
-                            'reason': 'failed to parse field',
-                        },
-                    }
-                }
-            ],
-        }
-
-        # Create provider and license records in DynamoDB
-        self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
-
-        # Create DynamoDB stream event
-        event = {
-            'Records': [
-                self._create_dynamodb_stream_record(
-                    compact='aslp',
-                    provider_id=MOCK_ASLP_PROVIDER_ID,
-                    sequence_number='12345',
-                )
-            ]
-        }
-
-        # Run the handler
-        mock_context = MagicMock()
-        result = provider_update_ingest_handler(event, mock_context)
-
-        # Verify that the batch item failure is returned
-        self.assertEqual(1, len(result['batchItemFailures']))
-        self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
-
-        # Verify that a record was written to the search event state table
-        response = self.config.search_event_state_table.get_item(
-            Key={
-                'pk': 'COMPACT#aslp#FAILED_INGEST',
-                'sk': f'PROVIDER#{MOCK_ASLP_PROVIDER_ID}#SEQUENCE#12345',
-            }
-        )
-
-        self.assertEqual(
-            {
-                'compact': 'aslp',
-                'pk': 'COMPACT#aslp#FAILED_INGEST',
-                'sk': f'PROVIDER#{MOCK_ASLP_PROVIDER_ID}#SEQUENCE#12345',
-                'providerId': MOCK_ASLP_PROVIDER_ID,
-                'sequenceNumber': '12345',
-                # verify that TTL is set
-                'ttl': ANY,
-            },
-            response['Item'],
-        )
