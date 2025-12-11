@@ -82,6 +82,14 @@ class ProviderUpdateIngestHandler(Construct):
             vpc=vpc_stack.vpc,
             vpc_subnets=vpc_subnets,
             security_groups=[vpc_stack.lambda_security_group],
+            # We set a limit to the number of concurrent executions that can be started before being throttled.
+            # This protects us in several ways. First, it prevents ingest from taking concurrent execution count from
+            # our api lambdas, which if left unchecked could cause them to get throttled if we hit our account limit
+            # (currently at the default of 1000). It also prevents the OpenSearch Domain from getting slammed during
+            # high volume. This reserved limit can result in messages waiting a bit longer on the queue during high
+            # volume while the reserved executions complete their tasks before grabbing the next batch. This can be
+            # adjusted as needed, but based on initial load testing this seems like a reasonable limit.
+            reserved_concurrent_executions=25,
             alarm_topic=alarm_topic,
         )
 
@@ -97,15 +105,15 @@ class ProviderUpdateIngestHandler(Construct):
             visibility_timeout=Duration.minutes(15),
             # Retention period for the source queue (these should be processed fairly quickly, but setting this to
             # account for retries)
-            retention_period=Duration.hours(4),
+            retention_period=Duration.hours(2),
             # OpenSearch recommends performing bulk indexing with sizes between 5 - 15 MB per operation.
             # see https://www.elastic.co/guide/en/elasticsearch/guide/2.x/indexing-performance.html#_using_and_sizing_bulk_requests
             # A basic provider document without any additional records (privileges, adverse actions, etc.) is
-            # around 2KB on average. We expect these provider documents to grow over time as providers accumulate
-            # privileges and other records. Setting a batch size of 2000 places the initial bulk operations around
-            # 4MB max size per request (2KB * 2000 = 4 MB). This puts us below that range but provides headroom for
+            # around 2 KB on average. We expect these provider documents to grow over time as providers accumulate
+            # privileges and other records. Setting a batch size of 3000 places the initial bulk operations around
+            # 6 MB max size per request (2KB * 3000 = 6 MB). This puts us within that range and provides headroom for
             # these documents to grow over time, while still processing license uploads in a timely manner.
-            batch_size=2000,
+            batch_size=3000,
             # Batching window to allow multiple events for the same provider to be processed together
             max_batching_window=Duration.seconds(15),
             # Max receive count = total attempts before DLQ (1 initial + 2 retries = 3 total)
