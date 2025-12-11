@@ -74,7 +74,7 @@ class ProviderUpdateIngestPipe(Construct):
         provider_table.encryption_key.grant_decrypt(self.pipe_role)
 
         # Create the EventBridge Pipe
-        # Using CfnPipe (L1 construct) as there's no L2 construct available yet
+        # Using CfnPipe (L1 construct) as there's no stable L2 construct available yet
         self.pipe = CfnPipe(
             self,
             'Pipe',
@@ -83,6 +83,8 @@ class ProviderUpdateIngestPipe(Construct):
             target=target_queue.queue_arn,
             source_parameters=CfnPipe.PipeSourceParametersProperty(
                 dynamo_db_stream_parameters=CfnPipe.PipeSourceDynamoDBStreamParametersProperty(
+                    # 'TRIM_HORIZON' starts processing from the earliest
+                    # available stream record (oldest data in the DynamoDB stream, up to 24 hours ago)
                     starting_position='TRIM_HORIZON',
                     # send everything to SQS as it arrives
                     batch_size=1,

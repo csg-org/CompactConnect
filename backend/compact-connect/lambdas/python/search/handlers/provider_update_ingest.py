@@ -11,7 +11,7 @@ The handler uses the @sqs_batch_handler decorator which passes all SQS messages
 to the handler at once, enabling batch processing and deduplication. The handler
 returns batchItemFailures directly for partial success handling.
 """
-
+from boto3.dynamodb.types import TypeDeserializer
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import sqs_batch_handler
@@ -61,9 +61,10 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
 
         # Extract compact and providerId from the DynamoDB image
         # The format is {'S': 'value'} for string attributes
-        compact = _extract_string_value(image.get('compact'))
-        provider_id = _extract_string_value(image.get('providerId'))
-        record_type = _extract_string_value(image.get('type'))
+        deserialized_image = TypeDeserializer().deserialize(value={'M': image})
+        compact = deserialized_image.get('compact')
+        provider_id = deserialized_image.get('providerId')
+        record_type = deserialized_image.get('type')
 
         if not compact or not provider_id:
             logger.error(
@@ -201,17 +202,3 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
         logger.warning('Reporting batch item failures', failure_count=len(batch_item_failures))
 
     return {'batchItemFailures': batch_item_failures}
-
-
-def _extract_string_value(dynamo_attribute: dict | None) -> str | None:
-    """
-    Extract a string value from a DynamoDB attribute.
-
-    DynamoDB stream records use the format {'S': 'value'} for string attributes.
-
-    :param dynamo_attribute: The DynamoDB attribute dict
-    :return: The string value, or None if not present
-    """
-    if dynamo_attribute is None:
-        return None
-    return dynamo_attribute.get('S')
