@@ -27,11 +27,9 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self.create_provider_table()
         self.create_export_results_bucket()
-        self.create_search_event_state_table()
 
     def delete_resources(self):
         self._provider_table.delete()
-        self._search_event_state_table.delete()
         # must delete all objects in the bucket before deleting the bucket
         self._bucket.objects.delete()
         self._bucket.delete()
@@ -92,16 +90,4 @@ class TstFunction(TstLambdas):
                     },
                 },
             ],
-        )
-
-    def create_search_event_state_table(self):
-        """Create the mock DynamoDB table for search event state tracking"""
-        self._search_event_state_table = boto3.resource('dynamodb').create_table(
-            AttributeDefinitions=[
-                {'AttributeName': 'pk', 'AttributeType': 'S'},
-                {'AttributeName': 'sk', 'AttributeType': 'S'},
-            ],
-            TableName=os.environ['SEARCH_EVENT_STATE_TABLE_NAME'],
-            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
-            BillingMode='PAY_PER_REQUEST',
         )

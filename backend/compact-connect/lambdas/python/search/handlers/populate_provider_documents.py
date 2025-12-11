@@ -22,10 +22,9 @@ Example input for resumption:
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.exceptions import CCInternalException, CCNotFoundException
+from cc_common.exceptions import CCInternalException
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from search_event_state_client import get_failed_ingest_provider_ids
 from utils import generate_provider_opensearch_document
 
 # Batch size for DynamoDB pagination
@@ -41,11 +40,6 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     """
     Populate OpenSearch indices with provider documents.
 
-    This function can operate in two modes:
-    1. Normal mode: Scans all providers in the provider table using the providerDateOfUpdate GSI
-    2. Retry mode: Re-indexes providers that previously failed ingestion (when 'retry_ingest_failures_for_compact'
-    is provided)
-
     Retrieves complete provider records, sanitizes them using ProviderGeneralResponseSchema,
     and bulk indexes them into the appropriate OpenSearch indices.
 
@@ -53,19 +47,13 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     information that can be passed as input to continue processing.
 
     :param event: Lambda event with optional parameters:
-        - retry_ingest_failures_for_compact: If present, retry indexing for all failed providers for this compact
-        - startingCompact: The compact to start/resume processing from (normal mode only)
-        - startingLastKey: The DynamoDB pagination key to resume from (normal mode only)
+        - startingCompact: The compact to start/resume processing from
+        - startingLastKey: The DynamoDB pagination key to resume from
     :param context: Lambda context
     :return: Summary of indexing operation, including pagination info if incomplete
     """
     data_client = config.data_client
     opensearch_client = OpenSearchClient()
-
-    # Check if this is a retry operation for failed ingestions
-    retry_compact = event.get('retry_ingest_failures_for_compact')
-    if retry_compact:
-        return _retry_failed_ingest_events(retry_compact, opensearch_client)
 
     # Get optional pagination parameters from event for resumption (normal mode)
     starting_compact = event.get('startingCompact')
@@ -300,46 +288,6 @@ def _index_records_and_track_stats(
             )
 
 
-def _delete_records_and_track_stats(
-    providers_to_delete: list[str], compact: str, opensearch_client: OpenSearchClient, compact_stats: dict
-):
-    """
-    Bulk delete provider documents from OpenSearch and track statistics.
-
-    :param providers_to_delete: List of provider IDs to delete
-    :param compact: The compact abbreviation
-    :param opensearch_client: The OpenSearch client
-    :param compact_stats: Statistics dictionary to update (in/out)
-    """
-    index_name = f'compact_{compact}_providers'
-    if not providers_to_delete:
-        return
-
-    try:
-        failed_provider_ids = opensearch_client.bulk_delete(index_name=index_name, document_ids=providers_to_delete)
-        failed_deletes = len(failed_provider_ids)
-
-        successful_deletes = len(providers_to_delete) - failed_deletes
-        compact_stats['providers_deleted'] += successful_deletes
-        compact_stats['providers_failed'] += failed_deletes
-        logger.info(
-            'Bulk deleted documents',
-            index_name=index_name,
-            failed_provider_ids=list(failed_provider_ids),
-            document_count=len(providers_to_delete),
-        )
-    except CCInternalException as e:
-        # All deletes for this batch failed
-        logger.error(
-            'Failed to bulk delete documents after retries',
-            index_name=index_name,
-            failed_provider_ids=providers_to_delete,
-            document_count=len(providers_to_delete),
-            error=str(e),
-        )
-        compact_stats['providers_failed'] += len(providers_to_delete)
-
-
 def _build_error_response(
     stats: dict, compact_stats: dict, compact: str, batch_start_key: dict | None, error_message: str
 ) -> dict:
@@ -432,129 +380,3 @@ def _bulk_index_documents(opensearch_client: OpenSearchClient, index_name: str, 
         document_count=len(documents),
     )
     return set()
-
-
-def _retry_failed_ingest_events(compact: str, opensearch_client: OpenSearchClient) -> dict:
-    """
-    Retry indexing for all providers that previously failed ingestion for a specific compact.
-
-    This function queries the search event state table for all failed ingest records,
-    then processes and indexes those providers.
-
-    :param compact: The compact abbreviation to retry failed ingestions for
-    :param opensearch_client: The OpenSearch client
-    :return: Summary of indexing operation
-    """
-    logger.info('Retrying failed ingestions for compact', compact=compact)
-
-    # Get list of provider IDs that failed ingestion
-    failed_provider_ids = get_failed_ingest_provider_ids(compact)
-
-    if not failed_provider_ids:
-        logger.info('No failed ingestions found for compact', compact=compact)
-        return {
-            'total_providers_processed': 0,
-            'total_providers_indexed': 0,
-            'total_providers_deleted': 0,
-            'total_providers_failed': 0,
-            'compacts_processed': [
-                {
-                    'compact': compact,
-                    'providers_processed': 0,
-                    'providers_indexed': 0,
-                    'providers_deleted': 0,
-                    'providers_failed': 0,
-                }
-            ],
-            'completed': True,
-        }
-
-    documents_to_index = []
-    providers_to_delete = []
-    compact_stats = {
-        'providers_processed': 0,
-        'providers_indexed': 0,
-        'providers_deleted': 0,
-        'providers_failed': 0,
-    }
-
-    # Process each failed provider
-    for provider_id in failed_provider_ids:
-        compact_stats['providers_processed'] += 1
-
-        try:
-            # Use the shared utility to process the provider
-            serializable_document = generate_provider_opensearch_document(compact, provider_id)
-            documents_to_index.append(serializable_document)
-        except CCNotFoundException as e:
-            logger.warning(
-                'No provider records found. This may occur if a license upload rollback was performed or if records'
-                ' were manually deleted. Will delete provider document from index.',
-                provider_id=provider_id,
-                compact=compact,
-                error=str(e),
-            )
-            providers_to_delete.append(provider_id)
-        except ValidationError as e:
-            logger.warning(
-                'Failed to process provider during retry',
-                provider_id=provider_id,
-                compact=compact,
-                error=str(e),
-            )
-            compact_stats['providers_failed'] += 1
-            continue
-
-        # Bulk index when batch is full
-        if len(documents_to_index) >= OPENSEARCH_BULK_SIZE:
-            try:
-                _index_records_and_track_stats(documents_to_index, compact, opensearch_client, compact_stats)
-                documents_to_index = []
-            except CCInternalException as e:
-                logger.error(
-                    'Failed to bulk index during retry',
-                    compact=compact,
-                    error=str(e),
-                )
-                compact_stats['providers_failed'] += len(documents_to_index)
-                documents_to_index = []
-
-        # Bulk delete when batch is full
-        if len(providers_to_delete) >= OPENSEARCH_BULK_SIZE:
-            _delete_records_and_track_stats(providers_to_delete, compact, opensearch_client, compact_stats)
-            providers_to_delete = []
-
-    # Index any remaining documents
-    if documents_to_index:
-        try:
-            _index_records_and_track_stats(documents_to_index, compact, opensearch_client, compact_stats)
-        except CCInternalException as e:
-            logger.error('Failed to index remaining documents during retry', error=str(e))
-            compact_stats['providers_failed'] += len(documents_to_index)
-
-    # Delete any remaining providers that no longer exist
-    if providers_to_delete:
-        _delete_records_and_track_stats(providers_to_delete, compact, opensearch_client, compact_stats)
-
-    logger.info(
-        'Completed retrying failed ingestions',
-        compact=compact,
-        providers_processed=compact_stats['providers_processed'],
-        providers_indexed=compact_stats['providers_indexed'],
-        providers_deleted=compact_stats['providers_deleted'],
-        providers_failed=compact_stats['providers_failed'],
-    )
-
-    return {
-        'total_providers_processed': compact_stats['providers_processed'],
-        'total_providers_indexed': compact_stats['providers_indexed'],
-        'total_providers_deleted': compact_stats['providers_deleted'],
-        'total_providers_failed': compact_stats['providers_failed'],
-        'compacts_processed': [
-            {
-                'compact': compact,
-                **compact_stats,
-            }
-        ],
-        'completed': True,
-    }
