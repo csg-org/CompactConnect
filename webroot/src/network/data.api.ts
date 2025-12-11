@@ -137,6 +137,15 @@ export class DataApi {
     }
 
     /**
+     * GET Privileges (Export - Staff).
+     * @param  {object}         [params] The request query parameters config.
+     * @return {Promise<Array>}          An array of users server response.
+     */
+    public getPrivilegesExportStaff(params) {
+        return licenseDataApi.getPrivilegesExportStaff(params);
+    }
+
+    /**
      * GET Licensee by ID.
      * @param  {string}          compact    A compact type.
      * @param  {string}          licenseeId A licensee ID.

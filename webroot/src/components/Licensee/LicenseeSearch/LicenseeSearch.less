@@ -86,11 +86,23 @@
             }
         }
 
-        &.search-submit {
+        &.search-submit,
+        &.export-submit {
             align-items: center;
 
             &:deep(.input-submit) {
                 width: 100%;
+            }
+        }
+    }
+
+    .search-type-input {
+        @media @desktopWidth {
+            flex-direction: row;
+
+            &:deep(.radio-button-group-container) {
+                flex-direction: row;
+                margin-left: auto;
             }
         }
     }

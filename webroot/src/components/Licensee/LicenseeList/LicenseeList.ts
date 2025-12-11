@@ -13,7 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import { serverDateFormat, displayDateFormat } from '@/app.config';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
-import LicenseeSearch, { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
+import LicenseeSearch, { LicenseSearch, SearchTypes } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import CloseX from '@components/Icons/CloseX/CloseX.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
@@ -244,10 +244,12 @@ class LicenseeList extends Vue {
         });
         this.fetchListData();
 
-        if (!this.hasSearched) {
-            this.hasSearched = true;
-        } else {
-            this.toggleSearch();
+        if (!params.isDirectExport) {
+            if (!this.hasSearched) {
+                this.hasSearched = true;
+            } else {
+                this.toggleSearch();
+            }
         }
     }
 
@@ -300,28 +302,41 @@ class LicenseeList extends Vue {
         }
     }
 
-    async fetchListData() {
+    async fetchListData(): Promise<SearchParamsInterfaceLocal> {
+        const { searchParams } = this;
+        const { searchType } = searchParams;
+        const requestConfig = this.prepareSearchBody();
+
+        if (searchType === SearchTypes.PROVIDER) {
+            await this.$store.dispatch('license/getLicenseesSearchRequest', {
+                params: { ...requestConfig }
+            });
+        } else if (searchType === SearchTypes.PRIVILEGE) {
+            const response = await this.$store.dispatch('license/getPrivilegesRequest', {
+                params: { ...requestConfig }
+            });
+            const { downloadUrl } = response;
+            const tempLink = document.createElement('a');
+
+            tempLink.href = downloadUrl;
+            tempLink.target = '_blank'; // @TODO: Test with & without this against S3
+            tempLink.rel = 'noopener noreferrer';
+            tempLink.download = `privilege_export.csv`;
+            tempLink.click();
+        }
+
+        this.isInitialFetchCompleted = true;
+
+        return requestConfig;
+    }
+
+    prepareSearchBody(): SearchParamsInterfaceLocal {
         const { searchParams } = this;
         const sorting = this.sortingStore.sortingMap[this.listId];
         const { option, direction } = sorting || {};
         const pagination = this.paginationStore.paginationMap[this.listId];
         const { page, size } = pagination || {};
         const requestConfig: SearchParamsInterfaceLocal = {};
-
-        // Sorting params
-        if (option) {
-            const serverSortByMap = {
-                firstName: 'givenName',
-                lastName: 'familyName',
-                lastUpdate: 'dateOfUpdate',
-            };
-
-            requestConfig.sortBy = serverSortByMap[option];
-        }
-
-        if (direction) {
-            requestConfig.sortDirection = direction;
-        }
 
         // Search params
         requestConfig.isPublic = this.isPublicSearch;
@@ -366,16 +381,24 @@ class LicenseeList extends Vue {
             requestConfig.npi = searchParams.npi;
         }
 
-        // Make fetch request
-        await this.$store.dispatch('license/getLicenseesSearchRequest', {
-            params: {
-                ...requestConfig,
-                pageNum: page,
-                pageSize: size,
-            }
-        });
+        // Paging params
+        requestConfig.pageNumber = page;
+        requestConfig.pageSize = size;
 
-        this.isInitialFetchCompleted = true;
+        // Sorting params
+        if (option) {
+            const serverSortByMap = {
+                firstName: 'givenName',
+                lastName: 'familyName',
+                lastUpdate: 'dateOfUpdate',
+            };
+
+            requestConfig.sortBy = serverSortByMap[option];
+        }
+
+        if (direction) {
+            requestConfig.sortDirection = direction;
+        }
 
         return requestConfig;
     }

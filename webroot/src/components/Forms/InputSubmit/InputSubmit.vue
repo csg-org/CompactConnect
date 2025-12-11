@@ -36,6 +36,8 @@
             class="input-submit"
             :class="{
                 'warning': isWarning,
+                'transparent': isTransparent,
+                'text-like': isTextLike,
             }"
             :aria-describedby="(formInput.successMessage) ? `${formInput.id}-success` : `${formInput.id}-error`"
             :aria-errormessage="`${formInput.id}-error`"

@@ -25,6 +25,10 @@ export enum MutationTypes {
     STORE_UPDATE_SEARCH = '[License] Update search params',
     STORE_RESET_SEARCH = '[License] Reset search params',
     STORE_RESET_LICENSE = '[License] Reset license store',
+    GET_PRIVILEGES_REQUEST = '[License] Get Privileges Request',
+    GET_PRIVILEGES_FAILURE = '[License] Get Privileges Failure',
+    GET_PRIVILEGES_SUCCESS = '[License] Get Privileges Success',
+    STORE_UPDATE_EXPORTING = '[License] Update Exporting State',
 }
 
 export default {
@@ -141,5 +145,23 @@ export default {
     [MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE]: (state: any, error: Error) => {
         state.isLoading = false;
         state.error = error;
+    },
+    [MutationTypes.GET_PRIVILEGES_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.isExporting = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGES_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.isExporting = false;
+        state.error = error;
+    },
+    [MutationTypes.GET_PRIVILEGES_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.isExporting = false;
+        state.error = null;
+    },
+    [MutationTypes.STORE_UPDATE_EXPORTING]: (state: any, isExporting: boolean) => {
+        state.isExporting = isExporting;
     },
 };

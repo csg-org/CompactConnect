@@ -35,6 +35,13 @@
                 />
             </div>
             <div class="search-form-row">
+                <InputRadioGroup
+                    :formInput="formData.searchType"
+                    class="search-input search-type-input"
+                    @change="updateSearchType"
+                />
+            </div>
+            <div class="search-form-row">
                 <InputText
                     :formInput="formData.firstName"
                     class="search-input first-name-input"
@@ -139,9 +146,19 @@
             </div>
             <div class="search-form-row">
                 <InputSubmit
+                    v-if="isSearchByProviders"
                     :formInput="formData.submit"
                     :label="$t('common.search')"
                     class="search-input search-submit"
+                    :isDisabled="!isSearchButtonEnabled"
+                />
+                <InputSubmit
+                    v-else-if="isSearchByPrivileges"
+                    :formInput="formData.submit"
+                    :label="(licenseStore.isExporting) ? $t('common.exportInProgress') : $t('common.exportCsv')"
+                    class="search-input export-submit"
+                    :isEnabled="isExportButtonEnabled"
+                    :isTransparent="true"
                 />
             </div>
         </form>

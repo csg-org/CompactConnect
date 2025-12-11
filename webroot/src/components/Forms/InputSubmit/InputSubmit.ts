@@ -20,6 +20,8 @@ class InputSubmit extends mixins(MixinInput) {
     @Prop({ default: '' }) private label?: string;
     @Prop({ default: true }) private isEnabled?: boolean;
     @Prop({ default: false }) private isWarning?: boolean;
+    @Prop({ default: false }) private isTransparent?: boolean;
+    @Prop({ default: false }) private isTextLike?: boolean;
 }
 
 export default toNative(InputSubmit);

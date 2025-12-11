@@ -19,6 +19,7 @@ import {
     nextTick
 } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
+import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
@@ -31,7 +32,14 @@ import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 import moment from 'moment';
 
+export enum SearchTypes {
+    PROVIDER = 'provider',
+    PRIVILEGE = 'privilege',
+}
+
 export interface LicenseSearch {
+    searchType: SearchTypes;
+    isDirectExport?: boolean;
     compact?: string;
     firstName?: string;
     lastName?: string;
@@ -49,6 +57,7 @@ export interface LicenseSearch {
 @Component({
     name: 'LicenseeSearch',
     components: {
+        InputRadioGroup,
         InputText,
         InputSelect,
         InputDate,
@@ -63,6 +72,11 @@ class LicenseeSearch extends mixins(MixinForm) {
     @Prop({ default: false }) isPublicSearch!: boolean;
 
     //
+    // Data
+    //
+    selectedSearchType: SearchTypes | null = null;
+
+    //
     // Lifecycle
     //
     created() {
@@ -72,6 +86,10 @@ class LicenseeSearch extends mixins(MixinForm) {
     //
     // Computed
     //
+    get licenseStore(): any {
+        return this.$store.state.license;
+    }
+
     get userStore() {
         return this.$store.state.user;
     }
@@ -116,6 +134,27 @@ class LicenseeSearch extends mixins(MixinForm) {
         return compactMemberStates;
     }
 
+    get searchTypeOptions(): Array<{ value: string | undefined, name: string | ComputedRef }> {
+        return [
+            {
+                value: SearchTypes.PROVIDER,
+                name: this.$t('licensing.providers'),
+            },
+            {
+                value: SearchTypes.PRIVILEGE,
+                name: this.$t('licensing.privileges'),
+            },
+        ];
+    }
+
+    get isSearchByProviders(): boolean {
+        return this.selectedSearchType === SearchTypes.PROVIDER;
+    }
+
+    get isSearchByPrivileges(): boolean {
+        return this.selectedSearchType === SearchTypes.PRIVILEGE;
+    }
+
     get militaryStatusOptions(): Array<{ value: string, name: string | ComputedRef }> {
         const options = this.$tm('military.militaryStatusOptions').map((option) => ({
             value: option.key,
@@ -144,6 +183,14 @@ class LicenseeSearch extends mixins(MixinForm) {
         return options;
     }
 
+    get isSearchButtonEnabled(): boolean {
+        return this.isSearchByProviders;
+    }
+
+    get isExportButtonEnabled(): boolean {
+        return this.isSearchByPrivileges && !this.licenseStore.isExporting;
+    }
+
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
     }
@@ -152,7 +199,16 @@ class LicenseeSearch extends mixins(MixinForm) {
     // Methods
     //
     initFormInputs(): void {
+        this.selectedSearchType = SearchTypes.PROVIDER;
         this.formData = reactive({
+            searchType: new FormInput({
+                id: 'search-type',
+                name: 'search-type',
+                label: computed(() => this.$t('licensing.searchTypeTitle')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.searchTypeOptions,
+                value: this.selectedSearchType || '',
+            }),
             firstName: new FormInput({
                 id: 'first-name',
                 name: 'first-name',
@@ -262,6 +318,12 @@ class LicenseeSearch extends mixins(MixinForm) {
         }
     }
 
+    updateSearchType(): void {
+        const searchType = this.formData.searchType.value;
+
+        this.selectedSearchType = searchType;
+    }
+
     async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
 
@@ -282,7 +344,10 @@ class LicenseeSearch extends mixins(MixinForm) {
                 'encumberEndDate',
                 'npi',
             ];
-            const searchProps: LicenseSearch = {};
+            const searchProps: LicenseSearch = {
+                searchType: this.selectedSearchType || SearchTypes.PROVIDER,
+                isDirectExport: this.isSearchByPrivileges,
+            };
 
             allowedSearchProps.forEach((searchProp) => { searchProps[searchProp] = this.formValues[searchProp]; });
             this.$emit('searchParams', searchProps);

@@ -82,15 +82,14 @@ export interface SearchParamsInterfaceRemote {
             order?: string,
         }
     }>;
-    query?: any;
-    // query?: {
-    //     match_all?: object,
-    //     bool?: {
-    //         must: Array<{
-    //             [key: string]: any,
-    //         }>,
-    //     },
-    // };
+    query?: {
+        match_all?: object, // eslint-disable-line camelcase
+        bool?: {
+            must: Array<{
+                [key: string]: any,
+            }>,
+        },
+    };
 }
 
 export interface DataApiInterface {
@@ -252,7 +251,7 @@ export class LicenseDataApi implements DataApiInterface {
                     must: [],
                 },
             };
-            const conditions = requestParams.query.bool.must;
+            const conditions = requestParams.query?.bool?.must || [];
 
             if (licenseeFirstName) {
                 conditions.push({ match_phrase_prefix: { givenName: licenseeFirstName }});
@@ -317,7 +316,6 @@ export class LicenseDataApi implements DataApiInterface {
                 conditions.push({ term: { militaryStatus }});
             }
             if (investigationStatus) {
-                // conditions.push({ term: { investigationStatus }});
                 if (investigationStatus === 'under-investigation') {
                     conditions.push({
                         nested: {
@@ -456,6 +454,9 @@ export class LicenseDataApi implements DataApiInterface {
     public async getLicenseesSearchStaff(params: SearchParamsInterfaceLocal = {}) {
         const requestParams: SearchParamsInterfaceRemote = this.prepRequestSearchParams(params);
 
+        //
+        // @TODO
+        //
         console.log(`request params:`);
         console.log(requestParams);
         console.log(JSON.stringify(requestParams, null, 2));
@@ -474,6 +475,31 @@ export class LicenseDataApi implements DataApiInterface {
         return {
             totalMatchCount: 0,
             licensees: [],
+        };
+    }
+
+    /**
+     * GET Privileges (Export - Staff).
+     * @param  {SearchParamsInterfaceLocal} [params={}] The request query parameters config.
+     * @return {Promise<object>}                        Response metadata + an array of licensees.
+     */
+    public async getPrivilegesExportStaff(params: SearchParamsInterfaceLocal = {}) {
+        const requestParams: SearchParamsInterfaceRemote = this.prepRequestSearchParams(params);
+
+        //
+        // @TODO
+        //
+        console.log(`request params:`);
+        console.log(requestParams);
+        console.log(JSON.stringify(requestParams, null, 2));
+        console.log(``);
+
+        // const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/privileges/export`, requestParams);
+        //
+        // return serverReponse;
+
+        return {
+            downloadUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
         };
     }
 
