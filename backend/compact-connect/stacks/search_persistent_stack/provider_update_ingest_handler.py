@@ -91,9 +91,9 @@ class ProviderUpdateIngestHandler(Construct):
             self,
             'ProviderUpdateIngest',
             process_function=self.handler,
-            # Visibility timeout set to slightly longer than Lambda timeout. With batchItemFailures,
-            # failed messages are retried immediately, so we only need enough buffer for crash scenarios.
-            # If Lambda times out (10 min), messages become visible again after ~15 minutes for retry.
+            # Visibility timeout controls when failed messages (in batchItemFailures) become visible for retry.
+            # Set to slightly longer than Lambda timeout (10 min) to prevent duplicate processing during
+            # Lambda execution. Failed messages will retry after this timeout expires (~15 minutes).
             visibility_timeout=Duration.minutes(15),
             # Retention period for the source queue (these should be processed fairly quickly, but setting this to
             # account for retries)
@@ -103,7 +103,8 @@ class ProviderUpdateIngestHandler(Construct):
             batch_size=5000,
             # Batching window to allow multiple events to be processed together
             max_batching_window=Duration.seconds(15),
-            # Number of times to retry before sending to DLQ
+            # Max receive count = total attempts before DLQ (1 initial + 2 retries = 3 total)
+            # Failed messages retry after visibility_timeout expires (15 min between attempts)
             max_receive_count=3,
             encryption_key=encryption_key,
             alarm_topic=alarm_topic,
