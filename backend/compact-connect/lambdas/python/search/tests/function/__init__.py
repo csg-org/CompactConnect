@@ -79,7 +79,7 @@ class TstFunction(TstLambdas):
                     'Projection': {'ProjectionType': 'ALL'},
                 },
                 {
-                    'IndexName': 'licenseUploadDateGSI',
+                    'IndexName': os.environ['LICENSE_UPLOAD_DATE_INDEX_NAME'],
                     'KeySchema': [
                         {'AttributeName': 'licenseUploadDateGSIPK', 'KeyType': 'HASH'},
                         {'AttributeName': 'licenseUploadDateGSISK', 'KeyType': 'RANGE'},

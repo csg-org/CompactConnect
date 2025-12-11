@@ -22,6 +22,7 @@ class TstLambdas(TestCase):
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'LICENSE_GSI_NAME': 'licenseGSI',
+                'LICENSE_UPLOAD_DATE_INDEX_NAME': 'licenseUploadDateGSI',
                 'OPENSEARCH_HOST_ENDPOINT': 'vpc-providersearchd-5bzuqxhpxffk-w6dkpddu.us-east-1.es.amazonaws.com',
                 'EXPORT_RESULTS_BUCKET_NAME': 'test-export-results-bucket',
                 'JURISDICTIONS': json.dumps(

@@ -56,7 +56,7 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
         image = stream_record.get('dynamodb', {}).get('NewImage') or stream_record.get('dynamodb', {}).get('OldImage')
 
         if not image:
-            logger.error('Record has no image data', message_id=message_id, record=stream_record)
+            logger.error('Record has no image data', message_id=message_id)
             continue
 
         # Extract compact and providerId from the DynamoDB image
@@ -157,7 +157,8 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
                     error=str(e),
                 )
                 # Mark all providers in this compact as failed
-                for provider_id in provider_ids:
+                document_provider_ids = [document['providerId'] for document in documents_to_index]
+                for provider_id in document_provider_ids:
                     failed_providers[compact].add(provider_id)
 
         # Bulk delete providers that no longer exist

@@ -78,7 +78,7 @@ class ProviderUpdateIngestHandler(Construct):
             },
             # Allow enough time for processing large batches
             timeout=Duration.minutes(10),
-            memory_size=512,
+            memory_size=1024,
             vpc=vpc_stack.vpc,
             vpc_subnets=vpc_subnets,
             security_groups=[vpc_stack.lambda_security_group],
@@ -87,8 +87,9 @@ class ProviderUpdateIngestHandler(Construct):
             # our api lambdas, which if left unchecked could cause them to get throttled if we hit our account limit
             # (currently at the default of 1000). It also prevents the OpenSearch Domain from getting slammed during
             # high volume. This reserved limit can result in messages waiting a bit longer on the queue during high
-            # volume while the reserved executions complete their tasks before grabbing the next batch. This can be
-            # adjusted as needed, but based on initial load testing this seems like a reasonable limit.
+            # volume while the reserved executions complete their tasks before grabbing the next batch. We have an alert
+            # in place to fire if this lambda is ever throttled. This limit can be adjusted as needed, but based on
+            # initial load testing this seems like a reasonable limit.
             reserved_concurrent_executions=25,
             alarm_topic=alarm_topic,
         )
