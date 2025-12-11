@@ -98,10 +98,15 @@ class ProviderUpdateIngestHandler(Construct):
             # Retention period for the source queue (these should be processed fairly quickly, but setting this to
             # account for retries)
             retention_period=Duration.hours(4),
-            # Setting batch size to 5000 to give lambda headroom to process the events
-            # without timing out while reducing number of index requests.
-            batch_size=5000,
-            # Batching window to allow multiple events to be processed together
+            # OpenSearch recommends performing bulk indexing with sizes between 5 - 15 MB per operation.
+            # see https://www.elastic.co/guide/en/elasticsearch/guide/2.x/indexing-performance.html#_using_and_sizing_bulk_requests
+            # A basic provider document without any additional records (privileges, adverse actions, etc.) is
+            # around 2KB on average. We expect these provider documents to grow over time as providers accumulate
+            # privileges and other records. Setting a batch size of 2000 places the initial bulk operations around
+            # 4MB max size per request (2KB * 2000 = 4 MB). This puts us below that range but provides headroom for
+            # these documents to grow over time, while still processing license uploads in a timely manner.
+            batch_size=2000,
+            # Batching window to allow multiple events for the same provider to be processed together
             max_batching_window=Duration.seconds(15),
             # Max receive count = total attempts before DLQ (1 initial + 2 retries = 3 total)
             # Failed messages retry after visibility_timeout expires (15 min between attempts)
