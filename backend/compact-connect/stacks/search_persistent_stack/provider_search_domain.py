@@ -154,15 +154,26 @@ class ProviderSearchDomain(Construct):
         self.domain = Domain(
             self,
             'Domain',
-            # IMPORTANT NOTE: updating the engine version requires a blue/green deployment, which is known to get stuck
-            # on occasion requiring AWS support intervention. If you intend to update this field, or any other field
-            # that will require a blue/green deployment as described here:
+            # IMPORTANT NOTE: updating the engine version requires a blue/green deployment, which has consistently
+            # failed to complete in both production and non-production environments due to failed dashboard health
+            # checks. We suspect this is because of the 'rest.action.multi.allow_explicit_index: false' setting
+            # interfering with dashboard internal multi-index operations during upgrades. If you intend to update
+            # this field, or any other field that will require a blue/green deployment as described here:
             # https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes.html
-            # You should consider working with stakeholders to schedule a maintenance window during low-traffic periods
-            # where advanced search may become inaccessible during the update. During development, we found that if a
-            # blue/green deployment became stuck, the search endpoints were still able to serve data, but the
-            # CloudFormation deployment would fail waiting for the domain to become active. Worst case scenario,
-            # both the search API and search persistent stacks needed to be destroyed, redeployed, and re-indexed.
+            # You should consider the following migration process instead:
+            # 1. Deploy a NEW domain with the target version (use different construct ID)
+            # 2. Reindex data from provider table using PopulateProviderDocumentsHandler
+            # 3. Update search API to point to new domain
+            # 4. Decommission old domain
+            # This approach provides full rollback capability and avoids blue/green issues entirely.
+            #
+            # During significant upgrades, consider working with stakeholders to schedule a maintenance window during
+            # low-traffic periods where advanced search may become inaccessible during the update. During development,
+            # we found that if a blue/green deployment became stuck, the search endpoints were still able to serve data,
+            # but the CloudFormation deployment would fail waiting for the domain to become active. In such cases you
+            # may have to work with AWS support to get it out of that state. Worst case scenario, both the search API
+            # and search persistent stacks will need to be destroyed, redeployed, and re-indexed, hence why we recommend
+            # you create an entirely different domain and avoid the blue/green deployment altogether.
             version=EngineVersion.OPENSEARCH_3_3,
             capacity=capacity_config,
             enable_auto_software_update=True,
@@ -177,7 +188,7 @@ class ProviderSearchDomain(Construct):
             # EBS volume configuration
             ebs=EbsOptions(
                 enabled=True,
-                volume_size=PROD_EBS_VOLUME_SIZE if environment_name != PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE,
+                volume_size=PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE,
                 # this type is required for medium instances
                 volume_type=EbsDeviceVolumeType.GP3
             ),
@@ -286,7 +297,7 @@ class ProviderSearchDomain(Construct):
         Determine OpenSearch cluster capacity configuration based on environment.
 
         Non-prod (sandbox, test, beta, etc.): Single t3.small.search node
-        Prod: 3 dedicated master (m7g.medium.search) + 3 data nodes (m7g.medium.search) with standby
+        Prod: 3 dedicated master (r8g.medium.search) + 3 data nodes (m7g.medium.search) with standby
 
         :param environment_name: The deployment environment name
         :return: CapacityConfig with appropriate instance types and counts

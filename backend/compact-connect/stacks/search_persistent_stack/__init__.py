@@ -24,16 +24,11 @@ class SearchPersistentStack(AppStack):
     - Node-to-node encryption and HTTPS enforcement
     - Environment-specific instance sizing and cluster configuration
 
-    Instance sizing by environment:
-    - Non-prod (sandbox/test/beta): t3.small.search, 1 node
-    - Prod: m7g.medium.search, 3 master + 3 data nodes (with standby)
-
-    IMPORTANT NOTE: Updating the OpenSearch domain may require a blue/green deployment, which is known to get stuck
-    on occasion requiring AWS support intervention (every time we attempted to update the engine version during
-    development, the deployment never completed). If you intend to update any field that will require a blue/green
-    deployment as described here: https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes.html
-    Note that worst case scenario, you may have to delete the entire stack, re-deploy it, and re-index all the data from
-    the provider table. In light of this, DO NOT place any resources in this stack that should never be deleted.
+    IMPORTANT NOTE: Avoid updating the OpenSearch domain in a way that requires a blue/green deployment,
+    which is known to get stuck. See provider_search_domain.py for detailed upgrade notes, root causes,
+    and recovery steps. Note that worst case scenario, you may have to delete the entire stack, re-deploy it, and
+    re-index all the data from the provider table. In light of this, DO NOT place any resources in this stack that
+    should never be deleted.
     """
 
     def __init__(
@@ -150,7 +145,7 @@ class SearchPersistentStack(AppStack):
             alarm_topic=persistent_stack.alarm_topic,
         )
         # don't deploy ingest resources until index manager has set proper index configuration
-        self.provider_update_ingest_handler.queue.node.add_dependency(self.index_manager_custom_resource)
+        self.provider_update_ingest_handler.node.add_dependency(self.index_manager_custom_resource)
 
         # Create the EventBridge Pipe to connect DynamoDB stream to SQS queue
         # This pipe reads from the provider table stream and sends events to the ingest handler's queue
