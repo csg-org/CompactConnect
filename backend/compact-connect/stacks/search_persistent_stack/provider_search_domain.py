@@ -1,7 +1,7 @@
 from aws_cdk import Duration, Fn, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_ec2 import SubnetSelection, SubnetType
+from aws_cdk.aws_ec2 import EbsDeviceVolumeType, SubnetSelection, SubnetType
 from aws_cdk.aws_iam import Effect, IRole, PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, ResourcePolicy, RetentionDays
@@ -13,7 +13,7 @@ from aws_cdk.aws_opensearchservice import (
     EngineVersion,
     LoggingOptions,
     TLSSecurityPolicy,
-    ZoneAwarenessConfig,
+    ZoneAwarenessConfig, WindowStartTime,
 )
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
@@ -165,6 +165,11 @@ class ProviderSearchDomain(Construct):
             # both the search API and search persistent stacks needed to be destroyed, redeployed, and re-indexed.
             version=EngineVersion.OPENSEARCH_3_3,
             capacity=capacity_config,
+            enable_auto_software_update=True,
+            enable_version_upgrade=True,
+            # We set the off-peak window to 9AM UTC (1AM PST)
+            # this determines when automatic updates are performed on the domain.
+            off_peak_window_start=WindowStartTime(hours=9, minutes=0),
             # VPC configuration for network isolation
             vpc=vpc_stack.vpc,
             vpc_subnets=[self.vpc_subnets],
@@ -172,7 +177,9 @@ class ProviderSearchDomain(Construct):
             # EBS volume configuration
             ebs=EbsOptions(
                 enabled=True,
-                volume_size=PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE,
+                volume_size=PROD_EBS_VOLUME_SIZE if environment_name != PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE,
+                # this type is required for medium instances
+                volume_type=EbsDeviceVolumeType.GP3
             ),
             # Encryption settings
             encryption_at_rest=EncryptionAtRestOptions(enabled=True, kms_key=self.encryption_key),
