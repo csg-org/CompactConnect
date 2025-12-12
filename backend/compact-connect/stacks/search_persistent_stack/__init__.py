@@ -149,6 +149,8 @@ class SearchPersistentStack(AppStack):
             encryption_key=self.opensearch_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
         )
+        # don't deploy ingest resources until index manager has set proper index configuration
+        self.provider_update_ingest_handler.queue.node.add_dependency(self.index_manager_custom_resource)
 
         # Create the EventBridge Pipe to connect DynamoDB stream to SQS queue
         # This pipe reads from the provider table stream and sends events to the ingest handler's queue
@@ -159,6 +161,8 @@ class SearchPersistentStack(AppStack):
             target_queue=self.provider_update_ingest_handler.queue,
             encryption_key=self.opensearch_encryption_key,
         )
+        # don't deploy ingest resources until index manager has set proper index configuration
+        self.provider_update_ingest_pipe.node.add_dependency(self.index_manager_custom_resource)
 
         # add log insights for provider ingest
         QueryDefinition(

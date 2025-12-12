@@ -16,11 +16,12 @@ from stacks.vpc_stack import VpcStack
 
 # Index configuration constants
 # Non-prod environments use a single data node, so no replicas are needed
-# Production uses 3 data nodes across 3 AZs, so 1 replica ensures data availability
 NON_PROD_NUMBER_OF_SHARDS = 1
 NON_PROD_NUMBER_OF_REPLICAS = 0
+# Production uses 3 data nodes across 3 AZs, so 1 primary and 2 replica ensures data availability
+# if this is updated, the total of primary + replica shards must be a multiple of 3
 PROD_NUMBER_OF_SHARDS = 1
-PROD_NUMBER_OF_REPLICAS = 1
+PROD_NUMBER_OF_REPLICAS = 2
 
 
 class IndexManagerCustomResource(Construct):
@@ -168,8 +169,6 @@ class IndexManagerCustomResource(Construct):
             ],
         )
 
-        # Determine index configuration based on environment
-        number_of_shards, number_of_replicas = self._get_index_configuration(environment_name)
 
         # Create custom resource for managing indices
         # This custom resource will create versioned indices (e.g., 'compact_aslp_providers_v1')
@@ -181,21 +180,7 @@ class IndexManagerCustomResource(Construct):
             resource_type='Custom::IndexManager',
             service_token=provider.service_token,
             properties={
-                'numberOfShards': number_of_shards,
-                'numberOfReplicas': number_of_replicas,
+                'numberOfShards': PROD_NUMBER_OF_SHARDS if environment_name == PROD_ENV_NAME else NON_PROD_NUMBER_OF_SHARDS,
+                'numberOfReplicas': PROD_NUMBER_OF_REPLICAS if environment_name == PROD_ENV_NAME else NON_PROD_NUMBER_OF_REPLICAS,
             },
         )
-
-    def _get_index_configuration(self, environment_name: str) -> tuple[int, int]:
-        """
-        Determine OpenSearch index configuration based on environment.
-
-        Non-prod environments use a single data node, so no replicas are needed.
-        Production uses 3 data nodes across 3 AZs, so 1 replica ensures data availability.
-
-        :param environment_name: The deployment environment name
-        :return: Tuple of (number_of_shards, number_of_replicas)
-        """
-        if environment_name == PROD_ENV_NAME:
-            return PROD_NUMBER_OF_SHARDS, PROD_NUMBER_OF_REPLICAS
-        return NON_PROD_NUMBER_OF_SHARDS, NON_PROD_NUMBER_OF_REPLICAS
