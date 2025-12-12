@@ -83,9 +83,9 @@ class ProviderUpdateIngestPipe(Construct):
             target=target_queue.queue_arn,
             source_parameters=CfnPipe.PipeSourceParametersProperty(
                 dynamo_db_stream_parameters=CfnPipe.PipeSourceDynamoDBStreamParametersProperty(
-                    # 'TRIM_HORIZON' starts processing from the earliest
-                    # available stream record (oldest data in the DynamoDB stream, up to 24 hours ago)
-                    starting_position='TRIM_HORIZON',
+                    # 'LATEST' starts processing from the latest available stream record 
+                    # from the moment the pipe is created
+                    starting_position='LATEST',
                     # send everything to SQS as it arrives
                     batch_size=1,
                 ),
