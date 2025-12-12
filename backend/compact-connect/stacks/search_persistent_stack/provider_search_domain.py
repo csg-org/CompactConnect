@@ -296,11 +296,15 @@ class ProviderSearchDomain(Construct):
             # 3 dedicated master nodes + 3 data nodes across 3 AZs with standby
             # Multi-AZ with standby does not support t3 instance types
             return CapacityConfig(
-                # Data nodes - m7g.medium provides 4 vCPUs and 8GB RAM
+                # Data nodes - m7g.medium provides 1 vCPU and 4GB RAM
                 data_node_instance_type='m7g.medium.search',
+                # we require at least 3 data nodes and master nodes to support multi-az with standby
+                # for high availability
                 data_nodes=3,
                 # Dedicated master nodes for cluster management
-                master_node_instance_type='m7g.medium.search',
+                # r8g.medium provides 8GB RAM, which the master nodes
+                # need based on our domain size
+                master_node_instance_type='r8g.medium.search',
                 master_nodes=3,
                 # Multi-AZ with standby for high availability
                 multi_az_with_standby_enabled=True,
