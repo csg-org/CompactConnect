@@ -531,7 +531,7 @@ class TestOpenSearchIndexManager(TstFunction):
 
     @patch('handlers.manage_opensearch_indices.time.sleep')
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
-    def test_on_create_raises_after_max_retries(self, mock_opensearch_client, mock_sleep):
+    def test_on_create_raises_after_max_retries(self, mock_opensearch_client, mock_sleep): # noqa ARG002 unused-argument
         """Test that on_create raises CCInternalException after max retries are exhausted."""
         from cc_common.exceptions import CCInternalException
         from handlers.manage_opensearch_indices import (

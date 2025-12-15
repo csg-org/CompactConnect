@@ -445,14 +445,26 @@ class TestSearchProviders(TstFunction):
         mock_internal_client = Mock()
         mock_opensearch_client.return_value = mock_internal_client
 
-        # Create a RequestError similar to what OpenSearch returns for invalid queries
-        # RequestError(status_code, error_type, info)
-        error_message = (
+        # Create a RequestError with realistic OpenSearch error structure
+        error_reason = (
             'Text fields are not optimised for operations that require per-document field data '
             'like aggregations and sorting, so these operations are disabled by default. '
             'Please use a keyword field instead.'
         )
-        mock_internal_client.search.side_effect = RequestError(400, 'search_phase_execution_exception', error_message)
+        error_info = {
+            'error': {
+                'root_cause': [
+                    {
+                        'type': 'illegal_argument_exception',
+                        'reason': error_reason,
+                    }
+                ],
+                'type': 'search_phase_execution_exception',
+                'reason': 'all shards failed',
+            },
+            'status': 400,
+        }
+        mock_internal_client.search.side_effect = RequestError(400, 'search_phase_execution_exception', error_info)
 
         event = self._create_api_event(
             'aslp',
@@ -467,8 +479,6 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual(
-            'Invalid search query: Text fields are not optimised for operations that '
-            'require per-document field data like aggregations and sorting, so these '
-            'operations are disabled by default. Please use a keyword field instead.',
+            f'Invalid search query: {error_reason}',
             body['message'],
         )

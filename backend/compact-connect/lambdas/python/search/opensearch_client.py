@@ -12,6 +12,7 @@ INITIAL_BACKOFF_SECONDS = 2
 MAX_BACKOFF_SECONDS = 32
 
 DEFAULT_TIMEOUT = 30
+SEARCH_TIMEOUT = 20
 
 
 class OpenSearchClient:
@@ -143,31 +144,60 @@ class OpenSearchClient:
             f'{operation_name} failed after {MAX_RETRY_ATTEMPTS} attempts. Last error: {last_exception}'
         )
 
-    def search(self, index_name: str, body: dict) -> dict:
+    def search(self, index_name: str, body: dict, timeout: int = SEARCH_TIMEOUT) -> dict:
         """
         Execute a search query against the specified index.
 
         :param index_name: The name of the index to search
         :param body: The OpenSearch query body
+        :param timeout: How long to wait before raising a connection timeout exception
         :return: The search response from OpenSearch
         :raises CCInvalidRequestException: If the query is invalid (400 error from OpenSearch)
         """
         try:
-            return self._client.search(index=index_name, body=body)
+            return self._client.search(index=index_name, body=body, timeout=timeout)
         except RequestError as e:
             if e.status_code == 400:
                 # Extract the error message from the RequestError
-                # RequestError contains: status_code, error (type), and info (message or dict)
-                error_message = e.info if isinstance(e.info, str) else str(e.error)
+                error_message = self._extract_opensearch_error_reason(e)
                 logger.warning(
                     'OpenSearch search request failed',
                     index_name=index_name,
                     status_code=e.status_code,
-                    error=str(e),
+                    error_message=error_message,
                 )
                 raise CCInvalidRequestException(f'Invalid search query: {error_message}') from e
             # Re-raise non-400 RequestErrors
             raise
+
+    @staticmethod
+    def _extract_opensearch_error_reason(e: RequestError) -> str:
+        """
+        Extract a human-readable error reason from an OpenSearch RequestError.
+
+        The error info structure is typically:
+        {"error": {"root_cause": [{"type": "...", "reason": "..."}], ...}, "status": 400}
+
+        :param e: The RequestError exception
+        :return: The extracted error reason, or a fallback string representation
+        """
+        if not e.info:
+            return str(e.error)
+
+        try:
+            # Navigate to error.root_cause[0].reason
+            root_causes = e.info.get('error', {}).get('root_cause', [])
+            if root_causes and isinstance(root_causes, list) and len(root_causes) > 0:
+                reason = root_causes[0].get('reason')
+                if reason:
+                    return str(reason)
+        except (AttributeError, TypeError, KeyError):
+            # If navigation fails, fall back to string representation
+            logger.warning(
+                'Failed to extract error reason from OpenSearch RequestError',
+                error=str(e),
+            )
+            return str(e.error)
 
     def index_document(self, index_name: str, document_id: str, document: dict) -> dict:
         """

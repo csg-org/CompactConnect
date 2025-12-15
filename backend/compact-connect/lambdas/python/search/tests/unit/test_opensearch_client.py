@@ -1,3 +1,4 @@
+# ruff: noqa ARG002 unused-argument
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
@@ -107,10 +108,7 @@ class TestOpenSearchClient(TestCase):
 
         result = client.search(index_name=index_name, body=query_body)
 
-        mock_internal_client.search.assert_called_once_with(
-            index=index_name,
-            body=query_body,
-        )
+        mock_internal_client.search.assert_called_once_with(index=index_name, body=query_body, timeout=20)
         self.assertEqual(expected_response, result)
 
     def test_search_raises_cc_invalid_request_exception_on_400_request_error(self):
@@ -120,21 +118,51 @@ class TestOpenSearchClient(TestCase):
         index_name = 'test_index'
         query_body = {'query': {'match_all': {}}, 'sort': [{'familyName': 'asc'}]}
 
-        # Simulate OpenSearch returning a 400 error for invalid query
-        error_message = (
+        # Simulate OpenSearch returning a 400 error with realistic error structure
+        error_reason = (
             'Text fields are not optimised for operations that require per-document field data '
             'like aggregations and sorting, so these operations are disabled by default.'
         )
-        mock_internal_client.search.side_effect = RequestError(400, 'search_phase_execution_exception', error_message)
+        error_info = {
+            'error': {
+                'root_cause': [
+                    {
+                        'type': 'illegal_argument_exception',
+                        'reason': error_reason,
+                    }
+                ],
+                'type': 'search_phase_execution_exception',
+                'reason': 'all shards failed',
+            },
+            'status': 400,
+        }
+        mock_internal_client.search.side_effect = RequestError(400, 'search_phase_execution_exception', error_info)
 
         with self.assertRaises(CCInvalidRequestException) as context:
             client.search(index_name=index_name, body=query_body)
 
-        # Verify the exception message contains useful info
+        # Verify the exception message extracts the reason from root_cause
         self.assertEqual(
-            'Invalid search query: Text fields are not optimised for operations that '
-            'require per-document field data like aggregations and sorting, so these '
-            'operations are disabled by default.',
+            f'Invalid search query: {error_reason}',
+            str(context.exception),
+        )
+
+    def test_search_raises_cc_invalid_request_exception_with_fallback_on_missing_root_cause(self):
+        """Test that search falls back to error type when root_cause is missing."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        query_body = {'query': {'match_all': {}}}
+
+        # Simulate OpenSearch returning a 400 error without root_cause structure
+        mock_internal_client.search.side_effect = RequestError(400, 'parsing_exception', None)
+
+        with self.assertRaises(CCInvalidRequestException) as context:
+            client.search(index_name=index_name, body=query_body)
+
+        # Verify the exception falls back to the error type
+        self.assertEqual(
+            'Invalid search query: parsing_exception',
             str(context.exception),
         )
 
