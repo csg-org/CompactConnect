@@ -31,6 +31,37 @@ from cc_common.data_model.schema.privilege.api import (
     PrivilegeReadPrivateResponseSchema,
 )
 
+# Keys that indicate cross-index query attempts in OpenSearch DSL
+# These are used by terms lookup, more_like_this, and other queries to reference external indices
+_CROSS_INDEX_KEYS = frozenset({'index', '_index'})
+
+
+def _validate_no_cross_index_keys(obj, path: str = 'query') -> None:
+    """
+    Recursively validate that an object does not contain cross-index lookup keys.
+
+    This function traverses the query structure looking for keys that would indicate
+    an attempt to access data from other indices:
+    - 'index': Used in terms lookup queries to specify an external index
+    - '_index': Used in more_like_this queries to reference documents from other indices
+
+    These keys should never appear in legitimate single-index queries against the
+    provider search index.
+
+    :param obj: The object to validate (dict, list, or scalar)
+    :param path: The current path in the object for error messages
+    :raises ValidationError: If a cross-index key is found
+    """
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key in _CROSS_INDEX_KEYS:
+                raise ValidationError(f"Cross-index queries are not allowed. Found '{key}' at {path}.{key}")
+            _validate_no_cross_index_keys(value, path=f'{path}.{key}')
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            _validate_no_cross_index_keys(item, path=f'{path}[{i}]')
+    # Scalar values (str, int, bool, None) are safe - we only check keys
+
 
 class ProviderSSNResponseSchema(ForgivingSchema):
     """
@@ -481,6 +512,22 @@ class SearchProvidersRequestSchema(CCRequestSchema):
     # Example: ["provider-uuid-123", "2024-01-15T10:30:00Z"]
     search_after = Raw(required=False, allow_none=False)
 
+    @validates_schema
+    def validate_no_cross_index_queries(self, data, **kwargs):
+        """
+        Validate that the query does not contain cross-index lookup attempts.
+
+        This is a defense-in-depth security measure to prevent queries that attempt to access
+        data from other compact indices. The primary protection is the OpenSearch domain setting
+        `rest.action.multi.allow_explicit_index: false`, but this validation provides an
+        additional application-layer check.
+
+        Dangerous patterns blocked:
+        - Terms lookup with external index: {"terms": {"field": {"index": "other_index", ...}}}
+        - More like this with external docs: {"more_like_this": {"like": [{"_index": "other_index"}]}}
+        """
+        _validate_no_cross_index_keys(data.get('query', {}))
+
 
 class ExportPrivilegesRequestSchema(CCRequestSchema):
     """
@@ -495,3 +542,12 @@ class ExportPrivilegesRequestSchema(CCRequestSchema):
 
     # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
     query = Raw(required=True, allow_none=False)
+
+    @validates_schema
+    def validate_no_cross_index_queries(self, data, **kwargs):
+        """
+        Validate that the query does not contain cross-index lookup attempts.
+
+        This is a defense-in-depth security measure. See SearchProvidersRequestSchema for details.
+        """
+        _validate_no_cross_index_keys(data.get('query', {}))

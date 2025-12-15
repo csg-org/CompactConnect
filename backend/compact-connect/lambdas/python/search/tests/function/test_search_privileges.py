@@ -650,3 +650,92 @@ class TestExportPrivileges(TstFunction):
         self.assertEqual(403, response['statusCode'])
         body = json.loads(response['body'])
         self.assertIn('Access denied', body['message'])
+
+    def test_export_query_with_index_key_returns_400(self):
+        """Test that export queries containing 'index' key are rejected with 400 error."""
+        from handlers.search import search_api_handler
+
+        # Test with 'index' key (terms lookup attack pattern)
+        event = self._create_api_event(
+            'aslp',
+            body={
+                'query': {
+                    'terms': {
+                        'providerId': {
+                            'index': 'compact_octp_providers',
+                            'id': 'some-uuid',
+                            'path': 'providerId',
+                        }
+                    }
+                }
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Cross-index queries are not allowed', body['message'])
+        self.assertIn("'index'", body['message'])
+
+    def test_export_query_with_underscore_index_key_returns_400(self):
+        """Test that export queries containing '_index' key are rejected with 400 error."""
+        from handlers.search import search_api_handler
+
+        # Test with '_index' key (more_like_this attack pattern)
+        event = self._create_api_event(
+            'aslp',
+            body={
+                'query': {
+                    'more_like_this': {
+                        'fields': ['familyName', 'givenName'],
+                        'like': [
+                            {
+                                '_index': 'compact_octp_providers',
+                                '_id': 'target-provider-uuid',
+                            }
+                        ],
+                    }
+                }
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Cross-index queries are not allowed', body['message'])
+        self.assertIn("'_index'", body['message'])
+
+    def test_export_query_with_nested_index_key_returns_400(self):
+        """Test that export queries with nested 'index' key at any level are rejected."""
+        from handlers.search import search_api_handler
+
+        # Test with 'index' key nested deep in the query structure
+        event = self._create_api_event(
+            'aslp',
+            body={
+                'query': {
+                    'bool': {
+                        'should': [
+                            {
+                                'terms': {
+                                    'familyName.keyword': {
+                                        'index': 'compact_octp_providers',
+                                        'id': 'target-uuid',
+                                        'path': 'familyName.keyword',
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Cross-index queries are not allowed', body['message'])
+        self.assertIn("'index'", body['message'])
