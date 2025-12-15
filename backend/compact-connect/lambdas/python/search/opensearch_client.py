@@ -2,9 +2,9 @@ import time
 
 import boto3
 from cc_common.config import config, logger
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from opensearchpy import AWSV4SignerAuth, OpenSearch, RequestsHttpConnection
-from opensearchpy.exceptions import ConnectionTimeout, TransportError
+from opensearchpy.exceptions import ConnectionTimeout, RequestError, TransportError
 
 # Retry configuration for bulk indexing
 MAX_RETRY_ATTEMPTS = 5
@@ -46,8 +46,24 @@ class OpenSearchClient:
         :param index_name: The name of the index to search
         :param body: The OpenSearch query body
         :return: The search response from OpenSearch
+        :raises CCInvalidRequestException: If the query is invalid (400 error from OpenSearch)
         """
-        return self._client.search(index=index_name, body=body)
+        try:
+            return self._client.search(index=index_name, body=body)
+        except RequestError as e:
+            if e.status_code == 400:
+                # Extract the error message from the RequestError
+                # RequestError contains: status_code, error (type), and info (message or dict)
+                error_message = e.info if isinstance(e.info, str) else str(e.error)
+                logger.warning(
+                    'OpenSearch search request failed',
+                    index_name=index_name,
+                    status_code=e.status_code,
+                    error=str(e),
+                )
+                raise CCInvalidRequestException(f'Invalid search query: {error_message}') from e
+            # Re-raise non-400 RequestErrors
+            raise
 
     def index_document(self, index_name: str, document_id: str, document: dict) -> dict:
         """

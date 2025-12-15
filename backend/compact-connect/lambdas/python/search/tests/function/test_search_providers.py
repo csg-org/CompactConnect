@@ -2,6 +2,7 @@ import json
 from unittest.mock import Mock, patch
 
 from moto import mock_aws
+from opensearchpy.exceptions import RequestError
 
 from . import TstFunction
 
@@ -434,3 +435,40 @@ class TestSearchProviders(TstFunction):
         body = json.loads(response['body'])
         self.assertIn('Cross-index queries are not allowed', body['message'])
         self.assertIn("'index'", body['message'])
+
+    @patch('opensearch_client.OpenSearch')
+    def test_opensearch_request_error_returns_400_with_error_message(self, mock_opensearch_client):
+        """Test that OpenSearch RequestError with status 400 returns error message to caller."""
+        from handlers.search import search_api_handler
+
+        # Configure the mock internal OpenSearch client to raise a RequestError
+        mock_internal_client = Mock()
+        mock_opensearch_client.return_value = mock_internal_client
+
+        # Create a RequestError similar to what OpenSearch returns for invalid queries
+        # RequestError(status_code, error_type, info)
+        error_message = (
+            'Text fields are not optimised for operations that require per-document field data '
+            'like aggregations and sorting, so these operations are disabled by default. '
+            'Please use a keyword field instead.'
+        )
+        mock_internal_client.search.side_effect = RequestError(400, 'search_phase_execution_exception', error_message)
+
+        event = self._create_api_event(
+            'aslp',
+            body={
+                'query': {'match_all': {}},
+                'sort': [{'familyName': 'asc'}],  # Sorting on text field causes this error
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertEqual(
+            'Invalid search query: Text fields are not optimised for operations that '
+            'require per-document field data like aggregations and sorting, so these '
+            'operations are disabled by default. Please use a keyword field instead.',
+            body['message'],
+        )

@@ -1,8 +1,8 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from cc_common.exceptions import CCInternalException
-from opensearchpy.exceptions import ConnectionTimeout, TransportError
+from cc_common.exceptions import CCInternalException, CCInvalidRequestException
+from opensearchpy.exceptions import ConnectionTimeout, RequestError, TransportError
 
 
 class TestOpenSearchClient(TestCase):
@@ -112,6 +112,46 @@ class TestOpenSearchClient(TestCase):
             body=query_body,
         )
         self.assertEqual(expected_response, result)
+
+    def test_search_raises_cc_invalid_request_exception_on_400_request_error(self):
+        """Test that search raises CCInvalidRequestException when OpenSearch returns a 400 RequestError."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        query_body = {'query': {'match_all': {}}, 'sort': [{'familyName': 'asc'}]}
+
+        # Simulate OpenSearch returning a 400 error for invalid query
+        error_message = (
+            'Text fields are not optimised for operations that require per-document field data '
+            'like aggregations and sorting, so these operations are disabled by default.'
+        )
+        mock_internal_client.search.side_effect = RequestError(400, 'search_phase_execution_exception', error_message)
+
+        with self.assertRaises(CCInvalidRequestException) as context:
+            client.search(index_name=index_name, body=query_body)
+
+        # Verify the exception message contains useful info
+        self.assertEqual(
+            'Invalid search query: Text fields are not optimised for operations that '
+            'require per-document field data like aggregations and sorting, so these '
+            'operations are disabled by default.',
+            str(context.exception),
+        )
+
+    def test_search_reraises_non_400_request_error(self):
+        """Test that search re-raises RequestError for non-400 status codes."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        query_body = {'query': {'match_all': {}}}
+
+        # Simulate OpenSearch returning a 500 error
+        mock_internal_client.search.side_effect = RequestError(500, 'internal_error', 'Something went wrong')
+
+        with self.assertRaises(RequestError) as context:
+            client.search(index_name=index_name, body=query_body)
+
+        self.assertEqual(500, context.exception.status_code)
 
     def test_index_document_calls_internal_client_with_expected_arguments(self):
         """Test that index_document calls the internal client's index method correctly."""
