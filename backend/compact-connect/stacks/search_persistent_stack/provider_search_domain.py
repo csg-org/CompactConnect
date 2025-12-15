@@ -598,10 +598,6 @@ class ProviderSearchDomain(Construct):
     def _add_access_policy_lambda_suppressions(self):
         """
         Add CDK Nag suppressions for the auto-generated Lambda function created by add_access_policies.
-
-        The CDK Domain.add_access_policies() method creates an AwsCustomResource Lambda to manage
-        the domain's access policy. CDK generates these with IDs starting with 'AWS' followed by a hash.
-        We find these dynamically to avoid relying on a specific hash value.
         """
         stack = Stack.of(self)
 
