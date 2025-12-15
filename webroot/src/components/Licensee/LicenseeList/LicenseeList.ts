@@ -18,7 +18,7 @@ import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import CloseX from '@components/Icons/CloseX/CloseX.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
-import { SearchParamsInterfaceLocal } from '@network/licenseApi/data.api';
+import { SearchParamsInterfaceLocal } from '@network/searchApi/data.api';
 import { State } from '@models/State/State.model';
 import moment from 'moment';
 

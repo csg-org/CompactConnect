@@ -178,7 +178,7 @@ export default class Pagination extends mixins(MixinForm) {
             pageItems.push(createPaginationItem(currentPage - 1, currentPage));
             pageItems.push(createPaginationItem(currentPage, currentPage));
             pageItems.push(createPaginationItem(currentPage + 1, currentPage));
-            pageItems.push(ellipsis(-1));
+            pageItems.push(ellipsis(0));
             pageItems.push(lastPage());
         }
 

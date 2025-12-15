@@ -43,6 +43,7 @@ export interface EnvConfig {
     domain?: string;
     apiUrlState?: string;
     apiUrlLicense?: string;
+    apiUrlSearch?: string;
     apiUrlUser?: string;
     apiUrlExample?: string;
     apiKeyExample?: string;
@@ -53,6 +54,7 @@ export interface EnvConfig {
     cognitoClientIdLicensee?: string;
     recaptchaKey?: string;
     statsigKey?: string;
+    isStatsigDisabled?: boolean;
     isUsingMockApi?: boolean;
 }
 
@@ -74,6 +76,7 @@ export const config: EnvConfig = {
     domain: context.VUE_APP_DOMAIN,
     apiUrlState: context.VUE_APP_API_STATE_ROOT,
     apiUrlLicense: context.VUE_APP_API_LICENSE_ROOT,
+    apiUrlSearch: context.VUE_APP_API_SEARCH_ROOT,
     apiUrlUser: context.VUE_APP_API_USER_ROOT,
     apiUrlExample: '/api',
     apiKeyExample: 'example',
@@ -84,6 +87,7 @@ export const config: EnvConfig = {
     cognitoClientIdLicensee: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
     statsigKey: context.VUE_APP_STATSIG_KEY,
+    isStatsigDisabled: (context.VUE_APP_STATSIG_DISABLED === 'true'),
     isUsingMockApi: (context.VUE_APP_MOCK_API === 'true'),
 };
 

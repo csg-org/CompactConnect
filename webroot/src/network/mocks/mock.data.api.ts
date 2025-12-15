@@ -182,33 +182,6 @@ export class DataApi {
         }));
     }
 
-    // Get Licensees (Search - Staff)
-    public getLicenseesSearchStaff(params: any = {}) {
-        const pages = 10;
-        const records = licensees.providers
-            .concat(licensees.providers)
-            .concat(licensees.providers)
-            .concat(licensees.providers)
-            .concat(licensees.providers);
-
-        console.log(params);
-
-        return wait(500).then(() => ({
-            totalMatchCount: records.length * pages,
-            licensees: records.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
-            params,
-        }));
-    }
-
-    // Get Privileges (Export - Staff)
-    public getPrivilegesExportStaff(params: any = {}) {
-        return wait(1000).then(() => ({
-            // downloadUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
-            downloadUrl: 'https://www.examplefile.com/file-download/519',
-            params,
-        }));
-    }
-
     // Get Licensee by ID
     public getLicensee(compact, licenseeId) {
         const serverResponse = licensees.providers.find((item) => item.providerId === licenseeId);
@@ -570,6 +543,34 @@ export class DataApi {
         }
 
         return response;
+    }
+
+    // ========================================================================
+    //                              SEARCH API
+    // ========================================================================
+    // Get Licensees (Search - Staff)
+    public getLicenseesSearchStaff(params: any = {}) {
+        const pages = 10;
+        const records = licensees.providers
+            .concat(licensees.providers)
+            .concat(licensees.providers)
+            .concat(licensees.providers)
+            .concat(licensees.providers);
+
+        return wait(500).then(() => ({
+            totalMatchCount: records.length * pages,
+            licensees: records.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            params,
+        }));
+    }
+
+    // Get Privileges (Export - Staff)
+    public getPrivilegesExportStaff(params: any = {}) {
+        return wait(1000).then(() => ({
+            // downloadUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
+            downloadUrl: 'https://www.examplefile.com/file-download/519',
+            params,
+        }));
     }
 
     // ========================================================================
