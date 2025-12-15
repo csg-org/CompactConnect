@@ -51,6 +51,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | homeAddressPostalCode* | Postal/ZIP code of provider's home address | String (5-7 chars) | 12345 |
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
+| licenseNumber*         | License number. This field is required by compact rule. | String (max 100 chars) | OT12345 |
 | licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `audiologist`, `speech-language pathologist`, `occupational therapist`, `occupational therapy assistant`, `licensed professional counselor` | occupational therapist |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
@@ -98,7 +99,7 @@ If data is not available for an optional field, it must be left empty in the cas
 **CSV Example with missing optional fields:**
 ```csv
 dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,,,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
+2024-06-30,,OT12345,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
 ```
 
 ### What if we don't have data for a required field?
