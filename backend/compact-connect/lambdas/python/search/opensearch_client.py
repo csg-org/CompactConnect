@@ -152,10 +152,22 @@ class OpenSearchClient:
         :param body: The OpenSearch query body
         :param timeout: How long to wait before raising a connection timeout exception
         :return: The search response from OpenSearch
-        :raises CCInvalidRequestException: If the query is invalid (400 error from OpenSearch)
+        :raises CCInvalidRequestException: If the query is invalid (400 error) or times out
         """
         try:
             return self._client.search(index=index_name, body=body, timeout=timeout)
+        except ConnectionTimeout as e:
+            logger.warning(
+                'OpenSearch search request timed out',
+                index_name=index_name,
+                timeout=timeout,
+                error=str(e),
+            )
+            # We are returning this as an invalid request exception so the UI client picks it up as
+            # a 400 and displays the message to the client
+            raise CCInvalidRequestException(
+                'Search request timed out. Please try again or narrow your search criteria.'
+            ) from e
         except RequestError as e:
             if e.status_code == 400:
                 # Extract the error message from the RequestError

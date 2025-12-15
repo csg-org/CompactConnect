@@ -181,6 +181,27 @@ class TestOpenSearchClient(TestCase):
 
         self.assertEqual(500, context.exception.status_code)
 
+    def test_search_raises_cc_invalid_request_exception_on_timeout(self):
+        """Test that search raises CCInvalidRequestException when the request times out."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        query_body = {'query': {'match_all': {}}}
+
+        # Simulate OpenSearch timing out
+        mock_internal_client.search.side_effect = ConnectionTimeout(
+            'Connection timed out', 503, 'Read timed out'
+        )
+
+        with self.assertRaises(CCInvalidRequestException) as context:
+            client.search(index_name=index_name, body=query_body)
+
+        # Verify the exception message tells the user to try again
+        self.assertEqual(
+            'Search request timed out. Please try again or narrow your search criteria.',
+            str(context.exception),
+        )
+
     def test_index_document_calls_internal_client_with_expected_arguments(self):
         """Test that index_document calls the internal client's index method correctly."""
         client, mock_internal_client = self._create_client_with_mock()
