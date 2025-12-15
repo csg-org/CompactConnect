@@ -119,7 +119,7 @@ class OpenSearchIndexManager(CustomResourceHandler):
                         attempts=DOMAIN_READINESS_MAX_ATTEMPTS,
                         error=str(e),
                     )
-            except Exception as e:
+            except Exception as e:  # noqa BLE001
                 # Handle unexpected exceptions (e.g., connection errors during client initialization)
                 last_exception = e
                 if attempt < DOMAIN_READINESS_MAX_ATTEMPTS:
