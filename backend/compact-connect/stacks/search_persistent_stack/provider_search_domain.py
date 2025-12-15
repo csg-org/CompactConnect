@@ -149,11 +149,11 @@ class ProviderSearchDomain(Construct):
         )
 
         # Determine instance type and capacity based on environment
-        capacity_config = self._get_capacity_config(environment_name)
+        capacity_config = self._get_capacity_config()
         # Determine AZ awareness based on environment
-        zone_awareness_config = self._get_zone_awareness_config(environment_name)
+        zone_awareness_config = self._get_zone_awareness_config()
         # Determine subnet selection based on environment
-        self.vpc_subnets = self._get_vpc_subnets(environment_name, vpc_stack)
+        self.vpc_subnets = self._get_vpc_subnets(vpc_stack)
 
         # Create OpenSearch Domain
         self.domain = Domain(
@@ -232,14 +232,14 @@ class ProviderSearchDomain(Construct):
         self.domain.grant_read_write(self._index_manager_lambda_role)
 
         # Add CDK Nag suppressions
-        self._add_domain_suppressions(environment_name)
+        self._add_domain_suppressions()
         self._add_access_policy_lambda_suppressions()
         self._add_lambda_role_suppressions(self._search_api_lambda_role)
         self._add_lambda_role_suppressions(self._ingest_lambda_role)
         self._add_lambda_role_suppressions(self._index_manager_lambda_role)
 
         # Add capacity monitoring alarms
-        self._add_capacity_alarms(environment_name, alarm_topic)
+        self._add_capacity_alarms(alarm_topic)
 
     def _configure_access_policies(self, compact_abbreviations: list[str]):
         """
@@ -297,14 +297,13 @@ class ProviderSearchDomain(Construct):
             search_api_policy,
         )
 
-    def _get_capacity_config(self, environment_name: str) -> CapacityConfig:
+    def _get_capacity_config(self) -> CapacityConfig:
         """
         Determine OpenSearch cluster capacity configuration based on environment.
 
         Non-prod (sandbox, test, beta, etc.): Single t3.small.search node
         Prod: 3 dedicated master (r8g.medium.search) + 3 data nodes (m7g.medium.search) with standby
 
-        :param environment_name: The deployment environment name
         :return: CapacityConfig with appropriate instance types and counts
         """
         if self._is_prod_environment:
@@ -337,13 +336,12 @@ class ProviderSearchDomain(Construct):
             multi_az_with_standby_enabled=False,
         )
 
-    def _get_zone_awareness_config(self, environment_name: str) -> ZoneAwarenessConfig:
+    def _get_zone_awareness_config(self) -> ZoneAwarenessConfig:
         """
         Determine OpenSearch cluster availability zone awareness based on environment.
 
         3 for production, not enabled for all other non-prod environments
 
-        :param environment_name: The deployment environment name
         :return: ZoneAwarenessConfig with appropriate settings
         """
         if self._is_prod_environment:
@@ -352,14 +350,13 @@ class ProviderSearchDomain(Construct):
         # Non-prod environments only use one data node, hence we don't enable zone awareness
         return ZoneAwarenessConfig(enabled=False)
 
-    def _get_vpc_subnets(self, environment_name: str, vpc_stack: VpcStack) -> SubnetSelection:
+    def _get_vpc_subnets(self, vpc_stack: VpcStack) -> SubnetSelection:
         """
         Determine VPC subnet selection based on environment.
 
         Production: All private isolated subnets (3 AZs) for zone awareness and high availability
         Non-prod: Single subnet (privateSubnet1 with CIDR 10.0.0.0/20) for single-node deployment
 
-        :param environment_name: The deployment environment name
         :param vpc_stack: The VPC stack containing the private subnets
         :return: SubnetSelection with appropriate subnet configuration
         """
@@ -396,7 +393,7 @@ class ProviderSearchDomain(Construct):
 
         return subnet_construct
 
-    def _add_capacity_alarms(self, environment_name: str, alarm_topic: ITopic):
+    def _add_capacity_alarms(self, alarm_topic: ITopic):
         """
         Add CloudWatch alarms to monitor OpenSearch capacity and alert before hitting limits.
 
@@ -407,7 +404,6 @@ class ProviderSearchDomain(Construct):
         - Cluster Status (red/yellow) for critical and degraded states
         - Automated Snapshot Failure for backup issues
 
-        :param environment_name: The deployment environment name
         :param alarm_topic: The SNS topic to send alarm notifications to
         """
         stack = Stack.of(self)
@@ -556,7 +552,7 @@ class ProviderSearchDomain(Construct):
             ),
         ).add_alarm_action(SnsAction(alarm_topic))
 
-    def _add_domain_suppressions(self, environment_name: str):
+    def _add_domain_suppressions(self):
         """
         Add CDK Nag suppressions for OpenSearch Domain configuration.
         """
@@ -580,7 +576,7 @@ class ProviderSearchDomain(Construct):
             ],
             apply_to_children=True,
         )
-        if environment_name != PROD_ENV_NAME:
+        if not self._is_prod_environment:
             NagSuppressions.add_resource_suppressions(
                 self.domain,
                 suppressions=[

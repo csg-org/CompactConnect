@@ -181,9 +181,7 @@ class IndexManagerCustomResource(Construct):
             resource_type='Custom::IndexManager',
             service_token=provider.service_token,
             properties={
-                'numberOfShards': PROD_NUMBER_OF_SHARDS
-                if self._is_prod_environment
-                else NON_PROD_NUMBER_OF_SHARDS,
+                'numberOfShards': PROD_NUMBER_OF_SHARDS if self._is_prod_environment else NON_PROD_NUMBER_OF_SHARDS,
                 'numberOfReplicas': PROD_NUMBER_OF_REPLICAS
                 if self._is_prod_environment
                 else NON_PROD_NUMBER_OF_REPLICAS,
