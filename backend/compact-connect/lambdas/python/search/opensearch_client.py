@@ -6,14 +6,16 @@ from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from opensearchpy import AWSV4SignerAuth, OpenSearch, RequestsHttpConnection
 from opensearchpy.exceptions import ConnectionTimeout, RequestError, TransportError
 
-# Retry configuration for bulk indexing
+# Retry configuration for operations
 MAX_RETRY_ATTEMPTS = 5
-INITIAL_BACKOFF_SECONDS = 1
+INITIAL_BACKOFF_SECONDS = 2
 MAX_BACKOFF_SECONDS = 32
+
+DEFAULT_TIMEOUT = 30
 
 
 class OpenSearchClient:
-    def __init__(self):
+    def __init__(self, timeout: int = DEFAULT_TIMEOUT):
         lambda_credentials = boto3.Session().get_credentials()
         auth = AWSV4SignerAuth(credentials=lambda_credentials, region=config.environment_region, service='es')
         self._client = OpenSearch(
@@ -22,22 +24,124 @@ class OpenSearchClient:
             use_ssl=True,
             verify_certs=True,
             connection_class=RequestsHttpConnection,
+            timeout=timeout,
             pool_maxsize=20,
         )
 
     def create_index(self, index_name: str, index_mapping: dict) -> None:
-        self._client.indices.create(index=index_name, body=index_mapping)
+        """
+        Create an index with the specified mapping.
+
+        :param index_name: The name of the index to create
+        :param index_mapping: The index configuration including settings and mappings
+        :raises CCInternalException: If all retry attempts fail
+        """
+        self._execute_with_retry(
+            operation=lambda: self._client.indices.create(index=index_name, body=index_mapping),
+            operation_name=f'create_index({index_name})',
+        )
 
     def index_exists(self, index_name: str) -> bool:
-        return self._client.indices.exists(index=index_name)
+        """
+        Check if an index exists.
+
+        :param index_name: The name of the index to check
+        :return: True if the index exists, False otherwise
+        :raises CCInternalException: If all retry attempts fail
+        """
+        return self._execute_with_retry(
+            operation=lambda: self._client.indices.exists(index=index_name),
+            operation_name=f'index_exists({index_name})',
+        )
 
     def alias_exists(self, alias_name: str) -> bool:
-        """Check if an alias exists."""
-        return self._client.indices.exists_alias(name=alias_name)
+        """
+        Check if an alias exists.
+
+        :param alias_name: The name of the alias to check
+        :return: True if the alias exists, False otherwise
+        :raises CCInternalException: If all retry attempts fail
+        """
+        return self._execute_with_retry(
+            operation=lambda: self._client.indices.exists_alias(name=alias_name),
+            operation_name=f'alias_exists({alias_name})',
+        )
 
     def create_alias(self, index_name: str, alias_name: str) -> None:
-        """Create an alias pointing to the specified index."""
-        self._client.indices.put_alias(index=index_name, name=alias_name)
+        """
+        Create an alias pointing to the specified index.
+
+        :param index_name: The index to create the alias for
+        :param alias_name: The name of the alias to create
+        :raises CCInternalException: If all retry attempts fail
+        """
+        self._execute_with_retry(
+            operation=lambda: self._client.indices.put_alias(index=index_name, name=alias_name),
+            operation_name=f'create_alias({alias_name} -> {index_name})',
+        )
+
+    def cluster_health(self) -> dict:
+        """
+        Get the cluster health status.
+
+        Implements retry logic with exponential backoff for transient connection issues.
+        This is useful for checking if the cluster is responsive, especially after
+        a new domain is created.
+
+        :return: The cluster health response from OpenSearch
+        :raises CCInternalException: If all retry attempts fail
+        """
+        return self._execute_with_retry(
+            operation=lambda: self._client.cluster.health(),
+            operation_name='cluster_health',
+        )
+
+    def _execute_with_retry(self, operation: callable, operation_name: str):
+        """
+        Execute an operation with retry logic and exponential backoff.
+
+        This handles transient connection issues that can occur when:
+        - OpenSearch domain was just created and is still warming up
+        - Network connectivity issues within the VPC
+        - Temporary high load on the OpenSearch cluster
+
+        :param operation: A callable that performs the operation
+        :param operation_name: A descriptive name for the operation (for logging)
+        :return: The result of the operation
+        :raises CCInternalException: If all retry attempts fail
+        """
+        last_exception = None
+        backoff_seconds = INITIAL_BACKOFF_SECONDS
+
+        for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
+            try:
+                return operation()
+            except (ConnectionTimeout, TransportError) as e:
+                last_exception = e
+                if attempt < MAX_RETRY_ATTEMPTS:
+                    logger.warning(
+                        'Operation failed, retrying with backoff',
+                        operation=operation_name,
+                        attempt=attempt,
+                        max_attempts=MAX_RETRY_ATTEMPTS,
+                        backoff_seconds=backoff_seconds,
+                        error=str(e),
+                    )
+                    time.sleep(backoff_seconds)
+                    # Exponential backoff with cap
+                    backoff_seconds = min(backoff_seconds * 2, MAX_BACKOFF_SECONDS)
+                else:
+                    logger.error(
+                        'Operation failed after max retry attempts',
+                        operation=operation_name,
+                        attempts=MAX_RETRY_ATTEMPTS,
+                        error=str(e),
+                    )
+
+        # All retry attempts failed
+        raise CCInternalException(
+            f'{operation_name} failed after {MAX_RETRY_ATTEMPTS} attempts. Last error: {last_exception}'
+        )
 
     def search(self, index_name: str, body: dict) -> dict:
         """
@@ -182,7 +286,7 @@ class OpenSearchClient:
 
         for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
             try:
-                return self._client.bulk(body=actions, index=index_name, timeout=30)
+                return self._client.bulk(body=actions, index=index_name, timeout=DEFAULT_TIMEOUT)
             except (ConnectionTimeout, TransportError) as e:
                 last_exception = e
                 if attempt < MAX_RETRY_ATTEMPTS:

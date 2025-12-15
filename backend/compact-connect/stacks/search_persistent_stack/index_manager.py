@@ -72,7 +72,7 @@ class IndexManagerCustomResource(Construct):
                 'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
                 **stack.common_env_vars,
             },
-            timeout=Duration.minutes(5),
+            timeout=Duration.minutes(10),
             memory_size=256,
             vpc=vpc_stack.vpc,
             vpc_subnets=vpc_subnets,

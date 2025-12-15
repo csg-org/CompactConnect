@@ -44,6 +44,13 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_client_instance = Mock()
         mock_opensearch_client.return_value = mock_client_instance
 
+        # Configure cluster_health mock (used by _wait_for_domain_ready)
+        mock_client_instance.cluster_health.return_value = {
+            'status': 'green',
+            'number_of_nodes': 1,
+            'cluster_name': 'test-cluster',
+        }
+
         # Configure alias_exists mock
         if isinstance(alias_exists_return_value, dict):
             mock_client_instance.alias_exists.side_effect = lambda alias_name: alias_exists_return_value.get(
@@ -483,3 +490,70 @@ class TestOpenSearchIndexManager(TstFunction):
 
         # Result should be None (no-op)
         self.assertIsNone(result)
+
+    @patch('handlers.manage_opensearch_indices.time.sleep')
+    @patch('handlers.manage_opensearch_indices.OpenSearchClient')
+    def test_on_create_retries_when_domain_not_immediately_responsive(self, mock_opensearch_client, mock_sleep):
+        """Test that on_create retries connecting to the domain when it's not immediately responsive."""
+        from cc_common.exceptions import CCInternalException
+        from handlers.manage_opensearch_indices import on_event
+
+        # First two calls fail, third succeeds
+        mock_client_instance = Mock()
+        mock_client_instance.cluster_health.return_value = {
+            'status': 'green',
+            'number_of_nodes': 1,
+        }
+        mock_client_instance.alias_exists.return_value = True  # Skip index creation for simplicity
+
+        call_count = 0
+
+        def side_effect():
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 2:
+                raise CCInternalException('cluster_health failed after 5 attempts. Last error: ConnectionTimeout')
+            return mock_client_instance
+
+        mock_opensearch_client.side_effect = side_effect
+
+        # Create the event for a 'Create' request
+        event = self._create_event('Create')
+
+        # Call the handler
+        on_event(event, self.mock_context)
+
+        # Assert that OpenSearchClient was instantiated 3 times (2 failures + 1 success)
+        self.assertEqual(3, mock_opensearch_client.call_count)
+
+        # Assert that sleep was called twice (once between each retry)
+        self.assertEqual(2, mock_sleep.call_count)
+
+    @patch('handlers.manage_opensearch_indices.time.sleep')
+    @patch('handlers.manage_opensearch_indices.OpenSearchClient')
+    def test_on_create_raises_after_max_retries(self, mock_opensearch_client, mock_sleep):
+        """Test that on_create raises CCInternalException after max retries are exhausted."""
+        from cc_common.exceptions import CCInternalException
+        from handlers.manage_opensearch_indices import (
+            DOMAIN_READINESS_MAX_ATTEMPTS,
+            on_event,
+        )
+
+        # All calls fail
+        mock_opensearch_client.side_effect = CCInternalException(
+            'cluster_health failed after 5 attempts. Last error: ConnectionTimeout'
+        )
+
+        # Create the event for a 'Create' request
+        event = self._create_event('Create')
+
+        # Call the handler and expect an exception
+        with self.assertRaises(CCInternalException) as context:
+            on_event(event, self.mock_context)
+
+        # Verify the error message mentions the number of attempts
+        self.assertIn(str(DOMAIN_READINESS_MAX_ATTEMPTS), str(context.exception))
+        self.assertIn('did not become responsive', str(context.exception))
+
+        # Assert that OpenSearchClient was instantiated max attempts times
+        self.assertEqual(DOMAIN_READINESS_MAX_ATTEMPTS, mock_opensearch_client.call_count)

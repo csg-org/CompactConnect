@@ -233,6 +233,8 @@ class TestOpenSearchClient(TestCase):
     @patch('opensearch_client.time.sleep')
     def test_bulk_index_retries_on_connection_timeout_and_succeeds(self, mock_sleep):
         """Test that bulk_index retries on ConnectionTimeout and eventually succeeds."""
+        from opensearch_client import INITIAL_BACKOFF_SECONDS
+
         client, mock_internal_client = self._create_client_with_mock()
 
         index_name = 'test_index'
@@ -250,10 +252,10 @@ class TestOpenSearchClient(TestCase):
 
         # Verify bulk was called 3 times
         self.assertEqual(3, mock_internal_client.bulk.call_count)
-        # Verify sleep was called with exponential backoff (1s, 2s)
+        # Verify sleep was called with exponential backoff
         self.assertEqual(2, mock_sleep.call_count)
-        mock_sleep.assert_any_call(1)
-        mock_sleep.assert_any_call(2)
+        mock_sleep.assert_any_call(INITIAL_BACKOFF_SECONDS)
+        mock_sleep.assert_any_call(INITIAL_BACKOFF_SECONDS * 2)
         # Verify we got the successful response
         self.assertEqual(expected_response, result)
 
@@ -322,8 +324,149 @@ class TestOpenSearchClient(TestCase):
         with self.assertRaises(CCInternalException):
             client.bulk_index(index_name=index_name, documents=documents)
 
-        # Verify backoff values: 1, 2, 4, 8 (all should be <= MAX_BACKOFF_SECONDS)
+        # Verify backoff values: 2, 4, 8, 16 (all should be <= MAX_BACKOFF_SECONDS)
         # With MAX_RETRY_ATTEMPTS = 5, we have 4 sleeps
         sleep_calls = [call[0][0] for call in mock_sleep.call_args_list]
         for sleep_value in sleep_calls:
             self.assertLessEqual(sleep_value, MAX_BACKOFF_SECONDS)
+
+
+class TestOpenSearchClientIndexManagementRetry(TestCase):
+    """Test suite for OpenSearchClient index management operations with retry logic."""
+
+    def _create_client_with_mock(self):
+        """Create an OpenSearchClient with a mocked internal client."""
+        with (
+            patch('opensearch_client.boto3'),
+            patch('opensearch_client.config'),
+            patch('opensearch_client.OpenSearch') as mock_opensearch_class,
+        ):
+            mock_internal_client = MagicMock()
+            mock_opensearch_class.return_value = mock_internal_client
+
+            from opensearch_client import OpenSearchClient
+
+            client = OpenSearchClient()
+            return client, mock_internal_client
+
+    @patch('opensearch_client.time.sleep')
+    def test_create_index_retries_on_connection_timeout_and_succeeds(self, mock_sleep):
+        """Test that create_index retries on ConnectionTimeout and eventually succeeds."""
+        from opensearch_client import INITIAL_BACKOFF_SECONDS
+
+        client, mock_internal_client = self._create_client_with_mock()
+
+        # First call fails, second succeeds
+        mock_internal_client.indices.create.side_effect = [
+            ConnectionTimeout('Connection timed out', 503, 'some error'),
+            {'acknowledged': True},
+        ]
+
+        # Should not raise
+        client.create_index(index_name='test_index', index_mapping={'settings': {}})
+
+        # Verify create was called 2 times
+        self.assertEqual(2, mock_internal_client.indices.create.call_count)
+        # Verify sleep was called once
+        self.assertEqual(1, mock_sleep.call_count)
+        mock_sleep.assert_called_with(INITIAL_BACKOFF_SECONDS)
+
+    @patch('opensearch_client.time.sleep')
+    def test_create_index_raises_after_max_retries(self, mock_sleep):
+        """Test that create_index raises CCInternalException after max retries."""
+        from opensearch_client import MAX_RETRY_ATTEMPTS
+
+        client, mock_internal_client = self._create_client_with_mock()
+
+        # All calls fail
+        mock_internal_client.indices.create.side_effect = ConnectionTimeout('Connection timed out', 503, 'some error')
+
+        with self.assertRaises(CCInternalException) as context:
+            client.create_index(index_name='test_index', index_mapping={'settings': {}})
+
+        # Verify create was called MAX_RETRY_ATTEMPTS times
+        self.assertEqual(MAX_RETRY_ATTEMPTS, mock_internal_client.indices.create.call_count)
+        self.assertIn('create_index', str(context.exception))
+
+    @patch('opensearch_client.time.sleep')
+    def test_index_exists_retries_on_transport_error_and_succeeds(self, mock_sleep):
+        """Test that index_exists retries on TransportError and eventually succeeds."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        # First call fails, second succeeds
+        mock_internal_client.indices.exists.side_effect = [
+            TransportError(503, 'ReadTimeout'),
+            True,
+        ]
+
+        result = client.index_exists(index_name='test_index')
+
+        self.assertTrue(result)
+        self.assertEqual(2, mock_internal_client.indices.exists.call_count)
+
+    @patch('opensearch_client.time.sleep')
+    def test_alias_exists_retries_on_connection_timeout_and_succeeds(self, mock_sleep):
+        """Test that alias_exists retries on ConnectionTimeout and eventually succeeds."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        # First call fails, second succeeds
+        mock_internal_client.indices.exists_alias.side_effect = [
+            ConnectionTimeout('Connection timed out', 503, 'some error'),
+            True,
+        ]
+
+        result = client.alias_exists(alias_name='test_alias')
+
+        self.assertTrue(result)
+        self.assertEqual(2, mock_internal_client.indices.exists_alias.call_count)
+
+    @patch('opensearch_client.time.sleep')
+    def test_create_alias_retries_on_connection_timeout_and_succeeds(self, mock_sleep):
+        """Test that create_alias retries on ConnectionTimeout and eventually succeeds."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        # First call fails, second succeeds
+        mock_internal_client.indices.put_alias.side_effect = [
+            ConnectionTimeout('Connection timed out', 503, 'some error'),
+            {'acknowledged': True},
+        ]
+
+        # Should not raise
+        client.create_alias(index_name='test_index', alias_name='test_alias')
+
+        self.assertEqual(2, mock_internal_client.indices.put_alias.call_count)
+
+    @patch('opensearch_client.time.sleep')
+    def test_cluster_health_retries_on_connection_timeout_and_succeeds(self, mock_sleep):
+        """Test that cluster_health retries on ConnectionTimeout and eventually succeeds."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        expected_response = {'status': 'green', 'number_of_nodes': 3}
+
+        # First call fails, second succeeds
+        mock_internal_client.cluster.health.side_effect = [
+            ConnectionTimeout('Connection timed out', 503, 'some error'),
+            expected_response,
+        ]
+
+        result = client.cluster_health()
+
+        self.assertEqual(expected_response, result)
+        self.assertEqual(2, mock_internal_client.cluster.health.call_count)
+
+    @patch('opensearch_client.time.sleep')
+    def test_cluster_health_raises_after_max_retries(self, mock_sleep):
+        """Test that cluster_health raises CCInternalException after max retries."""
+        from opensearch_client import MAX_RETRY_ATTEMPTS
+
+        client, mock_internal_client = self._create_client_with_mock()
+
+        # All calls fail
+        mock_internal_client.cluster.health.side_effect = ConnectionTimeout('Connection timed out', 503, 'some error')
+
+        with self.assertRaises(CCInternalException) as context:
+            client.cluster_health()
+
+        # Verify health was called MAX_RETRY_ATTEMPTS times
+        self.assertEqual(MAX_RETRY_ATTEMPTS, mock_internal_client.cluster.health.call_count)
+        self.assertIn('cluster_health', str(context.exception))
