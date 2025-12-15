@@ -80,8 +80,10 @@ class ProviderSearchDomain(Construct):
         self._index_manager_lambda_role = index_manager_lambda_role
         self._search_api_lambda_role = search_api_lambda_role
 
+        self._is_prod_environment = environment_name == PROD_ENV_NAME
+
         # Determine removal policy based on environment
-        removal_policy = RemovalPolicy.RETAIN if environment_name == PROD_ENV_NAME else RemovalPolicy.DESTROY
+        removal_policy = RemovalPolicy.RETAIN if self._is_prod_environment else RemovalPolicy.DESTROY
 
         # Create dedicated KMS key for OpenSearch domain encryption
         self.encryption_key = Key(
@@ -191,7 +193,7 @@ class ProviderSearchDomain(Construct):
             # EBS volume configuration
             ebs=EbsOptions(
                 enabled=True,
-                volume_size=PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE,
+                volume_size=PROD_EBS_VOLUME_SIZE if self._is_prod_environment else NON_PROD_EBS_VOLUME_SIZE,
                 # this type is required for medium instances
                 volume_type=EbsDeviceVolumeType.GP3,
             ),
@@ -305,7 +307,7 @@ class ProviderSearchDomain(Construct):
         :param environment_name: The deployment environment name
         :return: CapacityConfig with appropriate instance types and counts
         """
-        if environment_name == PROD_ENV_NAME:
+        if self._is_prod_environment:
             # Production configuration with high availability
             # 3 dedicated master nodes + 3 data nodes across 3 AZs with standby
             # Multi-AZ with standby does not support t3 instance types
@@ -344,7 +346,7 @@ class ProviderSearchDomain(Construct):
         :param environment_name: The deployment environment name
         :return: ZoneAwarenessConfig with appropriate settings
         """
-        if environment_name == PROD_ENV_NAME:
+        if self._is_prod_environment:
             return ZoneAwarenessConfig(enabled=True, availability_zone_count=3)
 
         # Non-prod environments only use one data node, hence we don't enable zone awareness
@@ -361,7 +363,7 @@ class ProviderSearchDomain(Construct):
         :param vpc_stack: The VPC stack containing the private subnets
         :return: SubnetSelection with appropriate subnet configuration
         """
-        if environment_name == PROD_ENV_NAME:
+        if self._is_prod_environment:
             # Production: Use all private isolated subnets from the VPC.
             # VPC is configured with max_azs=3, so this will select exactly 3 subnets
             return SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)
@@ -411,7 +413,7 @@ class ProviderSearchDomain(Construct):
         stack = Stack.of(self)
 
         # Get the volume size for calculating storage threshold
-        volume_size_gb = PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE
+        volume_size_gb = PROD_EBS_VOLUME_SIZE if self._is_prod_environment else NON_PROD_EBS_VOLUME_SIZE
         # 50% threshold in MB (FreeStorageSpace metric is reported in megabytes)
         # Formula: GB * 1024 MB/GB * 0.5 for 50% threshold
         storage_threshold_mb = volume_size_gb * 1024 * 0.5

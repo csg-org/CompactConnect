@@ -57,6 +57,8 @@ class IndexManagerCustomResource(Construct):
         super().__init__(scope, construct_id)
         stack = Stack.of(scope)
 
+        self._is_prod_environment = environment_name == PROD_ENV_NAME
+
         # Create Lambda function for managing OpenSearch indices
         self.manage_function = PythonFunction(
             self,
@@ -180,10 +182,10 @@ class IndexManagerCustomResource(Construct):
             service_token=provider.service_token,
             properties={
                 'numberOfShards': PROD_NUMBER_OF_SHARDS
-                if environment_name == PROD_ENV_NAME
+                if self._is_prod_environment
                 else NON_PROD_NUMBER_OF_SHARDS,
                 'numberOfReplicas': PROD_NUMBER_OF_REPLICAS
-                if environment_name == PROD_ENV_NAME
+                if self._is_prod_environment
                 else NON_PROD_NUMBER_OF_REPLICAS,
             },
         )
