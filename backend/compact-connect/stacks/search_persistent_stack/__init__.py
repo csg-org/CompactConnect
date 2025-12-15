@@ -75,6 +75,7 @@ class SearchPersistentStack(AppStack):
             self,
             'ProviderSearchDomain',
             environment_name=environment_name,
+            region=self.region,
             vpc_stack=vpc_stack,
             compact_abbreviations=persistent_stack.get_list_of_compact_abbreviations(),
             alarm_topic=persistent_stack.alarm_topic,

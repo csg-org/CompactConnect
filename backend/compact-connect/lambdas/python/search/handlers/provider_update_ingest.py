@@ -11,6 +11,7 @@ The handler uses the @sqs_batch_handler decorator which passes all SQS messages
 to the handler at once, enabling batch processing and deduplication. The handler
 returns batchItemFailures directly for partial success handling.
 """
+
 from boto3.dynamodb.types import TypeDeserializer
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException, CCNotFoundException

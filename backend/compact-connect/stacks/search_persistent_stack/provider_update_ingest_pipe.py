@@ -1,4 +1,3 @@
-from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_iam import Effect, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_pipes import CfnPipe
@@ -6,6 +5,8 @@ from aws_cdk.aws_sqs import IQueue
 from cdk_nag import NagSuppressions
 from common_constructs.stack import Stack
 from constructs import Construct
+
+from stacks.persistent_stack import ProviderTable
 
 
 class ProviderUpdateIngestPipe(Construct):
@@ -24,7 +25,7 @@ class ProviderUpdateIngestPipe(Construct):
         self,
         scope: Construct,
         construct_id: str,
-        provider_table: ITable,
+        provider_table: ProviderTable,
         target_queue: IQueue,
         encryption_key: IKey,
     ):
@@ -83,7 +84,7 @@ class ProviderUpdateIngestPipe(Construct):
             target=target_queue.queue_arn,
             source_parameters=CfnPipe.PipeSourceParametersProperty(
                 dynamo_db_stream_parameters=CfnPipe.PipeSourceDynamoDBStreamParametersProperty(
-                    # 'LATEST' starts processing from the latest available stream record 
+                    # 'LATEST' starts processing from the latest available stream record
                     # from the moment the pipe is created
                     starting_position='LATEST',
                     # send everything to SQS as it arrives

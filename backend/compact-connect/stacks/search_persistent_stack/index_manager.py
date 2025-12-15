@@ -169,7 +169,6 @@ class IndexManagerCustomResource(Construct):
             ],
         )
 
-
         # Create custom resource for managing indices
         # This custom resource will create versioned indices (e.g., 'compact_aslp_providers_v1')
         # with aliases (e.g., 'compact_aslp_providers') for each compact.
@@ -180,7 +179,11 @@ class IndexManagerCustomResource(Construct):
             resource_type='Custom::IndexManager',
             service_token=provider.service_token,
             properties={
-                'numberOfShards': PROD_NUMBER_OF_SHARDS if environment_name == PROD_ENV_NAME else NON_PROD_NUMBER_OF_SHARDS,
-                'numberOfReplicas': PROD_NUMBER_OF_REPLICAS if environment_name == PROD_ENV_NAME else NON_PROD_NUMBER_OF_REPLICAS,
+                'numberOfShards': PROD_NUMBER_OF_SHARDS
+                if environment_name == PROD_ENV_NAME
+                else NON_PROD_NUMBER_OF_SHARDS,
+                'numberOfReplicas': PROD_NUMBER_OF_REPLICAS
+                if environment_name == PROD_ENV_NAME
+                else NON_PROD_NUMBER_OF_REPLICAS,
             },
         )

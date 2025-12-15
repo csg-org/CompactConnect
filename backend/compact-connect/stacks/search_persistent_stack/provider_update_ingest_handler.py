@@ -3,7 +3,6 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_ec2 import SubnetSelection
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_kms import IKey
@@ -16,6 +15,7 @@ from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
+from stacks.persistent_stack import ProviderTable
 from stacks.vpc_stack import VpcStack
 
 
@@ -40,7 +40,7 @@ class ProviderUpdateIngestHandler(Construct):
         vpc_stack: VpcStack,
         vpc_subnets: SubnetSelection,
         lambda_role: IRole,
-        provider_table: ITable,
+        provider_table: ProviderTable,
         encryption_key: IKey,
         alarm_topic: ITopic,
     ):

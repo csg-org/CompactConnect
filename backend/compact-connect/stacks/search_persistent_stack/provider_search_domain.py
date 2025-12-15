@@ -13,7 +13,8 @@ from aws_cdk.aws_opensearchservice import (
     EngineVersion,
     LoggingOptions,
     TLSSecurityPolicy,
-    ZoneAwarenessConfig, WindowStartTime,
+    WindowStartTime,
+    ZoneAwarenessConfig,
 )
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
@@ -49,6 +50,7 @@ class ProviderSearchDomain(Construct):
         construct_id: str,
         *,
         environment_name: str,
+        region: str,
         vpc_stack: VpcStack,
         compact_abbreviations: list[str],
         alarm_topic: ITopic,
@@ -62,6 +64,7 @@ class ProviderSearchDomain(Construct):
         :param scope: The scope of the construct
         :param construct_id: The id of the construct
         :param environment_name: The deployment environment name (e.g., 'prod', 'test')
+        :param region: The deployment region (e.g., 'us-east-1')
         :param vpc_stack: The VPC stack containing network resources
         :param compact_abbreviations: List of compact abbreviations for index access policies
         :param alarm_topic: The SNS topic for capacity alarms
@@ -94,7 +97,7 @@ class ProviderSearchDomain(Construct):
         self.encryption_key.grant_encrypt_decrypt(opensearch_principal)
 
         # Grant cloudwatch service principal permission to use the key
-        log_principal = ServicePrincipal('logs.amazonaws.com')
+        log_principal = ServicePrincipal(f'logs.{region}.amazonaws.com')
         self.encryption_key.grant_encrypt_decrypt(log_principal)
 
         # Create CloudWatch log groups for OpenSearch logging
@@ -190,7 +193,7 @@ class ProviderSearchDomain(Construct):
                 enabled=True,
                 volume_size=PROD_EBS_VOLUME_SIZE if environment_name == PROD_ENV_NAME else NON_PROD_EBS_VOLUME_SIZE,
                 # this type is required for medium instances
-                volume_type=EbsDeviceVolumeType.GP3
+                volume_type=EbsDeviceVolumeType.GP3,
             ),
             # Encryption settings
             encryption_at_rest=EncryptionAtRestOptions(enabled=True, kms_key=self.encryption_key),
@@ -554,11 +557,6 @@ class ProviderSearchDomain(Construct):
     def _add_domain_suppressions(self, environment_name: str):
         """
         Add CDK Nag suppressions for OpenSearch Domain configuration.
-
-        Some security best practices are not applicable or will be implemented later:
-        - Fine-grained access control: Will be added with full API implementation
-        - Access policies: Will be configured when Lambda functions are added
-        - Dedicated master nodes: Only needed for prod (>3 nodes)
         """
         NagSuppressions.add_resource_suppressions(
             self.domain,
