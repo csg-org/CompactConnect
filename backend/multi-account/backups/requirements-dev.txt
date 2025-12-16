@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras backups/requirements-dev.in
 #
-boto3==1.42.8
+boto3==1.42.11
     # via moto
-botocore==1.42.8
+botocore==1.42.11
     # via
     #   boto3
     #   moto
