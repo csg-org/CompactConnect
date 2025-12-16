@@ -211,17 +211,6 @@ class OpenSearchClient:
             )
             return str(e.error)
 
-    def index_document(self, index_name: str, document_id: str, document: dict) -> dict:
-        """
-        Index a single document into the specified index.
-
-        :param index_name: The name of the index to write to.
-        :param document_id: The unique identifier for the document.
-        :param document: The document to index
-        :return: The response from OpenSearch
-        """
-        return self._client.index(index=index_name, id=document_id, body=document)
-
     def bulk_index(self, index_name: str, documents: list[dict], id_field: str = 'providerId') -> dict:
         """
         Bulk index multiple documents into the specified index.
@@ -241,10 +230,6 @@ class OpenSearchClient:
 
         actions = []
         for doc in documents:
-            # Note: We specify the index via the `index` parameter in the bulk() call below,
-            # not in the action metadata. This is required because the OpenSearch domain has
-            # `rest.action.multi.allow_explicit_index: false` which prevents specifying
-            # indices in the request body for security purposes.
             actions.append({'index': {'_id': doc[id_field]}})
             actions.append(doc)
 
@@ -269,10 +254,6 @@ class OpenSearchClient:
 
         actions = []
         for doc_id in document_ids:
-            # Note: We specify the index via the `index` parameter in the bulk() call below,
-            # not in the action metadata. This is required because the OpenSearch domain has
-            # `rest.action.multi.allow_explicit_index: false` which prevents specifying
-            # indices in the request body for security purposes.
             actions.append({'delete': {'_id': doc_id}})
 
         response = self._bulk_operation_with_retry(

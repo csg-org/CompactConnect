@@ -23,12 +23,6 @@ class SearchPersistentStack(AppStack):
     - KMS encryption for data at rest
     - Node-to-node encryption and HTTPS enforcement
     - Environment-specific instance sizing and cluster configuration
-
-    IMPORTANT NOTE: Avoid updating the OpenSearch domain in a way that requires a blue/green deployment,
-    which is known to get stuck. See provider_search_domain.py for detailed upgrade notes, root causes,
-    and recovery steps. Note that worst case scenario, you may have to delete the entire stack, re-deploy it, and
-    re-index all the data from the provider table. In light of this, DO NOT place any resources in this stack that
-    should never be deleted.
     """
 
     def __init__(

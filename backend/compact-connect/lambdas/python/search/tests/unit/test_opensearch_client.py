@@ -200,25 +200,6 @@ class TestOpenSearchClient(TestCase):
             str(context.exception),
         )
 
-    def test_index_document_calls_internal_client_with_expected_arguments(self):
-        """Test that index_document calls the internal client's index method correctly."""
-        client, mock_internal_client = self._create_client_with_mock()
-
-        index_name = 'test_index'
-        document_id = 'doc-123'
-        document = {'providerId': 'doc-123', 'givenName': 'John', 'familyName': 'Doe'}
-        expected_response = {'_index': index_name, '_id': document_id, 'result': 'created'}
-        mock_internal_client.index.return_value = expected_response
-
-        result = client.index_document(index_name=index_name, document_id=document_id, document=document)
-
-        mock_internal_client.index.assert_called_once_with(
-            index=index_name,
-            id=document_id,
-            body=document,
-        )
-        self.assertEqual(expected_response, result)
-
     def test_bulk_index_calls_internal_client_with_expected_arguments(self):
         """Test that bulk_index calls the internal client's bulk method correctly."""
         client, mock_internal_client = self._create_client_with_mock()
