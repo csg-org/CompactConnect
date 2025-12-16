@@ -1,9 +1,11 @@
 import os
 
 from aws_cdk import Duration
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_ec2 import SubnetSelection
 from aws_cdk.aws_iam import IRole
-from aws_cdk.aws_logs import RetentionDays
+from aws_cdk.aws_logs import FilterPattern, MetricFilter, RetentionDays
 from aws_cdk.aws_opensearchservice import Domain
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_sns import ITopic
@@ -98,3 +100,30 @@ class SearchHandler(Construct):
                 },
             ],
         )
+
+        # Create a metric filter to capture ERROR level logs from the search handler Lambda
+        error_log_metric = MetricFilter(
+            self,
+            'SearchHandlerErrorLogMetric',
+            log_group=self.handler.log_group,
+            metric_namespace='CompactConnect/Search',
+            metric_name='SearchHandlerErrors',
+            filter_pattern=FilterPattern.string_value(json_field='$.level', comparison='=', value='ERROR'),
+            metric_value='1',
+            default_value=0,
+        )
+
+        # Create an alarm that triggers when ERROR logs are detected
+        error_log_alarm = Alarm(
+            self,
+            'SearchHandlerErrorLogAlarm',
+            metric=error_log_metric.metric(statistic='Sum'),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'The Search Handler Lambda logged an ERROR level message. Investigate '
+            f'the logs for the {self.handler.function_name} lambda to determine the cause.',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        )
+        error_log_alarm.add_alarm_action(SnsAction(alarm_topic))
