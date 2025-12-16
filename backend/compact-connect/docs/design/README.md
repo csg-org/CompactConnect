@@ -687,59 +687,29 @@ Provider data from the provider DynamoDB table is indexed within an OpenSearch D
 queryable by staff users through the Search API (search.compactconnect.org). The OpenSearch resources are deployed within a Virtual Private Cloud (VPC) to provide a layer of network security.
 
 ### Architecture Overview
+![Advanced Search Diagram](./advanced-provider-search.pdf)
 
 The search infrastructure consists of several key components:
 
 1. **OpenSearch Domain**: A managed OpenSearch cluster deployed within a VPC
-2. **Search API**: API Gateway endpoints backed by Lambda functions for querying the domain
-3. **Index Manager**: A CloudFormation custom resource that creates and manages indices
+2. **Index Manager**: A CloudFormation custom resource that creates and manages domain indices
+3. **Search API**: API Gateway endpoints backed by Lambda functions for querying the domain
 4. **Populate Handler**: A Lambda function for bulk indexing all provider data from DynamoDB
-
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   API Gateway   │────▶│  Search Lambda  │────▶│    OpenSearch   │
-│  (Search API)   │     │   (in VPC)      │     │   Domain (VPC)  │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-                                                         ▲
-                                                         │
-┌─────────────────┐     ┌─────────────────┐              │
-│    DynamoDB     │────▶│ Populate Lambda │──────────────┘
-│ (Provider Table)│     │   (in VPC)      │
-└─────────────────┘     └─────────────────┘
-```
-
-### OpenSearch Domain Configuration
-
-The OpenSearch domain is configured differently based on environment:
-
-| Environment | Instance Type | Data Nodes | Master Nodes | Replicas | EBS Size |
-|-------------|---------------|------------|--------------|----------|----------|
-| Non-prod (sandbox/test/beta) | t3.small.search | 1 | None | 0 | 10 GB |
-| Production | m7g.medium.search | 3 | 3 (with standby) | 1 | 25 GB |
+5. **Provider Update Ingest Handler**: A Lambda function for updating documents in OpenSearch whenever provider records are updated in DynamoDB.
 
 ### Index Structure
 
-Provider documents are stored in compact-specific indices with the naming convention: `compact_{compact}_providers`
-(e.g., `compact_aslp_providers`).
+Provider documents are stored in compact-specific indices with the naming convention: `compact_{compact}_providers_{version}`
+(e.g., `compact_aslp_providers_v1`). We use index aliases to provide a stable reference to the current version of each index (e.g., `compact_aslp_providers`), allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See https://docs.opensearch.org/latest/im-plugin/index-alias/ for more information.
+
+#### Index Management
+
+The `IndexManagerCustomResource` is a CloudFormation custom resource that creates compact-specific indices when the
+domain is first created. It ensures the indices/aliases exist with the correct mapping before any indexing operations begin.
 
 #### Index Mapping
 
-Each provider document contains all information you would see from the provider detail api endpoint with `readGeneral` permission:
-
-**Top-Level Provider Fields:**
-- `providerId` (keyword): Unique provider identifier
-- `givenName`, `middleName`, `familyName` (text with ASCII folding): Provider name fields
-- `licenseJurisdiction` (keyword): Home license jurisdiction
-- `licenseStatus` (keyword): Current license status (active/inactive)
-- `compactEligibility` (keyword): Compact eligibility status
-- `dateOfExpiration` (date): License expiration date
-- `npi` (keyword): National Provider Identifier
-- `privilegeJurisdictions` (keyword array): Jurisdictions where provider has privileges
-
-**Nested Objects:**
-- `licenses`: Array of license records with full license details
-- `privileges`: Array of privilege records with privilege details
-- `militaryAffiliations`: Array of military affiliation records
+Each provider document contains all information you would see from the provider detail api endpoint with `readGeneral` permission. See the [application code](../../lambdas/python/search/handlers/manage_opensearch_indices.py) for the current mapping definition.
 
 The index uses a custom ASCII-folding analyzer for name fields, which allows searching for names with international
 characters using their ASCII equivalents (e.g., searching "Jose" matches "José").
@@ -758,96 +728,14 @@ and military affiliations.
 
 #### Privilege Search
 ```
-POST /v1/compacts/{compact}/privileges/search
+POST /v1/compacts/{compact}/privileges/export
 ```
 
 Returns flattened privilege records. This endpoint queries the same provider index but extracts and flattens
 privileges, combining privilege data with license data to provide a denormalized view suitable for privilege-focused
 reports and exports.
 
-### Request/Response Format
-
-Both endpoints accept OpenSearch DSL query bodies with pagination support:
-
-**Request Body:**
-```json
-{
-  "query": {
-    "bool": {
-      "must": [
-        { "match": { "givenName": "John" }},
-        { "term": { "licenseStatus": "active" }}
-      ]
-    }
-  },
-  "size": 100,
-  "sort": [{ "providerId": "asc" }],
-  "search_after": ["previous-provider-id"]
-}
-```
-
-**Provider Search Response:**
-```json
-{
-  "providers": [
-    {
-      "providerId": "...",
-      "givenName": "John",
-      "familyName": "Doe",
-      "licenses": [...],
-      "privileges": [...]
-    }
-  ],
-  "total": { "value": 150, "relation": "eq" },
-  "lastSort": ["current-provider-id"]
-}
-```
-
-**Privilege Search Response:**
-```json
-{
-  "privileges": [
-    {
-      "type": "statePrivilege",
-      "providerId": "...",
-      "jurisdiction": "ky",
-      "licenseJurisdiction": "oh",
-      "givenName": "John",
-      "familyName": "Doe",
-      "privilegeId": "PRIV-001",
-      "status": "active"
-    }
-  ],
-  "total": { "value": 50, "relation": "eq" },
-  "lastSort": ["current-provider-id"]
-}
-```
-
-### Pagination
-
-The API supports two pagination strategies following OpenSearch DSL conventions:
-
-1. **Offset Pagination** (`from`/`size`): Simple but limited to 10,000 results
-   ```json
-   { "from": 0, "size": 100 }
-   ```
-
-2. **Cursor-Based Pagination** (`search_after`): Recommended for large result sets
-   ```json
-   {
-     "sort": [{ "providerId": "asc" }],
-     "search_after": ["last-provider-id-from-previous-page"]
-   }
-   ```
-
-**Note**: When using `search_after`, a `sort` field is required. The `lastSort` value in the response can be passed
-as `search_after` in the next request.
-
-**Limits:**
-- Maximum page size: 100 records per request
-- Default page size: 10 records
-
-### Data Indexing
+### Document Indexing
 
 #### Initial Population / Re-indexing
 
@@ -860,7 +748,7 @@ The function:
 1. Scans the provider table using the `providerDateOfUpdate` GSI
 2. Retrieves complete provider records for each provider
 3. Sanitizes data using `ProviderGeneralResponseSchema`
-4. Bulk indexes documents in batches of 1,000
+4. Bulk indexes documents
 
 **Resumable Processing**: If the function approaches the 15-minute Lambda timeout, it returns pagination information in the 
 `resumeFrom` field that can be passed as lambda input to continue processing:
@@ -872,10 +760,17 @@ The function:
 }
 ```
 
-#### Index Management
+#### Updates via DynamoDB Streams
 
-The `IndexManagerCustomResource` is a CloudFormation custom resource that creates compact-specific indices when the
-stack is deployed. It ensures indices exist with the correct mapping before any indexing operations begin.
+To keep the OpenSearch index synchronized with changes in the provider DynamoDB table, the system uses DynamoDB Streams to capture all modifications made to provide records (see [AWS documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)). This ensures that provider documents in OpenSearch are updated automatically whenever records are created, modified, or deleted in the provider table.
+
+**Architecture Flow:**
+
+1. **DynamoDB Stream**: The provider table has a DynamoDB stream enabled with `NEW_AND_OLD_IMAGES` view type, which captures both the before and after state of any record modification.
+
+2. **EventBridge Pipe**: An EventBridge Pipe reads events from the DynamoDB stream and forwards them to an SQS queue.
+
+3. **Provider Update Ingest Lambda**: The Lambda function processes SQS message batches, determines the providers that were modified, and upserts their latest information into the appropriate OpenSearch index.
 
 ### Monitoring and Alarms
 
@@ -886,14 +781,6 @@ usage metrics to determine if the Domain needs to be scaled up:
 - **Memory Pressure**: Monitors JVM memory pressure
 - **Storage Space**: Alerts on low disk space
 - **Cluster Health**: Monitors yellow/red cluster status
-
-### Important OpenSearch Domain Maintenance Note
-**WARNING**: Updating the OpenSearch domain may require a blue/green deployment, which has been known to get stuck
-and require AWS support intervention. If you need to update any field that triggers a blue/green deployment (see
-[AWS documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes.html)),
-be prepared for worst-case scenario of deleting the entire search stack, re-deploying it, and re-indexing all data
-from the provider table. You should work with stakeholders to schedule a maintanence window during low traffic periods 
-for major updates where advanced search may be temporarily unavailable.
 
 ## CI/CD Pipelines
 
