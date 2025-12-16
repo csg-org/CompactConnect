@@ -131,7 +131,11 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 logger.error(
                     'Provider compact field does not match path parameter',
                     # This case is most likely the result of abuse or misconfiguration.
-                    # We log the request body for triaging purposes
+                    # We log the request body for triaging purposes. Although the request body
+                    # may contain PII, devops support will need to view the full query that allowed
+                    # the user to attempt the attack and what that user was attempting to extract.
+                    # The only personnel who have access to view the logs are the same that have
+                    # access to read records from the database.
                     request_body=body,
                     provider_id=source.get('providerId'),
                     provider_compact=sanitized_provider.get('compact'),
@@ -251,7 +255,11 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
                     logger.error(
                         'Privilege compact field does not match path parameter',
                         # This case is most likely the result of abuse or misconfiguration.
-                        # We log the request body for triaging purposes
+                        # We log the request body for triaging purposes. Although the request body
+                        # may contain PII, devops support will need to view the full query that allowed
+                        # the user to attempt the attack and what that user was attempting to extract.
+                        # The only personnel who have access to view the logs are the same that have
+                        # access to read records from the database.
                         request_body=body,
                         provider_id=provider.get('providerId'),
                         privilege_id=flattened_privilege.get('privilegeId'),
