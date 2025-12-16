@@ -454,7 +454,8 @@
         "dobMaxDate": "La fecha de nacimiento debe ser anterior o igual al día de hoy.",
         "dobMinDate": "La fecha de nacimiento debe ser posterior o igual al 01/01/1900.",
         "rateLimit": "Has superado el número máximo de intentos. Vuelve a intentarlo más tarde.",
-        "compactStatesLive": "Se produjo un error al obtener los estados activos compactos"
+        "compactStatesLive": "Se produjo un error al obtener los estados activos compactos",
+        "searchErrorGeneral": "Se produjo un error al buscar los registros. Inténtalo de nuevo."
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Verifique su número de teléfono siguiendo las indicaciones a continuación.",

@@ -147,7 +147,7 @@ export default {
         }).catch((error) => {
             dispatch('getPrivilegesFailure', error);
 
-            return error;
+            throw error;
         });
     },
     getPrivilegesSuccess: ({ commit }) => {

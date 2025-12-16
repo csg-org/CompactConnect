@@ -96,12 +96,12 @@
                     :startDate="new Date()"
                 />
             </div>
-            <div class="search-form-row">
+            <!-- <div class="search-form-row"> @TODO: Adding this in next PR with military status updates
                 <InputSelect
                     :formInput="formData.militaryStatus"
                     class="search-input military-status-select"
                 />
-            </div>
+            </div> -->
             <div class="search-form-row">
                 <InputSelect
                     :formInput="formData.investigationStatus"

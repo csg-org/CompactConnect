@@ -70,6 +70,7 @@ export interface LicenseSearch {
 class LicenseeSearch extends mixins(MixinForm) {
     @Prop({ default: {}}) searchParams!: LicenseSearch;
     @Prop({ default: false }) isPublicSearch!: boolean;
+    @Prop({ default: '' }) errorOverride?: string;
 
     //
     // Data
@@ -382,7 +383,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.privilegeState.value = 'co';
         this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
-        this.formData.militaryStatus.value = 'approved';
+        // this.formData.militaryStatus.value = 'approved'; // @TODO: Adding this in next PR with military status updates
         this.formData.investigationStatus.value = 'underInvestigation';
         this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
@@ -401,6 +402,16 @@ class LicenseeSearch extends mixins(MixinForm) {
     @Watch('compactStates') updateStateInput() {
         this.formData.homeState.valueOptions = this.stateOptions;
         this.formData.privilegeState.valueOptions = this.stateOptions;
+    }
+
+    @Watch('errorOverride') updateError() {
+        const { errorOverride } = this;
+
+        if (errorOverride) {
+            this.updateFormSubmitError(errorOverride);
+        } else {
+            this.validateAll();
+        }
     }
 }
 

@@ -35,6 +35,7 @@ export interface SearchParamsInterfaceLocal {
     pageNumber?: number;
     sortBy?: string;
     sortDirection?: string;
+    isForPrivileges?: boolean;
 }
 
 export interface SearchParamsInterfaceRemote {
@@ -128,6 +129,7 @@ export class SearchDataApi implements DataApiInterface {
             pageNumber,
             sortBy,
             sortDirection,
+            isForPrivileges
         } = params;
         const hasSearchTerms = Boolean(
             licenseeFirstName
@@ -154,6 +156,9 @@ export class SearchDataApi implements DataApiInterface {
             };
             const conditions = requestParams.query?.bool?.must || [];
 
+            //
+            // Licensee search props
+            //
             if (licenseeFirstName) {
                 conditions.push({ match_phrase_prefix: { givenName: licenseeFirstName }});
             }
@@ -163,109 +168,149 @@ export class SearchDataApi implements DataApiInterface {
             if (homeState) {
                 conditions.push({ term: { licenseJurisdiction: homeState }});
             }
-            if (privilegeState) {
-                conditions.push({
-                    nested: {
-                        path: 'privileges',
-                        query: {
-                            term: { 'privileges.jurisdiction': privilegeState },
-                        },
-                        inner_hits: {}
-                    },
-                });
+            if (militaryStatus) {
+                conditions.push({ term: { militaryStatus }});
             }
-            if (privilegePurchaseStartDate || privilegePurchaseEndDate) {
-                const condition = {
+            if (npi) {
+                conditions.push({ match: { npi }});
+            }
+            //
+            // Privilege search props
+            //
+            if (privilegeState || privilegePurchaseStartDate || privilegePurchaseEndDate) {
+                const privilegeCondition: any = {
                     nested: {
                         path: 'privileges',
                         query: {
                             bool: {
-                                should: [
-                                    {
-                                        range: {
-                                            'privileges.dateOfIssuance': {},
-                                        },
-                                    },
-                                    {
-                                        range: {
-                                            'privileges.dateOfRenewal': {},
-                                        },
-                                    },
-                                ],
-                                minimum_should_match: 1,
+                                must: [],
                             },
                         },
-                        inner_hits: {}
                     },
                 };
-                const conditionRules = condition.nested.query.bool.should;
+                const privilegeConditions = privilegeCondition.nested.query.bool.must || [];
 
-                conditionRules.forEach(({ range }) => {
-                    Object.keys(range).forEach((nestedDateKey) => {
-                        if (privilegePurchaseStartDate) {
-                            range[nestedDateKey].gte = privilegePurchaseStartDate;
-                        }
-                        if (privilegePurchaseEndDate) {
-                            range[nestedDateKey].lte = privilegePurchaseEndDate;
-                        }
-                    });
-                });
-
-                conditions.push(condition);
-            }
-            if (militaryStatus) {
-                conditions.push({ term: { militaryStatus }});
-            }
-            if (investigationStatus) {
-                if (investigationStatus === 'under-investigation') {
-                    conditions.push({
-                        nested: {
-                            path: 'investigations',
-                            query: {
-                                term: { 'investigations.type': 'investigation' },
-                            },
-                            inner_hits: {}
-                        },
-                    });
-                } else {
-                    conditions.push({
-                        nested: {
-                            path: 'investigations',
-                            query: {
-                                must_not: [{
-                                    term: { 'investigations.type': 'investigation' },
-                                }],
-                            },
-                            inner_hits: {}
-                        },
-                    });
+                if (isForPrivileges) {
+                    privilegeCondition.nested.inner_hits = {};
                 }
-            }
-            if (encumberStartDate || encumberEndDate) {
-                const condition = {
-                    nested: {
-                        path: 'adverseActions',
-                        query: {
+
+                if (privilegeState) {
+                    privilegeConditions.push({ term: { 'privileges.jurisdiction': privilegeState }});
+                }
+
+                if (privilegePurchaseStartDate || privilegePurchaseEndDate) {
+                    const dateConditions = [
+                        {
                             range: {
-                                'adverseActions.effectiveStartDate': {},
+                                'privileges.dateOfIssuance': {},
                             },
                         },
-                        inner_hits: {}
-                    },
-                };
-                const conditionRule: { gte?: string, lte?: string } = condition.nested.query.range['adverseActions.effectiveStartDate'];
+                        {
+                            range: {
+                                'privileges.dateOfRenewal': {},
+                            },
+                        },
+                    ];
 
-                if (encumberStartDate) {
-                    conditionRule.gte = encumberStartDate;
-                }
-                if (encumberEndDate) {
-                    conditionRule.lte = encumberEndDate;
+                    dateConditions.forEach((dateCondition) => {
+                        const { range } = dateCondition;
+
+                        Object.keys(range).forEach((nestedDateKey) => {
+                            if (privilegePurchaseStartDate) {
+                                range[nestedDateKey].gte = privilegePurchaseStartDate;
+                            }
+                            if (privilegePurchaseEndDate) {
+                                range[nestedDateKey].lte = privilegePurchaseEndDate;
+                            }
+                        });
+                        privilegeConditions.push(dateCondition);
+                    });
                 }
 
-                conditions.push(condition);
+                conditions.push(privilegeCondition);
             }
-            if (npi) {
-                conditions.push({ match: { npi }});
+            //
+            // Adverse action search props
+            //
+            if (encumberStartDate || encumberEndDate) {
+                const subConditions: any = {
+                    bool: {
+                        should: [],
+                        minimum_should_match: 1,
+                    }
+                };
+                const getSubCondition = (topPath: string) => {
+                    const nestedPath = `${topPath}.adverseActions`;
+                    const subCondition = {
+                        nested: {
+                            path: topPath,
+                            query: {
+                                nested: {
+                                    path: nestedPath,
+                                    query: {
+                                        range: {
+                                            [`${nestedPath}.effectiveStartDate`]: {},
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    };
+                    const subConditionRule: { gte?: string, lte?: string } = subCondition.nested.query.nested.query.range[`${nestedPath}.effectiveStartDate`];
+
+                    if (encumberStartDate) {
+                        subConditionRule.gte = encumberStartDate;
+                    }
+                    if (encumberEndDate) {
+                        subConditionRule.lte = encumberEndDate;
+                    }
+
+                    return subCondition;
+                };
+
+                subConditions.bool.should.push(getSubCondition('licenses'));
+                subConditions.bool.should.push(getSubCondition('privileges'));
+
+                conditions.push(subConditions);
+            }
+            //
+            // Investigation search props
+            //
+            if (investigationStatus) {
+                const subConditions: any = { bool: {}};
+                const getSubCondition = (topPath: string) => {
+                    const nestedPath = `${topPath}.investigations`;
+                    const subCondition = {
+                        nested: {
+                            path: topPath,
+                            query: {
+                                nested: {
+                                    path: nestedPath,
+                                    query: {
+                                        term: { [`${nestedPath}.type`]: 'investigation' },
+                                    },
+                                },
+                            },
+                        },
+                    };
+
+                    return subCondition;
+                };
+
+                if (investigationStatus === 'underInvestigation') {
+                    subConditions.bool.should = [
+                        getSubCondition('licenses'),
+                        getSubCondition('privileges'),
+                    ];
+                    subConditions.bool.minimum_should_match = 1;
+                } else {
+                    subConditions.bool.must_not = [
+                        getSubCondition('licenses'),
+                        getSubCondition('privileges'),
+                    ];
+                }
+
+                conditions.push(subConditions);
             }
         } else {
             requestParams.query = {
@@ -304,9 +349,7 @@ export class SearchDataApi implements DataApiInterface {
     public async getLicenseesSearchStaff(params: SearchParamsInterfaceLocal = {}) {
         const requestParams: SearchParamsInterfaceRemote = this.prepRequestSearchParams(params);
 
-        //
         // @TODO
-        //
         console.log(`request params:`);
         console.log(requestParams);
         console.log(JSON.stringify(requestParams, null, 2));
@@ -321,11 +364,6 @@ export class SearchDataApi implements DataApiInterface {
         };
 
         return response;
-
-        // return {
-        //     totalMatchCount: 0,
-        //     licensees: [],
-        // };
     }
 
     /**
@@ -336,21 +374,19 @@ export class SearchDataApi implements DataApiInterface {
     public async getPrivilegesExportStaff(params: SearchParamsInterfaceLocal = {}) {
         const requestParams: SearchParamsInterfaceRemote = this.prepRequestSearchParams(params);
 
-        //
         // @TODO
-        //
         console.log(`request params:`);
         console.log(requestParams);
         console.log(JSON.stringify(requestParams, null, 2));
         console.log(``);
 
-        // const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/privileges/export`, requestParams);
-        //
-        // return serverReponse;
+        const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/privileges/export`, requestParams);
 
-        return {
-            downloadUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
-        };
+        return serverReponse;
+
+        // return {
+        //     downloadUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
+        // };
     }
 }
 

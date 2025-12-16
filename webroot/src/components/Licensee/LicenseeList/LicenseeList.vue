@@ -13,6 +13,7 @@
                 <LicenseeSearch
                     :searchParams="searchParams"
                     :isPublicSearch="isPublicSearch"
+                    :errorOverride="searchErrorOverride"
                     @searchParams="handleSearch"
                 />
             </div>

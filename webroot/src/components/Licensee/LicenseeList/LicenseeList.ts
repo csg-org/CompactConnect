@@ -40,6 +40,7 @@ class LicenseeList extends Vue {
     //
     hasSearched = false;
     shouldShowSearchModal = false;
+    searchErrorOverride = '';
     isInitialFetchCompleted = false;
 
     //
@@ -206,12 +207,7 @@ class LicenseeList extends Vue {
 
     get sortOptions(): Array<any> {
         const options = [
-            // Temp for limited server sorting support
-            // { value: 'firstName', name: this.$t('common.firstName') },
             { value: 'lastName', name: this.$t('common.lastName'), isDefault: true },
-            // { value: 'licenseStates', name: this.$t('licensing.homeState') },
-            // { value: 'privilegeStates', name: this.$t('licensing.privileges') },
-            // { value: 'status', name: this.$t('licensing.status') },
         ];
 
         return options;
@@ -242,6 +238,7 @@ class LicenseeList extends Vue {
             paginationId: this.listId,
             newPage: 1,
         });
+        this.searchErrorOverride = '';
         this.fetchListData();
 
         if (!params.isDirectExport) {
@@ -308,21 +305,14 @@ class LicenseeList extends Vue {
         const requestConfig = this.prepareSearchBody();
 
         if (searchType === SearchTypes.PROVIDER) {
+            // Provider licensee search is a standard REST JSON call
             await this.$store.dispatch('license/getLicenseesSearchRequest', {
                 params: { ...requestConfig }
             });
         } else if (searchType === SearchTypes.PRIVILEGE) {
-            const response = await this.$store.dispatch('license/getPrivilegesRequest', {
-                params: { ...requestConfig }
-            });
-            const { downloadUrl } = response;
-            const tempLink = document.createElement('a');
-
-            tempLink.href = downloadUrl;
-            tempLink.target = '_blank'; // @TODO: Test with & without this against S3
-            tempLink.rel = 'noopener noreferrer';
-            tempLink.download = `privilege_export.csv`;
-            tempLink.click();
+            // Privilege search is a file download call
+            requestConfig.isForPrivileges = true;
+            await this.handlePrivilegeDownload(requestConfig);
         }
 
         this.isInitialFetchCompleted = true;
@@ -337,6 +327,7 @@ class LicenseeList extends Vue {
         const pagination = this.paginationStore.paginationMap[this.listId];
         const { page, size } = pagination || {};
         const requestConfig: SearchParamsInterfaceLocal = {};
+        const { isDirectExport } = searchParams;
 
         // Search params
         requestConfig.isPublic = this.isPublicSearch;
@@ -382,25 +373,53 @@ class LicenseeList extends Vue {
         }
 
         // Paging params
-        requestConfig.pageNumber = page;
-        requestConfig.pageSize = size;
-
-        // Sorting params
-        if (option) {
-            const serverSortByMap = {
-                firstName: 'givenName',
-                lastName: 'familyName',
-                lastUpdate: 'dateOfUpdate',
-            };
-
-            requestConfig.sortBy = serverSortByMap[option];
+        if (!isDirectExport) {
+            requestConfig.pageNumber = page;
+            requestConfig.pageSize = size;
         }
 
-        if (direction) {
-            requestConfig.sortDirection = direction;
+        // Sorting params
+        if (!isDirectExport) {
+            if (option) {
+                const serverSortByMap = {
+                    lastName: 'familyName',
+                };
+
+                requestConfig.sortBy = serverSortByMap[option];
+            }
+
+            if (direction) {
+                requestConfig.sortDirection = direction;
+            }
         }
 
         return requestConfig;
+    }
+
+    async handlePrivilegeDownload(requestConfig: SearchParamsInterfaceLocal): Promise<void> {
+        let errorMessage = '';
+        const response = await this.$store.dispatch('license/getPrivilegesRequest', {
+            params: { ...requestConfig }
+        }).catch((error) => {
+            errorMessage = error?.message || error;
+        });
+
+        if (errorMessage) {
+            this.searchErrorOverride = errorMessage;
+        } else if (response) {
+            const { fileUrl } = response;
+            const tempLink = document.createElement('a');
+
+            if (!fileUrl) {
+                this.searchErrorOverride = this.$t('serverErrors.searchErrorGeneral');
+            } else {
+                tempLink.href = fileUrl;
+                tempLink.target = '_blank';
+                tempLink.rel = 'noopener noreferrer';
+                tempLink.download = `privilege_export.csv`;
+                tempLink.click();
+            }
+        }
     }
 
     async sortingChange() {
