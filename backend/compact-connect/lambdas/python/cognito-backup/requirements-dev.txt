@@ -6,11 +6,11 @@
 #
 aws-lambda-powertools==3.23.0
     # via -r lambdas/python/cognito-backup/requirements-dev.in
-boto3==1.42.4
+boto3==1.42.11
     # via
     #   -r lambdas/python/cognito-backup/requirements-dev.in
     #   moto
-botocore==1.42.4
+botocore==1.42.11
     # via
     #   -r lambdas/python/cognito-backup/requirements-dev.in
     #   boto3
@@ -37,7 +37,7 @@ jmespath==1.0.1
     #   aws-lambda-powertools
     #   boto3
     #   botocore
-joserfc==1.5.0
+joserfc==1.6.0
     # via moto
 markupsafe==3.0.3
     # via
@@ -77,7 +77,7 @@ six==1.17.0
     # via python-dateutil
 typing-extensions==4.15.0
     # via aws-lambda-powertools
-urllib3==2.6.1
+urllib3==2.6.2
     # via
     #   botocore
     #   requests

@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/staff-users/requirements-dev.in
 #
-boto3==1.42.4
+boto3==1.42.11
     # via moto
-botocore==1.42.4
+botocore==1.42.11
     # via
     #   boto3
     #   moto
@@ -33,7 +33,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-joserfc==1.5.0
+joserfc==1.6.0
     # via moto
 markupsafe==3.0.3
     # via
@@ -64,9 +64,9 @@ s3transfer==0.16.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-tzdata==2025.2
+tzdata==2025.3
     # via faker
-urllib3==2.6.1
+urllib3==2.6.2
     # via
     #   botocore
     #   docker
