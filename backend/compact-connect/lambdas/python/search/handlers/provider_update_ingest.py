@@ -20,6 +20,9 @@ from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
 from utils import generate_provider_opensearch_document
 
+# Instantiate the OpenSearch client outside of the handler to cache connection between invocations
+opensearch_client = OpenSearchClient(timeout=30)
+
 
 @sqs_batch_handler
 def provider_update_ingest_handler(records: list[dict]) -> dict:
@@ -83,7 +86,6 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
             logger.warning('Unknown compact in record', compact=compact, provider_id=provider_id)
 
     # Process providers and bulk index by compact
-    opensearch_client = OpenSearchClient()
     batch_item_failures = []
     failed_providers: dict[str, set] = {compact: set() for compact in config.compacts}
 

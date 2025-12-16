@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 from common_test.test_constants import (
     DEFAULT_LICENSE_EXPIRATION_DATE,
@@ -119,10 +119,9 @@ class TestProviderUpdateIngest(TstFunction):
         if not bulk_index_response:
             bulk_index_response = {'items': [], 'errors': False}
 
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-        mock_client_instance.bulk_index.return_value = bulk_index_response
-        return mock_client_instance
+        # mock_opensearch_client is the patched instance, not the class
+        mock_opensearch_client.bulk_index.return_value = bulk_index_response
+        return mock_opensearch_client
 
     def _generate_expected_document(self, compact: str, provider_id: str = None) -> dict:
         """Generate the expected document that should be indexed into OpenSearch."""
@@ -184,13 +183,13 @@ class TestProviderUpdateIngest(TstFunction):
             'militaryAffiliations': [],
         }
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_opensearch_client_called_with_expected_parameters(self, mock_opensearch_client):
         """Test that OpenSearch client is called with expected parameters when indexing a record."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
@@ -215,27 +214,24 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that the OpenSearchClient was instantiated
-        mock_opensearch_client.assert_called_once()
-
         # Assert that bulk_index was called once with expected parameters
-        self.assertEqual(1, mock_client_instance.bulk_index.call_count)
+        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
 
         # Verify the call arguments
-        call_args = mock_client_instance.bulk_index.call_args
+        call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('aslp')], call_args.kwargs['documents'])
 
         # Verify no batch item failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_provider_ids_are_deduped_only_one_document_indexed(self, mock_opensearch_client):
         """Test that duplicate provider IDs in the batch are deduplicated."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
@@ -284,17 +280,17 @@ class TestProviderUpdateIngest(TstFunction):
         result = provider_update_ingest_handler(event, mock_context)
 
         # Assert that bulk_index was called only once despite 3 records
-        self.assertEqual(1, mock_client_instance.bulk_index.call_count)
+        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
 
         # Verify only ONE document was indexed (deduplication worked)
-        call_args = mock_client_instance.bulk_index.call_args
+        call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual(1, len(call_args.kwargs['documents']))
         self.assertEqual(MOCK_ASLP_PROVIDER_ID, call_args.kwargs['documents'][0]['providerId'])
 
         # Verify no batch item failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_validation_failure_returns_batch_item_failure(self, mock_opensearch_client):
         """Test that a record that fails validation is returned in batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
@@ -339,17 +335,13 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_opensearch_indexing_failure_returns_batch_item_failure(self, mock_opensearch_client):
         """Test that a record which fails to be indexed by OpenSearch is in batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client to return errors for specific documents
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-
         # Simulate OpenSearch returning an error for one document
-        mock_client_instance.bulk_index.return_value = {
+        mock_opensearch_client.bulk_index.return_value = {
             'errors': True,
             'items': [
                 {
@@ -412,16 +404,14 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12346', result['batchItemFailures'][0]['itemIdentifier'])
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_bulk_index_exception_returns_all_batch_item_failures(self, mock_opensearch_client):
         """Test that when bulk_index raises an exception, all providers are marked as failed."""
         from cc_common.exceptions import CCInternalException
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client to raise an exception
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-        mock_client_instance.bulk_index.side_effect = CCInternalException('Connection timeout after 5 retries')
+        mock_opensearch_client.bulk_index.side_effect = CCInternalException('Connection timeout after 5 retries')
 
         # Create provider and license records in DynamoDB for both compacts
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
@@ -462,13 +452,13 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
         self.assertEqual('12346', result['batchItemFailures'][1]['itemIdentifier'])
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_multiple_compacts_indexed_separately(self, mock_opensearch_client):
         """Test that providers from different compacts are indexed in their respective indices."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records for two different compacts
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
@@ -506,7 +496,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Assert that bulk_index was called for each compact that had providers
         # Note: The handler iterates over all compacts, but only calls bulk_index if there are documents
-        call_args_list = mock_client_instance.bulk_index.call_args_list
+        call_args_list = mock_opensearch_client.bulk_index.call_args_list
 
         # Find the calls for aslp and octp
         aslp_calls = [c for c in call_args_list if c.kwargs['index_name'] == 'compact_aslp_providers']
@@ -522,7 +512,7 @@ class TestProviderUpdateIngest(TstFunction):
         # Verify no batch item failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_empty_records_returns_empty_batch_failures(self, mock_opensearch_client):
         """Test that an empty Records list returns empty batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
@@ -536,9 +526,9 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
         # Verify OpenSearch client was never called
-        mock_opensearch_client.assert_not_called()
+        mock_opensearch_client.bulk_index.assert_not_called()
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_insert_event_without_old_image_indexes_successfully(self, mock_opensearch_client):
         """Test that INSERT events (newly created records) without OldImage are processed correctly.
 
@@ -549,7 +539,7 @@ class TestProviderUpdateIngest(TstFunction):
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
@@ -576,14 +566,11 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that the OpenSearchClient was instantiated
-        mock_opensearch_client.assert_called_once()
-
         # Assert that bulk_index was called with the correct parameters
-        self.assertEqual(1, mock_client_instance.bulk_index.call_count)
+        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
 
         # Verify the call arguments
-        call_args = mock_client_instance.bulk_index.call_args
+        call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('aslp')], call_args.kwargs['documents'])
 
@@ -624,7 +611,7 @@ class TestProviderUpdateIngest(TstFunction):
             'eventSourceARN': 'arn:aws:dynamodb:us-east-1:123456789012:table/provider-table/stream/1234',
         }
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_remove_event_with_only_old_image_indexes_successfully(self, mock_opensearch_client):
         """Test that REMOVE events (deleted records) with only OldImage are processed correctly.
 
@@ -635,7 +622,7 @@ class TestProviderUpdateIngest(TstFunction):
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('aslp')
@@ -660,21 +647,18 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that the OpenSearchClient was instantiated
-        mock_opensearch_client.assert_called_once()
-
         # Assert that bulk_index was called with the correct parameters
-        self.assertEqual(1, mock_client_instance.bulk_index.call_count)
+        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
 
         # Verify the call arguments
-        call_args = mock_client_instance.bulk_index.call_args
+        call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('aslp')], call_args.kwargs['documents'])
 
         # Verify no batch item failures for REMOVE event
         self.assertEqual({'batchItemFailures': []}, result)
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_provider_deleted_from_index_when_no_records_found(self, mock_opensearch_client):
         """Test that when no provider records are found (CCNotFoundException), bulk_delete is called.
 
@@ -685,10 +669,8 @@ class TestProviderUpdateIngest(TstFunction):
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-        mock_client_instance.bulk_index.return_value = {'items': [], 'errors': False}
-        mock_client_instance.bulk_delete.return_value = {'items': [], 'errors': False}
+        mock_opensearch_client.bulk_index.return_value = {'items': [], 'errors': False}
+        mock_opensearch_client.bulk_delete.return_value = set()  # bulk_delete returns a set of failed IDs
 
         # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
 
@@ -714,31 +696,26 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that the OpenSearchClient was instantiated
-        mock_opensearch_client.assert_called_once()
-
         # Assert that bulk_index was NOT called (no documents to index)
-        mock_client_instance.bulk_index.assert_not_called()
+        mock_opensearch_client.bulk_index.assert_not_called()
 
         # Assert that bulk_delete WAS called with the correct parameters
-        self.assertEqual(1, mock_client_instance.bulk_delete.call_count)
-        call_args = mock_client_instance.bulk_delete.call_args
+        self.assertEqual(1, mock_opensearch_client.bulk_delete.call_count)
+        call_args = mock_opensearch_client.bulk_delete.call_args
         self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
         self.assertEqual([MOCK_ASLP_PROVIDER_ID], call_args.kwargs['document_ids'])
 
         # Verify no batch item failures (deletion is expected behavior, not a failure)
         self.assertEqual({'batchItemFailures': []}, result)
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_bulk_delete_failure_returns_batch_item_failure(self, mock_opensearch_client):
         """Test that when bulk_delete fails, the provider is returned in batchItemFailures."""
         from cc_common.exceptions import CCInternalException
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         # Set up mock OpenSearch client - bulk_delete raises exception
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-        mock_client_instance.bulk_delete.side_effect = CCInternalException('Connection timeout after 5 retries')
+        mock_opensearch_client.bulk_delete.side_effect = CCInternalException('Connection timeout after 5 retries')
 
         # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
 
@@ -768,7 +745,7 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
-    @patch('handlers.provider_update_ingest.OpenSearchClient')
+    @patch('handlers.provider_update_ingest.opensearch_client')
     def test_bulk_delete_404_not_found_does_not_return_batch_item_failure(self, mock_opensearch_client):
         """Test that when bulk_delete returns 404 (document not found), it is NOT treated as a failure.
 
@@ -779,28 +756,9 @@ class TestProviderUpdateIngest(TstFunction):
         """
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client - bulk_delete returns 404 not_found response
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-
         # Simulate OpenSearch bulk delete response when document doesn't exist
-        mock_client_instance.bulk_delete.return_value = {
-            'errors': True,  # OpenSearch reports this as an "error" even though it's just not found
-            'items': [
-                {
-                    'delete': {
-                        '_index': 'compact_aslp_providers',
-                        '_id': MOCK_ASLP_PROVIDER_ID,
-                        'status': 404,
-                        'result': 'not_found',
-                        'error': {
-                            'type': 'document_missing_exception',
-                            'reason': f'[_doc][{MOCK_ASLP_PROVIDER_ID}]: document missing',
-                        },
-                    }
-                }
-            ],
-        }
+        # bulk_delete returns a set of failed document IDs, empty set means no failures (404 is ignored)
+        mock_opensearch_client.bulk_delete.return_value = set()
 
         # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
 
@@ -827,7 +785,7 @@ class TestProviderUpdateIngest(TstFunction):
         result = provider_update_ingest_handler(event, mock_context)
 
         # Assert that bulk_delete was called
-        self.assertEqual(1, mock_client_instance.bulk_delete.call_count)
+        self.assertEqual(1, mock_opensearch_client.bulk_delete.call_count)
 
         # Verify NO batch item failures - 404 is not treated as an error
         self.assertEqual({'batchItemFailures': []}, result)

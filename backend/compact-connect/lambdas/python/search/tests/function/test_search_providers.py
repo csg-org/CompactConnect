@@ -1,8 +1,8 @@
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
-from opensearchpy.exceptions import RequestError
 
 from . import TstFunction
 
@@ -54,7 +54,7 @@ class TestSearchProviders(TstFunction):
         """
         Configure the mock OpenSearchClient for testing.
 
-        :param mock_opensearch_client: The patched OpenSearchClient class
+        :param mock_opensearch_client: The patched opensearch_client instance
         :param search_response: The response to return from the search method
         :return: The mock client instance
         """
@@ -66,10 +66,9 @@ class TestSearchProviders(TstFunction):
                 }
             }
 
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-        mock_client_instance.search.return_value = search_response
-        return mock_client_instance
+        # mock_opensearch_client is the patched instance, not the class
+        mock_opensearch_client.search.return_value = search_response
+        return mock_opensearch_client
 
     def _create_mock_provider_hit(
         self,
@@ -102,24 +101,23 @@ class TestSearchProviders(TstFunction):
             hit['sort'] = sort_values
         return hit
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_basic_search_with_match_all_query(self, mock_opensearch_client):
         """Test that a basic search with no query uses match_all."""
         from handlers.search import search_api_handler
 
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create event with minimal body - just the required query field
         event = self._create_api_event(compact='aslp', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
-        # Verify OpenSearchClient was instantiated and search was called
-        mock_opensearch_client.assert_called_once()
-        mock_client_instance.search.assert_called_once()
+        # Verify search was called
+        mock_opensearch_client.search.assert_called_once()
 
         # Verify the search was called with correct parameters
-        mock_client_instance.search.assert_called_once_with(
+        mock_opensearch_client.search.assert_called_once_with(
             index_name='compact_aslp_providers', body={'query': {'match_all': {}}, 'size': 100}
         )
 
@@ -128,12 +126,12 @@ class TestSearchProviders(TstFunction):
         body = json.loads(response['body'])
         self.assertEqual({'providers': [], 'total': {'relation': 'eq', 'value': 0}}, body)
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_search_with_custom_query(self, mock_opensearch_client):
         """Test that a custom OpenSearch query is passed through correctly."""
         from handlers.search import search_api_handler
 
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create a custom bool query
         custom_query = {
@@ -149,7 +147,7 @@ class TestSearchProviders(TstFunction):
         search_api_handler(event, self.mock_context)
 
         # Verify the custom query was passed through
-        mock_client_instance.search.assert_called_once_with(
+        mock_opensearch_client.search.assert_called_once_with(
             index_name='compact_aslp_providers',
             body={
                 'query': {'bool': {'must': [{'match': {'givenName': 'John'}}, {'term': {'licenseStatus': 'active'}}]}},
@@ -158,7 +156,7 @@ class TestSearchProviders(TstFunction):
             },
         )
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_search_size_capped_at_max(self, mock_opensearch_client):
         """Test that size parameter is capped at MAX_SIZE (100)."""
         from handlers.search import search_api_handler
@@ -175,14 +173,14 @@ class TestSearchProviders(TstFunction):
             },
             json.loads(result['body']),
         )
-        mock_opensearch_client.assert_not_called()
+        mock_opensearch_client.search.assert_not_called()
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_search_with_sort_parameter(self, mock_opensearch_client):
         """Test that sort parameter is included in the search body."""
         from handlers.search import search_api_handler
 
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         sort_config = [{'providerId': 'asc'}, {'dateOfUpdate': 'desc'}]
         search_after_values = ['provider-uuid-123']
@@ -197,7 +195,7 @@ class TestSearchProviders(TstFunction):
 
         search_api_handler(event, self.mock_context)
 
-        mock_client_instance.search.assert_called_once_with(
+        mock_opensearch_client.search.assert_called_once_with(
             index_name='compact_aslp_providers',
             body={
                 'query': {'match_all': {}},
@@ -207,7 +205,7 @@ class TestSearchProviders(TstFunction):
             },
         )
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_search_after_without_sort_returns_400(self, mock_opensearch_client):
         """Test that search_after without sort raises an error."""
         from handlers.search import search_api_handler
@@ -242,7 +240,7 @@ class TestSearchProviders(TstFunction):
         body = json.loads(response['body'])
         self.assertIn('Invalid request', body['message'])
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_search_returns_sanitized_providers(self, mock_opensearch_client):
         """Test that provider records are sanitized through ProviderGeneralResponseSchema."""
         from handlers.search import search_api_handler
@@ -288,7 +286,7 @@ class TestSearchProviders(TstFunction):
             body,
         )
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_search_response_includes_last_sort_for_pagination(self, mock_opensearch_client):
         """Test that lastSort is included in response for search_after pagination."""
         from handlers.search import search_api_handler
@@ -317,21 +315,21 @@ class TestSearchProviders(TstFunction):
         self.assertIn('lastSort', body)
         self.assertEqual(['provider-uuid-123', '2024-01-15T10:30:00+00:00'], body['lastSort'])
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_search_uses_correct_index_for_compact(self, mock_opensearch_client):
         """Test that the correct index name is used based on the compact parameter."""
         from handlers.search import search_api_handler
 
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Test with different compacts
         for compact in ['aslp', 'octp', 'coun']:
-            mock_client_instance.reset_mock()
+            mock_opensearch_client.reset_mock()
 
             event = self._create_api_event(compact, body={'query': {'match_all': {}}})
             search_api_handler(event, self.mock_context)
 
-            call_args = mock_client_instance.search.call_args
+            call_args = mock_opensearch_client.search.call_args
             self.assertEqual(f'compact_{compact}_providers', call_args.kwargs['index_name'])
 
     def test_missing_scopes_returns_403(self):
@@ -436,35 +434,18 @@ class TestSearchProviders(TstFunction):
         self.assertIn('Cross-index queries are not allowed', body['message'])
         self.assertIn("'index'", body['message'])
 
-    @patch('opensearch_client.OpenSearch')
+    @patch('handlers.search.opensearch_client')
     def test_opensearch_request_error_returns_400_with_error_message(self, mock_opensearch_client):
         """Test that OpenSearch RequestError with status 400 returns error message to caller."""
         from handlers.search import search_api_handler
 
-        # Configure the mock internal OpenSearch client to raise a RequestError
-        mock_internal_client = Mock()
-        mock_opensearch_client.return_value = mock_internal_client
-
         # Create a RequestError with realistic OpenSearch error structure
         error_reason = (
-            'Text fields are not optimised for operations that require per-document field data '
+            'Invalid search query: Text fields are not optimised for operations that require per-document field data '
             'like aggregations and sorting, so these operations are disabled by default. '
             'Please use a keyword field instead.'
         )
-        error_info = {
-            'error': {
-                'root_cause': [
-                    {
-                        'type': 'illegal_argument_exception',
-                        'reason': error_reason,
-                    }
-                ],
-                'type': 'search_phase_execution_exception',
-                'reason': 'all shards failed',
-            },
-            'status': 400,
-        }
-        mock_internal_client.search.side_effect = RequestError(400, 'search_phase_execution_exception', error_info)
+        mock_opensearch_client.search.side_effect = CCInvalidRequestException(error_reason)
 
         event = self._create_api_event(
             'aslp',
@@ -478,12 +459,9 @@ class TestSearchProviders(TstFunction):
 
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertEqual(
-            f'Invalid search query: {error_reason}',
-            body['message'],
-        )
+        self.assertEqual(error_reason, body['message'])
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_provider_with_mismatched_compact_returns_400(self, mock_opensearch_client):
         """Test that a provider with a compact field that doesn't match the path parameter returns 400."""
         from handlers.search import search_api_handler

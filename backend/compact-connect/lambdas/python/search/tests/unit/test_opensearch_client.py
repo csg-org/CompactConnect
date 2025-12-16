@@ -108,7 +108,7 @@ class TestOpenSearchClient(TestCase):
 
         result = client.search(index_name=index_name, body=query_body)
 
-        mock_internal_client.search.assert_called_once_with(index=index_name, body=query_body, timeout=20)
+        mock_internal_client.search.assert_called_once_with(index=index_name, body=query_body)
         self.assertEqual(expected_response, result)
 
     def test_search_raises_cc_invalid_request_exception_on_400_request_error(self):
@@ -225,7 +225,7 @@ class TestOpenSearchClient(TestCase):
             {'index': {'_id': 'provider-2'}},
             {'providerId': 'provider-2', 'givenName': 'Jane', 'familyName': 'Smith'},
         ]
-        mock_internal_client.bulk.assert_called_once_with(body=expected_actions, index=index_name, timeout=30)
+        mock_internal_client.bulk.assert_called_once_with(body=expected_actions, index=index_name)
         self.assertEqual(expected_response, result)
 
     def test_bulk_index_uses_custom_id_field(self):
@@ -247,7 +247,7 @@ class TestOpenSearchClient(TestCase):
             {'index': {'_id': 'custom-2'}},
             {'customId': 'custom-2', 'name': 'Document 2'},
         ]
-        mock_internal_client.bulk.assert_called_once_with(body=expected_actions, index=index_name, timeout=30)
+        mock_internal_client.bulk.assert_called_once_with(body=expected_actions, index=index_name)
 
     def test_bulk_index_returns_early_for_empty_documents(self):
         """Test that bulk_index returns early without calling the internal client for empty documents."""

@@ -52,6 +52,11 @@ PRIVILEGE_CSV_FIELDS = [
 ]
 
 
+# Instantiate the OpenSearch client outside of the handler to cache connection between invocations
+# Set timeout to 20 seconds to give API gateway time to respond with response
+opensearch_client = OpenSearchClient(timeout=20)
+
+
 @api_handler
 @authorize_compact_level_only_action(action=CCPermissionsAction.READ_GENERAL)
 def search_api_handler(event: dict, context: LambdaContext):
@@ -105,8 +110,7 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     logger.info('Executing OpenSearch provider search', compact=compact, index_name=index_name)
 
     # Execute the search
-    client = OpenSearchClient()
-    response = client.search(index_name=index_name, body=search_body)
+    response = opensearch_client.search(index_name=index_name, body=search_body)
 
     # Extract hits from the response
     hits_data = response.get('hits', {})
@@ -200,8 +204,7 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
     logger.info('Executing OpenSearch privilege export', compact=compact, index_name=index_name)
 
     # Execute the search
-    client = OpenSearchClient()
-    response = client.search(index_name=index_name, body=search_body)
+    response = opensearch_client.search(index_name=index_name, body=search_body)
 
     # Extract hits from the response
     hits_data = response.get('hits', {})

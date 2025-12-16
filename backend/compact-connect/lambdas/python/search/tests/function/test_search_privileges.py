@@ -1,5 +1,5 @@
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from moto import mock_aws
 
@@ -54,7 +54,7 @@ class TestExportPrivileges(TstFunction):
         """
         Configure the mock OpenSearchClient for testing.
 
-        :param mock_opensearch_client: The patched OpenSearchClient class
+        :param mock_opensearch_client: The patched opensearch_client instance
         :param search_response: The response to return from the search method
         :return: The mock client instance
         """
@@ -66,10 +66,9 @@ class TestExportPrivileges(TstFunction):
                 }
             }
 
-        mock_client_instance = Mock()
-        mock_opensearch_client.return_value = mock_client_instance
-        mock_client_instance.search.return_value = search_response
-        return mock_client_instance
+        # mock_opensearch_client is the patched instance, not the class
+        mock_opensearch_client.search.return_value = search_response
+        return mock_opensearch_client
 
     def _create_mock_provider_hit_with_privileges(
         self,
@@ -140,7 +139,7 @@ class TestExportPrivileges(TstFunction):
             hit['sort'] = sort_values
         return hit
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_privilege_export_returns_presigned_url(self, mock_opensearch_client):
         """Test that privilege export returns a presigned URL to a CSV file."""
         from handlers.search import search_api_handler
@@ -191,7 +190,7 @@ class TestExportPrivileges(TstFunction):
         self.assertIn('00000000-0000-0000-0000-000000000001', csv_content)
         self.assertIn('PRIV-001', csv_content)
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_privilege_export_with_empty_results_returns_404(self, mock_opensearch_client):
         """Test that privilege export with no results returns a 404 error."""
         from handlers.search import search_api_handler
@@ -225,7 +224,7 @@ class TestExportPrivileges(TstFunction):
         # Should have no objects
         self.assertEqual(0, response.get('KeyCount', 0))
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_privilege_export_skips_provider_without_privileges_returns_404(self, mock_opensearch_client):
         """Test that providers without privileges result in a 404 error."""
         from handlers.search import search_api_handler
@@ -282,7 +281,7 @@ class TestExportPrivileges(TstFunction):
         # Should have no objects
         self.assertEqual(0, response.get('KeyCount', 0))
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_privilege_export_with_multiple_inner_hits_exports_all_matched(self, mock_opensearch_client):
         """Test that when inner_hits contains multiple matches, all are exported to CSV."""
         from handlers.search import search_api_handler
@@ -477,7 +476,7 @@ class TestExportPrivileges(TstFunction):
             lines[2],
         )
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_privilege_export_without_inner_hits_exports_all_privileges(self, mock_opensearch_client):
         """Test that without inner_hits, all privileges for matching providers are exported."""
         from handlers.search import search_api_handler
@@ -740,7 +739,7 @@ class TestExportPrivileges(TstFunction):
         self.assertIn('Cross-index queries are not allowed', body['message'])
         self.assertIn("'index'", body['message'])
 
-    @patch('handlers.search.OpenSearchClient')
+    @patch('handlers.search.opensearch_client')
     def test_privilege_with_mismatched_compact_returns_400(self, mock_opensearch_client):
         """Test that a privilege with a compact field that doesn't match the path parameter returns 400."""
         from handlers.search import search_api_handler

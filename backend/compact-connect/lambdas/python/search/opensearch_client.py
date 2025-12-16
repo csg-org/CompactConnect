@@ -12,7 +12,6 @@ INITIAL_BACKOFF_SECONDS = 2
 MAX_BACKOFF_SECONDS = 32
 
 DEFAULT_TIMEOUT = 30
-SEARCH_TIMEOUT = 20
 
 
 class OpenSearchClient:
@@ -144,23 +143,21 @@ class OpenSearchClient:
             f'{operation_name} failed after {MAX_RETRY_ATTEMPTS} attempts. Last error: {last_exception}'
         )
 
-    def search(self, index_name: str, body: dict, timeout: int = SEARCH_TIMEOUT) -> dict:
+    def search(self, index_name: str, body: dict) -> dict:
         """
         Execute a search query against the specified index.
 
         :param index_name: The name of the index to search
         :param body: The OpenSearch query body
-        :param timeout: How long to wait before raising a connection timeout exception
         :return: The search response from OpenSearch
         :raises CCInvalidRequestException: If the query is invalid (400 error) or times out
         """
         try:
-            return self._client.search(index=index_name, body=body, timeout=timeout)
+            return self._client.search(index=index_name, body=body)
         except ConnectionTimeout as e:
             logger.warning(
                 'OpenSearch search request timed out',
                 index_name=index_name,
-                timeout=timeout,
                 error=str(e),
             )
             # We are returning this as an invalid request exception so the UI client picks it up as
@@ -309,7 +306,7 @@ class OpenSearchClient:
 
         for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
             try:
-                return self._client.bulk(body=actions, index=index_name, timeout=DEFAULT_TIMEOUT)
+                return self._client.bulk(body=actions, index=index_name)
             except (ConnectionTimeout, TransportError) as e:
                 last_exception = e
                 if attempt < MAX_RETRY_ATTEMPTS:
