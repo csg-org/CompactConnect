@@ -482,3 +482,47 @@ class TestSearchProviders(TstFunction):
             f'Invalid search query: {error_reason}',
             body['message'],
         )
+
+    @patch('handlers.search.OpenSearchClient')
+    def test_provider_with_mismatched_compact_returns_400(self, mock_opensearch_client):
+        """Test that a provider with a compact field that doesn't match the path parameter returns 400."""
+        from handlers.search import search_api_handler
+
+        # Create a provider hit with a different compact than the path parameter
+        provider_id = '00000000-0000-0000-0000-000000000001'
+        hit = {
+            '_index': 'compact_aslp_providers',
+            '_id': provider_id,
+            '_score': 1.0,
+            '_source': {
+                'providerId': provider_id,
+                'type': 'provider',
+                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                'compact': 'octp',  # Different from path parameter 'aslp'
+                'licenseJurisdiction': 'oh',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+                'givenName': 'John',
+                'familyName': 'Doe',
+                'dateOfExpiration': '2025-12-31',
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+                'birthMonthDay': '06-15',
+            },
+        }
+        search_response = {
+            'hits': {
+                'total': {'value': 1, 'relation': 'eq'},
+                'hits': [hit],
+            }
+        }
+        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
+
+        # Request for 'aslp' compact but provider has 'octp' compact
+        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertEqual('Invalid request body', body['message'])

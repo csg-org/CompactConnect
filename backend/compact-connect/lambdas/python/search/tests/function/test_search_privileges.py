@@ -739,3 +739,85 @@ class TestExportPrivileges(TstFunction):
         body = json.loads(response['body'])
         self.assertIn('Cross-index queries are not allowed', body['message'])
         self.assertIn("'index'", body['message'])
+
+    @patch('handlers.search.OpenSearchClient')
+    def test_privilege_with_mismatched_compact_returns_400(self, mock_opensearch_client):
+        """Test that a privilege with a compact field that doesn't match the path parameter returns 400."""
+        from handlers.search import search_api_handler
+
+        provider_id = '00000000-0000-0000-0000-000000000001'
+        # Create a provider hit with a privilege that has a different compact than the path parameter
+        hit = {
+            '_index': 'compact_aslp_providers',
+            '_id': provider_id,
+            '_score': 1.0,
+            '_source': {
+                'providerId': provider_id,
+                'type': 'provider',
+                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                'compact': 'aslp',
+                'licenseJurisdiction': 'oh',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+                'givenName': 'John',
+                'familyName': 'Doe',
+                'dateOfExpiration': '2025-12-31',
+                'jurisdictionUploadedLicenseStatus': 'active',
+                'jurisdictionUploadedCompactEligibility': 'eligible',
+                'birthMonthDay': '06-15',
+                'licenses': [
+                    {
+                        'providerId': provider_id,
+                        'type': 'license-home',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'compact': 'aslp',
+                        'jurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'licenseStatus': 'active',
+                        'compactEligibility': 'eligible',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
+                        'givenName': 'John',
+                        'familyName': 'Doe',
+                        'dateOfIssuance': '2020-01-01',
+                        'dateOfRenewal': '2024-01-01',
+                        'dateOfExpiration': '2025-12-31',
+                        'npi': '1234567890',
+                        'licenseNumber': 'AUD-12345',
+                    }
+                ],
+                'privileges': [
+                    {
+                        'type': 'privilege',
+                        'providerId': provider_id,
+                        'compact': 'octp',  # Different from path parameter 'aslp'
+                        'jurisdiction': 'ky',
+                        'licenseJurisdiction': 'oh',
+                        'licenseType': 'audiologist',
+                        'dateOfIssuance': '2024-01-15',
+                        'dateOfRenewal': '2024-01-15',
+                        'dateOfExpiration': '2025-01-15',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'administratorSetStatus': 'active',
+                        'privilegeId': 'PRIV-001',
+                        'status': 'active',
+                    }
+                ],
+            },
+        }
+        search_response = {
+            'hits': {
+                'total': {'value': 1, 'relation': 'eq'},
+                'hits': [hit],
+            }
+        }
+        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
+
+        # Request for 'aslp' compact but privilege has 'octp' compact
+        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertEqual('Invalid request body', body['message'])

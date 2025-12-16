@@ -189,9 +189,7 @@ class TestOpenSearchClient(TestCase):
         query_body = {'query': {'match_all': {}}}
 
         # Simulate OpenSearch timing out
-        mock_internal_client.search.side_effect = ConnectionTimeout(
-            'Connection timed out', 503, 'Read timed out'
-        )
+        mock_internal_client.search.side_effect = ConnectionTimeout('Connection timed out', 503, 'Read timed out')
 
         with self.assertRaises(CCInvalidRequestException) as context:
             client.search(index_name=index_name, body=query_body)

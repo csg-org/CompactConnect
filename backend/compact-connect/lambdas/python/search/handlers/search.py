@@ -122,12 +122,24 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         source = hit.get('_source', {})
         try:
             sanitized_provider = general_schema.load(source)
+            # Verify compact matches path parameter
+            if sanitized_provider.get('compact') != compact:
+                logger.error(
+                    'Provider compact field does not match path parameter',
+                    # This case is most likely the result of abuse or misconfiguration.
+                    # We log the request body for triaging purposes
+                    request_body=body,
+                    provider_id=source.get('providerId'),
+                    provider_compact=sanitized_provider.get('compact'),
+                    path_compact=compact,
+                )
+                raise CCInvalidRequestException('Invalid request body')
             sanitized_providers.append(sanitized_provider)
             # Track the sort values from the last hit for search_after pagination
             last_sort = hit.get('sort')
         except ValidationError as e:
             # Log the error but continue processing other records
-            logger.warning(
+            logger.error(
                 'Failed to sanitize provider record',
                 provider_id=source.get('providerId'),
                 errors=e.messages,
@@ -210,42 +222,51 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
 
     for hit in hits:
         provider = hit.get('_source', {})
-        try:
-            # Check if inner_hits are present for privileges
-            # If so, use only the matched privileges; otherwise, use all privileges
-            inner_hits = hit.get('inner_hits', {})
-            privileges_inner_hits = inner_hits.get('privileges', {}).get('hits', {}).get('hits', [])
+        # Check if inner_hits are present for privileges
+        # If so, use only the matched privileges; otherwise, use all privileges
+        inner_hits = hit.get('inner_hits', {})
+        privileges_inner_hits = inner_hits.get('privileges', {}).get('hits', {}).get('hits', [])
 
-            if privileges_inner_hits:
-                # Use only the privileges that matched the nested query
-                matched_privileges = [ih.get('_source', {}) for ih in privileges_inner_hits]
-                provider_privileges = _extract_flattened_privileges_from_list(
-                    privileges=matched_privileges,
-                    licenses=provider.get('licenses', []),
-                    provider=provider,
-                )
-            else:
-                # No inner_hits, return all privileges for this provider
-                provider_privileges = _extract_flattened_privileges(provider)
+        if privileges_inner_hits:
+            # Use only the privileges that matched the nested query
+            matched_privileges = [ih.get('_source', {}) for ih in privileges_inner_hits]
+            provider_privileges = _extract_flattened_privileges_from_list(
+                privileges=matched_privileges,
+                licenses=provider.get('licenses', []),
+                provider=provider,
+            )
+        else:
+            # No inner_hits, return all privileges for this provider
+            provider_privileges = _extract_flattened_privileges(provider)
 
-            for flattened_privilege in provider_privileges:
-                try:
-                    # Sanitize using StatePrivilegeGeneralResponseSchema
-                    sanitized_privilege = privilege_schema.load(flattened_privilege)
-                    flattened_privileges.append(sanitized_privilege)
-                except ValidationError as e:
-                    logger.warning(
-                        'Failed to sanitize flattened privilege record',
+        for flattened_privilege in provider_privileges:
+            try:
+                # Sanitize using StatePrivilegeGeneralResponseSchema
+                sanitized_privilege = privilege_schema.load(flattened_privilege)
+                # Verify compact matches path parameter
+                if sanitized_privilege.get('compact') != compact:
+                    logger.error(
+                        'Privilege compact field does not match path parameter',
+                        # This case is most likely the result of abuse or misconfiguration.
+                        # We log the request body for triaging purposes
+                        request_body=body,
                         provider_id=provider.get('providerId'),
                         privilege_id=flattened_privilege.get('privilegeId'),
-                        errors=e.messages,
+                        privilege_compact=sanitized_privilege.get('compact'),
+                        path_compact=compact,
                     )
-        except Exception as e:  # noqa: BLE001 broad-exception-caught
-            logger.warning(
-                'Failed to process provider privileges',
-                provider_id=provider.get('providerId'),
-                error=str(e),
-            )
+                    raise CCInvalidRequestException('Invalid request body')
+                flattened_privileges.append(sanitized_privilege)
+            except ValidationError as e:
+                logger.error(
+                    'Failed to sanitize flattened privilege record',
+                    provider_id=provider.get('providerId'),
+                    privilege_id=flattened_privilege.get('privilegeId'),
+                    errors=e.messages,
+                )
+                # We don't want to return partial privilege reports
+                # If we experience a failure here we need to exit
+                raise CCInternalException('Failed to process privilege results') from e
 
     logger.info('Found privileges to export', count=len(flattened_privileges))
 
