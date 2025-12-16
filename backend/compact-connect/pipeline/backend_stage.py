@@ -235,27 +235,24 @@ class BackendStage(Stage):
         self.data_migration_stack.add_dependency(self.event_listener_stack)
 
         # Search Persistent Stack - OpenSearch Domain for advanced provider search
-        # currently not deploying to prod or beta to reduce costs until search api functionality is completed
-        # to reduce costs
-        if environment_name != 'prod' and environment_name != 'beta':
-            self.search_persistent_stack = SearchPersistentStack(
-                self,
-                'SearchPersistentStack',
-                env=environment,
-                environment_context=environment_context,
-                standard_tags=standard_tags,
-                environment_name=environment_name,
-                vpc_stack=self.vpc_stack,
-                persistent_stack=self.persistent_stack,
-            )
+        self.search_persistent_stack = SearchPersistentStack(
+            self,
+            'SearchPersistentStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            vpc_stack=self.vpc_stack,
+            persistent_stack=self.persistent_stack,
+        )
 
-            self.search_api_stack = SearchApiStack(
-                self,
-                'SearchAPIStack',
-                env=environment,
-                environment_context=environment_context,
-                standard_tags=standard_tags,
-                environment_name=environment_name,
-                persistent_stack=self.persistent_stack,
-                search_persistent_stack=self.search_persistent_stack,
-            )
+        self.search_api_stack = SearchApiStack(
+            self,
+            'SearchAPIStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            persistent_stack=self.persistent_stack,
+            search_persistent_stack=self.search_persistent_stack,
+        )
