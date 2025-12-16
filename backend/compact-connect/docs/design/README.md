@@ -700,7 +700,7 @@ The search infrastructure consists of several key components:
 ### Index Structure
 
 Provider documents are stored in compact-specific indices with the naming convention: `compact_{compact}_providers_{version}`
-(e.g., `compact_aslp_providers_v1`). We use index aliases to provide a stable reference to the current version of each index (e.g., `compact_aslp_providers`), allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See https://docs.opensearch.org/latest/im-plugin/index-alias/ for more information.
+(e.g., `compact_aslp_providers_v1`). We use index aliases to provide a stable reference to the current version of each index (e.g., `compact_aslp_providers`), allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
 
 #### Index Management
 
