@@ -57,6 +57,8 @@ class ProviderManagementLambdas:
         api_lambda_stack.log_groups.append(self.deactivate_privilege_handler.log_group)
         self.provider_encumbrance_handler = self._add_provider_encumbrance_handler(lambda_environment)
         api_lambda_stack.log_groups.append(self.provider_encumbrance_handler.log_group)
+        self.military_audit_handler = self._add_military_audit_handler(lambda_environment)
+        api_lambda_stack.log_groups.append(self.military_audit_handler.log_group)
 
     def _create_provider_investigation_handler(self, lambda_environment: dict) -> PythonFunction:
         """Create and configure the Lambda handler for investigating a provider's privilege or license."""
@@ -349,6 +351,39 @@ class ProviderManagementLambdas:
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'encumbrance.py'),
             handler='encumbrance_handler',
+            environment=lambda_environment,
+            alarm_topic=self.persistent_stack.alarm_topic,
+        )
+        self.persistent_stack.provider_table.grant_read_write_data(handler)
+        self.persistent_stack.staff_users.user_table.grant_read_data(handler)
+        self.data_event_bus.grant_put_events_to(handler)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(handler.role),
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read/write '
+                    'and is scoped to the needed tables and event bus.',
+                },
+            ],
+        )
+
+        return handler
+
+    def _add_military_audit_handler(
+        self,
+        lambda_environment: dict,
+    ) -> PythonFunction:
+        """Create and configure the Lambda handler for auditing military affiliation records."""
+        handler = PythonFunction(
+            self.scope,
+            'MilitaryAuditHandler',
+            description='Military audit handler',
+            lambda_dir='provider-data-v1',
+            index=os.path.join('handlers', 'military_audit.py'),
+            handler='military_audit_handler',
             environment=lambda_environment,
             alarm_topic=self.persistent_stack.alarm_topic,
         )

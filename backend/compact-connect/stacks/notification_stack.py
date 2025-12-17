@@ -67,6 +67,9 @@ class NotificationStack(AppStack):
         self._add_privilege_investigation_closed_notification_listener(
             persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
         )
+        self._add_military_audit_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
 
     def _add_privilege_purchase_notification_chain(
         self, persistent_stack: ps.PersistentStack, data_event_bus: IEventBus
@@ -339,6 +342,20 @@ class NotificationStack(AppStack):
             index='investigation_events.py',
             handler='privilege_investigation_closed_notification_listener',
             listener_detail_type='privilege.investigationClosed',
+            persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
+        )
+
+    def _add_military_audit_notification_listener(
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
+    ):
+        """Add the military audit notification listener lambda, queues, and event rules."""
+        self._add_emailer_event_listener(
+            construct_id_prefix='MilitaryAuditNotificationListener',
+            index='military_audit_events.py',
+            handler='military_audit_notification_listener',
+            listener_detail_type='militaryAffiliation.audit',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
             event_state_stack=event_state_stack,
