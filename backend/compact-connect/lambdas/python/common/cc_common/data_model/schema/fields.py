@@ -15,6 +15,7 @@ from cc_common.data_model.schema.common import (
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
+from cc_common.data_model.schema.common import MilitaryAuditStatus
 
 # This is a special value that is used to indicate that the provider's home jurisdiction is not known.
 # This can happen if a provider moves to a jurisdiction that is not part of the compact.
@@ -130,6 +131,11 @@ class ClinicalPrivilegeActionCategoryField(String):
 class InvestigationAgainstField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in InvestigationAgainstEnum]), **kwargs)
+
+
+class MilitaryAuditStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in MilitaryAuditStatus]), **kwargs)
 
 
 class PositiveDecimal(Decimal):

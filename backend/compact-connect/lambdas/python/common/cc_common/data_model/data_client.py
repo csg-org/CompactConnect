@@ -27,6 +27,7 @@ from cc_common.data_model.schema.common import (
     InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
+    MilitaryAuditStatus,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
@@ -786,6 +787,72 @@ class DataClient:
                 record.update({'status': MilitaryAffiliationStatus.INACTIVE.value})
                 serialized_record = record.serialize_to_database_record()
                 batch.put_item(Item=serialized_record)
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'military_status')
+    def process_military_audit(
+        self,
+        *,
+        compact: str,
+        provider_id: UUID,
+        military_status: MilitaryAuditStatus,
+        military_status_note: str | None = None,
+    ) -> None:
+        """
+        Update provider and latest military affiliation with audit result in a transaction.
+
+        This method:
+        1. Gets the provider record
+        2. Updates provider record with militaryStatus and militaryStatusNote
+        3. Creates provider update record with updated values
+        4. Executes both updates in a DynamoDB transaction
+
+        :param compact: The compact name
+        :param provider_id: The provider id
+        :param military_status: The audit result status (approved or declined)
+        :param military_status_note: Optional note from the admin (typically for declines)
+        :raises CCNotFoundException: If provider or military affiliation not found
+        """
+        logger.info('Processing military audit')
+
+        # Get provider records
+        provider_user_records = self.get_provider_user_records(compact=compact, provider_id=provider_id)
+        provider_record = provider_user_records.get_provider_record()
+        latest_military_affiliation = provider_user_records.get_latest_military_affiliation()
+
+        if not latest_military_affiliation:
+            logger.error('No military affiliation record found for provider')
+            raise CCNotFoundException('No military affiliation records found for this provider')
+
+        # Prepare the note value (empty string if not provided)
+        note_value = military_status_note or ''
+
+        # Update provider record with military status
+        provider_record.update(
+            {
+                'militaryStatus': military_status.value,
+                'militaryStatusNote': note_value,
+            }
+        )
+
+        #TODO - create provider update record to track any previous values
+
+        # Execute both updates in a transaction
+        self.config.dynamodb_client.transact_write_items(
+            TransactItems=[
+                # Update provider record
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                    }
+                },
+            ]
+        )
+
+        logger.info(
+            'Military audit processed successfully',
+            military_status=military_status.value,
+        )
 
     @logger_inject_kwargs(logger, 'compact', 'provider_ids')
     def batch_get_providers_by_id(self, compact: str, provider_ids: list[str]) -> list[dict]:
