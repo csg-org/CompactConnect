@@ -59,7 +59,6 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | compactEligibility* | Whether this license makes the licensee eligible to participate in the compact based on the compact's requirements. Cannot be `eligible` if licenseStatus is `inactive`. *Note: licenses will automatically be displayed as `ineligible` after their date of expiration, even if the last upload still showed them as `eligible`.* | One of: `eligible`, `ineligible` | eligible |
 | emailAddress | Provider's email address (optional) | Email (max 100 chars) | john.smith@example.com |
 | homeAddressStreet2 | Second line of provider's street address (optional) | String (max 100 chars) | Suite 100 |
-| licenseNumber | License number (optional) | String (max 100 chars) | OT12345 |
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
 | npi | National Provider Identifier (optional) | 10-digit number | 1234567890 |
 | phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
