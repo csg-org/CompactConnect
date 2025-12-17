@@ -5,7 +5,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
 )
 from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
-from marshmallow.validate import Length
+from marshmallow.validate import Length, OneOf
 
 
 class PrivilegeEventPrivilegeSchema(ForgivingSchema):
@@ -84,3 +84,13 @@ class PrivilegeRevertDetailSchema(DataEventDetailBaseSchema):
     startTime = DateTime(required=True, allow_none=False)
     endTime = DateTime(required=True, allow_none=False)
     rollbackExecutionName = String(required=True, allow_none=False)
+
+
+class MilitaryAuditEventDetailSchema(ForgivingSchema):
+    """Schema for military audit event details."""
+
+    compact = Compact(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    auditResult = String(required=True, allow_none=False, validate=OneOf(['approved', 'declined']))
+    auditNote = String(required=False, allow_none=False)
+    eventTime = DateTime(required=True, allow_none=False)
