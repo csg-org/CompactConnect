@@ -147,6 +147,25 @@ class ProviderData(CCDataClass):
     def currentHomeJurisdiction(self) -> str | None:
         return self._data.get('currentHomeJurisdiction')
 
+    @property
+    def militaryStatus(self) -> str:
+        """
+        The military audit status of the provider.
+
+        Possible values: 'notApplicable', 'tentative', 'approved', 'declined'
+        Default is 'notApplicable' if no military documentation has been uploaded.
+        """
+        return self._data.get('militaryStatus')
+
+    @property
+    def militaryStatusNote(self) -> str:
+        """
+        The note from the most recent military audit decision (if declined).
+
+        Empty string if no note has been provided.
+        """
+        return self._data.get('militaryStatusNote')
+
 
 class ProviderUpdateData(CCDataClass):
     """

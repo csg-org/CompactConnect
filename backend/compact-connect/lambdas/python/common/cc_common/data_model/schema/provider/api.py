@@ -13,6 +13,7 @@ from cc_common.data_model.schema.fields import (
     CompactEligibility,
     CurrentHomeJurisdictionField,
     Jurisdiction,
+    MilitaryAuditStatusField,
     NationalProviderIdentifier,
     Set,
     SocialSecurityNumber,
@@ -127,6 +128,10 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
         Nested(MilitaryAffiliationReadPrivateResponseSchema(), required=False, allow_none=False)
     )
 
+    # Military audit status fields
+    militaryStatus = MilitaryAuditStatusField(required=False, allow_none=False)
+    militaryStatusNote = String(required=False, allow_none=False)
+
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=True, allow_none=False)
     ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
@@ -178,6 +183,10 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
+
+    # Military audit status fields
+    militaryStatus = MilitaryAuditStatusField(required=False, allow_none=False)
+    militaryStatusNote = String(required=False, allow_none=False)
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):

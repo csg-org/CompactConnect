@@ -770,6 +770,16 @@ class ProviderUserRecords:
 
         return latest_military_affiliation.status
 
+    def get_latest_military_affiliation(self) -> MilitaryAffiliationData | None:
+        """
+        Get the most recent military affiliation record for this provider.
+        :return: The most recent military affiliation record if present, else None
+        """
+        if not self._military_affiliation_records:
+            return None
+
+        return sorted(self._military_affiliation_records, key=lambda x: x.dateOfUpload, reverse=True)[0]
+
     def get_all_license_update_records(
         self,
         filter_condition: Callable[[LicenseUpdateData], bool] | None = None,

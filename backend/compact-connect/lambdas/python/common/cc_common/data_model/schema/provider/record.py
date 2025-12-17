@@ -22,10 +22,12 @@ from cc_common.data_model.schema.fields import (
     CurrentHomeJurisdictionField,
     Jurisdiction,
     LicenseEncumberedStatusField,
+    MilitaryAuditStatusField,
     NationalProviderIdentifier,
     Set,
     UpdateType,
 )
+from cc_common.data_model.schema.common import MilitaryAuditStatus
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
 
@@ -77,6 +79,10 @@ class ProviderRecordSchema(BaseRecordSchema):
     recoveryToken = String(required=False, allow_none=False)
     recoveryExpiry = DateTime(required=False, allow_none=False)
 
+    # Military audit status fields
+    militaryStatus = MilitaryAuditStatusField(required=False, allow_none=False)
+    militaryStatusNote = String(required=False, allow_none=False)
+
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
@@ -93,7 +99,16 @@ class ProviderRecordSchema(BaseRecordSchema):
     def _calculate_statuses(self, in_data, **_kwargs):
         """Determine the statuses of the record based on the expiration date"""
         in_data = self._calculate_license_status(in_data)
-        return self._calculate_compact_eligibility(in_data)
+        in_data = self._calculate_compact_eligibility(in_data)
+        return self._set_military_status_defaults(in_data)
+
+    def _set_military_status_defaults(self, in_data, **_kwargs):
+        """Set default values for military audit status fields if not present"""
+        if 'militaryStatus' not in in_data:
+            in_data['militaryStatus'] = MilitaryAuditStatus.NOT_APPLICABLE
+        if 'militaryStatusNote' not in in_data:
+            in_data['militaryStatusNote'] = ''
+        return in_data
 
     def _calculate_license_status(self, in_data, **_kwargs):
         """Determine the status of the license based on the expiration date"""
@@ -206,6 +221,8 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
+    militaryStatus = MilitaryAuditStatusField(required=False, allow_none=False)
+    militaryStatusNote = String(required=False, allow_none=False)
 
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)

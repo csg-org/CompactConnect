@@ -292,6 +292,14 @@ class InvestigationAgainstEnum(StrEnum):
     PRIVILEGE = 'privilege'
     LICENSE = 'license'
 
+class MilitaryAuditStatus(CCEnum):
+    """Status of military documentation audit by compact admins."""
+
+    NOT_APPLICABLE = 'notApplicable'
+    TENTATIVE = 'tentative'
+    APPROVED = 'approved'
+    DECLINED = 'declined'
+
 
 class UpdateCategory(CCEnum):
     DEACTIVATION = 'deactivation'
