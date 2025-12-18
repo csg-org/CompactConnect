@@ -56,6 +56,18 @@ export interface SearchParamsInterfaceRemote {
     };
 }
 
+const appWindow = window as any;
+
+appWindow.ccQueryToggle = (): void => {
+    if (appWindow.ccIsQueryLogEnabled) {
+        appWindow.ccIsQueryLogEnabled = false;
+        console.log('CompactConnect search query logging: DISABLED');
+    } else {
+        appWindow.ccIsQueryLogEnabled = true;
+        console.log('CompactConnect search query logging: ENABLED');
+    }
+};
+
 export interface DataApiInterface {
     api: AxiosInstance;
 }
@@ -349,11 +361,11 @@ export class SearchDataApi implements DataApiInterface {
     public async getLicenseesSearchStaff(params: SearchParamsInterfaceLocal = {}) {
         const requestParams: SearchParamsInterfaceRemote = this.prepRequestSearchParams(params);
 
-        // @TODO
-        console.log(`request params:`);
-        console.log(requestParams);
-        console.log(JSON.stringify(requestParams, null, 2));
-        console.log(``);
+        if (appWindow.ccIsQueryLogEnabled) {
+            console.log(`${new Date()}:`);
+            console.log(JSON.stringify(requestParams, null, 2));
+            console.log(``);
+        }
 
         const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/search`, requestParams);
         const { total = {}, providers } = serverReponse;
@@ -374,11 +386,11 @@ export class SearchDataApi implements DataApiInterface {
     public async getPrivilegesExportStaff(params: SearchParamsInterfaceLocal = {}) {
         const requestParams: SearchParamsInterfaceRemote = this.prepRequestSearchParams(params);
 
-        // @TODO
-        console.log(`request params:`);
-        console.log(requestParams);
-        console.log(JSON.stringify(requestParams, null, 2));
-        console.log(``);
+        if (appWindow.ccIsQueryLogEnabled) {
+            console.log(`${new Date()}:`);
+            console.log(JSON.stringify(requestParams, null, 2));
+            console.log(``);
+        }
 
         const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/privileges/export`, requestParams);
 

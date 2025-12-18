@@ -46,11 +46,8 @@ export default class Pagination extends mixins(MixinForm) {
     //
     // Data
     //
-    paginationStore: any = {};
     ellipsis = (key) => createPaginationItem(key, -1);
     defaultPageSizeOptions = [
-        // { value: 2, name: '2', isDefault: true },
-        // { value: 10, name: '10', isDefault: false },
         { value: 25, name: '25', isDefault: true },
     ];
 
@@ -60,7 +57,6 @@ export default class Pagination extends mixins(MixinForm) {
     // Lifecycle
     //
     created() {
-        this.paginationStore = this.$store.state.pagination;
         this.initFormInputs();
 
         const {
@@ -91,16 +87,29 @@ export default class Pagination extends mixins(MixinForm) {
     }
 
     mounted() {
-        const { currentPage, pageSize, pageChange } = this;
+        const {
+            currentPage,
+            pageSize,
+            pageChange,
+            paginationStore,
+            paginationId
+        } = this;
         const firstIndex = (currentPage - 1) * pageSize;
         const lastIndex = currentPage * pageSize;
+        const { page = 0, size = 0 } = paginationStore.paginationMap[paginationId] || {};
 
-        pageChange(firstIndex, lastIndex);
+        if ((page * size) !== lastIndex) {
+            pageChange(firstIndex, lastIndex);
+        }
     }
 
     //
     // Computed
     //
+    get paginationStore() {
+        return this.$store.state.pagination;
+    }
+
     get pageSizeOptions(): Array<any> {
         const { pageSizeConfig, defaultPageSizeOptions } = this;
         let options = pageSizeConfig;
@@ -186,21 +195,6 @@ export default class Pagination extends mixins(MixinForm) {
     }
 
     //
-    // Watchers
-    //
-    @Watch('$props', { deep: true }) calculateNewIndices() {
-        nextTick(() => {
-            const {
-                pageSize, pageChange, $store, paginationId
-            } = this;
-            const newFirstIndex = 1 - 1;
-
-            $store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
-            pageChange(newFirstIndex, newFirstIndex + pageSize);
-        });
-    }
-
-    //
     // Methods
     //
     initFormInputs(): void {
@@ -248,5 +242,26 @@ export default class Pagination extends mixins(MixinForm) {
 
         $store.dispatch('pagination/updatePaginationSize', { paginationId, newSize });
         pageChange(newFirstIndex, newFirstIndex + newSize);
+    }
+
+    resetPaging(): void {
+        // If any variables that affect paging have changed (page size, etc.) then we need to reset to the first page with the new variables.
+        nextTick(() => {
+            const { pageSize, pageChange, paginationId } = this;
+
+            this.$store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
+            pageChange(0, pageSize);
+        });
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('$props.paginationId') handleUpdatePagingId() {
+        this.resetPaging();
+    }
+
+    @Watch('$props.pageSizeConfig', { deep: true }) handleUpdatePageSizeConfig() {
+        this.resetPaging();
     }
 }
