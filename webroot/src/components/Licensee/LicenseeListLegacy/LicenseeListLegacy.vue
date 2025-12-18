@@ -16,7 +16,7 @@
                     @searchParams="handleSearch"
                 />
             </div>
-            <div v-else class="licesee-list-container">
+            <div v-else class="licensee-list-container">
                 <div class="list-actions-container">
                     <h1 class="list-title no-margin">{{ $t('licensing.licensingListTitle') }}</h1>
                     <div class="search-toggle-container">

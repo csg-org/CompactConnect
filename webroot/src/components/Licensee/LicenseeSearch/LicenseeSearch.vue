@@ -69,7 +69,7 @@
             <div class="search-form-row">
                 <div
                     class="date-section-label search-input"
-                    aria-label="$t('licensing.privilegePurchased')"
+                    :aria-label="$t('licensing.privilegePurchased')"
                     tabindex="0"
                 >
                     {{ $t('licensing.privilegePurchased') }}
@@ -111,7 +111,7 @@
             <div class="search-form-row">
                 <div
                     class="date-section-label search-input"
-                    aria-label="$t('licensing.encumbered')"
+                    :aria-label="$t('licensing.encumbered')"
                     tabindex="0"
                 >
                     {{ $t('licensing.encumbered') }}

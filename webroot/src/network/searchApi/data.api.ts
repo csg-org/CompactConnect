@@ -194,23 +194,25 @@ export class SearchDataApi implements DataApiInterface {
                     nested: {
                         path: 'privileges',
                         query: {
-                            bool: {
-                                must: [],
-                            },
+                            bool: {},
                         },
                     },
                 };
-                const privilegeConditions = privilegeCondition.nested.query.bool.must || [];
+                const privilegeConditionBool = privilegeCondition.nested.query.bool;
 
                 if (isForPrivileges) {
                     privilegeCondition.nested.inner_hits = {};
                 }
 
                 if (privilegeState) {
-                    privilegeConditions.push({ term: { 'privileges.jurisdiction': privilegeState }});
+                    privilegeConditionBool.must = [
+                        { term: { 'privileges.jurisdiction': privilegeState }},
+                    ];
                 }
 
                 if (privilegePurchaseStartDate || privilegePurchaseEndDate) {
+                    privilegeConditionBool.should = [];
+                    privilegeConditionBool.minimum_should_match = 1;
                     const dateConditions = [
                         {
                             range: {
@@ -235,7 +237,7 @@ export class SearchDataApi implements DataApiInterface {
                                 range[nestedDateKey].lte = privilegePurchaseEndDate;
                             }
                         });
-                        privilegeConditions.push(dateCondition);
+                        privilegeConditionBool.should.push(dateCondition);
                     });
                 }
 
