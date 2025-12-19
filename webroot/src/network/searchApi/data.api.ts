@@ -99,13 +99,13 @@ export class SearchDataApi implements DataApiInterface {
     /**
      * Attach Axios interceptors with injected contexts.
      * https://github.com/axios/axios#interceptors
-     * @param {Store} store
+     * @param {Router} router
      */
-    public initInterceptors(store) {
+    public initInterceptors(router) {
         const requestSuccessInterceptor = requestSuccess();
         const requestErrorInterceptor = requestError();
         const responseSuccessInterceptor = responseSuccess();
-        const responseErrorInterceptor = responseError(store);
+        const responseErrorInterceptor = responseError(router);
 
         // Request Interceptors
         this.api.interceptors.request.use(
@@ -370,7 +370,7 @@ export class SearchDataApi implements DataApiInterface {
         }
 
         const serverResponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/search`, requestParams);
-        const { total = {}, providers } = serverResponse;
+        const { total = {}, providers = [] } = serverResponse;
         const { value: totalMatchCount } = total;
         const response = {
             totalMatchCount,
@@ -397,10 +397,6 @@ export class SearchDataApi implements DataApiInterface {
         const serverResponse: any = await this.api.post(`/v1/compacts/${params.compact}/privileges/export`, requestParams);
 
         return serverResponse;
-
-        // return {
-        //     downloadUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
-        // };
     }
 }
 
