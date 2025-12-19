@@ -67,11 +67,7 @@
                 />
             </div>
             <div class="search-form-row">
-                <div
-                    class="date-section-label search-input"
-                    :aria-label="$t('licensing.privilegePurchased')"
-                    tabindex="0"
-                >
+                <div id="privilege-purchase-dates-label" class="date-section-label search-input">
                     {{ $t('licensing.privilegePurchased') }}
                 </div>
             </div>
@@ -84,6 +80,7 @@
                     :preventMinMaxNavigation="true"
                     :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
                     :startDate="new Date()"
+                    aria-labelledby="privilege-purchase-dates-label"
                 />
                 <span class="date-range-separator">-</span>
                 <InputDate
@@ -94,6 +91,7 @@
                     :preventMinMaxNavigation="true"
                     :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
                     :startDate="new Date()"
+                    aria-labelledby="privilege-purchase-dates-label"
                 />
             </div>
             <!-- <div class="search-form-row"> @TODO: Adding this in next PR with military status updates
@@ -109,11 +107,7 @@
                 />
             </div>
             <div class="search-form-row">
-                <div
-                    class="date-section-label search-input"
-                    :aria-label="$t('licensing.encumbered')"
-                    tabindex="0"
-                >
+                <div id="encumber-dates-label" class="date-section-label search-input">
                     {{ $t('licensing.encumbered') }}
                 </div>
             </div>
@@ -126,6 +120,7 @@
                     :preventMinMaxNavigation="true"
                     :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
                     :startDate="new Date()"
+                    aria-labelledby="encumber-dates-label"
                 />
                 <span class="date-range-separator">-</span>
                 <InputDate
@@ -136,6 +131,7 @@
                     :preventMinMaxNavigation="true"
                     :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
                     :startDate="new Date()"
+                    aria-labelledby="encumber-dates-label"
                 />
             </div>
             <div class="search-form-row">
@@ -150,7 +146,7 @@
                     :formInput="formData.submit"
                     :label="$t('common.search')"
                     class="search-input search-submit"
-                    :isDisabled="!isSearchButtonEnabled"
+                    :isEnabled="isSearchButtonEnabled"
                 />
                 <InputSubmit
                     v-else-if="isSearchByPrivileges"

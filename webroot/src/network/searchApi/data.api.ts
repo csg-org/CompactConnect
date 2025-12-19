@@ -369,8 +369,8 @@ export class SearchDataApi implements DataApiInterface {
             console.log(``);
         }
 
-        const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/search`, requestParams);
-        const { total = {}, providers } = serverReponse;
+        const serverResponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/search`, requestParams);
+        const { total = {}, providers } = serverResponse;
         const { value: totalMatchCount } = total;
         const response = {
             totalMatchCount,
@@ -394,9 +394,9 @@ export class SearchDataApi implements DataApiInterface {
             console.log(``);
         }
 
-        const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/privileges/export`, requestParams);
+        const serverResponse: any = await this.api.post(`/v1/compacts/${params.compact}/privileges/export`, requestParams);
 
-        return serverReponse;
+        return serverResponse;
 
         // return {
         //     downloadUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
