@@ -44,12 +44,35 @@ from cc_common.data_model.schema.privilege import PrivilegeData  # noqa: E402
 from cc_common.data_model.schema.provider import ProviderData  # noqa: E402
 
 
-def get_table_by_pattern(tables: list[str], pattern: str) -> str:
-    """Find table name that contains the given pattern."""
+def get_table_by_pattern(tables: list[str], pattern: str, environment_name: str) -> str:
+    """
+    Find table name that contains the given pattern and validates it matches the environment.
+
+    :param tables: List of table names to search
+    :param pattern: Pattern to search for in table names
+    :param environment_name: Required environment name to validate (e.g., 'beta' validates 'Beta-')
+    :return: Matching table name
+    """
     matching_tables = [t for t in tables if pattern in t]
     if not matching_tables:
         raise ValueError(f'No table found containing pattern: {pattern}')
-    return matching_tables[0]
+
+    # Validate that the table name starts with the environment name (case insensitive)
+    # Capitalize first letter and add dash for pattern matching (e.g., 'beta' -> 'Beta-')
+    env_prefix = f'{environment_name.capitalize()}-'
+    validated_tables = [t for t in matching_tables if t.lower().startswith(env_prefix.lower())]
+    if not validated_tables:
+        raise ValueError(
+            f'Table found with pattern "{pattern}" but does not match environment "{environment_name}". '
+            f'Expected table name to start with "{env_prefix}" (case insensitive). '
+            f'Found tables: {", ".join(matching_tables)}'
+        )
+    if len(validated_tables) > 1:
+        raise ValueError(
+            f'Multiple tables found matching pattern "{pattern}" and environment "{environment_name}": '
+            f'{", ".join(validated_tables)}'
+        )
+    return validated_tables[0]
 
 
 def query_eligible_providers(
@@ -211,6 +234,13 @@ def main():
         print('Error: home-state and privilege-state must be different')
         sys.exit(1)
 
+    # Prompt for environment name for safety validation
+    print('\n⚠️  WARNING: This script will write directly to the database.')
+    environment_name = input('Enter the environment name (e.g., beta, prod, sandbox, test): ').strip()
+    if not environment_name:
+        print('Error: Environment name is required')
+        sys.exit(1)
+
     # Initialize DynamoDB resources
     dynamodb_config = Config(retries=dict(max_attempts=10))
     dynamodb = boto3.resource('dynamodb', config=dynamodb_config)
@@ -219,7 +249,9 @@ def main():
     # Get table names
     tables = dynamodb_client.list_tables()['TableNames']
 
-    provider_table = dynamodb.Table(get_table_by_pattern(tables, 'ProviderTable'))
+    provider_table_name = get_table_by_pattern(tables, 'ProviderTable', environment_name)
+    print(f'✓ Validated table: {provider_table_name}')
+    provider_table = dynamodb.Table(provider_table_name)
 
     # Set the environment variable that cc_common modules expect
     os.environ['PROVIDER_TABLE_NAME'] = provider_table.name
