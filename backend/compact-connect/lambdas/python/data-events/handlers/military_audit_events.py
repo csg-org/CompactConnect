@@ -3,8 +3,8 @@ from uuid import UUID
 from cc_common.config import config, logger
 from cc_common.data_model.schema.data_event.api import MilitaryAuditEventDetailSchema
 from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
-from cc_common.utils import sqs_handler_with_notification_tracking
 from cc_common.exceptions import CCInternalException
+from cc_common.utils import sqs_handler_with_notification_tracking
 
 
 @sqs_handler_with_notification_tracking
@@ -62,7 +62,9 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
             return
 
         # Determine event type and send appropriate notification
-        event_type = EventType.MILITARY_AUDIT_APPROVED if audit_result == 'approved' else EventType.MILITARY_AUDIT_DECLINED
+        event_type = (
+            EventType.MILITARY_AUDIT_APPROVED if audit_result == 'approved' else EventType.MILITARY_AUDIT_DECLINED
+        )
 
         try:
             if audit_result == 'approved':
@@ -96,4 +98,3 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
                 error_message=str(e),
             )
             raise
-

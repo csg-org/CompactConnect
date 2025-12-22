@@ -292,6 +292,7 @@ class InvestigationAgainstEnum(StrEnum):
     PRIVILEGE = 'privilege'
     LICENSE = 'license'
 
+
 class MilitaryAuditStatus(CCEnum):
     """Status of military documentation audit by compact admins."""
 
@@ -307,6 +308,7 @@ class UpdateCategory(CCEnum):
     ISSUANCE = 'issuance'
     RENEWAL = 'renewal'
     MILITARY_AUDIT = 'militaryAudit'
+    MILITARY_FILE_UPLOAD = 'militaryFileUpload'
     ENCUMBRANCE = 'encumbrance'
     INVESTIGATION = 'investigation'
     CLOSING_INVESTIGATION = 'closingInvestigation'

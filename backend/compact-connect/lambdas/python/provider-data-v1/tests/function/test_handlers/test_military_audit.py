@@ -2,12 +2,11 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
-from moto import mock_aws
-
 from common_test.test_constants import (
     DEFAULT_COMPACT,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
 )
+from moto import mock_aws
 
 from .. import TstFunction
 
@@ -19,7 +18,9 @@ MILITARY_AUDIT_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/providers/{providerId
 class TestMilitaryAudit(TstFunction):
     """Test suite for military audit endpoint."""
 
-    def _when_testing_military_audit(self, military_status: str, military_status_note: str | None = None, test_provider = None):
+    def _when_testing_military_audit(
+        self, military_status: str, military_status_note: str | None = None, test_provider=None
+    ):
         """Set up test data and generate test event for military audit."""
         # Create provider and military affiliation records
         if test_provider is None:
@@ -79,8 +80,8 @@ class TestMilitaryAudit(TstFunction):
 
         # Verify provider record was updated
         updated_provider_record = self.config.data_client.get_provider_top_level_record(
-            compact=test_provider.compact, provider_id=test_provider.providerId)
-
+            compact=test_provider.compact, provider_id=test_provider.providerId
+        )
 
         self.assertEqual('approved', updated_provider_record.militaryStatus)
         self.assertEqual('', updated_provider_record.militaryStatusNote)
@@ -96,7 +97,8 @@ class TestMilitaryAudit(TstFunction):
 
         # Verify provider record was updated
         updated_provider_record = self.config.data_client.get_provider_top_level_record(
-            compact=test_provider.compact, provider_id=test_provider.providerId)
+            compact=test_provider.compact, provider_id=test_provider.providerId
+        )
 
         self.assertEqual('declined', updated_provider_record.militaryStatus)
         self.assertEqual('Invalid documentation', updated_provider_record.militaryStatusNote)
@@ -105,14 +107,18 @@ class TestMilitaryAudit(TstFunction):
         """Test that an invalid military status returns 400 error."""
         from handlers.military_audit import military_audit_handler
 
-        event, _ = self._when_testing_military_audit('foo',
-                                                     'Documentation verified',)
+        event, _ = self._when_testing_military_audit(
+            'foo',
+            'Documentation verified',
+        )
 
         response = military_audit_handler(event, self.mock_context)
 
         self.assertEqual(400, response['statusCode'])
-        self.assertEqual({'message': "Invalid request body: {'militaryStatus': ['Must be one of: "
-            "approved, declined.']}"}, json.loads(response['body']))
+        self.assertEqual(
+            {'message': "Invalid request body: {'militaryStatus': ['Must be one of: approved, declined.']}"},
+            json.loads(response['body']),
+        )
 
     def test_military_audit_missing_status_returns_400(self):
         """Test that missing military status returns 400 error."""
@@ -145,9 +151,7 @@ class TestMilitaryAudit(TstFunction):
         # Only create provider, no military affiliation
         test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
 
-        event, _ = self._when_testing_military_audit('approved',
-                                                     'Documentation verified',
-                                                     test_provider=test_provider)
+        event, _ = self._when_testing_military_audit('approved', 'Documentation verified', test_provider=test_provider)
 
         response = military_audit_handler(event, self.mock_context)
 
@@ -190,9 +194,7 @@ class TestMilitaryAudit(TstFunction):
         )
         self.test_data_generator.put_default_military_affiliation_in_provider_table()
 
-        event, _ = self._when_testing_military_audit('approved',
-                                                     'Documentation verified',
-                                                     test_provider=test_provider)
+        event, _ = self._when_testing_military_audit('approved', 'Documentation verified', test_provider=test_provider)
 
         response = military_audit_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -219,4 +221,3 @@ class TestMilitaryAudit(TstFunction):
         # Verify updated values
         self.assertEqual('approved', update_data.updatedValues['militaryStatus'])
         self.assertEqual('Documentation verified', update_data.updatedValues['militaryStatusNote'])
-

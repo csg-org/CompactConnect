@@ -1,4 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from marshmallow import Schema
 from marshmallow.fields import Dict, List, Nested, Raw, String
 from marshmallow.validate import OneOf
 
@@ -21,6 +22,13 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
     documentUploadFields = List(
         Nested(S3PresignedPostSchema(), required=True, allow_none=False), required=True, allow_none=False
     )
+
+
+class MilitaryAuditRequestSchema(Schema):
+    """Schema for validating military audit PATCH requests."""
+
+    militaryStatus = String(required=True, allow_none=False, validate=OneOf(['approved', 'declined']))
+    militaryStatusNote = String(required=False, allow_none=False)
 
 
 class MilitaryAffiliationGeneralResponseSchema(ForgivingSchema):
