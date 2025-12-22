@@ -373,6 +373,8 @@ class TestGetProvider(TstFunction):
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
             del expected_provider['licenses'][0]['ssnLastFour']
             del expected_provider['licenses'][0]['dateOfBirth']
+            # remove the military status note field, only viewable with read private scope
+            del expected_provider['militaryStatusNote']
 
         self._when_testing_get_provider_response_based_on_read_access(
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider
