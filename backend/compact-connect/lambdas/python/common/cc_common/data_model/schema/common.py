@@ -306,6 +306,7 @@ class UpdateCategory(CCEnum):
     EXPIRATION = 'expiration'
     ISSUANCE = 'issuance'
     RENEWAL = 'renewal'
+    MILITARY_AUDIT = 'militaryAudit'
     ENCUMBRANCE = 'encumbrance'
     INVESTIGATION = 'investigation'
     CLOSING_INVESTIGATION = 'closingInvestigation'
