@@ -131,12 +131,9 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 logger.error(
                     'Provider compact field does not match path parameter',
                     # This case is most likely the result of abuse or misconfiguration.
-                    # We log the request body for triaging purposes. Although the request body
-                    # may contain PII, devops support will need to view the full query that allowed
-                    # the user to attempt the attack and what that user was attempting to extract.
-                    # The only personnel who have access to view the logs are the same that have
-                    # access to read records from the database.
-                    request_body=body,
+                    # We log the request body for triaging purposes. We redact the leaf values
+                    # from the request body to obscure PII.
+                    request_body=_redact_leaf_values(body),
                     provider_id=source.get('providerId'),
                     provider_compact=sanitized_provider.get('compact'),
                     path_compact=compact,
@@ -255,12 +252,9 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
                     logger.error(
                         'Privilege compact field does not match path parameter',
                         # This case is most likely the result of abuse or misconfiguration.
-                        # We log the request body for triaging purposes. Although the request body
-                        # may contain PII, devops support will need to view the full query that allowed
-                        # the user to attempt the attack and what that user was attempting to extract.
-                        # The only personnel who have access to view the logs are the same that have
-                        # access to read records from the database.
-                        request_body=body,
+                        # We log the request body for triaging purposes. We redact the leaf values
+                        # from the request body to obscure PII.
+                        request_body=_redact_leaf_values(body),
                         provider_id=provider.get('providerId'),
                         privilege_id=flattened_privilege.get('privilegeId'),
                         privilege_compact=sanitized_privilege.get('compact'),
@@ -365,6 +359,25 @@ def _get_caller_user_id(event: dict) -> str:
         # setup. Raise an internal exception
         logger.error('Could not extract user id from event', error=str(e))
         raise CCInternalException('Could not determine caller id for privilege report export') from e
+
+
+def _redact_leaf_values(data: dict | list | str | int | bool | None) -> dict | list | str:
+    """
+    Recursively redact all leaf field values in a data structure.
+
+    This function preserves the structure of nested dictionaries 
+    and lists while replacing all leaf values with "<REDACTED>".
+
+    :param data: The data structure to redact (dict, list, or primitive value)
+    :return: A copy of the data structure with all leaf values redacted
+    """
+    if isinstance(data, dict):
+        return {key: _redact_leaf_values(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [_redact_leaf_values(item) for item in data]
+    else:
+        # Primitive value (str, int, float, bool, None) - this is a leaf, redact it
+        return '<REDACTED>'
 
 
 def _build_opensearch_search_body(body: dict, size_override: int) -> dict:

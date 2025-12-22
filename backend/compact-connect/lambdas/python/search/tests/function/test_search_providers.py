@@ -95,6 +95,14 @@ class TestSearchProviders(TstFunction):
                 'jurisdictionUploadedLicenseStatus': 'active',
                 'jurisdictionUploadedCompactEligibility': 'eligible',
                 'birthMonthDay': '06-15',
+                # adding a couple of fields that are not recognized in the
+                # ProviderGeneralResponseSchema. Although these are not currently
+                # stored in OpenSearch, this mock data ensures we are sanitizing
+                # these private fields by the search serialization logic
+                'someNewField': 'somePrivateValue',
+                'ssnLastFour': '1234',
+                'emailAddress': 'someemail@address.com',
+                'dateOfBirth': '1984-12-11'
             },
         }
         if sort_values:
@@ -496,8 +504,17 @@ class TestSearchProviders(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
+        custom_query = {
+            'bool': {
+                'must': [
+                    {'match': {'givenName': 'John'}},
+                    {'term': {'ssnLastFour': 1234}},
+                ]
+            }
+        }
+
         # Request for 'aslp' compact but provider has 'octp' compact
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('aslp', body={'query': custom_query})
 
         response = search_api_handler(event, self.mock_context)
 

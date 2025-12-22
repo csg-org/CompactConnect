@@ -217,8 +217,6 @@ class TestOpenSearchClient(TestCase):
 
         result = client.bulk_index(index_name=index_name, documents=documents)
 
-        # Verify that the bulk method is called with the index in the URL parameter
-        # and NOT in the action metadata (for security compliance)
         expected_actions = [
             {'index': {'_id': 'provider-1'}},
             {'providerId': 'provider-1', 'givenName': 'John', 'familyName': 'Doe'},
