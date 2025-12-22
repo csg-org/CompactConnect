@@ -365,7 +365,7 @@ def _redact_leaf_values(data: dict | list | str | int | bool | None) -> dict | l
     """
     Recursively redact all leaf field values in a data structure.
 
-    This function preserves the structure of nested dictionaries 
+    This function preserves the structure of nested dictionaries
     and lists while replacing all leaf values with "<REDACTED>".
 
     :param data: The data structure to redact (dict, list, or primitive value)
@@ -373,11 +373,11 @@ def _redact_leaf_values(data: dict | list | str | int | bool | None) -> dict | l
     """
     if isinstance(data, dict):
         return {key: _redact_leaf_values(value) for key, value in data.items()}
-    elif isinstance(data, list):
+    if isinstance(data, list):
         return [_redact_leaf_values(item) for item in data]
-    else:
-        # Primitive value (str, int, float, bool, None) - this is a leaf, redact it
-        return '<REDACTED>'
+
+    # Primitive value (str, int, float, bool, None) - this is a leaf, redact it
+    return '<REDACTED>'
 
 
 def _build_opensearch_search_body(body: dict, size_override: int) -> dict:

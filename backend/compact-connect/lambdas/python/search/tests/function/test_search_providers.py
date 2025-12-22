@@ -102,7 +102,7 @@ class TestSearchProviders(TstFunction):
                 'someNewField': 'somePrivateValue',
                 'ssnLastFour': '1234',
                 'emailAddress': 'someemail@address.com',
-                'dateOfBirth': '1984-12-11'
+                'dateOfBirth': '1984-12-11',
             },
         }
         if sort_values:
