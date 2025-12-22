@@ -826,6 +826,26 @@ class DataClient:
         # Prepare the note value (empty string if not provided)
         note_value = military_status_note or ''
 
+        # Capture previous state before updating
+        previous_provider_state = provider_record.to_dict()
+
+        # Create provider update record to track the audit
+        now = config.current_standard_datetime
+        provider_update_record = ProviderUpdateData.create_new(
+            {
+                'type': ProviderRecordType.PROVIDER_UPDATE,
+                'updateType': UpdateCategory.MILITARY_AUDIT,
+                'providerId': provider_id,
+                'compact': compact,
+                'previous': previous_provider_state,
+                'createDate': now,
+                'updatedValues': {
+                    'militaryStatus': military_status.value,
+                    'militaryStatusNote': note_value,
+                },
+            }
+        )
+
         # Update provider record with military status
         provider_record.update(
             {
@@ -834,7 +854,6 @@ class DataClient:
             }
         )
 
-        #TODO - create provider update record to track any previous values
 
         # Execute both updates in a transaction
         self.config.dynamodb_client.transact_write_items(
@@ -844,6 +863,13 @@ class DataClient:
                     'Put': {
                         'TableName': self.config.provider_table_name,
                         'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                    }
+                },
+                # Create provider update record
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
                     }
                 },
             ]
