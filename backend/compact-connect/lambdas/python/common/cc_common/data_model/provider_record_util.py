@@ -771,6 +771,21 @@ class ProviderUserRecords:
 
         return latest_military_affiliation.status
 
+    def get_military_affiliation_records(
+        self, filter_condition: Callable[[MilitaryAffiliationData], bool] | None = None
+    ) -> list[MilitaryAffiliationData]:
+        """
+        Get all military affiliation records for this provider.
+        :param filter_condition: An optional filter to apply to the military affiliation records
+        :return: The most recent military affiliation record if present, else None
+        """
+
+        return [
+            record
+            for record in self._military_affiliation_records
+            if filter_condition is None or filter_condition(record)
+        ]
+
     def get_latest_military_affiliation(self) -> MilitaryAffiliationData | None:
         """
         Get the most recent military affiliation record for this provider.

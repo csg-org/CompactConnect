@@ -109,5 +109,3 @@ class TestMilitaryAuditEvents(TstFunction):
 
         # Should have one batch item failure
         self.assertEqual(1, len(result['batchItemFailures']))
-
-

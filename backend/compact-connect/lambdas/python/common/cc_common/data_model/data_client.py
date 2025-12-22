@@ -670,59 +670,105 @@ class DataClient:
 
         return [MilitaryAffiliationData.from_database_record(record) for record in military_affiliation_records]
 
-    def _get_military_affiliation_records_by_status(
-        self, compact: str, provider_id: str, status: MilitaryAffiliationStatus
-    ):
-        military_affiliation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-            & Key('sk').begins_with(
-                f'{compact}#PROVIDER#military-affiliation#',
-            ),
-            FilterExpression=Attr('status').eq(status.value),
-        ).get('Items', [])
-
-        schema = MilitaryAffiliationRecordSchema()
-        return [schema.load(record) for record in military_affiliation_records]
-
-    def _get_active_military_affiliation_records(self, compact: str, provider_id: str):
-        return self._get_military_affiliation_records_by_status(compact, provider_id, MilitaryAffiliationStatus.ACTIVE)
-
-    def _get_initializing_military_affiliation_records(self, compact: str, provider_id: str):
-        return self._get_military_affiliation_records_by_status(
-            compact, provider_id, MilitaryAffiliationStatus.INITIALIZING
-        )
-
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def complete_military_affiliation_initialization(self, compact: str, provider_id: str):
         """
         This method is called when the client has uploaded the document for a military affiliation record.
 
         It gets all records in an initializing state, sets the latest to active, and the rest to inactive for a
-        self-healing process.
+        self-healing process. Also updates the provider record's militaryStatus to TENTATIVE and creates a
+        provider update record to track this change.
         """
         logger.info('Completing military affiliation initialization')
 
-        initializing_military_affiliation_records = self._get_initializing_military_affiliation_records(
-            compact, provider_id
+        provider_user_records = self.get_provider_user_records(compact=compact, provider_id=UUID(provider_id))
+
+        initializing_military_affiliation_records = provider_user_records.get_military_affiliation_records(
+            filter_condition=lambda record: record.status == MilitaryAffiliationStatus.INITIALIZING
         )
 
         if not initializing_military_affiliation_records:
-            return
+            raise CCInternalException('No initializing military affiliation records found for provider')
 
+        # Find the latest military affiliation record by dateOfUpload
         latest_military_affiliation_record = max(
-            initializing_military_affiliation_records, key=lambda record: record['dateOfUpload']
+            initializing_military_affiliation_records, key=lambda record: record.dateOfUpload
         )
 
-        schema = MilitaryAffiliationRecordSchema()
-        with self.config.provider_table.batch_writer() as batch:
-            for record in initializing_military_affiliation_records:
-                if record['dateOfUpload'] == latest_military_affiliation_record['dateOfUpload']:
-                    record['status'] = MilitaryAffiliationStatus.ACTIVE.value
-                else:
-                    record['status'] = MilitaryAffiliationStatus.INACTIVE.value
+        # Get provider record and capture previous state
+        provider_record = provider_user_records.get_provider_record()
+        # Create provider update record to track the military file upload
+        now = config.current_standard_datetime
+        provider_update_record = ProviderUpdateData.create_new(
+            {
+                'type': ProviderRecordType.PROVIDER_UPDATE,
+                'updateType': UpdateCategory.MILITARY_FILE_UPLOAD,
+                'providerId': UUID(provider_id),
+                'compact': compact,
+                'previous': provider_record.to_dict(),
+                'createDate': now,
+                'updatedValues': {
+                    'militaryStatus': MilitaryAuditStatus.TENTATIVE.value,
+                    'militaryStatusNote': '',
+                },
+            }
+        )
 
-                serialized_record = schema.dump(record)
-                batch.put_item(Item=serialized_record)
+        # Update provider record with militaryStatus set to TENTATIVE
+        provider_record.update(
+            {
+                'militaryStatus': MilitaryAuditStatus.TENTATIVE.value,
+                'militaryStatusNote': '',
+            }
+        )
+
+        # Build transaction items with provider and provider update record
+        transaction_items = [
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                }
+            },
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
+                }
+            },
+        ]
+
+        # Update all military affiliation records
+        for record in initializing_military_affiliation_records:
+            if record.dateOfUpload == latest_military_affiliation_record.dateOfUpload:
+                record.update({'status': MilitaryAffiliationStatus.ACTIVE.value})
+            else:
+                record.update({'status': MilitaryAffiliationStatus.INACTIVE.value})
+
+            serialized_record = record.serialize_to_database_record()
+            transaction_items.append(
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(serialized_record)['M'],
+                    }
+                }
+            )
+
+        # Execute transaction in batches if needed (DynamoDB limit is 100 items)
+        batch_size = 100
+        while transaction_items:
+            batch = transaction_items[:batch_size]
+            transaction_items = transaction_items[batch_size:]
+
+            try:
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+                logger.info('Successfully processed military affiliation initialization batch', batch_size=len(batch))
+            except ClientError as e:
+                logger.error('Failed to process military affiliation initialization transaction', error=str(e))
+                raise CCAwsServiceException('Failed to complete military affiliation initialization') from e
+
+        logger.info('Successfully completed military affiliation initialization')
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'affiliation_type')
     def create_military_affiliation(
@@ -853,7 +899,6 @@ class DataClient:
                 'militaryStatusNote': note_value,
             }
         )
-
 
         # Execute both updates in a transaction
         self.config.dynamodb_client.transact_write_items(

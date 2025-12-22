@@ -1,25 +1,12 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from marshmallow import Schema, ValidationError
-from marshmallow.fields import String
-from marshmallow.validate import OneOf
-
 from cc_common.config import config, logger
-from cc_common.data_model.schema.common import MilitaryAuditStatus
+from cc_common.data_model.schema.common import CCPermissionsAction, MilitaryAuditStatus
+from cc_common.data_model.schema.military_affiliation.api import MilitaryAuditRequestSchema
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact_level_only_action, to_uuid
-from cc_common.data_model.schema.common import CCPermissionsAction
-
-
-class MilitaryAuditRequestSchema(Schema):
-    """Schema for validating military audit PATCH requests."""
-
-    militaryStatus = String(
-        required=True, allow_none=False, validate=OneOf(['approved', 'declined'])
-    )
-    militaryStatusNote = String(required=False, allow_none=False)
-
+from marshmallow import ValidationError
 
 MILITARY_AUDIT_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/providers/{providerId}/militaryAudit'
 
@@ -48,9 +35,7 @@ def military_audit_handler(event: dict, context: LambdaContext) -> dict:
         # Get the cognito sub of the caller for tracing
         cognito_sub = event['requestContext']['authorizer']['claims']['sub']
 
-        with logger.append_context_keys(
-            compact=compact, provider_id=str(provider_id), cognito_sub=cognito_sub
-        ):
+        with logger.append_context_keys(compact=compact, provider_id=str(provider_id), cognito_sub=cognito_sub):
             # Parse and validate request body
             try:
                 body = json.loads(event['body'])
@@ -91,4 +76,3 @@ def military_audit_handler(event: dict, context: LambdaContext) -> dict:
             logger.info('Military audit processed successfully')
 
             return {'message': 'OK'}
-

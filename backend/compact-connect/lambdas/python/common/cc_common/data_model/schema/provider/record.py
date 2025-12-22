@@ -27,7 +27,6 @@ from cc_common.data_model.schema.fields import (
     Set,
     UpdateType,
 )
-from cc_common.data_model.schema.common import MilitaryAuditStatus
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
 

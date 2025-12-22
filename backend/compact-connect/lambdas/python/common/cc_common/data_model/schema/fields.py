@@ -12,10 +12,10 @@ from cc_common.data_model.schema.common import (
     InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
+    MilitaryAuditStatus,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
-from cc_common.data_model.schema.common import MilitaryAuditStatus
 
 # This is a special value that is used to indicate that the provider's home jurisdiction is not known.
 # This can happen if a provider moves to a jurisdiction that is not part of the compact.
