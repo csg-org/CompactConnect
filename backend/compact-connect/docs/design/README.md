@@ -681,10 +681,11 @@ be processed and stored in the transaction history table.
 ## Advanced Data Search
 [Back to top](#backend-design)
 
-To support advanced search capability of providers and privilege records, this project leverages
+To support advanced search capabilities for provider and privilege records, this project leverages
 [AWS OpenSearch Service](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html).
-Provider data from the provider DynamoDB table is indexed within an OpenSearch Domain (Cluster), which is then
-queryable by staff users through the Search API (search.compactconnect.org). The OpenSearch resources are deployed within a Virtual Private Cloud (VPC) to provide a layer of network security.
+Provider data from the provider DynamoDB table is indexed into an OpenSearch Domain (Cluster), enabling staff users to perform complex searches through the Search API (search.compactconnect.org). 
+
+The OpenSearch resources are deployed within a Virtual Private Cloud (VPC) to provide network-level security and restrict outside access. Unlike DynamoDB, which is a fully managed and serverless AWS service that does not require (and does not support) VPC deployment, OpenSearch domains have data nodes that must be managed. Placing the OpenSearch domain in a VPC allows us to tightly control which resources and users can access it, reducing exposure to external threats.
 
 ### Architecture Overview
 ![Advanced Search Diagram](./advanced-provider-search.pdf)
@@ -726,14 +727,13 @@ POST /v1/compacts/{compact}/providers/search
 Returns provider records matching the query. Response includes the full provider document with licenses, privileges,
 and military affiliations.
 
-#### Privilege Search
+#### Privilege CSV Export
 ```
 POST /v1/compacts/{compact}/privileges/export
 ```
 
 Returns flattened privilege records. This endpoint queries the same provider index but extracts and flattens
-privileges, combining privilege data with license data to provide a denormalized view suitable for privilege-focused
-reports and exports.
+privileges, combining privilege data with license data to provide a denormalized list of objects which are then exported to a CSV file for downloading.
 
 ### Document Indexing
 

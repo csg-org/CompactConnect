@@ -11,7 +11,7 @@ from .api_model import ApiModel
 
 class PrivilegeSearch:
     """
-    Endpoint for searching privileges in the OpenSearch domain.
+    Endpoint related to privilege searching in the OpenSearch domain.
     """
 
     def __init__(

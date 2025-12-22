@@ -10,7 +10,7 @@ from .api_model import ApiModel
 
 
 class V1Api:
-    """v1 of the State API"""
+    """v1 of the Search API"""
 
     def __init__(
         self,

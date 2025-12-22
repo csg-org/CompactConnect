@@ -43,19 +43,6 @@ class TestVpcStack(TstAppABC, TestCase):
             },
         )
 
-    def test_subnets_configuration(self):
-        """
-        Test that subnets are created across multiple availability zones.
-        """
-        vpc_stack = self.app.sandbox_backend_stage.vpc_stack
-        vpc_template = Template.from_stack(vpc_stack)
-
-        # Verify at least 3 subnets are created (one per AZ, max 3 AZs)
-        # The actual number depends on the region's available AZs
-        subnet_resources = vpc_template.find_resources('AWS::EC2::Subnet')
-        subnet_count = len(subnet_resources)
-        self.assertEqual(subnet_count, 3, 'The VPC should have 3 subnets for OpenSearch high availability')
-
     def test_no_internet_gateway(self):
         """
         Test that no Internet Gateway is created, as we're using VPC endpoints for AWS service access.

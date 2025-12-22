@@ -262,7 +262,9 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
 
         For non-prod single-node deployments, OpenSearch must use exactly one subnet.
         We explicitly select privateSubnet1 (CIDR 10.0.0.0/20) to ensure deterministic
-        placement across deployments.
+        placement across deployments, since the related lambda functions will also be
+        deployed within that same subnet, and we want to ensure that can communicate with
+        one another.
 
         This test verifies that OpenSearch references the specific subnet we expect,
         not just any arbitrary subnet from the VPC.

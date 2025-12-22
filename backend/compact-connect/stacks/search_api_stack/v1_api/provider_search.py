@@ -11,7 +11,7 @@ from .api_model import ApiModel
 
 class ProviderSearch:
     """
-    These endpoints are used by state IT systems to view provider records
+    Endpoint related to provider searching in the OpenSearch domain.
     """
 
     def __init__(
