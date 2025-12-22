@@ -15,6 +15,7 @@ from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
+    MilitaryAuditStatus,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
@@ -928,5 +929,11 @@ class ProviderUserRecords:
         provider['licenses'] = licenses
         provider['privileges'] = privileges
         provider['militaryAffiliations'] = military_affiliations
+
+        # Set default values for military audit status fields if not present
+        if 'militaryStatus' not in provider:
+            provider['militaryStatus'] = MilitaryAuditStatus.NOT_APPLICABLE.value
+        if 'militaryStatusNote' not in provider:
+            provider['militaryStatusNote'] = ''
 
         return provider

@@ -184,9 +184,8 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
 
-    # Military audit status fields
+    # Military audit status field (note is only available in readPrivate response)
     militaryStatus = MilitaryAuditStatusField(required=False, allow_none=False)
-    militaryStatusNote = String(required=False, allow_none=False)
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):

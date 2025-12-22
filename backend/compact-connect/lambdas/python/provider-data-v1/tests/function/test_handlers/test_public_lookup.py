@@ -454,6 +454,8 @@ class TestPublicGetProvider(TstFunction):
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')
+            expected_provider.pop('militaryStatus')
+            expected_provider.pop('militaryStatusNote')
 
         self.assertEqual(expected_provider, provider_data)
 

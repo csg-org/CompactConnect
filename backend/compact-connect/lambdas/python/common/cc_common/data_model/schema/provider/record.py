@@ -99,16 +99,7 @@ class ProviderRecordSchema(BaseRecordSchema):
     def _calculate_statuses(self, in_data, **_kwargs):
         """Determine the statuses of the record based on the expiration date"""
         in_data = self._calculate_license_status(in_data)
-        in_data = self._calculate_compact_eligibility(in_data)
-        return self._set_military_status_defaults(in_data)
-
-    def _set_military_status_defaults(self, in_data, **_kwargs):
-        """Set default values for military audit status fields if not present"""
-        if 'militaryStatus' not in in_data:
-            in_data['militaryStatus'] = MilitaryAuditStatus.NOT_APPLICABLE
-        if 'militaryStatusNote' not in in_data:
-            in_data['militaryStatusNote'] = ''
-        return in_data
+        return self._calculate_compact_eligibility(in_data)
 
     def _calculate_license_status(self, in_data, **_kwargs):
         """Determine the status of the license based on the expiration date"""
