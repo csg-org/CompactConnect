@@ -74,7 +74,7 @@ markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-marshmallow==3.26.1
+marshmallow==3.26.2
     # via -r lambdas/python/purchases/requirements-dev.in
 mdurl==0.1.2
     # via markdown-it-py
