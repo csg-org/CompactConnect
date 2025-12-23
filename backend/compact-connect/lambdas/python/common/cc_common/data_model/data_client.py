@@ -819,6 +819,119 @@ class DataClient:
 
         return latest_military_affiliation_record
 
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def end_military_affiliation(self, compact: str, provider_id: str) -> None:
+        """
+        End a provider's military affiliation by removing military status fields and deactivating all active records.
+
+        This method:
+        1. Removes 'militaryStatus' and 'militaryStatusNote' from the provider record
+        2. Creates a provider update record tracking the removal of these fields
+        3. Sets all INITIALIZING or ACTIVE military affiliation records to INACTIVE
+
+        All operations are performed in a DynamoDB transaction to ensure consistency.
+
+        :param compact: The compact name
+        :param provider_id: The provider id
+        :raises CCNotFoundException: If provider not found
+        """
+        logger.info('Ending military affiliation for provider')
+
+        # Get provider records
+        provider_user_records = self.get_provider_user_records(compact=compact, provider_id=provider_id)
+        provider_record = provider_user_records.get_provider_record()
+
+        # Capture previous state before updating
+        previous_provider_state = provider_record.to_dict()
+
+        # Get all military affiliation records that are INITIALIZING or ACTIVE
+        active_military_affiliation_records = provider_user_records.get_military_affiliation_records(
+            filter_condition=lambda record: record.status
+            in [MilitaryAffiliationStatus.INITIALIZING.value, MilitaryAffiliationStatus.ACTIVE.value]
+        )
+
+        # Create provider update record to track the removal of military status fields
+        now = config.current_standard_datetime
+        removed_values = []
+        if previous_provider_state.get('militaryStatus') is not None:
+            removed_values.append('militaryStatus')
+        if previous_provider_state.get('militaryStatusNote') is not None:
+            removed_values.append('militaryStatusNote')
+
+        update_record_data = {
+            'type': ProviderRecordType.PROVIDER_UPDATE,
+            'updateType': UpdateCategory.MILITARY_AFFILIATION_ENDED,
+            'providerId': provider_id,
+            'compact': compact,
+            'previous': previous_provider_state,
+            'createDate': now,
+            'updatedValues': {},
+        }
+        if removed_values:
+            update_record_data['removedValues'] = removed_values
+
+        provider_update_record = ProviderUpdateData.create_new(update_record_data)
+
+        # Build transaction items
+        transaction_items = []
+
+        # Update provider record to remove militaryStatus and militaryStatusNote
+        provider_serialized_record = provider_record.serialize_to_database_record()
+        transaction_items.append(
+            {
+                'Update': {
+                    'TableName': self.config.provider_table_name,
+                    'Key': {
+                        'pk': {'S': provider_serialized_record['pk']},
+                        'sk': {'S': provider_serialized_record['sk']},
+                    },
+                    'UpdateExpression': ('SET dateOfUpdate = :dateOfUpdate REMOVE militaryStatus, militaryStatusNote'),
+                    'ExpressionAttributeValues': {
+                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                    },
+                    'ConditionExpression': 'attribute_exists(pk)',
+                }
+            }
+        )
+
+        # Create provider update record
+        transaction_items.append(
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_update_record.serialize_to_database_record())['M'],
+                }
+            }
+        )
+
+        # Update all active/initializing military affiliation records to inactive
+        for record in active_military_affiliation_records:
+            record.update({'status': MilitaryAffiliationStatus.INACTIVE.value})
+            serialized_record = record.serialize_to_database_record()
+            transaction_items.append(
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(serialized_record)['M'],
+                    }
+                }
+            )
+
+        # Execute transaction in batches if needed (DynamoDB limit is 100 items)
+        batch_size = 100
+        while transaction_items:
+            batch = transaction_items[:batch_size]
+            transaction_items = transaction_items[batch_size:]
+
+            try:
+                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
+                logger.info('Successfully processed military affiliation end batch', batch_size=len(batch))
+            except ClientError as e:
+                logger.error('Failed to process military affiliation end transaction', error=str(e))
+                raise CCAwsServiceException('Failed to end military affiliation') from e
+
+        logger.info('Successfully ended military affiliation for provider')
+
     def inactivate_military_affiliation_status(self, compact: str, provider_id: str):
         """
         Sets all military affiliation records to an inactive status for a provider in the database.

@@ -309,6 +309,7 @@ class UpdateCategory(CCEnum):
     RENEWAL = 'renewal'
     MILITARY_AUDIT = 'militaryAudit'
     MILITARY_FILE_UPLOAD = 'militaryFileUpload'
+    MILITARY_AFFILIATION_ENDED = 'militaryAffiliationEnded'
     ENCUMBRANCE = 'encumbrance'
     INVESTIGATION = 'investigation'
     CLOSING_INVESTIGATION = 'closingInvestigation'
