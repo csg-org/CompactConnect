@@ -470,8 +470,8 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(error_reason, body['message'])
 
     @patch('handlers.search.opensearch_client')
-    def test_provider_with_mismatched_compact_returns_400(self, mock_opensearch_client):
-        """Test that a provider with a compact field that doesn't match the path parameter returns 400."""
+    def test_provider_with_mismatched_compact_is_filtered_from_response(self, mock_opensearch_client):
+        """Test that a provider with a compact field that doesn't match the path parameter is filtered from results."""
         from handlers.search import search_api_handler
 
         # Create a provider hit with a different compact than the path parameter
@@ -509,8 +509,8 @@ class TestSearchProviders(TstFunction):
         # over time. Because we don't have a valid query to trigger this branch of logic, we're just using a
         # generic query here in place of some future query that can get past our safeguards and search provider
         # data across compact indices. The mock above is returning a provider from a different compact to
-        # trigger the branch of logic where we catch this discrepancy and fail with an error log and 400
-        # response
+        # trigger the branch of logic where we catch this discrepancy, log the error so an alert fires, and
+        # filter the document from the response
         custom_query = {'match_all': {}}
 
         # Request for 'aslp' compact but provider has 'octp' compact
@@ -518,6 +518,7 @@ class TestSearchProviders(TstFunction):
 
         response = search_api_handler(event, self.mock_context)
 
-        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertEqual('Invalid request body', body['message'])
+        # should be empty list with total value of 0
+        self.assertEqual({'providers': [], 'total': {'relation': 'eq', 'value': 0}}, body)

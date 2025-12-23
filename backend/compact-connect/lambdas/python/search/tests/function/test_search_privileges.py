@@ -268,7 +268,6 @@ class TestExportPrivileges(TstFunction):
         body = json.loads(response['body'])
 
         # Verify response contains error message
-        self.assertIn('message', body)
         self.assertEqual('The search parameters did not match any privileges.', body['message'])
 
         # Verify no CSV file was uploaded to S3
@@ -743,8 +742,8 @@ class TestExportPrivileges(TstFunction):
         self.assertIn("'index'", body['message'])
 
     @patch('handlers.search.opensearch_client')
-    def test_privilege_with_mismatched_compact_returns_400(self, mock_opensearch_client):
-        """Test that a privilege with a compact field that doesn't match the path parameter returns 400."""
+    def test_privilege_with_mismatched_compact_is_filtered_from_response(self, mock_opensearch_client):
+        """Test that a privilege with a compact field that doesn't match the path parameter is filtered from results."""
         from handlers.search import search_api_handler
 
         provider_id = '00000000-0000-0000-0000-000000000001'
@@ -820,8 +819,8 @@ class TestExportPrivileges(TstFunction):
         # over time. Because we don't have a valid query to trigger this branch of logic, we're just using a
         # generic query here in place of some future query that can get past our safeguards and search provider
         # data across compact indices. The mock above is returning a provider from a different compact to
-        # trigger the branch of logic where we catch this discrepancy and fail with an error log and 400
-        # response
+        # trigger the branch of logic where we catch this discrepancy, log the error so an alert fires, and
+        # filter the document from the response
         custom_query = {'match_all': {}}
 
         # Request for 'aslp' compact but privilege has 'octp' compact
@@ -829,6 +828,6 @@ class TestExportPrivileges(TstFunction):
 
         response = search_api_handler(event, self.mock_context)
 
-        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(404, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertEqual('Invalid request body', body['message'])
+        self.assertEqual('The search parameters did not match any privileges.', body['message'])

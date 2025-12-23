@@ -138,7 +138,9 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                     provider_compact=sanitized_provider.get('compact'),
                     path_compact=compact,
                 )
-                raise CCInvalidRequestException('Invalid request body')
+                # do not include the provider in the results
+                total['value'] -= 1
+                continue
             sanitized_providers.append(sanitized_provider)
             # Track the sort values from the last hit for search_after pagination
             last_sort = hit.get('sort')
@@ -150,7 +152,7 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 errors=e.messages,
             )
 
-    # Build response following OpenSearch DSL structure
+    # Build response
     response_body = {
         'providers': sanitized_providers,
         'total': total,
@@ -264,7 +266,8 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
                         privilege_compact=sanitized_privilege.get('compact'),
                         path_compact=compact,
                     )
-                    raise CCInvalidRequestException('Invalid request body')
+                    # do not include the privilege in the results
+                    continue
                 flattened_privileges.append(sanitized_privilege)
             except ValidationError as e:
                 logger.error(
