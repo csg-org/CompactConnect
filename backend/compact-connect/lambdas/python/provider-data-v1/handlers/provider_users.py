@@ -196,7 +196,7 @@ def _patch_provider_military_affiliation(event, context):  # noqa: ARG001 unused
     if event_body.get('status') != 'inactive':
         raise CCInvalidRequestException('Invalid status value. Only "inactive" is allowed.')
 
-    config.data_client.inactivate_military_affiliation_status(compact=compact, provider_id=provider_id)
+    config.data_client.end_military_affiliation(compact=compact, provider_id=provider_id)
 
     return {'message': 'Military affiliation updated successfully'}
 
