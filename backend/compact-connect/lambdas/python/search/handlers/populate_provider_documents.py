@@ -18,6 +18,21 @@ Example input for resumption:
     "startingCompact": "aslp",
     "startingLastKey": {"pk": "...", "sk": "..."}
 }
+
+Race Condition Consideration:
+A potential race condition can occur when running this function while provider
+data is being actively updated:
+1. This Lambda queries the current data from DynamoDB for a provider
+2. A change is made in DynamoDB for that same provider
+3. The DynamoDB stream handler queries the data and indexes the change into
+   OpenSearch after the ~30 second delay of sitting in SQS
+4. This Lambda finally indexes the stale data into OpenSearch, overwriting
+   the change indexed by the DynamoDB stream handler
+
+For this reason, it is recommended that this process be run during a period of
+low traffic. Given that it is a one-time process to initially populate the
+table, the risk is low and if needed, this Lambda function can be run again to
+synchronize all the provider documents.
 """
 
 from aws_lambda_powertools.utilities.typing import LambdaContext

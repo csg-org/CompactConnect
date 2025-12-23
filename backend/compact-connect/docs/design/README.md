@@ -760,6 +760,15 @@ The function:
 }
 ```
 
+**Race Condition Consideration**: A potential race condition can occur when running this function while provider data is being actively updated:
+
+1. The `populate_provider_documents` Lambda function queries the current data from DynamoDB for a provider
+2. A change is made in DynamoDB for that same provider
+3. The DynamoDB stream handler queries the data and indexes the change into OpenSearch after the ~30 second delay of sitting in SQS
+4. The `populate_provider_documents` Lambda function finally indexes the stale data into OpenSearch, overwriting the change indexed by the DynamoDB stream handler
+
+For this reason, it is recommended that this process be run during a period of low traffic. Given that it is a one-time process to initially populate the table, the risk is low and if needed, the Lambda function can be run again to synchronize all the provider documents.
+
 #### Updates via DynamoDB Streams
 
 To keep the OpenSearch index synchronized with changes in the provider DynamoDB table, the system uses DynamoDB Streams to capture all modifications made to provide records (see [AWS documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)). This ensures that provider documents in OpenSearch are updated automatically whenever records are created, modified, or deleted in the provider table.
