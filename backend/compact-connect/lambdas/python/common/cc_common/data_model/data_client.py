@@ -1012,22 +1012,29 @@ class DataClient:
             }
         )
 
-        # Update provider record with military status
-        provider_record.update(
-            {
-                'militaryStatus': military_status.value,
-                'militaryStatusNote': note_value,
-            }
-        )
-
         # Execute both updates in a transaction
+        provider_serialized_record = provider_record.serialize_to_database_record()
         self.config.dynamodb_client.transact_write_items(
             TransactItems=[
                 # Update provider record
                 {
-                    'Put': {
+                    'Update': {
                         'TableName': self.config.provider_table_name,
-                        'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                        'Key': {
+                            'pk': {'S': provider_serialized_record['pk']},
+                            'sk': {'S': provider_serialized_record['sk']},
+                        },
+                        'UpdateExpression': (
+                            'SET militaryStatus = :militaryStatus, '
+                            'militaryStatusNote = :militaryStatusNote, '
+                            'dateOfUpdate = :dateOfUpdate'
+                        ),
+                        'ExpressionAttributeValues': {
+                            ':militaryStatus': {'S': military_status.value},
+                            ':militaryStatusNote': {'S': note_value},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                        'ConditionExpression': 'attribute_exists(pk)',
                     }
                 },
                 # Create provider update record
