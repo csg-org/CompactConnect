@@ -504,14 +504,13 @@ class TestSearchProviders(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        custom_query = {
-            'bool': {
-                'must': [
-                    {'match': {'givenName': 'John'}},
-                    {'term': {'ssnLastFour': 1234}},
-                ]
-            }
-        }
+        # Use match_all query to simulate a bad actor attempting the broadest possible search
+        # across the entire OpenSearch domain. While the handler restricts searches to a single
+        # index based on the path parameter, this query represents an attempt to retrieve
+        # all providers without any filtering, which could expose providers from other compacts
+        # if data integrity issues exist (e.g., misconfigured index aliases or data corruption).
+        # or if a future feature allows cross-index searches that we are not aware of yet.
+        custom_query = {'match_all': {}}
 
         # Request for 'aslp' compact but provider has 'octp' compact
         event = self._create_api_event('aslp', body={'query': custom_query})

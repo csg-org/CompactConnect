@@ -417,6 +417,10 @@ class TestProdSearchPersistentStack(TstAppABC, TestCase):
             },
         )
 
+    # Note that the prod alarm tests specifically check for the
+    # differences we configure for our production environment as opposed
+    # to the non-prod environments. If all the sandbox alarms are properly
+    # configured, they are configured for prod as well, so we don't retest that here.
     def test_prod_storage_threshold_alarm(self):
         """
         Test that production storage alarm threshold is set to 50% of 25GB volume (12800 MB).

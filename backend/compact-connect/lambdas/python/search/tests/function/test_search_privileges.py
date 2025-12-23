@@ -283,7 +283,10 @@ class TestExportPrivileges(TstFunction):
 
     @patch('handlers.search.opensearch_client')
     def test_privilege_export_with_multiple_inner_hits_exports_all_matched(self, mock_opensearch_client):
-        """Test that when inner_hits contains multiple matches, all are exported to CSV."""
+        """Test that when inner_hits contains multiple matches, all are exported to CSV.
+        see https://docs.opensearch.org/latest/search-plugins/searching-data/inner-hits/ for more information
+        about inner_hits.
+        """
         from handlers.search import search_api_handler
 
         provider_id = '00000000-0000-0000-0000-000000000001'
@@ -812,8 +815,16 @@ class TestExportPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
+        # Use match_all query to simulate a bad actor attempting the broadest possible search
+        # across the entire OpenSearch domain. While the handler restricts searches to a single
+        # index based on the path parameter, this query represents an attempt to retrieve
+        # all providers without any filtering, which could expose providers from other compacts
+        # if data integrity issues exist (e.g., misconfigured index aliases or data corruption).
+        # or if a future feature allows cross-index searches that we are not aware of yet.
+        custom_query = {'match_all': {}}
+
         # Request for 'aslp' compact but privilege has 'octp' compact
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('aslp', body={'query': custom_query})
 
         response = search_api_handler(event, self.mock_context)
 

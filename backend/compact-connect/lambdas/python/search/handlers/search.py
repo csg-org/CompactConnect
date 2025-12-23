@@ -172,6 +172,8 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
 
     If the query includes a nested query on privileges with `inner_hits`, only the matched
     privileges will be returned. Otherwise, all privileges for matching providers are returned.
+    See https://docs.opensearch.org/latest/search-plugins/searching-data/inner-hits/ for more information
+    about inner_hits.
 
     Example nested query with inner_hits:
     {
@@ -228,6 +230,8 @@ def _export_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unu
         provider = hit.get('_source', {})
         # Check if inner_hits are present for privileges
         # If so, use only the matched privileges; otherwise, use all privileges
+        # see https://docs.opensearch.org/latest/search-plugins/searching-data/inner-hits/ for more information
+        # about inner_hits.
         inner_hits = hit.get('inner_hits', {})
         privileges_inner_hits = inner_hits.get('privileges', {}).get('hits', {}).get('hits', [])
 
