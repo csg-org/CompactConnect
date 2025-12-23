@@ -87,6 +87,19 @@ def test_military_affiliation_upload():
         raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
 
     provider_data = get_provider_data_response.json()
+
+    # check the militaryStatus of the provider to make sure it is now reset to 'tenative'
+    if provider_data.get('militaryStatus') != 'tentative':
+        raise SmokeTestFailureException(
+            f'Military status is not tentative. Status: {provider_data.get("militaryStatus")}'
+        )
+    if provider_data.get('militaryStatusNote') != '':
+        raise SmokeTestFailureException(
+            f'Military status note is not empty. Note: {provider_data.get("militaryStatusNote")}'
+        )
+
+    print(f'Successfully updated military status to tentative. Status: {provider_data.get("militaryStatus")}')
+
     military_affiliations = provider_data.get('militaryAffiliations')
     if not military_affiliations:
         raise SmokeTestFailureException('No military affiliations found in provider data')
@@ -139,6 +152,18 @@ def test_military_affiliation_patch_update():
         raise SmokeTestFailureException(f'Not all military affiliation records are inactive: {military_affiliations}')
 
     print(f'Successfully updated military affiliation records: {military_affiliations}')
+
+    # check the militaryStatus of the provider to make sure it is now reset to 'notApplicable'
+    if provider_data.get('militaryStatus') != 'notApplicable':
+        raise SmokeTestFailureException(
+            f'Military status is not notApplicable. Status: {provider_data.get("militaryStatus")}'
+        )
+    if provider_data.get('militaryStatusNote') != '':
+        raise SmokeTestFailureException(
+            f'Military status note is not empty. Note: {provider_data.get("militaryStatusNote")}'
+        )
+
+    print(f'Successfully updated military status to notApplicable. Status: {provider_data.get("militaryStatus")}')
 
 
 if __name__ == '__main__':

@@ -703,7 +703,7 @@ class DataClient:
             {
                 'type': ProviderRecordType.PROVIDER_UPDATE,
                 'updateType': UpdateCategory.MILITARY_FILE_UPLOAD,
-                'providerId': UUID(provider_id),
+                'providerId': provider_id,
                 'compact': compact,
                 'previous': provider_record.to_dict(),
                 'createDate': now,
@@ -714,20 +714,27 @@ class DataClient:
             }
         )
 
-        # Update provider record with militaryStatus set to TENTATIVE
-        provider_record.update(
-            {
-                'militaryStatus': MilitaryAuditStatus.TENTATIVE.value,
-                'militaryStatusNote': '',
-            }
-        )
-
         # Build transaction items with provider and provider update record
+        provider_serialized_record = provider_record.serialize_to_database_record()
         transaction_items = [
             {
-                'Put': {
+                'Update': {
                     'TableName': self.config.provider_table_name,
-                    'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                    'Key': {
+                        'pk': {'S': provider_serialized_record['pk']},
+                        'sk': {'S': provider_serialized_record['sk']},
+                    },
+                    'UpdateExpression': (
+                        'SET militaryStatus = :militaryStatus, '
+                        'militaryStatusNote = :militaryStatusNote, '
+                        'dateOfUpdate = :dateOfUpdate'
+                    ),
+                    'ExpressionAttributeValues': {
+                        ':militaryStatus': {'S': MilitaryAuditStatus.TENTATIVE.value},
+                        ':militaryStatusNote': {'S': ''},
+                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                    },
+                    'ConditionExpression': 'attribute_exists(pk)',
                 }
             },
             {
