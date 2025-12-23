@@ -1503,6 +1503,65 @@ describe('EmailNotificationServiceLambda', () => {
         });
     });
 
+    describe('Military Audit Approved Notification', () => {
+        const SAMPLE_MILITARY_AUDIT_APPROVED_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'militaryAuditApprovedNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {}
+        };
+
+        it('should successfully send military audit approved notification email', async () => {
+            const response = await lambda.handler(SAMPLE_MILITARY_AUDIT_APPROVED_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['provider@example.com']
+                },
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.any(String)
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Military Documentation Approved - Compact Connect'
+                        }
+                    }
+                },
+                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+            });
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('This message is to notify you that your military documentation has been reviewed and approved by the compact administration.');
+            expect(htmlContent).toContain('Military Documentation Approved - Compact Connect');
+        });
+
+        it('should throw error when no recipients found', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_MILITARY_AUDIT_APPROVED_NOTIFICATION_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for military audit approved notification email');
+        });
+    });
+
     describe('License Investigation State Notification', () => {
         const SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseInvestigationStateNotification',
