@@ -376,6 +376,16 @@ export class Lambda implements LambdaInterface {
                 event.specificEmails
             );
             break;
+        case 'militaryAuditDeclinedNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for military audit declined notification email');
+            }
+            await this.emailService.sendMilitaryAuditDeclinedNotificationEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables?.auditNote || ''
+            );
+            break;
         case 'licenseInvestigationStateNotification':
             if (!event.jurisdiction) {
                 throw new Error('No jurisdiction provided for license investigation state notification email');

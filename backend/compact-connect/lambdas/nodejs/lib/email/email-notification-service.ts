@@ -522,4 +522,40 @@ export class EmailNotificationService extends BaseEmailService {
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send military audit approved notification email' });
     }
+
+    /**
+     * Sends a notification email to a provider when their military documentation is declined
+     * @param compact - The compact name
+     * @param specificEmails - The email address(es) to send the notification to (provider's email)
+     * @param auditNote - Note from the admin explaining the decline
+     */
+    public async sendMilitaryAuditDeclinedNotificationEmail(
+        compact: string,
+        specificEmails: string[] | undefined,
+        auditNote: string
+    ): Promise<void> {
+        this.logger.info('Sending military audit declined notification email', { compact: compact });
+
+        const recipients = specificEmails || [];
+
+        if (recipients.length === 0) {
+            throw new Error('No recipients found for military audit declined notification email');
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = 'Military Documentation Declined - Compact Connect';
+        let bodyText = 'This message is to notify you that your military documentation has been reviewed and declined by the compact administration.';
+        
+        if (auditNote && auditNote.trim().length > 0) {
+            bodyText += `\n\nMessage from the compact administration: ${auditNote}`;
+        }
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = this.renderTemplate(report);
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send military audit declined notification email' });
+    }
 }
