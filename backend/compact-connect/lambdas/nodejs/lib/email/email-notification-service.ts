@@ -492,4 +492,34 @@ export class EmailNotificationService extends BaseEmailService {
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider account recovery confirmation email' });
     }
+
+    /**
+     * Sends a notification email to a provider when their military documentation is approved
+     * @param compact - The compact name
+     * @param specificEmails - The email address(es) to send the notification to (provider's email)
+     */
+    public async sendMilitaryAuditApprovedNotificationEmail(
+        compact: string,
+        specificEmails: string[] | undefined
+    ): Promise<void> {
+        this.logger.info('Sending military audit approved notification email', { compact: compact });
+
+        const recipients = specificEmails || [];
+
+        if (recipients.length === 0) {
+            throw new Error('No recipients found for military audit approved notification email');
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = 'Military Documentation Approved - Compact Connect';
+        const bodyText = 'This message is to notify you that your military documentation has been reviewed and approved by the compact administration.';
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = this.renderTemplate(report);
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send military audit approved notification email' });
+    }
 }
