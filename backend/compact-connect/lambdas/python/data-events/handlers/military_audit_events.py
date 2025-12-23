@@ -52,7 +52,9 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
         provider_email = provider_record.compactConnectRegisteredEmailAddress
 
         if not provider_email:
-            message = 'Provider email not found in system'
+            # this should not be possible, since only registered providers can upload military documentation
+            # log the error and raise an exception
+            message = 'Provider registered email not found in system'
             logger.error(message)
             raise CCInternalException(message)
 

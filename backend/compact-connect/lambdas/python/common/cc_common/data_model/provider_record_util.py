@@ -777,7 +777,7 @@ class ProviderUserRecords:
         """
         Get all military affiliation records for this provider.
         :param filter_condition: An optional filter to apply to the military affiliation records
-        :return: The most recent military affiliation record if present, else None
+        :return: The list of military affiliation records for this provider.
         """
 
         return [
