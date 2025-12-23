@@ -504,12 +504,13 @@ class TestSearchProviders(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        # Use match_all query to simulate a bad actor attempting the broadest possible search
-        # across the entire OpenSearch domain. While the handler restricts searches to a single
-        # index based on the path parameter, this query represents an attempt to retrieve
-        # all providers without any filtering, which could expose providers from other compacts
-        # if data integrity issues exist (e.g., misconfigured index aliases or data corruption).
-        # or if a future feature allows cross-index searches that we are not aware of yet.
+        # Currently, with our safeguards in place, it is not possible for a bad actor to reach across
+        # indices when searching. This may change in the future with new OpenSearch features that are added
+        # over time. Because we don't have a valid query to trigger this branch of logic, we're just using a
+        # generic query here in place of some future query that can get past our safeguards and search provider
+        # data across compact indices. The mock above is returning a provider from a different compact to
+        # trigger the branch of logic where we catch this discrepancy and fail with an error log and 400
+        # response
         custom_query = {'match_all': {}}
 
         # Request for 'aslp' compact but provider has 'octp' compact
