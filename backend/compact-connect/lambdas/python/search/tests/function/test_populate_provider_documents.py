@@ -334,7 +334,6 @@ class TestPopulateProviderDocuments(TstFunction):
         # Build the resume event from the first result
         resume_event = {
             'startingCompact': result['resumeFrom']['startingCompact'],
-            'startingLastKey': result['resumeFrom']['startingLastKey'],
         }
 
         # Run the second invocation
