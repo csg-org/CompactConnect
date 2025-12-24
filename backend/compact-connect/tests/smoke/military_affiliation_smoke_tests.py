@@ -7,8 +7,12 @@ from datetime import UTC, datetime
 import requests
 from smoke_common import (
     SmokeTestFailureException,
+    call_provider_users_me_endpoint,
+    create_test_staff_user,
+    delete_test_staff_user,
     get_api_base_url,
     get_provider_user_auth_headers_cached,
+    get_staff_user_auth_headers,
     load_smoke_test_env,
 )
 
@@ -98,7 +102,7 @@ def test_military_affiliation_upload():
             f'Military status note is not empty. Note: {provider_data.get("militaryStatusNote")}'
         )
 
-    print(f'Successfully updated military status to tentative. Status: {provider_data.get("militaryStatus")}')
+    print('Successfully updated military status to tentative.')
 
     military_affiliations = provider_data.get('militaryAffiliations')
     if not military_affiliations:
@@ -163,10 +167,94 @@ def test_military_affiliation_patch_update():
             f'Military status note is not empty. Note: {provider_data.get("militaryStatusNote")}'
         )
 
-    print(f'Successfully updated military status to notApplicable. Status: {provider_data.get("militaryStatus")}')
+    print('Successfully updated military status to notApplicable.')
+
+
+def test_military_affiliation_audit():
+    """
+    Test the military affiliation audit flow where a compact admin audits a provider's military records.
+
+    Step 1: Get the compact and provider id of the provider
+    Step 2: Create a staff user with compact admin privileges
+    Step 3: Use that staff user to call the PATCH military audit endpoint with 'declined' status and a note
+    Step 4: Verify the provider's militaryStatus and militaryStatusNote are updated correctly
+    """
+    # Step 1: Get the compact and provider id of the provider
+    provider_data = call_provider_users_me_endpoint()
+    provider_id = provider_data.get('providerId')
+    compact = provider_data.get('compact')
+
+    if not provider_id or not compact:
+        raise SmokeTestFailureException('Failed to get provider id or compact from provider data')
+
+    print(f'Testing military affiliation audit for provider {provider_id} in compact {compact}')
+
+    # Step 2: Create a staff user with compact admin privileges
+    test_staff_user_email = 'testStaffUserMilitaryAudit@smokeTestFakeEmail.com'
+    test_user_sub = create_test_staff_user(
+        email=test_staff_user_email,
+        compact=compact,
+        jurisdiction='oh',
+        permissions={'actions': {'admin'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
+    )
+
+    try:
+        # Get staff user auth headers
+        staff_headers = get_staff_user_auth_headers(test_staff_user_email)
+
+        # Step 3: Use that staff user to call the PATCH military audit endpoint
+        test_military_status_note = 'Test audit note: Documentation was unclear and needs to be resubmitted.'
+        patch_body = {
+            'militaryStatus': 'declined',
+            'militaryStatusNote': test_military_status_note,
+        }
+
+        patch_api_response = requests.patch(
+            url=get_api_base_url() + f'/v1/compacts/{compact}/providers/{provider_id}/militaryAudit',
+            headers=staff_headers,
+            json=patch_body,
+            timeout=10,
+        )
+
+        if patch_api_response.status_code != 200:
+            raise SmokeTestFailureException(f'Failed to PATCH military audit. Response: {patch_api_response.json()}')
+        print('Successfully called PATCH military audit endpoint.')
+
+        # Step 4: Get the provider's information again and verify the militaryStatus and militaryStatusNote
+        provider_headers = get_provider_user_auth_headers_cached()
+        get_provider_data_response = requests.get(
+            get_api_base_url() + '/v1/provider-users/me', headers=provider_headers, timeout=10
+        )
+
+        if get_provider_data_response.status_code != 200:
+            raise SmokeTestFailureException(
+                f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
+            )
+
+        updated_provider_data = get_provider_data_response.json()
+
+        # Verify militaryStatus is set to declined
+        if updated_provider_data.get('militaryStatus') != 'declined':
+            raise SmokeTestFailureException(
+                f'Military status is not declined. Status: {updated_provider_data.get("militaryStatus")}'
+            )
+
+        # Verify militaryStatusNote equals what was passed into the request body
+        if updated_provider_data.get('militaryStatusNote') != test_military_status_note:
+            raise SmokeTestFailureException(
+                f'Military status note does not match. Expected: "{test_military_status_note}", '
+                f'Got: "{updated_provider_data.get("militaryStatusNote")}"'
+            )
+
+        print('Successfully verified military status audit.')
+
+    finally:
+        # Clean up the test staff user
+        delete_test_staff_user(test_staff_user_email, user_sub=test_user_sub, compact=compact)
 
 
 if __name__ == '__main__':
     load_smoke_test_env()
     test_military_affiliation_upload()
     test_military_affiliation_patch_update()
+    test_military_affiliation_audit()
