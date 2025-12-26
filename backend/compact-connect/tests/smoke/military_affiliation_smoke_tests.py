@@ -92,7 +92,7 @@ def test_military_affiliation_upload():
 
     provider_data = get_provider_data_response.json()
 
-    # check the militaryStatus of the provider to make sure it is now reset to 'tenative'
+    # check the militaryStatus of the provider to make sure it is now reset to 'tentative'
     if provider_data.get('militaryStatus') != 'tentative':
         raise SmokeTestFailureException(
             f'Military status is not tentative. Status: {provider_data.get("militaryStatus")}'
@@ -264,7 +264,7 @@ def test_military_affiliation_audit():
         # Verify militaryStatus is set to declined
         if provider_data_after_approval.get('militaryStatus') != 'approved':
             raise SmokeTestFailureException(
-                f'Military status is not declined. Status: {provider_data_after_approval.get("militaryStatus")}'
+                f'Military status is not approved. Status: {provider_data_after_approval.get("militaryStatus")}'
             )
 
         # Verify militaryStatusNote equals what was passed into the request body
