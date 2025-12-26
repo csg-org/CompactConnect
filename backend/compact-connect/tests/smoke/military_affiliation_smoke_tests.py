@@ -191,9 +191,7 @@ def _call_audit_endpoint_and_get_provider_data(compact, provider_id, test_staff_
     )
 
     if get_provider_data_response.status_code != 200:
-        raise SmokeTestFailureException(
-            f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
-        )
+        raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
 
     return get_provider_data_response.json()
 
@@ -233,10 +231,9 @@ def test_military_affiliation_audit():
             'militaryStatus': 'declined',
             'militaryStatusNote': test_military_status_note,
         }
-        updated_provider_data = _call_audit_endpoint_and_get_provider_data(compact,
-                                                                           provider_id,
-                                                                           test_staff_user_email,
-                                                                           patch_body)
+        updated_provider_data = _call_audit_endpoint_and_get_provider_data(
+            compact, provider_id, test_staff_user_email, patch_body
+        )
 
         # Verify militaryStatus is set to declined
         if updated_provider_data.get('militaryStatus') != 'declined':
@@ -254,13 +251,10 @@ def test_military_affiliation_audit():
         print('Successfully verified declined military status audit.')
 
         # Step 4: Use that staff user to call the PATCH military audit endpoint with an approved message
-        patch_body = {
-            'militaryStatus': 'approved'
-        }
-        provider_data_after_approval = _call_audit_endpoint_and_get_provider_data(compact,
-                                                                           provider_id,
-                                                                           test_staff_user_email,
-                                                                           patch_body)
+        patch_body = {'militaryStatus': 'approved'}
+        provider_data_after_approval = _call_audit_endpoint_and_get_provider_data(
+            compact, provider_id, test_staff_user_email, patch_body
+        )
         # Verify militaryStatus is set to declined
         if provider_data_after_approval.get('militaryStatus') != 'approved':
             raise SmokeTestFailureException(

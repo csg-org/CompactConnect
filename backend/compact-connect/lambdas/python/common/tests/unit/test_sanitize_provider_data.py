@@ -60,8 +60,10 @@ class TestSanitizeProviderData(TstLambdas):
         # now create expected provider record with the ssn and dob removed
         del expected_provider['ssnLastFour']
         del expected_provider['dateOfBirth']
-        # we do not return the military affiliation document keys if the caller does not have read private scope
+        # we do not return the military affiliation document keys or the military status note
+        # if the caller does not have read private scope
         del expected_provider['militaryAffiliations'][0]['documentKeys']
+        del expected_provider['militaryStatusNote']
         # also remove the ssn from the license record
         del expected_provider['licenses'][0]['ssnLastFour']
         del expected_provider['licenses'][0]['dateOfBirth']
