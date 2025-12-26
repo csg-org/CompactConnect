@@ -819,7 +819,7 @@ class DataClient:
         # We need to check for any other military affiliations for this provider
         # and set them to inactive. Note these could be consolidated into a single batch call if performance
         # becomes an issue.
-        self.inactivate_military_affiliation_status(compact, provider_id)
+        self.inactivate_current_military_affiliation_records(compact, provider_id)
 
         with self.config.provider_table.batch_writer() as batch:
             batch.put_item(Item=latest_military_affiliation_record_serialized)
@@ -939,7 +939,7 @@ class DataClient:
 
         logger.info('Successfully ended military affiliation for provider')
 
-    def inactivate_military_affiliation_status(self, compact: str, provider_id: str):
+    def inactivate_current_military_affiliation_records(self, compact: str, provider_id: str):
         """
         Sets all military affiliation records to an inactive status for a provider in the database.
 
