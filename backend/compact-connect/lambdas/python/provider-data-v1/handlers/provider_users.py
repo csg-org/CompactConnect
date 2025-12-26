@@ -133,7 +133,7 @@ def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-
 
     s3_document_prefix = (
         f'compact/{compact}/provider/{provider_id}/document-type/'
-        f'{MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME}/{config.current_standard_datetime.date().isoformat()}/'
+        f'{MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME}/{config.current_standard_datetime.isoformat()}/'
     )
 
     event_body = json.loads(event['body'])
