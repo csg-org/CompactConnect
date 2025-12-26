@@ -54,7 +54,7 @@ class TestProviderUserBucketS3Events(TstFunction):
             event['Records'][0]['s3']['object']['key'] = (
                 f'compact/{TEST_COMPACT}/provider/{TEST_PROVIDER_ID}/'
                 f'document-type/military-affiliations/'
-                f'{datetime.now(tz=UTC).date().isoformat()}/'
+                f'{datetime.now(tz=UTC).isoformat()}/'
                 f'{MOCK_MILITARY_AFFILIATION_FILE_NAME}'
             )
 
@@ -111,7 +111,7 @@ class TestProviderUserBucketS3Events(TstFunction):
                 'documentKeys': [
                     f'compact/{TEST_COMPACT}/provider/{TEST_PROVIDER_ID}/'
                     f'document-type/military-affiliations/'
-                    f'{older_date.date().isoformat()}/older_military_affiliation.pdf'
+                    f'{older_date.isoformat()}/older_military_affiliation.pdf'
                 ],
             }
         )
@@ -128,7 +128,7 @@ class TestProviderUserBucketS3Events(TstFunction):
                 'documentKeys': [
                     f'compact/{TEST_COMPACT}/provider/{TEST_PROVIDER_ID}/'
                     f'document-type/military-affiliations/'
-                    f'{newer_date.date().isoformat()}/{MOCK_MILITARY_AFFILIATION_FILE_NAME}'
+                    f'{newer_date.isoformat()}/{MOCK_MILITARY_AFFILIATION_FILE_NAME}'
                 ],
             }
         )
@@ -145,7 +145,7 @@ class TestProviderUserBucketS3Events(TstFunction):
             event['Records'][0]['s3']['object']['key'] = (
                 f'compact/{TEST_COMPACT}/provider/{TEST_PROVIDER_ID}/'
                 f'document-type/military-affiliations/'
-                f'{newer_date.date().isoformat()}/'
+                f'{newer_date.isoformat()}/'
                 f'{MOCK_MILITARY_AFFILIATION_FILE_NAME}'
             )
 
