@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from cc_common.config import config, logger
+from cc_common.data_model.schema.common import MilitaryAuditStatus
 from cc_common.data_model.schema.data_event.api import MilitaryAuditEventDetailSchema
 from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
 from cc_common.exceptions import CCInternalException
@@ -65,11 +66,11 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
 
         # Determine event type and send appropriate notification
         event_type = (
-            EventType.MILITARY_AUDIT_APPROVED if audit_result == 'approved' else EventType.MILITARY_AUDIT_DECLINED
+            EventType.MILITARY_AUDIT_APPROVED if audit_result == MilitaryAuditStatus.APPROVED else EventType.MILITARY_AUDIT_DECLINED
         )
 
         try:
-            if audit_result == 'approved':
+            if audit_result == MilitaryAuditStatus.APPROVED:
                 logger.info('Sending military audit approved notification to provider')
                 config.email_service_client.send_military_audit_approved_notification(
                     compact=compact,
