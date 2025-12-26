@@ -170,6 +170,34 @@ def test_military_affiliation_patch_update():
     print('Successfully updated military status to notApplicable.')
 
 
+def _call_audit_endpoint_and_get_provider_data(compact, provider_id, test_staff_user_email, patch_body):
+    # Get staff user auth headers
+    staff_headers = get_staff_user_auth_headers(test_staff_user_email)
+
+    patch_api_response = requests.patch(
+        url=get_api_base_url() + f'/v1/compacts/{compact}/providers/{provider_id}/militaryAudit',
+        headers=staff_headers,
+        json=patch_body,
+        timeout=10,
+    )
+
+    if patch_api_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to PATCH military audit. Response: {patch_api_response.json()}')
+    print('Successfully called PATCH military audit endpoint.')
+
+    provider_headers = get_provider_user_auth_headers_cached()
+    get_provider_data_response = requests.get(
+        get_api_base_url() + '/v1/provider-users/me', headers=provider_headers, timeout=10
+    )
+
+    if get_provider_data_response.status_code != 200:
+        raise SmokeTestFailureException(
+            f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
+        )
+
+    return get_provider_data_response.json()
+
+
 def test_military_affiliation_audit():
     """
     Test the military affiliation audit flow where a compact admin audits a provider's military records.
@@ -199,39 +227,16 @@ def test_military_affiliation_audit():
     )
 
     try:
-        # Get staff user auth headers
-        staff_headers = get_staff_user_auth_headers(test_staff_user_email)
-
-        # Step 3: Use that staff user to call the PATCH military audit endpoint
-        test_military_status_note = 'Test audit note: Documentation was unclear and needs to be resubmitted.'
+        # Step 3: Use that staff user to call the PATCH military audit endpoint with a decline message
+        test_military_status_note = 'Documentation was unclear and needs to be resubmitted.'
         patch_body = {
             'militaryStatus': 'declined',
             'militaryStatusNote': test_military_status_note,
         }
-
-        patch_api_response = requests.patch(
-            url=get_api_base_url() + f'/v1/compacts/{compact}/providers/{provider_id}/militaryAudit',
-            headers=staff_headers,
-            json=patch_body,
-            timeout=10,
-        )
-
-        if patch_api_response.status_code != 200:
-            raise SmokeTestFailureException(f'Failed to PATCH military audit. Response: {patch_api_response.json()}')
-        print('Successfully called PATCH military audit endpoint.')
-
-        # Step 4: Get the provider's information again and verify the militaryStatus and militaryStatusNote
-        provider_headers = get_provider_user_auth_headers_cached()
-        get_provider_data_response = requests.get(
-            get_api_base_url() + '/v1/provider-users/me', headers=provider_headers, timeout=10
-        )
-
-        if get_provider_data_response.status_code != 200:
-            raise SmokeTestFailureException(
-                f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
-            )
-
-        updated_provider_data = get_provider_data_response.json()
+        updated_provider_data = _call_audit_endpoint_and_get_provider_data(compact,
+                                                                           provider_id,
+                                                                           test_staff_user_email,
+                                                                           patch_body)
 
         # Verify militaryStatus is set to declined
         if updated_provider_data.get('militaryStatus') != 'declined':
@@ -246,7 +251,30 @@ def test_military_affiliation_audit():
                 f'Got: "{updated_provider_data.get("militaryStatusNote")}"'
             )
 
-        print('Successfully verified military status audit.')
+        print('Successfully verified declined military status audit.')
+
+        # Step 4: Use that staff user to call the PATCH military audit endpoint with an approved message
+        patch_body = {
+            'militaryStatus': 'approved'
+        }
+        provider_data_after_approval = _call_audit_endpoint_and_get_provider_data(compact,
+                                                                           provider_id,
+                                                                           test_staff_user_email,
+                                                                           patch_body)
+        # Verify militaryStatus is set to declined
+        if provider_data_after_approval.get('militaryStatus') != 'approved':
+            raise SmokeTestFailureException(
+                f'Military status is not declined. Status: {provider_data_after_approval.get("militaryStatus")}'
+            )
+
+        # Verify militaryStatusNote equals what was passed into the request body
+        if provider_data_after_approval.get('militaryStatusNote') != '':
+            raise SmokeTestFailureException(
+                f'Military status note does not match. Expected empty string, '
+                f'Got: "{provider_data_after_approval.get("militaryStatusNote")}"'
+            )
+
+        print('Successfully verified approved military status audit.')
 
     finally:
         # Clean up the test staff user
