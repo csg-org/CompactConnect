@@ -393,7 +393,7 @@ class TestGetProvider(TstFunction):
         # we can't assert on the whole url, since it changes with time
         # we can verify the path to the file matches expected values
         self.assertIn(
-            'https://provider-user-bucket.s3.amazonaws.com//provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08/1234%23military-waiver.pdf',
+            'https://provider-user-bucket.s3.amazonaws.com//provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08T23%3A59%3A59%2B00%3A00/1234%23military-waiver.pdf',
             provider_data['militaryAffiliations'][0]['downloadLinks'][0]['url'],
         )
 

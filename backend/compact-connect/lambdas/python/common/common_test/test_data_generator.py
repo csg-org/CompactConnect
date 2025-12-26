@@ -221,7 +221,7 @@ class TestDataGenerator:
             'compact': DEFAULT_COMPACT,
             'type': MILITARY_AFFILIATION_RECORD_TYPE,
             'documentKeys': [
-                f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME.split("T")[0]}/1234#military-waiver.pdf'
+                f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME}/1234#military-waiver.pdf'
             ],
             'fileNames': ['military-waiver.pdf'],
             'affiliationType': DEFAULT_MILITARY_AFFILIATION_TYPE,
