@@ -8,7 +8,7 @@ from cc_common.utils import sqs_handler_with_notification_tracking
 
 
 @sqs_handler_with_notification_tracking
-def military_audit_notification_listener(message: dict, tracker: NotificationTracker):  # noqa: ARG001
+def military_audit_notification_listener(message: dict, tracker: NotificationTracker):
     """
     Handle military audit events and send notifications to providers.
 
