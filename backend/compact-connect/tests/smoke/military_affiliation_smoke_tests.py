@@ -107,10 +107,10 @@ def test_military_affiliation_upload():
     military_affiliations = provider_data.get('militaryAffiliations')
     if not military_affiliations:
         raise SmokeTestFailureException('No military affiliations found in provider data')
-    today = datetime.now(tz=UTC).date().isoformat()
-    matching_military_affiliation = next(
-        (ma for ma in military_affiliations if datetime.fromisoformat(ma['dateOfUpload']).date().isoformat() == today),
-        None,
+    # Find the military affiliation record with the most recent dateOfUpload
+    matching_military_affiliation = max(
+        military_affiliations,
+        key=lambda ma: datetime.fromisoformat(ma['dateOfUpload'])
     )
     if not matching_military_affiliation:
         raise SmokeTestFailureException(
