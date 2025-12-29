@@ -6,6 +6,8 @@ from uuid import uuid4
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
+from marshmallow.exceptions import SCHEMA
+
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import (
     LicensePostRequestSchema,
@@ -164,11 +166,16 @@ def process_bulk_upload_file(
                     if duplicate_ssn_check_flag_enabled:
                         matched_ssn_index = ssns_in_file_upload.get(ssn_key)
                         if matched_ssn_index:
+                            # format the validation error as dict so it can be processed by email handler downstream
                             raise ValidationError(
-                                message=f'Duplicate License SSN detected for license type '
-                                f'{validated_license["licenseType"]}. SSN matches with record '
-                                f'{matched_ssn_index}. Every record must have a unique SSN per license type '
-                                f'within the same file.'
+                                {
+                                    SCHEMA: [
+                                        f'Duplicate License SSN detected for license type '
+                                        f'{validated_license["licenseType"]}. SSN matches with record '
+                                        f'{matched_ssn_index}. Every record must have a unique SSN per license type '
+                                        f'within the same file.'
+                                    ]
+                                }
                             )
                         ssns_in_file_upload.update({ssn_key: i + 1})
                 except TypeError as e:
