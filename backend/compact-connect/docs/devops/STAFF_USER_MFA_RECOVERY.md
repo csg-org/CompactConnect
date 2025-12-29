@@ -21,9 +21,7 @@ This document provides step-by-step instructions to recover the user's access wh
 Before beginning this procedure, ensure you have:
 
 1. **AWS Console Access**: Administrative access to the AWS account for the target environment (test, beta, or production)
-2. **Cognito Access**: Permissions to manage users in the staff user pool
-3. **DynamoDB Access**: Permissions to read and write items from the staff users table
-4. **User Information**: You will need the user's email address to find their Cognito account
+2. **User Information**: You will need the user's email address to find their Cognito account
 
 ## Procedure
 
