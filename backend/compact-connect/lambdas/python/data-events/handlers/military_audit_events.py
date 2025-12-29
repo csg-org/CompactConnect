@@ -66,7 +66,9 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
 
         # Determine event type and send appropriate notification
         event_type = (
-            EventType.MILITARY_AUDIT_APPROVED if audit_result == MilitaryAuditStatus.APPROVED else EventType.MILITARY_AUDIT_DECLINED
+            EventType.MILITARY_AUDIT_APPROVED
+            if audit_result == MilitaryAuditStatus.APPROVED
+            else EventType.MILITARY_AUDIT_DECLINED
         )
 
         try:

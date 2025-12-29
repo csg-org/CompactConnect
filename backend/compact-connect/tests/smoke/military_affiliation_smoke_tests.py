@@ -109,8 +109,7 @@ def test_military_affiliation_upload():
         raise SmokeTestFailureException('No military affiliations found in provider data')
     # Find the military affiliation record with the most recent dateOfUpload
     matching_military_affiliation = max(
-        military_affiliations,
-        key=lambda ma: datetime.fromisoformat(ma['dateOfUpload'])
+        military_affiliations, key=lambda ma: datetime.fromisoformat(ma['dateOfUpload'])
     )
     if not matching_military_affiliation:
         raise SmokeTestFailureException(
