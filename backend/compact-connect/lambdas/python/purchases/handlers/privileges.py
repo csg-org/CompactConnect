@@ -9,7 +9,7 @@ from cc_common.data_model.schema.common import (
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
     LicenseDeactivatedStatusEnum,
-    LicenseEncumberedStatusEnum,
+    LicenseEncumberedStatusEnum, MilitaryAuditStatus,
 )
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
@@ -339,8 +339,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             )
 
     license_expiration_date: date = matching_license_record.dateOfExpiration
-    provider_latest_military_status = provider_user_records.get_latest_military_affiliation_status()
-    if provider_latest_military_status == MilitaryAffiliationStatus.INITIALIZING:
+    # make sure latest military file upload was successful
+    provider_latest_military_upload_status = provider_user_records.get_latest_military_affiliation_status()
+    if provider_latest_military_upload_status == MilitaryAffiliationStatus.INITIALIZING:
         # this only occurs if the user's military document was not processed by S3 as expected
         raise CCInvalidRequestException(
             'Your proof of military affiliation documentation was not successfully processed. '
@@ -348,7 +349,12 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             'documentation or end your military affiliation.'
         )
 
-    user_active_military = provider_latest_military_status == MilitaryAffiliationStatus.ACTIVE
+    # Get militaryStatus from the provider record
+    # militaryStatus defaults to 'notApplicable' if not present (set in generate_api_response_object)
+    provider_military_status = top_level_provider_record.militaryStatus or MilitaryAuditStatus.NOT_APPLICABLE
+
+    # User is considered active military if their militaryStatus is either 'tentative' or 'approved'
+    user_active_military = provider_military_status in (MilitaryAuditStatus.TENTATIVE, MilitaryAuditStatus.APPROVED)
 
     # Validate attestations are the latest versions before proceeding with the purchase
     _validate_attestations(compact_abbr, body.get('attestations', []), user_active_military)
