@@ -10,7 +10,9 @@ users DynamoDB table to track permissions and other account data about the user.
 Unfortunately, AWS Cognito does not provide a way to reset a user's MFA settings for recovery purposes. The Cognito user
 account must be deleted and a new one created in order to set a new MFA device. Because the UUID of the DynamoDB record matches the id of the Cognito user, and we track the staff user id in several of our system events for auditing purposes (ie when a 
 staff user deactivates or encumbers a privilege) when we recreate the Cognito user account, we must archive the old 
-DynamoDB record so it may be referenced in the future if needed. 
+DynamoDB record so it may be referenced in the future if needed. In the future, it would be best to migrate staff user
+DynamoDB records so that they reference the Cognito account email address rather than the sub. Until that migration occurs
+and we automate the process to delete staff user Cognito accounts, support staff will need to help with deleting old Cognito accounts.
 
 This document provides step-by-step instructions to recover the user's access while preserving their historical record for audit and traceability purposes.
 
@@ -49,7 +51,7 @@ Instead of deleting the record, we'll archive it by modifying the primary key to
 1. **Create the Archived Record**
    - In the DynamoDB table, click "Create item"
    - Update the item pk with the following structure:
-     - `pk` = `ARCHIVED_USER#{original_user_sub}`
+     - `pk` = `ARCHIVED_USER#{staff user email}`
      - **Add a new field**: `archivedDate` = current date (yyyy-mm-dd format)
      - **Add a new field**: `archivedReason` = "MFA recovery - user lost access to MFA device"
      - Click "Save" to create the archived record, this will delete the old record and create a new archived record
@@ -67,4 +69,3 @@ At this point, a staff admin with the needed permissions can recreate the staff 
 create the account for the user as they did before with the appropriate permissions. The user should receive an email
 with a new temporary password. When they log into the system and set their new password, they will also be prompted to
 configure their new MFA using the authenticator app of their choice.
-
