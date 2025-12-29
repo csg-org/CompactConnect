@@ -51,6 +51,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | homeAddressPostalCode* | Postal/ZIP code of provider's home address | String (5-7 chars) | 12345 |
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
+| licenseNumber**         | License number | String (max 100 chars) | OT12345 |
 | licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `audiologist`, `speech-language pathologist`, `occupational therapist`, `occupational therapy assistant`, `licensed professional counselor` | occupational therapist |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
@@ -58,12 +59,11 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | compactEligibility* | Whether this license makes the licensee eligible to participate in the compact based on the compact's requirements. Cannot be `eligible` if licenseStatus is `inactive`. *Note: licenses will automatically be displayed as `ineligible` after their date of expiration, even if the last upload still showed them as `eligible`.* | One of: `eligible`, `ineligible` | eligible |
 | emailAddress | Provider's email address (optional) | Email (max 100 chars) | john.smith@example.com |
 | homeAddressStreet2 | Second line of provider's street address (optional) | String (max 100 chars) | Suite 100 |
-| licenseNumber | License number (optional) | String (max 100 chars) | OT12345 |
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
 | npi | National Provider Identifier (optional) | 10-digit number | 1234567890 |
 | phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |
-
+** This field is required by compact commission rule, however, to avoid making a breaking change for states that are already integrated, the API does not enforce this rule. States are responsible for enforcing the compact rule themselves.
 #### Example CSV
 ```csv
 dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
@@ -98,7 +98,7 @@ If data is not available for an optional field, it must be left empty in the cas
 **CSV Example with missing optional fields:**
 ```csv
 dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,,,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
+2024-06-30,,OT12345,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
 ```
 
 ### What if we don't have data for a required field?
