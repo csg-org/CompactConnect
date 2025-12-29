@@ -18,17 +18,17 @@ charset-normalizer==3.4.4
     # via requests
 click==8.3.1
     # via pip-tools
-coverage[toml]==7.12.0
+coverage[toml]==7.13.0
     # via
     #   -r requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==9.1.0
+cyclonedx-python-lib==11.6.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
 faker==37.12.0
     # via -r requirements-dev.in
-filelock==3.20.0
+filelock==3.20.1
     # via cachecontrol
 idna==3.11
     # via requests
@@ -42,7 +42,7 @@ mdurl==0.1.2
     # via markdown-it-py
 msgpack==1.1.2
     # via cachecontrol
-packageurl-python==0.17.5
+packageurl-python==0.17.6
     # via cyclonedx-python-lib
 packaging==25.0
     # via
@@ -52,13 +52,13 @@ packaging==25.0
     #   pytest
 pip-api==0.0.34
     # via pip-audit
-pip-audit==2.9.0
+pip-audit==2.10.0
     # via -r requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.5.2
     # via -r requirements-dev.in
-platformdirs==4.5.0
+platformdirs==4.5.1
     # via pip-audit
 pluggy==1.6.0
     # via
@@ -76,7 +76,7 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==9.0.1
+pytest==9.0.2
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -88,15 +88,17 @@ requests==2.32.5
     #   pip-audit
 rich==14.2.0
     # via pip-audit
-ruff==0.14.5
+ruff==0.14.9
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
-toml==0.10.2
+tomli==2.3.0
     # via pip-audit
-tzdata==2025.2
+tomli-w==1.2.0
+    # via pip-audit
+tzdata==2025.3
     # via faker
-urllib3==2.5.0
+urllib3==2.6.2
     # via requests
 wheel==0.45.1
     # via pip-tools

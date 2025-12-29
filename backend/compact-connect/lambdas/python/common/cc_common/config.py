@@ -22,6 +22,20 @@ class _Config:
     presigned_post_ttl_seconds = 3600
     default_page_size = 100
 
+    @property
+    def environment_region(self):
+        """
+        Returns the region name of the region the lambda is running in.
+        """
+        return os.environ['AWS_REGION']
+
+    @property
+    def opensearch_host_endpoint(self):
+        """
+        Returns the OpenSearch host endpoint for the domain.
+        """
+        return os.environ['OPENSEARCH_HOST_ENDPOINT']
+
     @cached_property
     def cognito_client(self):
         return boto3.client('cognito-idp')
@@ -273,6 +287,10 @@ class _Config:
     @property
     def transaction_reports_bucket_name(self):
         return os.environ['TRANSACTION_REPORTS_BUCKET_NAME']
+
+    @property
+    def export_results_bucket_name(self):
+        return os.environ['EXPORT_RESULTS_BUCKET_NAME']
 
     @property
     def transaction_history_table_name(self):

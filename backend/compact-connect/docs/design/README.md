@@ -10,6 +10,8 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[Privileges](#privileges)**
 - **[Attestations](#attestations)**
 - **[Transaction History Reporting](#transaction-history-reporting)**
+- **[Advanced Data Search](#advanced-data-search)**
+- **[CI/CD Pipelines](#cicd-pipelines)**
 - **[Audit Logging](#audit-logging)**
 
 ## Compacts and Jurisdictions
@@ -674,6 +676,120 @@ Authorize.net [support documentation](https://community.developer.cybersource.co
 For this reason, we use the batch settlement time as the timestamp for the transaction records we store in the
 transaction history table. This ensures that any transactions that are in a batch which fails to settle will eventually
 be processed and stored in the transaction history table.
+
+
+## Advanced Data Search
+[Back to top](#backend-design)
+
+To support advanced search capabilities for provider and privilege records, this project leverages
+[AWS OpenSearch Service](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/what-is.html).
+Provider data from the provider DynamoDB table is indexed into an OpenSearch Domain (Cluster), enabling staff users to perform complex searches through the Search API (search.compactconnect.org). 
+
+The OpenSearch resources are deployed within a Virtual Private Cloud (VPC) to provide network-level security and restrict outside access. Unlike DynamoDB, which is a fully managed and serverless AWS service that does not require (and does not support) VPC deployment, OpenSearch domains have data nodes that must be managed. Placing the OpenSearch domain in a VPC allows us to tightly control which resources and users can access it, reducing exposure to external threats.
+
+### Architecture Overview
+![Advanced Search Diagram](./advanced-provider-search.pdf)
+
+The search infrastructure consists of several key components:
+
+1. **OpenSearch Domain**: A managed OpenSearch cluster deployed within a VPC
+2. **Index Manager**: A CloudFormation custom resource that creates and manages domain indices
+3. **Search API**: API Gateway endpoints backed by Lambda functions for querying the domain
+4. **Populate Handler**: A Lambda function for bulk indexing all provider data from DynamoDB
+5. **Provider Update Ingest Handler**: A Lambda function for updating documents in OpenSearch whenever provider records are updated in DynamoDB.
+
+### Index Structure
+
+Provider documents are stored in compact-specific indices with the naming convention: `compact_{compact}_providers_{version}`
+(e.g., `compact_aslp_providers_v1`). We use index aliases to provide a stable reference to the current version of each index (e.g., `compact_aslp_providers`), allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
+
+#### Index Management
+
+The `IndexManagerCustomResource` is a CloudFormation custom resource that creates compact-specific indices when the
+domain is first created. It ensures the indices/aliases exist with the correct mapping before any indexing operations begin.
+
+#### Index Mapping
+
+Each provider document contains all information you would see from the provider detail api endpoint with `readGeneral` permission. See the [application code](../../lambdas/python/search/handlers/manage_opensearch_indices.py) for the current mapping definition.
+
+The index uses a custom ASCII-folding analyzer for name fields, which allows searching for names with international
+characters using their ASCII equivalents (e.g., searching "Jose" matches "José").
+
+### Search API Endpoints
+
+The Search API provides two endpoints for querying the OpenSearch domain:
+
+#### Provider Search
+```
+POST /v1/compacts/{compact}/providers/search
+```
+
+Returns provider records matching the query. Response includes the full provider document with licenses, privileges,
+and military affiliations.
+
+#### Privilege CSV Export
+```
+POST /v1/compacts/{compact}/privileges/export
+```
+
+Returns flattened privilege records. This endpoint queries the same provider index but extracts and flattens
+privileges, combining privilege data with license data to provide a denormalized list of objects which are then exported to a CSV file for downloading.
+
+### Document Indexing
+
+#### Initial Population / Re-indexing
+
+The `populate_provider_documents` Lambda function handles bulk indexing of provider data from DynamoDB into
+OpenSearch. This function is invoked manually through the AWS Console for:
+- Initial data population when the search infrastructure is first deployed
+- Full re-indexing if data becomes out of sync
+
+The function:
+1. Scans the provider table using the `providerDateOfUpdate` GSI
+2. Retrieves complete provider records for each provider
+3. Sanitizes data using `ProviderGeneralResponseSchema`
+4. Bulk indexes documents
+
+**Resumable Processing**: If the function approaches the 15-minute Lambda timeout, it returns pagination information in the 
+`resumeFrom` field that can be passed as lambda input to continue processing:
+
+```json
+{
+  "startingCompact": "aslp",
+  "startingLastKey": {"pk": "...", "sk": "..."}
+}
+```
+
+**Race Condition Consideration**: A potential race condition can occur when running this function while provider data is being actively updated:
+
+1. The `populate_provider_documents` Lambda function queries the current data from DynamoDB for a provider
+2. A change is made in DynamoDB for that same provider
+3. The DynamoDB stream handler queries the data and indexes the change into OpenSearch after the ~30 second delay of sitting in SQS
+4. The `populate_provider_documents` Lambda function finally indexes the stale data into OpenSearch, overwriting the change indexed by the DynamoDB stream handler
+
+For this reason, it is recommended that this process be run during a period of low traffic. Given that it is a one-time process to initially populate the table, the risk is low and if needed, the Lambda function can be run again to synchronize all the provider documents.
+
+#### Updates via DynamoDB Streams
+
+To keep the OpenSearch index synchronized with changes in the provider DynamoDB table, the system uses DynamoDB Streams to capture all modifications made to provide records (see [AWS documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)). This ensures that provider documents in OpenSearch are updated automatically whenever records are created, modified, or deleted in the provider table.
+
+**Architecture Flow:**
+
+1. **DynamoDB Stream**: The provider table has a DynamoDB stream enabled with `NEW_AND_OLD_IMAGES` view type, which captures both the before and after state of any record modification.
+
+2. **EventBridge Pipe**: An EventBridge Pipe reads events from the DynamoDB stream and forwards them to an SQS queue.
+
+3. **Provider Update Ingest Lambda**: The Lambda function processes SQS message batches, determines the providers that were modified, and upserts their latest information into the appropriate OpenSearch index.
+
+### Monitoring and Alarms
+
+The search infrastructure includes CloudWatch alarms for capacity monitoring. If these alarms get triggered, review
+usage metrics to determine if the Domain needs to be scaled up:
+
+- **CPU Utilization**: Alerts when CPU exceeds threshold
+- **Memory Pressure**: Monitors JVM memory pressure
+- **Storage Space**: Alerts on low disk space
+- **Cluster Health**: Monitors yellow/red cluster status
 
 ## CI/CD Pipelines
 

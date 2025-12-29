@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update API documentation workflow
-# Downloads, trims, and updates Postman collections for both StateApi and LicenseApi
+# Downloads, trims, and updates Postman collections for StateApi, LicenseApi, and SearchApi
 
 set -e  # Exit immediately if any command fails
 
@@ -99,6 +99,14 @@ trim_specs() {
         exit 1
     fi
     print_success "LicenseApi specification trimmed"
+
+    # Trim search API spec
+    print_status "Trimming SearchApi specification..."
+    if ! python3 bin/trim_oas30.py --search; then
+        print_error "Failed to trim SearchApi specification"
+        exit 1
+    fi
+    print_success "SearchApi specification trimmed"
 }
 
 # Function to update Postman collections
@@ -120,6 +128,14 @@ update_postman() {
         exit 1
     fi
     print_success "LicenseApi Postman collection updated"
+
+    # Update search Postman collection
+    print_status "Updating SearchApi Postman collection..."
+    if ! python3 bin/update_postman_collection.py --search; then
+        print_error "Failed to update SearchApi Postman collection"
+        exit 1
+    fi
+    print_success "SearchApi Postman collection updated"
 }
 
 # Function to verify files exist
@@ -129,8 +145,10 @@ verify_files() {
     local files=(
         "docs/api-specification/latest-oas30.json"
         "docs/internal/api-specification/latest-oas30.json"
+        "docs/search-internal/api-specification/latest-oas30.json"
         "docs/postman/postman-collection.json"
         "docs/internal/postman/postman-collection.json"
+        "docs/search-internal/postman/postman-collection.json"
     )
 
     for file in "${files[@]}"; do
@@ -174,8 +192,10 @@ main() {
     print_status "Updated files:"
     echo "  - docs/api-specification/latest-oas30.json"
     echo "  - docs/internal/api-specification/latest-oas30.json"
+    echo "  - docs/search-internal/api-specification/latest-oas30.json"
     echo "  - docs/postman/postman-collection.json"
     echo "  - docs/internal/postman/postman-collection.json"
+    echo "  - docs/search-internal/postman/postman-collection.json"
 }
 
 # Handle script interruption

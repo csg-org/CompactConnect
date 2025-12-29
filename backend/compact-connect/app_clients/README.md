@@ -66,7 +66,7 @@ jurisdiction.
 
 
 ```bash
-python3 bin/create_app_client.py -e <environment> -u <user_pool_id>
+python3 bin/create_app_client.py -u <user_pool_id>
 ```
 
 **Interactive Process:**

@@ -21,6 +21,8 @@ pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/provi
 # avoid installation failures
 # pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/purchases/requirements-dev.in
 # pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/purchases/requirements.in
+pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/search/requirements-dev.in
+pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/search/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/staff-user-pre-token/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/staff-user-pre-token/requirements.in
 pip-compile --no-emit-index-url --upgrade --no-strip-extras lambdas/python/staff-users/requirements-dev.in
