@@ -260,7 +260,7 @@ def test_military_affiliation_audit():
                 f'Military status is not approved. Status: {provider_data_after_approval.get("militaryStatus")}'
             )
 
-        # Verify militaryStatusNote equals what was passed into the request body
+        # Verify militaryStatusNote is an empty string
         if provider_data_after_approval.get('militaryStatusNote') != '':
             raise SmokeTestFailureException(
                 f'Military status note does not match. Expected empty string, '
