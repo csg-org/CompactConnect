@@ -854,7 +854,7 @@ class DataClient:
         # Get all military affiliation records that are INITIALIZING or ACTIVE
         active_military_affiliation_records = provider_user_records.get_military_affiliation_records(
             filter_condition=lambda record: record.status
-            in [MilitaryAffiliationStatus.INITIALIZING.value, MilitaryAffiliationStatus.ACTIVE.value]
+            in [MilitaryAffiliationStatus.INITIALIZING, MilitaryAffiliationStatus.ACTIVE]
         )
 
         # Create provider update record to track the removal of military status fields
