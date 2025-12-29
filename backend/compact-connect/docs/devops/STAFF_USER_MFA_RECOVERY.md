@@ -7,12 +7,9 @@ When a staff user loses access to their Multi-Factor Authentication (MFA) device
 A staff user account consists of two parts: a Cognito user to track login information, and a DynamoDB record in the staff
 users DynamoDB table to track permissions and other account data about the user.
 
-Unfortunately, AWS Cognito does not provide a way to reset a user's MFA settings for recovery purposes. The Cognito user
-account must be deleted and a new one created in order to set a new MFA device. Because the UUID of the DynamoDB record matches the id of the Cognito user, and we track the staff user id in several of our system events for auditing purposes (ie when a 
-staff user deactivates or encumbers a privilege) when we recreate the Cognito user account, we must archive the old 
-DynamoDB record so it may be referenced in the future if needed. In the future, it would be best to migrate staff user
-DynamoDB records so that they reference the Cognito account email address rather than the sub. Until that migration occurs
-and we automate the process to delete staff user Cognito accounts, support staff will need to help with deleting old Cognito accounts.
+Unfortunately, AWS Cognito does not provide a way to reset or recover a user’s MFA configuration. If a staff user loses access to their MFA device, the Cognito user account must be deleted and recreated in order to enroll a new MFA device. In CompactConnect, the DynamoDB staff-user record is keyed by the Cognito user ID (sub), and that identifier is referenced by system audit events (for example, when a staff user deactivates or encumbers a privilege). 
+
+Recreating a Cognito user always generates a new sub. Reusing or mutating the existing DynamoDB staff-user record would retroactively change the meaning of historical audit events. To preserve audit integrity and traceability, the DynamoDB record with the original sub must therefore be archived, and a new staff-user record must be created for the newly recreated Cognito user. In the future, staff-user records should be decoupled from Cognito sub values (for example, by referencing email). Until that migration is completed and the process is automated, support staff must assist with deleting Cognito accounts and archiving staff-user records when a staff user loses access to their MFA device.
 
 This document provides step-by-step instructions to recover the user's access while preserving their historical record for audit and traceability purposes.
 
@@ -44,15 +41,16 @@ Before beginning this procedure, ensure you have:
 
 ### Step 2: Archive the DynamoDB Record
 
-Instead of deleting the record, we'll archive it by modifying the primary key to indicate it's archived:
+In the DynamoDB console, if you change the partition key (pk) value of a existing DynamoDB item, it automatically deletes the old record with the old pk and creates a new one with the new pk. Instead of deleting the record, you can archive it by modifying the primary key to indicate it's archived:
 
 1. **Create the Archived Record**
-   - In the DynamoDB table, click "Create item"
+   - In the DynamoDB table, find the existing staff user record and select it to open the 'Edit item' view.
    - Update the item pk with the following structure:
      - `pk` = `ARCHIVED_USER#{staff user email}`
      - **Add a new field**: `archivedDate` = current date (yyyy-mm-dd format)
      - **Add a new field**: `archivedReason` = "MFA recovery - user lost access to MFA device"
-     - Click "Save" to create the archived record, this will delete the old record and create a new archived record
+     - A box should appear at the bottom that states the item will be deleted and recreated, click the box to confirm this action.
+     - Click the 'Recreate item' button to create the archived record, this will delete the old record and create a new archived record
      - Verify the archived record was created successfully
      - Note the permissions of the archived user for when the user is re-invited into the system.
 
