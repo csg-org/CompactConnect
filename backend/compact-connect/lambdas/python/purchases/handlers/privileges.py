@@ -9,7 +9,8 @@ from cc_common.data_model.schema.common import (
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
     LicenseDeactivatedStatusEnum,
-    LicenseEncumberedStatusEnum, MilitaryAuditStatus,
+    LicenseEncumberedStatusEnum,
+    MilitaryAuditStatus,
 )
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
