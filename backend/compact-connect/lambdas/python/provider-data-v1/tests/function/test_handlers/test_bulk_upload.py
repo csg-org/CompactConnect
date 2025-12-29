@@ -342,11 +342,9 @@ class TestProcessObjects(TstFunction):
                             'dateOfRenewal': '2025-01-01',
                             'dateOfExpiration': '2026-01-01',
                         },
-                        'errors': [
-                            'Duplicate License SSN detected for license type audiologist. SSN matches with record 1. '
-                            'Every record must have a unique SSN per license type within the same file.'
-                        ],
-                    }
+                        "errors": {"_schema": ["Duplicate License SSN detected for license type audiologist. "
+                                               "SSN matches with record 1. Every record must have a unique SSN per"
+                                               " license type within the same file."]}}
                 ),
                 'EventBusName': 'license-data-events',
             }
