@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 import os
 import time
-from datetime import UTC, datetime
+from datetime import datetime
 
 import requests
 from smoke_common import (

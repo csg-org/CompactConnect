@@ -964,7 +964,7 @@ class DataClient:
         military_status_note: str | None = None,
     ) -> None:
         """
-        Update provider and latest military affiliation with audit result in a transaction.
+        Update provider with audit result in a transaction.
 
         This method:
         1. Gets the provider record
