@@ -708,7 +708,7 @@ class DataClient:
                 'previous': provider_record.to_dict(),
                 'createDate': now,
                 'updatedValues': {
-                    'militaryStatus': MilitaryAuditStatus.TENTATIVE.value,
+                    'militaryStatus': MilitaryAuditStatus.TENTATIVE,
                     'militaryStatusNote': '',
                 },
             }
@@ -730,7 +730,7 @@ class DataClient:
                         'dateOfUpdate = :dateOfUpdate'
                     ),
                     'ExpressionAttributeValues': {
-                        ':militaryStatus': {'S': MilitaryAuditStatus.TENTATIVE.value},
+                        ':militaryStatus': {'S': MilitaryAuditStatus.TENTATIVE},
                         ':militaryStatusNote': {'S': ''},
                         ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                     },
@@ -1006,7 +1006,7 @@ class DataClient:
                 'previous': previous_provider_state,
                 'createDate': now,
                 'updatedValues': {
-                    'militaryStatus': military_status.value,
+                    'militaryStatus': military_status,
                     'militaryStatusNote': note_value,
                 },
             }
@@ -1030,7 +1030,7 @@ class DataClient:
                             'dateOfUpdate = :dateOfUpdate'
                         ),
                         'ExpressionAttributeValues': {
-                            ':militaryStatus': {'S': military_status.value},
+                            ':militaryStatus': {'S': military_status},
                             ':militaryStatusNote': {'S': note_value},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                         },
