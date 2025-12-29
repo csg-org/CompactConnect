@@ -21,9 +21,7 @@ Before beginning this procedure, ensure you have:
 1. **AWS Console Access**: Administrative access to the AWS account for the target environment (test, beta, or production)
 2. **Cognito Access**: Permissions to manage users in the staff user pool
 3. **DynamoDB Access**: Permissions to read and write items from the staff users table
-4. **User Information**: 
-   - User's email address
-   - User's compact affiliation
+4. **User Information**: You will need the user's email address to find their Cognito account
 
 ## Procedure
 
@@ -36,7 +34,7 @@ Before beginning this procedure, ensure you have:
    - Click on the user to view their details
    - Copy the `sub` (Subject) value - this is the user ID you'll need
 
-3. **Retrieve the DynamoDB Record**
+2. **Retrieve the DynamoDB Record**
    - Navigate to the Staff Users table in the AWS Console → DynamoDB → Tables → `{environment}-PersistentStack-StaffUsers...`
    - Click on "Explore table items"
    - Search for an item where:
@@ -52,7 +50,7 @@ Instead of deleting the record, we'll archive it by modifying the primary key to
    - In the DynamoDB table, click "Create item"
    - Update the item pk with the following structure:
      - `pk` = `ARCHIVED_USER#{original_user_sub}`
-     - **Add a new field**: `archivedDate` = current timestamp (ISO 8601 format)
+     - **Add a new field**: `archivedDate` = current date (yyyy-mm-dd format)
      - **Add a new field**: `archivedReason` = "MFA recovery - user lost access to MFA device"
      - Click "Save" to create the archived record, this will delete the old record and create a new archived record
      - Verify the archived record was created successfully
@@ -65,7 +63,7 @@ Instead of deleting the record, we'll archive it by modifying the primary key to
 3. Delete the Cognito user
 
 ### Step 4: Staff user recreates user account
-At this point, a staff admin can recreate the staff user in CompactConnect using the UI. Notify management to 
+At this point, a staff admin with the needed permissions can recreate the staff user in CompactConnect using the UI. Notify management to 
 create the account for the user as they did before with the appropriate permissions. The user should receive an email
 with a new temporary password. When they log into the system and set their new password, they will also be prompted to
 configure their new MFA using the authenticator app of their choice.
