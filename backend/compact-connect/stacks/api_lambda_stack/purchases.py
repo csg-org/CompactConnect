@@ -88,7 +88,7 @@ class PurchasesLambdas:
             environment=lambda_environment,
             alarm_topic=alarm_topic,
             # required as this lambda is bundled with the authorize.net SDK which is large
-            memory_size=256,
+            memory_size=1024,
         )
         NagSuppressions.add_resource_suppressions(
             handler,
@@ -147,7 +147,7 @@ class PurchasesLambdas:
             environment=lambda_environment,
             alarm_topic=alarm_topic,
             # required as this lambda is bundled with the authorize.net SDK which is large
-            memory_size=256,
+            memory_size=1024,
         )
         NagSuppressions.add_resource_suppressions(
             handler,

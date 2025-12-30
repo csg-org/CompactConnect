@@ -1,6 +1,7 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from cc_common.config import logger
 from cc_common.utils import api_handler, authorize_compact_level_only_action
 from purchase_client import PurchaseClient
 
@@ -13,6 +14,7 @@ def post_payment_processor_credentials(event: dict, context: LambdaContext):  # 
     :param LambdaContext context:
     """
     compact = event['pathParameters']['compact']
+    logger.info('processing request to store payment processing credentials for compact', compact=compact)
     body = json.loads(event['body'])
 
     # this will raise an exception if the credentials are invalid
