@@ -129,7 +129,7 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     )
 
     # Military audit status fields
-    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
+    militaryStatus = MilitaryStatusField(required=True, allow_none=False)
     militaryStatusNote = String(required=False, allow_none=False)
 
     # these fields are specific to the read private role
@@ -185,7 +185,7 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
 
     # Military audit status field (note is only available in readPrivate response)
-    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
+    militaryStatus = MilitaryStatusField(required=True, allow_none=False)
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):

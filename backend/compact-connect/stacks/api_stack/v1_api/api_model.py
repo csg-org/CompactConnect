@@ -1553,6 +1553,16 @@ class ApiModel:
             ),
             'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+            'militaryStatus': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=['notApplicable', 'tentative', 'approved', 'declined'],
+                description='Status of military affiliation on the provider record',
+            ),
+            'militaryStatusNote': JsonSchema(
+                type=JsonSchemaType.STRING,
+                description='Optional note about the military status (typically for declines)',
+                max_length=5000,
+            ),
         }
 
     @property

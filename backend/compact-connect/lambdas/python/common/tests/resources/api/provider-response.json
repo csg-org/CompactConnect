@@ -11,6 +11,7 @@
   "jurisdictionUploadedCompactEligibility": "eligible",
   "compact": "aslp",
   "licenseJurisdiction": "oh",
+  "militaryStatus": "notApplicable",
   "privilegeJurisdictions": ["ne"],
   "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",

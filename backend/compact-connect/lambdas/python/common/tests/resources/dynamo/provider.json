@@ -11,6 +11,7 @@
   "givenName": "Björk",
   "middleName": "Gunnar",
   "familyName": "Guðmundsdóttir",
+  "militaryStatus": "notApplicable",
   "licenseJurisdiction": "oh",
   "privilegeJurisdictions": ["ne"],
   "jurisdictionUploadedLicenseStatus": "active",
