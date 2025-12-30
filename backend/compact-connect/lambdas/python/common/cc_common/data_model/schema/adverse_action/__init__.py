@@ -6,7 +6,6 @@ from cc_common.data_model.schema.adverse_action.record import AdverseActionRecor
 from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CCDataClass,
-    ClinicalPrivilegeActionCategory,
     EncumbranceType,
 )
 
@@ -78,17 +77,6 @@ class AdverseActionData(CCDataClass):
     @encumbranceType.setter
     def encumbranceType(self, encumbrance_type_enum: EncumbranceType) -> None:
         self._data['encumbranceType'] = encumbrance_type_enum.value
-
-    # TODO - remove deprecated getter/setter after migrating to 'clinicalPrivilegeActionCategories' field # noqa: FIX002
-    @property
-    def clinicalPrivilegeActionCategory(self) -> str | None:
-        return self._data.get('clinicalPrivilegeActionCategory')
-
-    @clinicalPrivilegeActionCategory.setter
-    def clinicalPrivilegeActionCategory(
-        self, clinical_privilege_action_category_enum: ClinicalPrivilegeActionCategory
-    ) -> None:
-        self._data['clinicalPrivilegeActionCategory'] = clinical_privilege_action_category_enum.value
 
     @property
     def clinicalPrivilegeActionCategories(self) -> list[str] | None:
