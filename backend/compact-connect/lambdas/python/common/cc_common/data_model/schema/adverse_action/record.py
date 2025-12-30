@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815  invalid-name
-from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
+from marshmallow import ValidationError, pre_dump, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, List, String
 from marshmallow.validate import OneOf
 
@@ -44,12 +44,10 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     effectiveLiftDate = Date(required=False, allow_none=False)
     liftingUser = UUID(required=False, allow_none=False)
 
-
     @pre_dump
     def pre_dump_serialization(self, in_data, **_kwargs):
         """Pre-dump serialization to ensure the clinicalPrivilegeActionCategories list is serialized correctly."""
-        in_data = self.generate_pk_sk(in_data)
-        return in_data
+        return self.generate_pk_sk(in_data)
 
     def generate_pk_sk(self, in_data, **_kwargs):
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
@@ -59,7 +57,6 @@ class AdverseActionRecordSchema(BaseRecordSchema):
             f'{in_data["compact"]}#PROVIDER#{in_data["actionAgainst"]}/{in_data["jurisdiction"]}/{license_type_abbr}#ADVERSE_ACTION#{in_data["adverseActionId"]}'
         )
         return in_data
-
 
     @validates_schema
     def validate_license_type(self, data, **_kwargs):  # noqa: ARG001 unused-argument
