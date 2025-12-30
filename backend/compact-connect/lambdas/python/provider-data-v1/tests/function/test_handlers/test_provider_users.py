@@ -433,6 +433,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
     def test_patch_provider_military_affiliation_removes_military_status_fields(self):
         """Test that ending military affiliation removes militaryStatus and militaryStatusNote from provider record."""
         from handlers.provider_users import provider_users_api_handler
+        from cc_common.data_model.schema.common import MilitaryStatus
 
         # Create provider with declined military status and a note
         test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
@@ -451,7 +452,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
             compact=test_provider.compact, provider_id=test_provider.providerId
         )
 
-        self.assertIsNone(updated_provider_record.militaryStatus)
+        self.assertEqual(MilitaryStatus.NOT_APPLICABLE, updated_provider_record.militaryStatus)
         self.assertIsNone(updated_provider_record.militaryStatusNote)
 
     def test_patch_provider_military_affiliation_creates_provider_update_record(self):

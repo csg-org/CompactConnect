@@ -44,6 +44,7 @@ class TestPublicQueryProviders(TstFunction):
             expected_provider.pop('dateOfExpiration')
             expected_provider.pop('jurisdictionUploadedLicenseStatus')
             expected_provider.pop('jurisdictionUploadedCompactEligibility')
+            expected_provider.pop('militaryStatus')
 
         body = json.loads(resp['body'])
         self.assertEqual(

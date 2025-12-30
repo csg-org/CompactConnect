@@ -283,6 +283,7 @@ class TestSearchProviders(TstFunction):
                         'jurisdictionUploadedCompactEligibility': 'eligible',
                         'jurisdictionUploadedLicenseStatus': 'active',
                         'licenseJurisdiction': 'oh',
+                        'militaryStatus': 'notApplicable',
                         'licenseStatus': 'active',
                         'privilegeJurisdictions': [],
                         'providerId': '00000000-0000-0000-0000-000000000001',

@@ -12,7 +12,7 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     ChangeHashMixin,
     CompactEligibilityStatus,
-    LicenseEncumberedStatusEnum,
+    LicenseEncumberedStatusEnum, MilitaryStatus,
 )
 from cc_common.data_model.schema.fields import (
     UNKNOWN_JURISDICTION,
@@ -79,7 +79,7 @@ class ProviderRecordSchema(BaseRecordSchema):
     recoveryExpiry = DateTime(required=False, allow_none=False)
 
     # Military audit status fields
-    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False, load_default=MilitaryStatus.NOT_APPLICABLE)
     militaryStatusNote = String(required=False, allow_none=False)
 
     # Generated fields
