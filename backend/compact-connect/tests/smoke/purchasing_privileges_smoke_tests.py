@@ -154,19 +154,19 @@ def test_purchasing_privilege(delete_current_privilege: bool = True):
         'provision-of-true-information-attestation',
         'not-under-investigation-attestation',
     ]
-    
+
     # Check if provider has active military status (tentative or approved)
     # militaryStatus defaults to 'notApplicable' if not present
     provider_military_status = original_provider_data.get('militaryStatus', 'notApplicable')
     user_active_military = provider_military_status in ('tentative', 'approved')
-    
+
     if user_active_military:
         # Remove personal-information-home-state-attestation (not required for military users)
         required_attestation_ids.remove('personal-information-home-state-attestation')
         # Add military attestations
         required_attestation_ids.append('military-affiliation-confirmation-attestation')
         required_attestation_ids.append('military-personal-information-state-license-attestation')
-    
+
     compact = original_provider_data.get('compact')
     attestations_from_system = []
     for attestation_id in required_attestation_ids:
