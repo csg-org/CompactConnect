@@ -6,8 +6,6 @@ from uuid import uuid4
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
-from marshmallow.exceptions import SCHEMA
-
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import (
     LicensePostRequestSchema,
@@ -26,6 +24,7 @@ from cc_common.utils import (
 )
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
+from marshmallow.exceptions import SCHEMA
 
 duplicate_ssn_check_flag_enabled = is_feature_enabled(
     FeatureFlagEnum.DUPLICATE_SSN_UPLOAD_CHECK_FLAG, fail_default=True
