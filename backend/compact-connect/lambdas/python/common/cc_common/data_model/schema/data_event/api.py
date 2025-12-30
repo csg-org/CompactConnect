@@ -1,5 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
 from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.common import MilitaryStatus
 from cc_common.data_model.schema.fields import (
     Compact,
     Jurisdiction,
@@ -91,6 +92,9 @@ class MilitaryAuditEventDetailSchema(ForgivingSchema):
 
     compact = Compact(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
-    auditResult = String(required=True, allow_none=False, validate=OneOf(['approved', 'declined']))
+    auditResult = String(required=True, allow_none=False, validate=OneOf([
+        MilitaryStatus.APPROVED,
+        MilitaryStatus.DECLINED
+    ]))
     auditNote = String(required=False, allow_none=False)
     eventTime = DateTime(required=True, allow_none=False)

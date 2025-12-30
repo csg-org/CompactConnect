@@ -27,7 +27,7 @@ from cc_common.data_model.schema.common import (
     InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
-    MilitaryAuditStatus,
+    MilitaryStatus,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
@@ -708,7 +708,7 @@ class DataClient:
                 'previous': provider_record.to_dict(),
                 'createDate': now,
                 'updatedValues': {
-                    'militaryStatus': MilitaryAuditStatus.TENTATIVE,
+                    'militaryStatus': MilitaryStatus.TENTATIVE,
                     'militaryStatusNote': '',
                 },
             }
@@ -730,7 +730,7 @@ class DataClient:
                         'dateOfUpdate = :dateOfUpdate'
                     ),
                     'ExpressionAttributeValues': {
-                        ':militaryStatus': {'S': MilitaryAuditStatus.TENTATIVE},
+                        ':militaryStatus': {'S': MilitaryStatus.TENTATIVE},
                         ':militaryStatusNote': {'S': ''},
                         ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                     },
@@ -748,9 +748,9 @@ class DataClient:
         # Update all military affiliation records
         for record in initializing_military_affiliation_records:
             if record.dateOfUpload == latest_military_affiliation_record.dateOfUpload:
-                record.update({'status': MilitaryAffiliationStatus.ACTIVE.value})
+                status_value = MilitaryAffiliationStatus.ACTIVE.value
             else:
-                record.update({'status': MilitaryAffiliationStatus.INACTIVE.value})
+                status_value = MilitaryAffiliationStatus.INACTIVE.value
 
             serialized_record = record.serialize_to_database_record()
             transaction_items.append(
@@ -960,7 +960,7 @@ class DataClient:
         *,
         compact: str,
         provider_id: UUID,
-        military_status: MilitaryAuditStatus,
+        military_status: MilitaryStatus,
         military_status_note: str | None = None,
     ) -> None:
         """

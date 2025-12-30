@@ -12,7 +12,7 @@ from cc_common.data_model.schema.common import (
     InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
-    MilitaryAuditStatus,
+    MilitaryStatus,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
@@ -133,10 +133,9 @@ class InvestigationAgainstField(String):
         super().__init__(*args, validate=OneOf([entry.value for entry in InvestigationAgainstEnum]), **kwargs)
 
 
-class MilitaryAuditStatusField(String):
+class MilitaryStatusField(String):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, validate=OneOf([entry.value for entry in MilitaryAuditStatus]), **kwargs)
-
+        super().__init__(*args, validate=OneOf([entry.value for entry in MilitaryStatus]), **kwargs)
 
 class PositiveDecimal(Decimal):
     """A Decimal field that validates the value is greater than or equal to 0."""
