@@ -755,9 +755,18 @@ class DataClient:
             serialized_record = record.serialize_to_database_record()
             transaction_items.append(
                 {
-                    'Put': {
+                    'Update': {
                         'TableName': self.config.provider_table_name,
-                        'Item': TypeSerializer().serialize(serialized_record)['M'],
+                        'Key': {
+                            'pk': {'S': serialized_record['pk']},
+                            'sk': {'S': serialized_record['sk']},
+                        },
+                        'UpdateExpression': 'SET #status = :status, dateOfUpdate = :dateOfUpdate',
+                        'ExpressionAttributeNames': {'#status': 'status'},
+                        'ExpressionAttributeValues': {
+                            ':status': {'S': status_value},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
                     }
                 }
             )
