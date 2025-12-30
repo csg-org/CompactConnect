@@ -42,7 +42,7 @@ def _generate_test_investigation_close_with_encumbrance_body():
             'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
             # These Enums are expected to be `str` type, so we'll directly access their .value
             'encumbranceType': EncumbranceType.SUSPENSION.value,
-            'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE.value,
+            'clinicalPrivilegeActionCategories': [ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE.value],
         },
     }
 

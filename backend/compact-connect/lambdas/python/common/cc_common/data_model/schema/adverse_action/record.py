@@ -39,30 +39,17 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     submittingUser = UUID(required=True, allow_none=False)
     creationDate = DateTime(required=True, allow_none=False)
     adverseActionId = UUID(required=True, allow_none=False)
-    # TODO - remove this field as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
-    clinicalPrivilegeActionCategory = ClinicalPrivilegeActionCategoryField(required=False, allow_none=False)
 
     # Populated when the action is lifted
     effectiveLiftDate = Date(required=False, allow_none=False)
     liftingUser = UUID(required=False, allow_none=False)
 
-    # TODO - remove this hook once migration is complete to the new field  # noqa: FIX002
-    @pre_load
-    def migrate_clinical_privilege_action_category_on_load(self, in_data, **_kwargs):
-        """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list
-        when loading from database."""
-        # If the deprecated field exists and the new field doesn't, migrate it
-        if 'clinicalPrivilegeActionCategory' in in_data and 'clinicalPrivilegeActionCategories' not in in_data:
-            in_data['clinicalPrivilegeActionCategories'] = [in_data['clinicalPrivilegeActionCategory']]
-            # Remove the deprecated field to avoid having both
-            del in_data['clinicalPrivilegeActionCategory']
-        return in_data
 
     @pre_dump
     def pre_dump_serialization(self, in_data, **_kwargs):
         """Pre-dump serialization to ensure the clinicalPrivilegeActionCategories list is serialized correctly."""
         in_data = self.generate_pk_sk(in_data)
-        return self.migrate_clinical_privilege_action_category(in_data)
+        return in_data
 
     def generate_pk_sk(self, in_data, **_kwargs):
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
@@ -73,13 +60,6 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         )
         return in_data
 
-    # TODO - remove this hook as part of https://github.com/csg-org/CompactConnect/issues/1136  # noqa: FIX002
-    def migrate_clinical_privilege_action_category(self, in_data, **_kwargs):
-        """Migrate deprecated clinicalPrivilegeActionCategory to clinicalPrivilegeActionCategories list."""
-        # If the deprecated field exists and the new field doesn't, migrate it for backwards compatibility
-        if 'clinicalPrivilegeActionCategory' in in_data and 'clinicalPrivilegeActionCategories' not in in_data:
-            in_data['clinicalPrivilegeActionCategories'] = [in_data['clinicalPrivilegeActionCategory']]
-        return in_data
 
     @validates_schema
     def validate_license_type(self, data, **_kwargs):  # noqa: ARG001 unused-argument

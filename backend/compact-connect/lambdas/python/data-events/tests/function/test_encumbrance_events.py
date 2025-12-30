@@ -289,7 +289,7 @@ class TestEncumbranceEvents(TstFunction):
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
                 'actionAgainst': 'license',
-                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+                'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
             }
         )
 
@@ -321,7 +321,7 @@ class TestEncumbranceEvents(TstFunction):
             {
                 'adverseActionId': UUID(DEFAULT_ADVERSE_ACTION_ID),
                 'licenseJurisdiction': 'oh',
-                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+                'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
             },
             update_encumbrance_details,
         )

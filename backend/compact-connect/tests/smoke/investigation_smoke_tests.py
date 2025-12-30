@@ -396,7 +396,7 @@ def test_close_privilege_investigation_with_encumbrance(auth_headers):
         'encumbrance': {
             'encumbranceEffectiveDate': '2024-01-15',
             'encumbranceType': 'fine',
-            'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
+            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
         },
     }
 
