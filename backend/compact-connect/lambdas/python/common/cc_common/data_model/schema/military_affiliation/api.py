@@ -6,8 +6,11 @@ from marshmallow.validate import OneOf
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import S3PresignedPostSchema
-from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus, MilitaryAffiliationType, \
-    MilitaryAuditStatus
+from cc_common.data_model.schema.military_affiliation.common import (
+    MilitaryAffiliationStatus,
+    MilitaryAffiliationType,
+    MilitaryAuditStatus,
+)
 
 
 class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
@@ -24,10 +27,13 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
         Nested(S3PresignedPostSchema(), required=True, allow_none=False), required=True, allow_none=False
     )
 
+
 class MilitaryAuditRequestSchema(Schema):
     """Schema for validating military audit PATCH requests."""
 
-    militaryStatus = String(required=True, allow_none=False, validate=OneOf([entry.value for entry in MilitaryAuditStatus]))
+    militaryStatus = String(
+        required=True, allow_none=False, validate=OneOf([entry.value for entry in MilitaryAuditStatus])
+    )
     militaryStatusNote = String(required=False, allow_none=False)
 
 
