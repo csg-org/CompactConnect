@@ -222,9 +222,7 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(expected_history, history_data)
 
-    # TODO - remove the mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_get_privilege_history_staff_returns_expected_history(self, mock_flag):  # noqa: ARG002
+    def test_get_privilege_history_staff_returns_expected_history(self):
         from handlers.privilege_history import privilege_history_handler
 
         event = self._when_testing_staff_endpoint()

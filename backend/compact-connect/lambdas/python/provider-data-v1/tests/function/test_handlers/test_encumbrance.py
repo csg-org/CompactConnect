@@ -98,8 +98,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
+    def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
@@ -135,49 +134,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             loaded_adverse_action.to_dict(),
         )
 
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
-        from handlers.encumbrance import encumbrance_handler
-
-        event, test_privilege_record = self._when_testing_privilege_encumbrance()
-
-        response = encumbrance_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
-
-        # Verify that the encumbrance record was added to the provider data table
-        privilege_update_records = (
-            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-                test_privilege_record
-            )
-        )
-        self.assertEqual(1, len(privilege_update_records))
-        loaded_privilege_update_data = privilege_update_records[0]
-
-        expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={
-                'updateType': 'encumbrance',
-                'updatedValues': {'encumberedStatus': 'encumbered'},
-                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
-                'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
-                'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
-                    'adverseActionId': loaded_privilege_update_data.encumbranceDetails['adverseActionId'],
-                },
-            }
-        )
-
-        self.assertEqual(
-            expected_privilege_update_data.to_dict(),
-            loaded_privilege_update_data.to_dict(),
-        )
-        self.assertEqual({'encumberedStatus': 'encumbered'}, loaded_privilege_update_data.updatedValues)
-
-    # TODO - remove the test as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=False)
-    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table_flag_off(
-        self,
-        mock_flag,  # noqa: ARG002
-    ):
+    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self):
         from handlers.encumbrance import encumbrance_handler
 
         event, test_privilege_record = self._when_testing_privilege_encumbrance()
@@ -345,12 +302,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
 
 
-mock_flag_client = MagicMock()
-mock_flag_client.return_value = True
-
-
 @mock_aws
-@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
@@ -398,8 +350,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             response_body,
         )
 
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_license_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
+    def test_license_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
