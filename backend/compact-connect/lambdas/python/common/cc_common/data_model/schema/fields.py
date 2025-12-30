@@ -137,6 +137,7 @@ class MilitaryStatusField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in MilitaryStatus]), **kwargs)
 
+
 class PositiveDecimal(Decimal):
     """A Decimal field that validates the value is greater than or equal to 0."""
 

@@ -332,6 +332,7 @@ class TestPostPurchasePrivileges(TstFunction):
     ):
         """Test that tentative military status is considered active military."""
         from cc_common.data_model.schema.common import MilitaryStatus
+
         self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.TENTATIVE, True)
 
     @patch('handlers.privileges.PurchaseClient')
@@ -340,6 +341,7 @@ class TestPostPurchasePrivileges(TstFunction):
     ):
         """Test that approved military status is considered active military."""
         from cc_common.data_model.schema.common import MilitaryStatus
+
         self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.APPROVED, True)
 
     @patch('handlers.privileges.PurchaseClient')
@@ -348,6 +350,7 @@ class TestPostPurchasePrivileges(TstFunction):
     ):
         """Test that declined military status is not considered active military."""
         from cc_common.data_model.schema.common import MilitaryStatus
+
         self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.DECLINED, False)
 
     @patch('handlers.privileges.PurchaseClient')
@@ -356,6 +359,7 @@ class TestPostPurchasePrivileges(TstFunction):
     ):
         """Test that notApplicable military status is not considered active military."""
         from cc_common.data_model.schema.common import MilitaryStatus
+
         self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.NOT_APPLICABLE, False)
 
     @patch('handlers.privileges.PurchaseClient')

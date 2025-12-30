@@ -3,8 +3,7 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.common import CCPermissionsAction
-from cc_common.data_model.schema.military_affiliation.api import MilitaryAuditStatus
-from cc_common.data_model.schema.military_affiliation.api import MilitaryAuditRequestSchema
+from cc_common.data_model.schema.military_affiliation.api import MilitaryAuditRequestSchema, MilitaryAuditStatus
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact_level_only_action, to_uuid
 from marshmallow import ValidationError
