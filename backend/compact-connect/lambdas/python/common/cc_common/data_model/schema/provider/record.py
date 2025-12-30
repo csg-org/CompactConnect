@@ -22,10 +22,9 @@ from cc_common.data_model.schema.fields import (
     CurrentHomeJurisdictionField,
     Jurisdiction,
     LicenseEncumberedStatusField,
-    MilitaryAuditStatusField,
     NationalProviderIdentifier,
     Set,
-    UpdateType,
+    UpdateType, MilitaryStatusField,
 )
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
@@ -79,7 +78,7 @@ class ProviderRecordSchema(BaseRecordSchema):
     recoveryExpiry = DateTime(required=False, allow_none=False)
 
     # Military audit status fields
-    militaryStatus = MilitaryAuditStatusField(required=False, allow_none=False)
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
     militaryStatusNote = String(required=False, allow_none=False)
 
     # Generated fields
@@ -211,7 +210,7 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-    militaryStatus = MilitaryAuditStatusField(required=False, allow_none=False)
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
     militaryStatusNote = String(required=False, allow_none=False)
 
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)

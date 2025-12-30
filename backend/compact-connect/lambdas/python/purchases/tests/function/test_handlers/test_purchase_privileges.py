@@ -331,28 +331,32 @@ class TestPostPurchasePrivileges(TstFunction):
         self, mock_purchase_client_constructor
     ):
         """Test that tentative military status is considered active military."""
-        self._when_testing_military_status(mock_purchase_client_constructor, 'tentative', True)
+        from cc_common.data_model.schema.common import MilitaryStatus
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.TENTATIVE, True)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_calls_purchase_client_with_approved_military_status(
         self, mock_purchase_client_constructor
     ):
         """Test that approved military status is considered active military."""
-        self._when_testing_military_status(mock_purchase_client_constructor, 'approved', True)
+        from cc_common.data_model.schema.common import MilitaryStatus
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.APPROVED, True)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_calls_purchase_client_with_declined_military_status(
         self, mock_purchase_client_constructor
     ):
         """Test that declined military status is not considered active military."""
-        self._when_testing_military_status(mock_purchase_client_constructor, 'declined', False)
+        from cc_common.data_model.schema.common import MilitaryStatus
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.DECLINED, False)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_calls_purchase_client_with_not_applicable_military_status(
         self, mock_purchase_client_constructor
     ):
         """Test that notApplicable military status is not considered active military."""
-        self._when_testing_military_status(mock_purchase_client_constructor, 'notApplicable', False)
+        from cc_common.data_model.schema.common import MilitaryStatus
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.NOT_APPLICABLE, False)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_raises_exception_when_military_affiliation_in_initializing_status(

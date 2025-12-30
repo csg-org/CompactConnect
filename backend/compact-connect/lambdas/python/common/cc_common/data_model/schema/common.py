@@ -293,8 +293,8 @@ class InvestigationAgainstEnum(StrEnum):
     LICENSE = 'license'
 
 
-class MilitaryAuditStatus(CCEnum):
-    """Status of military documentation audit by compact admins."""
+class MilitaryStatus(CCEnum):
+    """Status of military affiliation on top level provider record."""
 
     NOT_APPLICABLE = 'notApplicable'
     TENTATIVE = 'tentative'

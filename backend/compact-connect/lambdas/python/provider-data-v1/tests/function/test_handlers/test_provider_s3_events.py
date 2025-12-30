@@ -33,13 +33,13 @@ class TestProviderUserBucketS3Events(TstFunction):
         return provider_users_api_handler(event, self.mock_context)
 
     def _when_testing_military_affiliation_s3_object_create_event(self):
-        from cc_common.data_model.schema.common import MilitaryAuditStatus
+        from cc_common.data_model.schema.common import MilitaryStatus
 
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
                 'compact': TEST_COMPACT,
                 'providerId': TEST_PROVIDER_ID,
-                'militaryStatus': MilitaryAuditStatus.DECLINED,
+                'militaryStatus': MilitaryStatus.DECLINED,
                 'militaryStatusNote': 'some declined note',
             }
         )
