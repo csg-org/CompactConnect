@@ -87,7 +87,7 @@ Install the required Python packages. The smoke tests use the same dependencies 
 Each test file can be run independently from the compact-connect folder:
 
 ```bash
-# Navigate to the smoke tests directory
+# Navigate to the compact-connect directory
 cd backend/compact-connect
 
 # Run a specific test file
