@@ -5,8 +5,9 @@ from marshmallow.validate import OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.common import S3PresignedPostSchema, CCEnum
-from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus, MilitaryAffiliationType
+from cc_common.data_model.schema.common import S3PresignedPostSchema
+from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationStatus, MilitaryAffiliationType, \
+    MilitaryAuditStatus
 
 
 class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
@@ -22,12 +23,6 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
     documentUploadFields = List(
         Nested(S3PresignedPostSchema(), required=True, allow_none=False), required=True, allow_none=False
     )
-
-class MilitaryAuditStatus(CCEnum):
-    """Status of military documentation audit by compact admins."""
-
-    APPROVED = 'approved'
-    DECLINED = 'declined'
 
 class MilitaryAuditRequestSchema(Schema):
     """Schema for validating military audit PATCH requests."""
