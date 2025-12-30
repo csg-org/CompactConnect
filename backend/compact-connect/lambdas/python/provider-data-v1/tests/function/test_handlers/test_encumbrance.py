@@ -1,6 +1,6 @@
 import json
 from datetime import UTC, date, datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key
@@ -301,7 +301,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         self.assertEqual('Event publishing failed', str(context.exception))
 
 
-
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
@@ -513,7 +512,6 @@ class TestPostLicenseEncumbrance(TstFunction):
             {'message': 'The encumbrance date must not be a future date'},
             response_body,
         )
-
 
 
 @mock_aws

@@ -1,7 +1,7 @@
 import json
 import uuid
 from datetime import date, datetime, time
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, patch
 from uuid import UUID
 
 from common_test.test_constants import (
@@ -19,6 +19,7 @@ from common_test.test_constants import (
 from moto import mock_aws
 
 from . import TstFunction
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))

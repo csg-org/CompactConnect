@@ -1,5 +1,4 @@
 # ruff: noqa: N801, N815  invalid-name
-from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import Date, List, Raw, String
 from marshmallow.validate import Length, OneOf
 
