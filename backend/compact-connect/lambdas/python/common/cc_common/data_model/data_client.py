@@ -1527,19 +1527,10 @@ class DataClient:
                 )
 
             now = config.current_standard_datetime
-            # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-            from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
-
-            if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
-                encumbrance_details = {
-                    'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
-                    'adverseActionId': adverse_action.adverseActionId,
-                }
-            else:
-                encumbrance_details = {
-                    'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
-                    'adverseActionId': adverse_action.adverseActionId,
-                }
+            encumbrance_details = {
+                'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
+                'adverseActionId': adverse_action.adverseActionId,
+            }
 
             # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
             # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
@@ -3070,21 +3061,11 @@ class DataClient:
         logger.info(
             'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
         )
-        # TODO - remove the flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-        from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
-
-        if is_feature_enabled(FeatureFlagEnum.ENCUMBRANCE_MULTI_CATEGORY_FLAG):
-            encumbrance_details = {
-                'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
-                'licenseJurisdiction': jurisdiction,
-                'adverseActionId': adverse_action_id,
-            }
-        else:
-            encumbrance_details = {
-                'clinicalPrivilegeActionCategory': adverse_action.clinicalPrivilegeActionCategory,
-                'licenseJurisdiction': jurisdiction,
-                'adverseActionId': adverse_action_id,
-            }
+        encumbrance_details = {
+            'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
+            'licenseJurisdiction': jurisdiction,
+            'adverseActionId': adverse_action_id,
+        }
 
         # Build transaction items for all privileges
         transaction_items = []

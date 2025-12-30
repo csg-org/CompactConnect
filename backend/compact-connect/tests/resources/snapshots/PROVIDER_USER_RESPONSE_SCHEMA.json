@@ -622,9 +622,6 @@
                 "encumbranceType": {
                   "type": "string"
                 },
-                "clinicalPrivilegeActionCategory": {
-                  "type": "string"
-                },
                 "clinicalPrivilegeActionCategories": {
                   "description": "The categories of clinical privilege action",
                   "items": {
@@ -1547,9 +1544,6 @@
                   "type": "string"
                 },
                 "encumbranceType": {
-                  "type": "string"
-                },
-                "clinicalPrivilegeActionCategory": {
                   "type": "string"
                 },
                 "clinicalPrivilegeActionCategories": {

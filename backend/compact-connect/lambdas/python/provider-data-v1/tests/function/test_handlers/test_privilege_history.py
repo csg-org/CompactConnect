@@ -25,7 +25,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
+                    'clinicalPrivilegeActionCategories': ['Non-compliance With Requirements'],
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -50,7 +50,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
+                    'clinicalPrivilegeActionCategories': ['Non-compliance With Requirements'],
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
