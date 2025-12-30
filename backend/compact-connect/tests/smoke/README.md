@@ -32,10 +32,32 @@ Ensure your AWS credentials are configured with appropriate permissions to:
 - Access Cognito user pools in the sandbox environment
 - Access other AWS services used by the smoke tests
 
-You can configure credentials using:
-- AWS CLI: `aws configure`
-- Environment variables: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-- IAM role (if running on EC2/ECS)
+**Option A: Using AWS SSO**
+
+1. Configure your AWS profile to use SSO:
+   ```bash
+   aws configure sso
+   ```
+   Follow the prompts to set up your SSO profile using the values from your IAM identity center login
+   (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#sso-configure-profile-token-auto-sso)
+
+2. Log in to AWS SSO:
+   ```bash
+   aws sso login --profile <your-profile-name>
+   ```
+
+3. Set your AWS profile environment variable (if not using the default profile):
+   ```bash
+   export AWS_PROFILE=<your-profile-name>
+   ```
+
+**Option B: Using Environment Variables**
+
+1. Alternatively, you can use AWS CLI to configure credentials:
+   ```bash
+   aws configure
+   ```
+   This will prompt you for your access key ID, secret access key, default region, and output format.
 
 ### 4. Python Dependencies
 
