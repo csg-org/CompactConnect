@@ -452,7 +452,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
             compact=test_provider.compact, provider_id=test_provider.providerId
         )
 
-        self.assertEqual(MilitaryStatus.NOT_APPLICABLE, updated_provider_record.militaryStatus)
+        self.assertIsNone(updated_provider_record.militaryStatus)
         self.assertIsNone(updated_provider_record.militaryStatusNote)
 
     def test_patch_provider_military_affiliation_creates_provider_update_record(self):
