@@ -13,7 +13,6 @@ from cc_common.data_model.schema.common import (
     ChangeHashMixin,
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
-    MilitaryStatus,
 )
 from cc_common.data_model.schema.fields import (
     UNKNOWN_JURISDICTION,

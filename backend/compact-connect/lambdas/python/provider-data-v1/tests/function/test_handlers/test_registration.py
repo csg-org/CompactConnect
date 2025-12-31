@@ -839,7 +839,6 @@ class TestProviderRegistration(TstFunction):
                     'npi': provider_data.npi,
                     'providerId': provider_data.providerId,
                     'ssnLastFour': provider_data.ssnLastFour,
-                    'militaryStatus': 'notApplicable',
                 },
                 'providerId': provider_data.providerId,
                 'type': 'providerUpdate',
