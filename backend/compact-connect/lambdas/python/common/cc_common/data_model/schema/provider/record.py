@@ -80,7 +80,7 @@ class ProviderRecordSchema(BaseRecordSchema):
     recoveryExpiry = DateTime(required=False, allow_none=False)
 
     # Military audit status fields
-    militaryStatus = MilitaryStatusField(required=False, allow_none=False, load_default=MilitaryStatus.NOT_APPLICABLE)
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
     militaryStatusNote = String(required=False, allow_none=False)
 
     # Generated fields
