@@ -83,7 +83,7 @@
             - Beta: `https://search.beta.compactconnect.org`
             - Prod: `https://search.compactconnect.org`
         - _Local_ :arrow_heading_down:
-            - `https://api.test.jcc.iaapi.io`
+            - `https://search.test.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
             - IA Test: `us-east-1`
