@@ -249,14 +249,7 @@ export class DataApi {
             licenseState,
             licenseType,
             encumbranceType,
-            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                ? {
-                    npdbCategories,
-                }
-                : {
-                    npdbCategory,
-                }
-            ),
+            npdbCategories,
             startDate,
         }));
     }
@@ -354,14 +347,7 @@ export class DataApi {
             privilegeState,
             licenseType,
             encumbranceType,
-            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                ? {
-                    npdbCategories,
-                }
-                : {
-                    npdbCategory,
-                }
-            ),
+            npdbCategories,
             startDate,
         }));
     }
