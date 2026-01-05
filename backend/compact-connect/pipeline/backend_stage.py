@@ -4,7 +4,6 @@ from constructs import Construct
 
 from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
-from stacks.data_migration_stack import DataMigrationStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
 from stacks.event_state_stack import EventStateStack
