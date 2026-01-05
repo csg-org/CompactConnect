@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import Schema
 from marshmallow.fields import Dict, List, Nested, Raw, String
-from marshmallow.validate import OneOf
+from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -34,7 +34,7 @@ class MilitaryAuditRequestSchema(Schema):
     militaryStatus = String(
         required=True, allow_none=False, validate=OneOf([entry.value for entry in MilitaryAuditStatus])
     )
-    militaryStatusNote = String(required=False, allow_none=False)
+    militaryStatusNote = String(required=False, allow_none=False, validate=Length(min=2, max=1000))
 
 
 class MilitaryAffiliationGeneralResponseSchema(ForgivingSchema):

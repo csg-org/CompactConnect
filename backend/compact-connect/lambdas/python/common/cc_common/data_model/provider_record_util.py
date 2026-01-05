@@ -15,7 +15,6 @@ from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
-    MilitaryStatus,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
