@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 import uuid
 
 import boto3
@@ -34,6 +35,7 @@ os.environ['LICENSE_TYPES'] = json.dumps(LICENSE_TYPES)
 
 # We have to import this after we've added the common lib to our path and environment
 from cc_common.data_model.provider_record_util import ProviderUserRecords  # noqa: E402 F401
+from cc_common.data_model.update_tier_enum import UpdateTierEnum  # noqa: E402
 
 # importing this here so it can be easily referenced in the rollback upload tests
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData  # noqa: E402 F401
@@ -461,6 +463,63 @@ def create_test_privilege_record(
     )
 
     return privilege_data
+
+
+def delete_existing_privilege_records(provider_id: str, compact: str, jurisdiction: str):
+    """Delete all privilege records and privilege update records for a provider in a specific jurisdiction.
+
+    This function queries for and deletes both privilege records and their associated update records
+    using the new SK pattern structure.
+
+    :param provider_id: The provider's ID
+    :param compact: The compact abbreviation
+    :param jurisdiction: The jurisdiction abbreviation (e.g., 'ne')
+    """
+    dynamodb_table = config.provider_user_dynamodb_table
+    pk = f'{compact}#PROVIDER#{provider_id}'
+
+    # Query for all privilege records in the specified jurisdiction
+    original_privilege_records = dynamodb_table.query(
+        KeyConditionExpression=Key('pk').eq(pk)
+        & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/{jurisdiction}/')
+    ).get('Items', [])
+
+    # Query for all privilege update records in the specified jurisdiction
+    privilege_update_sk_prefix = f'{compact}#UPDATE#{UpdateTierEnum.TIER_ONE}#privilege/{jurisdiction}/'
+    original_privilege_update_records = []
+    last_evaluated_key = None
+    while True:
+        pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+        query_resp = dynamodb_table.query(
+            KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(privilege_update_sk_prefix),
+            **pagination,
+        )
+        original_privilege_update_records.extend(query_resp.get('Items', []))
+        last_evaluated_key = query_resp.get('LastEvaluatedKey')
+        if not last_evaluated_key:
+            break
+
+    original_privilege_records.extend(original_privilege_update_records)
+
+
+    # Delete all privilege records
+    for privilege in original_privilege_records:
+        privilege_pk = privilege['pk']
+        privilege_sk = privilege['sk']
+        logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
+        dynamodb_table.delete_item(
+            Key={
+                'pk': privilege_pk,
+                'sk': privilege_sk,
+            }
+        )
+        # give dynamodb time to propagate
+        time.sleep(1)
+
+    logger.info(
+        f'Deleted privilege record and {len(original_privilege_update_records)} privilege update records for '
+        f'jurisdiction {jurisdiction}'
+    )
 
 
 def cleanup_test_provider_records(provider_id: str, compact: str):
