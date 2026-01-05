@@ -154,11 +154,8 @@
                             <div class="form-row">
                                 <InputSelect :formInput="formData.encumberModalDisciplineAction" />
                             </div>
-                            <div v-if="$features.checkGate(featureGates.ENCUMBER_MULTI_CATEGORY)" class="form-row">
+                            <div class="form-row">
                                 <InputSelectMultiple :formInput="formData.encumberModalNpdbCategories" />
-                            </div>
-                            <div v-else class="form-row">
-                                <InputSelect :formInput="formData.encumberModalNpdbCategory" />
                             </div>
                             <div class="form-row">
                                 <InputDate

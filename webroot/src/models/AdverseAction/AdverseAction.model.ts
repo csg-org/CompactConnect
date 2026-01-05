@@ -133,7 +133,6 @@ export class AdverseActionSerializer {
             state: new State({ abbrev: json.jurisdiction }),
             type: json.type,
             encumbranceType: json.encumbranceType,
-            npdbType: json.clinicalPrivilegeActionCategory,
             npdbTypes: Array.isArray(json.clinicalPrivilegeActionCategories)
                 ? json.clinicalPrivilegeActionCategories
                 : [],

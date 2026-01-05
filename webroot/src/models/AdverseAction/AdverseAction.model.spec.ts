@@ -152,7 +152,6 @@ describe('AdverseAction model', () => {
             jurisdiction: 'al',
             type: 'test-type',
             encumbranceType: 'fine',
-            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
             clinicalPrivilegeActionCategories: ['Non-compliance With Requirements'],
             creationDate: moment.utc().format(serverDatetimeFormat),
             effectiveStartDate: moment().subtract(1, 'day').format(serverDateFormat),
@@ -168,7 +167,6 @@ describe('AdverseAction model', () => {
         expect(adverseAction.state).to.be.an.instanceof(State);
         expect(adverseAction.state.name()).to.equal('Alabama');
         expect(adverseAction.type).to.equal(data.type);
-        expect(adverseAction.npdbType).to.equal(data.clinicalPrivilegeActionCategory);
         expect(adverseAction.npdbTypes).to.matchPattern(data.clinicalPrivilegeActionCategories);
         expect(adverseAction.creationDate).to.equal(data.creationDate);
         expect(adverseAction.startDate).to.equal(data.effectiveStartDate);
