@@ -1954,4 +1954,3 @@ class TestDataClient(TstFunction):
         investigation_record.pop('dateOfUpdate')
 
         self.assertEqual(expected_investigation_close, investigation_record)
-
