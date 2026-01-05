@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import time
 from datetime import UTC, datetime
 
 import requests
