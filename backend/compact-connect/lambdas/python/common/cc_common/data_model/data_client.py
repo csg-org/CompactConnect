@@ -3051,6 +3051,8 @@ class DataClient:
         )
         encumbrance_details = {
             'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
+            # In the case of privileges being encumbered due to the home state license being encumbered,
+            # this 'licenseJurisdiction' field is added to denote which license was responsible for this update.
             'licenseJurisdiction': jurisdiction,
             'adverseActionId': adverse_action_id,
         }
