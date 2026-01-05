@@ -47,7 +47,8 @@
       },
       "required": [
         "encumbranceEffectiveDate",
-        "encumbranceType"
+        "encumbranceType",
+        "clinicalPrivilegeActionCategories"
       ],
       "type": "object"
     }
