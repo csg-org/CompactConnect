@@ -233,17 +233,6 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     # List of field names that were present in the previous record but removed in the update
     removedValues = List(String(), required=False, allow_none=False)
 
-    # TODO - remove this pre_load hook after migration is complete  # noqa: FIX002
-    @pre_load
-    def populate_create_date_for_backwards_compatibility(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        """
-        For backwards compatibility, populate createDate from dateOfUpdate if createDate is missing.
-        This allows us to load old records that were created before the createDate field was added.
-        """
-        if 'createDate' not in in_data:
-            in_data['createDate'] = in_data['dateOfUpdate']
-        return in_data
-
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
