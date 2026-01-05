@@ -1404,8 +1404,7 @@ class ApiModel:
             type=JsonSchemaType.OBJECT,
             description='Encumbrance data to create',
             additional_properties=False,
-            # TODO - add clinicalPrivilegeActionCategories after migrating  # noqa: FIX002
-            required=['encumbranceEffectiveDate', 'encumbranceType'],
+            required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategories'],
             properties={
                 'encumbranceEffectiveDate': JsonSchema(
                     type=JsonSchemaType.STRING,
