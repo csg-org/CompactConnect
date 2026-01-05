@@ -3,7 +3,6 @@ import time
 from datetime import UTC, datetime
 
 import requests
-from boto3.dynamodb.conditions import Key
 
 # Import the existing compact configuration tests
 from compact_configuration_smoke_tests import test_compact_configuration, test_jurisdiction_configuration
@@ -11,6 +10,7 @@ from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
+    delete_existing_privilege_records,
     generate_opaque_data,
     get_provider_user_auth_headers_cached,
     load_smoke_test_env,
@@ -142,25 +142,7 @@ def test_purchasing_privilege(delete_current_privilege: bool = True):
     provider_id = original_provider_data.get('providerId')
     compact = original_provider_data.get('compact')
     if delete_current_privilege:
-        dynamodb_table = config.provider_user_dynamodb_table
-        # query for all ne related privilege records
-        original_privilege_records = dynamodb_table.query(
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-            & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/ne/')
-        ).get('Items', [])
-        for privilege in original_privilege_records:
-            # delete the privilege records
-            privilege_pk = privilege['pk']
-            privilege_sk = privilege['sk']
-            logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
-            dynamodb_table.delete_item(
-                Key={
-                    'pk': privilege_pk,
-                    'sk': privilege_sk,
-                }
-            )
-            # give dynamodb time to propagate
-            time.sleep(1)
+        delete_existing_privilege_records(provider_id=provider_id, compact=compact, jurisdiction='ne')
 
     # Get the latest version of every attestation required for the privilege purchase
     required_attestation_ids = [
