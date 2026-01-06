@@ -2,9 +2,9 @@ import json
 from datetime import date, datetime
 from unittest.mock import patch
 
+from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from moto import mock_aws
 
-from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from .. import TstFunction
 
 
@@ -476,9 +476,10 @@ class TestIngest(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
         # verify that no update record was created
-        provider_user_records = self.config.data_client.get_provider_user_records(compact=provider_data['compact'], 
-        provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE)
-        self.assertEqual(0, len(provider_user_records._license_update_records))
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=provider_data['compact'], provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        self.assertEqual(0, len(provider_user_records._license_update_records))  # noqa SLF001
 
     def test_existing_provider_removed_email(self):
         from handlers.ingest import ingest_license_message
@@ -522,11 +523,11 @@ class TestIngest(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
         # verify that update record was created
-        provider_user_records = self.config.data_client.get_provider_user_records(compact=provider_data['compact'],
-                                                                                  provider_id=provider_id,
-                                                                                  include_update_tier=UpdateTierEnum.TIER_THREE)
-        self.assertEqual(1, len(provider_user_records._license_update_records))
-        self.assertEqual(['emailAddress'], provider_user_records._license_update_records[0].removedValues)
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact=provider_data['compact'], provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+        )
+        self.assertEqual(1, len(provider_user_records._license_update_records))  # noqa SLF001
+        self.assertEqual(['emailAddress'], provider_user_records._license_update_records[0].removedValues)  # noqa SLF001
 
     def test_existing_provider_added_email(self):
         from handlers.ingest import ingest_license_message
