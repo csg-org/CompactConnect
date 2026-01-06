@@ -234,14 +234,16 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     """
     # Remove fields that are calculated at runtime, not stored in the database
     # uploadDate is metadata tracking when the license was first uploaded, not part of the license data
-    dynamic_keys = {'dateOfUpdate', 'status', 'uploadDate'}
+    # firstUploadDate is metadata tracking when the license was first uploaded, not part of the license data
+    dynamic_keys = {'dateOfUpdate', 'status', 'uploadDate', 'firstUploadDate'}
     updated_values = {
         key: value
         for key, value in new_license.items()
         if key not in dynamic_keys and (key not in existing_license.keys() or value != existing_license[key])
     }
     # If any fields are missing from the new license, we'll consider them removed
-    removed_values = existing_license.keys() - new_license.keys()
+    # Exclude dynamic keys from removed values since they're metadata, not part of the license data
+    removed_values = existing_license.keys() - new_license.keys() - dynamic_keys
     if not updated_values and not removed_values:
         logger.info('No changes detected for this license.')
         return
