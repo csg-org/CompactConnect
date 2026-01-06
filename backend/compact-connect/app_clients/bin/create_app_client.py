@@ -20,6 +20,14 @@ from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
+BASE_CLIENT_CONFIG = {
+    'PreventUserExistenceErrors': 'ENABLED',
+    'TokenValidityUnits': {'AccessToken': 'minutes'},
+    'AccessTokenValidity': 15,
+    'AllowedOAuthFlowsUserPoolClient': True,
+    'AllowedOAuthFlows': ['client_credentials'],
+}
+
 
 def load_cdk_config():
     """Load configuration from cdk.json file."""
@@ -250,13 +258,9 @@ def create_app_client(user_pool_id, config):
         return cognito_client.create_user_pool_client(
             UserPoolId=user_pool_id,
             ClientName=client_name,
-            PreventUserExistenceErrors='ENABLED',
-            GenerateSecret=True,
-            TokenValidityUnits={'AccessToken': 'minutes'},
-            AccessTokenValidity=15,
-            AllowedOAuthFlowsUserPoolClient=True,
-            AllowedOAuthFlows=['client_credentials'],
             AllowedOAuthScopes=scopes,
+            GenerateSecret=True,
+            **BASE_CLIENT_CONFIG,
         )
     except ClientError as e:
         error_code = e.response['Error']['Code']
@@ -273,17 +277,12 @@ def update_app_client_scopes(user_pool_id, client_id, current_client_config, new
     print(f'New scopes: {", ".join(new_scopes)}')
 
     try:
-        # Update the user pool client with new scopes
-        # We need to preserve all other settings from the current configuration
+        # Update the user pool client with new scopes, keeping the same base configuration
         return cognito_client.update_user_pool_client(
             UserPoolId=user_pool_id,
             ClientId=client_id,
             ClientName=current_client_config.get('ClientName'),
-            PreventUserExistenceErrors=current_client_config.get('PreventUserExistenceErrors', 'ENABLED'),
-            TokenValidityUnits=current_client_config.get('TokenValidityUnits', {'AccessToken': 'minutes'}),
-            AccessTokenValidity=current_client_config.get('AccessTokenValidity', 15),
-            AllowedOAuthFlowsUserPoolClient=current_client_config.get('AllowedOAuthFlowsUserPoolClient', True),
-            AllowedOAuthFlows=current_client_config.get('AllowedOAuthFlows', ['client_credentials']),
+            **BASE_CLIENT_CONFIG,
             AllowedOAuthScopes=new_scopes,
         )
     except ClientError as e:
