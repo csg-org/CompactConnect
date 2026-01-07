@@ -2,11 +2,13 @@
 # ruff: noqa: T201 we use print statements for scripts run locally
 
 """
-Script to create AWS Cognito app clients interactively.
+Script to create and modify AWS Cognito app clients interactively.
 
 This script prompts users for the necessary information to create app clients
 in different environments (test, beta, prod) and automatically generates
 the standard scopes based on compact and state inputs.
+
+It also supports modifying existing app clients by updating their scopes.
 """
 
 import argparse
@@ -17,6 +19,14 @@ from pathlib import Path
 
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
+
+BASE_CLIENT_CONFIG = {
+    'PreventUserExistenceErrors': 'ENABLED',
+    'TokenValidityUnits': {'AccessToken': 'minutes'},
+    'AccessTokenValidity': 15,
+    'AllowedOAuthFlowsUserPoolClient': True,
+    'AllowedOAuthFlows': ['client_credentials'],
+}
 
 
 def load_cdk_config():
@@ -203,6 +213,36 @@ def get_user_input():
     }
 
 
+def get_cognito_client():
+    """Get a boto3 Cognito IDP client."""
+    try:
+        return boto3.client('cognito-idp')
+    except NoCredentialsError:
+        print('Error: AWS credentials not found. Please configure your AWS credentials.')
+        print("You can use 'aws configure' or set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.")
+        sys.exit(1)
+
+
+def get_app_client(user_pool_id, client_id):
+    """Get the current app client configuration from AWS."""
+    cognito_client = get_cognito_client()
+
+    try:
+        response = cognito_client.describe_user_pool_client(
+            UserPoolId=user_pool_id,
+            ClientId=client_id,
+        )
+        return response.get('UserPoolClient', {})
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        error_message = e.response['Error']['Message']
+        if error_code == 'ResourceNotFoundException':
+            print(f'Error: App client with ID {client_id} not found in user pool {user_pool_id}')
+        else:
+            print(f'Error retrieving app client: {error_code} - {error_message}')
+        sys.exit(1)
+
+
 def create_app_client(user_pool_id, config):
     """Create the app client using boto3 Cognito client."""
     client_name = config['clientName']
@@ -211,31 +251,44 @@ def create_app_client(user_pool_id, config):
     print(f'\nCreating app client: {client_name}')
     print(f'With scopes: {", ".join(scopes)}')
 
-    try:
-        # Create boto3 Cognito IDP client
-        cognito_client = boto3.client('cognito-idp', region_name='us-east-1')
+    cognito_client = get_cognito_client()
 
+    try:
         # Create the user pool client
         return cognito_client.create_user_pool_client(
             UserPoolId=user_pool_id,
             ClientName=client_name,
-            PreventUserExistenceErrors='ENABLED',
-            GenerateSecret=True,
-            TokenValidityUnits={'AccessToken': 'minutes'},
-            AccessTokenValidity=15,
-            AllowedOAuthFlowsUserPoolClient=True,
-            AllowedOAuthFlows=['client_credentials'],
             AllowedOAuthScopes=scopes,
+            GenerateSecret=True,
+            **BASE_CLIENT_CONFIG,
         )
-
-    except NoCredentialsError:
-        print('Error: AWS credentials not found. Please configure your AWS credentials.')
-        print("You can use 'aws configure' or set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.")
-        sys.exit(1)
     except ClientError as e:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
         print(f'Error creating app client: {error_code} - {error_message}')
+        sys.exit(1)
+
+
+def update_app_client_scopes(user_pool_id, client_id, current_client_config, new_scopes):
+    """Update the app client scopes using boto3 Cognito client."""
+    cognito_client = get_cognito_client()
+
+    print('\nUpdating app client scopes')
+    print(f'New scopes: {", ".join(new_scopes)}')
+
+    try:
+        # Update the user pool client with new scopes, keeping the same base configuration
+        return cognito_client.update_user_pool_client(
+            UserPoolId=user_pool_id,
+            ClientId=client_id,
+            ClientName=current_client_config.get('ClientName'),
+            **BASE_CLIENT_CONFIG,
+            AllowedOAuthScopes=new_scopes,
+        )
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        error_message = e.response['Error']['Message']
+        print(f'Error updating app client: {error_code} - {error_message}')
         sys.exit(1)
 
 
@@ -254,6 +307,77 @@ def print_credentials(client_id, client_secret):
     print('Please copy the JSON above and use it with your one-time secret link generator.')
     print('Do not leave these credentials in terminal history or logs.')
     print('=' * 60)
+
+
+def get_modification_input(user_pool_id, client_id):
+    """Get user input for modifying app client scopes."""
+    print('=== Modify App Client Scopes ===\n')
+
+    # Get current client configuration
+    print(f'Fetching current configuration for client ID: {client_id}...')
+    current_client = get_app_client(user_pool_id, client_id)
+    current_scopes = current_client.get('AllowedOAuthScopes', [])
+
+    print(f'\nCurrent scopes: {", ".join(current_scopes) if current_scopes else "(none)"}')
+
+    # Prompt for add or remove
+    while True:
+        try:
+            operation = input('\nDo you want to (a)dd or (r)emove scopes? [a/r]: ').strip().lower()
+            if operation not in ['a', 'add', 'r', 'remove']:
+                raise ValueError('Invalid operation. Please enter "a" for add or "r" for remove')
+            break
+        except ValueError as e:
+            print(f'Error: {e}')
+
+    is_add = operation in ['a', 'add']
+
+    # Prompt for scopes
+    while True:
+        try:
+            if is_add:
+                scopes_input = input('\nEnter scope(s) to add (comma-separated): ').strip()
+            else:
+                scopes_input = input('\nEnter scope(s) to remove (comma-separated): ').strip()
+
+            if not scopes_input:
+                raise ValueError('At least one scope is required')
+
+            scopes = validate_additional_scopes(scopes_input)
+            break
+        except ValueError as e:
+            print(f'Error: {e}')
+            continue
+
+    # Calculate new scopes
+    if is_add:
+        new_scopes = list(set(current_scopes + scopes))
+        print(f'\nScopes to add: {", ".join(scopes)}')
+    else:
+        new_scopes = [s for s in current_scopes if s not in scopes]
+        removed_scopes = [s for s in scopes if s in current_scopes]
+        not_found_scopes = [s for s in scopes if s not in current_scopes]
+
+        if not_found_scopes:
+            print(f'\nWarning: The following scopes were not found in current scopes: {", ".join(not_found_scopes)}')
+
+        if removed_scopes:
+            print(f'\nScopes to remove: {", ".join(removed_scopes)}')
+        else:
+            print('\nNo scopes will be removed (none of the specified scopes were found in current scopes)')
+            sys.exit(0)
+
+    print(f'\nNew scopes after modification: {", ".join(new_scopes) if new_scopes else "(none)"}')
+
+    confirm = input('\nProceed with this modification? (y/N): ').strip().lower()
+    if confirm != 'y':
+        print('Modification cancelled.')
+        sys.exit(0)
+
+    return {
+        'current_client': current_client,
+        'new_scopes': new_scopes,
+    }
 
 
 def print_email_template(environment, compact, state):
@@ -312,43 +436,80 @@ https://github.com/csg-org/CompactConnect/blob/main/backend/compact-connect/docs
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Create AWS Cognito app client interactively')
+    parser = argparse.ArgumentParser(
+        description='Create or modify AWS Cognito app client interactively',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            'Examples:\n'
+            '  Create a new app client:\n'
+            '    %(prog)s -u <user-pool-id>\n\n'
+            '  Modify scopes on an existing app client:\n'
+            '    %(prog)s -u <user-pool-id> --client-id <client-id>'
+        ),
+    )
     parser.add_argument('-u', '--user-pool-id', required=True, help='AWS Cognito User Pool ID')
+    parser.add_argument(
+        '-c',
+        '--client-id',
+        help='Client ID of existing app client to modify (if provided, script will modify scopes instead of creating)',
+    )
 
     args = parser.parse_args()
 
     try:
         print(f'User Pool ID: {args.user_pool_id}\n')
 
-        # Get configuration from user input (including environment)
-        config = get_user_input()
+        if args.client_id:
+            # Modification mode
+            modification_config = get_modification_input(args.user_pool_id, args.client_id)
 
-        print(f'\nCreating app client for {config["environment"]} environment...')
+            # Update the app client
+            response = update_app_client_scopes(
+                args.user_pool_id,
+                args.client_id,
+                modification_config['current_client'],
+                modification_config['new_scopes'],
+            )
 
-        # Create the app client
-        response = create_app_client(args.user_pool_id, config)
+            updated_client = response.get('UserPoolClient', {})
+            client_name = updated_client.get('ClientName')
 
-        # Extract credentials from response
-        user_pool_client = response.get('UserPoolClient', {})
-        client_id = user_pool_client.get('ClientId')
-        client_secret = user_pool_client.get('ClientSecret')
-        client_name = user_pool_client.get('ClientName')
+            print('\n✅ App client scopes updated successfully!')
+            print(f'Client Name: {client_name}')
+            print(f'Client ID: {args.client_id}')
+            print(f'Updated Scopes: {", ".join(modification_config["new_scopes"])}')
 
-        if not client_id or not client_secret:
-            print('Error: Could not extract client ID or secret from AWS response')
-            sys.exit(1)
+        else:
+            # Creation mode
+            # Get configuration from user input (including environment)
+            config = get_user_input()
 
-        print('\n✅ App client created successfully!')
-        print(f'Client Name: {client_name}')
-        print(f'Client ID: {client_id}')
+            print(f'\nCreating app client for {config["environment"]} environment...')
 
-        # Print credentials for secure copy/paste
-        print_credentials(client_id, client_secret)
+            # Create the app client
+            response = create_app_client(args.user_pool_id, config)
 
-        # Print email template
-        print_email_template(config['environment'], config['compact'], config['state'])
+            # Extract credentials from response
+            user_pool_client = response.get('UserPoolClient', {})
+            client_id = user_pool_client.get('ClientId')
+            client_secret = user_pool_client.get('ClientSecret')
+            client_name = user_pool_client.get('ClientName')
 
-        print('\n📝 Remember to add this app client to your external registry!')
+            if not client_id or not client_secret:
+                print('Error: Could not extract client ID or secret from AWS response')
+                sys.exit(1)
+
+            print('\n✅ App client created successfully!')
+            print(f'Client Name: {client_name}')
+            print(f'Client ID: {client_id}')
+
+            # Print credentials for secure copy/paste
+            print_credentials(client_id, client_secret)
+
+            # Print email template
+            print_email_template(config['environment'], config['compact'], config['state'])
+
+            print('\n📝 Remember to add this app client to your external registry!')
 
     except Exception as e:  # noqa: BLE001
         print(f'Error: {e}')
