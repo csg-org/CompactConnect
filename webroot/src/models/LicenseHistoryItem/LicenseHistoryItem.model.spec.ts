@@ -42,6 +42,7 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem.createDate).to.equal(null);
         expect(licenseHistoryItem.effectiveDate).to.equal(null);
         expect(licenseHistoryItem.serverNote).to.equal(null);
+        expect(licenseHistoryItem.npdbCategories).to.equal(null);
         expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('');
         expect(licenseHistoryItem.createDateDisplay()).to.equal('');
         expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
@@ -150,7 +151,33 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Deactivation');
         expect(licenseHistoryItem.noteDisplay()).to.equal('Deactivated due to associated license being deactivated');
     });
-    it('should create a LicenseHistoryItem with correct display values for an encumbrance', () => {
+    it('should create a LicenseHistoryItem with correct display values for an encumbrance with npdbCategories', () => {
+        const data = {
+            type: 'privilegeUpdate',
+            updateType: 'encumbrance',
+            dateOfUpdate: '2025-05-01T15:27:35+00:00',
+            effectiveDate: '2025-05-01T15:27:35+00:00',
+            createDate: '2025-05-01T15:27:35+00:00',
+            npdbCategories: ['Misconduct or Abuse', 'Non-compliance With Requirements']
+        };
+        const licenseHistoryItem = LicenseHistoryItemSerializer.fromServer(data);
+
+        expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
+        expect(licenseHistoryItem.type).to.equal(data.type);
+        expect(licenseHistoryItem.updateType).to.equal(data.updateType);
+        expect(licenseHistoryItem.dateOfUpdate).to.equal(data.dateOfUpdate);
+        expect(licenseHistoryItem.createDate).to.equal(data.createDate);
+        expect(licenseHistoryItem.effectiveDate).to.equal(data.effectiveDate);
+        expect(licenseHistoryItem.npdbCategories).to.deep.equal(data.npdbCategories);
+        expect(licenseHistoryItem.effectiveDateDisplay()).to.equal('5/1/2025');
+        expect(licenseHistoryItem.createDateDisplay()).to.equal('5/1/2025');
+        expect(licenseHistoryItem.isActivatingEvent()).to.equal(false);
+        expect(licenseHistoryItem.isDeactivatingEvent()).to.equal(true);
+        expect(licenseHistoryItem.updateTypeDisplay()).to.equal('Encumbrance');
+        expect(licenseHistoryItem.noteDisplay()).to.equal('Misconduct or Abuse, Non-compliance With Requirements');
+    });
+
+    it('should create a LicenseHistoryItem with correct display values for an encumbrance with single category', () => {
         const data = {
             type: 'privilegeUpdate',
             updateType: 'encumbrance',

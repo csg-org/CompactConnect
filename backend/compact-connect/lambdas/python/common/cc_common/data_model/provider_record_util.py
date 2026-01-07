@@ -383,8 +383,8 @@ class ProviderRecordUtility:
                 and event.get('encumbranceDetails')
                 and should_include_encumbrance_details
             ):
-                # Parse the list into a comma-separated string
-                event['note'] = ', '.join(event['encumbranceDetails']['clinicalPrivilegeActionCategories'])
+                # In the case of encumbrances, we return the list of npdb categories associated with it
+                event['npdbCategories'] = event['encumbranceDetails']['clinicalPrivilegeActionCategories']
             elif event['updateType'] == UpdateCategory.DEACTIVATION and event.get('deactivationDetails'):
                 event['note'] = event['deactivationDetails']['note']
 
