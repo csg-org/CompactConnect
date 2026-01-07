@@ -178,6 +178,8 @@ class PrivilegeHistoryEventResponseSchema(ForgivingSchema):
     effectiveDate = Raw(required=True, allow_none=False)
     createDate = Raw(required=True, allow_none=False)
     note = String(required=False, allow_none=True)
+    # in the case of encumbrance events, we return the list of categories rather than a note
+    npdbCategories = List(String(required=False, allow_none=True))
 
 
 class PrivilegeHistoryResponseSchema(ForgivingSchema):
