@@ -980,7 +980,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
-                    'note': 'Non-compliance With Requirements',
+                    'npdbCategories': ['Non-compliance With Requirements'],
                 },
             ],
         }
