@@ -2345,6 +2345,11 @@ class ApiModel:
                                 ),
                                 'createDate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                 'note': JsonSchema(type=JsonSchemaType.STRING),
+                                'npdbCategories': JsonSchema(
+                                    type=JsonSchemaType.ARRAY,
+                                    description='The categories of clinical privilege action for encumbrance events',
+                                    items=JsonSchema(type=JsonSchemaType.STRING),
+                                ),
                             },
                         ),
                     ),
