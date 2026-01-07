@@ -1534,7 +1534,7 @@ describe('EmailNotificationServiceLambda', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'Military Documentation Approved - Compact Connect'
+                            Data: 'Military Status Documentation Approved - Compact Connect'
                         }
                     }
                 },
@@ -1546,8 +1546,8 @@ describe('EmailNotificationServiceLambda', () => {
             const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
-            expect(htmlContent).toContain('This message is to notify you that your military documentation has been reviewed and approved by the compact administration.');
-            expect(htmlContent).toContain('Military Documentation Approved - Compact Connect');
+            expect(htmlContent).toContain('This message is to notify you that your military status documentation has been reviewed and approved by the compact staff.');
+            expect(htmlContent).toContain('Military Status Documentation Approved - Compact Connect');
         });
 
         it('should throw error when no recipients found', async () => {
@@ -1595,7 +1595,7 @@ describe('EmailNotificationServiceLambda', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'Military Documentation Declined - Compact Connect'
+                            Data: 'Military Status Documentation Declined - Compact Connect'
                         }
                     }
                 },
@@ -1607,8 +1607,8 @@ describe('EmailNotificationServiceLambda', () => {
             const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
-            expect(htmlContent).toContain('This message is to notify you that your military documentation has been reviewed and declined by the compact administration.');
-            expect(htmlContent).toContain('Military Documentation Declined - Compact Connect');
+            expect(htmlContent).toContain('This message is to notify you that your military status documentation has been reviewed and declined by the compact staff.');
+            expect(htmlContent).toContain('Military Status Documentation Declined - Compact Connect');
             expect(htmlContent).toContain('The documentation provided was incomplete and did not meet the required standards.');
         });
 
