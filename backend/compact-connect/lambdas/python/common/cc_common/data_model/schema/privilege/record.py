@@ -60,7 +60,7 @@ class EncumbranceDetailsSchema(Schema):
     Schema for tracking details about an encumbrance.
     """
 
-    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
+    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=True, allow_none=False)
     adverseActionId = UUID(required=True, allow_none=False)
     # present if update is created by upstream license encumbrance
     licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
