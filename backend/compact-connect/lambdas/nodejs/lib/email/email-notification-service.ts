@@ -511,8 +511,8 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         const report = this.getNewEmailTemplate();
-        const subject = 'Military Documentation Approved - Compact Connect';
-        const bodyText = 'This message is to notify you that your military documentation has been reviewed and approved by the compact administration.';
+        const subject = 'Military Status Documentation Approved - Compact Connect';
+        const bodyText = 'This message is to notify you that your military status documentation has been reviewed and approved by the compact staff.';
 
         this.insertHeader(report, subject);
         this.insertBody(report, bodyText);
@@ -543,11 +543,11 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         const report = this.getNewEmailTemplate();
-        const subject = 'Military Documentation Declined - Compact Connect';
-        let bodyText = 'This message is to notify you that your military documentation has been reviewed and declined by the compact administration.';
+        const subject = 'Military Status Documentation Declined - Compact Connect';
+        let bodyText = 'This message is to notify you that your military status documentation has been reviewed and declined by the compact staff.';
         
         if (auditNote && auditNote.trim().length > 0) {
-            bodyText += `\n\nMessage from the compact administration: ${auditNote}`;
+            bodyText += `\n\nMessage from the compact staff: ${auditNote}`;
         }
 
         this.insertHeader(report, subject);
