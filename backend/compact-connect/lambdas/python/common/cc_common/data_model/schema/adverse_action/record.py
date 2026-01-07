@@ -34,7 +34,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
 
     # Populated on creation
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
-    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=False, allow_none=False)
+    clinicalPrivilegeActionCategories = List(ClinicalPrivilegeActionCategoryField(), required=True, allow_none=False)
     effectiveStartDate = Date(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
     creationDate = DateTime(required=True, allow_none=False)
