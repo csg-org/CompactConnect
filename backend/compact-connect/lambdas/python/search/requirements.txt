@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/search/requirements.in
 #
-certifi==2025.11.12
+certifi==2026.1.4
     # via
     #   opensearch-py
     #   requests
@@ -30,7 +30,7 @@ six==1.17.0
     # via python-dateutil
 typing-extensions==4.15.0
     # via grpcio
-urllib3==2.6.2
+urllib3==2.6.3
     # via
     #   opensearch-py
     #   requests
