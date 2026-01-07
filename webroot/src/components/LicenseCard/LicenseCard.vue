@@ -330,7 +330,7 @@
                                 :key="selected.id"
                                 class="removed-encumbrance"
                             >
-                                <div class="input-label static-label">{{ selected.npdbTypeName() }}</div>
+                                <div class="input-label static-label">{{ selected.getFirstNpdbTypeName() }}</div>
                                 <div class="static-value">
                                     {{ $t('licensing.confirmLicenseUnencumberSuccessEndDate') }}:
                                     {{ dateDisplayFormat(formData[`adverse-action-end-date-${selected.id}`].value) }}
