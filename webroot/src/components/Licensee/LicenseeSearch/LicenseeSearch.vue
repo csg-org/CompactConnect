@@ -94,12 +94,12 @@
                     aria-labelledby="privilege-purchase-dates-label"
                 />
             </div>
-            <!-- <div class="search-form-row"> @TODO: Adding this in next PR with military status updates
+            <div class="search-form-row">
                 <InputSelect
                     :formInput="formData.militaryStatus"
                     class="search-input military-status-select"
                 />
-            </div> -->
+            </div>
             <div class="search-form-row">
                 <InputSelect
                     :formInput="formData.investigationStatus"

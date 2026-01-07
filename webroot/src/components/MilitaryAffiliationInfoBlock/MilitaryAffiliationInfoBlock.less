@@ -17,8 +17,12 @@
 
     .info-row {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         padding-bottom: 1.2rem;
+
+        @media @desktopWidth {
+            flex-direction: row;
+        }
 
         &.error {
             padding: 1.4rem;
@@ -32,8 +36,19 @@
         padding: 1.4rem;
 
         &.affiliation-type {
-            @media @tabletWidth {
-                margin-left: 6rem;
+            @media @desktopWidth {
+                margin-left: 2rem;
+            }
+        }
+
+        &.audit-status {
+            .audit-button-container {
+                display: flex;
+                margin-top: 1rem;
+
+                .audit-button:not(:first-child) {
+                    margin-left: 1rem;
+                }
             }
         }
 

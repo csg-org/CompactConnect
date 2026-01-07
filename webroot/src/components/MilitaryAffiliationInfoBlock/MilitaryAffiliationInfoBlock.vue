@@ -8,13 +8,37 @@
 <template>
     <div class="core-info-block rr-block">
         <div class="info-row">
-            <div class="chunk">
-                <div class="chunk-title">{{ $t('common.status') }}</div>
-                <div class="chunk-text emphasis" :class="{ 'error': isStatusInitializing}">{{status}}</div>
+            <div class="chunk status">
+                <div class="chunk-title">{{ $t('military.militaryStatusTitle') }}</div>
+                <div class="chunk-text emphasis" :class="{ 'error': isStatusInitializing}">{{ status }}</div>
             </div>
             <div class="chunk affiliation-type">
                 <div class="chunk-title">{{ $t('military.affiliationType') }}</div>
-                <div class="chunk-text emphasis">{{affiliationType}}</div>
+                <div class="chunk-text emphasis">{{ affiliationType }}</div>
+            </div>
+            <div class="chunk audit-status">
+                <div class="chunk-title">{{ $t('military.auditStatus') }}</div>
+                <div class="chunk-text emphasis">{{ auditStatus }}</div>
+                <div v-if="isCompactAdmin" class="audit-button-container">
+                    <InputButton
+                        :label="$t('military.auditApprove')"
+                        :aria-label="$t('military.auditApprove')"
+                        :isTransparent="true"
+                        :shouldHideMargin="true"
+                        class="audit-button approve"
+                        @keyup.enter="auditApprove"
+                        @click="auditApprove"
+                    />
+                    <InputButton
+                        :label="$t('military.auditDecline')"
+                        :aria-label="$t('military.auditDecline')"
+                        :isTransparent="true"
+                        :shouldHideMargin="true"
+                        class="audit-button decline"
+                        @keyup.enter="auditDecline"
+                        @click="auditDecline"
+                    />
+                </div>
             </div>
         </div>
         <div v-if="isStatusInitializing" class="info-row error">

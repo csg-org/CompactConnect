@@ -50,6 +50,8 @@ export interface InterfaceLicensee {
     phoneNumber?: string | null;
     licenseType?: LicenseType | null;
     militaryAffiliations?: Array <MilitaryAffiliation>;
+    militaryStatus?: string | null;
+    militaryStatusNote?: string | null;
     licenseStates?: Array<State>;
     licenses?: Array<License>;
     privilegeStates?: Array<State>;
@@ -81,6 +83,8 @@ export class Licensee implements InterfaceLicensee {
     public licenses? = [];
     public privilegeStates? = [];
     public militaryAffiliations? = [];
+    public militaryStatus? = null;
+    public militaryStatusNote? = null;
     public privileges? = [];
     public lastUpdated? = null;
     public status? = LicenseeStatus.INACTIVE;
@@ -212,6 +216,14 @@ export class Licensee implements InterfaceLicensee {
         // The API does not return the affiliations in the get-all endpoint therefore this will always return null
         // if only that endpoint has been called even if the user has active affiliations
         return this.militaryAffiliations?.find((affiliation: MilitaryAffiliation) => affiliation.status as any === 'active') || null;
+    }
+
+    public militaryAuditStatusName(): string {
+        const auditStatusTypes = this.$tm('military.militaryStatusOptions') || [];
+        const auditStatusType = auditStatusTypes.find((translate) => translate.key === this.militaryStatus);
+        const auditStatusTypeName = auditStatusType?.name || '';
+
+        return auditStatusTypeName;
     }
 
     public homeJurisdictionLicenses(): Array<License> {
@@ -422,6 +434,8 @@ export class LicenseeSerializer {
             privilegeStates: [] as Array<State>,
             privileges: [] as Array<License>,
             militaryAffiliations: [] as Array<MilitaryAffiliation>,
+            militaryStatus: json.militaryStatus,
+            militaryStatusNote: json.militaryStatusNote,
             status: json.licenseStatus,
             lastUpdated: json.dateOfUpdate,
         };

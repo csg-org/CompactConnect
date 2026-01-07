@@ -940,18 +940,21 @@
         "militaryStatusTitle": "Military status",
         "updateMilitaryStatusTitle": "Update military status",
         "viewMilitaryStatus": "View military status",
+        "auditStatus": "Audit status",
+        "auditApprove": "Approve",
+        "auditDecline": "Decline",
         "militaryStatusOptions": [
             {
-                "key": "pending",
-                "name": "Pending"
+                "key": "tentative",
+                "name": "Needs review"
             },
             {
                 "key": "approved",
                 "name": "Approved"
             },
             {
-                "key": "denied",
-                "name": "Denied"
+                "key": "declined",
+                "name": "Declined"
             },
             {
                 "key": "notApplicable",

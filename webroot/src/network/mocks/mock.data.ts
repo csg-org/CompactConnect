@@ -461,6 +461,8 @@ export const licensees = {
                     status: 'active'
                 }
             ],
+            militaryStatus: 'approved',
+            militaryStatusNote: 'All the docs look good!',
             licenseStatus: 'active',
             licenseJurisdiction: 'co',
             currentHomeJurisdiction: 'co',
@@ -594,6 +596,8 @@ export const licensees = {
                     status: 'initializing'
                 }
             ],
+            militaryStatus: 'declined',
+            militaryStatusNote: 'Could not view the required docs. Please upload new copies.',
             licenseStatus: 'active',
             licenseJurisdiction: 'co',
             currentHomeJurisdiction: 'co',
@@ -1013,6 +1017,8 @@ export const licensees = {
             birthMonthDay: '1975-01-01',
             ssnLastFour: '2222',
             militaryAffiliations: [],
+            militaryStatus: 'notApplicable',
+            militaryStatusNote: '',
             licenseStatus: 'inactive',
             licenseJurisdiction: 'co',
             currentHomeJurisdiction: 'co',
@@ -1088,6 +1094,8 @@ export const licensees = {
             birthMonthDay: '1965-01-01',
             ssnLastFour: '3333',
             militaryAffiliations: [],
+            militaryStatus: 'notApplicable',
+            militaryStatusNote: '',
             licenseStatus: 'active',
             licenseJurisdiction: 'co',
             currentHomeJurisdiction: 'co',
@@ -1163,6 +1171,8 @@ export const licensees = {
             birthMonthDay: '1990-08-29',
             ssnLastFour: '4444',
             militaryAffiliations: [],
+            militaryStatus: 'notApplicable',
+            militaryStatusNote: '',
             npi: '6441445289',
             licenseStatus: 'active',
             licenseJurisdiction: 'ny',

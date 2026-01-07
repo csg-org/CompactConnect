@@ -923,18 +923,21 @@
     "military": {
         "militaryStatusTitle": "Estado militar",
         "updateMilitaryStatusTitle": "Actualizar el estado militar",
+        "auditStatus": "Estado de la auditoría",
+        "auditApprove": "Aprobar",
+        "auditDecline": "Rechazar",
         "militaryStatusOptions": [
             {
-                "key": "pending",
-                "name": "Pendiente"
+                "key": "tentative",
+                "name": "Necesita revisión"
             },
             {
                 "key": "approved",
                 "name": "Aprobado"
             },
             {
-                "key": "denied",
-                "name": "Denegado"
+                "key": "declined",
+                "name": "Rechazado"
             },
             {
                 "key": "notApplicable",

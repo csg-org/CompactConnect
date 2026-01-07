@@ -133,6 +133,10 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         return militaryStatus;
     }
 
+    get auditStatus(): string {
+        return this.licensee?.militaryAuditStatusName() || '';
+    }
+
     get militaryDocumentHeader(): object {
         return {
             firstFilenameDisplay: () => this.$t('military.fileName'),
@@ -184,6 +188,14 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
                 params: { compact: this.currentCompactType }
             });
         }
+    }
+
+    async auditApprove(): Promise<void> {
+        console.log('todo: approve');
+    }
+
+    async auditDecline(): Promise<void> {
+        console.log('todo: decline');
     }
 
     async confirmEndMilitaryAffiliation(): Promise<void> {
