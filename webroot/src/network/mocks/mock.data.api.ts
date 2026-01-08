@@ -567,7 +567,6 @@ export class DataApi {
     // Get Privileges (Export - Staff)
     public getPrivilegesExportStaff(params: any = {}) {
         return wait(1000).then(() => ({
-            // fileUrl: 'https://cdn.prod.website-files.com/66a083c22bdfd06a6aee5193/6913a447111789a56d2f13b9_IA-Logo-Primary-FullColor.svg',
             fileUrl: 'https://www.examplefile.com/file-download/519',
             params,
         }));

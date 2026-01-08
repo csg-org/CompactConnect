@@ -202,7 +202,7 @@ class LicenseeList extends Vue {
             this.searchDisplayNpi
         ].join(', ').trim();
 
-        return joined.replace(/(^[,\s]+)|([,\s]+$)/g, '').replace(/(,\s)\1+/g, ', ');
+        return joined.replace(/(^[,\s]+)|([,\s]+$)/g, '').replace(/(,\s)\1+/g, ', '); // Replace repeated commas with single comma
     }
 
     get sortOptions(): Array<any> {

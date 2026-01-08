@@ -33,7 +33,7 @@
             ></PaginationLegacy>
             <Pagination
                 ariaLabel="Top Pagination"
-                v-if="!isLegacyPaging && hasRecords && !excludeTopPagination"
+                v-else-if="!isLegacyPaging && hasRecords && !excludeTopPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
                 :pageChange="pageChange"
@@ -74,7 +74,7 @@
             <Pagination
                 ariaLabel="Bottom Pagination"
                 class="bottom-pagination"
-                v-if="!isLegacyPaging && hasRecords && !excludeBottomPagination"
+                v-else-if="!isLegacyPaging && hasRecords && !excludeBottomPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
                 :pageChange="pageChange"

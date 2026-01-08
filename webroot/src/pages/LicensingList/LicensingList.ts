@@ -7,14 +7,12 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import Section from '@components/Section/Section.vue';
-import LicenseeListLegacy from '@components/Licensee/LicenseeListLegacy/LicenseeListLegacy.vue';
 import LicenseeList from '@components/Licensee/LicenseeList/LicenseeList.vue';
 
 @Component({
     name: 'LicensingList',
     components: {
         Section,
-        LicenseeListLegacy,
         LicenseeList,
     },
 })

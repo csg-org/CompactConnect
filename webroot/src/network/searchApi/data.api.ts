@@ -213,31 +213,28 @@ export class SearchDataApi implements DataApiInterface {
                 if (privilegePurchaseStartDate || privilegePurchaseEndDate) {
                     privilegeConditionBool.should = [];
                     privilegeConditionBool.minimum_should_match = 1;
-                    const dateConditions = [
-                        {
-                            range: {
-                                'privileges.dateOfIssuance': {},
-                            },
-                        },
-                        {
-                            range: {
-                                'privileges.dateOfRenewal': {},
-                            },
-                        },
-                    ];
+                    const buildRangeCondition = () => {
+                        const range: Record<string, any> = {};
 
-                    dateConditions.forEach((dateCondition) => {
-                        const { range } = dateCondition;
+                        if (privilegePurchaseStartDate) {
+                            range.gte = privilegePurchaseStartDate;
+                        }
+                        if (privilegePurchaseEndDate) {
+                            range.lte = privilegePurchaseEndDate;
+                        }
 
-                        Object.keys(range).forEach((nestedDateKey) => {
-                            if (privilegePurchaseStartDate) {
-                                range[nestedDateKey].gte = privilegePurchaseStartDate;
-                            }
-                            if (privilegePurchaseEndDate) {
-                                range[nestedDateKey].lte = privilegePurchaseEndDate;
-                            }
-                        });
-                        privilegeConditionBool.should.push(dateCondition);
+                        return range;
+                    };
+
+                    privilegeConditionBool.should.push({
+                        range: {
+                            'privileges.dateOfIssuance': buildRangeCondition(),
+                        },
+                    });
+                    privilegeConditionBool.should.push({
+                        range: {
+                            'privileges.dateOfRenewal': buildRangeCondition(),
+                        },
                     });
                 }
 
