@@ -683,6 +683,12 @@ def test_license_encumbrance_workflow():
 
         logger.info('License encumbrance workflow test completed successfully')
 
+        # Wait for downstream processing to complete, including notification handlers
+        # This prevents race conditions where notification handlers from previous lift operations
+        # might still be processing when the license becomes unencumbered
+        logger.info('Waiting for downstream processing and notification handlers to complete...')
+        helper.wait_for_downstream_processing()
+
     finally:
         # Clean up all created staff users
         helper.cleanup_staff_users()
@@ -926,6 +932,11 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         lift_body = {'effectiveLiftDate': '2024-01-30'}
         helper.lift_license_encumbrance(lift_body, license_adverse_action_id)
         logger.info('License encumbrance lifted successfully')
+
+        # Wait for downstream processing to complete, including notification handlers
+        # This prevents race conditions where notification handlers might still be processing
+        logger.info('Waiting for downstream processing and notification handlers to complete...')
+        helper.wait_for_downstream_processing()
 
         # Step 7: Verify privilege becomes 'unencumbered'
         logger.info('Step 7: Verifying privilege becomes unencumbered...')

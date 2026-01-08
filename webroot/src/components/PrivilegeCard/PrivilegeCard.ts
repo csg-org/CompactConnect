@@ -16,7 +16,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { dateFormatPatterns, FeatureGates } from '@/app.config';
+import { dateFormatPatterns } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputTextarea from '@components/Forms/InputTextarea/InputTextarea.vue';
 import InputDate from '@components/Forms/InputDate/InputDate.vue';
@@ -83,10 +83,6 @@ class PrivilegeCard extends mixins(MixinForm) {
     //
     // Computed
     //
-    get featureGates(): typeof FeatureGates {
-        return FeatureGates;
-    }
-
     get userStore() {
         return this.$store.state.user;
     }
@@ -233,19 +229,10 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
+        return this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
         }));
-
-        if (!this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)) {
-            options.unshift({
-                value: '',
-                name: computed(() => this.$t('common.selectOption')),
-            });
-        }
-
-        return options;
     }
 
     get endInvestigationModalTitle(): string {
@@ -316,27 +303,14 @@ class PrivilegeCard extends mixins(MixinForm) {
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.encumberDisciplineOptions,
             }),
-            ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                ? {
-                    encumberModalNpdbCategories: new FormInput({
-                        id: 'npdb-categories',
-                        name: 'npdb-categories',
-                        label: computed(() => this.$t('licensing.npdbCategoryLabel')),
-                        validation: Joi.array().min(1).messages(this.joiMessages.array),
-                        valueOptions: this.npdbCategoryOptions,
-                        value: [],
-                    }),
-                }
-                : {
-                    encumberModalNpdbCategory: new FormInput({
-                        id: 'npdb-category',
-                        name: 'npdb-category',
-                        label: computed(() => this.$t('licensing.npdbCategoryLabel')),
-                        validation: Joi.string().required().messages(this.joiMessages.string),
-                        valueOptions: this.npdbCategoryOptions,
-                    }),
-                }
-            ),
+            encumberModalNpdbCategories: new FormInput({
+                id: 'npdb-categories',
+                name: 'npdb-categories',
+                label: computed(() => this.$t('licensing.npdbCategoryLabel')),
+                validation: Joi.array().min(1).messages(this.joiMessages.array),
+                valueOptions: this.npdbCategoryOptions,
+                value: [],
+            }),
             encumberModalStartDate: new FormInput({
                 id: 'encumber-start',
                 name: 'encumber-start',
@@ -579,14 +553,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                     investigationId,
                     encumbrance: {
                         encumbranceType: this.formData.encumberModalDisciplineAction.value,
-                        ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                            ? {
-                                npdbCategories: this.formData.encumberModalNpdbCategories.value,
-                            }
-                            : {
-                                npdbCategory: this.formData.encumberModalNpdbCategory.value,
-                            }
-                        ),
+                        npdbCategories: this.formData.encumberModalNpdbCategories.value,
                         startDate: this.formData.encumberModalStartDate.value,
                     },
                 }).catch((err) => {
@@ -601,14 +568,7 @@ class PrivilegeCard extends mixins(MixinForm) {
                     privilegeState: stateAbbrev,
                     licenseType: privilegeTypeAbbrev.toLowerCase(),
                     encumbranceType: this.formData.encumberModalDisciplineAction.value,
-                    ...(this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                        ? {
-                            npdbCategories: this.formData.encumberModalNpdbCategories.value,
-                        }
-                        : {
-                            npdbCategory: this.formData.encumberModalNpdbCategory.value,
-                        }
-                    ),
+                    npdbCategories: this.formData.encumberModalNpdbCategories.value,
                     startDate: this.formData.encumberModalStartDate.value,
                 }).catch((err) => {
                     this.modalErrorMessage = err?.message || this.$t('common.error');
@@ -1047,11 +1007,7 @@ class PrivilegeCard extends mixins(MixinForm) {
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberPrivilegeModalDisplayed) {
             this.formData.encumberModalDisciplineAction.value = this.encumberDisciplineOptions[1]?.value;
-            if (this.$features.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)) {
-                this.formData.encumberModalNpdbCategories.value = [this.npdbCategoryOptions[1]?.value];
-            } else {
-                this.formData.encumberModalNpdbCategory.value = this.npdbCategoryOptions[1]?.value;
-            }
+            this.formData.encumberModalNpdbCategories.value = [this.npdbCategoryOptions[1]?.value];
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
             await nextTick();
             this.validateAll({ asTouched: true });

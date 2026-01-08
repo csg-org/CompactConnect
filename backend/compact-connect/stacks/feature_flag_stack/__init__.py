@@ -113,17 +113,6 @@ class FeatureFlagStack(AppStack):
             environment_name=environment_name,
         )
 
-        self.encumbrance_multiple_category_flag = FeatureFlagResource(
-            self,
-            'EncumbranceMultiCategoryFlag',
-            provider=self.provider,
-            flag_name='encumbrance-multi-category-flag',
-            auto_enable_envs=[
-                FeatureFlagEnvironmentName.TEST,
-            ],
-            environment_name=environment_name,
-        )
-
         self.duplicate_ssn_upload_check_flag = FeatureFlagResource(
             self,
             'DuplicateSsnUploadCheckFlag',

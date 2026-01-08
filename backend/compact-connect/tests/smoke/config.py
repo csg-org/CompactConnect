@@ -92,6 +92,10 @@ class _Config:
     def sandbox_authorize_net_transaction_key(self):
         return os.environ['SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY']
 
+    @property
+    def smoke_test_notification_email(self):
+        return os.environ['CC_TEST_SMOKE_TEST_NOTIFICATION_EMAIL']
+
     @cached_property
     def cognito_client(self):
         return boto3.client('cognito-idp')

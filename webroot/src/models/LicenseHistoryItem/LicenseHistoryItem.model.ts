@@ -17,6 +17,7 @@ export interface InterfaceLicenseHistoryItem {
     createDate?: string | null;
     effectiveDate?: string | null;
     serverNote?: string | null;
+    npdbCategories?: string[] | null;
 }
 
 // ========================================================
@@ -31,6 +32,7 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public createDate? = null;
     public effectiveDate? = null;
     public serverNote? = null;
+    public npdbCategories?: string[] | null = null;
 
     constructor(data?: InterfaceLicenseHistoryItem) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -93,11 +95,20 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         } else if (updateType === 'licenseDeactivation') {
             noteDisplay = this.$t('licensing.licenseDeactivationNote');
         } else if (updateType === 'encumbrance') {
-            const npdbTypes = this.$tm('licensing.npdbTypes') || [];
-            const npdbType = npdbTypes.find((translate) => translate.key === this.serverNote);
-            const typeName = npdbType?.name || '';
+            // For encumbrance events, use npdbCategories if available (new format)
+            // Otherwise fall back to serverNote for backward compatibility
+            if (this.npdbCategories && this.npdbCategories.length > 0) {
+                const npdbTypes = this.$tm('licensing.npdbTypes') || [];
+                const categoryNames = this.npdbCategories
+                    .map((categoryKey) => {
+                        const npdbType = npdbTypes.find((translate) => translate.key === categoryKey);
 
-            noteDisplay = typeName;
+                        return npdbType?.name || categoryKey;
+                    })
+                    .filter((name) => name); // Filter out empty strings
+
+                noteDisplay = categoryNames.join(', ');
+            }
         }
 
         return noteDisplay;
@@ -116,6 +127,7 @@ export class LicenseHistoryItemSerializer {
             effectiveDate: json.effectiveDate,
             dateOfUpdate: json.dateOfUpdate,
             serverNote: json.note,
+            npdbCategories: json.npdbCategories,
         };
 
         return new LicenseHistoryItem(licenseHistoryData);
