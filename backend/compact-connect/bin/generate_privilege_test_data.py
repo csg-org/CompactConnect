@@ -314,22 +314,30 @@ def main():
         provider_id_uuid = UUID(provider_id) if isinstance(provider_id, str) else provider_id
         provider_user_records = data_client.get_provider_user_records(compact=args.compact, provider_id=provider_id_uuid)
 
-        # Check if provider already has a privilege in the target state
-        provider_data = provider_user_records.get_provider_record()
-        privilege_jurisdictions = provider_data.privilegeJurisdictions or set()
-        if args.privilege_state in privilege_jurisdictions:
-            if args.provider_id:
-                print(f'Error: Provider {provider_id} already has a privilege in {args.privilege_state}')
-                sys.exit(1)
-            else:
-                print(f'Skipping provider {provider_id} - already has a privilege in {args.privilege_state}')
-                continue
-
         # Check if provider has license records
         license_records = provider_user_records.get_license_records()
         if not license_records:
             print(f'Skipping provider {provider_id} - no license records found')
             continue
+
+        # Determine which license type we'll use for the privilege
+        target_license_type = args.license_type or license_records[0].licenseType
+
+        # Check if provider already has a privilege for this specific license type in the target state
+        existing_privileges = provider_user_records.get_privilege_records(
+            filter_condition=lambda p: p.jurisdiction == args.privilege_state and p.licenseType == target_license_type
+        )
+        if existing_privileges:
+            if args.provider_id:
+                print(
+                    f'Error: Provider {provider_id} already has a {target_license_type} privilege in {args.privilege_state}'
+                )
+                sys.exit(1)
+            else:
+                print(
+                    f'Skipping provider {provider_id} - already has a {target_license_type} privilege in {args.privilege_state}'
+                )
+                continue
 
         # Create privilege record
         privilege_record = create_privilege_record(
