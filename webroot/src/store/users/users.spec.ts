@@ -196,6 +196,31 @@ describe('Users Store Mutations', () => {
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully update military audit status request', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_MILITARY_AUDIT_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update military audit status failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.UPDATE_MILITARY_AUDIT_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully update military audit status success', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_MILITARY_AUDIT_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully encumber license request', () => {
         const state = {};
 
@@ -723,6 +748,36 @@ describe('Users Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_USER_SUCCESS]);
+    });
+    it('should successfully start military audit status request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const data = { test: true };
+
+        await actions.updateMilitaryAuditRequest({ commit, dispatch }, { compact, licenseeId, data });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_MILITARY_AUDIT_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start military audit status failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.updateMilitaryAuditFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_MILITARY_AUDIT_FAILURE, error]);
+    });
+    it('should successfully start military audit status success', () => {
+        const commit = sinon.spy();
+
+        actions.updateMilitaryAuditSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_MILITARY_AUDIT_SUCCESS]);
     });
     it('should successfully start encumber-license request', async () => {
         const commit = sinon.spy();

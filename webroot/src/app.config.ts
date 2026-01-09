@@ -169,6 +169,13 @@ export enum ServerApiTypes {
     API_EXAMPLE = 'Example',
 }
 
+export enum MilitaryAuditStatusTypes {
+    NOT_APPLICABLE = 'notApplicable',
+    APPROVED = 'approved',
+    DECLINED = 'declined',
+    TENTATIVE = 'tentative',
+}
+
 // =============================
 // =    Server Date Formats    =
 // =============================

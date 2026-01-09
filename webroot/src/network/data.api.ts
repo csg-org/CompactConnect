@@ -160,6 +160,17 @@ export class DataApi {
     }
 
     /**
+     * PATCH Update Military Audit Status for a licensee.
+     * @param  {string}        compact    A compact type.
+     * @param  {string}        licenseeId The Licensee ID.
+     * @param  {object}        data       The user request data.
+     * @return {Promise<object>}          The server response.
+     */
+    public updateMilitaryAudit(compact, licenseeId, data) {
+        return licenseDataApi.updateMilitaryAudit(compact, licenseeId, data);
+    }
+
+    /**
      * POST Encumber License for a licensee.
      * @param  {string}           compact         The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId      The Licensee ID.

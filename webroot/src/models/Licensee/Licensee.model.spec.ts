@@ -60,6 +60,8 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStates).to.matchPattern([]);
         expect(licensee.privileges).to.matchPattern([]);
         expect(licensee.militaryAffiliations).to.matchPattern([]);
+        expect(licensee.militaryStatus).to.equal(null);
+        expect(licensee.militaryStatusNote).to.equal(null);
         expect(licensee.lastUpdated).to.equal(null);
         expect(licensee.status).to.equal(LicenseeStatus.INACTIVE);
 
@@ -78,6 +80,7 @@ describe('Licensee model', () => {
         expect(licensee.phoneNumberDisplay()).to.equal('');
         expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
+        expect(licensee.militaryAuditStatusName()).to.equal('');
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.activeHomeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.inactiveHomeJurisdictionLicenses()).to.matchPattern([]);
@@ -111,6 +114,8 @@ describe('Licensee model', () => {
             birthMonthDay: '01-16',
             ssnLastFour: '0000',
             militaryAffiliations: [new MilitaryAffiliation()],
+            militaryStatus: 'approved',
+            militaryStatusNote: 'test-note',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseStates: [new State()],
             licenses: [
@@ -172,6 +177,8 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
         expect(licensee.privileges).to.be.an('array').with.length(1);
         expect(licensee.privileges[0]).to.be.an.instanceof(License);
+        expect(licensee.militaryStatus).to.equal(data.militaryStatus);
+        expect(licensee.militaryStatusNote).to.equal(data.militaryStatusNote);
         expect(licensee.lastUpdated).to.equal(data.lastUpdated);
         expect(licensee.status).to.equal(data.status);
 
@@ -190,6 +197,7 @@ describe('Licensee model', () => {
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
         expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
+        expect(licensee.militaryAuditStatusName()).to.equal('Approved');
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.activeHomeJurisdictionLicenses()).to.matchPattern([]);
         expect(licensee.inactiveHomeJurisdictionLicenses()).to.matchPattern([]);
@@ -332,6 +340,8 @@ describe('Licensee model', () => {
                 }],
                 status: 'inactive'
             }],
+            militaryStatus: 'unsupported',
+            militaryStatusNote: 'note',
             licenses: [
                 {
                     id: 'test-id',
@@ -436,6 +446,8 @@ describe('Licensee model', () => {
         expect(licensee.militaryAffiliations).to.be.an('array').with.length(2);
         expect(licensee.militaryAffiliations[0]).to.be.an.instanceof(MilitaryAffiliation);
         expect(licensee.militaryAffiliations[1]).to.be.an.instanceof(MilitaryAffiliation);
+        expect(licensee.militaryStatus).to.equal(data.militaryStatus);
+        expect(licensee.militaryStatusNote).to.equal(data.militaryStatusNote);
         expect(licensee.status).to.equal(data.licenseStatus);
 
         // Test methods
@@ -467,6 +479,7 @@ describe('Licensee model', () => {
             }],
             status: 'active'
         });
+        expect(licensee.militaryAuditStatusName()).to.equal('');
         expect(licensee.homeJurisdictionLicenses()).to.matchPattern([
             {
                 id: 'providerId1-co-audiologist',

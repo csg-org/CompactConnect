@@ -127,9 +127,7 @@
                             </div>
                         </div>
                     </div>
-                    <MilitaryAffiliationInfoBlock
-                        :licensee="licensee"
-                    />
+                    <MilitaryAffiliationInfoBlock :licensee="licensee" />
                 </div>
             </div>
             <div class="license-section">

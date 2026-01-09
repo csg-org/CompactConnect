@@ -124,6 +124,24 @@ export default {
     deleteUserFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.DELETE_USER_FAILURE, error);
     },
+    // UPDATE MILITARY AUDIT STATUS
+    updateMilitaryAuditRequest: async ({ commit, dispatch }, { compact, licenseeId, data }: any) => {
+        commit(MutationTypes.UPDATE_MILITARY_AUDIT_REQUEST);
+        return dataApi.updateMilitaryAudit(compact, licenseeId, data).then(async (response) => {
+            dispatch('updateMilitaryAuditSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('updateMilitaryAuditFailure', error);
+            throw error;
+        });
+    },
+    updateMilitaryAuditSuccess: ({ commit }) => {
+        commit(MutationTypes.UPDATE_MILITARY_AUDIT_SUCCESS);
+    },
+    updateMilitaryAuditFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.UPDATE_MILITARY_AUDIT_FAILURE, error);
+    },
     // ENCUMBER USER LICENSE
     encumberLicenseRequest: async ({ commit, dispatch }, {
         compact,
