@@ -1,0 +1,129 @@
+{
+  "resource": "/v1/staff-users/me",
+  "path": "/v1/staff-users/me",
+  "httpMethod": "GET",
+  "headers": {
+    "accept": "application/json",
+    "content-type": "application/json",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "en-US,en;q=0.5",
+    "Authorization": "Bearer <jwt>",
+    "cache-control": "no-cache",
+    "Host": "api.justin.jcc.iaapi.io",
+    "origin": "https://app.justin.jcc.iaapi.io",
+    "pragma": "no-cache",
+    "referer": "https://app.justin.jcc.iaapi.io/",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-site",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+    "X-Amzn-Trace-Id": "Root=1-689b64af-42fcf052722c8040376585b5",
+    "X-Forwarded-For": "192.0.2.1",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+    "accept": [
+      "application/json"
+    ],
+    "accept-encoding": [
+      "gzip, deflate, br, zstd"
+    ],
+    "accept-language": [
+      "en-US,en;q=0.5"
+    ],
+    "cache-control": [
+      "no-cache"
+    ],
+    "Host": [
+      "api.justin.jcc.iaapi.io"
+    ],
+    "origin": [
+      "https://app.justin.jcc.iaapi.io"
+    ],
+    "pragma": [
+      "no-cache"
+    ],
+    "referer": [
+      "https://app.justin.jcc.iaapi.io/"
+    ],
+    "sec-fetch-dest": [
+      "empty"
+    ],
+    "sec-fetch-mode": [
+      "cors"
+    ],
+    "sec-fetch-site": [
+      "same-site"
+    ],
+    "User-Agent": [
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0"
+    ],
+    "X-Amzn-Trace-Id": [
+      "Root=1-689b64af-42fcf052722c8040376585b5"
+    ],
+    "X-Forwarded-For": [
+      "192.0.2.1"
+    ],
+    "X-Forwarded-Port": [
+      "443"
+    ],
+    "X-Forwarded-Proto": [
+      "https"
+    ]
+  },
+  "queryStringParameters": null,
+  "multiValueQueryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+    "resourceId": "niuigd",
+    "authorizer": {
+      "claims": {
+        "sub": "8498f498-c0c1-70c0-8bb2-421024760fe9",
+        "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_gxBtau7Di",
+        "version": "2",
+        "client_id": "40bm38npn9s9f94dk8dmhdead6",
+        "origin_jti": "5ba4d34e-2a7e-4ac2-81e8-08f8f031d045",
+        "event_id": "36a7c146-0aee-46c7-9e73-f3faf3ace673",
+        "token_use": "access",
+        "scope": "openid email",
+        "auth_time": "1754940768",
+        "exp": "Tue Aug 12 16:44:09 UTC 2025",
+        "iat": "Tue Aug 12 15:44:13 UTC 2025",
+        "jti": "edd0699c-ba51-4d8b-981b-3164839f5ef8",
+        "username": "8498f498-c0c1-70c0-8bb2-421024760fe9"
+      }
+    },
+    "resourcePath": "/v1/staff-users/me",
+    "httpMethod": "GET",
+    "extendedRequestId": "ZAmXuH9bIAMEjZA=",
+    "requestTime": "07/Jun/2024:18:27:09 +0000",
+    "path": "/sandbox/v0/boards/al/licenses/bulk-upload",
+    "accountId": "058264452476",
+    "protocol": "HTTP/1.1",
+    "stage": "sandbox",
+    "domainPrefix": "j9hs0bq9i9",
+    "requestTimeEpoch": 1717784829944,
+    "requestId": "6003a0c9-c61c-4d83-a2df-963e51f1a82f",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "sourceIp": "192.0.2.1",
+      "principalOrgId": null,
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:141.0) Gecko/20100101 Firefox/141.0",
+      "user": null
+    },
+    "domainName": "api.justin.jcc.iaapi.io",
+    "deploymentId": "okxjb3",
+    "apiId": "j9hs0bq9i9"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}

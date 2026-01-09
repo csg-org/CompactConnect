@@ -1,0 +1,5 @@
+boto3>=1.26.0
+botocore>=1.29.0
+aws-lambda-powertools>=2.0.0
+pytest
+moto[cognitoidp,s3]>=5, <6

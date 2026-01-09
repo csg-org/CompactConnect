@@ -1,0 +1,176 @@
+{
+  "properties": {
+    "compactAbbr": {
+      "description": "The abbreviation of the compact",
+      "type": "string"
+    },
+    "compactName": {
+      "description": "The full name of the compact",
+      "type": "string"
+    },
+    "compactCommissionFee": {
+      "properties": {
+        "feeType": {
+          "enum": [
+            "FLAT_RATE"
+          ],
+          "type": "string"
+        },
+        "feeAmount": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "feeType",
+        "feeAmount"
+      ],
+      "type": "object"
+    },
+    "compactOperationsTeamEmails": {
+      "description": "List of email addresses for operations team notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "compactAdverseActionsNotificationEmails": {
+      "description": "List of email addresses for adverse actions notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "compactSummaryReportNotificationEmails": {
+      "description": "List of email addresses for summary report notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "licenseeRegistrationEnabled": {
+      "description": "Denotes whether licensee registration is enabled",
+      "type": "boolean"
+    },
+    "configuredStates": {
+      "description": "List of states that have submitted configurations and their live status",
+      "items": {
+        "properties": {
+          "postalAbbreviation": {
+            "description": "The postal abbreviation of the jurisdiction",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ],
+            "type": "string"
+          },
+          "isLive": {
+            "description": "Whether the state is live and available for registrations.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "postalAbbreviation",
+          "isLive"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "transactionFeeConfiguration": {
+      "properties": {
+        "licenseeCharges": {
+          "properties": {
+            "active": {
+              "description": "Whether the compact is charging licensees transaction fees",
+              "type": "boolean"
+            },
+            "chargeType": {
+              "description": "The type of transaction fee charge",
+              "enum": [
+                "FLAT_FEE_PER_PRIVILEGE"
+              ],
+              "type": "string"
+            },
+            "chargeAmount": {
+              "description": "The amount to charge per privilege purchased",
+              "type": "number"
+            }
+          },
+          "required": [
+            "active",
+            "chargeType",
+            "chargeAmount"
+          ],
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "compactAbbr",
+    "compactName",
+    "compactCommissionFee",
+    "compactOperationsTeamEmails",
+    "compactAdverseActionsNotificationEmails",
+    "compactSummaryReportNotificationEmails",
+    "licenseeRegistrationEnabled",
+    "configuredStates"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

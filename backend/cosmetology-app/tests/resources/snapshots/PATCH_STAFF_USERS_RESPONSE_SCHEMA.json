@@ -1,0 +1,98 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "userId": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "type": "string"
+    },
+    "attributes": {
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "maxLength": 100,
+          "minLength": 5,
+          "type": "string"
+        },
+        "givenName": {
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        },
+        "familyName": {
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "givenName",
+        "familyName"
+      ],
+      "type": "object"
+    },
+    "permissions": {
+      "additionalProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "properties": {
+              "readPrivate": {
+                "type": "boolean"
+              },
+              "admin": {
+                "type": "boolean"
+              },
+              "readSSN": {
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "jurisdictions": {
+            "additionalProperties": {
+              "properties": {
+                "actions": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "write": {
+                      "type": "boolean"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    },
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
+                    "readSSN": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "userId",
+    "attributes",
+    "permissions",
+    "status"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

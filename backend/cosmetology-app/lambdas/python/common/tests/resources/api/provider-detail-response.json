@@ -1,0 +1,96 @@
+{
+  "type": "provider",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "npi": "0608337260",
+  "ssnLastFour": "1234",
+  "givenName": "Björk",
+  "middleName": "Gunnar",
+  "familyName": "Guðmundsdóttir",
+  "jurisdictionUploadedLicenseStatus": "active",
+  "jurisdictionUploadedCompactEligibility": "eligible",
+  "licenseStatus": "active",
+  "compactEligibility": "eligible",
+  "compact": "aslp",
+  "licenseJurisdiction": "oh",
+  "privilegeJurisdictions": ["ne"],
+  "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
+  "dateOfBirth": "1985-06-06",
+  "dateOfUpdate": "2024-07-08T23:59:59+00:00",
+  "dateOfExpiration": "2025-04-04",
+  "birthMonthDay": "06-06",
+  "currentHomeJurisdiction": "oh",
+  "licenses": [
+    {
+      "type": "license",
+      "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+      "compact": "aslp",
+      "jurisdiction": "oh",
+      "ssnLastFour": "1234",
+      "npi": "0608337260",
+      "licenseNumber": "A0608337260",
+      "licenseType": "speech-language pathologist",
+      "jurisdictionUploadedLicenseStatus": "active",
+      "jurisdictionUploadedCompactEligibility": "eligible",
+      "licenseStatus": "active",
+      "licenseStatusName": "DEFINITELY_A_HUMAN",
+      "compactEligibility": "eligible",
+      "givenName": "Björk",
+      "middleName": "Gunnar",
+      "familyName": "Guðmundsdóttir",
+      "dateOfIssuance": "2010-06-06",
+      "dateOfRenewal": "2020-04-04",
+      "dateOfExpiration": "2025-04-04",
+      "dateOfBirth": "1985-06-06",
+      "dateOfUpdate": "2024-06-06T12:59:59+00:00",
+      "homeAddressStreet1": "123 A St.",
+      "homeAddressStreet2": "Apt 321",
+      "homeAddressCity": "Columbus",
+      "homeAddressState": "oh",
+      "homeAddressPostalCode": "43004",
+      "emailAddress": "björk@example.com",
+      "phoneNumber": "+13213214321",
+      "adverseActions": [],
+      "investigations": []
+    }
+  ],
+  "privileges": [
+    {
+      "type": "privilege",
+      "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+      "compact": "aslp",
+      "jurisdiction": "ne",
+      "licenseType": "speech-language pathologist",
+      "licenseJurisdiction": "oh",
+      "status": "active",
+      "activeSince": "2016-05-05T12:59:59+00:00",
+      "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+      "dateOfRenewal": "2020-05-05T12:59:59+00:00",
+      "dateOfExpiration": "2025-04-04",
+      "dateOfUpdate": "2020-05-05T12:59:59+00:00",
+      "compactTransactionId": "1234567890",
+      "privilegeId": "SLP-NE-1",
+      "administratorSetStatus": "active",
+      "adverseActions": [],
+      "investigations": [],
+      "attestations": [
+        {
+          "attestationId": "jurisprudence-confirmation",
+          "version": "1"
+        }
+      ]
+    }
+  ],
+  "militaryAffiliations": [
+    {
+      "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+      "compact": "aslp",
+      "type": "militaryAffiliation",
+      "documentKeys": ["/provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf"],
+      "affiliationType": "militaryMember",
+      "fileNames": ["military-waiver.pdf"],
+      "status": "active",
+      "dateOfUpload": "2024-11-08T23:59:59+00:00",
+      "dateOfUpdate": "2024-11-08T23:59:59+00:00"
+   }
+  ]
+}
