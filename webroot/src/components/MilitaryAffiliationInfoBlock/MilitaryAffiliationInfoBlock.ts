@@ -181,6 +181,10 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
         return this.auditStatus === MilitaryAuditStatusTypes.TENTATIVE;
     }
 
+    get isAuditReady(): boolean {
+        return Boolean(this.currentCompactType && this.licenseeId);
+    }
+
     get auditStatusNote(): string {
         return this.licensee?.militaryStatusNote || '';
     }

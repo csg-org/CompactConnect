@@ -41,6 +41,7 @@
                         class="audit-button approve"
                         @keyup.enter.prevent.stop="toggleMilitaryAuditApproveModal"
                         @click.prevent="toggleMilitaryAuditApproveModal"
+                        :isEnabled="isAuditReady"
                     />
                     <InputButton
                         :label="$t('military.auditDecline')"
@@ -50,6 +51,7 @@
                         class="audit-button decline"
                         @keyup.enter.prevent.stop="toggleMilitaryAuditDeclineModal"
                         @click.prevent="toggleMilitaryAuditDeclineModal"
+                        :isEnabled="isAuditReady"
                     />
                 </div>
             </div>
@@ -115,6 +117,7 @@
         <TransitionGroup>
             <Modal
                 v-if="shouldShowMilitaryAuditApproveModal"
+                key="audit-approve-modal"
                 modalId="audit-approve-modal"
                 class="audit-modal audit-approve-modal"
                 :title="$t('military.auditApproveConfirmTitle')"
@@ -156,6 +159,7 @@
             </Modal>
             <Modal
                 v-if="shouldShowMilitaryAuditDeclineModal"
+                key="audit-decline-modal"
                 modalId="audit-decline-modal"
                 class="audit-modal audit-decline-modal"
                 :title="$t('military.auditDeclineConfirmTitle')"
@@ -205,6 +209,7 @@
             </Modal>
             <Modal
                 v-if="shouldShowEndAffiliationModal"
+                key="end-affiliation-modal"
                 modalId="end-affiliation-modal"
                 class="end-affiliation-modal"
                 :closeOnBackgroundClick="true"
