@@ -925,7 +925,15 @@
         "updateMilitaryStatusTitle": "Actualizar el estado militar",
         "auditStatus": "Estado de la auditoría",
         "auditApprove": "Aprobar",
+        "auditApproveConfirmTitle": "¿Está seguro de que desea aprobar el estado militar de este practicante?",
+        "auditApproveConfirmDescription": "Al aprobar se confirma la documentación presentada y los beneficios relacionados con el servicio militar.",
+        "auditApproveConfirmAction": "Sí, aprobar estado",
         "auditDecline": "Rechazar",
+        "auditDeclineConfirmTitle": "¿Está seguro de que desea rechazar el estado militar de este practicante?",
+        "auditDeclineConfirmDescription": "Si rechaza la solicitud, se revocará el estado militar del usuario y se eliminará su elegibilidad para el descuento.",
+        "auditDeclineConfirmNotesLabel": "Notas de rechazo para el practicante",
+        "auditDeclineConfirmNotesPlaceholder": "Ingrese el motivo del rechazo",
+        "auditDeclineConfirmAction": "Sí, rechazar estado",
         "militaryStatusOptions": [
             {
                 "key": "tentative",

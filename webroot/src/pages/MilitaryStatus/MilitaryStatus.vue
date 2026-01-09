@@ -30,11 +30,7 @@
                     </div>
                 </div>
             </div>
-            <MilitaryAffiliationInfoBlock
-                :licensee="licensee"
-                :currentCompactType="currentCompactType"
-                :shouldShowEditButtons="true"
-            />
+            <MilitaryAffiliationInfoBlock :licensee="licensee" :shouldShowEditButtons="true" />
         </div>
     </div>
 </template>

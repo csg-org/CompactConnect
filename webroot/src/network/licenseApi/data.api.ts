@@ -253,6 +253,19 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * PATCH Update Military Audit Status for a licensee.
+     * @param  {string}        compact    A compact type.
+     * @param  {string}        licenseeId The Licensee ID.
+     * @param  {object}        data       The user request data.
+     * @return {Promise<any>}             The server response.
+     */
+    public async updateMilitaryAudit(compact: string, licenseeId: string, data: object) {
+        const serverResponse = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/militaryAudit`, data);
+
+        return serverResponse;
+    }
+
+    /**
      * POST Encumber License for a licensee.
      * @param  {string}           compact         The compact string ID (aslp, octp, coun).
      * @param  {string}           licenseeId      The Licensee ID.

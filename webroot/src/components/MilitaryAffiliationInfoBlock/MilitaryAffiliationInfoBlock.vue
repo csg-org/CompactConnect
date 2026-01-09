@@ -18,7 +18,20 @@
             </div>
             <div class="chunk audit-status">
                 <div class="chunk-title">{{ $t('military.auditStatus') }}</div>
-                <div class="chunk-text emphasis">{{ auditStatus }}</div>
+                <div class="audit-status-value-container">
+                    <div
+                        v-if="isAuditStatusApproved || isAuditStatusDeclined || isAuditStatusPending"
+                        class="audit-status-icon-container"
+                    >
+                        <CheckIcon v-if="isAuditStatusApproved" class="icon approved" />
+                        <AlertIcon v-else-if="isAuditStatusDeclined" class="icon declined" />
+                        <ClockIcon v-if="isAuditStatusPending" class="icon pending" />
+                    </div>
+                    <div class="chunk-text emphasis">{{ auditStatusName }}</div>
+                </div>
+                <div v-if="isAuditStatusDeclined || isAuditStatusPending" class="audit-status-note">
+                    {{ auditStatusNote }}
+                </div>
                 <div v-if="isCompactAdmin" class="audit-button-container">
                     <InputButton
                         :label="$t('military.auditApprove')"
@@ -26,8 +39,8 @@
                         :isTransparent="true"
                         :shouldHideMargin="true"
                         class="audit-button approve"
-                        @keyup.enter="auditApprove"
-                        @click="auditApprove"
+                        @keyup.enter="toggleMilitaryAuditApproveModal"
+                        @click="toggleMilitaryAuditApproveModal"
                     />
                     <InputButton
                         :label="$t('military.auditDecline')"
@@ -35,8 +48,8 @@
                         :isTransparent="true"
                         :shouldHideMargin="true"
                         class="audit-button decline"
-                        @keyup.enter="auditDecline"
-                        @click="auditDecline"
+                        @keyup.enter="toggleMilitaryAuditDeclineModal"
+                        @click="toggleMilitaryAuditDeclineModal"
                     />
                 </div>
             </div>
@@ -99,42 +112,134 @@
                 @click="editInfo"
             />
         </div>
-        <Modal
-            v-if="shouldShowEndAffiliationModal"
-            modalId="end-affiliation-modal"
-            class="end-affiliation-modal"
-            :closeOnBackgroundClick="true"
-            :showActions="false"
-            :title="$t('military.endAffiliationModalTitle')"
-            @keydown.tab="focusTrap($event)"
-            @keyup.esc="closeEndAffiliationModal"
-            @close-modal="closeEndAffiliationModal"
-        >
-            <template v-slot:content>
-                <div class="end-affiliation-modal-content">
-                    {{ $t('military.endAffiliationModalContent') }}
-                    <form @submit.prevent="confirmEndMilitaryAffiliation">
-                        <div class="action-button-row">
-                            <InputButton
-                                id="no-back-button"
-                                ref="noBackButton"
-                                class="no-back-button"
-                                :label="$t('military.noGoBack')"
-                                :aria-label="$t('military.noGoBack')"
-                                :isTransparent="true"
-                                :onClick="closeEndAffiliationModal"
-                            />
-                            <InputSubmit
-                                class="yes-end-button"
-                                :formInput="formData.submitEnd"
-                                :label="yesEndText"
-                                :aria-label="yesEndText"
-                            />
-                        </div>
-                    </form>
-                </div>
-            </template>
-        </Modal>
+        <TransitionGroup>
+            <Modal
+                v-if="shouldShowMilitaryAuditApproveModal"
+                modalId="audit-approve-modal"
+                class="audit-modal audit-approve-modal"
+                :title="$t('military.auditApproveConfirmTitle')"
+                :showActions="false"
+                @keydown.tab="focusTrapAuditApprove($event)"
+                @keyup.esc="toggleMilitaryAuditApproveModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content audit-approve-modal-content">
+                        {{ $t('military.auditApproveConfirmDescription') }}
+                        <form class="audit-form" @submit.prevent="auditSubmit(auditStatusTypes.APPROVED)">
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="audit-approve-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="toggleMilitaryAuditApproveModal"
+                                    :isEnabled="!isFormLoading"
+                                />
+                                <InputSubmit
+                                    class="action-button submit-button"
+                                    :formInput="formData.submitEnd"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('military.auditApproveConfirmAction')"
+                                    :isEnabled="!isFormLoading"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                </template>
+            </Modal>
+            <Modal
+                v-if="shouldShowMilitaryAuditDeclineModal"
+                modalId="audit-decline-modal"
+                class="audit-modal audit-decline-modal"
+                :title="$t('military.auditDeclineConfirmTitle')"
+                :showActions="false"
+                @keydown.tab="focusTrapAuditDecline($event)"
+                @keyup.esc="toggleMilitaryAuditDeclineModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content audit-decline-modal-content">
+                        {{ $t('military.auditDeclineConfirmDescription') }}
+                        <form class="audit-form" @submit.prevent="auditSubmit(auditStatusTypes.DECLINED)">
+                            <div class="form-row">
+                                <InputTextarea
+                                    class="notes decline-notes"
+                                    :formInput="formData.auditDeclineNotes"
+                                    :shouldResizeY="true"
+                                />
+                            </div>
+                            <div
+                                v-if="modalErrorMessage"
+                                class="modal-error"
+                                aria-live="assertive"
+                                role="alert"
+                            >{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="audit-decline-cancel-button"
+                                    class="action-button cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="toggleMilitaryAuditDeclineModal"
+                                    :isEnabled="!isFormLoading"
+                                />
+                                <InputSubmit
+                                    class="action-button submit-button"
+                                    :formInput="formData.submitEnd"
+                                    :label="(isFormLoading)
+                                        ? $t('common.loading')
+                                        : $t('military.auditDeclineConfirmAction')"
+                                    :isWarning="true"
+                                    :isEnabled="!isFormLoading"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                </template>
+            </Modal>
+            <Modal
+                v-if="shouldShowEndAffiliationModal"
+                modalId="end-affiliation-modal"
+                class="end-affiliation-modal"
+                :closeOnBackgroundClick="true"
+                :showActions="false"
+                :title="$t('military.endAffiliationModalTitle')"
+                @keydown.tab="focusTrapEndAffiliation($event)"
+                @keyup.esc="closeEndAffiliationModal"
+                @close-modal="closeEndAffiliationModal"
+            >
+                <template v-slot:content>
+                    <div class="end-affiliation-modal-content">
+                        {{ $t('military.endAffiliationModalContent') }}
+                        <form @submit.prevent="confirmEndMilitaryAffiliation">
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="no-back-button"
+                                    ref="noBackButton"
+                                    class="no-back-button"
+                                    :label="$t('military.noGoBack')"
+                                    :aria-label="$t('military.noGoBack')"
+                                    :isTransparent="true"
+                                    :onClick="closeEndAffiliationModal"
+                                />
+                                <InputSubmit
+                                    class="yes-end-button"
+                                    :formInput="formData.submitEnd"
+                                    :label="yesEndText"
+                                    :aria-label="yesEndText"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                </template>
+            </Modal>
+        </TransitionGroup>
     </div>
 </template>
 

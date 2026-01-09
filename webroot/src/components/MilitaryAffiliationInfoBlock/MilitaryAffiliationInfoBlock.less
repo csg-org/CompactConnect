@@ -35,6 +35,10 @@
         flex-direction: column;
         padding: 1.4rem;
 
+        &.status {
+            min-width: 16rem;
+        }
+
         &.affiliation-type {
             @media @desktopWidth {
                 margin-left: 2rem;
@@ -42,12 +46,53 @@
         }
 
         &.audit-status {
+            .audit-status-value-container {
+                display: flex;
+                align-items: center;
+            }
+
+            .audit-status-icon-container {
+                width: 2.4rem;
+                height: 2.4rem;
+                margin-right: 0.2rem;
+
+                .icon {
+                    width: 100%;
+
+                    &.approved {
+                        fill: @lightGreen;
+                    }
+
+                    &.declined {
+                        height: 65%;
+                        padding-top: 0.4rem;
+                        stroke: @midRed;
+                    }
+
+                    &.pending {
+                        height: 80%;
+                        padding-top: 0.2rem;
+                        fill: @fontColor;
+                    }
+                }
+            }
+
+            .audit-status-note {
+                color: @lightTextGrey;
+                font-style: italic;
+            }
+
             .audit-button-container {
                 display: flex;
                 margin-top: 1rem;
 
                 .audit-button:not(:first-child) {
                     margin-left: 1rem;
+                }
+
+                &:deep(.input-button) {
+                    min-height: 3.2rem;
+                    padding: 0 1.2rem;
                 }
             }
         }
@@ -107,6 +152,117 @@
         .edit-info-button {
             margin-right: 1rem;
             margin-bottom: 1rem;
+        }
+    }
+
+    .audit-modal {
+        color: @fontColor;
+
+        :deep(.modal-container) {
+            width: 95%;
+            max-width: 62rem;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                padding: 4rem;
+            }
+
+            .modal-content {
+                .audit-form {
+                    margin-top: 1.8rem;
+
+                    .form-row {
+                        margin-bottom: 1.6rem;
+
+                        &.static-container {
+                            display: flex;
+                            flex-direction: column;
+
+                            @media @desktopWidth {
+                                flex-direction: row;
+                                margin-bottom: 0.2rem;
+                            }
+                        }
+                    }
+
+                    .notes {
+                        min-height: 12rem;
+                        border-color: @fontColor;
+                    }
+                }
+
+                .static-input {
+                    display: flex;
+                    flex-direction: column;
+                    width: 100%;
+
+                    &:not(:last-child) {
+                        margin-bottom: 1.2rem;
+                    }
+
+                    @media @desktopWidth {
+                        width: 50%;
+                    }
+
+                    .static-label {
+                        margin-bottom: 0.2rem;
+                        font-weight: @fontWeightBold;
+                        font-size: @fontSize;
+                    }
+
+                    .static-value {
+                        overflow: hidden;
+                        font-size: @fontSize;
+                        text-overflow: ellipsis;
+                    }
+                }
+
+                .info-block {
+                    margin-bottom: 2rem;
+                }
+
+                .form-field-error {
+                    font-size: @fontSize;
+                }
+
+                .modal-error {
+                    margin-top: 2.4rem;
+                    color: @midRed;
+                    text-align: right;
+                }
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: column;
+                    margin-top: 2rem;
+
+                    @media @desktopWidth {
+                        flex-direction: row;
+                        flex-wrap: wrap;
+                        justify-content: flex-end;
+                        margin-top: 4rem;
+                    }
+
+                    .action-button {
+                        margin-bottom: 1rem;
+
+                        @media @desktopWidth {
+                            &:not(:first-child) {
+                                margin-left: 2.4rem;
+                            }
+                        }
+
+                        .input-button,
+                        .input-submit {
+                            width: 100%;
+
+                            @media @desktopWidth {
+                                width: auto;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

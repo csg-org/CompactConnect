@@ -942,7 +942,15 @@
         "viewMilitaryStatus": "View military status",
         "auditStatus": "Audit status",
         "auditApprove": "Approve",
+        "auditApproveConfirmTitle": "Are you sure you want to approve this practitioner’s military status?",
+        "auditApproveConfirmDescription": "Approving confirms their submitted documentation and military-related benefits.",
+        "auditApproveConfirmAction": "Yes, approve status",
         "auditDecline": "Decline",
+        "auditDeclineConfirmTitle": "Are you sure you want to decline this practitioner’s military status?",
+        "auditDeclineConfirmDescription": "Declining will revoke the user’s military status and remove their discount eligibility.",
+        "auditDeclineConfirmNotesLabel": "Decline notes for practitioner",
+        "auditDeclineConfirmNotesPlaceholder": "Enter the decline reason",
+        "auditDeclineConfirmAction": "Yes, decline status",
         "militaryStatusOptions": [
             {
                 "key": "tentative",

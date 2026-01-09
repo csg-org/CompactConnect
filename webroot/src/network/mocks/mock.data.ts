@@ -458,7 +458,11 @@ export const licensees = {
                     dateOfUpload: '2024-08-29',
                     documentKeys: 'key',
                     fileNames: ['military-document.pdf'],
-                    status: 'active'
+                    downloadLinks: [{
+                        fileName: 'military-document.pdf',
+                        url: '/examples/military-document.pdf',
+                    }],
+                    status: 'active',
                 }
             ],
             militaryStatus: 'approved',
@@ -593,7 +597,11 @@ export const licensees = {
                     dateOfUpload: '2024-08-29',
                     documentKeys: 'key',
                     fileNames: ['military-document.pdf'],
-                    status: 'initializing'
+                    downloadLinks: [{
+                        fileName: 'military-document.pdf',
+                        url: '/examples/military-document.pdf',
+                    }],
+                    status: 'initializing',
                 }
             ],
             militaryStatus: 'declined',
