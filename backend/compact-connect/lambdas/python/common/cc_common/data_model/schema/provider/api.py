@@ -6,13 +6,14 @@ from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Neste
 from marshmallow.validate import Length, OneOf, Range, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.common import CCRequestSchema
+from cc_common.data_model.schema.common import CCRequestSchema, MilitaryStatus
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
     CurrentHomeJurisdictionField,
     Jurisdiction,
+    MilitaryStatusField,
     NationalProviderIdentifier,
     Set,
     SocialSecurityNumber,
@@ -127,6 +128,10 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
         Nested(MilitaryAffiliationReadPrivateResponseSchema(), required=False, allow_none=False)
     )
 
+    # Military audit status fields
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False, load_default=MilitaryStatus.NOT_APPLICABLE)
+    militaryStatusNote = String(required=False, allow_none=False, load_default='')
+
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=True, allow_none=False)
     ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
@@ -178,6 +183,9 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
+
+    # Military audit status field (note is only available in readPrivate response)
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False, load_default=MilitaryStatus.NOT_APPLICABLE)
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):

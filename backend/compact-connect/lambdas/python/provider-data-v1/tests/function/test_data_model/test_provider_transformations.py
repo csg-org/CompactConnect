@@ -134,7 +134,7 @@ class TestTransformations(TstFunction):
             affiliation_type=MilitaryAffiliationType.MILITARY_MEMBER,
             file_names=['military-waiver.pdf'],
             document_keys=[
-                f'/provider/{provider_id}/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf'
+                f'/provider/{provider_id}/document-type/military-affiliations/2024-07-08T23:59:59+00:00/1234#military-waiver.pdf'
             ],
         )
 

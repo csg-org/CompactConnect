@@ -373,6 +373,8 @@ class TestGetProvider(TstFunction):
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
             del expected_provider['licenses'][0]['ssnLastFour']
             del expected_provider['licenses'][0]['dateOfBirth']
+            # remove the military status note field, only viewable with read private scope
+            del expected_provider['militaryStatusNote']
 
         self._when_testing_get_provider_response_based_on_read_access(
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider
@@ -391,7 +393,7 @@ class TestGetProvider(TstFunction):
         # we can't assert on the whole url, since it changes with time
         # we can verify the path to the file matches expected values
         self.assertIn(
-            'https://provider-user-bucket.s3.amazonaws.com//provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08/1234%23military-waiver.pdf',
+            'https://provider-user-bucket.s3.amazonaws.com//provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08T23%3A59%3A59%2B00%3A00/1234%23military-waiver.pdf',
             provider_data['militaryAffiliations'][0]['downloadLinks'][0]['url'],
         )
 

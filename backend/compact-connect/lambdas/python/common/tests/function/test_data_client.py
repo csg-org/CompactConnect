@@ -96,24 +96,27 @@ class TestDataClient(TstFunction):
     def test_complete_military_affiliation_initialization_sets_expected_status(self):
         from cc_common.data_model.data_client import DataClient
 
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        provider_id = str(provider.providerId)
+
         # Here we are testing an edge case where there are two military affiliation records
         # both in an initializing state. This could happen in the event of a failed file upload.
         # We want to ensure that the most recent record is set to active and the older record is
         # set to inactive.
-        with open('tests/resources/dynamo/military-affiliation.json') as f:
-            military_affiliation_record = json.load(f)
-            military_affiliation_record['status'] = 'initializing'
-
-        military_affiliation_record['sk'] = 'aslp#PROVIDER#military-affiliation#2024-07-08'
-        military_affiliation_record['dateOfUpload'] = '2024-07-08T13:34:59+00:00'
-        self._provider_table.put_item(Item=military_affiliation_record)
+        self.test_data_generator.put_default_military_affiliation_in_provider_table(
+            {
+                'status': 'initializing',
+                'dateOfUpload': datetime.fromisoformat('2024-07-08T13:34:59+00:00'),
+            }
+        )
 
         # now add record on following day
-        military_affiliation_record['sk'] = 'aslp#PROVIDER#military-affiliation#2024-07-09'
-        military_affiliation_record['dateOfUpload'] = '2024-07-09T10:34:59+00:00'
-        self._provider_table.put_item(Item=military_affiliation_record)
-
-        provider_id = military_affiliation_record['providerId']
+        self.test_data_generator.put_default_military_affiliation_in_provider_table(
+            {
+                'status': 'initializing',
+                'dateOfUpload': datetime.fromisoformat('2024-07-09T10:34:59+00:00'),
+            }
+        )
 
         # assert that two records exist, both in an initializing state
         military_affiliation_record = self._get_military_affiliation_records(provider_id)

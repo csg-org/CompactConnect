@@ -99,6 +99,11 @@ class ProviderManagement:
             privilege_history_function=privilege_history_function,
         )
 
+        self._add_military_audit(
+            method_options=admin_method_options,
+            military_audit_handler=api_lambda_stack.provider_management_lambdas.military_audit_handler,
+        )
+
     def _add_get_provider(
         self,
         method_options: MethodOptions,
@@ -444,6 +449,31 @@ class ProviderManagement:
                 ),
             ],
             integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _add_military_audit(
+        self,
+        method_options: MethodOptions,
+        military_audit_handler: PythonFunction,
+    ):
+        """Add PATCH /providers/{providerId}/militaryAudit endpoint for compact admins to audit
+        military affiliation records."""
+        self.military_audit_resource = self.provider_resource.add_resource('militaryAudit')
+        self.military_audit_resource.add_method(
+            'PATCH',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.patch_military_audit_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(military_audit_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,

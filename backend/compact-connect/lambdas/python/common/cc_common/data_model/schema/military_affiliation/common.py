@@ -12,6 +12,13 @@ class MilitaryAffiliationType(CCEnum):
     MILITARY_MEMBER_SPOUSE = 'militaryMemberSpouse'
 
 
+class MilitaryAuditStatus(CCEnum):
+    """Status of military documentation audit by compact admins."""
+
+    APPROVED = 'approved'
+    DECLINED = 'declined'
+
+
 SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS = ('pdf', 'jpg', 'jpeg', 'png', 'docx')
 MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME = 'military-affiliations'
 

@@ -300,10 +300,10 @@ class TestPostPurchasePrivileges(TstFunction):
             resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
 
-    def _when_testing_military_affiliation_status(
+    def _when_testing_military_status(
         self,
         mock_purchase_client_constructor: MagicMock,
-        military_affiliation_status: str,
+        military_status: str,
         expected_military_parameter: bool,
     ):
         from handlers.privileges import post_purchase_privileges
@@ -312,8 +312,11 @@ class TestPostPurchasePrivileges(TstFunction):
             mock_purchase_client_constructor
         )
         event = self._when_testing_provider_user_event_with_custom_claims()
-        self._load_military_affiliation_record_data(status=military_affiliation_status)
-        attestations = generate_default_attestation_list(active_military=military_affiliation_status == 'active')
+        # Set militaryStatus on the provider record
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'militaryStatus': military_status, 'providerId': TEST_PROVIDER_ID}
+        )
+        attestations = generate_default_attestation_list(active_military=expected_military_parameter)
 
         event['body'] = _generate_test_request_body(attestations=attestations)
 
@@ -324,16 +327,40 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(expected_military_parameter, purchase_client_call_kwargs['user_active_military'])
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_calls_purchase_client_with_active_military_status(
+    def test_post_purchase_privileges_calls_purchase_client_with_tentative_military_status(
         self, mock_purchase_client_constructor
     ):
-        self._when_testing_military_affiliation_status(mock_purchase_client_constructor, 'active', True)
+        """Test that tentative military status is considered active military."""
+        from cc_common.data_model.schema.common import MilitaryStatus
+
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.TENTATIVE, True)
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_calls_purchase_client_with_inactive_military_status(
+    def test_post_purchase_privileges_calls_purchase_client_with_approved_military_status(
         self, mock_purchase_client_constructor
     ):
-        self._when_testing_military_affiliation_status(mock_purchase_client_constructor, 'inactive', False)
+        """Test that approved military status is considered active military."""
+        from cc_common.data_model.schema.common import MilitaryStatus
+
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.APPROVED, True)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_calls_purchase_client_with_declined_military_status(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that declined military status is not considered active military."""
+        from cc_common.data_model.schema.common import MilitaryStatus
+
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.DECLINED, False)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_calls_purchase_client_with_not_applicable_military_status(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that notApplicable military status is not considered active military."""
+        from cc_common.data_model.schema.common import MilitaryStatus
+
+        self._when_testing_military_status(mock_purchase_client_constructor, MilitaryStatus.NOT_APPLICABLE, False)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_raises_exception_when_military_affiliation_in_initializing_status(
@@ -948,14 +975,17 @@ class TestPostPurchasePrivileges(TstFunction):
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_validates_military_attestation(self, mock_purchase_client_constructor):
-        """Test that military attestation is required when user has active military affiliation."""
+        """Test that military attestation is required when user has active military status (tentative or approved)."""
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
-        self._load_military_affiliation_record_data(status='active')
 
         event = self._when_testing_provider_user_event_with_custom_claims()
         event['body'] = _generate_test_request_body()
+        # Set militaryStatus to 'approved' on the provider record
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'militaryStatus': 'approved', 'providerId': TEST_PROVIDER_ID}
+        )
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'], resp['body'])
