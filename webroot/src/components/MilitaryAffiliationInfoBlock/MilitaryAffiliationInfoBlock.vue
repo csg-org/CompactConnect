@@ -39,8 +39,8 @@
                         :isTransparent="true"
                         :shouldHideMargin="true"
                         class="audit-button approve"
-                        @keyup.enter="toggleMilitaryAuditApproveModal"
-                        @click="toggleMilitaryAuditApproveModal"
+                        @keyup.enter.prevent.stop="toggleMilitaryAuditApproveModal"
+                        @click.prevent="toggleMilitaryAuditApproveModal"
                     />
                     <InputButton
                         :label="$t('military.auditDecline')"
@@ -48,8 +48,8 @@
                         :isTransparent="true"
                         :shouldHideMargin="true"
                         class="audit-button decline"
-                        @keyup.enter="toggleMilitaryAuditDeclineModal"
-                        @click="toggleMilitaryAuditDeclineModal"
+                        @keyup.enter.prevent.stop="toggleMilitaryAuditDeclineModal"
+                        @click.prevent="toggleMilitaryAuditDeclineModal"
                     />
                 </div>
             </div>

@@ -249,6 +249,8 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
 
     toggleMilitaryAuditApproveModal(): void {
         this.shouldShowMilitaryAuditApproveModal = !this.shouldShowMilitaryAuditApproveModal;
+        this.isFormError = false;
+        this.modalErrorMessage = '';
         this.initFormInputs();
     }
 
@@ -271,6 +273,8 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
 
     toggleMilitaryAuditDeclineModal(): void {
         this.shouldShowMilitaryAuditDeclineModal = !this.shouldShowMilitaryAuditDeclineModal;
+        this.isFormError = false;
+        this.modalErrorMessage = '';
         this.initFormInputs();
     }
 
@@ -321,6 +325,8 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
                 await this.$store.dispatch('license/getLicenseeRequest', {
                     compact: currentCompactType,
                     licenseeId
+                }).catch(() => {
+                    // Continue
                 });
                 this.shouldShowMilitaryAuditApproveModal = false;
                 this.shouldShowMilitaryAuditDeclineModal = false;
@@ -344,6 +350,8 @@ class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
 
     startEndAffiliationFlow(): void {
         this.shouldShowEndAffiliationModal = true;
+        this.isFormError = false;
+        this.modalErrorMessage = '';
         this.initFormInputs();
     }
 

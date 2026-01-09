@@ -260,7 +260,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @return {Promise<any>}             The server response.
      */
     public async updateMilitaryAudit(compact: string, licenseeId: string, data: object) {
-        const serverResponse = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/militaryAudit`, data);
+        const serverResponse = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/militaryAudit`, data);
 
         return serverResponse;
     }
