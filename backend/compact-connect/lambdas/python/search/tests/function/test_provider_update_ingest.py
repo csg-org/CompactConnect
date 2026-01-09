@@ -789,3 +789,60 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify NO batch item failures - 404 is not treated as an error
         self.assertEqual({'batchItemFailures': []}, result)
+
+    def _create_privilege_count_stream_record(self) -> dict:
+        """Create a DynamoDB stream record for privilege count record which tracks numbers to issue."""
+
+        return {
+            'eventID': '6827962b93fa0431321996a5cb9d245c',
+            'eventName': 'MODIFY',
+            'eventVersion': '1.1',
+            'eventSource': 'aws:dynamodb',
+            'awsRegion': 'us-east-1',
+            'dynamodb': {
+                'ApproximateCreationDateTime': 1767934990,
+                'Keys': {'sk': {'S': 'coun#PRIVILEGE_COUNT'}, 'pk': {'S': 'coun#PRIVILEGE_COUNT'}},
+                'NewImage': {
+                    'privilegeCount': {'N': '322'},
+                    'sk': {'S': 'coun#PRIVILEGE_COUNT'},
+                    'pk': {'S': 'coun#PRIVILEGE_COUNT'},
+                },
+                'OldImage': {
+                    'privilegeCount': {'N': '321'},
+                    'sk': {'S': 'coun#PRIVILEGE_COUNT'},
+                    'pk': {'S': 'coun#PRIVILEGE_COUNT'},
+                },
+                'SequenceNumber': '1275112700001832307719225248',
+                'SizeBytes': 166,
+                'StreamViewType': 'NEW_AND_OLD_IMAGES',
+            },
+            'eventSourceARN': 'some-source-arn',
+        }
+
+    @patch('handlers.provider_update_ingest.opensearch_client')
+    def test_privilege_count_record_skipped_without_batch_item_failure(self, mock_opensearch_client):
+        from handlers.provider_update_ingest import provider_update_ingest_handler
+
+        # Set up mock OpenSearch client
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        # Create an SQS event with a privilege count DynamoDB stream record
+        event = {
+            'Records': [
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(self._create_privilege_count_stream_record()),
+                }
+            ]
+        }
+
+        # Run the handler
+        mock_context = MagicMock()
+        result = provider_update_ingest_handler(event, mock_context)
+
+        # Verify that OpenSearch was never called (no provider to index)
+        mock_opensearch_client.bulk_index.assert_not_called()
+        mock_opensearch_client.bulk_delete.assert_not_called()
+
+        # Verify no batch item failures (privilege count records are skipped, not failed)
+        self.assertEqual({'batchItemFailures': []}, result)

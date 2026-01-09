@@ -50,6 +50,8 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
     # Track which message IDs correspond to which compact/provider for failure reporting
     record_mapping: dict[str, tuple[str, str]] = {}  # message_id -> (compact, provider_id)
 
+    batch_item_failures = []
+
     # Extract compact and providerId from each record
     for record in records:
         message_id = record['messageId']
@@ -60,22 +62,31 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
         image = stream_record.get('dynamodb', {}).get('NewImage') or stream_record.get('dynamodb', {}).get('OldImage')
 
         if not image:
-            logger.error('Record has no image data', message_id=message_id)
+            logger.warning('Record has no image data', message_id=message_id)
+            batch_item_failures.append({'itemIdentifier': message_id})
             continue
 
         # Extract compact and providerId from the DynamoDB image
         # The format is {'S': 'value'} for string attributes
         deserialized_image = TypeDeserializer().deserialize(value={'M': image})
+
+        # Check if this is a privilege counter record (used to track the next privilege number)
+        pk = deserialized_image.get('pk', '')
+        if pk and 'PRIVILEGE_COUNT' in pk:
+            logger.info('Skipping privilege count record', message_id=message_id, pk=pk)
+            continue
+
         compact = deserialized_image.get('compact')
         provider_id = deserialized_image.get('providerId')
         record_type = deserialized_image.get('type')
 
         if not compact or not provider_id:
-            logger.error(
+            logger.warning(
                 'Record missing required fields',
                 record_type=record_type,
                 message_id=message_id,
             )
+            batch_item_failures.append({'itemIdentifier': message_id})
             continue
 
         # Add to the appropriate compact's set to dedup provider ids
@@ -86,7 +97,6 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
             logger.warning('Unknown compact in record', compact=compact, provider_id=provider_id)
 
     # Process providers and bulk index by compact
-    batch_item_failures = []
     failed_providers: dict[str, set] = {compact: set() for compact in config.compacts}
 
     for compact, provider_ids in providers_by_compact.items():
