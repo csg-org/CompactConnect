@@ -76,6 +76,14 @@
             - Prod: `https://api.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.jcc.iaapi.io`
+    - **`VUE_APP_API_SEARCH_ROOT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://search.test.jcc.iaapi.io`
+            - CSG Test: `https://search.test.compactconnect.org`
+            - Beta: `https://search.beta.compactconnect.org`
+            - Prod: `https://search.compactconnect.org`
+        - _Local_ :arrow_heading_down:
+            - `https://search.test.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
             - IA Test: `us-east-1`
@@ -132,6 +140,14 @@
             - Prod: TODO
         - _Local_ :arrow_heading_down:
             - TODO
+    - **`VUE_APP_STATSIG_DISABLED`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `false`
+            - CSG Test: `false`
+            - Beta: `false`
+            - Prod: `false`
+        - _Local_ :arrow_heading_down:
+            - `true` or `false` as needed
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used

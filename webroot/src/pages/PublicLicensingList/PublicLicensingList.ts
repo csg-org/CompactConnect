@@ -7,7 +7,7 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import Section from '@components/Section/Section.vue';
-import LicenseeList from '@components/Licensee/LicenseeList/LicenseeList.vue';
+import LicenseeList from '@components/Licensee/LicenseeListLegacy/LicenseeListLegacy.vue';
 
 @Component({
     name: 'LicensingListPublic',

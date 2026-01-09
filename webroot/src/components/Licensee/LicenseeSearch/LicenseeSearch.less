@@ -2,10 +2,13 @@
 //  LicenseeSearch.less
 //  CompactConnect
 //
-//  Created by InspiringApps on 9/12/2024.
+//  Created by InspiringApps on 12/1/2025.
 //
 
 .licensee-search-container {
+    @inputWidth: 56%;
+    @inputSeparatorWidth: 4%;
+
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -49,16 +52,42 @@
         @media @tabletWidth {
             flex-direction: row;
         }
+
+        &.date-range {
+            flex-direction: column;
+            align-items: center;
+
+            @media @desktopWidth {
+                flex-direction: row;
+            }
+
+            .date-range-separator {
+                display: none;
+                width: @inputSeparatorWidth;
+                text-align: center;
+
+                @media @desktopWidth {
+                    display: block;
+                }
+            }
+        }
     }
 
     .search-input {
         width: 100%;
 
         @media @tabletWidth {
-            width: 48%;
+            width: @inputWidth;
         }
 
-        &.search-submit {
+        @media @desktopWidth {
+            &.date-range-input {
+                width: ~"calc((@{inputWidth} / 2) - (@{inputSeparatorWidth}) / 2)";
+            }
+        }
+
+        &.search-submit,
+        &.export-submit {
             align-items: center;
 
             &:deep(.input-submit) {
@@ -67,7 +96,35 @@
         }
     }
 
+    .search-type-input {
+        @media @desktopWidth {
+            flex-direction: row;
+
+            &:deep(.radio-button-group-container) {
+                flex-direction: row;
+                margin-left: auto;
+            }
+        }
+    }
+
+    .date-section-label {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 0.6rem;
+        color: @fontColor;
+        font-weight: @fontWeightBold;
+        font-size: 1.6rem;
+    }
+
     .search-submit {
         margin-top: 2.4rem;
+    }
+
+    .clear-form {
+        display: inline-block;
+        margin-bottom: 1.2rem;
+        font-style: italic;
+        cursor: pointer;
     }
 }

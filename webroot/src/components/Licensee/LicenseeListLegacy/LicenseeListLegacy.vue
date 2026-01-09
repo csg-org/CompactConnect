@@ -1,8 +1,8 @@
 <!--
-    LicenseeList.vue
+    LicenseeListLegacy.vue
     CompactConnect
 
-    Created by InspiringApps on 12/1/2025.
+    Created by InspiringApps on 7/1/2024.
 -->
 
 <template>
@@ -13,11 +13,10 @@
                 <LicenseeSearch
                     :searchParams="searchParams"
                     :isPublicSearch="isPublicSearch"
-                    :errorOverride="searchErrorOverride"
                     @searchParams="handleSearch"
                 />
             </div>
-            <div v-else class="licesee-list-container">
+            <div v-else class="licensee-list-container">
                 <div class="list-actions-container">
                     <h1 class="list-title no-margin">{{ $t('licensing.licensingListTitle') }}</h1>
                     <div class="search-toggle-container">
@@ -50,7 +49,8 @@
                     :excludeTopPagination="true"
                     :excludeBottomPagination="false"
                     :isServerPaging="true"
-                    :isLegacyPaging="false"
+                    :pagingPrevKey="$store.state.license.prevLastKey"
+                    :pagingNextKey="$store.state.license.lastKey"
                     :isLoading="$store.state.license.isLoading"
                     :loadingError="$store.state.license.error"
                 >
@@ -78,5 +78,5 @@
     </div>
 </template>
 
-<script lang="ts" src="./LicenseeList.ts"></script>
-<style scoped lang="less" src="./LicenseeList.less"></style>
+<script lang="ts" src="./LicenseeListLegacy.ts"></script>
+<style scoped lang="less" src="./LicenseeListLegacy.less"></style>

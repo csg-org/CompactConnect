@@ -24,6 +24,8 @@
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
         "downloadFile": "Descargar",
+        "exportCsv": "Exportar CSV",
+        "exportInProgress": "Exportando...",
         "change": "Cambiar",
         "add": "Agregar",
         "remove": "Eliminar",
@@ -77,7 +79,11 @@
         "gender": "Género",
         "race": "Raza",
         "ethnicity": "Origen étnico",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha de finalización",
         "finish": "Termina",
+        "all": "Todo",
+        "any": "Cualquier",
         "cannotBeUndone": "Esta acción no se puede deshacer.",
         "daysOfTheWeek": {
             "monday": {
@@ -448,7 +454,8 @@
         "dobMaxDate": "La fecha de nacimiento debe ser anterior o igual al día de hoy.",
         "dobMinDate": "La fecha de nacimiento debe ser posterior o igual al 01/01/1900.",
         "rateLimit": "Has superado el número máximo de intentos. Vuelve a intentarlo más tarde.",
-        "compactStatesLive": "Se produjo un error al obtener los estados activos compactos"
+        "compactStatesLive": "Se produjo un error al obtener los estados activos compactos",
+        "searchErrorGeneral": "Se produjo un error al buscar los registros. Inténtalo de nuevo."
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Verifique su número de teléfono siguiendo las indicaciones a continuación.",
@@ -558,6 +565,7 @@
         "accountEmail": "Correo electrónico de la cuenta",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchStateDisabled": "Por favor, primero seleccione un tipo de profesión",
+        "searchTypeTitle": "Buscar",
         "searchLabel": "Editar búsqueda",
         "searchPlaceholderName": "Introducir nombre",
         "homeState": "Estado de origen",
@@ -565,7 +573,9 @@
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
         "privilege": "Privilegio",
+        "privilegeState": "Estado privilegiado",
         "privilegeSummary": "Resumen de privilegios",
+        "privilegePurchased": "Privilegio adquirido",
         "recentPrivilegesTitle": "Privilegios recientes",
         "pastPrivilegesTitle": "Privilegios pasados",
         "licenseDetails": "Detalles de la licencia",
@@ -592,6 +602,7 @@
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
+        "purchaseDate": "Fecha de compra",
         "activeFrom": "Activo desde",
         "expirationDate": "Fecha de caducidad",
         "expiration": "Vencimiento",
@@ -599,11 +610,15 @@
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseNumber": "Número de licencia",
+        "npi": "NPI",
+        "searchPlaceholderNpi": "Introducir NPI",
         "licenseExpirationDate": "Fecha de vencimiento de la licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
         "generateVerification": "Generar documento de verificación",
         "generateVerificationSubtext": "Vista para imprimir",
         "obtainPrivileges": "Obtener privilegios",
+        "provider": "Proveedor",
+        "providers": "Proveedores",
         "expired": "Caducada",
         "issued": "Emitida",
         "expires": "Caduca",
@@ -626,6 +641,16 @@
         "investigations": "Investigaciones",
         "underInvestigation": "Actualmente estoy bajo investigación",
         "notUnderInvestigation": "NO estoy bajo investigación",
+        "investigationStatusOptions": [
+            {
+                "key": "underInvestigation",
+                "name": "Bajo investigación"
+            },
+            {
+                "key": "notUnderInvestigation",
+                "name": "No bajo investigación"
+            }
+        ],
         "discipline": "Disciplina",
         "provisionOfInformation": "Suministro de información veraz",
         "militaryAffiliation": "Afiliación militar",
@@ -698,6 +723,7 @@
         "confirmPrivilegeInvestigationEndSubmitWithEncumber": "Agregar gravamen",
         "confirmPrivilegeInvestigationEndSuccess": "Esta investigación ha concluido y no se ha añadido ningún gravamen.",
         "underInvestigationStatus": "Investigación",
+        "underInvestigationStatusSearch": "Estado de la investigación",
         "underInvestigationAlertLocation": "Este practicante está bajo investigación en {locations}.",
         "underInvestigationAlertMultipleLocations": "múltiples estados",
         "underInvestigationAlertStatus": "Los privilegios aún se pueden utilizar mientras se está bajo investigación.",
@@ -897,6 +923,24 @@
     "military": {
         "militaryStatusTitle": "Estado militar",
         "updateMilitaryStatusTitle": "Actualizar el estado militar",
+        "militaryStatusOptions": [
+            {
+                "key": "pending",
+                "name": "Pendiente"
+            },
+            {
+                "key": "approved",
+                "name": "Aprobado"
+            },
+            {
+                "key": "denied",
+                "name": "Denegado"
+            },
+            {
+                "key": "notApplicable",
+                "name": "No aplicable"
+            }
+        ],
         "militaryDiscountText": "Descuento Militar",
         "viewMilitaryStatus": "Ver estado militar",
         "affiliationType": "Tipo de afiliación",

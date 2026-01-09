@@ -1,8 +1,8 @@
 //
 //  Pagination.less
-//  InspiringApps modules
+//  CompactConnect
 //
-//  Created by InspiringApps on 5/21/2020.
+//  Created by InspiringApps on 12/1/2025.
 //
 
 .pagination-container {
@@ -26,42 +26,33 @@
             justify-content: center;
             width: 3.2rem;
             height: 3.2rem;
-            border-radius: 4px;
-            color: @black;
-
-            &:not(:last-child) {
-                margin-right: 0.4rem;
-            }
-        }
-
-        .selected {
-            border-color: @primaryColor;
-            color: @white;
-            background-color: @primaryColor;
-        }
-
-        .clickable {
-            cursor: pointer;
+            color: @primaryColor;
+            font-weight: @fontWeightBold;
 
             &:not(.caret) {
-                border: 1px solid @lightGrey;
-                border-radius: 4px;
-            }
-        }
-
-        .caret {
-            &.previous {
-                width: 3.2rem;
+                margin: 0 0.2rem;
+                border: 0.1rem solid @primaryColor;
+                border-radius: @borderRadiusSmall;
             }
 
-            &.next {
-                width: 3.2rem;
+            &.clickable {
+                cursor: pointer;
             }
 
-            svg {
-                width: 1.2rem;
-                height: 1.2rem;
-                fill: @primaryColor;
+            &.selected {
+                color: @white;
+                background-color: @primaryColor;
+            }
+
+            &.caret {
+                svg {
+                    width: 1.4rem;
+                    height: 1.4rem;
+                }
+
+                &.clickable svg {
+                    fill: @primaryColor;
+                }
             }
         }
     }

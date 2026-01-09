@@ -12,6 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import MixinListManipulation from '@/components/Lists/_mixins/ListManipulation.mixin';
+import PaginationLegacy from '@components/Lists/PaginationLegacy/PaginationLegacy.vue';
 import Pagination from '@components/Lists/Pagination/Pagination.vue';
 import Sorting from '@components/Lists/Sorting/Sorting.vue';
 import CompactToggle from '@components/Lists/CompactToggle/CompactToggle.vue';
@@ -19,6 +20,7 @@ import CompactToggle from '@components/Lists/CompactToggle/CompactToggle.vue';
 @Component({
     name: 'ListContainer',
     components: {
+        PaginationLegacy,
         Pagination,
         Sorting,
         CompactToggle,
@@ -26,6 +28,7 @@ import CompactToggle from '@components/Lists/CompactToggle/CompactToggle.vue';
 })
 class ListContainer extends mixins(MixinListManipulation) {
     @Prop({ required: true }) protected listData!: Array<any>; // Extending class should more specifically type
+    @Prop({ default: true }) private isLegacyPaging?: boolean;
     @Prop({ required: true }) private pageChange!: (firstIndex: number, lastIndexExclusive: number) => any;
     @Prop({ required: true }) private sortChange!: (newSortOption: string, ascending: boolean) => any;
     @Prop({ default: 0 }) private listSize?: number;

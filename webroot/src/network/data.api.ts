@@ -7,6 +7,7 @@
 
 import { stateDataApi } from '@network/stateApi/data.api';
 import { licenseDataApi } from '@network/licenseApi/data.api';
+import { searchDataApi } from '@network/searchApi/data.api';
 import { userDataApi } from '@network/userApi/data.api';
 import { exampleDataApi } from '@network/exampleApi/data.api';
 import { PaymentProcessorConfig, CompactConfig, CompactStateConfig } from '@models/Compact/Compact.model';
@@ -19,6 +20,7 @@ export class DataApi {
     public initInterceptors(router) {
         stateDataApi.initInterceptors(router);
         licenseDataApi.initInterceptors(router);
+        searchDataApi.initInterceptors(router);
         userDataApi.initInterceptors(router);
         exampleDataApi.initInterceptors(router);
     }
@@ -425,6 +427,27 @@ export class DataApi {
             jurisdiction,
             licenseTypeAbbrev
         );
+    }
+
+    // ========================================================================
+    //                              SEARCH API
+    // ========================================================================
+    /**
+     * GET Licensees (Search - Staff).
+     * @param  {object}         [params] The request query parameters config.
+     * @return {Promise<Array>}          An array of users server response.
+     */
+    public getLicenseesSearchStaff(params) {
+        return searchDataApi.getLicenseesSearchStaff(params);
+    }
+
+    /**
+     * GET Privileges (Export - Staff).
+     * @param  {object}         [params] The request query parameters config.
+     * @return {Promise<Array>}          An array of users server response.
+     */
+    public getPrivilegesExportStaff(params) {
+        return searchDataApi.getPrivilegesExportStaff(params);
     }
 
     // ========================================================================

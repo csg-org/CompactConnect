@@ -36,6 +36,19 @@ export default {
             dispatch('getLicenseesFailure', error);
         });
     },
+    getLicenseesSearchRequest: async ({ commit, dispatch }, { params }: any) => {
+        commit(MutationTypes.GET_LICENSEES_REQUEST);
+
+        const apiRequest = dataApi.getLicenseesSearchStaff;
+
+        await apiRequest(params).then(async ({ totalMatchCount, licensees }) => {
+            await dispatch('setStoreLicenseeCount', totalMatchCount);
+            await dispatch('setStoreLicensees', licensees);
+            dispatch('getLicenseesSuccess', licensees);
+        }).catch((error) => {
+            dispatch('getLicenseesFailure', error);
+        });
+    },
     getLicenseesSuccess: ({ commit }) => {
         commit(MutationTypes.GET_LICENSEES_SUCCESS);
     },
@@ -83,6 +96,9 @@ export default {
     setStoreSearch: ({ commit }, search) => {
         commit(MutationTypes.STORE_UPDATE_SEARCH, search);
     },
+    setStoreExporting: ({ commit }, isExporting) => {
+        commit(MutationTypes.STORE_UPDATE_EXPORTING, isExporting);
+    },
     resetStoreSearch: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_SEARCH);
     },
@@ -113,11 +129,31 @@ export default {
             dispatch('getPrivilegeHistoryFailure', error);
         });
     },
-    // GET PRIVILEGE HISTORY SUCCESS / FAIL HANDLERS
     getPrivilegeHistorySuccess: ({ commit }, history) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history });
     },
     getPrivilegeHistoryFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_HISTORY_FAILURE, error);
+    },
+    // GET PRIVILEGES
+    getPrivilegesRequest: async ({ commit, dispatch }, { params }: any) => {
+        commit(MutationTypes.GET_PRIVILEGES_REQUEST);
+
+        return dataApi.getPrivilegesExportStaff(params).then((response) => {
+            dispatch('getPrivilegesSuccess');
+
+            // Just returning the response since, for now, the only option is being returned a file download URI.
+            return response;
+        }).catch((error) => {
+            dispatch('getPrivilegesFailure', error);
+
+            throw error;
+        });
+    },
+    getPrivilegesSuccess: ({ commit }) => {
+        commit(MutationTypes.GET_PRIVILEGES_SUCCESS);
+    },
+    getPrivilegesFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_PRIVILEGES_FAILURE, error);
     },
 };

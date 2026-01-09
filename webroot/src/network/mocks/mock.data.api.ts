@@ -546,6 +546,33 @@ export class DataApi {
     }
 
     // ========================================================================
+    //                              SEARCH API
+    // ========================================================================
+    // Get Licensees (Search - Staff)
+    public getLicenseesSearchStaff(params: any = {}) {
+        const pages = 10;
+        const records = licensees.providers
+            .concat(licensees.providers)
+            .concat(licensees.providers)
+            .concat(licensees.providers)
+            .concat(licensees.providers);
+
+        return wait(500).then(() => ({
+            totalMatchCount: records.length * pages,
+            licensees: records.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            params,
+        }));
+    }
+
+    // Get Privileges (Export - Staff)
+    public getPrivilegesExportStaff(params: any = {}) {
+        return wait(1000).then(() => ({
+            fileUrl: 'https://www.examplefile.com/file-download/519',
+            params,
+        }));
+    }
+
+    // ========================================================================
     //                              STAFF USER API
     // ========================================================================
     // Get Users

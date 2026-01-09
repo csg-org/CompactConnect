@@ -21,13 +21,21 @@
                 :sortChange="sortChange"
                 :sortingId="listId"
             />
-            <Pagination
+            <PaginationLegacy
                 ariaLabel="Top Pagination"
-                v-if="hasRecords && !excludeTopPagination"
+                v-if="isLegacyPaging && hasRecords && !excludeTopPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
                 :pagingPrevKey="pagingPrevKey"
                 :pagingNextKey="pagingNextKey"
+                :pageChange="pageChange"
+                :pageSizeConfig="pageSizeConfig"
+            ></PaginationLegacy>
+            <Pagination
+                ariaLabel="Top Pagination"
+                v-else-if="!isLegacyPaging && hasRecords && !excludeTopPagination"
+                :paginationId="listId"
+                :listSize="listTotalSize"
                 :pageChange="pageChange"
                 :pageSizeConfig="pageSizeConfig"
             ></Pagination>
@@ -52,14 +60,23 @@
             <div v-else class="no-records" role="row" tabindex="0"><span role="cell">{{ emptyMessage }}</span></div>
         </div>
         <div class="filter-bar">
-            <Pagination
+            <PaginationLegacy
                 ariaLabel="Bottom Pagination"
                 class="bottom-pagination"
-                v-if="hasRecords && !excludeBottomPagination"
+                v-if="isLegacyPaging && hasRecords && !excludeBottomPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
                 :pagingPrevKey="pagingPrevKey"
                 :pagingNextKey="pagingNextKey"
+                :pageChange="pageChange"
+                :pageSizeConfig="pageSizeConfig"
+            ></PaginationLegacy>
+            <Pagination
+                ariaLabel="Bottom Pagination"
+                class="bottom-pagination"
+                v-else-if="!isLegacyPaging && hasRecords && !excludeBottomPagination"
+                :paginationId="listId"
+                :listSize="listTotalSize"
                 :pageChange="pageChange"
                 :pageSizeConfig="pageSizeConfig"
             ></Pagination>

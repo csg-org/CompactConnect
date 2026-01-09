@@ -24,6 +24,8 @@
         "replaceFile": "Replace file",
         "replaceFiles": "Replace files",
         "downloadFile": "Download",
+        "exportCsv": "Export CSV",
+        "exportInProgress": "Exporting...",
         "change": "Change",
         "add": "Add",
         "remove": "Remove",
@@ -76,8 +78,12 @@
         "gender": "Gender",
         "race": "Race",
         "ethnicity": "Ethnicity",
+        "startDate": "Start date",
+        "endDate": "End date",
         "welcome": "Welcome",
         "finish": "Finish",
+        "all": "All",
+        "any": "Any",
         "cannotBeUndone": "This action cannot be undone.",
         "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
@@ -464,7 +470,8 @@
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
         "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900.",
         "rateLimit": "You have exceeded the maximum number of attempts. Please try again later.",
-        "compactStatesLive": "There was an error fetching the compact live states"
+        "compactStatesLive": "There was an error fetching the compact live states",
+        "searchErrorGeneral": "There was an error searching for the records. Please try again."
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Please verify your phone number by following the prompts below.",
@@ -575,19 +582,26 @@
         "searchTitlePublic": "Verify a compact privilege",
         "searchSubtext": "Enter at least one field to search for licensing data.",
         "searchStateDisabled": "Please first select a profession type",
+        "searchTypeTitle": "Search for",
         "licenseExpiredMessage": "Your license has expired.",
         "searchLabel": "Edit search",
         "searchPlaceholderName": "Enter name",
-        "homeState": "Home State",
+        "homeState": "Home state",
         "stateOfHomeLicense": "State of home license",
         "licenseNumber": "License number",
+        "npi": "NPI",
+        "searchPlaceholderNpi": "Enter NPI",
         "licenseExpirationDate": "License expiration date",
         "residenceLocation": "Residence location",
         "generateVerification": "Generate verification doc",
         "generateVerificationSubtext": "Printer-friendly view",
+        "provider": "Provider",
+        "providers": "Providers",
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "privilege": "Privilege",
+        "privilegeState": "Privilege state",
+        "privilegePurchased": "Privilege purchased",
         "privilegeSummary": "Privilege summary",
         "recentPrivilegesTitle": "Recent privileges",
         "birthMonthDay": "Birth month-day",
@@ -618,6 +632,7 @@
         "status": "Status",
         "expired": "Expired",
         "issueDate": "Issue Date",
+        "purchaseDate": "Purchase date",
         "activeFrom": "Active from",
         "state": "State",
         "issued": "Issued",
@@ -640,6 +655,16 @@
         "investigations": "Investigations",
         "underInvestigation": "I AM currently under investigation",
         "notUnderInvestigation": "I am NOT under investigation",
+        "investigationStatusOptions": [
+            {
+                "key": "underInvestigation",
+                "name": "Under investigation"
+            },
+            {
+                "key": "notUnderInvestigation",
+                "name": "Not under investigation"
+            }
+        ],
         "discipline": "Discipline",
         "provisionOfInformation": "Provision of true information",
         "militaryAffiliation": "Military affiliation",
@@ -714,6 +739,7 @@
         "confirmPrivilegeInvestigationEndSubmitWithEncumber": "Add encumbrance",
         "confirmPrivilegeInvestigationEndSuccess": "This investigation has ended and no encumbrance was added.",
         "underInvestigationStatus": "Investigation",
+        "underInvestigationStatusSearch": "Investigation status",
         "underInvestigationAlertLocation": "This practitioner is under investigation in {locations}.",
         "underInvestigationAlertMultipleLocations": "multiple states",
         "underInvestigationAlertStatus": "Privileges can still be used while under investigation.",
@@ -914,6 +940,24 @@
         "militaryStatusTitle": "Military status",
         "updateMilitaryStatusTitle": "Update military status",
         "viewMilitaryStatus": "View military status",
+        "militaryStatusOptions": [
+            {
+                "key": "pending",
+                "name": "Pending"
+            },
+            {
+                "key": "approved",
+                "name": "Approved"
+            },
+            {
+                "key": "denied",
+                "name": "Denied"
+            },
+            {
+                "key": "notApplicable",
+                "name": "Not applicable"
+            }
+        ],
         "militaryDiscountText": "Military Discount",
         "affiliationType": "Affiliation Type",
         "uploadedDocuments": "Military Affiliation Documents",

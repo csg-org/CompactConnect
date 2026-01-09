@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import Sorting from '@components/Lists/Sorting/Sorting.vue';
-import Pagination from '@components/Lists/Pagination/Pagination.vue';
+import PaginationLegacy from '@components/Lists/PaginationLegacy/PaginationLegacy.vue';
 
 describe('ListContainer component', async () => {
     it('should mount the component', async () => {
@@ -41,7 +41,7 @@ describe('ListContainer component', async () => {
 
         expect(wrapper.find('.no-records').exists(), 'no records').to.equal(true);
         expect(wrapper.findAllComponents(Sorting).length, 'sorting elements').to.equal(0);
-        expect(wrapper.findAllComponents(Pagination).length, 'pagination elements').to.equal(0);
+        expect(wrapper.findAllComponents(PaginationLegacy).length, 'pagination elements').to.equal(0);
     });
     it('should have expected default UI with records', async () => {
         const wrapper = await mountShallow(ListContainer, {
@@ -57,7 +57,7 @@ describe('ListContainer component', async () => {
 
         expect(wrapper.find('.no-records').exists(), 'no records').to.equal(false);
         expect(wrapper.findAllComponents(Sorting).length, 'sorting elements').to.equal(0);
-        expect(wrapper.findAllComponents(Pagination).length, 'pagination elements').to.equal(2);
+        expect(wrapper.findAllComponents(PaginationLegacy).length, 'pagination elements').to.equal(2);
     });
     it('should exclude top pagination', async () => {
         const wrapper = await mountShallow(ListContainer, {
@@ -72,7 +72,7 @@ describe('ListContainer component', async () => {
             },
         });
 
-        expect(wrapper.findAllComponents(Pagination).length).to.equal(1);
+        expect(wrapper.findAllComponents(PaginationLegacy).length).to.equal(1);
     });
     it('should exclude bottom pagination', async () => {
         const wrapper = await mountShallow(ListContainer, {
@@ -87,7 +87,7 @@ describe('ListContainer component', async () => {
             },
         });
 
-        expect(wrapper.findAllComponents(Pagination).length).to.equal(1);
+        expect(wrapper.findAllComponents(PaginationLegacy).length).to.equal(1);
     });
     it('should exclude all pagination', async () => {
         const wrapper = await mountShallow(ListContainer, {
@@ -103,7 +103,7 @@ describe('ListContainer component', async () => {
             },
         });
 
-        expect(wrapper.findAllComponents(Pagination).length).to.equal(0);
+        expect(wrapper.findAllComponents(PaginationLegacy).length).to.equal(0);
     });
     it('should exclude sorting', async () => {
         const wrapper = await mountShallow(ListContainer, {

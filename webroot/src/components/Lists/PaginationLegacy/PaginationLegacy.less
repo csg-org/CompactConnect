@@ -1,0 +1,74 @@
+//
+//  PaginationLegacy.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 5/21/2020.
+//
+
+.pagination-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: auto;
+
+    &.bottom-pagination {
+        margin-top: 1.6rem;
+    }
+
+    .pagination-list {
+        display: flex;
+        margin-bottom: 1.0rem;
+
+        .pagination-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3.2rem;
+            height: 3.2rem;
+            border-radius: 4px;
+            color: @black;
+
+            &:not(:last-child) {
+                margin-right: 0.4rem;
+            }
+        }
+
+        .selected {
+            border-color: @primaryColor;
+            color: @white;
+            background-color: @primaryColor;
+        }
+
+        .clickable {
+            cursor: pointer;
+
+            &:not(.caret) {
+                border: 1px solid @lightGrey;
+                border-radius: 4px;
+            }
+        }
+
+        .caret {
+            &.previous {
+                width: 3.2rem;
+            }
+
+            &.next {
+                width: 3.2rem;
+            }
+
+            svg {
+                width: 1.2rem;
+                height: 1.2rem;
+                fill: @primaryColor;
+            }
+        }
+    }
+
+    .page-size {
+        display: none;
+        margin-bottom: 3.2rem;
+        margin-left: 1.6rem;
+    }
+}

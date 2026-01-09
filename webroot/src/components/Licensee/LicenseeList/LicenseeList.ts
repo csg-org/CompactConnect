@@ -2,7 +2,7 @@
 //  LicenseeList.ts
 //  CompactConnect
 //
-//  Created by InspiringApps on 7/1/2024.
+//  Created by InspiringApps on 12/1/2025.
 //
 
 import {
@@ -11,15 +11,16 @@ import {
     Prop,
     toNative
 } from 'vue-facing-decorator';
+import { serverDateFormat, displayDateFormat } from '@/app.config';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
-import LicenseeSearch, { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
+import LicenseeSearch, { LicenseSearch, SearchTypes } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import CloseX from '@components/Icons/CloseX/CloseX.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
-import { PageExhaustError } from '@store/pagination';
-import { RequestParamsInterfaceLocal } from '@network/licenseApi/data.api';
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
+import { SearchParamsInterfaceLocal } from '@network/searchApi/data.api';
 import { State } from '@models/State/State.model';
+import moment from 'moment';
 
 @Component({
     name: 'LicenseeList',
@@ -39,9 +40,8 @@ class LicenseeList extends Vue {
     //
     hasSearched = false;
     shouldShowSearchModal = false;
+    searchErrorOverride = '';
     isInitialFetchCompleted = false;
-    prevKey = '';
-    nextKey = '';
 
     //
     // Lifecycle
@@ -97,68 +97,117 @@ class LicenseeList extends Vue {
         return (this.isPublicSearch) ? this.userStore.currentCompact?.abbrev() || '' : '';
     }
 
-    get searchDisplayFirstName(): string {
-        const delimiter = (this.searchDisplayCompact) ? ', ' : '';
-        let displayFirstName = '';
+    get searchDisplayFullName(): string {
+        const { firstName = '', lastName = '' } = this.searchParams;
 
-        if (this.searchParams.firstName) {
-            displayFirstName = `${delimiter}${this.searchParams.firstName}` || '';
-        }
-
-        return displayFirstName;
+        return `${firstName} ${lastName}`.trim();
     }
 
-    get searchDisplayLastName(): string {
-        const delimiter = (this.searchDisplayCompact && !this.searchDisplayFirstName) ? ', ' : '';
-        const subDelimiter = (this.searchDisplayFirstName) ? ' ' : '';
-        let displayLastName = '';
+    get searchDisplayHomeState(): string {
+        const { homeState } = this.searchParams;
 
-        if (this.searchParams.lastName) {
-            displayLastName = `${delimiter}${subDelimiter}${this.searchParams.lastName}` || '';
-        }
-
-        return displayLastName;
+        return (homeState) ? `${this.$t('licensing.homeState')}: ${new State({ abbrev: homeState }).name()}` : '';
     }
 
-    get searchDisplayState(): string {
-        const { state } = this.searchParams;
-        const { searchDisplayCompact, searchDisplayFirstName, searchDisplayLastName } = this;
-        const delimiter = (searchDisplayCompact || searchDisplayFirstName || searchDisplayLastName) ? ', ' : '';
-        let displayState = '';
+    get searchDisplayPrivilegeState(): string {
+        const { privilegeState } = this.searchParams;
 
-        if (state) {
-            const stateModel = new State({ abbrev: state });
+        return (privilegeState) ? `${this.$t('licensing.privilegeState')}: ${new State({ abbrev: privilegeState }).name()}` : '';
+    }
 
-            displayState = `${delimiter}${stateModel.name()}`;
+    get searchDisplayPrivilegePurchaseDates(): string {
+        const { privilegePurchaseStartDate = '', privilegePurchaseEndDate = '' } = this.searchParams;
+        let displayDates = '';
+
+        if (privilegePurchaseStartDate || privilegePurchaseEndDate) {
+            const startDate = (privilegePurchaseStartDate)
+                ? moment(privilegePurchaseStartDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+            const endDate = (privilegePurchaseEndDate)
+                ? moment(privilegePurchaseEndDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+
+            displayDates = `${this.$t('licensing.purchaseDate')}: ${startDate}-${endDate}`;
         }
 
-        return displayState;
+        return displayDates;
+    }
+
+    get searchDisplayMilitaryStatus(): string {
+        const { militaryStatus } = this.searchParams;
+        let displayStatus = '';
+
+        if (militaryStatus) {
+            const statusOptions = this.$tm('military.militaryStatusOptions') || [];
+            const selectedOption = statusOptions.find((statusOption) => statusOption.key === militaryStatus);
+
+            if (selectedOption?.name) {
+                displayStatus = `${this.$t('military.militaryStatusTitle')}: ${selectedOption.name}`;
+            }
+        }
+
+        return displayStatus;
+    }
+
+    get searchDisplayInvestigationStatus(): string {
+        const { investigationStatus } = this.searchParams;
+        let displayStatus = '';
+
+        if (investigationStatus) {
+            const statusOptions = this.$tm('licensing.investigationStatusOptions') || [];
+            const selectedOption = statusOptions.find((statusOption) => statusOption.key === investigationStatus);
+
+            if (selectedOption?.name) {
+                displayStatus = `${selectedOption.name}`;
+            }
+        }
+
+        return displayStatus;
+    }
+
+    get searchDisplayEncumberDates(): string {
+        const { encumberStartDate = '', encumberEndDate = '' } = this.searchParams;
+        let displayDates = '';
+
+        if (encumberStartDate || encumberEndDate) {
+            const startDate = (encumberStartDate)
+                ? moment(encumberStartDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+            const endDate = (encumberEndDate)
+                ? moment(encumberEndDate, serverDateFormat).format(displayDateFormat)
+                : '∞';
+
+            displayDates = `${this.$t('licensing.encumbered')}: ${startDate}-${endDate}`;
+        }
+
+        return displayDates;
+    }
+
+    get searchDisplayNpi(): string {
+        const { npi = '' } = this.searchParams;
+
+        return (npi) ? `${this.$t('licensing.npi')}: ${npi}`.trim() : '';
     }
 
     get searchDisplayAll(): string {
-        const {
-            searchDisplayCompact,
-            searchDisplayFirstName,
-            searchDisplayLastName,
-            searchDisplayState
-        } = this;
+        const joined = [
+            this.searchDisplayCompact,
+            this.searchDisplayFullName,
+            this.searchDisplayHomeState,
+            this.searchDisplayPrivilegeState,
+            this.searchDisplayPrivilegePurchaseDates,
+            this.searchDisplayMilitaryStatus,
+            this.searchDisplayInvestigationStatus,
+            this.searchDisplayEncumberDates,
+            this.searchDisplayNpi
+        ].join(', ').trim();
 
-        return [
-            searchDisplayCompact,
-            searchDisplayFirstName,
-            searchDisplayLastName,
-            searchDisplayState
-        ].join('').trim();
+        return joined.replace(/(^[,\s]+)|([,\s]+$)/g, '').replace(/(,\s)\1+/g, ', '); // Replace repeated commas with single comma
     }
 
     get sortOptions(): Array<any> {
         const options = [
-            // Temp for limited server sorting support
-            // { value: 'firstName', name: this.$t('common.firstName') },
             { value: 'lastName', name: this.$t('common.lastName'), isDefault: true },
-            // { value: 'licenseStates', name: this.$t('licensing.homeState') },
-            // { value: 'privilegeStates', name: this.$t('licensing.privileges') },
-            // { value: 'status', name: this.$t('licensing.status') },
         ];
 
         return options;
@@ -168,7 +217,6 @@ class LicenseeList extends Vue {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
-            ssnMaskedPartial: () => this.$t('licensing.ssn'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             privilegeStatesDisplay: () => this.$t('licensing.privileges'),
             statusDisplay: () => this.$t('licensing.status'),
@@ -190,12 +238,15 @@ class LicenseeList extends Vue {
             paginationId: this.listId,
             newPage: 1,
         });
+        this.searchErrorOverride = '';
         this.fetchListData();
 
-        if (!this.hasSearched) {
-            this.hasSearched = true;
-        } else {
-            this.toggleSearch();
+        if (!params.isDirectExport) {
+            if (!this.hasSearched) {
+                this.hasSearched = true;
+            } else {
+                this.toggleSearch();
+            }
         }
     }
 
@@ -232,7 +283,6 @@ class LicenseeList extends Vue {
     async setDefaultPaging(shouldForce = false) {
         const { listId } = this;
         const { page, size } = this.paginationStore.paginationMap[this.listId] || {};
-        const { prevLastKey } = this.licenseStore;
 
         if (!page || shouldForce) {
             await this.$store.dispatch('pagination/updatePaginationPage', {
@@ -247,48 +297,37 @@ class LicenseeList extends Vue {
                 newSize: DEFAULT_PAGE_SIZE,
             });
         }
-
-        if (prevLastKey) {
-            this.prevKey = prevLastKey;
-        }
     }
 
-    async fetchListData() {
+    async fetchListData(): Promise<SearchParamsInterfaceLocal> {
+        const { searchParams } = this;
+        const { searchType } = searchParams;
+        const requestConfig = this.prepareSearchBody();
+
+        if (searchType === SearchTypes.PROVIDER) {
+            // Provider licensee search is a standard REST JSON call
+            await this.$store.dispatch('license/getLicenseesSearchRequest', {
+                params: { ...requestConfig }
+            });
+        } else if (searchType === SearchTypes.PRIVILEGE) {
+            // Privilege search is a file download call
+            requestConfig.isForPrivileges = true;
+            await this.handlePrivilegeDownload(requestConfig);
+        }
+
+        this.isInitialFetchCompleted = true;
+
+        return requestConfig;
+    }
+
+    prepareSearchBody(): SearchParamsInterfaceLocal {
         const { searchParams } = this;
         const sorting = this.sortingStore.sortingMap[this.listId];
         const { option, direction } = sorting || {};
         const pagination = this.paginationStore.paginationMap[this.listId];
         const { page, size } = pagination || {};
-        const requestConfig: RequestParamsInterfaceLocal = {};
-
-        // Sorting params
-        if (option) {
-            const serverSortByMap = {
-                firstName: 'givenName',
-                lastName: 'familyName',
-                lastUpdate: 'dateOfUpdate',
-            };
-
-            requestConfig.sortBy = serverSortByMap[option];
-        }
-
-        if (direction) {
-            const serverSortDirectionMap = {
-                asc: 'ascending',
-                desc: 'descending',
-            };
-
-            requestConfig.sortDirection = serverSortDirectionMap[direction];
-        }
-
-        // Paging params
-        if (page && !this.licenseStore.error) {
-            if (this.nextKey && page !== 1) {
-                requestConfig.getNextPage = true;
-            } else if (this.prevKey) {
-                requestConfig.getPrevPage = true;
-            }
-        }
+        const requestConfig: SearchParamsInterfaceLocal = {};
+        const { isDirectExport } = searchParams;
 
         // Search params
         requestConfig.isPublic = this.isPublicSearch;
@@ -305,49 +344,82 @@ class LicenseeList extends Vue {
         if (searchParams?.lastName) {
             requestConfig.licenseeLastName = searchParams.lastName;
         }
-        if (searchParams?.state) {
-            requestConfig.jurisdiction = searchParams.state.toLowerCase();
+        if (searchParams?.homeState) {
+            requestConfig.homeState = searchParams.homeState.toLowerCase();
+        }
+        if (searchParams?.privilegeState) {
+            requestConfig.privilegeState = searchParams.privilegeState.toLowerCase();
+        }
+        if (searchParams?.privilegePurchaseStartDate) {
+            requestConfig.privilegePurchaseStartDate = searchParams.privilegePurchaseStartDate;
+        }
+        if (searchParams?.privilegePurchaseEndDate) {
+            requestConfig.privilegePurchaseEndDate = searchParams.privilegePurchaseEndDate;
+        }
+        if (searchParams?.militaryStatus) {
+            requestConfig.militaryStatus = searchParams.militaryStatus;
+        }
+        if (searchParams?.investigationStatus) {
+            requestConfig.investigationStatus = searchParams.investigationStatus;
+        }
+        if (searchParams?.encumberStartDate) {
+            requestConfig.encumberStartDate = searchParams.encumberStartDate;
+        }
+        if (searchParams?.encumberEndDate) {
+            requestConfig.encumberEndDate = searchParams.encumberEndDate;
+        }
+        if (searchParams?.npi) {
+            requestConfig.npi = searchParams.npi;
         }
 
-        // Make fetch request
-        await this.$store.dispatch('license/getLicenseesRequest', {
-            params: {
-                ...requestConfig,
-                pageNum: page,
-                pageSize: size,
+        // Paging params
+        if (!isDirectExport) {
+            requestConfig.pageNumber = page;
+            requestConfig.pageSize = size;
+        }
+
+        // Sorting params
+        if (!isDirectExport) {
+            if (option) {
+                const serverSortByMap = {
+                    lastName: 'familyName',
+                };
+
+                requestConfig.sortBy = serverSortByMap[option];
             }
-        });
 
-        this.isInitialFetchCompleted = true;
-
-        // If we've reached the end of paging
-        if (this.licenseStore.error instanceof PageExhaustError && page > 1) {
-            // Support for limited server paging support:
-            // The server does not respond with how many total records there are, only keys to fetch
-            // the current or next page. So the frontend can't know it's the end of paging until we get back 0 records.
-            // At that point, we no longer have usable prevLastKey & lastKey values from the server, and need to re-fetch
-            // the last page to get stable.
-
-            // Update pagination store page
-            this.$store.dispatch('pagination/updatePaginationPage', {
-                paginationId: this.listId,
-                newPage: page - 1,
-            });
-            // Re-fetch with prevLastKey
-            await this.$store.dispatch('license/getLicenseesRequest', {
-                params: {
-                    ...requestConfig,
-                    getPrevPage: true,
-                    getNextPage: false,
-                    pageNum: page,
-                    pageSize: size,
-                }
-            });
-            // After fetch, delete lastKey from the store (to disable "next" button)
-            this.$store.dispatch('license/setStoreLicenseeLastKey', null);
+            if (direction) {
+                requestConfig.sortDirection = direction;
+            }
         }
 
         return requestConfig;
+    }
+
+    async handlePrivilegeDownload(requestConfig: SearchParamsInterfaceLocal): Promise<void> {
+        let errorMessage = '';
+        const response = await this.$store.dispatch('license/getPrivilegesRequest', {
+            params: { ...requestConfig }
+        }).catch((error) => {
+            errorMessage = error?.message || error;
+        });
+
+        if (errorMessage) {
+            this.searchErrorOverride = errorMessage;
+        } else if (response) {
+            const { fileUrl } = response;
+            const tempLink = document.createElement('a');
+
+            if (!fileUrl) {
+                this.searchErrorOverride = this.$t('serverErrors.searchErrorGeneral');
+            } else {
+                tempLink.href = fileUrl;
+                tempLink.target = '_blank';
+                tempLink.rel = 'noopener noreferrer';
+                tempLink.download = `privilege_export.csv`;
+                tempLink.click();
+            }
+        }
     }
 
     async sortingChange() {
@@ -356,22 +428,8 @@ class LicenseeList extends Vue {
         }
     }
 
-    // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
-    async paginationChange({ firstIndex, prevNext }: PageChangeConfig) {
-        const isInitialInProgress = firstIndex === 0 && prevNext === 0;
-
-        if (prevNext === -1) {
-            this.prevKey = this.licenseStore.prevLastKey;
-            this.nextKey = '';
-        } else if (prevNext === 1) {
-            this.prevKey = '';
-            this.nextKey = this.licenseStore.lastKey;
-        } else {
-            this.prevKey = '';
-            this.nextKey = '';
-        }
-
-        if (!isInitialInProgress && this.isInitialFetchCompleted) {
+    async paginationChange() {
+        if (this.isInitialFetchCompleted) {
             await this.fetchListData();
         }
     }

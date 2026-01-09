@@ -6,17 +6,17 @@
 //
 
 import { authStorage, tokens, FeatureGates } from '@/app.config';
-import axios, { AxiosInstance } from 'axios';
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import {
     requestError,
     requestSuccess,
     responseSuccess,
     responseError
 } from '@network/licenseApi/interceptors';
-import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { LicenseHistoryItemSerializer, LicenseHistoryItem } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
+import axios, { AxiosInstance } from 'axios';
 
 export interface RequestParamsInterfaceLocal {
     isPublic?: boolean;

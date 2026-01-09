@@ -42,6 +42,10 @@
         display: flex;
         width: 100%;
         height: @appHeaderHeight;
+
+        @media @desktopWidth {
+            height: 0;
+        }
     }
 
     .page-content {

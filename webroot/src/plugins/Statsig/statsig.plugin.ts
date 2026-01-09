@@ -100,8 +100,8 @@ export const getStatsigClient = async () => {
 
 export const initStatsig = async () => {
     const liveEnvironmentMaxWaitMs = moment.duration(2, 'seconds').asMilliseconds();
-    const { isTest, isUsingMockApi } = envConfig;
-    const isLiveEnvironment = !(isTest || isUsingMockApi);
+    const { isTest, isUsingMockApi, isStatsigDisabled } = envConfig;
+    const isLiveEnvironment = !(isTest || isUsingMockApi || isStatsigDisabled);
     const mockStatsigClient = await getStatsigClientMock(isLiveEnvironment);
     // Don't allow Statsig remote failures to block app loading - only wait for a set amount of time before just using a mock
     const statsigClient = await Promise.race([

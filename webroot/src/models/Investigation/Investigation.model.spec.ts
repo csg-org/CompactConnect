@@ -133,9 +133,9 @@ describe('Investigation model', () => {
             providerId: 'test-providerId',
             jurisdiction: 'al',
             type: 'test-type',
-            creationDate: moment.utc().format(serverDateFormat),
-            dateOfUpdate: moment.utc().format(serverDateFormat),
-            endDate: moment.utc().add(1, 'day').format(serverDateFormat),
+            creationDate: moment().format(serverDateFormat),
+            dateOfUpdate: moment().format(serverDateFormat),
+            endDate: moment().add(1, 'day').format(serverDateFormat),
         };
         const investigation = InvestigationSerializer.fromServer(data);
 

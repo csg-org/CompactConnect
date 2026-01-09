@@ -4,6 +4,7 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
+import { LicenseSearchLegacy } from '@components/Licensee/LicenseeSearchLegacy/LicenseeSearchLegacy.vue';
 import { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 
 export interface State {
@@ -12,8 +13,9 @@ export interface State {
     prevLastKey: string | null;
     lastKey: string | null;
     isLoading: boolean;
+    isExporting: boolean;
     error: any | null;
-    search: LicenseSearch;
+    search: LicenseSearchLegacy | LicenseSearch;
 }
 
 export const state: State = {
@@ -22,6 +24,7 @@ export const state: State = {
     prevLastKey: null,
     lastKey: null,
     isLoading: false,
+    isExporting: false,
     error: null,
     search: {
         compact: '',

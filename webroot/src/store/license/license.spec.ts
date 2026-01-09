@@ -298,9 +298,45 @@ describe('License Store Mutations', () => {
         expect(state.error).to.equal(null);
         expect(state.model[1].privileges[0].history.length).to.equal(0);
     });
+    it('should successfully get privileges request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGES_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.isExporting).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get privileges failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_PRIVILEGES_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.isExporting).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get privileges success', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGES_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.isExporting).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update exporting state', () => {
+        const state = {};
+        const isExporting = true;
+
+        mutations[MutationTypes.STORE_UPDATE_EXPORTING](state, isExporting);
+
+        expect(state.isExporting).to.equal(isExporting);
+    });
 });
 describe('License Store Actions', async () => {
-    it('should successfully start licensees request with next page', async () => {
+    it('should successfully start licensees request with next page (legacy search)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const params = { getNextPage: true };
@@ -311,7 +347,7 @@ describe('License Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEES_REQUEST]);
         expect(dispatch.callCount).to.equal(4);
     });
-    it('should successfully start licensees request with previous page', async () => {
+    it('should successfully start licensees request with previous page (legacy search)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const params = { getPrevPage: true };
@@ -322,7 +358,7 @@ describe('License Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEES_REQUEST]);
         expect(dispatch.callCount).to.equal(4);
     });
-    it('should successfully start licensees request as public request', async () => {
+    it('should successfully start licensees request as public request (legacy search)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const params = { isPublic: true };
@@ -332,6 +368,17 @@ describe('License Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEES_REQUEST]);
         expect(dispatch.callCount).to.equal(4);
+    });
+    it('should successfully start licensees request as staff search request (opensearch)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const params = {};
+
+        await actions.getLicenseesSearchRequest({ commit, getters, dispatch }, { params });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEES_REQUEST]);
+        expect(dispatch.callCount).to.equal(3);
     });
     it('should successfully start licensees failure', () => {
         const commit = sinon.spy();
@@ -454,6 +501,15 @@ describe('License Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_RESET_SEARCH]);
     });
+    it('should successfully update exporting state', () => {
+        const commit = sinon.spy();
+        const isExporting = true;
+
+        actions.setStoreExporting({ commit }, isExporting);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_EXPORTING, isExporting]);
+    });
     it('should successfully reset store', () => {
         const commit = sinon.spy();
 
@@ -521,6 +577,34 @@ describe('License Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
 
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_PRIVILEGE_HISTORY_SUCCESS, { history }]);
+    });
+    it('should successfully start privileges request (as export)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const params = {};
+
+        await actions.getPrivilegesRequest({ commit, getters, dispatch }, { params });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_PRIVILEGES_REQUEST]);
+        expect(dispatch.callCount).to.equal(1);
+    });
+    it('should successfully start privileges failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.getPrivilegesFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_PRIVILEGES_FAILURE, error]);
+    });
+    it('should successfully start privileges success', () => {
+        const commit = sinon.spy();
+
+        actions.getPrivilegesSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_PRIVILEGES_SUCCESS]);
     });
 });
 describe('License Store Getters', async () => {
