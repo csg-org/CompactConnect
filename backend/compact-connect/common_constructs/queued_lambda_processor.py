@@ -29,6 +29,7 @@ class QueuedLambdaProcessor(Construct):
         encryption_key: IKey,
         alarm_topic: ITopic,
         dlq_count_alarm_threshold: int = 10,
+        dlq_retention_period: Duration | None = None,
     ):
         super().__init__(scope, construct_id)
 
@@ -39,6 +40,7 @@ class QueuedLambdaProcessor(Construct):
             encryption=QueueEncryption.KMS,
             encryption_master_key=encryption_key,
             enforce_ssl=True,
+            retention_period=dlq_retention_period,
         )
 
         self.queue = Queue(

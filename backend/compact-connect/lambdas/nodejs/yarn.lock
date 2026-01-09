@@ -78,17 +78,20 @@
     "@smithy/util-utf8" "^2.0.0"
     tslib "^2.6.2"
 
-"@aws-lambda-powertools/commons@^2.11.0":
-  version "2.11.0"
-  resolved "https://registry.npmjs.org/@aws-lambda-powertools/commons/-/commons-2.11.0.tgz"
-  integrity sha512-gtiBeUSyg4VcL4qra5G4AwuOl7CNF6g0oDasAS5KxkEi8IhTku6S7vJTpQ82+12oviwKBD+w27yEcGQmSw5xdg==
-
-"@aws-lambda-powertools/logger@^2.10.0":
-  version "2.11.0"
-  resolved "https://registry.npmjs.org/@aws-lambda-powertools/logger/-/logger-2.11.0.tgz"
-  integrity sha512-40wST/S644ngwadp7Kk70Rgvh35yQ0R3HqFKxAtlBxQNAGsqxQtjJeBUg/KQDKUhE1IZH0ahXyEN3B7rSxPn0Q==
+"@aws-lambda-powertools/commons@2.30.0":
+  version "2.30.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/commons/-/commons-2.30.0.tgz#920d00d560511e76ee7da767f9eeec396a2a527a"
+  integrity sha512-5kjamCPR/dIEHIk4BAFDSO/MgF21qL/q/f5AKi3GEOdvULuLcbw40xneMmPXo4ETaBSe+BHvovWLuI0Jl9BEnw==
   dependencies:
-    "@aws-lambda-powertools/commons" "^2.11.0"
+    "@aws/lambda-invoke-store" "0.2.2"
+
+"@aws-lambda-powertools/logger@^2.30.0":
+  version "2.30.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/logger/-/logger-2.30.0.tgz#9a8c74575cc19ed2c66e9f7c9f58c39b86c025ac"
+  integrity sha512-ejmuzn8KNi7CrhJSnl4a/SLAjcmlHJPvH55QpSZvj8K8aQLhOKcCpd0u+gXp0oYlj50d22h9ZV5qtIn7O8V4Lw==
+  dependencies:
+    "@aws-lambda-powertools/commons" "2.30.0"
+    "@aws/lambda-invoke-store" "0.2.2"
     lodash.merge "^4.6.2"
 
 "@aws-sdk/client-dynamodb@^3.901.0":
@@ -715,6 +718,11 @@
     "@smithy/types" "^4.6.0"
     fast-xml-parser "5.2.5"
     tslib "^2.6.2"
+
+"@aws/lambda-invoke-store@0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@aws/lambda-invoke-store/-/lambda-invoke-store-0.2.2.tgz#b00f7d6aedfe832ef6c84488f3a422cce6a47efa"
+  integrity sha512-C0NBLsIqzDIae8HFw9YIrIBsbc0xTiOtt7fAukGPnqQ/+zZNaq+4jhuccltK0QuWHBnNm/a6kLIRA6GFiM10eg==
 
 "@aws/lambda-invoke-store@^0.0.1":
   version "0.0.1"
@@ -4510,10 +4518,10 @@ node-releases@^2.0.18:
   resolved "https://registry.npmjs.org/node-releases/-/node-releases-2.0.18.tgz"
   integrity sha512-d9VeXT4SJ7ZeOqGX6R5EM022wpL+eWPooLI+5UpWn2jCT1aosUQEhQP214x33Wkwx3JQMvIm+tIoVOdodFS40g==
 
-nodemailer@^7.0.7:
-  version "7.0.9"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-7.0.9.tgz#fe5abd4173e08e01aa243c7cddd612ad8c6ccc18"
-  integrity sha512-9/Qm0qXIByEP8lEV2qOqcAW7bRpL8CR9jcTwk3NBnHJNmP9fIJ86g2fgmIXqHY+nj55ZEMwWqYAT2QTDpRUYiQ==
+nodemailer@^7.0.11:
+  version "7.0.11"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-7.0.11.tgz#5f7b06afaec20073cff36bea92d1c7395cc3e512"
+  integrity sha512-gnXhNRE0FNhD7wPSCGhdNh46Hs6nm+uTyg+Kq0cZukNQiYdnCsoQjodNP9BQVG9XrcK/v6/MgpAPBUFyzh9pvw==
 
 normalize-path@^3.0.0, normalize-path@~3.0.0:
   version "3.0.0"

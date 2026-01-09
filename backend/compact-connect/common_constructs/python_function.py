@@ -5,7 +5,7 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_iam import IRole, Role, ServicePrincipal
+from aws_cdk.aws_iam import IRole, ManagedPolicy, Role, ServicePrincipal
 from aws_cdk.aws_lambda import ILayerVersion, Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
 from aws_cdk.aws_logs import ILogGroup, LogGroup, RetentionDays
@@ -29,7 +29,7 @@ class PythonFunction(CdkPythonFunction):
         construct_id: str,
         *,
         lambda_dir: str,
-        runtime: Runtime = Runtime.PYTHON_3_13,
+        runtime: Runtime = Runtime.PYTHON_3_14,
         log_retention: RetentionDays = RetentionDays.INFINITE,
         alarm_topic: ITopic = None,
         role: IRole = None,
@@ -81,6 +81,25 @@ class PythonFunction(CdkPythonFunction):
                 assumed_by=ServicePrincipal('lambda.amazonaws.com'),
             )
             log_group.grant_write(role)
+
+        if 'vpc' in kwargs:
+            # if the function is being created in a VPC, add the AWSLambdaVPCAccessExecutionRole policy to the role
+            role.add_managed_policy(
+                ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaVPCAccessExecutionRole')
+            )
+            NagSuppressions.add_resource_suppressions(
+                role,
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM4',
+                        'appliesTo': [
+                            'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
+                        ],
+                        'reason': 'Lambdas deployed within a VPC require this policy to access the VPC.',
+                    },
+                ],
+            )
+
         # We can't directly grant a provided role permission to log to our log group, since that could create a
         # circular dependency with the stack the role came from. The role creator will have to be responsible for
         # setting its permissions.

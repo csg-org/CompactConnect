@@ -195,8 +195,11 @@ class ReportingStack(AppStack):
             Rule(
                 self,
                 f'{compact.capitalize()}-WeeklyTransactionReportRule',
-                # Send weekly reports every Sunday at 2:00 AM UTC
-                schedule=Schedule.cron(week_day='SUN', hour='2', minute='0', month='*', year='*'),
+                # Send weekly reports every Monday at 4:00 AM UTC (Sunday 11 PM EST)
+                # this gives the transaction collection process several days
+                # to ensure we've collected all transactions from authorize.net
+                # for the previous week, even if authorize.net settles batches late.
+                schedule=Schedule.cron(week_day='MON', hour='4', minute='0', month='*', year='*'),
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,

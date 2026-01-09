@@ -216,6 +216,8 @@ For enhanced security, use the secure bootstrap templates that trust only specif
     --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
   ```
 
+**Note on OpenSearch Service-Linked Role**: The bootstrap templates include creation of a service-linked role for Amazon OpenSearch Service VPC access. This role can only exist once per AWS account. If the role already exists in the account (e.g., from previous OpenSearch usage), the bootstrap deployment will fail. In that case, simply remove the `OpenSearchServiceLinkedRole` resource from the template before running the bootstrap command.
+
 ### Bootstrap the secondary accounts
 See ./backups/README for instructions on setting up the secondary accounts and backup resources.
 

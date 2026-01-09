@@ -123,6 +123,12 @@ class AppStack(Stack):
         return None
 
     @property
+    def search_api_domain_name(self) -> str | None:
+        if self.hosted_zone is not None:
+            return f'search.{self.hosted_zone.zone_name}'
+        return None
+
+    @property
     def ui_domain_name(self) -> str | None:
         if self.hosted_zone is not None:
             return f'app.{self.hosted_zone.zone_name}'

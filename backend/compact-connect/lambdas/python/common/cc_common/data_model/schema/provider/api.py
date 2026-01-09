@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Nested, Raw, String
-from marshmallow.validate import Length, OneOf, Regexp
+from marshmallow.validate import Length, OneOf, Range, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import CCRequestSchema
@@ -30,6 +30,37 @@ from cc_common.data_model.schema.privilege.api import (
     PrivilegePublicResponseSchema,
     PrivilegeReadPrivateResponseSchema,
 )
+
+# Keys that indicate cross-index query attempts in OpenSearch DSL
+# These are used by terms lookup, more_like_this, and other queries to reference external indices
+_CROSS_INDEX_KEYS = frozenset({'index', '_index'})
+
+
+def _validate_no_cross_index_keys(obj, path: str = 'query') -> None:
+    """
+    Recursively validate that an object does not contain cross-index lookup keys.
+
+    This function traverses the query structure looking for keys that would indicate
+    an attempt to access data from other indices:
+    - 'index': Used in terms lookup queries to specify an external index
+    - '_index': Used in more_like_this queries to reference documents from other indices
+
+    These keys should never appear in legitimate single-index queries against the
+    provider search index.
+
+    :param obj: The object to validate (dict, list, or scalar)
+    :param path: The current path in the object for error messages
+    :raises ValidationError: If a cross-index key is found
+    """
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key in _CROSS_INDEX_KEYS:
+                raise ValidationError(f"Cross-index queries are not allowed. Found '{key}' at {path}.{key}")
+            _validate_no_cross_index_keys(value, path=f'{path}.{key}')
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            _validate_no_cross_index_keys(item, path=f'{path}[{i}]')
+    # Scalar values (str, int, bool, None) are safe - we only check keys
 
 
 class ProviderSSNResponseSchema(ForgivingSchema):
@@ -131,7 +162,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     # This date is determined by the license records uploaded by a state
-    # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Raw(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
 
@@ -449,3 +479,75 @@ class StateProviderDetailGeneralResponseSchema(ForgivingSchema):
 
     privileges = List(Nested(StatePrivilegeGeneralResponseSchema, required=True, allow_none=False))
     providerUIUrl = String(required=True, allow_none=False)
+
+
+class SearchProvidersRequestSchema(CCRequestSchema):
+    """
+    Schema for advanced search providers requests.
+
+    This schema is used to validate incoming requests to the advanced search providers API endpoint.
+    It accepts an OpenSearch DSL query body for flexible querying of the provider index.
+
+    The request body closely mirrors OpenSearch DSL for pagination using `search_after`.
+    See: https://docs.opensearch.org/latest/search-plugins/searching-data/paginate/#the-search_after-parameter
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
+    query = Raw(required=True, allow_none=False)
+
+    # Pagination parameters following OpenSearch DSL
+    # 'from' is a reserved word in Python, so we use 'from_' with data_key='from'
+    from_ = Integer(required=False, allow_none=False, data_key='from', validate=Range(min=0, max=9900))
+    size = Integer(required=False, allow_none=False, validate=Range(min=1, max=100))
+
+    # Sort order - required when using search_after pagination
+    # Example: [{"providerId": "asc"}, {"dateOfUpdate": "desc"}]
+    sort = Raw(required=False, allow_none=False)
+
+    # The search_after parameter for cursor-based pagination
+    # This should be the 'sort' values from the last hit of the previous page
+    # Example: ["provider-uuid-123", "2024-01-15T10:30:00Z"]
+    search_after = Raw(required=False, allow_none=False)
+
+    @validates_schema
+    def validate_no_cross_index_queries(self, data, **kwargs):
+        """
+        Validate that the query does not contain cross-index lookup attempts.
+
+        This is a defense-in-depth security measure to prevent queries that attempt to access
+        data from other compact indices. The primary protection is the OpenSearch domain setting
+        `rest.action.multi.allow_explicit_index: false`, but this validation provides an
+        additional application-layer check.
+
+        Dangerous patterns blocked:
+        - Terms lookup with external index: {"terms": {"field": {"index": "other_index", ...}}}
+        - More like this with external docs: {"more_like_this": {"like": [{"_index": "other_index"}]}}
+        """
+        _validate_no_cross_index_keys(data.get('query', {}))
+
+
+class ExportPrivilegesRequestSchema(CCRequestSchema):
+    """
+    Schema for Exporting list of privileges into CSV file.
+
+    This schema is used to validate incoming requests to the advanced search providers API endpoint.
+    It accepts an OpenSearch DSL query body for flexible querying of the provider index.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
+    query = Raw(required=True, allow_none=False)
+
+    @validates_schema
+    def validate_no_cross_index_queries(self, data, **kwargs):
+        """
+        Validate that the query does not contain cross-index lookup attempts.
+
+        This is a defense-in-depth security measure. See SearchProvidersRequestSchema for details.
+        """
+        _validate_no_cross_index_keys(data.get('query', {}))

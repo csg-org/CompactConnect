@@ -29,7 +29,7 @@ class TestDataMigration(TestCase):
         PythonCommonLayerVersions(
             common_stack,
             'CommonLayers',
-            compatible_runtimes=[Runtime.PYTHON_3_13],
+            compatible_runtimes=[Runtime.PYTHON_3_14],
         )
 
         stack = Stack(app, 'Stack')

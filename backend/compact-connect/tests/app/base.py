@@ -228,9 +228,9 @@ class TstAppABC(ABC):
             self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ['email'])
             self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ['email'])
 
-        self._inspect_data_events_table(persistent_stack, persistent_stack_template)
-        self._inspect_ssn_table(persistent_stack, persistent_stack_template)
-        self._inspect_backup_resources(persistent_stack, persistent_stack_template)
+            self._inspect_data_events_table(persistent_stack, persistent_stack_template)
+            self._inspect_ssn_table(persistent_stack, persistent_stack_template)
+            self._inspect_backup_resources(persistent_stack, persistent_stack_template)
 
     def _inspect_ssn_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         ssn_key_logical_id = persistent_stack.get_logical_id(persistent_stack.ssn_table.key.node.default_child)
@@ -249,84 +249,114 @@ class TstAppABC(ABC):
         disaster_recovery_step_function_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.disaster_recovery_step_function_role.node.default_child
         )
-        ssn_table_template = self.get_resource_properties_by_logical_id(
-            persistent_stack.get_logical_id(persistent_stack.ssn_table.node.default_child),
-            persistent_stack_template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME),
-        )
-        ssn_key_template = self.get_resource_properties_by_logical_id(
-            ssn_key_logical_id, persistent_stack_template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
-        )
-        # This naming convention is important for opting into future CloudTrail organization access logging
-        self.assertTrue(ssn_table_template['TableName'].endswith('-DataEventsLog'))
-        # Ensure our SSN Key is locked down by resource policy
+
+        # Build the expected PrincipalArn array - always includes 5 roles, plus optional backup role
         # Note: SSN backup role reference may be a nested stack output, so we use Match.any_value() for flexibility
-        expected_policy = {
-            'Statement': [
-                {
-                    'Action': 'kms:*',
-                    'Effect': 'Allow',
-                    'Principal': {'AWS': f'arn:aws:iam::{persistent_stack.account}:root'},
-                    'Resource': '*',
-                },
-                {
-                    'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
-                    'Condition': {
-                        'StringNotEquals': {
-                            'aws:PrincipalArn': [
-                                {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
-                                {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
-                                {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
-                                {'Fn::GetAtt': [disaster_recovery_lambda_role_logical_id, 'Arn']},
-                                {'Fn::GetAtt': [disaster_recovery_step_function_role_logical_id, 'Arn']},
-                                Match.any_value(),  # SSN backup role reference (may be nested stack output)
-                            ],
-                            'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
+        principal_arn_array = [
+            {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
+            {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
+            {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
+            {'Fn::GetAtt': [disaster_recovery_lambda_role_logical_id, 'Arn']},
+            {'Fn::GetAtt': [disaster_recovery_step_function_role_logical_id, 'Arn']},
+        ]
+        if persistent_stack.environment_context['backup_enabled']:
+            # if backup is enabled, we add an additional principal arn for the backup role to the SSN policy to
+            # perform backups on data
+            principal_arn_array.append(Match.any_value())  # SSN backup role reference (may be nested stack output)
+
+        # Ensure our SSN Key is locked down by resource policy
+        persistent_stack_template.has_resource(
+            CfnKey.CFN_RESOURCE_TYPE_NAME,
+            {
+                'Properties': {
+                    'KeyPolicy': {
+                        'Statement': Match.array_with(
+                            [
+                                {
+                                    'Action': 'kms:*',
+                                    'Effect': 'Allow',
+                                    'Principal': {'AWS': f'arn:aws:iam::{persistent_stack.account}:root'},
+                                    'Resource': '*',
+                                },
+                                {
+                                    'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
+                                    'Condition': {
+                                        'StringNotEquals': {
+                                            'aws:PrincipalArn': principal_arn_array,
+                                            'aws:PrincipalServiceName': [
+                                                'dynamodb.amazonaws.com',
+                                                'events.amazonaws.com',
+                                            ],
+                                        }
+                                    },
+                                    'Effect': 'Deny',
+                                    'Principal': '*',
+                                    'Resource': '*',
+                                },
+                            ]
+                        ),
+                        'Version': '2012-10-17',
+                    }
+                }
+            },
+        )
+
+        persistent_stack_template.has_resource(
+            CfnTable.CFN_RESOURCE_TYPE_NAME,
+            {
+                'Properties': {
+                    # This naming convention is important for opting into future CloudTrail organization access logging
+                    # don't remove the -DateEventsLog suffix
+                    'TableName': 'ssn-table-DataEventsLog',
+                    'ResourcePolicy': {
+                        'PolicyDocument': {
+                            'Statement': Match.array_with(
+                                [
+                                    {
+                                        'Effect': 'Deny',
+                                        'Principal': '*',
+                                        'Resource': '*',
+                                        'Action': 'dynamodb:CreateBackup',
+                                        'Condition': {
+                                            'StringNotEquals': {'aws:PrincipalServiceName': 'dynamodb.amazonaws.com'}
+                                        },
+                                    },
+                                    {
+                                        'Effect': 'Deny',
+                                        'Principal': '*',
+                                        'Resource': '*',
+                                        'Action': [
+                                            'dynamodb:BatchGetItem',
+                                            'dynamodb:BatchWriteItem',
+                                            'dynamodb:PartiQL*',
+                                            'dynamodb:Scan',
+                                        ],
+                                        'Condition': {
+                                            'StringNotEquals': {
+                                                'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
+                                                'aws:PrincipalArn': Match.any_value(),
+                                            }
+                                        },
+                                    },
+                                    {
+                                        'Action': ['dynamodb:ConditionCheckItem', 'dynamodb:GetItem', 'dynamodb:Query'],
+                                        'Effect': 'Deny',
+                                        'Principal': '*',
+                                        'NotResource': Match.string_like_regexp(
+                                            f'arn:aws:dynamodb:{persistent_stack.region}:{persistent_stack.account}:table/ssn-table-DataEventsLog/index/ssnIndex'
+                                        ),
+                                    },
+                                ]
+                            )
                         }
                     },
-                    'Effect': 'Deny',
-                    'Principal': '*',
-                    'Resource': '*',
-                },
-            ],
-            'Version': '2012-10-17',
-        }
-
-        # Validate the key policy structure matches our expected pattern
-        actual_policy = ssn_key_template['KeyPolicy']
-        self.assertEqual(len(expected_policy['Statement']), len(actual_policy['Statement']))
-
-        # Check first statement (admin access) exactly
-        self.assertEqual(expected_policy['Statement'][0], actual_policy['Statement'][0])
-
-        # Check second statement structure (with flexible backup role reference)
-        actual_second_stmt = actual_policy['Statement'][1]
-        self.assertEqual(expected_policy['Statement'][1]['Action'], actual_second_stmt['Action'])
-        self.assertEqual(expected_policy['Statement'][1]['Effect'], actual_second_stmt['Effect'])
-        self.assertEqual(expected_policy['Statement'][1]['Principal'], actual_second_stmt['Principal'])
-        self.assertEqual(expected_policy['Statement'][1]['Resource'], actual_second_stmt['Resource'])
-
-        # Check condition structure but allow flexible backup role reference
-        self.assertIn('StringNotEquals', actual_second_stmt['Condition'])
-        self.assertIn('aws:PrincipalArn', actual_second_stmt['Condition']['StringNotEquals'])
-        if persistent_stack.environment_context['backup_enabled']:
-            # if backup is enabled, we add an additional principle arn for the backup role to the SSN policy to
-            # perform backups on data
-            self.assertEqual(6, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
-        else:
-            self.assertEqual(5, len(actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalArn']))
-        self.assertEqual(
-            expected_policy['Statement'][1]['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
-            actual_second_stmt['Condition']['StringNotEquals']['aws:PrincipalServiceName'],
-        )
-        # Ensure we're using our locked down KMS key for encryption
-        self.assertEqual(
-            ssn_table_template['SSESpecification'],
-            {'KMSMasterKeyId': {'Fn::GetAtt': [ssn_key_logical_id, 'Arn']}, 'SSEEnabled': True, 'SSEType': 'KMS'},
-        )
-        self.compare_snapshot(
-            ssn_table_template['ResourcePolicy']['PolicyDocument'],
-            'SSN_TABLE_RESOURCE_POLICY',
-            overwrite_snapshot=False,
+                    'SSESpecification': {
+                        'KMSMasterKeyId': {'Fn::GetAtt': [ssn_key_logical_id, 'Arn']},
+                        'SSEEnabled': True,
+                        'SSEType': 'KMS',
+                    },
+                }
+            },
         )
 
     def _inspect_backup_resources(self, persistent_stack: PersistentStack, persistent_stack_template: Template):

@@ -6,6 +6,7 @@ from datetime import (
     timedelta,
 )
 from enum import StrEnum
+from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -555,11 +556,11 @@ class ProviderUserRecords:
             and (filter_condition is None or filter_condition(record))
         ]
 
-    def get_adverse_action_by_id(self, adverse_action_id: str) -> AdverseActionData | None:
+    def get_adverse_action_by_id(self, adverse_action_id: UUID) -> AdverseActionData | None:
         """
         Get an adverse action record by its ID.
 
-        :param str adverse_action_id: The ID of the adverse action to find
+        :param UUID adverse_action_id: The ID of the adverse action to find
         :return: The found adverse action record if found, else None
         """
         return next(

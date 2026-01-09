@@ -25,7 +25,7 @@ class TestQueueEventListener(TestCase):
             self.stack,
             'TestFunction',
             handler='handle',
-            runtime=Runtime.PYTHON_3_13,
+            runtime=Runtime.PYTHON_3_14,
             code=Code.from_inline("""def handle(*args): return"""),
         )
 
