@@ -1,0 +1,116 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "privilegeFees": {
+      "description": "The fees for the privileges by license type",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "licenseTypeAbbreviation": {
+            "enum": [
+              "aud",
+              "slp",
+              "ot",
+              "ota",
+              "lpc"
+            ],
+            "type": "string"
+          },
+          "amount": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "militaryRate": {
+            "description": "Optional military rate for the privilege fee.",
+            "oneOf": [
+              {
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "licenseTypeAbbreviation",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "jurisdictionOperationsTeamEmails": {
+      "description": "List of email addresses for operations team notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 10,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "jurisdictionAdverseActionsNotificationEmails": {
+      "description": "List of email addresses for adverse actions notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 10,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "jurisdictionSummaryReportNotificationEmails": {
+      "description": "List of email addresses for summary report notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "minItems": 1,
+      "maxItems": 10,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "jurisprudenceRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "description": "Whether jurisprudence requirements exist",
+          "type": "boolean"
+        },
+        "linkToDocumentation": {
+          "description": "Optional link to jurisprudence documentation",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "type": "object"
+    },
+    "licenseeRegistrationEnabled": {
+      "description": "Denotes whether licensee registration is enabled",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "privilegeFees",
+    "jurisdictionOperationsTeamEmails",
+    "jurisdictionAdverseActionsNotificationEmails",
+    "jurisdictionSummaryReportNotificationEmails",
+    "jurisprudenceRequirements",
+    "licenseeRegistrationEnabled"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

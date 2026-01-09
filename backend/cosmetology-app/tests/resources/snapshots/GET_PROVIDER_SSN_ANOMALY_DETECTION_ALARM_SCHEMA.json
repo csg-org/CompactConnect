@@ -1,0 +1,31 @@
+{
+  "ActionsEnabled": true,
+  "AlarmDescription": "Sandbox/ApiLambdaStack/GetProviderSSNHandler read-ssn anomaly detection. The GET provider SSN endpoint has beencalled an irregular number of times. Investigation required to ensure ssn endpoint is not being abused.",
+  "ComparisonOperator": "GreaterThanUpperThreshold",
+  "EvaluationPeriods": 1,
+  "Metrics": [
+    {
+      "Expression": "ANOMALY_DETECTION_BAND(m1, 2)",
+      "Id": "ad1"
+    },
+    {
+      "Id": "m1",
+      "MetricStat": {
+        "Metric": {
+          "Dimensions": [
+            {
+              "Name": "service",
+              "Value": "common"
+            }
+          ],
+          "MetricName": "read-ssn",
+          "Namespace": "compact-connect"
+        },
+        "Period": 3600,
+        "Stat": "SampleCount"
+      }
+    }
+  ],
+  "ThresholdMetricId": "ad1",
+  "TreatMissingData": "notBreaching"
+}

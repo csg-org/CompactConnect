@@ -1,0 +1,27 @@
+{
+  "properties": {
+    "upload": {
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "fields": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "url",
+        "fields"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "upload"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}
