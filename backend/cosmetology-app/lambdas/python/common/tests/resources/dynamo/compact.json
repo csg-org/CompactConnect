@@ -1,0 +1,37 @@
+{
+  "pk": "aslp#CONFIGURATION",
+  "sk": "aslp#CONFIGURATION",
+  "type": "compact",
+  "compactAbbr": "aslp",
+  "compactName": "Audiology and Speech Language Pathology",
+  "compactCommissionFee": {
+    "feeType": "FLAT_RATE",
+    "feeAmount": 3.50
+  },
+  "transactionFeeConfiguration": {
+    "licenseeCharges": {
+      "active": true,
+      "chargeType": "FLAT_FEE_PER_PRIVILEGE",
+      "chargeAmount": 3.00
+    }
+  },
+  "compactOperationsTeamEmails": ["<email address>"],
+  "compactAdverseActionsNotificationEmails": ["<email address>"],
+  "compactSummaryReportNotificationEmails": ["<email address>"],
+  "licenseeRegistrationEnabled": true,
+  "configuredStates": [
+    {
+      "postalAbbreviation": "ky",
+      "isLive": true
+    },
+    {
+      "postalAbbreviation": "oh",
+      "isLive": true
+    },
+        {
+      "postalAbbreviation": "ne",
+      "isLive": true
+    }
+  ],
+  "dateOfUpdate": "2024-10-04T12:34:56+00:00"
+}
