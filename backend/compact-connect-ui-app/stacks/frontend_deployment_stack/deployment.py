@@ -62,7 +62,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                                 'VUE_APP_ROBOTS_META': robots_meta,
                                 'VUE_APP_API_STATE_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
                                 'VUE_APP_API_LICENSE_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
-                                'VUE_APP_API_SEARCH_ROOT': f'{HTTPS_PREFIX}search.{persistent_stack_app_config_values.api_domain_name}',
+                                'VUE_APP_API_SEARCH_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.search_api_domain_name}',
                                 'VUE_APP_API_USER_ROOT': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.api_domain_name}',
                                 'VUE_APP_COGNITO_REGION': 'us-east-1',
                                 'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.staff_cognito_domain}',
