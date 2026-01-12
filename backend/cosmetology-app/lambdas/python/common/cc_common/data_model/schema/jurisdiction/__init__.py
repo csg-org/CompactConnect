@@ -1,7 +1,6 @@
 # ruff: noqa: N801, N802, N815, ARG002 invalid-name unused-kwargs
 
 from collections import UserDict
-from decimal import Decimal
 
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
@@ -16,25 +15,6 @@ class JurisdictionJurisprudenceRequirements(UserDict):
     @property
     def required(self) -> bool:
         return self['required']
-
-
-class JurisdictionPrivilegeFee(UserDict):
-    """
-    Jurisdiction license fee data model. Used to access variables without needing to know
-    the underlying key structure.
-    """
-
-    @property
-    def license_type_abbreviation(self) -> str:
-        return self['licenseTypeAbbreviation']
-
-    @property
-    def amount(self) -> Decimal:
-        return self['amount']
-
-    @property
-    def military_rate(self) -> Decimal | None:
-        return self.get('militaryRate')
 
 
 class Jurisdiction(UserDict):
@@ -57,10 +37,6 @@ class Jurisdiction(UserDict):
     @property
     def compact(self) -> str:
         return self['compact']
-
-    @property
-    def privilege_fees(self) -> list[JurisdictionPrivilegeFee]:
-        return [JurisdictionPrivilegeFee(fee) for fee in self.data['privilegeFees']]
 
     @property
     def jurisprudence_requirements(self) -> JurisdictionJurisprudenceRequirements:
@@ -107,10 +83,6 @@ class JurisdictionConfigurationData(CCDataClass):
     @property
     def compact(self) -> str:
         return self._data['compact']
-
-    @property
-    def privilegeFees(self) -> list[dict]:
-        return self._data['privilegeFees']
 
     @property
     def jurisprudenceRequirements(self) -> dict:

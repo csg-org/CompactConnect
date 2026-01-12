@@ -5,19 +5,12 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.fields import PositiveDecimal
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 
 
 class JurisdictionJurisprudenceRequirementsResponseSchema(ForgivingSchema):
     required = Boolean(required=True, allow_none=False)
     linkToDocumentation = String(required=False, allow_none=True)
-
-
-class JurisdictionPrivilegeFeeResponseSchema(ForgivingSchema):
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
-    amount = PositiveDecimal(required=True, allow_none=True)
-    militaryRate = PositiveDecimal(required=False, allow_none=True)
 
 
 class JurisdictionOptionsResponseSchema(ForgivingSchema):
@@ -30,7 +23,6 @@ class JurisdictionOptionsResponseSchema(ForgivingSchema):
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )
@@ -67,7 +59,6 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    privilegeFees = List(Nested(JurisdictionPrivilegeFeeResponseSchema()), required=True, allow_none=False)
     jurisdictionOperationsTeamEmails = List(Email(required=True, allow_none=False), required=True, allow_none=False)
     jurisdictionAdverseActionsNotificationEmails = List(
         Email(required=True, allow_none=False),
@@ -85,17 +76,6 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
 
-class JurisdictionPrivilegeFeeRequestSchema(Schema):
-    """
-    The difference between this schema and the response schema is one is forgiving and allows null values in the
-    case where we return a default config object for a state that has not set up their configuration yet.
-    """
-
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
-    amount = PositiveDecimal(required=True, allow_none=False)
-    militaryRate = PositiveDecimal(required=False, allow_none=True)
-
-
 class PutCompactJurisdictionConfigurationRequestSchema(Schema):
     """
     Used to enforce which fields are posted in jurisdiction objects for the
@@ -103,7 +83,6 @@ class PutCompactJurisdictionConfigurationRequestSchema(Schema):
     """
 
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
-    privilegeFees = List(Nested(JurisdictionPrivilegeFeeRequestSchema()), required=True, allow_none=False)
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsResponseSchema(), required=True, allow_none=False
     )

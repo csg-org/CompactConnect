@@ -5,18 +5,6 @@
   "compact": "aslp",
   "jurisdictionName": "ohio",
   "postalAbbreviation": "oh",
-  "privilegeFees": [
-    {
-      "licenseTypeAbbreviation": "aud",
-      "amount": 100,
-      "militaryRate": 40
-    },
-    {
-      "licenseTypeAbbreviation": "slp",
-      "amount": 100,
-      "militaryRate": 40
-    }
-  ],
   "jurisdictionOperationsTeamEmails": ["some-operations-team@test.com"],
   "jurisdictionAdverseActionsNotificationEmails": ["some-adverse-actions-notification-team@test.com"],
   "jurisdictionSummaryReportNotificationEmails": ["some-summary-report-notification-team@test.com"],

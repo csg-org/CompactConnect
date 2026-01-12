@@ -8,5 +8,4 @@ from .license.record import LicenseRecordSchema
 from .military_affiliation.record import MilitaryAffiliationRecordSchema
 from .privilege.record import PrivilegeRecordSchema
 from .provider.record import ProviderRecordSchema
-from .transaction.record import TransactionRecordSchema
 from .user.record import UserRecordSchema

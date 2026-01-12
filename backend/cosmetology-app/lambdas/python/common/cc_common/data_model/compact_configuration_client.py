@@ -100,7 +100,7 @@ class CompactConfigurationClient:
 
     def save_compact_configuration(self, compact_configuration: CompactConfigurationData) -> None:
         """
-        Save the compact configuration, preserving existing fields like paymentProcessorPublicFields.
+        Save the compact configuration.
         If a record exists, it merges the new values with the existing record to preserve all fields.
 
         :param compact_configuration: The compact configuration data
@@ -114,7 +114,7 @@ class CompactConfigurationClient:
             existing_compact_config = None
 
         if existing_compact_config:
-            # Record exists - merge with existing data to preserve fields like paymentProcessorPublicFields
+            # Record exists - merge with existing data to preserve all fields
             logger.info('Updating existing compact configuration record', compactAbbr=compact_configuration.compactAbbr)
 
             # Load the existing record into a data class to get the existing data
@@ -126,11 +126,6 @@ class CompactConfigurationClient:
             # Merge the data - new values override existing ones, but existing fields not in new_data are preserved
             merged_data = existing_data.copy()
             merged_data.update(new_data)
-
-            # Handle the special case where transactionFeeConfiguration should be removed
-            # If the new configuration doesn't have transactionFeeConfiguration, remove it from merged data
-            if 'transactionFeeConfiguration' not in new_data and 'transactionFeeConfiguration' in merged_data:
-                del merged_data['transactionFeeConfiguration']
 
             # Create a new CompactConfigurationData with the merged data
             merged_config = CompactConfigurationData.create_new(merged_data)
@@ -398,34 +393,6 @@ class CompactConfigurationClient:
         # in this case, there is nothing to return, so we return an empty list, and let the caller decide to raise
         # an exception or not.
         return {'items': []}
-
-    def set_compact_authorize_net_public_values(self, compact: str, api_login_id: str, public_client_key: str) -> None:
-        """
-        Set the payment processor public fields (apiLoginId and publicClientKey) for a compact's configuration.
-        This is used to store the public fields needed for the frontend Accept UI integration.
-
-        :param compact: The compact abbreviation
-        :param api_login_id: The API login ID from authorize.net
-        :param public_client_key: The public client key from authorize.net
-        """
-        logger.info('Verifying that compact configuration exists', compact=compact)
-        pk = f'{compact}#CONFIGURATION'
-        sk = f'{compact}#CONFIGURATION'
-
-        response = self.config.compact_configuration_table.get_item(Key={'pk': pk, 'sk': sk})
-
-        item = response.get('Item')
-        if not item:
-            raise CCNotFoundException(f'No configuration found for compact "{compact}"')
-
-        logger.info('Setting authorize.net public values for compact', compact=compact)
-
-        # Use UPDATE with SET to add/update the paymentProcessorPublicFields
-        self.config.compact_configuration_table.update_item(
-            Key={'pk': pk, 'sk': sk},
-            UpdateExpression='SET paymentProcessorPublicFields = :ppf',
-            ExpressionAttributeValues={':ppf': {'apiLoginId': api_login_id, 'publicClientKey': public_client_key}},
-        )
 
     def update_compact_configured_states(self, compact: str, configured_states: list[dict]) -> None:
         """

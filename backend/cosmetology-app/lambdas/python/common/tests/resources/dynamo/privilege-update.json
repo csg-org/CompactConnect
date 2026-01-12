@@ -1,13 +1,12 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "aslp#UPDATE#1#privilege/ne/slp/2020-05-05T12:59:59+00:00/939a3c350708e34875f0a652bf7d7454",
+  "sk": "aslp#UPDATE#1#privilege/ne/slp/2020-05-05T12:59:59+00:00/34114f9fb9eb58750f7e5850b693c9b3",
   "type": "privilegeUpdate",
   "updateType": "renewal",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
   "compact": "aslp",
   "jurisdiction": "ne",
   "licenseType": "speech-language pathologist",
-  "compactTransactionIdGSIPK": "COMPACT#aslp#TX#0123456789#",
   "dateOfUpdate": "2020-05-05T12:59:59+00:00",
   "createDate": "2020-05-05T12:59:59+00:00",
   "effectiveDate": "2020-05-05T12:59:59+00:00",
@@ -19,14 +18,12 @@
     "dateOfRenewal": "2016-05-05T12:59:59+00:00",
     "dateOfExpiration": "2020-06-06",
     "dateOfUpdate": "2016-05-05T12:59:59+00:00",
-    "compactTransactionId": "0123456789",
     "privilegeId": "SLP-NE-1",
     "administratorSetStatus": "active",
     "licenseJurisdiction": "oh"
   },
   "updatedValues": {
     "dateOfRenewal": "2020-05-05T12:59:59+00:00",
-    "dateOfExpiration": "2025-04-04",
-    "compactTransactionId": "1234567890"
+    "dateOfExpiration": "2025-04-04"
   }
 }

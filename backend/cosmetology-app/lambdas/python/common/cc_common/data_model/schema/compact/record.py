@@ -7,10 +7,7 @@ from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.compact.common import (
     COMPACT_TYPE,
-    CompactCommissionFeeSchema,
     ConfiguredStateSchema,
-    PaymentProcessorPublicFieldsSchema,
-    TransactionFeeConfigurationSchema,
     validate_no_duplicates_in_configured_states,
 )
 
@@ -24,10 +21,6 @@ class CompactRecordSchema(BaseRecordSchema):
     # Provided fields
     compactAbbr = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactName = String(required=True, allow_none=False)
-    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
-    # Optional field for compacts that want to charge a transaction fee
-    # If the transaction fee is set to 0 by the client, the transactionFeeConfiguration object is removed
-    transactionFeeConfiguration = Nested(TransactionFeeConfigurationSchema(), required=False, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     compactAdverseActionsNotificationEmails = List(
         String(required=True, allow_none=False),
@@ -42,9 +35,6 @@ class CompactRecordSchema(BaseRecordSchema):
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     # List of states that have submitted configurations and their live status
     configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)
-    # This is not set until a compact admin uploads credentials for their payment processor
-    # These fields are used by the frontend to generate a payment collection form
-    paymentProcessorPublicFields = Nested(PaymentProcessorPublicFieldsSchema(), required=False, allow_none=False)
 
     # Generated fields
     pk = String(required=True, allow_none=False)

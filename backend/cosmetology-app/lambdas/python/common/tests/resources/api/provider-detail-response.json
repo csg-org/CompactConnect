@@ -67,7 +67,6 @@
       "dateOfRenewal": "2020-05-05T12:59:59+00:00",
       "dateOfExpiration": "2025-04-04",
       "dateOfUpdate": "2020-05-05T12:59:59+00:00",
-      "compactTransactionId": "1234567890",
       "privilegeId": "SLP-NE-1",
       "administratorSetStatus": "active",
       "adverseActions": [],

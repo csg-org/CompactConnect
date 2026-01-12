@@ -53,38 +53,6 @@ class TestCompactRecordSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             CompactRecordSchema().load(expected_compact.copy())
 
-    def test_compact_config_raises_validation_error_for_negative_commission_fee(self):
-        """Test that a negative commission fee amount raises a ValidationError"""
-        from cc_common.data_model.schema.compact.record import CompactRecordSchema
-
-        with open('tests/resources/dynamo/compact.json') as f:
-            expected_compact = json.load(f, parse_float=Decimal)
-            expected_compact['compactCommissionFee']['feeAmount'] = Decimal('-10.00')
-
-        with self.assertRaises(ValidationError) as context:
-            CompactRecordSchema().load(expected_compact.copy())
-
-        self.assertIn(
-            "{'compactCommissionFee': {'feeAmount': ['Must be greater than or equal to 0.']", str(context.exception)
-        )
-
-    def test_compact_config_raises_validation_error_for_negative_transaction_fee(self):
-        """Test that a negative transaction fee amount raises a ValidationError"""
-        from cc_common.data_model.schema.compact.record import CompactRecordSchema
-
-        with open('tests/resources/dynamo/compact.json') as f:
-            expected_compact = json.load(f, parse_float=Decimal)
-            expected_compact['transactionFeeConfiguration']['licenseeCharges']['chargeAmount'] = Decimal('-5.00')
-
-        with self.assertRaises(ValidationError) as context:
-            CompactRecordSchema().load(expected_compact.copy())
-
-        self.assertIn(
-            "{'transactionFeeConfiguration': {'licenseeCharges': {'chargeAmount': "
-            "['Must be greater than or equal to 0.']",
-            str(context.exception),
-        )
-
     def test_compact_config_raises_validation_error_for_invalid_configured_state_jurisdiction(self):
         """Test that an invalid jurisdiction postal abbreviation in configuredStates raises a ValidationError"""
         from cc_common.data_model.schema.compact.record import CompactRecordSchema
