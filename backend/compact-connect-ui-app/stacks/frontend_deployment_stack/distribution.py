@@ -57,6 +57,7 @@ def generate_csp_lambda_code(
     replacements = {
         '##WEB_FRONTEND##': persistent_stack_values.ui_domain_name,
         '##DATA_API##': persistent_stack_values.api_domain_name,
+        '##SEARCH_API##': 'TODO',
         '##S3_UPLOAD_URL_STATE##': f'{persistent_stack_values.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##S3_UPLOAD_URL_PROVIDER##': f'{persistent_stack_values.provider_users_bucket_name}{S3_URL_SUFFIX}',
         '##COGNITO_STAFF##': persistent_stack_values.staff_cognito_domain,
