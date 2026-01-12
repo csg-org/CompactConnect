@@ -15,7 +15,6 @@ from cc_common.data_model.schema.jurisdiction.api import (
     PutCompactJurisdictionConfigurationRequestSchema,
 )
 from cc_common.exceptions import CCInvalidRequestException, CCNotFoundException
-from cc_common.license_util import LicenseUtility
 from cc_common.utils import api_handler, authorize_compact_level_only_action, authorize_state_level_only_action
 from marshmallow import ValidationError
 
@@ -185,16 +184,12 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
                 'compactAbbr': compact,
                 'compactName': compact_name,
                 'licenseeRegistrationEnabled': False,
-                # we need to set this value to 0 to pass validation
-                'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 0},
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'compactSummaryReportNotificationEmails': [],
                 'configuredStates': [],
             }
         ).to_dict()
-        # we explicitly set this value to None (null) to denote it has not been set.
-        empty_config['compactCommissionFee']['feeAmount'] = None
 
         return CompactConfigurationResponseSchema().load(empty_config)
 
@@ -234,19 +229,6 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
                     submitting_user_id=submitting_user_id,
                 )
                 raise CCInvalidRequestException('Once licensee registration has been enabled, it cannot be disabled.')
-            if (
-                validated_data.get('licenseeRegistrationEnabled') is True
-                and not existing_config.paymentProcessorPublicFields
-            ):
-                logger.info(
-                    'licensee registration set to live without payment processor credentials.',
-                    compact=compact,
-                    submitting_user_id=submitting_user_id,
-                )
-                raise CCInvalidRequestException(
-                    'Authorize.net credentials not configured for compact. '
-                    'Please upload valid Authorize.net credentials.'
-                )
 
             _validate_configured_states_transitions(
                 existing_config.configuredStates, validated_data['configuredStates'], compact, submitting_user_id
@@ -254,23 +236,6 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
         except CCNotFoundException as e:
             # No existing configuration, so this is the first time setting this field
             logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
-            if validated_data.get('licenseeRegistrationEnabled') is True:
-                logger.info(
-                    'attempt to enable licensee registration without existing configuration.',
-                    compact=compact,
-                    submitting_user_id=submitting_user_id,
-                )
-                raise CCInvalidRequestException(
-                    'Authorize.net credentials need to be uploaded before the compact can be marked as live. '
-                    'Please submit all configuration values before setting the compact as live.'
-                ) from e
-
-        # Handle special case for transaction fee of 0
-        if validated_data.get('transactionFeeConfiguration', {}).get('licenseeCharges', {}).get('chargeAmount') == 0:
-            # If transaction fee is 0, remove the entire transactionFeeConfiguration object since a value of 0
-            # is the same as no transaction fee
-            logger.info('Removed transaction fee configuration because transaction fee was 0', compact=compact)
-            del validated_data['transactionFeeConfiguration']
 
         compact_configuration = CompactConfigurationData.create_new(validated_data)
         # Save the compact configuration
@@ -379,21 +344,12 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
         )
         jurisdiction_name = CompactConfigUtility.get_jurisdiction_name(jurisdiction)
 
-        # Get all valid license types for this compact to populate default privilege fees
-        valid_license_types = LicenseUtility.get_valid_license_type_abbreviations(compact)
-        default_privilege_fees = [
-            # we set the amount to 0 to pass schema validation
-            {'licenseTypeAbbreviation': lt, 'amount': 0, 'militaryRate': None}
-            for lt in valid_license_types
-        ]
-
-        # Create a new empty configuration with the correct field names and default privilege fees
+        # Create a new empty configuration with the correct field names
         empty_config = JurisdictionConfigurationData.create_new(
             {
                 'compact': compact,
                 'jurisdictionName': jurisdiction_name,
                 'postalAbbreviation': jurisdiction,
-                'privilegeFees': default_privilege_fees,
                 'jurisprudenceRequirements': {
                     'required': False,
                     'linkToDocumentation': None,
@@ -404,9 +360,6 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
                 'licenseeRegistrationEnabled': False,
             }
         ).to_dict()
-        # we set the privilege fees to None to show that they have not been set
-        for fee in empty_config['privilegeFees']:
-            fee['amount'] = None
 
         return CompactJurisdictionConfigurationResponseSchema().load(empty_config)
 

@@ -4,17 +4,6 @@
   "type": "compact",
   "compactAbbr": "aslp",
   "compactName": "Audiology and Speech Language Pathology",
-  "compactCommissionFee": {
-    "feeType": "FLAT_RATE",
-    "feeAmount": 3.50
-  },
-  "transactionFeeConfiguration": {
-    "licenseeCharges": {
-      "active": true,
-      "chargeType": "FLAT_FEE_PER_PRIVILEGE",
-      "chargeAmount": 3.00
-    }
-  },
   "compactOperationsTeamEmails": ["<email address>"],
   "compactAdverseActionsNotificationEmails": ["<email address>"],
   "compactSummaryReportNotificationEmails": ["<email address>"],

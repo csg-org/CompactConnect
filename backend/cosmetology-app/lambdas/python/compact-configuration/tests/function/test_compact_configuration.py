@@ -337,19 +337,10 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event['pathParameters']['compact'] = compact_config['compactAbbr']
         return event, compact_config
 
-    def _when_testing_put_compact_configuration_with_existing_configuration(
-        self, set_payment_fields: bool = True, transaction_fee_zero: bool = False
-    ):
+    def _when_testing_put_compact_configuration_with_existing_configuration(self):
         from cc_common.utils import ResponseEncoder
 
-        value_overrides = {}
-        if set_payment_fields:
-            value_overrides.update(
-                {'paymentProcessorPublicFields': {'publicClientKey': 'some-key', 'apiLoginId': 'some-login-id'}}
-            )
-        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
-            value_overrides=value_overrides
-        )
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table()
 
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = compact_config.compactAbbr
@@ -360,23 +351,17 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         # we only allow the following values in the body
         event['body'] = json.dumps(
             {
-                'compactCommissionFee': compact_config.compactCommissionFee,
                 'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
                 'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
                 'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
                 'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
                 'configuredStates': compact_config.configuredStates,
-                'transactionFeeConfiguration': compact_config.transactionFeeConfiguration
-                if not transaction_fee_zero
-                else {
-                    'licenseeCharges': {'chargeAmount': 0.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
-                },
             },
             cls=ResponseEncoder,
         )
         return event, compact_config
 
-    def _when_testing_put_compact_configuration(self, transaction_fee_zero: bool = False):
+    def _when_testing_put_compact_configuration(self):
         from cc_common.utils import ResponseEncoder
 
         compact_config = self.test_data_generator.generate_default_compact_configuration(
@@ -391,17 +376,11 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         # we only allow the following values in the body
         event['body'] = json.dumps(
             {
-                'compactCommissionFee': compact_config.compactCommissionFee,
                 'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
                 'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
                 'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
                 'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
                 'configuredStates': compact_config.configuredStates,
-                'transactionFeeConfiguration': compact_config.transactionFeeConfiguration
-                if not transaction_fee_zero
-                else {
-                    'licenseeCharges': {'chargeAmount': 0.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
-                },
             },
             cls=ResponseEncoder,
         )
@@ -452,7 +431,6 @@ class TestStaffUsersCompactConfiguration(TstFunction):
             {
                 'compactAbbr': 'aslp',
                 'compactName': 'Audiology and Speech Language Pathology',
-                'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': None},
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'compactSummaryReportNotificationEmails': [],
@@ -508,53 +486,6 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
 
-    def test_put_compact_configuration_preserves_payment_processor_fields_when_updating_compact_configuration(self):
-        """Test putting a compact configuration preserves existing fields not set by the request body."""
-        from cc_common.data_model.schema.compact import CompactConfigurationData
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        event, compact_config = self._when_testing_put_compact_configuration_with_existing_configuration()
-
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
-
-        # load the record from the configuration table
-        serialized_compact_config = compact_config.serialize_to_database_record()
-        response = self.config.compact_configuration_table.get_item(
-            Key={'pk': serialized_compact_config['pk'], 'sk': serialized_compact_config['sk']}
-        )
-
-        stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
-        # the compact_config variable has the 'paymentProcessorPublicFields' field, which we expect to also be
-        # present in the stored_compact_data
-        self.assertEqual(
-            compact_config.to_dict(),
-            stored_compact_data.to_dict(),
-            msg=f'expected config and actual do not match. Expected\n {compact_config.to_dict()}\n'
-            f'actual:\n {stored_compact_data.to_dict()}',
-        )
-
-    def test_put_compact_configuration_removes_transaction_fee_when_zero(self):
-        """Test that when a transaction fee of 0 is provided, the transaction fee configuration is removed."""
-        from cc_common.data_model.schema.compact import CompactConfigurationData
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        event, expected_config = self._when_testing_put_compact_configuration(transaction_fee_zero=True)
-
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
-
-        # load the record from the configuration table
-        serialized_compact_config = expected_config.serialize_to_database_record()
-        response = self.config.compact_configuration_table.get_item(
-            Key={'pk': serialized_compact_config['pk'], 'sk': serialized_compact_config['sk']}
-        )
-
-        stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
-
-        # Verify the transaction fee configuration is not present
-        self.assertNotIn('transactionFeeConfiguration', stored_compact_data.to_dict())
-
     def test_put_compact_configuration_rejects_disabling_licensee_registration(self):
         """Test that a compact configuration update is rejected if trying to disable licensee registration after enabling it."""
         from handlers.compact_configuration import compact_configuration_api_handler
@@ -572,48 +503,6 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(400, response['statusCode'])
         response_body = json.loads(response['body'])
         self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
-
-    def test_put_compact_configuration_rejects_enabling_licensee_registration_without_payment_credentials(self):
-        """Test that a compact configuration update is rejected if trying to enable licensee registration without payment processor credentials."""
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        # Attempt to enable licensee registration without any existing configuration (no payment credentials)
-        event, _ = self._when_testing_put_compact_configuration()
-        body = json.loads(event['body'])
-        body['licenseeRegistrationEnabled'] = True
-        event['body'] = json.dumps(body)
-
-        # Should be rejected with a 400 error
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        response_body = json.loads(response['body'])
-        self.assertIn(
-            'Authorize.net credentials need to be uploaded before the compact can be marked as live.',
-            response_body['message'],
-        )
-
-    def test_put_compact_configuration_rejects_enabling_licensee_registration_with_existing_config_without_payment_credentials(
-        self,
-    ):
-        """Test that a compact configuration update is rejected if trying to enable licensee registration when existing config has no payment credentials."""
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        # First, create a basic compact configuration without payment credentials
-        event, _ = self._when_testing_put_compact_configuration_with_existing_configuration(set_payment_fields=False)
-
-        # Now attempt to enable licensee registration without payment credentials
-        body = json.loads(event['body'])
-        body['licenseeRegistrationEnabled'] = True
-        event['body'] = json.dumps(body)
-
-        # Should be rejected with a 400 error
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        response_body = json.loads(response['body'])
-        self.assertIn(
-            'Authorize.net credentials not configured for compact. Please upload valid Authorize.net credentials.',
-            response_body['message'],
-        )
 
     def test_put_compact_configuration_rejects_removing_configured_states(self):
         """Test that removing states from configuredStates is rejected."""
@@ -799,21 +688,11 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'jurisdictionSummaryReportNotificationEmails': jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
                 'licenseeRegistrationEnabled': jurisdiction_config.licenseeRegistrationEnabled,
                 'jurisprudenceRequirements': jurisdiction_config.jurisprudenceRequirements,
-                'privilegeFees': jurisdiction_config.privilegeFees,
             },
             cls=ResponseEncoder,
         )
 
         return event, jurisdiction_config
-
-    def _when_testing_invalid_privilege_fees(self, privilege_fees: list[dict]):
-        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
-
-        body = json.loads(event['body'])
-        body['privilegeFees'] = privilege_fees
-        event['body'] = json.dumps(body)
-
-        return event
 
     def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_http_method(self):
         """Test getting a jurisdiction configuration returns an invalid exception if the HTTP method is invalid."""
@@ -876,18 +755,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
-        # Get the expected license types for this compact
-        valid_license_types = LicenseUtility.get_valid_license_type_abbreviations('aslp')
-        expected_privilege_fees = [
-            {'licenseTypeAbbreviation': lt, 'amount': None, 'militaryRate': None} for lt in sorted(valid_license_types)
-        ]
-
-        # Sort the response privilege fees by license type for consistent comparison
-        response_body['privilegeFees'] = sorted(
-            response_body['privilegeFees'], key=lambda x: x['licenseTypeAbbreviation']
-        )
-
-        # Verify the jurisdiction name is set correctly from the mapping and privilege fees are created correctly
+        # Verify the jurisdiction name is set correctly from the mapping
         self.assertEqual(
             {
                 'compact': 'aslp',
@@ -898,7 +766,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'jurisprudenceRequirements': {'linkToDocumentation': None, 'required': False},
                 'licenseeRegistrationEnabled': False,
                 'postalAbbreviation': 'ky',
-                'privilegeFees': expected_privilege_fees,
             },
             response_body,
         )
@@ -930,7 +797,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
                 'jurisdictionName': test_jurisdiction_config.jurisdictionName,
                 'jurisprudenceRequirements': test_jurisdiction_config.jurisprudenceRequirements,
                 'postalAbbreviation': test_jurisdiction_config.postalAbbreviation,
-                'privilegeFees': test_jurisdiction_config.privilegeFees,
                 'jurisdictionOperationsTeamEmails': test_jurisdiction_config.jurisdictionOperationsTeamEmails,
                 'jurisdictionAdverseActionsNotificationEmails': test_jurisdiction_config.jurisdictionAdverseActionsNotificationEmails,
                 'jurisdictionSummaryReportNotificationEmails': test_jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
@@ -999,9 +865,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         # Set linkToDocumentation to null
         body['jurisprudenceRequirements'] = {'required': True, 'linkToDocumentation': None}
 
-        # Set militaryRate to null for the first privilege fee
-        body['privilegeFees'][0]['militaryRate'] = None
-
         event['body'] = json.dumps(body, cls=ResponseEncoder)
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -1018,65 +881,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
         # Verify the optional fields have null values
         self.assertIsNone(stored_dict['jurisprudenceRequirements']['linkToDocumentation'])
-
-        # Find the privilege fee that should have null militaryRate
-        self.assertIsNone(stored_dict['privilegeFees'][0]['militaryRate'])
-
-    def test_put_jurisdiction_configuration_rejects_invalid_license_type_abbreviation(self):
-        """Test putting a jurisdiction configuration with an invalid license type abbreviation is rejected."""
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        event = self._when_testing_invalid_privilege_fees(
-            privilege_fees=[{'licenseTypeAbbreviation': 'INVALID_LICENSE_TYPE', 'amount': 100.00}]
-        )
-
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        response_body = json.loads(response['body'])
-        self.assertIn(
-            'Invalid jurisdiction configuration: '
-            "{'privilegeFees': ['Invalid license type abbreviation(s): INVALID_LICENSE_TYPE.",
-            response_body['message'],
-        )
-
-    def test_put_jurisdiction_configuration_rejects_duplicate_license_type_abbreviation(self):
-        """Test putting a jurisdiction configuration with a duplicate license type is rejected."""
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        event = self._when_testing_invalid_privilege_fees(
-            privilege_fees=[
-                {'licenseTypeAbbreviation': 'slp', 'amount': 100.00},
-                {'licenseTypeAbbreviation': 'aud', 'amount': 100.00},
-                {'licenseTypeAbbreviation': 'slp', 'amount': 50.00},
-            ]
-        )
-
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        response_body = json.loads(response['body'])
-        self.assertIn(
-            'Invalid jurisdiction configuration: '
-            "{'privilegeFees': ['Duplicate privilege fees found for same license type abbreviation(s).",
-            response_body['message'],
-        )
-
-    def test_put_jurisdiction_configuration_rejects_missing_license_type_abbreviation(self):
-        """Test putting a jurisdiction configuration with a missing license type abbreviation is rejected."""
-        from handlers.compact_configuration import compact_configuration_api_handler
-
-        event = self._when_testing_invalid_privilege_fees(
-            privilege_fees=[{'licenseTypeAbbreviation': 'slp', 'amount': 100.00}]
-        )
-
-        response = compact_configuration_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        response_body = json.loads(response['body'])
-        self.assertIn(
-            "Invalid jurisdiction configuration: {'privilegeFees': "
-            "['Missing privilege fee(s) for required license type(s): aud. "
-            'All valid license types for aslp must be included',
-            response_body['message'],
-        )
 
     def test_put_jurisdiction_configuration_rejects_disabling_licensee_registration(self):
         """Test that a jurisdiction configuration update is rejected if trying to disable licensee registration after enabling it."""
