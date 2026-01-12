@@ -4,14 +4,14 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/disaster-recovery/requirements-dev.in
 #
-boto3==1.42.11
+boto3==1.42.25
     # via moto
-botocore==1.42.11
+botocore==1.42.25
     # via
     #   boto3
     #   moto
     #   s3transfer
-certifi==2025.11.12
+certifi==2026.1.4
     # via requests
 cffi==2.0.0
     # via cryptography
@@ -33,7 +33,7 @@ markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-moto[dynamodb,s3]==5.1.18
+moto[dynamodb,s3]==5.1.19
     # via -r lambdas/python/disaster-recovery/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
@@ -58,13 +58,13 @@ s3transfer==0.16.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-urllib3==2.6.2
+urllib3==2.6.3
     # via
     #   botocore
     #   docker
     #   requests
     #   responses
-werkzeug==3.1.4
+werkzeug==3.1.5
     # via moto
 xmltodict==1.0.2
     # via moto
