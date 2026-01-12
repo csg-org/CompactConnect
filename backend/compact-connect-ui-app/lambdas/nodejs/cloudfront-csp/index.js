@@ -19,6 +19,7 @@
 const environmentValues = {
     webFrontend: `##WEB_FRONTEND##`,
     dataApi: `##DATA_API##`,
+    searchApi: `##SEARCH_API##`,
     s3UploadUrlState: `##S3_UPLOAD_URL_STATE##`,
     s3UploadUrlProvider: `##S3_UPLOAD_URL_PROVIDER##`,
     cognitoStaff: `##COGNITO_STAFF##`,
@@ -62,6 +63,7 @@ const getEnvironmentUrls = () => {
     const environmentUrls = {};
 
     environmentUrls.dataApi = getFullyQualified(environmentValues.dataApi);
+    environmentUrls.searchApi = getFullyQualified(environmentValues.searchApi);
     environmentUrls.s3UploadUrlState = getFullyQualified(environmentValues.s3UploadUrlState);
     environmentUrls.s3UploadUrlProvider = getFullyQualified(environmentValues.s3UploadUrlProvider);
     environmentUrls.cognitoStaff = getFullyQualified(environmentValues.cognitoStaff);
@@ -237,6 +239,7 @@ const setCspHeader = (headers = {}) => {
             buildSrcString('connect-src', [
                 'self',
                 domains.dataApi,
+                domains.searchApi,
                 domains.s3UploadUrlState,
                 domains.s3UploadUrlProvider,
                 domains.cognitoStaff,
