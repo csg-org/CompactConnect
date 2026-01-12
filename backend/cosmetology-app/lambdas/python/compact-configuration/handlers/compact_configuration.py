@@ -233,7 +233,7 @@ def _put_compact_configuration(event: dict, context: LambdaContext):  # noqa: AR
             _validate_configured_states_transitions(
                 existing_config.configuredStates, validated_data['configuredStates'], compact, submitting_user_id
             )
-        except CCNotFoundException as e:
+        except CCNotFoundException:
             # No existing configuration, so this is the first time setting this field
             logger.info('No existing configuration, so this is the first time setting this field', compact=compact)
 
