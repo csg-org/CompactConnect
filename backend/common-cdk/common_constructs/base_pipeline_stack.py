@@ -39,7 +39,8 @@ class BasePipelineStack(Stack):
     ):
         super().__init__(scope, construct_id, environment_name='pipeline', env=env, **kwargs)
 
-        self.env = env
+        # Note: self.env is already set by the parent Stack.__init__() call above
+        # In newer CDK versions, env is read-only after construction, so we don't reassign it
         self.environment_name = environment_name
         self.removal_policy = removal_policy
         self.access_logs_bucket = pipeline_access_logs_bucket
