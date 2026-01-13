@@ -19,7 +19,11 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
 
         # Set values
         util.set_staff_cognito_values(domain_name='staff-domain.example.com', client_id='staff-client-123')
-        util.set_domain_names(ui_domain_name='ui.example.com', api_domain_name='api.example.com')
+        util.set_domain_names(
+            ui_domain_name='ui.example.com',
+            api_domain_name='api.example.com',
+            search_api_domain_name='search.example.com',
+        )
 
         # Get JSON representation
         config_json = util.get_config_json()
@@ -32,6 +36,7 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
                 'staff_cognito_client_id': 'staff-client-123',
                 'ui_domain_name': 'ui.example.com',
                 'api_domain_name': 'api.example.com',
+                'search_api_domain_name': 'search.example.com',
             },
             config_dict,
         )
@@ -46,6 +51,7 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
                     'staff_cognito_client_id': 'staff-client-123',
                     'ui_domain_name': 'ui.example.com',
                     'api_domain_name': 'api.example.com',
+                    'search_api_domain_name': 'search.example.com',
                 }
             )
         )
@@ -55,6 +61,7 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
         self.assertEqual(util.staff_cognito_client_id, 'staff-client-123')
         self.assertEqual(util.ui_domain_name, 'ui.example.com')
         self.assertEqual(util.api_domain_name, 'api.example.com')
+        self.assertEqual(util.search_api_domain_name, 'search.example.com')
 
 
 class TestProviderUserStackFrontendAppConfigUtility(TestCase):

@@ -22,7 +22,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.constants import PROD_ENV_NAME
-from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
+from stacks.vpc_stack import VpcStack
 
 PROD_EBS_VOLUME_SIZE = 25
 NON_PROD_EBS_VOLUME_SIZE = 10
@@ -40,8 +40,8 @@ class ProviderSearchDomain(Construct):
     - CloudWatch alarms for capacity monitoring
 
     Instance sizing by environment:
-    - Non-prod (sandbox/test/beta): t3.small.search, 1 node
-    - Prod: m7g.medium.search, 3 master + 3 data nodes (with standby)
+    - Non-prod (sandbox/test/beta): t3.small.search, 3 data nodes across 3 AZs
+    - Prod: m7g.medium.search, 3 master + 3 data nodes across 3 AZs (with standby)
     """
 
     def __init__(
@@ -153,7 +153,7 @@ class ProviderSearchDomain(Construct):
         # Determine AZ awareness based on environment
         zone_awareness_config = self._get_zone_awareness_config()
         # Determine subnet selection based on environment
-        self.vpc_subnets = self._get_vpc_subnets(vpc_stack)
+        self.vpc_subnets = self._get_vpc_subnets()
 
         # Create OpenSearch Domain
         self.domain = Domain(
@@ -284,7 +284,7 @@ class ProviderSearchDomain(Construct):
         """
         Determine OpenSearch cluster capacity configuration based on environment.
 
-        Non-prod (sandbox, test, beta, etc.): Single t3.small.search node
+        Non-prod (sandbox, test, beta, etc.): 3 t3.small.search nodes across 3 AZs
         Prod: 3 dedicated master (r8g.medium.search) + 3 data nodes (m7g.medium.search) with standby
 
         :return: CapacityConfig with appropriate instance types and counts
@@ -308,14 +308,17 @@ class ProviderSearchDomain(Construct):
                 multi_az_with_standby_enabled=True,
             )
 
-        # Single node configuration for all non-prod environments
+        # Three-node configuration for all non-prod environments
         # (test, beta, and developer sandboxes)
+        # Using 3 nodes provides proper quorum for primary election - with only
+        # 2 nodes, if the primary goes down, there's no quorum to elect a new one.
+        # 3 nodes also ensures data redundancy with replicas distributed across nodes.
         return CapacityConfig(
             data_node_instance_type='t3.small.search',
-            data_nodes=1,
-            # No dedicated master nodes for single-node clusters
+            data_nodes=3,
+            # No dedicated master nodes - data nodes handle cluster management
             master_nodes=None,
-            # No multi-AZ for single node
+            # No multi-AZ with standby (to reduce costs in non-prod)
             multi_az_with_standby_enabled=False,
         )
 
@@ -323,58 +326,26 @@ class ProviderSearchDomain(Construct):
         """
         Determine OpenSearch cluster availability zone awareness based on environment.
 
-        3 for production, not enabled for all other non-prod environments
+        Both prod and non-prod use 3 AZs for zone awareness to ensure proper
+        distribution of shards across availability zones.
 
         :return: ZoneAwarenessConfig with appropriate settings
         """
-        if self._is_prod_environment:
-            return ZoneAwarenessConfig(enabled=True, availability_zone_count=3)
+        # Both prod and non-prod use 3 data nodes across 3 AZs
+        return ZoneAwarenessConfig(enabled=True, availability_zone_count=3)
 
-        # Non-prod environments only use one data node, hence we don't enable zone awareness
-        return ZoneAwarenessConfig(enabled=False)
-
-    def _get_vpc_subnets(self, vpc_stack: VpcStack) -> SubnetSelection:
+    def _get_vpc_subnets(self) -> SubnetSelection:
         """
         Determine VPC subnet selection based on environment.
 
-        Production: All private isolated subnets (3 AZs) for zone awareness and high availability
-        Non-prod: Single subnet (privateSubnet1 with CIDR 10.0.0.0/20) for single-node deployment
+        Both prod and non-prod use all 3 private isolated subnets for zone awareness
+        and proper distribution of data nodes across availability zones.
 
-        :param vpc_stack: The VPC stack containing the private subnets
         :return: SubnetSelection with appropriate subnet configuration
         """
-        if self._is_prod_environment:
-            # Production: Use all private isolated subnets from the VPC.
-            # VPC is configured with max_azs=3, so this will select exactly 3 subnets
-            return SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)
-
-        # Non-prod: Single-node deployment explicitly uses privateSubnet1 (CIDR 10.0.0.0/20)
-        # OpenSearch requires exactly one subnet for single-node deployments
-        # We explicitly find the subnet by its construct name to guarantee consistency
-        private_subnet1 = self._find_subnet_by_name(vpc_stack.vpc, PRIVATE_SUBNET_ONE_NAME)
-        return SubnetSelection(subnets=[private_subnet1])
-
-    def _find_subnet_by_name(self, vpc, subnet_name: str):
-        """
-        Find a specific subnet by its logical construct name in the VPC.
-
-        This provides a guaranteed, explicit reference to a specific subnet regardless of
-        CDK's internal list ordering, which is critical for stateful resources like OpenSearch.
-
-        :param vpc: The VPC construct containing the subnet
-        :param subnet_name: The logical name of the subnet (e.g., 'privateSubnet1')
-        :return: The ISubnet instance
-        :raises ValueError: If the subnet cannot be found
-        """
-        # Navigate the construct tree to find the subnet by name
-        subnet_construct = vpc.node.try_find_child(subnet_name)
-        if subnet_construct is None:
-            raise ValueError(
-                f'Subnet {subnet_name} not found in VPC construct tree. '
-                f'Available children: {[c.node.id for c in vpc.node.children]}'
-            )
-
-        return subnet_construct
+        # Both prod and non-prod use 3 data nodes across 3 AZs
+        # VPC is configured with max_azs=3, so this will select exactly 3 subnets
+        return SubnetSelection(subnet_type=SubnetType.PRIVATE_ISOLATED)
 
     def _add_capacity_alarms(self, alarm_topic: ITopic):
         """
@@ -386,6 +357,7 @@ class ProviderSearchDomain(Construct):
         - CPU Utilization > 70%
         - Cluster Status (red/yellow) for critical and degraded states
         - Automated Snapshot Failure for backup issues
+        - Searchable Documents < 10 for data loss detection
 
         :param alarm_topic: The SNS topic to send alarm notifications to
         """
@@ -535,6 +507,31 @@ class ProviderSearchDomain(Construct):
             ),
         ).add_alarm_action(SnsAction(alarm_topic))
 
+        # Alarm: Searchable Documents < 10
+        # A sudden drop in searchable documents may indicate data loss or index corruption.
+        # This threshold is set low to detect complete or near-complete data loss scenarios
+        # while avoiding false alarms during normal operations.
+        Alarm(
+            self,
+            'SearchableDocumentsAlarm',
+            metric=Metric(
+                namespace='AWS/ES',
+                metric_name='SearchableDocuments',
+                dimensions_map={'DomainName': self.domain.domain_name, 'ClientId': stack.account},
+                period=Duration.minutes(5),
+                statistic='Minimum',
+            ),
+            evaluation_periods=1,  # alert immediately when fewer than 10 searchable documents are detected
+            threshold=10,  # set to 10 to account for any documents set by OpenSearch by default
+            comparison_operator=ComparisonOperator.LESS_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.BREACHING,
+            alarm_description=(
+                f'OpenSearch Domain {self.domain.domain_name} has fewer than 10 searchable documents. '
+                'This may indicate data loss, index deletion, or corruption. '
+                'Investigate immediately and consider restoring from snapshot if necessary.'
+            ),
+        ).add_alarm_action(SnsAction(alarm_topic))
+
     def _add_domain_suppressions(self):
         """
         Add CDK Nag suppressions for OpenSearch Domain configuration.
@@ -565,14 +562,15 @@ class ProviderSearchDomain(Construct):
                 suppressions=[
                     {
                         'id': 'AwsSolutions-OS4',
-                        'reason': 'Dedicated master nodes are only used in production environments with multiple data '
-                        'nodes. Single-node non-prod environments do not require dedicated master nodes.',
+                        'reason': 'Dedicated master nodes are only used in production environments. '
+                        'Non-prod environments use 3 data nodes which handle both data and cluster '
+                        'management without requiring dedicated master nodes.',
                     },
                     {
                         'id': 'AwsSolutions-OS7',
-                        'reason': 'Zone awareness with standby is only enabled for production environments with '
-                        'multiple nodes. Single-node test environments do not require multi-AZ '
-                        'configuration.',
+                        'reason': 'Multi-AZ with standby is only enabled for production. '
+                        'Non-prod environments use 3 data nodes across 3 AZs with zone awareness for '
+                        'proper quorum and redundancy.',
                     },
                 ],
                 apply_to_children=True,

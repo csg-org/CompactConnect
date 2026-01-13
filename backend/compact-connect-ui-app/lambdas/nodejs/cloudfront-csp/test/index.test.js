@@ -20,6 +20,7 @@ const {
 const environmentValues = {
     webFrontend: 'app.compactconnect.org',
     dataApi: 'api.compactconnect.org',
+    searchApi: 'search.compactconnect.org',
     s3UploadUrlState: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com',
     s3UploadUrlProvider: 'prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwk.s3.amazonaws.com',
     cognitoStaff: 'staff-auth.compactconnect.org',
@@ -46,6 +47,7 @@ const prepareLambdaForTest = () => {
     const replacements = {
         '##WEB_FRONTEND##': environmentValues.webFrontend,
         '##DATA_API##': environmentValues.dataApi,
+        '##SEARCH_API##': environmentValues.searchApi,
         '##S3_UPLOAD_URL_STATE##': environmentValues.s3UploadUrlState,
         '##S3_UPLOAD_URL_PROVIDER##': environmentValues.s3UploadUrlProvider,
         '##COGNITO_STAFF##': environmentValues.cognitoStaff,
@@ -69,6 +71,7 @@ const prepareLambdaForTest = () => {
 
 const buildCspHeaders = (environment) => {
     const dataApiUrl = (environment?.dataApi) ? `https://${environment.dataApi}` : '';
+    const searchApiUrl = (environment?.searchApi) ? `https://${environment.searchApi}` : '';
     const s3UploadUrlState = (environment?.s3UploadUrlState) ? `https://${environment.s3UploadUrlState}` : '';
     const s3UploadUrlProvider = (environment?.s3UploadUrlProvider) ? `https://${environment.s3UploadUrlProvider}` : '';
     const cognitoStaffUrl = (environment?.cognitoStaff) ? `https://${environment.cognitoStaff}` : '';
@@ -150,6 +153,7 @@ const buildCspHeaders = (environment) => {
     const cspConnectSrc = [
         '\'self\'',
         dataApiUrl,
+        searchApiUrl,
         s3UploadUrlState,
         s3UploadUrlProvider,
         cognitoStaffUrl,

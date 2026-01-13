@@ -491,7 +491,11 @@ class PersistentStack(AppStack):
         )
 
         # Add UI and API domain names
-        frontend_app_config.set_domain_names(ui_domain_name=self.ui_domain_name, api_domain_name=self.api_domain_name)
+        frontend_app_config.set_domain_names(
+            ui_domain_name=self.ui_domain_name,
+            api_domain_name=self.api_domain_name,
+            search_api_domain_name=self.search_api_domain_name,
+        )
 
         # Add bucket names needed for CSP Lambda
         frontend_app_config.set_license_bulk_uploads_bucket_name(bucket_name=self.bulk_uploads_bucket.bucket_name)
