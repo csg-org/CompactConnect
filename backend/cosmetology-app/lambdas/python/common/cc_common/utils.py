@@ -799,30 +799,6 @@ def _user_has_permission_for_action_on_user(
     return False
 
 
-def _inject_pre_signed_urls_into_military_affiliation_records(provider: dict):
-    """
-    Generates temporary S3 pre-signed urls to allow users with the link to access the associated document.
-    See https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html
-    """
-    for record in provider['militaryAffiliations']:
-        try:
-            url = config.s3_client.generate_presigned_url(
-                'get_object',
-                # the 'documentKeys' field is a list of 1, as we only support uploading one military affiliation record
-                # for an affiliation record, but there were hints that this may change in the future in which case
-                # we would need to generate a link per document key.
-                Params={'Bucket': config.provider_user_bucket_name, 'Key': record['documentKeys'][0]},
-                # 2 hours in seconds, to avoid links becoming stale during their session.
-                ExpiresIn=7200,
-            )
-            # returning this as a list of one for now, to support multiple download links in the future
-            record['downloadLinks'] = [{'fileName': record['fileNames'][0], 'url': url}]
-        except ClientError as e:
-            # if the url could not be generated, we log the error and continue, so as to not fail the entire request
-            # for this peripheral feature
-            logger.error(e)
-
-
 def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, scopes: set[str]) -> dict:
     """
     Take a provider and a set of user scopes, then return a provider, with information sanitized based on what
@@ -835,10 +811,6 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     """
 
     caller_is_admin = caller_is_compact_admin(compact, caller_scopes=scopes)
-    if caller_is_admin:
-        # compact admins have the ability to download military affiliation records
-        # so we generate a pre-signed url per military affiliation document
-        _inject_pre_signed_urls_into_military_affiliation_records(provider)
 
     # Currently, the UI bundles permissions for admins, granting them the readPrivate scope along with admin. Should
     # this ever change, we will need to account for that here. This 'or' conditional is a precautionary measure to keep

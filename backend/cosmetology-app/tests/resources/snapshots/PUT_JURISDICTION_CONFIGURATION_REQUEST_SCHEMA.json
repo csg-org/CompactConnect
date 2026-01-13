@@ -1,46 +1,6 @@
 {
   "additionalProperties": false,
   "properties": {
-    "privilegeFees": {
-      "description": "The fees for the privileges by license type",
-      "items": {
-        "additionalProperties": false,
-        "properties": {
-          "licenseTypeAbbreviation": {
-            "enum": [
-              "aud",
-              "slp",
-              "ot",
-              "ota",
-              "lpc"
-            ],
-            "type": "string"
-          },
-          "amount": {
-            "minimum": 0,
-            "type": "number"
-          },
-          "militaryRate": {
-            "description": "Optional military rate for the privilege fee.",
-            "oneOf": [
-              {
-                "minimum": 0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "licenseTypeAbbreviation",
-          "amount"
-        ],
-        "type": "object"
-      },
-      "type": "array"
-    },
     "jurisdictionOperationsTeamEmails": {
       "description": "List of email addresses for operations team notifications",
       "items": {
@@ -104,7 +64,6 @@
     }
   },
   "required": [
-    "privilegeFees",
     "jurisdictionOperationsTeamEmails",
     "jurisdictionAdverseActionsNotificationEmails",
     "jurisdictionSummaryReportNotificationEmails",

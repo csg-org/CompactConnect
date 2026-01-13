@@ -116,26 +116,13 @@ class TestTransformations(TstFunction):
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
-        from cc_common.data_model.schema.military_affiliation.common import MilitaryAffiliationType
-
-        # Add a military affiliation
-        client.create_military_affiliation(
-            compact='aslp',
-            provider_id=provider_id,
-            affiliation_type=MilitaryAffiliationType.MILITARY_MEMBER,
-            file_names=['military-waiver.pdf'],
-            document_keys=[
-                f'/provider/{provider_id}/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf'
-            ],
-        )
-
         # Get the provider and all update records straight from the table, to inspect them
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
             compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
-        # One record for each of: provider, license, privilege, and militaryAffiliation
-        self.assertEqual(4, len(provider_user_records.provider_records))
+        # One record for each of: provider, license, and privilege
+        self.assertEqual(3, len(provider_user_records.provider_records))
         records = {item['type']: item for item in provider_user_records.provider_records}
 
         # Convert this to the data type expected from DynamoDB
@@ -155,18 +142,12 @@ class TestTransformations(TstFunction):
             expected_privilege = json.load(f)
             # privilege status should be active
             expected_privilege['status'] = 'active'
-        with open('../common/tests/resources/dynamo/military-affiliation.json') as f:
-            expected_military_affiliation = json.load(f)
-            # in this case, the status will be initializing, since it is not set to active until
-            # the military affiliation document is uploaded
-            expected_military_affiliation['status'] = 'initializing'
 
         # each record has a dynamic dateOfUpdate field that we'll remove for comparison
         for record in [
             expected_provider,
             expected_license,
             expected_privilege,
-            expected_military_affiliation,
             *records.values(),
         ]:
             # Drop dynamic field
@@ -176,17 +157,14 @@ class TestTransformations(TstFunction):
         del records['provider']['providerDateOfUpdate']
         del expected_privilege['dateOfIssuance']
         del expected_privilege['dateOfRenewal']
-        del expected_military_affiliation['dateOfUpload']
         # removing dynamic fields
         del records['privilege']['dateOfIssuance']
         del records['privilege']['dateOfRenewal']
-        del records['militaryAffiliation']['dateOfUpload']
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
         self.assertEqual(expected_license, records['license'])
         self.assertEqual(expected_privilege, records['privilege'])
-        self.assertEqual(expected_military_affiliation, records['militaryAffiliation'])
 
         from handlers.providers import get_provider
 
@@ -207,9 +185,6 @@ class TestTransformations(TstFunction):
         # Expected representation of our provider coming _out_ via the API
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
-            # in this case, the military affiliation status will be initializing, since it is not set to active until
-            # the military affiliation document is uploaded to s3
-            expected_provider['militaryAffiliations'][0]['status'] = 'initializing'
 
         # Force the provider id to match
         expected_provider['providerId'] = provider_id
@@ -220,15 +195,11 @@ class TestTransformations(TstFunction):
         del provider_data['privileges'][0]['dateOfUpdate']
         del provider_data['privileges'][0]['dateOfIssuance']
         del provider_data['privileges'][0]['dateOfRenewal']
-        del provider_data['militaryAffiliations'][0]['dateOfUpload']
-        del provider_data['militaryAffiliations'][0]['dateOfUpdate']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfIssuance']
         del expected_provider['privileges'][0]['dateOfRenewal']
-        del expected_provider['militaryAffiliations'][0]['dateOfUpload']
-        del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
 
         # in this case, this should be set to the privilege issued date, which is the mock time used by this test
         expected_provider['privileges'][0]['activeSince'] = '2024-11-08T23:59:59+00:00'

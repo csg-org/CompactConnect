@@ -262,12 +262,7 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
         if not license_types:
             raise SmokeTestFailureException(f'No license types found for compact {compact}')
 
-        # Create privilege fees for all license types with military rates
-        privilege_fees = []
-        for lt in license_types:
-            privilege_fees.append(
-                {'licenseTypeAbbreviation': lt['abbreviation'], 'amount': 75.00, 'militaryRate': 50.00}
-            )
+        
 
         # Create test jurisdiction configuration data
         notification_email = config.smoke_test_notification_email
@@ -280,7 +275,6 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
                 'required': True,
                 'linkToDocumentation': 'https://example.com/jurisprudence-docs',
             },
-            'privilegeFees': privilege_fees,
         }
 
         # PUT the jurisdiction configuration

@@ -276,10 +276,6 @@ class ApiModel:
                     type=JsonSchemaType.ARRAY,
                     items=self._privilege_general_response_schema,
                 ),
-                'militaryAffiliations': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    items=self._military_affiliation_general_response_schema,
-                ),
             },
         )
 
@@ -408,43 +404,6 @@ class ApiModel:
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'activeSince': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'investigationStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['underInvestigation']),
-            },
-        )
-
-    @property
-    def _military_affiliation_general_response_schema(self):
-        """
-        Schema for MilitaryAffiliationGeneralResponseSchema - military affiliation fields visible
-        to staff users with 'readGeneral' permission.
-        """
-        stack: AppStack = AppStack.of(self.api)
-
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            required=[
-                'type',
-                'dateOfUpdate',
-                'providerId',
-                'compact',
-                'fileNames',
-                'affiliationType',
-                'dateOfUpload',
-                'status',
-            ],
-            properties={
-                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['militaryAffiliation']),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                'fileNames': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(type=JsonSchemaType.STRING),
-                ),
-                'affiliationType': JsonSchema(
-                    type=JsonSchemaType.STRING, enum=['militaryMember', 'militaryMemberSpouse']
-                ),
-                'dateOfUpload': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             },
         )
 

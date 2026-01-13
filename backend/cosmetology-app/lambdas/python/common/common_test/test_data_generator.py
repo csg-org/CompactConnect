@@ -12,7 +12,6 @@ from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.utils import ResponseEncoder
@@ -212,45 +211,6 @@ class TestDataGenerator:
         TestDataGenerator.store_record_in_provider_table(adverse_action_record)
 
         return adverse_action
-
-    @staticmethod
-    def generate_default_military_affiliation(value_overrides: dict | None = None) -> MilitaryAffiliationData:
-        """Generate a default military affiliation"""
-        default_military_affiliation = {
-            'providerId': DEFAULT_PROVIDER_ID,
-            'compact': DEFAULT_COMPACT,
-            'type': MILITARY_AFFILIATION_RECORD_TYPE,
-            'documentKeys': [
-                f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME.split("T")[0]}/1234#military-waiver.pdf'
-            ],
-            'fileNames': ['military-waiver.pdf'],
-            'affiliationType': DEFAULT_MILITARY_AFFILIATION_TYPE,
-            'dateOfUpload': datetime.fromisoformat(DEFAULT_MILITARY_UPLOAD_DATE),
-            'status': DEFAULT_MILITARY_STATUS,
-            'dateOfUpdate': datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE),
-        }
-
-        if value_overrides:
-            default_military_affiliation.update(value_overrides)
-
-        return MilitaryAffiliationData.create_new(default_military_affiliation)
-
-    @staticmethod
-    def put_default_military_affiliation_in_provider_table(
-        value_overrides: dict | None = None,
-    ) -> MilitaryAffiliationData:
-        """
-        Creates a default military affiliation record and stores it in the provider table.
-
-        :param value_overrides: Optional dictionary to override default values
-        :return: The MilitaryAffiliationData instance that was stored
-        """
-        military_affiliation = TestDataGenerator.generate_default_military_affiliation(value_overrides)
-        military_affiliation_record = military_affiliation.serialize_to_database_record()
-
-        TestDataGenerator.store_record_in_provider_table(military_affiliation_record)
-
-        return military_affiliation
 
     @staticmethod
     def generate_default_license(value_overrides: dict | None = None) -> LicenseData:
@@ -543,11 +503,6 @@ class TestDataGenerator:
                 default_privilege_update_record, datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE)
             )
 
-            default_military_affiliation = TestDataGenerator.generate_default_military_affiliation()
-            TestDataGenerator._override_date_of_update_for_record(
-                default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
-            )
-
             provider_record = TestDataGenerator.generate_default_provider().serialize_to_database_record()
             provider_record['dateOfUpdate'] = DEFAULT_PROVIDER_UPDATE_DATETIME
             license_record = default_license_record.serialize_to_database_record()
@@ -558,8 +513,6 @@ class TestDataGenerator:
             privilege_record['dateOfUpdate'] = DEFAULT_PRIVILEGE_UPDATE_DATETIME
             privilege_update_record = default_privilege_update_record.serialize_to_database_record()
             privilege_update_record['dateOfUpdate'] = DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE
-            military_affiliation_record = default_military_affiliation.serialize_to_database_record()
-            military_affiliation_record['dateOfUpdate'] = DEFAULT_MILITARY_UPDATE_DATE
 
             items = [
                 provider_record,
@@ -567,7 +520,6 @@ class TestDataGenerator:
                 license_update_record,
                 privilege_record,
                 privilege_update_record,
-                military_affiliation_record,
             ]
         else:
             # convert each item into a dictionary
@@ -635,10 +587,6 @@ class TestDataGenerator:
             'compact': 'aslp',
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
-            'privilegeFees': [
-                {'licenseTypeAbbreviation': 'slp', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
-                {'licenseTypeAbbreviation': 'aud', 'amount': Decimal('50.00'), 'militaryRate': Decimal('50.00')},
-            ],
             'jurisprudenceRequirements': {
                 'required': True,
                 'linkToDocumentation': 'https://example.com/jurisprudence',

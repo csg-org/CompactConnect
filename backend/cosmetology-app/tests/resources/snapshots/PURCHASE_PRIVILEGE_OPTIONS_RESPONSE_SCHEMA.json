@@ -119,37 +119,6 @@
                 "description": "The postal abbreviation of the jurisdiction",
                 "type": "string"
               },
-              "privilegeFees": {
-                "description": "The fees for the privileges",
-                "items": {
-                  "properties": {
-                    "licenseTypeAbbreviation": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "militaryRate": {
-                      "description": "Optional military rate for the privilege fee.",
-                      "oneOf": [
-                        {
-                          "minimum": 0,
-                          "type": "number"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "required": [
-                    "licenseTypeAbbreviation",
-                    "amount"
-                  ],
-                  "type": "object"
-                },
-                "type": "array"
-              },
               "jurisprudenceRequirements": {
                 "properties": {
                   "required": {
@@ -178,7 +147,6 @@
               "type",
               "jurisdictionName",
               "postalAbbreviation",
-              "privilegeFees",
               "jurisprudenceRequirements"
             ],
             "type": "object"

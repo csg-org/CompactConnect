@@ -20,10 +20,6 @@ from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
     LicenseReadPrivateResponseSchema,
 )
-from cc_common.data_model.schema.military_affiliation.api import (
-    MilitaryAffiliationGeneralResponseSchema,
-    MilitaryAffiliationReadPrivateResponseSchema,
-)
 from cc_common.data_model.schema.privilege.api import (
     PrivilegeGeneralResponseSchema,
     PrivilegePublicResponseSchema,
@@ -120,9 +116,6 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicenseReadPrivateResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeReadPrivateResponseSchema(), required=False, allow_none=False))
-    militaryAffiliations = List(
-        Nested(MilitaryAffiliationReadPrivateResponseSchema(), required=False, allow_none=False)
-    )
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=True, allow_none=False)
@@ -172,7 +165,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
-    militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):

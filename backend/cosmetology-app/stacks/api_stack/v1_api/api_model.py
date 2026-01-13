@@ -660,7 +660,6 @@ class ApiModel:
                 'birthMonthDay',
                 'licenses',
                 'privileges',
-                'militaryAffiliations',
             ],
             properties={
                 'licenses': JsonSchema(
@@ -999,53 +998,6 @@ class ApiModel:
                                 description='Status indicating if the privilege is under investigation',
                             ),
                             **self._common_privilege_properties,
-                        },
-                    ),
-                ),
-                'militaryAffiliations': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=[
-                            'type',
-                            'dateOfUpdate',
-                            'providerId',
-                            'compact',
-                            'fileNames',
-                            'affiliationType',
-                            'dateOfUpload',
-                            'status',
-                        ],
-                        properties={
-                            'type': JsonSchema(type=JsonSchemaType.STRING, enum=['militaryAffiliation']),
-                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                            'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                            'compact': JsonSchema(
-                                type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
-                            ),
-                            'fileNames': JsonSchema(
-                                type=JsonSchemaType.ARRAY,
-                                items=JsonSchema(type=JsonSchemaType.STRING),
-                            ),
-                            'affiliationType': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                enum=['militaryMember', 'militaryMemberSpouse'],
-                            ),
-                            'dateOfUpload': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
-                            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-                            'downloadLinks': JsonSchema(
-                                type=JsonSchemaType.ARRAY,
-                                items=JsonSchema(
-                                    type=JsonSchemaType.OBJECT,
-                                    required=['url', 'fileName'],
-                                    properties={
-                                        'url': JsonSchema(type=JsonSchemaType.STRING),
-                                        'fileName': JsonSchema(type=JsonSchemaType.STRING),
-                                    },
-                                ),
-                            ),
                         },
                     ),
                 ),

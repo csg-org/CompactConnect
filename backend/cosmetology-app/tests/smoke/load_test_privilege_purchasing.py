@@ -76,12 +76,6 @@ def get_required_attestations(provider_data: dict) -> list[dict]:
         'not-under-investigation-attestation',
     ]
 
-    military_records = [
-        record for record in provider_data.get('militaryAffiliations', []) if record['status'] == 'active'
-    ]
-    if military_records:
-        required_attestation_ids.append('military-affiliation-confirmation-attestation')
-
     compact = provider_data.get('compact')
     attestations = []
 

@@ -143,7 +143,6 @@ class TestPopulateProviderDocuments(TstFunction):
                         }
                     ],
                     'privileges': [],
-                    'militaryAffiliations': [],
                 }
             ],
         )

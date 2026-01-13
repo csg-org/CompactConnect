@@ -658,9 +658,6 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertIn('Each state can only appear once', response_body['message'])
 
 
-TEST_MILITARY_RATE = Decimal('40.00')
-
-
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestStaffUsersJurisdictionConfiguration(TstFunction):
