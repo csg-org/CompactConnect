@@ -142,7 +142,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             {
                 'ClusterConfig': {
                     'InstanceType': 't3.small.search',
-                    'InstanceCount': 1,
+                    'InstanceCount': 3,
                     'DedicatedMasterEnabled': False,
                     'MultiAZWithStandbyEnabled': False,
                 },
@@ -278,23 +278,20 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         vpc_options = opensearch_properties['VPCOptions']
         subnet_ids = vpc_options['SubnetIds']
 
-        # For sandbox (non-prod), should use exactly one subnet
-        self.assertEqual(len(subnet_ids), 1, 'Sandbox OpenSearch should use exactly one subnet')
+        # For sandbox (non-prod), should use three subnet
+        self.assertEqual(len(subnet_ids), 3, 'Sandbox OpenSearch should use three subnets')
 
-        # Get the subnet reference from OpenSearch
-        opensearch_subnet_ref = subnet_ids[0]
-        # Extract the export name that OpenSearch is importing
-        import_value = opensearch_subnet_ref['Fn::ImportValue']
-
-        # Verify OpenSearch is importing the correct subnet (privateSubnet1)
-        # The import_value should reference the export name of privateSubnet1
-        # The export name contains the construct name, which includes 'privateSubnet1'
-        self.assertIn(
-            'privateSubnet1',
-            str(import_value),
-            f'OpenSearch should import privateSubnet1, but is importing: {import_value}. '
-            'This is critical for deterministic subnet placement in non-prod environments.',
-        )
+        # Get the subnet references for each AZ
+        for index, subnet_id in enumerate(subnet_ids):
+            # Extract the export name that OpenSearch is importing
+            import_value = subnet_id['Fn::ImportValue']
+            # Verify OpenSearch is importing the correct subnet
+            self.assertIn(
+                f'privateSubnet{index + 1}',
+                str(import_value),
+                f'OpenSearch should import {subnet_id}, but is importing: {import_value}. '
+                'This is critical for deterministic subnet placement in non-prod environments.',
+            )
 
 
 class TestProdSearchPersistentStack(TstAppABC, TestCase):

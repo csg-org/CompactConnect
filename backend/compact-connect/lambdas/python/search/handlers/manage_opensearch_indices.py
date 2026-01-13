@@ -63,8 +63,95 @@ class OpenSearchIndexManager(CustomResourceHandler):
 
     def on_update(self, properties: dict) -> CustomResourceResponse | None:
         """
-        No-op on update.
+        Update index settings when the custom resource properties change.
+
+        This handles dynamic updates to index settings that can be changed after
+        index creation, such as number_of_replicas. According to OpenSearch best practices:
+        - number_of_shards cannot be changed after index creation (would require reindex)
+        - number_of_replicas CAN be changed dynamically via the Settings API
+
+        See: https://docs.opensearch.org/latest/api-reference/index-apis/update-settings/
         """
+        logger.info(
+            'Starting OpenSearch index update',
+            opensearch_host=config.opensearch_host_endpoint,
+        )
+
+        # Wait for domain to become responsive
+        client = self._wait_for_domain_ready()
+
+        # Get the new replica count from custom resource properties
+        new_number_of_replicas = int(properties['numberOfReplicas'])
+
+        logger.info(
+            'Requested index configuration',
+            number_of_replicas=new_number_of_replicas,
+        )
+
+        compacts = config.compacts
+        for compact in compacts:
+            # Use the alias name for the update - OpenSearch will resolve to the actual index
+            alias_name = f'compact_{compact}_providers'
+            self._update_replica_count(
+                client=client,
+                alias_name=alias_name,
+                new_number_of_replicas=new_number_of_replicas,
+            )
+
+    def _update_replica_count(
+        self,
+        client: OpenSearchClient,
+        alias_name: str,
+        new_number_of_replicas: int,
+    ) -> None:
+        """
+        Update the number of replicas for an index if needed.
+
+        This method checks the current replica count and only updates if it differs
+        from the requested count. This is idempotent and safe to call multiple times.
+
+        :param client: The OpenSearch client
+        :param alias_name: The alias name (e.g., compact_aslp_providers)
+        :param new_number_of_replicas: The desired number of replica shards
+        """
+        # Check if the alias exists
+        if not client.alias_exists(alias_name):
+            logger.warning(f"Alias '{alias_name}' does not exist. Skipping replica update.")
+            return
+
+        # Get current settings
+        current_settings = client.get_index_settings(alias_name)
+
+        # The settings response is keyed by the actual index name, not the alias
+        # Extract the first (and only) index's settings
+        if not current_settings:
+            logger.warning(f"Could not get settings for '{alias_name}'. Skipping replica update.")
+            return
+
+        # Get the actual index name from the response
+        actual_index_name = next(iter(current_settings.keys()))
+        index_settings = current_settings[actual_index_name]
+
+        # Get current replica count
+        current_replicas = int(index_settings.get('settings', {}).get('index', {}).get('number_of_replicas', 0))
+
+        if current_replicas == new_number_of_replicas:
+            logger.info(
+                f"Index '{actual_index_name}' already has {current_replicas} replicas. No update needed."
+            )
+            return
+
+        # Update the replica count
+        logger.info(
+            f"Updating '{actual_index_name}' replicas from {current_replicas} to {new_number_of_replicas}..."
+        )
+
+        new_settings = {'index': {'number_of_replicas': new_number_of_replicas}}
+        client.update_index_settings(alias_name, new_settings)
+
+        logger.info(
+            f"Successfully updated '{actual_index_name}' to {new_number_of_replicas} replicas."
+        )
 
     def on_delete(self, _properties: dict) -> CustomResourceResponse | None:
         """
