@@ -30,21 +30,6 @@ from cc_common.data_model.schema.investigation.record import InvestigationDetail
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 
 
-class AttestationVersionRecordSchema(Schema):
-    """
-    This schema is intended to be used by any record in the system which needs to track which attestations have been
-    accepted by a user (i.e. when purchasing privileges).
-
-    This schema is intended to be used as a nested field in other schemas.
-
-    Serialization direction:
-    DB -> load() -> Python
-    """
-
-    attestationId = String(required=True, allow_none=False)
-    version = String(required=True, allow_none=False)
-
-
 class DeactivationDetailsSchema(Schema):
     """
     Schema for tracking details about a privilege deactivation.
@@ -87,8 +72,6 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     dateOfRenewal = DateTime(required=True, allow_none=False)
     # this is determined by the license expiration date, which is a date field, so this is also a date field
     dateOfExpiration = Date(required=True, allow_none=False)
-    # list of attestations that were accepted when purchasing this privilege
-    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     # the persisted status of the privilege, which can be manually set to inactive
@@ -167,7 +150,6 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     """
 
     administratorSetStatus = ActiveInactive(required=False, allow_none=False)
-    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfIssuance = DateTime(required=True, allow_none=False)
     dateOfRenewal = DateTime(required=True, allow_none=False)

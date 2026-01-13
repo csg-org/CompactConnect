@@ -474,7 +474,6 @@ def create_test_privilege_record(
         'compactTransactionIdGSIPK': f'COMPACT#{compact}#TX#{transaction_id}#',
         'privilegeId': f'test-privilege-{provider_id}-{jurisdiction}-{license_type_abbr}',
         'administratorSetStatus': 'active',
-        'attestations': [],
     }
 
     # Insert the privilege record

@@ -454,169 +454,7 @@ class ApiModel:
 
         return self.api._v1_patch_license_encumbrance_request_model
 
-    @property
-    def post_purchase_privileges_request_model(self) -> Model:
-        """Return the purchase privilege request model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_post_purchase_privileges_request_model'):
-            return self.api._v1_post_purchase_privileges_request_model
-        self.api._v1_post_purchase_privileges_request_model = self.api.add_model(
-            'V1PostPurchasePrivilegesRequestModel',
-            description='Post purchase privileges request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['licenseType', 'selectedJurisdictions', 'orderInformation', 'attestations'],
-                properties={
-                    'licenseType': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The type of license the provider is purchasing a privilege for.',
-                        enum=self.stack.license_type_names,
-                    ),
-                    'selectedJurisdictions': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        # Authorize.net has a limit of 30 line items per transaction. For every transaction, each
-                        # privilege takes up an individual line item, and we include an additional line item for
-                        # compact administrative fees, plus a line item for credit card transaction fees if the
-                        # compact collects those. In order to avoid ever hitting the limit of 30 line items, the system
-                        # sets a limit of 20 privileges per transaction (this gives the system space to add an
-                        # additional 8 line items to any transaction should the need arise)
-                        max_length=20,
-                        items=JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description='Jurisdictions a provider has selected to purchase privileges in.',
-                            enum=self.api.node.get_context('jurisdictions'),
-                        ),
-                    ),
-                    'orderInformation': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=['opaqueData'],
-                        properties={
-                            'opaqueData': JsonSchema(
-                                type=JsonSchemaType.OBJECT,
-                                required=['dataDescriptor', 'dataValue'],
-                                properties={
-                                    'dataDescriptor': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The opaque data descriptor returned by Authorize.Net Accept UI',
-                                        max_length=100,
-                                    ),
-                                    'dataValue': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        description='The opaque data value token returned by Authorize.Net Accept UI',
-                                        max_length=1000,
-                                    ),
-                                },
-                            ),
-                        },
-                    ),
-                    'attestations': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of attestations that the user has agreed to',
-                        items=JsonSchema(
-                            type=JsonSchemaType.OBJECT,
-                            required=['attestationId', 'version'],
-                            properties={
-                                'attestationId': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    max_length=100,
-                                    description='The ID of the attestation',
-                                ),
-                                'version': JsonSchema(
-                                    # we store the version as a string, rather than an integer, to avoid
-                                    # type casting between DynamoDB's Decimal and Python's int
-                                    type=JsonSchemaType.STRING,
-                                    max_length=10,
-                                    description='The version of the attestation',
-                                    pattern=r'^\d+$',
-                                ),
-                            },
-                        ),
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_post_purchase_privileges_request_model
 
-    @property
-    def post_credentials_payment_processor_request_model(self) -> Model:
-        """Return the post payment processor credentials request model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_post_credentials_payment_processor_request_model'):
-            return self.api._v1_post_credentials_payment_processor_request_model
-        self.api._v1_post_credentials_payment_processor_request_model = self.api.add_model(
-            'V1PostCredentialsPaymentProcessorRequestModel',
-            description='Post payment processor credentials request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['processor', 'apiLoginId', 'transactionKey'],
-                properties={
-                    'processor': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The type of payment processor',
-                        # for now, we only allow 'authorize.net'
-                        enum=['authorize.net'],
-                    ),
-                    'apiLoginId': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The api login id for the payment processor',
-                        min_length=1,
-                        max_length=100,
-                    ),
-                    'transactionKey': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The transaction key for the payment processor',
-                        min_length=1,
-                        max_length=100,
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_post_credentials_payment_processor_request_model
-
-    @property
-    def post_purchase_privileges_response_model(self) -> Model:
-        """Return the purchase privilege response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_post_purchase_privileges_response_model'):
-            return self.api._v1_post_purchase_privileges_response_model
-        self.api._v1_post_purchase_privileges_response_model = self.api.add_model(
-            'V1PostPurchasePrivilegesResponseModel',
-            description='Post purchase privileges response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['transactionId'],
-                properties={
-                    'transactionId': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The transaction id for the purchase',
-                    ),
-                    'message': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='A message about the transaction',
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_post_purchase_privileges_response_model
-
-    @property
-    def post_credentials_payment_processor_response_model(self) -> Model:
-        """Return the purchase privilege response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_post_credentials_payment_processor_response_model'):
-            return self.api._v1_post_credentials_payment_processor_response_model
-        self.api._v1_post_credentials_payment_processor_response_model = self.api.add_model(
-            'V1PostCredentialsPaymentProcessorResponseModel',
-            description='Post payment processor credentials response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['message'],
-                properties={
-                    'message': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='A message about the request',
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_post_credentials_payment_processor_response_model
 
     
 
@@ -876,7 +714,6 @@ class ApiModel:
                             'licenseJurisdiction',
                             'administratorSetStatus',
                             'status',
-                            'attestations',
                             'history',
                         ],
                         properties={
@@ -917,7 +754,6 @@ class ApiModel:
                                                 'privilegeId',
                                                 'licenseJurisdiction',
                                                 'administratorSetStatus',
-                                                'attestations',
                                             ],
                                             properties=self._common_privilege_properties,
                                         ),
@@ -1178,17 +1014,6 @@ class ApiModel:
             ),
             'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-            'attestations': JsonSchema(
-                type=JsonSchemaType.ARRAY,
-                items=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    required=['attestationId', 'version'],
-                    properties={
-                        'attestationId': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                        'version': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                    },
-                ),
-            ),
         }
 
     @property
@@ -1236,31 +1061,6 @@ class ApiModel:
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100),
             },
         )
-
-    @property
-    def get_attestations_response_model(self) -> Model:
-        """Return the attestations response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_get_attestations_response_model'):
-            return self.api._v1_get_attestations_response_model
-
-        self.api._v1_get_attestations_response_model = self.api.add_model(
-            'V1GetAttestationsResponseModel',
-            description='Get attestations response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                properties={
-                    'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
-                    'attestationId': JsonSchema(type=JsonSchemaType.STRING),
-                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
-                    'version': JsonSchema(type=JsonSchemaType.STRING),
-                    'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                    'text': JsonSchema(type=JsonSchemaType.STRING),
-                    'required': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                    'locale': JsonSchema(type=JsonSchemaType.STRING),
-                },
-            ),
-        )
-        return self.api._v1_get_attestations_response_model
 
     @property
     def get_compact_jurisdictions_response_model(self) -> Model:

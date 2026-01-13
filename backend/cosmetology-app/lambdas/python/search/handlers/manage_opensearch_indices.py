@@ -192,12 +192,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
         :param number_of_replicas: Number of replica shards for the index
         :return: The index mapping dictionary
         """
-        # Nested schema for AttestationVersion
-        attestation_version_properties = {
-            'attestationId': {'type': 'keyword'},
-            'version': {'type': 'keyword'},
-        }
-
         # Nested schema for AdverseAction
         adverse_action_properties = {
             'type': {'type': 'keyword'},
@@ -296,7 +290,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'investigations': {'type': 'nested', 'properties': investigation_properties},
             'administratorSetStatus': {'type': 'keyword'},
             'compactTransactionId': {'type': 'keyword'},
-            'attestations': {'type': 'nested', 'properties': attestation_version_properties},
             'privilegeId': {'type': 'keyword'},
             'status': {'type': 'keyword'},
             'activeSince': {'type': 'date'},

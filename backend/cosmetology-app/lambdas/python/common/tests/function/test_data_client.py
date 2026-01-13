@@ -15,7 +15,6 @@ from tests.function import TstFunction
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestDataClient(TstFunction):
-    sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
 
     def setUp(self):
         super().setUp()
@@ -112,7 +111,6 @@ class TestDataClient(TstFunction):
             license_expiration_date=date.fromisoformat('2024-10-31'),
             provider_record=self.test_data_generator.generate_default_provider(),
             existing_privileges_for_license=[],
-            attestations=self.sample_privilege_attestations,
         )
 
         # Verify that the privilege record was created
@@ -134,7 +132,6 @@ class TestDataClient(TstFunction):
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'attestations': self.sample_privilege_attestations,
                 'privilegeId': 'AUD-KY-124',
             },
             new_privilege,
@@ -151,7 +148,6 @@ class TestDataClient(TstFunction):
         self.assertEqual(
             {
                 'administratorSetStatus': 'active',
-                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
                 'compact': 'aslp',
                 'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -183,7 +179,6 @@ class TestDataClient(TstFunction):
                 license_expiration_date=date.fromisoformat('2024-10-31'),
                 provider_record=self.test_data_generator.generate_default_provider(),
                 existing_privileges_for_license=[],
-                attestations=self.sample_privilege_attestations,
                 license_type='not-supported-license-type',
             )
 
@@ -217,7 +212,6 @@ class TestDataClient(TstFunction):
                     'dateOfExpiration': date(2024, 10, 31),
                     'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                     'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
-                    'attestations': [],
                 }
             )
             self._provider_table.put_item(Item=original_privilege.serialize_to_database_record())
@@ -237,7 +231,6 @@ class TestDataClient(TstFunction):
                 }
             ),
             existing_privileges_for_license=original_privileges,
-            attestations=self.sample_privilege_attestations,
             license_type='audiologist',
         )
 
@@ -300,7 +293,6 @@ class TestDataClient(TstFunction):
                     'dateOfExpiration': date(2024, 10, 31),
                     'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                     'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
-                    'attestations': [],
                 }
             )
             self._provider_table.put_item(Item=original_privilege.serialize_to_database_record())
@@ -341,7 +333,6 @@ class TestDataClient(TstFunction):
                 license_expiration_date=date.fromisoformat('2025-10-31'),
                 provider_record=original_provider,
                 existing_privileges_for_license=original_privileges,
-                attestations=self.sample_privilege_attestations,
                 license_type='audiologist',
             )
 
@@ -481,7 +472,6 @@ class TestDataClient(TstFunction):
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-            'attestations': self.sample_privilege_attestations,
             'privilegeId': 'AUD-NE-1',
         }
         self._provider_table.put_item(Item=original_privilege)
@@ -526,7 +516,6 @@ class TestDataClient(TstFunction):
                 'dateOfRenewal': '2023-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'attestations': self.sample_privilege_attestations,
                 'privilegeId': 'AUD-NE-1',
             },
             new_privilege.serialize_to_database_record(),
@@ -562,7 +551,6 @@ class TestDataClient(TstFunction):
                     'dateOfRenewal': '2023-11-08T23:59:59+00:00',
                     'dateOfExpiration': '2024-10-31',
                     'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-                    'attestations': self.sample_privilege_attestations,
                     'administratorSetStatus': 'active',
                     'licenseJurisdiction': 'oh',
                     'privilegeId': 'AUD-NE-1',
@@ -629,7 +617,6 @@ class TestDataClient(TstFunction):
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-            'attestations': self.sample_privilege_attestations,
             'privilegeId': 'AUD-NE-1',
         }
         self._provider_table.put_item(Item=original_privilege)
@@ -651,7 +638,6 @@ class TestDataClient(TstFunction):
                 'dateOfRenewal': '2023-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
                 'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-                'attestations': self.sample_privilege_attestations,
                 'licenseJurisdiction': 'oh',
                 'privilegeId': 'AUD-NE-1',
             },
@@ -739,7 +725,6 @@ class TestDataClient(TstFunction):
                     'dateOfExpiration': date(2024, 10, 31),
                     'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                     'administratorSetStatus': 'active',
-                    'attestations': [],
                 }
             )
 
@@ -875,7 +860,6 @@ class TestDataClient(TstFunction):
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
                 'administratorSetStatus': 'active',
-                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
                 'dateOfExpiration': '2025-04-04',
                 'dateOfIssuance': '2016-05-05T12:59:59+00:00',
                 'dateOfRenewal': '2020-05-05T12:59:59+00:00',
@@ -1187,7 +1171,6 @@ class TestDataClient(TstFunction):
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
                 'administratorSetStatus': 'active',
-                'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
                 'dateOfExpiration': '2025-04-04',
                 'dateOfIssuance': '2016-05-05T12:59:59+00:00',
                 'dateOfRenewal': '2020-05-05T12:59:59+00:00',

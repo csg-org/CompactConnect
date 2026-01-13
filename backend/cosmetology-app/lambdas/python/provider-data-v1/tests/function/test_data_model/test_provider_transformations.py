@@ -113,7 +113,6 @@ class TestTransformations(TstFunction):
             license_expiration_date=date(2025, 4, 4),
             existing_privileges_for_license=[],
             license_type='speech-language pathologist',
-            attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
         # Get the provider and all update records straight from the table, to inspect them

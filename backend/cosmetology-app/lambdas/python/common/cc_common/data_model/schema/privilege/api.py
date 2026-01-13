@@ -19,21 +19,6 @@ from cc_common.data_model.schema.fields import (
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
 
-class AttestationVersionResponseSchema(Schema):
-    """
-    This schema is intended to be used by any api response in the system which needs to track which attestations have
-    been accepted by a user (i.e. when purchasing privileges).
-
-    This schema is intended to be used as a nested field in other schemas.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    attestationId = String(required=True, allow_none=False)
-    version = String(required=True, allow_none=False)
-
-
 class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     """
     A snapshot of a previous state of a privilege object
@@ -46,8 +31,6 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     """
 
     administratorSetStatus = ActiveInactive(required=False, allow_none=False)
-    # list of attestations that were accepted when purchasing this privilege
-    attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
     dateOfExpiration = Raw(required=False, allow_none=False)
     dateOfIssuance = Raw(required=False, allow_none=False)
     dateOfRenewal = Raw(required=False, allow_none=False)
@@ -77,8 +60,6 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    # list of attestations that were accepted when purchasing this privilege
-    attestations = List(Nested(AttestationVersionResponseSchema(), required=False, allow_none=False))
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
@@ -110,8 +91,6 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    # list of attestations that were accepted when purchasing this privilege
-    attestations = List(Nested(AttestationVersionResponseSchema(), required=False, allow_none=False))
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)

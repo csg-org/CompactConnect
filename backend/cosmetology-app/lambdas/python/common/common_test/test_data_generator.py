@@ -316,7 +316,6 @@ class TestDataGenerator:
             'dateOfIssuance': datetime.fromisoformat(DEFAULT_PRIVILEGE_ISSUANCE_DATETIME),
             'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
             'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),
-            'attestations': DEFAULT_ATTESTATIONS,
             'privilegeId': DEFAULT_PRIVILEGE_ID,
             'administratorSetStatus': DEFAULT_ADMINISTRATOR_SET_STATUS,
             'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATETIME,
