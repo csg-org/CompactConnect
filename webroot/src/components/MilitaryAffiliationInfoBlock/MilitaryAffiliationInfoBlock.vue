@@ -32,7 +32,7 @@
                 <div v-if="isAuditStatusDeclined || isAuditStatusPending" class="audit-status-note">
                     {{ auditStatusNote }}
                 </div>
-                <div v-if="isCompactAdmin" class="audit-button-container">
+                <div v-if="isCompactAdmin && shouldShowAuditButtons" class="audit-button-container">
                     <InputButton
                         :label="$t('military.auditApprove')"
                         :aria-label="$t('military.auditApprove')"
@@ -41,7 +41,6 @@
                         class="audit-button approve"
                         @keyup.enter.prevent.stop="toggleMilitaryAuditApproveModal"
                         @click.prevent="toggleMilitaryAuditApproveModal"
-                        :isEnabled="isAuditReady"
                     />
                     <InputButton
                         :label="$t('military.auditDecline')"
@@ -51,7 +50,6 @@
                         class="audit-button decline"
                         @keyup.enter.prevent.stop="toggleMilitaryAuditDeclineModal"
                         @click.prevent="toggleMilitaryAuditDeclineModal"
-                        :isEnabled="isAuditReady"
                     />
                 </div>
             </div>
