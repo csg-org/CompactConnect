@@ -9,7 +9,6 @@ from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
 MOCK_SSN = '123-12-1234'
-MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 
 
 @mock_aws

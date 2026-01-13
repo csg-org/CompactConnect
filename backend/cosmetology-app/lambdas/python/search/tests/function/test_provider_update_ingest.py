@@ -177,7 +177,6 @@ class TestProviderUpdateIngest(TstFunction):
                 }
             ],
             'privileges': [],
-            'militaryAffiliations': [],
         }
 
     @patch('handlers.provider_update_ingest.opensearch_client')

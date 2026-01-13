@@ -40,7 +40,6 @@ class ProviderManagementLambdas:
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
             'USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
-            'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
             **self.stack.common_env_vars,
         }
 
@@ -106,7 +105,6 @@ class ProviderManagementLambdas:
         )
         self.persistent_stack.shared_encryption_key.grant_decrypt(handler)
         self.persistent_stack.provider_table.grant_read_data(handler)
-        self.persistent_stack.provider_users_bucket.grant_read(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,

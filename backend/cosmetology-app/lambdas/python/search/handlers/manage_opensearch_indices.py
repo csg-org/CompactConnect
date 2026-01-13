@@ -303,18 +303,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'investigationStatus': {'type': 'keyword'},
         }
 
-        # Nested schema for MilitaryAffiliation
-        military_affiliation_properties = {
-            'type': {'type': 'keyword'},
-            'dateOfUpdate': {'type': 'date'},
-            'providerId': {'type': 'keyword'},
-            'compact': {'type': 'keyword'},
-            'fileNames': {'type': 'keyword'},
-            'affiliationType': {'type': 'keyword'},
-            'dateOfUpload': {'type': 'date'},
-            'status': {'type': 'keyword'},
-        }
-
         return {
             'settings': {
                 'index': {
@@ -369,15 +357,9 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'providerFamGivMid': {'type': 'keyword'},
                     'providerDateOfUpdate': {'type': 'date'},
                     'birthMonthDay': {'type': 'keyword'},
-                    'militaryStatus': {'type': 'keyword'},
-                    'militaryStatusNote': {'type': 'text'},
                     # Nested arrays
                     'licenses': {'type': 'nested', 'properties': license_properties},
                     'privileges': {'type': 'nested', 'properties': privilege_properties},
-                    'militaryAffiliations': {
-                        'type': 'nested',
-                        'properties': military_affiliation_properties,
-                    },
                 }
             },
         }

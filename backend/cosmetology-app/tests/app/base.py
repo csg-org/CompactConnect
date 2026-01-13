@@ -385,7 +385,6 @@ class TstAppABC(ABC):
                 persistent_stack.compact_configuration_table.backup_plan,
                 persistent_stack.data_event_table.backup_plan,
                 persistent_stack.staff_users.user_table.backup_plan,
-                persistent_stack.provider_users_bucket.backup_plan,
                 persistent_stack.staff_users.backup_system.backup_plan,
             ]:
                 self.assertIsInstance(plan, CCBackupPlan)
@@ -399,7 +398,6 @@ class TstAppABC(ABC):
             self.assertIsNone(persistent_stack.compact_configuration_table.backup_plan)
             self.assertIsNone(persistent_stack.data_event_table.backup_plan)
             self.assertIsNone(persistent_stack.staff_users.user_table.backup_plan)
-            self.assertIsNone(persistent_stack.provider_users_bucket.backup_plan)
             self.assertIsNone(persistent_stack.staff_users.backup_system)
 
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):

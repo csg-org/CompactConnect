@@ -12064,35 +12064,6 @@
                   ],
                   "type": "object",
                   "properties": {
-                    "privilegeFees": {
-                      "type": "array",
-                      "description": "The fees for the privileges",
-                      "items": {
-                        "required": [
-                          "amount",
-                          "licenseTypeAbbreviation"
-                        ],
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number"
-                          },
-                          "militaryRate": {
-                            "description": "Optional military rate for the privilege fee.",
-                            "oneOf": [
-                              {
-                                "minimum": 0,
-                                "type": "number"
-                              },
-                              null
-                            ]
-                          },
-                          "licenseTypeAbbreviation": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
                     "postalAbbreviation": {
                       "type": "string",
                       "description": "The postal abbreviation of the jurisdiction"

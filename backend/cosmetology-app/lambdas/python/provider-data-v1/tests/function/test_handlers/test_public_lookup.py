@@ -444,7 +444,6 @@ class TestPublicGetProvider(TstFunction):
             expected_provider.pop('ssnLastFour')
             expected_provider.pop('dateOfBirth')
             expected_provider.pop('birthMonthDay')
-            expected_provider.pop('militaryAffiliations')
             expected_provider.pop('licenses')
             expected_provider['privileges'][0].pop('attestations')
             expected_provider['privileges'][0].pop('investigations')

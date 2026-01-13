@@ -17,44 +17,6 @@
       "description": "The postal abbreviation of the jurisdiction",
       "type": "string"
     },
-    "privilegeFees": {
-      "description": "The fees for the privileges by license type",
-      "items": {
-        "properties": {
-          "licenseTypeAbbreviation": {
-            "enum": [
-              "aud",
-              "slp",
-              "ot",
-              "ota",
-              "lpc"
-            ],
-            "type": "string"
-          },
-          "amount": {
-            "type": "number"
-          },
-          "militaryRate": {
-            "description": "Optional military rate for the privilege fee.",
-            "oneOf": [
-              {
-                "minimum": 0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "licenseTypeAbbreviation",
-          "amount"
-        ],
-        "type": "object"
-      },
-      "type": "array"
-    },
     "jurisdictionOperationsTeamEmails": {
       "description": "List of email addresses for operations team notifications",
       "items": {
@@ -111,7 +73,6 @@
     "compact",
     "jurisdictionName",
     "postalAbbreviation",
-    "privilegeFees",
     "jurisdictionOperationsTeamEmails",
     "jurisdictionAdverseActionsNotificationEmails",
     "jurisdictionSummaryReportNotificationEmails",

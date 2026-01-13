@@ -27,7 +27,6 @@ from stacks.persistent_stack.compact_configuration_upload import CompactConfigur
 from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
-from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
 from stacks.persistent_stack.ssn_table import SSNTable
 from stacks.persistent_stack.staff_users import StaffUsers
@@ -277,18 +276,6 @@ class PersistentStack(AppStack):
             environment_context=self.environment_context,
         )
 
-        # bucket for holding documentation for providers
-        self.provider_users_bucket = ProviderUsersBucket(
-            self,
-            'ProviderUsersBucket',
-            access_logs_bucket=self.access_logs_bucket,
-            encryption_key=self.shared_encryption_key,
-            provider_table=self.provider_table,
-            removal_policy=removal_policy,
-            backup_infrastructure_stack=backup_infrastructure_stack,
-            environment_context=self.environment_context,
-        )
-
     def _create_email_notification_service(self) -> None:
         """This lambda is intended to be a general purpose email notification service.
 
@@ -473,7 +460,6 @@ class PersistentStack(AppStack):
 
         # Add bucket names needed for CSP Lambda
         frontend_app_config.set_license_bulk_uploads_bucket_name(bucket_name=self.bulk_uploads_bucket.bucket_name)
-        frontend_app_config.set_provider_users_bucket_name(bucket_name=self.provider_users_bucket.bucket_name)
 
         # Generate the SSM parameter
         self.frontend_app_config_parameter = frontend_app_config.generate_ssm_parameter(

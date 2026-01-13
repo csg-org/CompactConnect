@@ -237,21 +237,6 @@ class TestOpenSearchIndexManager(TstFunction):
                                 'fields': {'keyword': {'ignore_above': 256, 'type': 'keyword'}},
                                 'type': 'text',
                             },
-                            'militaryAffiliations': {
-                                'properties': {
-                                    'affiliationType': {'type': 'keyword'},
-                                    'compact': {'type': 'keyword'},
-                                    'dateOfUpdate': {'type': 'date'},
-                                    'dateOfUpload': {'type': 'date'},
-                                    'fileNames': {'type': 'keyword'},
-                                    'providerId': {'type': 'keyword'},
-                                    'status': {'type': 'keyword'},
-                                    'type': {'type': 'keyword'},
-                                },
-                                'type': 'nested',
-                            },
-                            'militaryStatus': {'type': 'keyword'},
-                            'militaryStatusNote': {'type': 'text'},
                             'npi': {'type': 'keyword'},
                             'privilegeJurisdictions': {'type': 'keyword'},
                             'privileges': {

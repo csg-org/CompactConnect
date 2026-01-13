@@ -5,7 +5,6 @@ from .attestation import AttestationRecordSchema
 from .compact.record import CompactRecordSchema
 from .jurisdiction.record import JurisdictionRecordSchema
 from .license.record import LicenseRecordSchema
-from .military_affiliation.record import MilitaryAffiliationRecordSchema
 from .privilege.record import PrivilegeRecordSchema
 from .provider.record import ProviderRecordSchema
 from .user.record import UserRecordSchema

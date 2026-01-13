@@ -108,7 +108,6 @@ def test_purchase_privilege_options():
         'jurisdictionName': jurisdiction_config['jurisdictionName'],
         'postalAbbreviation': jurisdiction_config['postalAbbreviation'],
         'compact': jurisdiction_config['compact'],
-        'privilegeFees': jurisdiction_config['privilegeFees'],
         'jurisprudenceRequirements': jurisdiction_config['jurisprudenceRequirements'],
     }
 

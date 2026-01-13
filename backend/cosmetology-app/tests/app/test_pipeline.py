@@ -300,47 +300,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
                 props={'Value': {'Ref': list(layers.keys())[0]}},
             )
 
-    def test_synth_generates_provider_users_bucket_with_event_handler(self):
-        persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
-        persistent_stack_template = Template.from_stack(persistent_stack)
-
-        provider_users_bucket_event_lambda_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.provider_users_bucket.process_events_handler.node.default_child
-        )
-
-        persistent_stack_template.has_resource(
-            type='Custom::S3BucketNotifications',
-            props={
-                'Properties': {
-                    'BucketName': {
-                        'Ref': persistent_stack.get_logical_id(
-                            persistent_stack.provider_users_bucket.node.default_child
-                        )
-                    },
-                    'NotificationConfiguration': {
-                        'LambdaFunctionConfigurations': [
-                            {
-                                'Events': ['s3:ObjectCreated:*'],
-                                'LambdaFunctionArn': {
-                                    'Fn::GetAtt': [provider_users_bucket_event_lambda_logical_id, 'Arn']
-                                },
-                            }
-                        ]
-                    },
-                }
-            },
-        )
-
-        # ensure lambda points to expected handler
-        provider_users_bucket_handler = self.get_resource_properties_by_logical_id(
-            provider_users_bucket_event_lambda_logical_id,
-            persistent_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
-        )
-
-        self.assertEqual(
-            'handlers.provider_s3_events.process_provider_s3_events', provider_users_bucket_handler['Handler']
-        )
-
 
 class TestBackendPipelineVulnerable(TestCase):
     @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})

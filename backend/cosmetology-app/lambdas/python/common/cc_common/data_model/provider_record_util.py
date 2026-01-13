@@ -20,7 +20,6 @@ from cc_common.data_model.schema.common import (
 )
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.api import PrivilegeHistoryResponseSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
@@ -38,7 +37,6 @@ class ProviderRecordType(StrEnum):
     LICENSE_UPDATE = 'licenseUpdate'
     PRIVILEGE = 'privilege'
     PRIVILEGE_UPDATE = 'privilegeUpdate'
-    MILITARY_AFFILIATION = 'militaryAffiliation'
     ADVERSE_ACTION = 'adverseAction'
     INVESTIGATION = 'investigation'
 
@@ -410,7 +408,6 @@ class ProviderUserRecords:
         self._investigation_records: list[InvestigationData] = []
         self._provider_records: list[ProviderData] = []
         self._provider_update_records: list[ProviderUpdateData] = []
-        self._military_affiliation_records: list[MilitaryAffiliationData] = []
         self._license_update_records: list[LicenseUpdateData] = []
         self._privilege_update_records: list[PrivilegeUpdateData] = []
 
@@ -429,8 +426,6 @@ class ProviderUserRecords:
                 self._provider_records.append(ProviderData.from_database_record(record))
             elif record_type == ProviderRecordType.PROVIDER_UPDATE:
                 self._provider_update_records.append(ProviderUpdateData.from_database_record(record))
-            elif record_type == ProviderRecordType.MILITARY_AFFILIATION:
-                self._military_affiliation_records.append(MilitaryAffiliationData.from_database_record(record))
             elif record_type == ProviderRecordType.LICENSE_UPDATE:
                 self._license_update_records.append(LicenseUpdateData.from_database_record(record))
             elif record_type == ProviderRecordType.PRIVILEGE_UPDATE:
@@ -737,21 +732,6 @@ class ProviderUserRecords:
 
         return latest_licenses[0]
 
-    def get_latest_military_affiliation_status(self) -> str | None:
-        """
-        Determine the provider's latest military affiliation status if present.
-        :return: The military affiliation status of the provider if present, else None
-        """
-        if not self._military_affiliation_records:
-            return None
-
-        # we only need to check the most recent military affiliation record
-        latest_military_affiliation = sorted(
-            self._military_affiliation_records, key=lambda x: x.dateOfUpload, reverse=True
-        )[0]
-
-        return latest_military_affiliation.status
-
     def get_all_license_update_records(
         self,
         filter_condition: Callable[[LicenseUpdateData], bool] | None = None,
@@ -842,7 +822,6 @@ class ProviderUserRecords:
         provider = self.get_provider_record().to_dict()
         licenses = []
         privileges = []
-        military_affiliations = [record.to_dict() for record in self._military_affiliation_records]
 
         # Build licenses dict with investigations and adverseActions
         for license_record in self._license_records:
@@ -899,6 +878,5 @@ class ProviderUserRecords:
 
         provider['licenses'] = licenses
         provider['privileges'] = privileges
-        provider['militaryAffiliations'] = military_affiliations
 
         return provider

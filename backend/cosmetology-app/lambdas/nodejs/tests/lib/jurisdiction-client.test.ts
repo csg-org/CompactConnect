@@ -23,30 +23,7 @@ const SAMPLE_JURISDICTION_ITEMS = [
         'jurisdictionAdverseActionsNotificationEmails': {
             'L': []
         },
-        'privilegeFees': {
-            'L': [
-                {
-                    'M': {
-                        'licenseTypeAbbreviation': {
-                            'S': 'aud'
-                        },
-                        'amount': {
-                            'N': '100'
-                        }
-                    }
-                },
-                {
-                    'M': {
-                        'licenseTypeAbbreviation': {
-                            'S': 'slp'
-                        },
-                        'amount': {
-                            'N': '100'
-                        }
-                    }
-                }
-            ]
-        },
+
         'jurisdictionName': {
             'S': 'Ohio'
         },
@@ -89,30 +66,6 @@ const SAMPLE_JURISDICTION_ITEMS = [
         },
         'jurisdictionAdverseActionsNotificationEmails': {
             'L': []
-        },
-        'privilegeFees': {
-            'L': [
-                {
-                    'M': {
-                        'licenseTypeAbbreviation': {
-                            'S': 'aud'
-                        },
-                        'amount': {
-                            'N': '100'
-                        }
-                    }
-                },
-                {
-                    'M': {
-                        'licenseTypeAbbreviation': {
-                            'S': 'slp'
-                        },
-                        'amount': {
-                            'N': '100'
-                        }
-                    }
-                }
-            ]
         },
         'jurisdictionName': {
             'S': 'Nebraska'

@@ -272,14 +272,6 @@ class TstFunction(TstLambdas):
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
 
-    def _load_military_affiliation_record_data(self, status: str = 'active'):
-        """Use the canned test resources to load a basic provider to the DB"""
-        with open('../common/tests/resources/dynamo/military-affiliation.json') as f:
-            record = json.load(f, parse_float=Decimal)
-            record['status'] = status
-
-        self._provider_table.put_item(Item=record)
-
     def _load_user_data(self) -> str:
         with open('tests/resources/dynamo/user.json') as f:
             # This item is saved in its serialized form, so we have to deserialize it first
