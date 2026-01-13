@@ -17,7 +17,7 @@
   "context": {
     "tags": {
       "project": "compact-connect",
-      "service": "license-data"
+      "service": "jcc"
     },
     "jurisdictions": [
       "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",

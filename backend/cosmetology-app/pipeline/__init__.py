@@ -8,7 +8,6 @@ from common_constructs.base_pipeline_stack import (
     PROD_ENVIRONMENT_NAME,
     TEST_ENVIRONMENT_NAME,
     BasePipelineStack,
-    CCPipelineType,
 )
 from constructs import Construct
 
@@ -44,7 +43,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
             construct_id,
             environment_name=environment_name,
             env=env,
-            pipeline_type=CCPipelineType.BACKEND,
+            pipeline_context_parameter_name=f'{environment_name}-cosmetology-context',
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,

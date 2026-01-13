@@ -7,7 +7,7 @@ from aws_cdk import App, Environment
 # Make the `common_constructs` namespace package under `common-cdk` available to Python
 sys.path.insert(0, os.path.abspath(os.path.join('..', 'common-cdk')))
 
-from common_constructs.base_pipeline_stack import CCPipelineType
+from common_constructs.base_pipeline_stack import DEPLOY_ENVIRONMENT_NAME
 from common_constructs.deployment_resources_stack import DeploymentResourcesStack
 from common_constructs.stack import StandardTags
 
@@ -22,13 +22,13 @@ from pipeline import (
 from pipeline.backend_stage import BackendStage
 
 # Pipeline stack name constants for DRY code
-TEST_BACKEND_PIPELINE_STACK = 'TestBackendPipelineStack'
-BETA_BACKEND_PIPELINE_STACK = 'BetaBackendPipelineStack'
-PROD_BACKEND_PIPELINE_STACK = 'ProdBackendPipelineStack'
-DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesStack'
+TEST_BACKEND_PIPELINE_STACK = 'TestBackendCosmetology'
+BETA_BACKEND_PIPELINE_STACK = 'BetaBackendCosmetology'
+PROD_BACKEND_PIPELINE_STACK = 'ProdBackendCosmetology'
+DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesCosmetology'
 
 # CDK path
-CDK_PATH = 'backend/compact-connect'
+CDK_PATH = 'backend/cosmetology-app'
 
 
 class CompactConnectApp(App):
@@ -135,7 +135,7 @@ class CompactConnectApp(App):
         self.deployment_resources_stack = DeploymentResourcesStack(
             self,
             DEPLOYMENT_RESOURCES_STACK,
-            pipeline_type=CCPipelineType.BACKEND,
+            pipeline_context_parameter_name=f'{DEPLOY_ENVIRONMENT_NAME}-cosmetology-context',
             env=self.environment,
             standard_tags=StandardTags(**self.tags, environment='deploy'),
         )

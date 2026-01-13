@@ -6,7 +6,7 @@ from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sns import CfnTopic
 
-from common_constructs.base_pipeline_stack import CCPipelineType
+from common_constructs.base_pipeline_stack import DEPLOY_ENVIRONMENT_NAME
 from common_constructs.deployment_resources_stack import DeploymentResourcesStack
 from common_constructs.stack import StandardTags
 from tests.test_context import TEST_ACCOUNT_ID, TEST_REGION, get_deploy_context
@@ -25,7 +25,7 @@ class TestDeploymentResourcesStack(TestCase):
         deployment_stack = DeploymentResourcesStack(
             app,
             'DeploymentResources',
-            pipeline_type=CCPipelineType.BACKEND,
+            pipeline_context_parameter_name=f'{DEPLOY_ENVIRONMENT_NAME}-compact-connect-context',
             standard_tags=standard_tags,
             env=env,
         )
@@ -79,7 +79,7 @@ class TestDeploymentResourcesStack(TestCase):
         deployment_stack = DeploymentResourcesStack(
             app,
             'DeploymentResources',
-            pipeline_type=CCPipelineType.FRONTEND,
+            pipeline_context_parameter_name=f'{DEPLOY_ENVIRONMENT_NAME}-ui-compact-connect-context',
             standard_tags=standard_tags,
             env=env,
         )

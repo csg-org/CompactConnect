@@ -7,8 +7,8 @@
         "format": "email",
         "type": "string"
       },
-      "minItems": 1,
       "maxItems": 10,
+      "minItems": 1,
       "type": "array",
       "uniqueItems": true
     },
@@ -18,8 +18,8 @@
         "format": "email",
         "type": "string"
       },
-      "minItems": 1,
       "maxItems": 10,
+      "minItems": 1,
       "type": "array",
       "uniqueItems": true
     },
@@ -29,8 +29,8 @@
         "format": "email",
         "type": "string"
       },
-      "minItems": 1,
       "maxItems": 10,
+      "minItems": 1,
       "type": "array",
       "uniqueItems": true
     },

@@ -16,8 +16,8 @@
   },
   "context": {
     "tags": {
-      "project": "cosmetology-compact-connect",
-      "service": "license-data"
+      "project": "compact-connect",
+      "service": "cosmetology"
     },
     "jurisdictions": [
       "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",
