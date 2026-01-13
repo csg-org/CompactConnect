@@ -341,7 +341,6 @@ class ProviderSearchDomain(Construct):
         Both prod and non-prod use all 3 private isolated subnets for zone awareness
         and proper distribution of data nodes across availability zones.
 
-        :param vpc_stack: The VPC stack containing the private subnets
         :return: SubnetSelection with appropriate subnet configuration
         """
         # Both prod and non-prod use 3 data nodes across 3 AZs

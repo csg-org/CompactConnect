@@ -278,7 +278,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         vpc_options = opensearch_properties['VPCOptions']
         subnet_ids = vpc_options['SubnetIds']
 
-        # For sandbox (non-prod), should use three subnet
+        # For sandbox (non-prod), should use three subnets
         self.assertEqual(len(subnet_ids), 3, 'Sandbox OpenSearch should use three subnets')
 
         # Get the subnet references for each AZ
