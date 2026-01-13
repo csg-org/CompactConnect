@@ -528,7 +528,7 @@ class TestDataClient(TstFunction):
         self.assertEqual(
             {
                 'pk': f'aslp#PROVIDER#{provider_id}',
-                'sk': 'aslp#UPDATE#1#privilege/ne/aud/2024-11-08T23:59:59+00:00/250e8629a6b21e5939af5f36939328e0',
+                'sk': 'aslp#UPDATE#1#privilege/ne/aud/2024-11-08T23:59:59+00:00/4cfc2eb51e0e30865dc5f63ec9b54f8a',
                 'type': 'privilegeUpdate',
                 'updateType': 'deactivation',
                 'providerId': str(provider_id),
@@ -620,7 +620,7 @@ class TestDataClient(TstFunction):
         # We'll create it as if it were already deactivated
         original_history = {
             'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#UPDATE#1#privilege/ne/aud/2024-11-08T23:59:59+00:00/b581f52749608fa7aeb0c8ca2565a78a',
+            'sk': 'aslp#UPDATE#1#privilege/ne/aud/2024-11-08T23:59:59+00:00/5085ab7965ee4b956b621507ff143ab0',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': str(provider_id),
