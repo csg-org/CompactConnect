@@ -1,6 +1,6 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "aslp#UPDATE#1#privilege/ne/slp/2020-05-05T12:59:59+00:00/34114f9fb9eb58750f7e5850b693c9b3",
+  "sk": "aslp#UPDATE#1#privilege/ne/slp/2020-05-05T12:59:59+00:00/d5a4213fc1ae5223e1de56cff69a2111",
   "type": "privilegeUpdate",
   "updateType": "renewal",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
@@ -11,9 +11,6 @@
   "createDate": "2020-05-05T12:59:59+00:00",
   "effectiveDate": "2020-05-05T12:59:59+00:00",
   "previous": {
-    "attestations": [
-      {"attestationId": "jurisprudence-confirmation", "version": "1"}
-    ],
     "dateOfIssuance": "2016-05-05T12:59:59+00:00",
     "dateOfRenewal": "2016-05-05T12:59:59+00:00",
     "dateOfExpiration": "2020-06-06",

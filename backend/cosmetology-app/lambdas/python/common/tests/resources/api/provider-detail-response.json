@@ -68,13 +68,7 @@
       "privilegeId": "SLP-NE-1",
       "administratorSetStatus": "active",
       "adverseActions": [],
-      "investigations": [],
-      "attestations": [
-        {
-          "attestationId": "jurisprudence-confirmation",
-          "version": "1"
-        }
-      ]
+      "investigations": []
     }
   ]
 }
