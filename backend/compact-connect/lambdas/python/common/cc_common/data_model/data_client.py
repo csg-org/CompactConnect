@@ -992,6 +992,9 @@ class DataClient:
         # Get provider records
         provider_user_records = self.get_provider_user_records(compact=compact, provider_id=provider_id)
         provider_record = provider_user_records.get_provider_record()
+        # The point of this check is not to see what the status of their last military affiliation document is,
+        # but rather to verify that they have a military affiliation at all. If they don't, then this returns None,
+        # and we error out with a 404 status code.
         latest_military_affiliation = provider_user_records.get_latest_military_affiliation()
 
         if not latest_military_affiliation:

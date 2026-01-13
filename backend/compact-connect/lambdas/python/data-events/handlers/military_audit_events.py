@@ -34,7 +34,7 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
 
     with logger.append_context_keys(
         compact=compact,
-        provider_id=str(provider_id),
+        provider_id=provider_id,
         audit_result=audit_result,
     ):
         logger.info('Processing military audit notification')
@@ -43,7 +43,7 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
         try:
             provider_records = config.data_client.get_provider_user_records(
                 compact=compact,
-                provider_id=UUID(str(provider_id)),
+                provider_id=provider_id,
             )
             provider_record = provider_records.get_provider_record()
         except Exception as e:
