@@ -95,8 +95,7 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
         } else if (updateType === 'licenseDeactivation') {
             noteDisplay = this.$t('licensing.licenseDeactivationNote');
         } else if (updateType === 'encumbrance') {
-            // For encumbrance events, use npdbCategories if available (new format)
-            // Otherwise fall back to serverNote for backward compatibility
+            // For encumbrance events, use npdbCategories
             if (this.npdbCategories && this.npdbCategories.length > 0) {
                 const npdbTypes = this.$tm('licensing.npdbTypes') || [];
                 const categoryNames = this.npdbCategories
