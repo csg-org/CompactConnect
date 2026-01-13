@@ -1,7 +1,6 @@
 # ruff: noqa: E501 line-too-long
 import json
 from datetime import datetime
-from decimal import Decimal
 from unittest.mock import patch
 
 from cc_common.exceptions import CCInternalException
@@ -742,7 +741,6 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
 
     def test_get_jurisdiction_configuration_returns_empty_jurisdiction_configuration_if_no_configuration_exists(self):
         """Test getting a jurisdiction configuration returns a default configuration if none exists."""
-        from cc_common.license_util import LicenseUtility
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')

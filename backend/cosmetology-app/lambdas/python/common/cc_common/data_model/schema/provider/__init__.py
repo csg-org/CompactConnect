@@ -1,6 +1,6 @@
 # ruff: noqa: N802 we use camelCase to match the marshmallow schema definition
 
-from datetime import date, datetime
+from datetime import date
 from uuid import UUID
 
 from cc_common.data_model.schema.common import CCDataClass

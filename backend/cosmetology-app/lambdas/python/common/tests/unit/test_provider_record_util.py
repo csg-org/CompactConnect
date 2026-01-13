@@ -1170,7 +1170,6 @@ class TestProviderRecordUtilityActiveSinceCalculation(TstLambdas):
 
         self.assertEqual(test_renewal_update.updatedValues.get('dateOfRenewal'), active_since)
 
-
     def test_calculation_returns_issued_date_if_privilege_renewed_before_expiration(self):
         test_privilege = self.test_data_generator.generate_default_privilege(
             value_overrides={'dateOfExpiration': date.fromisoformat('2100-04-04')}

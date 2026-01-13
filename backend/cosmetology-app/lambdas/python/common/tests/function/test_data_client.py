@@ -15,7 +15,6 @@ from tests.function import TstFunction
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestDataClient(TstFunction):
-
     def setUp(self):
         super().setUp()
         self.maxDiff = None
@@ -85,8 +84,6 @@ class TestDataClient(TstFunction):
         self._ssn_table.put_item(Item=provider_ssn_record)
 
         return provider_id
-        self.assertEqual('inactive', oldest_record['status'])
-        self.assertEqual('active', newest_record['status'])
 
     def test_data_client_created_privilege_record(self):
         from cc_common.data_model.data_client import DataClient

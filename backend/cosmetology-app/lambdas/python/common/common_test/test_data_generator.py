@@ -1,6 +1,5 @@
 # ruff: noqa: F403, F405 star import of test constants file
 import json
-from copy import deepcopy
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -13,7 +12,7 @@ from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.utils import ResponseEncoder
 
 from common_test.test_constants import *

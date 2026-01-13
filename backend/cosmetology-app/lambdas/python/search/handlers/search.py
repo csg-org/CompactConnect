@@ -520,7 +520,7 @@ def _extract_flattened_privileges_from_list(
             # Skip this privilege if no matching license is found
             continue
 
-        flattened_privilege = _create_flattened_privilege(privilege, matching_license, provider)
+        flattened_privilege = _create_flattened_privilege(privilege, matching_license)
         flattened_privileges.append(flattened_privilege)
 
     return flattened_privileges
@@ -544,7 +544,7 @@ def _find_matching_license(licenses: list[dict], license_jurisdiction: str, lice
     return None
 
 
-def _create_flattened_privilege(privilege: dict, license_record: dict, provider: dict) -> dict:
+def _create_flattened_privilege(privilege: dict, license_record: dict) -> dict:
     """
     Create a flattened privilege record by combining privilege and license data.
 
@@ -552,7 +552,6 @@ def _create_flattened_privilege(privilege: dict, license_record: dict, provider:
 
     :param privilege: Privilege record
     :param license_record: Matching license record
-    :param provider: Provider record (for email if registered)
     :return: Flattened privilege record with combined data
     """
     # Start with privilege data and set type

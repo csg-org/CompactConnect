@@ -14,8 +14,6 @@ from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
-    HomeJurisdictionChangeStatusEnum,
-    PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
 from cc_common.data_model.schema.investigation import InvestigationData

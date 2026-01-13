@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from marshmallow import Schema, ValidationError, pre_dump, validates_schema
+from marshmallow import Schema, pre_dump
 from marshmallow.fields import Boolean, Email, List, Nested, String
 from marshmallow.validate import Length, OneOf
 

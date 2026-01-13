@@ -12,7 +12,6 @@ from botocore.exceptions import ClientError
 from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.provider_record_util import (
     ProviderRecordType,
-    ProviderRecordUtility,
     ProviderUserRecords,
 )
 from cc_common.data_model.query_paginator import paginated_query
@@ -21,8 +20,6 @@ from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     CCDataClass,
-    CompactEligibilityStatus,
-    HomeJurisdictionChangeStatusEnum,
     InvestigationAgainstEnum,
     InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
@@ -34,7 +31,7 @@ from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
-from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
     CCAwsServiceException,
