@@ -15,10 +15,8 @@
   "privilegeJurisdictions": ["ne"],
   "jurisdictionUploadedLicenseStatus": "active",
   "jurisdictionUploadedCompactEligibility": "eligible",
-  "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
   "dateOfExpiration": "2025-04-04",
   "dateOfBirth": "1985-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
-  "birthMonthDay": "06-06",
-  "currentHomeJurisdiction": "oh"
+  "birthMonthDay": "06-06"
 }

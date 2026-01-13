@@ -117,7 +117,6 @@ def ingest_license_message(message: dict):
 
             dynamo_transactions = []
 
-            home_jurisdiction = None
             try:
                 provider_data = config.data_client.get_provider(
                     compact=compact,
@@ -145,7 +144,6 @@ def ingest_license_message(message: dict):
                 current_provider_record = ProviderData.create_new(
                     ProviderRecordUtility.get_provider_record(provider_records)
                 )
-                home_jurisdiction = current_provider_record.currentHomeJurisdiction
 
             except CCNotFoundException:
                 licenses_organized = {}
@@ -195,7 +193,6 @@ def ingest_license_message(message: dict):
 
             best_license = ProviderRecordUtility.find_best_license(
                 license_records=licenses_flattened,
-                home_jurisdiction=home_jurisdiction,
             )
 
             if best_license is posted_license_record:

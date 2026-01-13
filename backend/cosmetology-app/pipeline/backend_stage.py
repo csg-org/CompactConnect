@@ -12,7 +12,6 @@ from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
 from stacks.notification_stack import NotificationStack
 from stacks.persistent_stack import PersistentStack
-from stacks.provider_users import ProviderUsersStack
 from stacks.reporting_stack import ReportingStack
 from stacks.search_api_stack import SearchApiStack
 from stacks.search_persistent_stack import SearchPersistentStack
@@ -74,17 +73,6 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
-        self.provider_users_stack = ProviderUsersStack(
-            self,
-            'ProviderUsersStack',
-            env=environment,
-            environment_context=environment_context,
-            standard_tags=standard_tags,
-            app_name=app_name,
-            environment_name=environment_name,
-            persistent_stack=self.persistent_stack,
-        )
-
         self.state_auth_stack = StateAuthStack(
             self,
             'StateAuthStack',
@@ -104,7 +92,6 @@ class BackendStage(Stage):
             environment_name=environment_name,
             standard_tags=standard_tags,
             persistent_stack=self.persistent_stack,
-            provider_users_stack=self.provider_users_stack,
         )
 
         self.ingest_stack = IngestStack(
@@ -125,7 +112,6 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
-            provider_users_stack=self.provider_users_stack,
         )
 
         self.api_stack = ApiStack(
@@ -136,7 +122,6 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
-            provider_users_stack=self.provider_users_stack,
             api_lambda_stack=self.api_lambda_stack,
         )
 

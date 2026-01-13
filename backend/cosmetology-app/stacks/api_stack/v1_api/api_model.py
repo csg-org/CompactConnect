@@ -72,33 +72,6 @@ class ApiModel:
         return self.api._v1_post_licenses_response_model
 
     @property
-    def put_provider_home_jurisdiction_request_model(self) -> Model:
-        """Return the PUT home jurisdiction request model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_put_provider_home_jurisdiction_request_model'):
-            return self.api._v1_put_provider_home_jurisdiction_request_model
-
-        # the user can set their home jurisdiction to any of the known jurisdictions, or 'other'
-        # in the case the provider has a home jurisdiction that is not listed
-        allowed_options = self.api.node.get_context('jurisdictions') + ['other']
-        self.api._v1_put_provider_home_jurisdiction_request_model = self.api.add_model(
-            'V1PutProviderHomeJurisdictionRequestModel',
-            description='PUT provider home jurisdiction request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['jurisdiction'],
-                properties={
-                    'jurisdiction': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The jurisdiction postal abbreviation to set as home jurisdiction',
-                        enum=allowed_options,
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_put_provider_home_jurisdiction_request_model
-
-    @property
     def query_providers_request_model(self) -> Model:
         """Return the query providers request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_query_providers_request_model'):
@@ -480,136 +453,6 @@ class ApiModel:
         )
 
         return self.api._v1_patch_license_encumbrance_request_model
-
-    @property
-    def post_provider_user_military_affiliation_request_model(self) -> Model:
-        """Return the post payment processor credentials request model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_post_provider_user_military_affiliation_request_model'):
-            return self.api._v1_post_provider_user_military_affiliation_request_model
-        self.api._v1_post_provider_user_military_affiliation_request_model = self.api.add_model(
-            'V1PostProviderUserMilitaryAffiliationRequestModel',
-            description='Post provider user military affiliation request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['fileNames', 'affiliationType'],
-                properties={
-                    'fileNames': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of military affiliation file names',
-                        items=JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description='The name of the file being uploaded',
-                            # setting a max file name length of 150 to prevent abuse
-                            max_length=150,
-                        ),
-                    ),
-                    'affiliationType': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The type of military affiliation',
-                        enum=['militaryMember', 'militaryMemberSpouse'],
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_post_provider_user_military_affiliation_request_model
-
-    @property
-    def post_provider_military_affiliation_response_model(self) -> Model:
-        """Return the post provider military affiliation response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_post_provider_military_affiliation_response_model'):
-            return self.api._v1_post_provider_military_affiliation_response_model
-        self.api._v1_post_provider_military_affiliation_response_model = self.api.add_model(
-            'V1PostProviderMilitaryAffiliationResponseModel',
-            description='Post provider military affiliation response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=[
-                    'affiliationType',
-                    'documentUploadFields',
-                    'fileName',
-                    'status',
-                    'dateOfUpload',
-                    'dateOfUpdate',
-                ],
-                properties={
-                    'affiliationType': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The type of military affiliation',
-                        enum=['militaryMember', 'militaryMemberSpouse'],
-                    ),
-                    'fileNames': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of military affiliation file names',
-                        items=JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description='The name of the file being uploaded',
-                        ),
-                    ),
-                    'status': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The status of the military affiliation',
-                    ),
-                    'dateOfUpload': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The date the document was uploaded',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'dateOfUpdate': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The date the document was last updated',
-                        format='date-time',
-                    ),
-                    'documentUploadFields': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='The fields used to upload documents',
-                        items=JsonSchema(
-                            type=JsonSchemaType.OBJECT,
-                            description='The fields used to upload a specific document',
-                            properties={
-                                'url': JsonSchema(
-                                    type=JsonSchemaType.STRING, description='The url to upload the document to'
-                                ),
-                                'fields': JsonSchema(
-                                    type=JsonSchemaType.OBJECT,
-                                    description='The form fields used to upload the document',
-                                    # these are documented in S3 documentation
-                                    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/
-                                    # generate_presigned_post.html
-                                    additional_properties=JsonSchema(type=JsonSchemaType.STRING),
-                                ),
-                            },
-                        ),
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_post_provider_military_affiliation_response_model
-
-    @property
-    def patch_provider_user_military_affiliation_request_model(self) -> Model:
-        """Return the post payment processor credentials request model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_patch_provider_user_military_affiliation_request_model'):
-            return self.api._v1_patch_provider_user_military_affiliation_request_model
-        self.api._v1_patch_provider_user_military_affiliation_request_model = self.api.add_model(
-            'V1PatchProviderUserMilitaryAffiliationRequestModel',
-            description='Patch provider user military affiliation request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['status'],
-                properties={
-                    'status': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The status to set the military affiliation to.',
-                        # for now, we only allow 'inactive'
-                        enum=['inactive'],
-                    )
-                },
-            ),
-        )
-        return self.api._v1_patch_provider_user_military_affiliation_request_model
 
     @property
     def post_purchase_privileges_request_model(self) -> Model:
@@ -1221,12 +1064,9 @@ class ApiModel:
                 'other',
                 'renewal',
                 'encumbrance',
-                'homeJurisdictionChange',
-                'registration',
                 'lifting_encumbrance',
                 # this is specific to privileges that are deactivated due to a state license deactivation,
                 'licenseDeactivation',
-                'emailChange',
             ],
         )
 
@@ -1337,19 +1177,6 @@ class ApiModel:
         }
 
     @property
-    def current_home_jurisdiction_selection_field(self) -> JsonSchema:
-        # A provider's current home jurisdiction can be one of the following:
-        # 'unknown' - The provider has not registered with the system
-        # 'other' - The provider is in a jurisdiction that is not in the system's list of jurisdictions
-        # Otherwise, the provider is in a known jurisdiction that is listed within the system.
-        allowed_options = self.api.node.get_context('jurisdictions') + ['other', 'unknown']
-        return JsonSchema(
-            type=JsonSchemaType.STRING,
-            description='The current jurisdiction postal abbreviation if known.',
-            enum=allowed_options,
-        )
-
-    @property
     def _common_provider_properties(self) -> dict:
         return {
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
@@ -1378,13 +1205,6 @@ class ApiModel:
                 type=JsonSchemaType.ARRAY,
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
             ),
-            'compactConnectRegisteredEmailAddress': JsonSchema(
-                type=JsonSchemaType.STRING,
-                format='email',
-                min_length=5,
-                max_length=100,
-            ),
-            'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
 
@@ -1810,138 +1630,6 @@ class ApiModel:
             ),
         )
         return self.api._v1_put_jurisdiction_request_model
-
-    @property
-    def provider_account_recovery_initiate_request_model(self) -> Model:
-        """Return the provider account recovery initiate request model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_provider_account_recovery_initiate_request_model'):
-            return self.api._v1_provider_account_recovery_initiate_request_model
-
-        self.api._v1_provider_account_recovery_initiate_request_model = self.api.add_model(
-            'V1ProviderAccountRecoveryInitiateRequestModel',
-            description='Provider account recovery initiate request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=[
-                    'username',
-                    'password',
-                    'compact',
-                    'jurisdiction',
-                    'givenName',
-                    'familyName',
-                    'dob',
-                    'partialSocial',
-                    'licenseType',
-                    'recaptchaToken',
-                ],
-                properties={
-                    'username': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description="Provider's email address (username)",
-                        format='email',
-                        min_length=5,
-                        max_length=100,
-                    ),
-                    'password': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description="Provider's current password",
-                        # passwords must be a minimum of 12 and can be up to 256 characters
-                        min_length=12,
-                        max_length=256,
-                    ),
-                    'compact': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Compact abbreviation',
-                        enum=self.api.node.get_context('compacts'),
-                    ),
-                    'jurisdiction': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Two-letter jurisdiction code',
-                        enum=self.api.node.get_context('jurisdictions'),
-                    ),
-                    'givenName': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description="Provider's given name",
-                        min_length=1,
-                        max_length=200,
-                    ),
-                    'familyName': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description="Provider's family name",
-                        min_length=1,
-                        max_length=200,
-                    ),
-                    'dob': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Date of birth in YYYY-MM-DD format',
-                        format='date',
-                        pattern=cc_api.YMD_FORMAT,
-                    ),
-                    'partialSocial': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Last 4 digits of SSN',
-                        pattern='^[0-9]{4}$',
-                    ),
-                    'licenseType': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Type of license',
-                        enum=self.stack.license_type_names,
-                    ),
-                    'recaptchaToken': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='ReCAPTCHA token for verification',
-                        min_length=1,
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_provider_account_recovery_initiate_request_model
-
-    @property
-    def provider_account_recovery_verify_request_model(self) -> Model:
-        """Return the provider account recovery verify request model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_provider_account_recovery_verify_request_model'):
-            return self.api._v1_provider_account_recovery_verify_request_model
-
-        self.api._v1_provider_account_recovery_verify_request_model = self.api.add_model(
-            'V1ProviderAccountRecoveryVerifyRequestModel',
-            description='Provider account recovery verify request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=[
-                    'compact',
-                    'providerId',
-                    'recoveryToken',
-                    'recaptchaToken',
-                ],
-                properties={
-                    'compact': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Compact abbreviation',
-                        enum=self.api.node.get_context('compacts'),
-                    ),
-                    'providerId': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Provider UUID',
-                        pattern=cc_api.UUID4_FORMAT,
-                    ),
-                    'recoveryToken': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Recovery token from the email link',
-                        min_length=1,
-                        max_length=256,
-                    ),
-                    'recaptchaToken': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='ReCAPTCHA token for verification',
-                        min_length=1,
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_provider_account_recovery_verify_request_model
 
     @property
     def get_provider_ssn_response_model(self) -> Model:
@@ -2421,57 +2109,8 @@ class ApiModel:
                 type=JsonSchemaType.ARRAY,
                 items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             ),
-            'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
-
-    @property
-    def patch_provider_email_request_model(self) -> Model:
-        """Request model for PATCH /v1/provider-users/me/email"""
-        if hasattr(self.api, '_v1_patch_provider_email_request_model'):
-            return self.api._v1_patch_provider_email_request_model
-
-        self.api._v1_patch_provider_email_request_model = self.api.add_model(
-            'V1PatchProviderEmailRequestModel',
-            description='Patch provider email request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['newEmailAddress'],
-                properties={
-                    'newEmailAddress': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        format='email',
-                        min_length=5,
-                        max_length=100,
-                        description='The new email address to set for the provider',
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_patch_provider_email_request_model
-
-    @property
-    def post_provider_email_verify_request_model(self) -> Model:
-        """Request model for POST /v1/provider-users/me/email/verify"""
-        if hasattr(self.api, '_v1_post_provider_email_verify_request_model'):
-            return self.api._v1_post_provider_email_verify_request_model
-
-        self.api._v1_post_provider_email_verify_request_model = self.api.add_model(
-            'V1PostProviderEmailVerifyRequestModel',
-            description='Post provider email verify request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=['verificationCode'],
-                properties={
-                    'verificationCode': JsonSchema(
-                        type=JsonSchemaType.STRING, pattern='^[0-9]{4}$', description='4-digit verification code'
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_post_provider_email_verify_request_model
 
     @property
     def check_feature_flag_request_model(self) -> Model:

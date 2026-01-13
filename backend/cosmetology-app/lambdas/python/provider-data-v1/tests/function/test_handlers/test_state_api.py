@@ -394,8 +394,7 @@ class TestGetProvider(SignatureTestBase):
                 'licenseJurisdiction': license_jurisdiction,
                 # Set the jurisdiction where we'll create privileges
                 'privilegeJurisdictions': {privilege_jurisdiction},
-            },
-            is_registered=True,
+            }
         )
 
         self.test_data_generator.put_default_license_record_in_provider_table(
@@ -420,7 +419,7 @@ class TestGetProvider(SignatureTestBase):
     def test_get_provider_success_with_general_permissions(self):
         """Test successful provider retrieval with general read permissions."""
         # Create a provider with privileges in 'ne' jurisdiction (matches test data)
-        provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=True)
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table()
         self.test_data_generator.put_default_privilege_record_in_provider_table()
         provider_id = str(provider.providerId)
@@ -487,7 +486,7 @@ class TestGetProvider(SignatureTestBase):
         """Test successful provider retrieval with private read permissions."""
         # Create a provider with privileges in 'ne' jurisdiction
         # Create a provider with privileges in 'ne' jurisdiction (matches test data)
-        provider = self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=True)
+        provider = self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table()
         self.test_data_generator.put_default_privilege_record_in_provider_table()
         provider_id = str(provider.providerId)
@@ -532,7 +531,6 @@ class TestGetProvider(SignatureTestBase):
                     'licenseStatus': 'active',
                     'middleName': 'Gunnar',
                     'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                    'compactConnectRegisteredEmailAddress': 'björkRegisteredEmail@example.com',
                     # Private fields should be included
                     'ssnLastFour': '1234',
                     'emailAddress': 'björk@example.com',

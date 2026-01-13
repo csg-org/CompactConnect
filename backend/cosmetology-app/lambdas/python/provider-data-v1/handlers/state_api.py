@@ -101,8 +101,6 @@ def _create_flattened_privilege(
     # Start with privilege data and set type
     flattened = privilege.to_dict()
     flattened['type'] = 'statePrivilege'
-    if provider_record.compactConnectRegisteredEmailAddress is not None:
-        flattened['compactConnectRegisteredEmailAddress'] = provider_record.compactConnectRegisteredEmailAddress
 
     # Remove fields from license that would conflict with privilege fields
     license_copy = license_record.to_dict()

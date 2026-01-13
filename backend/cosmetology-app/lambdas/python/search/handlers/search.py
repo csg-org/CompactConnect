@@ -559,10 +559,6 @@ def _create_flattened_privilege(privilege: dict, license_record: dict, provider:
     flattened = dict(privilege)
     flattened['type'] = 'statePrivilege'
 
-    # Add compactConnectRegisteredEmailAddress if present
-    if provider.get('compactConnectRegisteredEmailAddress') is not None:
-        flattened['compactConnectRegisteredEmailAddress'] = provider.get('compactConnectRegisteredEmailAddress')
-
     # Remove fields from license that would conflict with privilege fields
     license_copy = dict(license_record)
     conflicting_fields = {

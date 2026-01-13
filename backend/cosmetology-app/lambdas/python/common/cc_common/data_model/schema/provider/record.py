@@ -15,11 +15,9 @@ from cc_common.data_model.schema.common import (
     LicenseEncumberedStatusEnum,
 )
 from cc_common.data_model.schema.fields import (
-    UNKNOWN_JURISDICTION,
     ActiveInactive,
     Compact,
     CompactEligibility,
-    CurrentHomeJurisdictionField,
     Jurisdiction,
     LicenseEncumberedStatusField,
     NationalProviderIdentifier,
@@ -66,28 +64,12 @@ class ProviderRecordSchema(BaseRecordSchema):
     # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
-    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-
-    # Optional Email verification fields (only present if the provider has requested an email change)
-    pendingEmailAddress = Email(required=False, allow_none=False)
-    emailVerificationCode = String(required=False, allow_none=False, validate=Length(4, 4))
-    emailVerificationExpiry = DateTime(required=False, allow_none=False)
-
-    # Optional fields for account recovery
-    recoveryToken = String(required=False, allow_none=False)
-    recoveryExpiry = DateTime(required=False, allow_none=False)
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
-
-    # This field is set whenever the provider registers with the compact connect system,
-    # or updates their home jurisdiction.
-    currentHomeJurisdiction = CurrentHomeJurisdictionField(
-        required=False, allow_none=False, load_default=UNKNOWN_JURISDICTION
-    )
 
     @pre_load
     def _calculate_statuses(self, in_data, **_kwargs):
@@ -121,9 +103,6 @@ class ProviderRecordSchema(BaseRecordSchema):
                 and in_data['licenseStatus'] == ActiveInactiveStatus.ACTIVE
                 and in_data.get('encumberedStatus', LicenseEncumberedStatusEnum.UNENCUMBERED)
                 == LicenseEncumberedStatusEnum.UNENCUMBERED
-                # In the case of providers, if they have moved to a jurisdiction where they have no license which the
-                # system knows about, they are considered ineligible as they cannot purchase privileges in that case.
-                and in_data.get('currentHomeJurisdiction', UNKNOWN_JURISDICTION) == in_data['licenseJurisdiction']
             )
             else CompactEligibilityStatus.INELIGIBLE
         )
@@ -205,9 +184,6 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
-    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
-
-    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
 
 

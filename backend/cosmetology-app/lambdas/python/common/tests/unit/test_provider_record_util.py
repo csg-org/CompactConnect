@@ -32,7 +32,6 @@ class TestProviderRecordUtility(TstLambdas):
             'dateOfIssuance': '2025-04-23T15:47:14+00:00',
             'dateOfRenewal': '2025-04-23T15:47:14+00:00',
             'dateOfExpiration': '2027-02-12',
-            'compactTransactionId': '120061887030',
             'attestations': [],
             'privilegeId': 'OTA-AL-12',
             'administratorSetStatus': 'active',
@@ -421,7 +420,6 @@ class TestProviderRecordUtility(TstLambdas):
         history = [
             {
                 'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
@@ -430,7 +428,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
-                    'compactTransactionId': '120065729643',
                     'dateOfExpiration': date.fromisoformat('2025-12-11'),
                     'dateOfIssuance': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
@@ -446,7 +443,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120064106492#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
@@ -455,7 +451,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'previous': {
                     'administratorSetStatus': 'inactive',
                     'attestations': [],
-                    'compactTransactionId': '120064106492',
                     'dateOfExpiration': date.fromisoformat('2025-12-11'),
                     'dateOfIssuance': datetime.fromisoformat('2025-05-28T19:50:44+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2025-05-28T19:50:44+00:00'),
@@ -471,7 +466,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
@@ -479,7 +473,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
                     'attestations': [],
-                    'compactTransactionId': '120059525522',
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
                     'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
@@ -490,7 +483,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updatedValues': {
-                    'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
                     'privilegeId': 'OTA-NE-10',
@@ -521,7 +513,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
@@ -530,7 +521,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
-                    'compactTransactionId': '120065729643',
                     'dateOfExpiration': date.fromisoformat('2025-12-11'),
                     'dateOfIssuance': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
@@ -559,7 +549,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120064106492#',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
@@ -568,7 +557,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'previous': {
                     'administratorSetStatus': 'inactive',
                     'attestations': [],
-                    'compactTransactionId': '120064106492',
                     'dateOfExpiration': date.fromisoformat('2025-12-11'),
                     'dateOfIssuance': datetime.fromisoformat('2025-05-28T19:50:44+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2025-05-28T19:50:44+00:00'),
@@ -584,7 +572,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
@@ -592,7 +579,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
                     'attestations': [],
-                    'compactTransactionId': '120059525522',
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
                     'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
@@ -603,7 +589,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updatedValues': {
-                    'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
                     'privilegeId': 'OTA-NE-10',
@@ -636,7 +621,6 @@ class TestProviderRecordUtility(TstLambdas):
         history = [
             {
                 'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
@@ -644,7 +628,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
                     'attestations': [],
-                    'compactTransactionId': '120059525522',
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
                     'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
@@ -655,7 +638,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updatedValues': {
-                    'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
                     'privilegeId': 'OTA-NE-10',
@@ -686,7 +668,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
@@ -694,7 +675,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
                     'attestations': [],
-                    'compactTransactionId': '120059525522',
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
                     'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
@@ -705,7 +685,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updatedValues': {
-                    'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
                     'privilegeId': 'OTA-NE-10',
@@ -737,7 +716,6 @@ class TestProviderRecordUtility(TstLambdas):
         history = [
             {
                 'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
@@ -745,7 +723,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
                     'attestations': [],
-                    'compactTransactionId': '120059525522',
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
                     'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
@@ -756,7 +733,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updatedValues': {
-                    'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
                     'privilegeId': 'OTA-NE-10',
@@ -800,7 +776,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
@@ -808,7 +783,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'licenseType': 'occupational therapy assistant',
                 'previous': {
                     'attestations': [],
-                    'compactTransactionId': '120059525522',
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
                     'dateOfIssuance': datetime.fromisoformat('2025-03-19T21:51:26+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
@@ -819,7 +793,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updatedValues': {
-                    'compactTransactionId': '120060004893',
                     'dateOfExpiration': date.fromisoformat('2028-02-12'),
                     'dateOfRenewal': datetime.fromisoformat('2025-03-25T19:03:56+00:00'),
                     'privilegeId': 'OTA-NE-10',
@@ -848,7 +821,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'octp',
-                'compactTransactionIdGSIPK': 'COMPACT#octp#TX#120059525522#',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -867,7 +839,6 @@ class TestProviderRecordUtility(TstLambdas):
                     'dateOfRenewal': '2023-11-08T23:59:59+00:00',
                     'dateOfExpiration': '2024-10-31',
                     'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-                    'compactTransactionId': '1234567890',
                     'administratorSetStatus': 'active',
                     'licenseJurisdiction': 'oh',
                     'privilegeId': 'OTA-NE-1',
@@ -927,7 +898,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -936,7 +906,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
-                    'compactTransactionId': '120065729643',
                     'dateOfExpiration': date.fromisoformat('2025-12-11'),
                     'dateOfIssuance': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
@@ -1006,7 +975,6 @@ class TestProviderRecordUtility(TstLambdas):
             },
             {
                 'compact': 'aslp',
-                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#120065729643#',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -1015,7 +983,6 @@ class TestProviderRecordUtility(TstLambdas):
                 'previous': {
                     'administratorSetStatus': 'active',
                     'attestations': [],
-                    'compactTransactionId': '120065729643',
                     'dateOfExpiration': date.fromisoformat('2025-12-11'),
                     'dateOfIssuance': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
                     'dateOfRenewal': datetime.fromisoformat('2025-06-23T07:46:19+00:00'),
@@ -1203,87 +1170,6 @@ class TestProviderRecordUtilityActiveSinceCalculation(TstLambdas):
 
         self.assertEqual(test_renewal_update.updatedValues.get('dateOfRenewal'), active_since)
 
-    def test_calculation_returns_privilege_renewal_date_if_home_jurisdiction_change_encumbered_privilege(self):
-        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum, UpdateCategory
-
-        test_privilege = self.test_data_generator.generate_default_privilege(
-            value_overrides={'dateOfExpiration': date.fromisoformat('2100-04-04')}
-        )
-        # this simulates the scenario where a privilege record was deactivated due to a home state change where the new
-        # license is encumbered.
-        # the privilege is then renewed some time later after the license record was made active again.
-        test_home_jurisdiction_change_event = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={
-                'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
-                'effectiveDate': datetime.fromisoformat('2045-04-04T12:59:59+00:00'),
-                'updatedValues': {'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED},
-            }
-        )
-        # The default privilege update record generated by the test data generator is a renewal event
-        test_renewal_update = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={'effectiveDate': datetime.fromisoformat('2099-04-04T12:59:59+00:00')}
-        )
-        active_since = self.test_model.calculate_privilege_active_since_date(
-            privilege_record=test_privilege,
-            privilege_updates=[test_home_jurisdiction_change_event, test_renewal_update],
-        )
-
-        self.assertEqual(test_renewal_update.updatedValues.get('dateOfRenewal'), active_since)
-
-    def test_calculation_returns_privilege_renewal_date_if_home_jurisdiction_change_deactivated_privilege(self):
-        from cc_common.data_model.schema.common import HomeJurisdictionChangeStatusEnum, UpdateCategory
-
-        test_privilege = self.test_data_generator.generate_default_privilege(
-            value_overrides={'dateOfExpiration': date.fromisoformat('2100-04-04')}
-        )
-        # this simulates the scenario where a privilege record was deactivated due to a home state change.
-        # the privilege is then renewed some time later after the license record was made active again.
-        test_home_jurisdiction_change_event = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={
-                'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
-                'effectiveDate': datetime.fromisoformat('2045-04-04T12:59:59+00:00'),
-                'updatedValues': {'homeJurisdictionChangeStatus': HomeJurisdictionChangeStatusEnum.INACTIVE},
-            }
-        )
-        # The default privilege update record generated by the test data generator is a renewal event
-        test_renewal_update = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={'effectiveDate': datetime.fromisoformat('2099-04-04T12:59:59+00:00')}
-        )
-        active_since = self.test_model.calculate_privilege_active_since_date(
-            privilege_record=test_privilege,
-            privilege_updates=[test_home_jurisdiction_change_event, test_renewal_update],
-        )
-
-        self.assertEqual(test_renewal_update.updatedValues.get('dateOfRenewal'), active_since)
-
-    def test_calculation_returns_privilege_issue_date_if_home_jurisdiction_change_did_not_deactivate_privilege(self):
-        from cc_common.data_model.schema.common import UpdateCategory
-
-        test_privilege = self.test_data_generator.generate_default_privilege(
-            value_overrides={'dateOfExpiration': date.fromisoformat('2100-04-04')}
-        )
-        # this simulates the scenario where a privilege record was successfully moved over to another active license
-        # due to a home state change, and was never deactivated.
-        test_home_jurisdiction_change_event = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={
-                'updateType': UpdateCategory.HOME_JURISDICTION_CHANGE,
-                'effectiveDate': datetime.fromisoformat('2045-04-04T12:59:59+00:00'),
-                'updatedValues': {
-                    'licenseJurisdiction': 'oh',
-                    'dateOfExpiration': date.fromisoformat('2100-04-04'),
-                },
-            }
-        )
-        # The default privilege update record generated by the test data generator is a renewal event
-        test_renewal_update = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={'effectiveDate': datetime.fromisoformat('2099-04-04T12:59:59+00:00')}
-        )
-        active_since = self.test_model.calculate_privilege_active_since_date(
-            privilege_record=test_privilege,
-            privilege_updates=[test_home_jurisdiction_change_event, test_renewal_update],
-        )
-
-        self.assertEqual(test_privilege.dateOfIssuance, active_since)
 
     def test_calculation_returns_issued_date_if_privilege_renewed_before_expiration(self):
         test_privilege = self.test_data_generator.generate_default_privilege(

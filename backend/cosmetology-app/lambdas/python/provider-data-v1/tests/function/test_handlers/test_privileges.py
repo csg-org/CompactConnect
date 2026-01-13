@@ -36,7 +36,6 @@ DEACTIVATION_EVENT = {
         'dateOfRenewal': '2020-05-05T12:59:59+00:00',
         'dateOfExpiration': '2025-04-04',
         'dateOfUpdate': '2020-05-05T12:59:59+00:00',
-        'compactTransactionId': '1234567890',
         'privilegeId': 'SLP-NE-1',
         'administratorSetStatus': 'active',
         'licenseJurisdiction': 'oh',
@@ -177,11 +176,6 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
-        mock_email_service_client.send_provider_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
-            provider_email='björkRegisteredEmail@example.com',
-            privilege_id='SLP-NE-1',
-        )
         mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
             compact='aslp',
             jurisdiction='ne',
@@ -206,45 +200,6 @@ class TestDeactivatePrivilege(TstFunction):
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
-
-    @patch('handlers.privileges.metrics')
-    def test_deactivate_privilege_handler_still_sends_jurisdiction_notification_if_provider_notification_failed_to_send(
-        self, mock_metrics
-    ):
-        """
-        If the deactivation notification to the provider fails to send, we want to ensure that the notification to
-        the state is still sent.
-        """
-        self._load_provider_data()
-
-        with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
-            (mock_email_service_client.send_provider_privilege_deactivation_email).side_effect = CCInternalException(
-                'email failed to send'
-            )
-            # We expect the handler to still return a 200, since the privilege was deactivated
-            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
-
-        self.assertEqual(200, resp['statusCode'])
-
-        # Even though the first notification failed, the handler should still have attempted to send both
-        # notifications
-        mock_email_service_client.send_provider_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
-            provider_email='björkRegisteredEmail@example.com',
-            privilege_id='SLP-NE-1',
-        )
-        mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
-            jurisdiction='ne',
-            privilege_id='SLP-NE-1',
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-        )
-
-        # assert metric was sent so alert will fire
-        mock_metrics.add_metric.assert_called_once_with(
-            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
-        )
 
     @patch('handlers.privileges.metrics')
     def test_deactivate_privilege_handler_pushes_custom_metric_if_state_notification_failed_to_send(self, mock_metrics):
@@ -284,20 +239,3 @@ class TestDeactivatePrivilege(TstFunction):
         # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
         resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(404, resp['statusCode'])
-
-    def test_privilege_purchase_message_handler_sends_email(self):
-        """
-        If a valid event purchase event is passed into the privilege_purchase_message_handler, it should kick off the
-        send_privilege_purchase_email lambda
-        """
-        from handlers.privileges import privilege_purchase_message_handler
-
-        with open('../common/tests/resources/events/purchase_event_body.json') as f:
-            purchase_event_body = json.load(f)
-
-        purchase_event = {'Records': [{'messageId': 123, 'body': json.dumps(purchase_event_body)}]}
-
-        with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
-            privilege_purchase_message_handler(purchase_event, self.mock_context)
-
-        mock_email_service_client.send_privilege_purchase_email.assert_called_once()

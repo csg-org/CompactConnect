@@ -101,13 +101,6 @@ class LicenseDeactivatedStatusField(String):
         super().__init__(*args, validate=OneOf([entry.value for entry in LicenseDeactivatedStatusEnum]), **kwargs)
 
 
-class CurrentHomeJurisdictionField(String):
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args, validate=OneOf(config.jurisdictions + [OTHER_JURISDICTION, UNKNOWN_JURISDICTION]), **kwargs
-        )
-
-
 class ITUTE164PhoneNumber(String):
     """Phone number format consistent with ITU-T E.164:
     https://www.itu.int/rec/T-REC-E.164-201011-I/en

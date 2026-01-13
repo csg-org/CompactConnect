@@ -78,7 +78,6 @@ DEFAULT_HOME_ADDRESS_POSTAL_CODE = '43004'
 # Default contact information
 DEFAULT_EMAIL_ADDRESS = 'björk@example.com'
 DEFAULT_PHONE_NUMBER = '+13213214321'
-DEFAULT_REGISTERED_EMAIL_ADDRESS = 'björkRegisteredEmail@example.com'
 
 # record type constants
 ADVERSE_ACTION_RECORD_TYPE = 'adverseAction'

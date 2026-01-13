@@ -76,29 +76,8 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
         # Send email notifications for privilege deactivation
         failed_to_send_notification = False
         deactivated_privilege_id = deactivated_privilege_record['privilegeId']
-        # Get provider information to retrieve email and name
+        # Get provider information to retrieve name
         provider = config.data_client.get_provider(compact=compact, provider_id=provider_id, detail=False)['items'][0]
-        try:
-            provider_email = provider.get('compactConnectRegisteredEmailAddress')
-            if not provider_email:
-                logger.error('Provider email not found, cannot send provider notification', provider_id=provider_id)
-            else:
-                # Send notification to the provider
-                logger.info(
-                    'Sending privilege deactivation notification to provider',
-                    provider_id=provider_id,
-                    provider_email=provider_email,
-                )
-                config.email_service_client.send_provider_privilege_deactivation_email(
-                    compact=compact,
-                    provider_email=provider_email,
-                    privilege_id=deactivated_privilege_id,
-                )
-        except CCInternalException as e:
-            # Log the error but don't fail the deactivation process
-            logger.error('Failed to send provider privilege deactivation notifications', exception=str(e))
-            failed_to_send_notification = True
-
         try:
             # Send notification to the jurisdiction
             logger.info('Sending privilege deactivation notification to jurisdiction', jurisdiction=jurisdiction)
