@@ -153,7 +153,7 @@ class ProviderSearchDomain(Construct):
         # Determine AZ awareness based on environment
         zone_awareness_config = self._get_zone_awareness_config()
         # Determine subnet selection based on environment
-        self.vpc_subnets = self._get_vpc_subnets(vpc_stack)
+        self.vpc_subnets = self._get_vpc_subnets()
 
         # Create OpenSearch Domain
         self.domain = Domain(
@@ -334,7 +334,7 @@ class ProviderSearchDomain(Construct):
         # Both prod and non-prod use 3 data nodes across 3 AZs
         return ZoneAwarenessConfig(enabled=True, availability_zone_count=3)
 
-    def _get_vpc_subnets(self, vpc_stack: VpcStack) -> SubnetSelection:
+    def _get_vpc_subnets(self) -> SubnetSelection:
         """
         Determine VPC subnet selection based on environment.
 
@@ -523,7 +523,7 @@ class ProviderSearchDomain(Construct):
                 statistic='Minimum',
             ),
             evaluation_periods=1,  # alert immediately when fewer than 10 searchable documents are detected
-            threshold=10, # set to 10 to account for any documents set by OpenSearch by default
+            threshold=10,  # set to 10 to account for any documents set by OpenSearch by default
             comparison_operator=ComparisonOperator.LESS_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.BREACHING,
             alarm_description=(

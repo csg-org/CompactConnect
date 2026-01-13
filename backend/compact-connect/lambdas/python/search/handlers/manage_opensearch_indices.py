@@ -136,22 +136,16 @@ class OpenSearchIndexManager(CustomResourceHandler):
         current_replicas = int(index_settings.get('settings', {}).get('index', {}).get('number_of_replicas', 0))
 
         if current_replicas == new_number_of_replicas:
-            logger.info(
-                f"Index '{actual_index_name}' already has {current_replicas} replicas. No update needed."
-            )
+            logger.info(f"Index '{actual_index_name}' already has {current_replicas} replicas. No update needed.")
             return
 
         # Update the replica count
-        logger.info(
-            f"Updating '{actual_index_name}' replicas from {current_replicas} to {new_number_of_replicas}..."
-        )
+        logger.info(f"Updating '{actual_index_name}' replicas from {current_replicas} to {new_number_of_replicas}.")
 
         new_settings = {'index': {'number_of_replicas': new_number_of_replicas}}
         client.update_index_settings(alias_name, new_settings)
 
-        logger.info(
-            f"Successfully updated '{actual_index_name}' to {new_number_of_replicas} replicas."
-        )
+        logger.info(f"Successfully updated '{actual_index_name}' to {new_number_of_replicas} replicas.")
 
     def on_delete(self, _properties: dict) -> CustomResourceResponse | None:
         """
