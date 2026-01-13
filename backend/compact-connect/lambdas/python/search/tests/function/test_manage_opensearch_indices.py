@@ -16,7 +16,7 @@ class TestOpenSearchIndexManager(TstFunction):
         """Create a CloudFormation custom resource event."""
         default_properties = {
             'numberOfShards': 1,
-            'numberOfReplicas': 0,
+            'numberOfReplicas': 2,
         }
         if properties:
             default_properties.update(properties)
@@ -457,22 +457,219 @@ class TestOpenSearchIndexManager(TstFunction):
         ]
         mock_client_instance.create_alias.assert_has_calls(expected_alias_calls, any_order=False)
 
+    def _configure_mock_for_update(
+        self,
+        mock_opensearch_client,
+        alias_exists_return_value: dict,
+        current_replicas: dict,
+    ):
+        """
+        Configure the mock OpenSearchClient for update testing.
+
+        :param mock_opensearch_client: The patched OpenSearchClient class
+        :param alias_exists_return_value: Dict mapping alias names to booleans
+        :param current_replicas: Dict mapping alias names to int replica counts
+        :return: The mock client instance
+        """
+        mock_client_instance = Mock()
+        mock_opensearch_client.return_value = mock_client_instance
+
+        # Configure cluster_health mock (used by _wait_for_domain_ready)
+        mock_client_instance.cluster_health.return_value = {
+            'status': 'green',
+            'number_of_nodes': 3,
+            'cluster_name': 'test-cluster',
+        }
+
+        # Configure alias_exists mock
+        mock_client_instance.alias_exists.side_effect = lambda alias_name: alias_exists_return_value.get(
+            alias_name, False
+        )
+
+        # Configure get_index_settings mock
+        def get_index_settings_side_effect(alias_name):
+            # Map alias to versioned index name
+            index_name = alias_name.replace('_providers', '_providers_v1')
+            replicas = current_replicas.get(alias_name, 0)
+            return {
+                index_name: {
+                    'settings': {
+                        'index': {
+                            'number_of_replicas': str(replicas),
+                            'number_of_shards': '2',
+                        }
+                    }
+                }
+            }
+
+        mock_client_instance.get_index_settings.side_effect = get_index_settings_side_effect
+
+        return mock_client_instance
+
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
-    def test_on_update_is_noop(self, mock_opensearch_client):
-        """Test that on_update does not create or modify indices."""
+    def test_on_update_updates_replica_count_for_all_compacts(self, mock_opensearch_client):
+        """Test that on_update updates replica count for all compacts when changed."""
         from handlers.manage_opensearch_indices import on_event
 
-        # Create the event for an 'Update' request
-        event = self._create_event('Update')
+        # Set up the mock opensearch client - all aliases exist, current replicas is 0
+        mock_client_instance = self._configure_mock_for_update(
+            mock_opensearch_client,
+            alias_exists_return_value={
+                'compact_aslp_providers': True,
+                'compact_octp_providers': True,
+                'compact_coun_providers': True,
+            },
+            current_replicas={
+                'compact_aslp_providers': 0,
+                'compact_octp_providers': 0,
+                'compact_coun_providers': 0,
+            },
+        )
+
+        # Create the event for an 'Update' request with new replica count
+        event = self._create_event('Update', {'numberOfReplicas': 1})
 
         # Call the handler
-        result = on_event(event, self.mock_context)
+        on_event(event, self.mock_context)
 
-        # Assert that the OpenSearchClient was NOT instantiated
-        mock_opensearch_client.assert_not_called()
+        # Assert that the OpenSearchClient was instantiated
+        mock_opensearch_client.assert_called_once()
 
-        # Result should be None (no-op)
-        self.assertIsNone(result)
+        # Assert that alias_exists was called for each compact
+        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
+
+        # Assert that get_index_settings was called for each compact
+        self.assertEqual(3, mock_client_instance.get_index_settings.call_count)
+
+        # Assert that update_index_settings was called for each compact
+        self.assertEqual(3, mock_client_instance.update_index_settings.call_count)
+
+        # Verify the correct settings were passed
+        expected_settings = {'index': {'number_of_replicas': 1}}
+        expected_calls = [
+            call('compact_aslp_providers', expected_settings),
+            call('compact_octp_providers', expected_settings),
+            call('compact_coun_providers', expected_settings),
+        ]
+        mock_client_instance.update_index_settings.assert_has_calls(expected_calls, any_order=False)
+
+    @patch('handlers.manage_opensearch_indices.OpenSearchClient')
+    def test_on_update_skips_update_when_replica_count_unchanged(self, mock_opensearch_client):
+        """Test that on_update skips update when replica count is already correct."""
+        from handlers.manage_opensearch_indices import on_event
+
+        # Set up the mock opensearch client - all aliases exist, current replicas is already 1
+        mock_client_instance = self._configure_mock_for_update(
+            mock_opensearch_client,
+            alias_exists_return_value={
+                'compact_aslp_providers': True,
+                'compact_octp_providers': True,
+                'compact_coun_providers': True,
+            },
+            current_replicas={
+                'compact_aslp_providers': 1,
+                'compact_octp_providers': 1,
+                'compact_coun_providers': 1,
+            },
+        )
+
+        # Create the event for an 'Update' request with same replica count
+        event = self._create_event('Update', {'numberOfReplicas': 1})
+
+        # Call the handler
+        on_event(event, self.mock_context)
+
+        # Assert that the OpenSearchClient was instantiated
+        mock_opensearch_client.assert_called_once()
+
+        # Assert that alias_exists was called for each compact
+        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
+
+        # Assert that get_index_settings was called for each compact
+        self.assertEqual(3, mock_client_instance.get_index_settings.call_count)
+
+        # Assert that update_index_settings was NOT called since replicas are already correct
+        mock_client_instance.update_index_settings.assert_not_called()
+
+    @patch('handlers.manage_opensearch_indices.OpenSearchClient')
+    def test_on_update_skips_missing_aliases(self, mock_opensearch_client):
+        """Test that on_update skips aliases that don't exist."""
+        from handlers.manage_opensearch_indices import on_event
+
+        # Set up the mock opensearch client - only aslp alias exists
+        mock_client_instance = self._configure_mock_for_update(
+            mock_opensearch_client,
+            alias_exists_return_value={
+                'compact_aslp_providers': True,
+                'compact_octp_providers': False,
+                'compact_coun_providers': False,
+            },
+            current_replicas={
+                'compact_aslp_providers': 0,
+                'compact_octp_providers': 0,
+                'compact_coun_providers': 0,
+            },
+        )
+
+        # Create the event for an 'Update' request
+        event = self._create_event('Update', {'numberOfReplicas': 1})
+
+        # Call the handler
+        on_event(event, self.mock_context)
+
+        # Assert that alias_exists was called for each compact
+        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
+
+        # Assert that get_index_settings was called only for existing alias
+        self.assertEqual(1, mock_client_instance.get_index_settings.call_count)
+        mock_client_instance.get_index_settings.assert_called_with('compact_aslp_providers')
+
+        # Assert that update_index_settings was called only for existing alias
+        self.assertEqual(1, mock_client_instance.update_index_settings.call_count)
+        mock_client_instance.update_index_settings.assert_called_with(
+            'compact_aslp_providers',
+            {'index': {'number_of_replicas': 1}},
+        )
+
+    @patch('handlers.manage_opensearch_indices.OpenSearchClient')
+    def test_on_update_only_updates_indices_needing_change(self, mock_opensearch_client):
+        """Test that on_update only updates indices where replica count differs."""
+        from handlers.manage_opensearch_indices import on_event
+
+        # Set up the mock opensearch client - different replica counts per index
+        mock_client_instance = self._configure_mock_for_update(
+            mock_opensearch_client,
+            alias_exists_return_value={
+                'compact_aslp_providers': True,
+                'compact_octp_providers': True,
+                'compact_coun_providers': True,
+            },
+            current_replicas={
+                'compact_aslp_providers': 0,  # Needs update
+                'compact_octp_providers': 1,  # Already correct
+                'compact_coun_providers': 0,  # Needs update
+            },
+        )
+
+        # Create the event for an 'Update' request
+        event = self._create_event('Update', {'numberOfReplicas': 1})
+
+        # Call the handler
+        on_event(event, self.mock_context)
+
+        # Assert that get_index_settings was called for each compact
+        self.assertEqual(3, mock_client_instance.get_index_settings.call_count)
+
+        # Assert that update_index_settings was called only for indices needing update
+        self.assertEqual(2, mock_client_instance.update_index_settings.call_count)
+
+        # Verify the correct aliases were updated
+        expected_settings = {'index': {'number_of_replicas': 1}}
+        expected_calls = [
+            call('compact_aslp_providers', expected_settings),
+            call('compact_coun_providers', expected_settings),
+        ]
+        mock_client_instance.update_index_settings.assert_has_calls(expected_calls, any_order=False)
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
     def test_on_delete_is_noop(self, mock_opensearch_client):

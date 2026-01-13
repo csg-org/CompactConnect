@@ -96,6 +96,37 @@ class OpenSearchClient:
             operation_name='cluster_health',
         )
 
+    def get_index_settings(self, index_name: str) -> dict:
+        """
+        Get the settings for an index.
+
+        :param index_name: The name of the index (can be an alias)
+        :return: The index settings response from OpenSearch
+        :raises CCInternalException: If all retry attempts fail
+        """
+        return self._execute_with_retry(
+            operation=lambda: self._client.indices.get_settings(index=index_name),
+            operation_name=f'get_index_settings({index_name})',
+        )
+
+    def update_index_settings(self, index_name: str, settings: dict) -> None:
+        """
+        Update the settings for an index.
+
+        This is useful for dynamically updating settings like number_of_replicas.
+        Note: Some settings (like number_of_shards) cannot be changed after index creation.
+
+        See: https://docs.opensearch.org/latest/api-reference/index-apis/update-settings/
+
+        :param index_name: The name of the index (can be an alias)
+        :param settings: The settings to update (e.g., {'index': {'number_of_replicas': 1}})
+        :raises CCInternalException: If all retry attempts fail
+        """
+        self._execute_with_retry(
+            operation=lambda: self._client.indices.put_settings(index=index_name, body=settings),
+            operation_name=f'update_index_settings({index_name})',
+        )
+
     def _execute_with_retry(self, operation: callable, operation_name: str):
         """
         Execute an operation with retry logic and exponential backoff.

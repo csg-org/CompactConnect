@@ -88,6 +88,39 @@ class TestOpenSearchClient(TestCase):
 
         mock_internal_client.indices.put_alias.assert_called_once_with(index=index_name, name=alias_name)
 
+    def test_get_index_settings_calls_internal_client_with_expected_arguments(self):
+        """Test that get_index_settings calls the internal client's indices.get_settings method correctly."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        expected_response = {
+            'test_index_v1': {
+                'settings': {
+                    'index': {
+                        'number_of_replicas': '1',
+                        'number_of_shards': '1',
+                    }
+                }
+            }
+        }
+        mock_internal_client.indices.get_settings.return_value = expected_response
+
+        result = client.get_index_settings(index_name=index_name)
+
+        mock_internal_client.indices.get_settings.assert_called_once_with(index=index_name)
+        self.assertEqual(expected_response, result)
+
+    def test_update_index_settings_calls_internal_client_with_expected_arguments(self):
+        """Test that update_index_settings calls the internal client's indices.put_settings method correctly."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'test_index'
+        settings = {'index': {'number_of_replicas': 1}}
+
+        client.update_index_settings(index_name=index_name, settings=settings)
+
+        mock_internal_client.indices.put_settings.assert_called_once_with(index=index_name, body=settings)
+
     def test_search_calls_internal_client_with_expected_arguments(self):
         """Test that search calls the internal client's search method correctly."""
         client, mock_internal_client = self._create_client_with_mock()
