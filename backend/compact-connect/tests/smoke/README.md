@@ -32,8 +32,6 @@ Ensure your AWS credentials are configured with appropriate permissions to:
 - Access Cognito user pools in the sandbox environment
 - Access other AWS services used by the smoke tests
 
-**Option A: Using AWS SSO**
-
 1. Configure your AWS profile to use SSO:
    ```bash
    aws configure sso
@@ -50,15 +48,6 @@ Ensure your AWS credentials are configured with appropriate permissions to:
    ```bash
    export AWS_PROFILE=<your-profile-name>
    ```
-
-**Option B: Using Environment Variables**
-
-1. Alternatively, you can use AWS CLI to configure credentials:
-   ```bash
-   aws configure
-   ```
-   This will prompt you for your access key ID, secret access key, default region, and output format.
-
 ### 4. Python Dependencies
 
 Install the required Python packages. The smoke tests use the same dependencies as the main codebase. Ensure you have:
@@ -145,9 +134,9 @@ Many tests create temporary test data (staff users, configurations, etc.) and cl
    - Check that `security_profile: "VULNERABLE"` is set in your `cdk.context.json`
 
 
-### Verifying Test Data
+### Triage Test Failures
 
-If a test fails, you can verify the state of your test data:
+If a test fails, you can consider the following steps to triage the cause of the failures:
 
 1. Review CloudWatch logs for Lambda functions that were invoked
 2. Check DynamoDB tables directly using the AWS Console or CLI
