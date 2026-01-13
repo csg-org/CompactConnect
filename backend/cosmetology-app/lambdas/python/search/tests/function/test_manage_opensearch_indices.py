@@ -132,9 +132,7 @@ class TestOpenSearchIndexManager(TstFunction):
                         'properties': {
                             'birthMonthDay': {'type': 'keyword'},
                             'compact': {'type': 'keyword'},
-                            'compactConnectRegisteredEmailAddress': {'type': 'keyword'},
                             'compactEligibility': {'type': 'keyword'},
-                            'currentHomeJurisdiction': {'type': 'keyword'},
                             'dateOfExpiration': {'type': 'date'},
                             'dateOfUpdate': {'type': 'date'},
                             'familyName': {

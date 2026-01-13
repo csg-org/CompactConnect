@@ -176,14 +176,6 @@ class ProviderRecordUtility:
             # effective date of the renewal.
             if update.updateType in DEACTIVATION_EVENT_TYPES:
                 active_since = None
-            elif update.updateType == UpdateCategory.HOME_JURISDICTION_CHANGE:
-                if (
-                    update.updatedValues.get('encumberedStatus', PrivilegeEncumberedStatusEnum.UNENCUMBERED)
-                    != PrivilegeEncumberedStatusEnum.UNENCUMBERED
-                    or update.updatedValues.get('homeJurisdictionChangeStatus')
-                    == HomeJurisdictionChangeStatusEnum.INACTIVE
-                ):
-                    active_since = None
             elif update.updateType == UpdateCategory.RENEWAL and active_since is None:
                 active_since = update.updatedValues['dateOfRenewal']
 
@@ -710,17 +702,7 @@ class ProviderUserRecords:
                 filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
             )
         else:
-            # if jurisdiction is not provided, we filter by the user's current home jurisdiction
-            current_home_jurisdiction_license_records = self.get_license_records(
-                filter_condition=lambda license_data: license_data.jurisdiction
-                == self.get_provider_record().currentHomeJurisdiction
-            )
-            # if there are no licenses for their current home jurisdiction, we will search through all licenses
-            license_records = (
-                current_home_jurisdiction_license_records
-                if current_home_jurisdiction_license_records
-                else self.get_license_records()
-            )
+            license_records = self.get_license_records()
 
         # Last issued compact-eligible license, if there are any compact-eligible licenses
         latest_compact_eligible_licenses = sorted(

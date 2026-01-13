@@ -74,56 +74,6 @@ class ProviderData(CCDataClass):
         return self._data['dateOfBirth']
 
     @property
-    def compactConnectRegisteredEmailAddress(self) -> str | None:
-        """
-        The email address for the provider that was used to register with Compact Connect.
-
-        If the provider has not registered with Compact Connect, this will be None.
-        """
-        return self._data.get('compactConnectRegisteredEmailAddress')
-
-    @property
-    def pendingEmailAddress(self) -> str | None:
-        """
-        The new email address that the provider is trying to verify.
-
-        Only present if the provider has requested an email change and is in the verification process.
-        """
-        return self._data.get('pendingEmailAddress')
-
-    @property
-    def emailVerificationCode(self) -> str | None:
-        """
-        The 4-digit verification code for email change.
-
-        Only present if the provider has requested an email change and is in the verification process.
-        """
-        return self._data.get('emailVerificationCode')
-
-    @property
-    def emailVerificationExpiry(self) -> datetime | None:
-        """
-        The expiry datetime for the email verification code.
-
-        Only present if the provider has requested an email change and is in the verification process.
-        """
-        return self._data.get('emailVerificationExpiry')
-
-    @property
-    def recoveryToken(self) -> str | None:
-        """
-        The token for the account recovery process.
-        """
-        return self._data.get('recoveryToken')
-
-    @property
-    def recoveryExpiry(self) -> datetime | None:
-        """
-        The expiry datetime for the account recovery process.
-        """
-        return self._data.get('recoveryExpiry')
-
-    @property
     def birthMonthDay(self) -> str | None:
         return self._data.get('birthMonthDay')
 
@@ -142,10 +92,6 @@ class ProviderData(CCDataClass):
     @property
     def licenseStatus(self) -> str | None:
         return self._data.get('licenseStatus')
-
-    @property
-    def currentHomeJurisdiction(self) -> str | None:
-        return self._data.get('currentHomeJurisdiction')
 
 
 class ProviderUpdateData(CCDataClass):

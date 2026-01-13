@@ -72,22 +72,6 @@ class TestProviderRecordSchema(TstLambdas):
         self.assertEqual('inactive', provider_data['licenseStatus'])
         self.assertEqual('ineligible', provider_data['compactEligibility'])
 
-    def test_provider_compact_ineligible_if_current_home_jurisdiction_does_not_match_license_jurisdiction(self):
-        """Test case where user has moved to a different jurisdiction than their last known eligible license"""
-        from cc_common.data_model.schema import ProviderRecordSchema
-
-        with open('tests/resources/dynamo/provider.json') as f:
-            raw_provider_data = json.load(f)
-            raw_provider_data['dateOfExpiration'] = '2100-01-01'
-            raw_provider_data['licenseJurisdiction'] = 'oh'
-            raw_provider_data['currentHomeJurisdiction'] = 'az'
-
-        schema = ProviderRecordSchema()
-        provider_data = schema.load(raw_provider_data)
-
-        self.assertEqual('active', provider_data['licenseStatus'])
-        self.assertEqual('ineligible', provider_data['compactEligibility'])
-
     def test_prov_date_of_update_matches_new_date_of_update(self):
         """
         When a provider record is serialized date of update fields should be processed like:

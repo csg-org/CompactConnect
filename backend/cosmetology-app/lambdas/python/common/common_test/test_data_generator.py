@@ -356,12 +356,10 @@ class TestDataGenerator:
             'dateOfIssuance': datetime.fromisoformat(DEFAULT_PRIVILEGE_ISSUANCE_DATETIME),
             'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
             'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),
-            'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
             'attestations': DEFAULT_ATTESTATIONS,
             'privilegeId': DEFAULT_PRIVILEGE_ID,
             'administratorSetStatus': DEFAULT_ADMINISTRATOR_SET_STATUS,
             'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATETIME,
-            'compactTransactionIdGSIPK': f'COMPACT#{DEFAULT_COMPACT}#TX#{DEFAULT_COMPACT_TRANSACTION_ID}#',
         }
         if value_overrides:
             default_privilege.update(value_overrides)
@@ -414,7 +412,6 @@ class TestDataGenerator:
             'updatedValues': {
                 'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
                 'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),
-                'compactTransactionId': DEFAULT_COMPACT_TRANSACTION_ID,
             },
             'dateOfUpdate': datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE),
         }
@@ -441,7 +438,7 @@ class TestDataGenerator:
         return update_data
 
     @staticmethod
-    def generate_default_provider(value_overrides: dict | None = None, is_registered: bool = True) -> ProviderData:
+    def generate_default_provider(value_overrides: dict | None = None) -> ProviderData:
         """Generate a default provider"""
         default_provider = {
             'providerId': DEFAULT_PROVIDER_ID,
@@ -460,14 +457,6 @@ class TestDataGenerator:
             'dateOfBirth': date.fromisoformat(DEFAULT_DATE_OF_BIRTH),
         }
 
-        if is_registered:
-            default_provider.update(
-                {
-                    'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
-                    'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                }
-            )
-
         if value_overrides:
             default_provider.update(value_overrides)
 
@@ -475,17 +464,16 @@ class TestDataGenerator:
 
     @staticmethod
     def put_default_provider_record_in_provider_table(
-        value_overrides: dict | None = None, is_registered: bool = True, date_of_update_override: str = None
+        value_overrides: dict | None = None, date_of_update_override: str = None
     ) -> ProviderData:
         """
         Creates a default provider record and stores it in the provider table.
 
         :param value_overrides: Optional dictionary to override default values
-        :param is_registered: whether the provider should include fields for a registered provider
         :param date_of_update_override: optional date for date of update to be shown on provider record
         :return: The ProviderData instance that was stored
         """
-        provider_data = TestDataGenerator.generate_default_provider(value_overrides, is_registered)
+        provider_data = TestDataGenerator.generate_default_provider(value_overrides)
         provider_record = provider_data.serialize_to_database_record()
         if date_of_update_override:
             provider_record['dateOfUpdate'] = date_of_update_override
@@ -495,58 +483,6 @@ class TestDataGenerator:
         TestDataGenerator.store_record_in_provider_table(provider_record)
 
         return provider_data
-
-    @staticmethod
-    def generate_default_provider_update(
-        value_overrides: dict | None = None, previous_provider: ProviderData | None = None
-    ) -> ProviderUpdateData:
-        """Generate a default provider update"""
-        if previous_provider is None:
-            previous_provider = TestDataGenerator.generate_default_provider()
-
-        # Ensure previous provider has dateOfUpdate for the previous field
-        previous_dict = previous_provider.to_dict()
-        if 'dateOfUpdate' not in previous_dict:
-            previous_dict['dateOfUpdate'] = datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME)
-
-        provider_update = {
-            'updateType': DEFAULT_PROVIDER_UPDATE_TYPE,
-            'providerId': DEFAULT_PROVIDER_ID,
-            'compact': DEFAULT_COMPACT,
-            'type': PROVIDER_UPDATE_RECORD_TYPE,
-            'previous': previous_dict,
-            'createDate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME),
-            'updatedValues': {
-                'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
-                'currentHomeJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            },
-            'dateOfUpdate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME),
-        }
-        if value_overrides:
-            provider_update.update(value_overrides)
-
-        return ProviderUpdateData.create_new(provider_update)
-
-    @staticmethod
-    def put_default_provider_update_record_in_provider_table(
-        value_overrides: dict | None = None, date_of_update_override: str = None
-    ) -> ProviderUpdateData:
-        """
-        Creates a default provider update record and stores it in the provider table.
-
-        :param value_overrides: Optional dictionary to override default values
-        :param date_of_update_override: optional date for date of update to be shown on provider record
-        :return: The ProviderUpdateData instance that was stored
-        """
-        provider_update_data = TestDataGenerator.generate_default_provider_update(value_overrides)
-        provider_update_record = provider_update_data.serialize_to_database_record()
-        if date_of_update_override:
-            provider_update_record['dateOfUpdate'] = date_of_update_override
-
-        TestDataGenerator.store_record_in_provider_table(provider_update_record)
-
-        # recreate data object to ensure it picks up the dateOfUpdate change
-        return ProviderUpdateData.from_database_record(provider_update_record)
 
     @staticmethod
     def _override_date_of_update_for_record(data_class: CCDataClass, date_of_update: datetime):
@@ -594,7 +530,6 @@ class TestDataGenerator:
                 value_overrides={
                     'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_PREVIOUS_DATE_OF_EXPIRATION),
                     'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_PREVIOUS_DATE_OF_RENEWAL),
-                    'compactTransactionId': '0123456789',
                 }
             )
             TestDataGenerator._override_date_of_update_for_record(
@@ -736,38 +671,6 @@ class TestDataGenerator:
         config.compact_configuration_table.put_item(Item=jurisdiction_config_record)
 
         return jurisdiction_config
-
-    @staticmethod
-    def generate_default_transaction(value_overrides: dict | None = None):
-        """Generate a default transaction"""
-        from cc_common.data_model.schema.transaction import TransactionData
-
-        # We'll fill in any missing batch values with defaults
-        default_batch = deepcopy(DEFAULT_COMPACT_TRANSACTION_BATCH)
-        if value_overrides and 'batch' in value_overrides.keys():
-            default_batch.update(value_overrides.pop('batch'))
-
-        default_transaction = {
-            'transactionProcessor': 'authorize.net',
-            'transactionId': DEFAULT_COMPACT_TRANSACTION_ID,
-            'batch': default_batch,
-            'lineItems': [
-                DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM,
-                DEFAULT_COMPACT_TRANSACTION_COMPACT_LINE_ITEM,
-                DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM,
-            ],
-            'compact': DEFAULT_COMPACT,
-            'licenseeId': DEFAULT_PROVIDER_ID,
-            'responseCode': '1',
-            'settleAmount': '113.50',
-            'submitTimeUTC': '2024-01-01T12:00:00.000Z',
-            'transactionStatus': 'settledSuccessfully',
-            'transactionType': 'authCaptureTransaction',
-        }
-        if value_overrides:
-            default_transaction.update(value_overrides)
-
-        return TransactionData.create_new(default_transaction)
 
     @staticmethod
     def put_compact_active_member_jurisdictions(

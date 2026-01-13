@@ -17,7 +17,7 @@ class TestSanitizeProviderData(TstLambdas):
         # cast to set to match schema
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
-        self.assertEqual(resp, expected_provider)
+        self.assertEqual(expected_provider, resp)
 
     def test_full_provider_record_returned_if_caller_has_compact_read_private_permissions(self):
         self.when_expecting_full_provider_record_returned(

@@ -11,7 +11,6 @@ from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     CompactEligibility,
-    CurrentHomeJurisdictionField,
     Jurisdiction,
     NationalProviderIdentifier,
     Set,
@@ -97,7 +96,6 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
@@ -109,7 +107,6 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     # This date is determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Raw(required=True, allow_none=False)
-    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
 
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
@@ -152,7 +149,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
@@ -163,7 +159,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     # This date is determined by the license records uploaded by a state
     dateOfExpiration = Raw(required=True, allow_none=False)
-    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
 
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
@@ -200,7 +195,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
@@ -214,29 +208,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
     # Note the lack of `licenses` here: we do not return license data for public endpoints
-
-
-# We set this to a strict schema, to avoid extra values from entering the system.
-class ProviderRegistrationRequestSchema(CCRequestSchema):
-    """
-    Schema for provider registration requests.
-
-    This schema is used to validate incoming requests to the provider registration API endpoint.
-    It corresponds to the V1ProviderRegistrationRequestModel in the API model.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-    givenName = String(required=True, allow_none=False)
-    familyName = String(required=True, allow_none=False)
-    email = Email(required=True, allow_none=False)
-    partialSocial = String(required=True, allow_none=False)
-    dob = Date(required=True, allow_none=False)
-    jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False)
-    token = String(required=True, allow_none=False)
 
 
 class QueryProvidersRequestSchema(CCRequestSchema):
@@ -328,70 +299,6 @@ class QueryJurisdictionProvidersRequestSchema(CCRequestSchema):
     sorting = Nested(SortingSchema, required=False, allow_none=False)
 
 
-class ProviderEmailUpdateRequestSchema(CCRequestSchema):
-    """
-    Schema for provider email update requests.
-
-    This schema is used to validate incoming requests to the provider email update API endpoint.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-    newEmailAddress = Email(required=True, allow_none=False)
-
-
-class ProviderEmailVerificationRequestSchema(CCRequestSchema):
-    """
-    Schema for provider email verification requests.
-
-    This schema is used to validate incoming requests to the provider email verification API endpoint.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-    verificationCode = String(required=True, allow_none=False, validate=Length(min=4, max=4))
-
-
-class ProviderAccountRecoveryInitiateRequestSchema(CCRequestSchema):
-    """
-    Schema for provider MFA recovery initiation requests.
-
-    This schema validates inputs for initiating MFA recovery.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-    username = Email(required=True, allow_none=False)
-    password = String(required=True, allow_none=False, load_only=True)
-    compact = Compact(required=True, allow_none=False)
-    jurisdiction = Jurisdiction(required=True, allow_none=False)
-    givenName = String(required=True, allow_none=False)
-    familyName = String(required=True, allow_none=False)
-    dob = Date(required=True, allow_none=False)
-    partialSocial = String(required=True, allow_none=False, validate=Length(min=4, max=4))
-    licenseType = String(required=True, allow_none=False)
-    recaptchaToken = String(required=True, allow_none=False, load_only=True)
-
-
-class ProviderAccountRecoveryVerifyRequestSchema(CCRequestSchema):
-    """
-    Schema for provider MFA recovery verification requests.
-
-    This schema validates inputs for verifying MFA recovery UUID and completing the reset.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-    compact = Compact(required=True, allow_none=False)
-    providerId = UUID(required=True, allow_none=False)
-    recoveryToken = String(required=True, allow_none=False, load_only=True)
-    recaptchaToken = String(required=True, allow_none=False, load_only=True)
-
-
 class StatePrivilegeGeneralResponseSchema(ForgivingSchema):
     """
     Schema for flattened state privilege responses with general (non-private) fields only.
@@ -441,7 +348,6 @@ class StatePrivilegePrivateResponseSchema(StatePrivilegeGeneralResponseSchema):
     # Private fields
     ssnLastFour = String(required=False, allow_none=False, validate=Length(min=4, max=4))
     emailAddress = Email(required=False, allow_none=False)
-    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     dateOfBirth = Raw(required=False, allow_none=False)
     homeAddressStreet1 = String(required=False, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))

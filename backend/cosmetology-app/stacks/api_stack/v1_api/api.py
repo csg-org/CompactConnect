@@ -7,12 +7,10 @@ from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
-from .attestations import Attestations
 from .bulk_upload_url import BulkUploadUrl
 from .compact_configuration_api import CompactConfigurationApi
 from .feature_flags import FeatureFlagsApi
 from .provider_management import ProviderManagement
-from .provider_users import ProviderUsers
 from .public_lookup_api import PublicLookupApi
 from .staff_users import StaffUsers
 
@@ -120,27 +118,10 @@ class V1Api:
             privilege_history_function=privilege_history_handler,
         )
 
-        # /v1/provider-users
-        self.provider_users_resource = self.resource.add_resource('provider-users')
-        self.provider_users = ProviderUsers(
-            resource=self.provider_users_resource,
-            api_model=self.api_model,
-            privilege_history_function=privilege_history_handler,
-            api_lambda_stack=api_lambda_stack,
-        )
-
         # /v1/compacts
         self.compacts_resource = self.resource.add_resource('compacts')
         # /v1/compacts/{compact}
         self.compact_resource = self.compacts_resource.add_resource('{compact}')
-
-        # /v1/compacts/{compact}/attestations
-        self.attestations_resource = self.compact_resource.add_resource('attestations')
-        self.attestations = Attestations(
-            resource=self.attestations_resource,
-            api_model=self.api_model,
-            api_lambda_stack=api_lambda_stack,
-        )
 
         # POST /v1/compacts/{compact}/providers/query
         # GET  /v1/compacts/{compact}/providers/{providerId}

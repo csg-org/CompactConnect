@@ -99,17 +99,9 @@ class TestTransformations(TstFunction):
         with open('../common/tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
             # this should be set during the registration flow
-            expected_provider['currentHomeJurisdiction'] = 'oh'
             # provider should be active and compact eligible
             expected_provider['licenseStatus'] = 'active'
             expected_provider['compactEligibility'] = 'eligible'
-
-        # register the provider in the system
-        client.process_registration_values(
-            current_provider_record=provider_user_records.get_provider_record(),
-            matched_license_record=provider_user_records.get_license_records()[0],
-            email_address=expected_provider['compactConnectRegisteredEmailAddress'],
-        )
 
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
@@ -142,9 +134,8 @@ class TestTransformations(TstFunction):
             compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
-        # One record for each of: provider, providerUpdate, license,
-        # privilege, and militaryAffiliation
-        self.assertEqual(5, len(provider_user_records.provider_records))
+        # One record for each of: provider, license, privilege, and militaryAffiliation
+        self.assertEqual(4, len(provider_user_records.provider_records))
         records = {item['type']: item for item in provider_user_records.provider_records}
 
         # Convert this to the data type expected from DynamoDB
@@ -219,7 +210,6 @@ class TestTransformations(TstFunction):
             # in this case, the military affiliation status will be initializing, since it is not set to active until
             # the military affiliation document is uploaded to s3
             expected_provider['militaryAffiliations'][0]['status'] = 'initializing'
-            expected_provider['currentHomeJurisdiction'] = 'oh'
 
         # Force the provider id to match
         expected_provider['providerId'] = provider_id

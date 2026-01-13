@@ -281,55 +281,6 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.effectiveLiftDate
             );
             break;
-        case 'multipleRegistrationAttemptNotification':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for multiple registration attempt notification email');
-            }
-            await this.emailService.sendMultipleRegistrationAttemptNotificationEmail(
-                event.compact,
-                event.specificEmails
-            );
-            break;
-        case 'providerEmailVerificationCode':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for provider email verification code email');
-            }
-            if (!event.templateVariables?.verificationCode) {
-                throw new Error('Missing required template variables for providerEmailVerificationCode template');
-            }
-            await this.emailService.sendProviderEmailVerificationCode(
-                event.compact,
-                event.specificEmails[0],
-                event.templateVariables.verificationCode
-            );
-            break;
-        case 'providerEmailChangeNotification':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for provider email change notification email');
-            }
-            if (!event.templateVariables?.newEmailAddress) {
-                throw new Error('Missing required template variables for providerEmailChangeNotification template');
-            }
-            await this.emailService.sendProviderEmailChangeNotification(
-                event.compact,
-                event.specificEmails[0],
-                event.templateVariables.newEmailAddress
-            );
-            break;
-        case 'providerAccountRecoveryConfirmation':
-            if (!event.specificEmails?.length) {
-                throw new Error('No recipients found for provider account recovery confirmation email');
-            }
-            if (!event.templateVariables?.providerId || !event.templateVariables?.recoveryToken) {
-                throw new Error('Missing required template variables for providerAccountRecoveryConfirmation template');
-            }
-            await this.emailService.sendProviderAccountRecoveryConfirmationEmail(
-                event.compact,
-                event.specificEmails,
-                event.templateVariables.providerId,
-                event.templateVariables.recoveryToken
-            );
-            break;
         case 'licenseInvestigationStateNotification':
             if (!event.jurisdiction) {
                 throw new Error('No jurisdiction provided for license investigation state notification email');

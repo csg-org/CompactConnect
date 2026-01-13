@@ -11,15 +11,12 @@ from constructs import Construct
 from common_constructs.python_function import PythonFunction
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
-from stacks.provider_users import ProviderUsersStack
 
-from .attestations import AttestationsLambdas
 from .bulk_upload_url import BulkUploadUrlLambdas
 from .compact_configuration_api import CompactConfigurationApiLambdas
 from .feature_flags import FeatureFlagsLambdas
 from .post_licenses import PostLicensesLambdas
 from .provider_management import ProviderManagementLambdas
-from .provider_users import ProviderUsersLambdas
 from .public_lookup_api import PublicLookupApiLambdas
 from .staff_users import StaffUsersLambdas
 
@@ -33,7 +30,6 @@ class ApiLambdaStack(AppStack):
         environment_name: str,
         environment_context: dict,
         persistent_stack: ps.PersistentStack,
-        provider_users_stack: ProviderUsersStack,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -67,13 +63,6 @@ class ApiLambdaStack(AppStack):
         )
         self.log_groups.append(self.privilege_history_handler.log_group)
 
-        # Attestation lambdas
-        self.attestations_lambdas = AttestationsLambdas(
-            scope=self,
-            persistent_stack=persistent_stack,
-            api_lambda_stack=self,
-        )
-
         # Bulk upload url lambdas
         self.bulk_upload_url_lambdas = BulkUploadUrlLambdas(
             scope=self,
@@ -92,14 +81,6 @@ class ApiLambdaStack(AppStack):
         self.post_licenses_lambdas = PostLicensesLambdas(
             scope=self,
             persistent_stack=persistent_stack,
-            api_lambda_stack=self,
-        )
-
-        # Provider Users lambdas
-        self.provider_users_lambdas = ProviderUsersLambdas(
-            scope=self,
-            persistent_stack=persistent_stack,
-            provider_users_stack=provider_users_stack,
             api_lambda_stack=self,
         )
 

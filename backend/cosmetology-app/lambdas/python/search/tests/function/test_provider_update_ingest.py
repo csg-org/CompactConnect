@@ -7,7 +7,6 @@ from common_test.test_constants import (
     DEFAULT_LICENSE_RENEWAL_DATE,
     DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
     DEFAULT_PROVIDER_UPDATE_DATETIME,
-    DEFAULT_REGISTERED_EMAIL_ADDRESS,
 )
 from moto import mock_aws
 
@@ -134,7 +133,6 @@ class TestProviderUpdateIngest(TstFunction):
             'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATETIME,
             'compact': compact,
             'licenseJurisdiction': 'oh',
-            'currentHomeJurisdiction': 'oh',
             'licenseStatus': 'inactive',
             'compactEligibility': 'ineligible',
             'npi': '0608337260',
@@ -142,7 +140,6 @@ class TestProviderUpdateIngest(TstFunction):
             'middleName': 'Gunnar',
             'familyName': f'test{compact}FamilyName',
             'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
-            'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
             'jurisdictionUploadedLicenseStatus': 'active',
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'privilegeJurisdictions': ['ne'],
