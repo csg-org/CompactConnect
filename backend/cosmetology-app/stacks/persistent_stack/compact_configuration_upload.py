@@ -1,7 +1,6 @@
 import json
 import os
 
-import yaml
 from aws_cdk import CustomResource, Duration
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import LogGroup, RetentionDays
@@ -16,7 +15,7 @@ from .compact_configuration_table import CompactConfigurationTable
 
 
 class CompactConfigurationUpload(Construct):
-    """Custom resource to upload attestation configuration data to the compact configuration table."""
+    """Custom resource to upload active member jurisdictions data to the compact configuration table."""
 
     def __init__(
         self,
@@ -36,7 +35,7 @@ class CompactConfigurationUpload(Construct):
             lambda_dir='custom-resources',
             index=os.path.join('handlers', 'compact_config_uploader.py'),
             handler='on_event',
-            description='Uploads configurations to the compact configuration Dynamo table',
+            description='Uploads active member jurisdictions to the compact configuration Dynamo table',
             timeout=Duration.minutes(5),
             log_retention=RetentionDays.THREE_MONTHS,
             environment={'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name, **stack.common_env_vars},
@@ -129,9 +128,6 @@ class CompactConfigurationUpload(Construct):
             ],
         )
 
-        # Read attestations.yml file
-        attestations_list = self._read_attestations_file()
-
         self.compact_configuration_uploader_custom_resource = CustomResource(
             scope,
             'CompactConfigurationUploadCustomResource',
@@ -141,57 +137,5 @@ class CompactConfigurationUpload(Construct):
                 'active_compact_member_jurisdictions': json.dumps(
                     self.node.get_context('active_compact_member_jurisdictions')
                 ),
-                'attestations': json.dumps(attestations_list),
             },
         )
-
-    def _read_attestations_file(self) -> list:
-        """Read attestations from YAML file and return as a dict.
-
-        :return: List of attestations
-        """
-        # Define required fields for attestations and their expected types
-        required_fields = {
-            'attestationId': str,
-            'displayName': str,
-            'description': str,
-            'text': str,
-            'required': bool,
-            'locale': str,
-        }
-
-        try:
-            with open('compact-config/attestations.yml') as f:
-                attestations_data = yaml.safe_load(f)
-
-                # Check top-level structure
-                if not isinstance(attestations_data, dict):
-                    raise ValueError('Attestations file must contain a YAML dictionary')
-
-                if 'attestations' not in attestations_data:
-                    raise ValueError("Attestations file must contain an 'attestations' key")
-
-                attestations = attestations_data['attestations']
-
-                if not isinstance(attestations, list):
-                    raise ValueError("The 'attestations' value must be a list of attestation objects")
-
-                # Validate each attestation has all required fields with correct types
-                for idx, attestation in enumerate(attestations):
-                    # Check for missing fields
-                    missing_fields = [
-                        field for field in required_fields if field not in attestation or not attestation[field]
-                    ]
-                    if missing_fields:
-                        raise ValueError(
-                            f'Attestation at index {idx} (ID: {attestation.get("attestationId", "unknown")}) '
-                            f'is missing required fields: {", ".join(missing_fields)}'
-                        )
-
-                return attestations
-        except FileNotFoundError as e:
-            raise RuntimeError("Attestations file 'compact-config/attestations.yml' not found") from e
-        except yaml.YAMLError as e:
-            raise RuntimeError(f'Invalid YAML in attestations file: {str(e)}') from e
-        except Exception as e:
-            raise RuntimeError(f'Failed to load or validate attestations file: {str(e)}') from e

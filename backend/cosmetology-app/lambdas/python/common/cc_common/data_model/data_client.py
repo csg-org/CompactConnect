@@ -330,7 +330,6 @@ class DataClient:
         provider_id: str,
         jurisdiction_postal_abbreviation: str,
         license_expiration_date: date,
-        attestations: list[dict],
         license_type: str,
         license_jurisdiction: str,
         original_privilege: PrivilegeData | None = None,
@@ -370,7 +369,6 @@ class DataClient:
                 'dateOfIssuance': date_of_issuance,
                 'dateOfRenewal': current_datetime,
                 'dateOfExpiration': license_expiration_date,
-                'attestations': attestations,
                 'privilegeId': privilege_id,
                 'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
             }
@@ -385,7 +383,6 @@ class DataClient:
         license_expiration_date: date,
         provider_record: ProviderData,
         existing_privileges_for_license: list[PrivilegeData],
-        attestations: list[dict],
         license_type: str,
     ):
         """
@@ -402,7 +399,6 @@ class DataClient:
         :param provider_record: The original provider record
         :param existing_privileges_for_license: The list of existing privileges for the specified license.
         Used to track the original issuance date of the privilege.
-        :param attestations: List of attestations that were accepted when purchasing the privileges
         :param license_type: The type of license (e.g. audiologist, speech-language-pathologist)
         """
         logger.info(
@@ -437,7 +433,6 @@ class DataClient:
                     provider_id=provider_id,
                     jurisdiction_postal_abbreviation=postal_abbreviation,
                     license_expiration_date=license_expiration_date,
-                    attestations=attestations,
                     license_type=license_type,
                     license_jurisdiction=license_jurisdiction,
                     original_privilege=original_privilege,
@@ -464,7 +459,6 @@ class DataClient:
                                 'dateOfRenewal': privilege_record.dateOfRenewal,
                                 'dateOfExpiration': privilege_record.dateOfExpiration,
                                 'privilegeId': privilege_record.privilegeId,
-                                'attestations': attestations,
                                 **(
                                     {'administratorSetStatus': ActiveInactiveStatus.ACTIVE}
                                     if original_privilege.administratorSetStatus == ActiveInactiveStatus.INACTIVE

@@ -371,7 +371,6 @@ def create_privilege_for_provider(provider_id: str, compact: str):
         'administratorSetStatus': 'active',
         'compactTransactionId': 'test-transaction-12345',
         'compactTransactionIdGSIPK': f'COMPACT#{compact}#TX#test-transaction-12345#',
-        'attestations': [],
     }
 
     config.provider_user_dynamodb_table.put_item(Item=privilege_record)

@@ -535,7 +535,6 @@ class TestIngest(TstFunction):
             'dateOfUpdate': '2025-01-01T12:59:59+00:00',
             'privilegeId': 'test-privilege-id',
             'administratorSetStatus': 'inactive',  # This privilege is inactive
-            'attestations': [],
         }
         self.config.provider_table.put_item(Item=inactive_privilege)
 

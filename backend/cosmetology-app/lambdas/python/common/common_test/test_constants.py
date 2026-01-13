@@ -121,8 +121,6 @@ DEFAULT_INVESTIGATION_AGAINST_LICENSE = 'license'
 DEFAULT_INVESTIGATION_START_DATE = '2024-02-15'
 DEFAULT_INVESTIGATION_ID = '98765432-9876-9876-9876-987654321098'
 
-# Default attestation values
-DEFAULT_ATTESTATIONS = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
 
 # Default administrator status
 DEFAULT_ADMINISTRATOR_SET_STATUS = 'active'

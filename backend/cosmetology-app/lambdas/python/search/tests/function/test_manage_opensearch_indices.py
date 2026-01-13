@@ -265,13 +265,6 @@ class TestOpenSearchIndexManager(TstFunction):
                                         },
                                         'type': 'nested',
                                     },
-                                    'attestations': {
-                                        'properties': {
-                                            'attestationId': {'type': 'keyword'},
-                                            'version': {'type': 'keyword'},
-                                        },
-                                        'type': 'nested',
-                                    },
                                     'compact': {'type': 'keyword'},
                                     'compactTransactionId': {'type': 'keyword'},
                                     'dateOfExpiration': {'type': 'date'},

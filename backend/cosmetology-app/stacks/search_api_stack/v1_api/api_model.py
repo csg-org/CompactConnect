@@ -389,17 +389,6 @@ class ApiModel:
                 'investigations': JsonSchema(type=JsonSchemaType.ARRAY, items=self._investigation_general_schema),
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
-                'attestations': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=['attestationId', 'version'],
-                        properties={
-                            'attestationId': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                            'version': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                        },
-                    ),
-                ),
                 'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'activeSince': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
