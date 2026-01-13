@@ -1,5 +1,4 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import Schema
 from marshmallow.fields import List, Nested, Raw, String
 from marshmallow.validate import ContainsNoneOf, Length
 

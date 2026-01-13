@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema, ValidationError
-from marshmallow.fields import Boolean, Nested, String
+from marshmallow.fields import Boolean, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config

@@ -10,7 +10,7 @@ from aws_cdk.aws_cognito import (
     CfnUserPoolResourceServer,
     CfnUserPoolRiskConfigurationAttachment,
 )
-from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
+from aws_cdk.aws_lambda import CfnLayerVersion
 from aws_cdk.aws_ssm import CfnParameter
 
 from app import CompactConnectApp

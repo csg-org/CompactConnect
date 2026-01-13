@@ -5,7 +5,6 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.privilege import PrivilegeData
-from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.schema.provider.api import (
     ProviderGeneralResponseSchema,
     QueryJurisdictionProvidersRequestSchema,
@@ -88,9 +87,7 @@ def query_jurisdiction_providers(event: dict, context: LambdaContext):  # noqa: 
     }
 
 
-def _create_flattened_privilege(
-    privilege: PrivilegeData, license_record: LicenseData, provider_record: ProviderData
-) -> dict:
+def _create_flattened_privilege(privilege: PrivilegeData, license_record: LicenseData) -> dict:
     """
     Create a flattened privilege record by combining privilege and license data.
 
@@ -187,9 +184,7 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
                     logger.error('Expected to find exactly one matching license', matches=match_count)
                     raise CCInternalException('Error matching license to privilege')
 
-                flattened_privilege = _create_flattened_privilege(
-                    privilege, matching_license[0], provider_user_records.get_provider_record()
-                )
+                flattened_privilege = _create_flattened_privilege(privilege, matching_license[0])
                 flattened_privileges.append(flattened_privilege)
 
         # Select appropriate schema based on access level

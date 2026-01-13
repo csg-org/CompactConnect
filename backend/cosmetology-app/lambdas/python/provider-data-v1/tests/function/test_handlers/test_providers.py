@@ -376,6 +376,7 @@ class TestGetProvider(TstFunction):
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider
         )
 
+
 @mock_aws
 class TestGetProviderSSN(TstFunction):
     def _when_testing_rate_limiting(self, previous_attempt_count: int, provider_id: str):

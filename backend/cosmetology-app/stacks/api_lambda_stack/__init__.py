@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import QueryDefinition, QueryString

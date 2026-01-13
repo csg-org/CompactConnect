@@ -193,7 +193,6 @@ class _Config:
     def bulk_bucket_name(self):
         return os.environ['BULK_BUCKET_NAME']
 
-
     @property
     def disaster_recovery_results_bucket_name(self):
         return os.environ['DISASTER_RECOVERY_RESULTS_BUCKET_NAME']

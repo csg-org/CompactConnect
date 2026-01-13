@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 
 from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -7,7 +6,7 @@ from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact_level_only_action, sqs_handler
+from cc_common.utils import api_handler, authorize_compact_level_only_action
 
 
 @api_handler

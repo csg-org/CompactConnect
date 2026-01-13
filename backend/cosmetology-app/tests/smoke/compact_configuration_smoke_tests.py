@@ -262,8 +262,6 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
         if not license_types:
             raise SmokeTestFailureException(f'No license types found for compact {compact}')
 
-        
-
         # Create test jurisdiction configuration data
         notification_email = config.smoke_test_notification_email
         jurisdiction_config = {
