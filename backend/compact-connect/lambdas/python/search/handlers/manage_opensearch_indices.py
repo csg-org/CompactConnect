@@ -122,13 +122,12 @@ class OpenSearchIndexManager(CustomResourceHandler):
         # Get current settings
         current_settings = client.get_index_settings(alias_name)
 
-        # The settings response is keyed by the actual index name, not the alias
-        # Extract the first (and only) index's settings
         if not current_settings:
             logger.warning(f"Could not get settings for '{alias_name}'. Skipping replica update.")
             return
 
-        # Get the actual index name from the response
+        # OpenSearch returns settings keyed by actual index name (not alias)
+        # When querying by alias, we need to extract the actual index name
         actual_index_name = next(iter(current_settings.keys()))
         index_settings = current_settings[actual_index_name]
 
