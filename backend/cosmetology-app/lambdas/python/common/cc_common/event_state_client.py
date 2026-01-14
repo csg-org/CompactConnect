@@ -9,7 +9,6 @@ from cc_common.config import _Config, logger
 class RecipientType(StrEnum):
     """Enum for notification recipient types."""
 
-    PROVIDER = 'provider'
     STATE = 'state'
 
 
@@ -128,15 +127,6 @@ class NotificationTracker:
         self._attempts = self.event_state_client._get_notification_attempts(  # noqa: SLF001 meant for use within the notification tracker
             compact=compact, message_id=message_id
         )
-
-    def should_send_provider_notification(self) -> bool:
-        """
-        Check if provider notification needs to be sent.
-
-        :return: True if notification should be sent, False otherwise
-        """
-        sk = f'NOTIFICATION#{RecipientType.PROVIDER}#'
-        return self._attempts.get(sk, {}).get('status') != 'SUCCESS'
 
     def should_send_state_notification(self, jurisdiction: str) -> bool:
         """

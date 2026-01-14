@@ -37,14 +37,6 @@ class InvestigationNotificationTemplateVariables:
     provider_id: UUID
 
 
-class ProviderNotificationMethod(Protocol):
-    """Protocol for provider encumbrance notification methods."""
-
-    def __call__(
-        self, *, compact: str, provider_email: str, template_variables: EncumbranceNotificationTemplateVariables
-    ) -> dict[str, Any]: ...
-
-
 class JurisdictionNotificationMethod(Protocol):
     """Protocol for Jurisdiction encumbrance notification methods."""
 
@@ -99,34 +91,6 @@ class EmailServiceClient:
             self._logger.error(error_message, payload=payload, exception=str(e))
             raise CCInternalException(error_message) from e
 
-    def send_provider_privilege_deactivation_email(
-        self,
-        compact: str,
-        provider_email: str,
-        privilege_id: str,
-    ) -> dict[str, str]:
-        """
-        Send a privilege deactivation notification email to providers.
-
-        :param compact: Compact name
-        :param provider_email: Email address of the provider
-        :param privilege_id: ID of the privilege being deactivated
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'privilegeDeactivationProviderNotification',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [
-                provider_email,
-            ],
-            'templateVariables': {
-                'privilegeId': privilege_id,
-            },
-        }
-
-        return self._invoke_lambda(payload)
-
     def send_jurisdiction_privilege_deactivation_email(
         self,
         compact: str,
@@ -156,132 +120,6 @@ class EmailServiceClient:
                 'providerFirstName': provider_first_name,
                 'providerLastName': provider_last_name,
             },
-        }
-
-        return self._invoke_lambda(payload)
-
-    def send_compact_transaction_report_email(
-        self,
-        compact: str,
-        report_s3_path: str,
-        reporting_cycle: str,
-        start_date: date,
-        end_date: date,
-    ) -> dict[str, Any]:
-        """
-        Send a compact transaction report email.
-
-        :param compact: Compact name
-        :param report_s3_path: S3 path to the report zip file
-        :param reporting_cycle: Reporting cycle (e.g., 'weekly', 'monthly')
-        :param start_date: Start date of the reporting period
-        :param end_date: End date of the reporting period
-        :return: Response from the email notification service
-        """
-
-        payload = {
-            'compact': compact,
-            'template': 'CompactTransactionReporting',
-            'recipientType': 'COMPACT_SUMMARY_REPORT',
-            'templateVariables': {
-                'reportS3Path': report_s3_path,
-                'reportingCycle': reporting_cycle,
-                'startDate': start_date.strftime('%Y-%m-%d'),
-                'endDate': end_date.strftime('%Y-%m-%d'),
-            },
-        }
-
-        return self._invoke_lambda(payload)
-
-    def send_jurisdiction_transaction_report_email(
-        self,
-        compact: str,
-        jurisdiction: str,
-        report_s3_path: str,
-        reporting_cycle: str,
-        start_date: date,
-        end_date: date,
-    ) -> dict[str, str]:
-        """
-        Send a jurisdiction transaction report email.
-
-        :param compact: Compact name
-        :param jurisdiction: Jurisdiction name
-        :param report_s3_path: S3 path to the report zip file
-        :param reporting_cycle: Reporting cycle (e.g., 'weekly', 'monthly')
-        :param start_date: Start date of the reporting period
-        :param end_date: End date of the reporting period
-        :return: Response from the email notification service
-        """
-
-        payload = {
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            'template': 'JurisdictionTransactionReporting',
-            'recipientType': 'JURISDICTION_SUMMARY_REPORT',
-            'templateVariables': {
-                'reportS3Path': report_s3_path,
-                'reportingCycle': reporting_cycle,
-                'startDate': start_date.strftime('%Y-%m-%d'),
-                'endDate': end_date.strftime('%Y-%m-%d'),
-            },
-        }
-
-        return self._invoke_lambda(payload)
-
-    def send_privilege_purchase_email(
-        self,
-        provider_email: str,
-        transaction_date: str,
-        privileges: list[dict],
-        total_cost: str,
-        cost_line_items: list[dict],
-    ) -> dict[str, str]:
-        """
-        Send a privilege(s) purchase notification email.
-
-        :param provider_email: email of the provider who purchased privileges
-        :param transaction_date: date of the transaction
-        :param privileges: privileges purchased
-        :param total_cost: Total cost of the transaction
-        :param cost_line_items: Line items (name, unitPrice, quantity) of transaction
-        :return: Response from the email notification service
-        """
-
-        payload = {
-            'template': 'privilegePurchaseProviderNotification',
-            'specificEmails': [
-                provider_email,
-            ],
-            'templateVariables': {
-                'transactionDate': transaction_date,
-                'privileges': privileges,
-                'totalCost': total_cost,
-                'costLineItems': cost_line_items,
-            },
-        }
-        return self._invoke_lambda(payload)
-
-    def send_provider_multiple_registration_attempt_email(
-        self,
-        compact: str,
-        provider_email: str,
-    ) -> dict[str, str]:
-        """
-        Send a notification email to a provider when someone attempts to register with their email address.
-
-        :param compact: Compact name
-        :param provider_email: Email address of the provider
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'multipleRegistrationAttemptNotification',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [
-                provider_email,
-            ],
-            'templateVariables': {},
         }
 
         return self._invoke_lambda(payload)
@@ -540,93 +378,6 @@ class EmailServiceClient:
                 'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
             },
         }
-        return self._invoke_lambda(payload)
-
-    def send_provider_email_verification_code(
-        self,
-        compact: str,
-        provider_email: str,
-        verification_code: str,
-    ) -> dict[str, str]:
-        """
-        Send an email verification code to a provider's new email address.
-
-        :param compact: Compact name
-        :param provider_email: Email address to send the verification code to
-        :param verification_code: 4-digit verification code
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'providerEmailVerificationCode',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [
-                provider_email,
-            ],
-            'templateVariables': {
-                'verificationCode': verification_code,
-            },
-        }
-
-        return self._invoke_lambda(payload)
-
-    def send_provider_email_change_notification(
-        self,
-        compact: str,
-        old_email_address: str,
-        new_email_address: str,
-    ) -> dict[str, str]:
-        """
-        Send a notification to the old email address when a provider's email is changed.
-
-        :param compact: Compact name
-        :param old_email_address: The previous email address
-        :param new_email_address: The new email address
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'template': 'providerEmailChangeNotification',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [
-                old_email_address,
-            ],
-            'templateVariables': {
-                'newEmailAddress': new_email_address,
-            },
-        }
-
-        return self._invoke_lambda(payload)
-
-    def send_provider_account_recovery_confirmation_email(
-        self,
-        *,
-        compact: str,
-        provider_email: str,
-        provider_id: str,
-        recovery_token: str,
-    ) -> dict[str, str]:
-        """
-        Send an account recovery confirmation email to a provider with a secure link.
-
-        :param compact: The compact name
-        :param provider_email: Email address of the provider
-        :param provider_id: The id of the provider
-        :param recovery_token: Recovery token
-        :return: Response from the email notification service
-        """
-
-        payload = {
-            'compact': compact,
-            'template': 'providerAccountRecoveryConfirmation',
-            'recipientType': 'SPECIFIC',
-            'specificEmails': [provider_email],
-            'templateVariables': {
-                'providerId': str(provider_id),
-                'recoveryToken': str(recovery_token),
-            },
-        }
-
         return self._invoke_lambda(payload)
 
     def send_license_investigation_state_notification_email(

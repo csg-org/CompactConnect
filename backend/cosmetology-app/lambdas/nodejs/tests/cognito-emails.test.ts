@@ -85,20 +85,6 @@ describe('CognitoEmailsLambda', () => {
         });
     });
 
-    it('should process AdminCreateUser event for provider users', async () => {
-        process.env.USER_POOL_TYPE = 'provider';
-
-        const response = await lambda.handler(SAMPLE_COGNITO_EVENT, SAMPLE_CONTEXT);
-
-        expect(response.response.emailSubject).toBe('Welcome to CompactConnect');
-        expect(response.response.emailMessage).toContain('Your temporary password is:');
-        expect(response.response.emailMessage).toContain('TEST-CODE-123');
-        expect(response.response.emailMessage).toContain('Your username is:');
-        expect(response.response.emailMessage).toContain('testuser');
-        expect(response.response.emailMessage).toContain('This temporary password is valid for 24 hours');
-        expect(response.response.emailMessage).toContain('within the next 24 hours');
-    });
-
     it('should process AdminCreateUser event for staff users', async () => {
         process.env.USER_POOL_TYPE = 'staff';
 
@@ -114,7 +100,7 @@ describe('CognitoEmailsLambda', () => {
     });
 
     it('should handle missing code parameter', async () => {
-        process.env.USER_POOL_TYPE = 'provider';
+        process.env.USER_POOL_TYPE = 'staff';
 
         const eventWithoutCode = {
             ...SAMPLE_COGNITO_EVENT,
@@ -130,7 +116,7 @@ describe('CognitoEmailsLambda', () => {
         expect(response.response.emailMessage).toContain('Your temporary password is:');
         expect(response.response.emailMessage).toContain('Your username is:');
         expect(response.response.emailMessage).toContain('testuser');
-        expect(response.response.emailMessage).toContain('This temporary password is valid for 24 hours');
+        expect(response.response.emailMessage).toContain('Please immediately');
     });
 
     it('should handle unsupported trigger source', async () => {

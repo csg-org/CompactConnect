@@ -44,7 +44,7 @@ describe('CognitoEmailService', () => {
         // Reset environment variables
         process.env.FROM_ADDRESS = 'noreply@example.org';
         process.env.UI_BASE_PATH_URL = 'https://app.test.compactconnect.org';
-        process.env.USER_POOL_TYPE = 'provider'; // Set default for tests
+        process.env.USER_POOL_TYPE = 'staff'; // Set default for tests
 
         emailService = new CognitoEmailService({
             logger: new Logger({ serviceName: 'test' }),
@@ -57,26 +57,6 @@ describe('CognitoEmailService', () => {
 
     describe('generateCognitoMessage', () => {
         describe('AdminCreateUser template', () => {
-            it('should generate AdminCreateUser message for provider users with 24-hour message', () => {
-                process.env.USER_POOL_TYPE = 'provider';
-
-                const { subject, htmlContent } = emailService.generateCognitoMessage(
-                    'CustomMessage_AdminCreateUser',
-                    '{####}',
-                    'testuser'
-                );
-
-                expect(subject).toBe('Welcome to CompactConnect');
-                expect(htmlContent).toContain('Your temporary password is:');
-                expect(htmlContent).toContain('{####}');
-                expect(htmlContent).toContain('Your username is:');
-                expect(htmlContent).toContain('testuser');
-                expect(htmlContent).toContain('This temporary password is valid for 24 hours');
-                expect(htmlContent).toContain('within the next 24 hours');
-                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-practitioner" target="_blank">sign in</a>');
-                expect(htmlContent).toContain('<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a>');
-            });
-
             it('should generate AdminCreateUser message for staff users with immediate login message', () => {
                 process.env.USER_POOL_TYPE = 'staff';
 

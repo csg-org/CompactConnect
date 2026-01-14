@@ -9,7 +9,6 @@ from cc_common.data_model.schema.data_event.api import (
 from cc_common.email_service_client import (
     EncumbranceNotificationTemplateVariables,
     JurisdictionNotificationMethod,
-    ProviderNotificationMethod,
 )
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.event_bus_client import EventBusClient
@@ -49,72 +48,6 @@ def _get_provider_records(compact: str, provider_id: str) -> tuple[ProviderUserR
     except Exception as e:
         logger.error('Failed to retrieve provider records for notification', exception=str(e))
         raise
-
-
-def _send_provider_notification(
-    notification_method: ProviderNotificationMethod,
-    notification_type: str,
-    *,
-    provider_record: ProviderData,
-    compact: str,
-    provider_id: UUID,
-    event_type: EventType,
-    event_time: str,
-    tracker: NotificationTracker,
-    **notification_kwargs,
-) -> None:
-    """
-    Send notification to provider if they are registered and not already sent.
-
-    :param notification_method: The email service method to call
-    :param notification_type: Type of notification for logging
-    :param provider_record: The provider record
-    :param compact: The compact identifier
-    :param provider_id: The provider ID
-    :param event_type: Event type (e.g., 'license.encumbrance')
-    :param event_time: Event timestamp
-    :param tracker: NotificationTracker instance for idempotency
-    :param notification_kwargs: Additional arguments for the notification method
-    """
-    provider_email = provider_record.compactConnectRegisteredEmailAddress
-    if provider_email:
-        if tracker.should_send_provider_notification():
-            logger.info(f'Sending {notification_type} notification to provider', provider_id=provider_id)
-            try:
-                notification_method(
-                    compact=compact,
-                    provider_email=provider_email,
-                    template_variables=EncumbranceNotificationTemplateVariables(
-                        provider_first_name=provider_record.givenName,
-                        provider_last_name=provider_record.familyName,
-                        **notification_kwargs,
-                    ),
-                )
-                logger.info(
-                    'Successfully called email service client for provider notification. Calling Notification Tracker.',
-                    provider_id=provider_id,
-                    event_type=event_type,
-                )
-                tracker.record_success(
-                    recipient_type=RecipientType.PROVIDER,
-                    provider_id=provider_id,
-                    event_type=event_type,
-                    event_time=event_time,
-                )
-            except Exception as e:
-                logger.error('Failed to send provider notification', exception=str(e))
-                tracker.record_failure(
-                    recipient_type=RecipientType.PROVIDER,
-                    provider_id=provider_id,
-                    event_type=event_type,
-                    event_time=event_time,
-                    error_message=str(e),
-                )
-                raise
-        else:
-            logger.info('Skipping provider notification (already sent successfully)', provider_id=provider_id)
-    else:
-        logger.info('Provider not registered in system, skipping provider notification')
 
 
 def _send_primary_state_notification(
@@ -442,21 +375,6 @@ def privilege_encumbrance_notification_listener(message: dict, tracker: Notifica
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_privilege_encumbrance_provider_notification_email,
-            'privilege encumbrance',
-            provider_record=provider_record,
-            compact=compact,
-            provider_id=provider_id,
-            event_type=EventType.PRIVILEGE_ENCUMBRANCE,
-            event_time=event_time,
-            tracker=tracker,
-            encumbered_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-            effective_date=effective_date,
-        )
-
         # State Notifications
         # Send notification to the state where the privilege is encumbered
         _send_primary_state_notification(
@@ -573,21 +491,6 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
         else:
             latest_effective_lift_date = max(latest_license_lift_date, latest_privilege_lift_date)
 
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_privilege_encumbrance_lifting_provider_notification_email,
-            'privilege encumbrance lifting',
-            provider_record=provider_record,
-            compact=compact,
-            provider_id=provider_id,
-            event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
-            event_time=event_time,
-            tracker=tracker,
-            encumbered_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-            effective_date=latest_effective_lift_date,
-        )
-
         # State Notifications
         # Send notification to the state where the privilege encumbrance was lifted
         _send_primary_state_notification(
@@ -658,21 +561,6 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
-
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_license_encumbrance_provider_notification_email,
-            'license encumbrance',
-            provider_record=provider_record,
-            compact=compact,
-            provider_id=provider_id,
-            event_type=EventType.LICENSE_ENCUMBRANCE,
-            event_time=event_time,
-            tracker=tracker,
-            encumbered_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-            effective_date=effective_date,
-        )
 
         # State Notifications
         # Send notification to the state where the license is encumbered
@@ -768,21 +656,6 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         latest_effective_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
             license_jurisdiction=target_license.jurisdiction,
             license_type_abbreviation=target_license.licenseTypeAbbreviation,
-        )
-
-        # Provider Notification
-        _send_provider_notification(
-            config.email_service_client.send_license_encumbrance_lifting_provider_notification_email,
-            'license encumbrance lifting',
-            provider_record=provider_record,
-            compact=compact,
-            provider_id=provider_id,
-            event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
-            event_time=event_time,
-            tracker=tracker,
-            encumbered_jurisdiction=jurisdiction,
-            license_type=license_type_name,
-            effective_date=latest_effective_lift_date,
         )
 
         # State Notifications

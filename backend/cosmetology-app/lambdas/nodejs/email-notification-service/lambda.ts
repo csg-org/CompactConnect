@@ -110,13 +110,6 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.providerLastName
             );
             break;
-        case 'privilegeDeactivationProviderNotification':
-            await this.emailService.sendPrivilegeDeactivationProviderNotificationEmail(
-                event.compact,
-                event.specificEmails,
-                event.templateVariables.privilegeId
-            );
-            break;
         case 'licenseEncumbranceProviderNotification':
             if (!event.templateVariables.providerFirstName
                 || !event.templateVariables.providerLastName
