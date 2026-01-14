@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2026-01-07T22:16:05Z"
+    "version": "2026-01-14T16:16:32Z"
   },
   "servers": [
     {
@@ -3225,6 +3225,144 @@
         }
       }
     },
+    "/v1/compacts/{compact}/providers/{providerId}/militaryAudit": {
+      "options": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenZnCDqNvEXOu2"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenTMQQKAeKTKQR"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
+              "aslp/admin",
+              "al/aslp.admin",
+              "ak/aslp.admin",
+              "ar/aslp.admin",
+              "co/aslp.admin",
+              "de/aslp.admin",
+              "ky/aslp.admin",
+              "la/aslp.admin",
+              "me/aslp.admin",
+              "md/aslp.admin",
+              "mn/aslp.admin",
+              "ms/aslp.admin",
+              "mo/aslp.admin",
+              "ne/aslp.admin",
+              "oh/aslp.admin",
+              "octp/admin",
+              "al/octp.admin",
+              "ar/octp.admin",
+              "ky/octp.admin",
+              "la/octp.admin",
+              "ms/octp.admin",
+              "ne/octp.admin",
+              "oh/octp.admin",
+              "coun/admin",
+              "al/coun.admin",
+              "ar/coun.admin",
+              "fl/coun.admin",
+              "ga/coun.admin",
+              "ky/coun.admin",
+              "ne/coun.admin",
+              "oh/coun.admin",
+              "ut/coun.admin"
+            ]
+          }
+        ]
+      }
+    },
     "/v1/provider-users/me/jurisdiction/{jurisdiction}": {
       "options": {
         "parameters": [
@@ -6420,6 +6558,28 @@
   },
   "components": {
     "schemas": {
+      "SandboLicenZnCDqNvEXOu2": {
+        "required": [
+          "militaryStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "militaryStatusNote": {
+            "maxLength": 5000,
+            "type": "string",
+            "description": "Optional note from the admin (typically for declines)"
+          },
+          "militaryStatus": {
+            "type": "string",
+            "description": "The audit result for the military documentation",
+            "enum": [
+              "approved",
+              "declined"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "SandboLicenudbEF4n02FXU": {
         "required": [
           "newEmailAddress"
@@ -9146,6 +9306,42 @@
               "coun"
             ]
           },
+          "type": {
+            "type": "string",
+            "enum": [
+              "provider"
+            ]
+          },
+          "suffix": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "dateOfExpiration": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "format": "date"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "familyName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "birthMonthDay": {
+            "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string",
+            "format": "date"
+          },
+          "compactConnectRegisteredEmailAddress": {
+            "maxLength": 100,
+            "minLength": 5,
+            "type": "string",
+            "format": "email"
+          },
           "npi": {
             "pattern": "^[0-9]{10}$",
             "type": "string"
@@ -9242,17 +9438,6 @@
               ]
             }
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "provider"
-            ]
-          },
-          "suffix": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
           "currentHomeJurisdiction": {
             "type": "string",
             "description": "The current jurisdiction postal abbreviation if known.",
@@ -9313,6 +9498,11 @@
               "other",
               "unknown"
             ]
+          },
+          "militaryStatusNote": {
+            "maxLength": 5000,
+            "type": "string",
+            "description": "Optional note about the military status (typically for declines)"
           },
           "licenses": {
             "type": "array",
@@ -10204,10 +10394,15 @@
             "pattern": "^[0-9]{4}$",
             "type": "string"
           },
-          "dateOfExpiration": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+          "militaryStatus": {
             "type": "string",
-            "format": "date"
+            "description": "Status of military affiliation on the provider record",
+            "enum": [
+              "notApplicable",
+              "tentative",
+              "approved",
+              "declined"
+            ]
           },
           "militaryAffiliations": {
             "type": "array",
@@ -10292,10 +10487,6 @@
               }
             }
           },
-          "providerId": {
-            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-            "type": "string"
-          },
           "licenseStatus": {
             "type": "string",
             "enum": [
@@ -10303,26 +10494,10 @@
               "inactive"
             ]
           },
-          "familyName": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
           "middleName": {
             "maxLength": 100,
             "minLength": 1,
             "type": "string"
-          },
-          "birthMonthDay": {
-            "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string",
-            "format": "date"
-          },
-          "compactConnectRegisteredEmailAddress": {
-            "maxLength": 100,
-            "minLength": 5,
-            "type": "string",
-            "format": "email"
           },
           "dateOfUpdate": {
             "type": "string",
@@ -12489,6 +12664,11 @@
                     "unknown"
                   ]
                 },
+                "militaryStatusNote": {
+                  "maxLength": 5000,
+                  "type": "string",
+                  "description": "Optional note about the military status (typically for declines)"
+                },
                 "ssnLastFour": {
                   "pattern": "^[0-9]{4}$",
                   "type": "string"
@@ -12497,6 +12677,16 @@
                   "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                   "type": "string",
                   "format": "date"
+                },
+                "militaryStatus": {
+                  "type": "string",
+                  "description": "Status of military affiliation on the provider record",
+                  "enum": [
+                    "notApplicable",
+                    "tentative",
+                    "approved",
+                    "declined"
+                  ]
                 },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
