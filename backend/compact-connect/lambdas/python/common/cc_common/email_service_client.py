@@ -760,3 +760,51 @@ class EmailServiceClient:
             },
         }
         return self._invoke_lambda(payload)
+
+    def send_military_audit_approved_notification(
+        self,
+        *,
+        compact: str,
+        provider_email: str,
+    ) -> dict[str, str]:
+        """
+        Send a military audit approved notification email to a provider.
+
+        :param compact: Compact name
+        :param provider_email: Email address of the provider
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'militaryAuditApprovedNotification',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [provider_email],
+            'templateVariables': {},
+        }
+        return self._invoke_lambda(payload)
+
+    def send_military_audit_declined_notification(
+        self,
+        *,
+        compact: str,
+        provider_email: str,
+        audit_note: str,
+    ) -> dict[str, str]:
+        """
+        Send a military audit declined notification email to a provider.
+
+        :param compact: Compact name
+        :param provider_email: Email address of the provider
+        :param audit_note: Note from the admin explaining the decline
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'militaryAuditDeclinedNotification',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [provider_email],
+            'templateVariables': {
+                'auditNote': audit_note,
+            },
+        }
+        return self._invoke_lambda(payload)

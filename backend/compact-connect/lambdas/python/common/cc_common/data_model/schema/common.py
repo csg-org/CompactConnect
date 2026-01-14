@@ -293,11 +293,23 @@ class InvestigationAgainstEnum(StrEnum):
     LICENSE = 'license'
 
 
+class MilitaryStatus(CCEnum):
+    """Status of military affiliation on top level provider record."""
+
+    NOT_APPLICABLE = 'notApplicable'
+    TENTATIVE = 'tentative'
+    APPROVED = 'approved'
+    DECLINED = 'declined'
+
+
 class UpdateCategory(CCEnum):
     DEACTIVATION = 'deactivation'
     EXPIRATION = 'expiration'
     ISSUANCE = 'issuance'
     RENEWAL = 'renewal'
+    MILITARY_AUDIT = 'militaryAudit'
+    MILITARY_FILE_UPLOAD = 'militaryFileUpload'
+    MILITARY_AFFILIATION_ENDED = 'militaryAffiliationEnded'
     ENCUMBRANCE = 'encumbrance'
     INVESTIGATION = 'investigation'
     CLOSING_INVESTIGATION = 'closingInvestigation'

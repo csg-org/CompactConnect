@@ -1553,6 +1553,16 @@ class ApiModel:
             ),
             'currentHomeJurisdiction': self.current_home_jurisdiction_selection_field,
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+            'militaryStatus': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=['notApplicable', 'tentative', 'approved', 'declined'],
+                description='Status of military affiliation on the provider record',
+            ),
+            'militaryStatusNote': JsonSchema(
+                type=JsonSchemaType.STRING,
+                description='Optional note about the military status (typically for declines)',
+                max_length=5000,
+            ),
         }
 
     @property
@@ -2876,3 +2886,30 @@ class ApiModel:
                 ),
             )
         return self.api._v1_patch_license_investigation_request_model
+
+    @property
+    def patch_military_audit_request_model(self) -> Model:
+        """PATCH military audit request model"""
+        if not hasattr(self.api, '_v1_patch_military_audit_request_model'):
+            self.api._v1_patch_military_audit_request_model = self.api.add_model(
+                'V1PatchMilitaryAuditRequestModel',
+                description='Patch military audit request model',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    additional_properties=False,
+                    required=['militaryStatus'],
+                    properties={
+                        'militaryStatus': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            enum=['approved', 'declined'],
+                            description='The audit result for the military documentation',
+                        ),
+                        'militaryStatusNote': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='Optional note from the admin (typically for declines)',
+                            max_length=5000,
+                        ),
+                    },
+                ),
+            )
+        return self.api._v1_patch_military_audit_request_model

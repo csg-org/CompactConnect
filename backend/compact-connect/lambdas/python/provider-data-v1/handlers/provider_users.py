@@ -133,7 +133,7 @@ def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-
 
     s3_document_prefix = (
         f'compact/{compact}/provider/{provider_id}/document-type/'
-        f'{MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME}/{config.current_standard_datetime.date().isoformat()}/'
+        f'{MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME}/{config.current_standard_datetime.isoformat()}/'
     )
 
     event_body = json.loads(event['body'])
@@ -196,7 +196,7 @@ def _patch_provider_military_affiliation(event, context):  # noqa: ARG001 unused
     if event_body.get('status') != 'inactive':
         raise CCInvalidRequestException('Invalid status value. Only "inactive" is allowed.')
 
-    config.data_client.inactivate_military_affiliation_status(compact=compact, provider_id=provider_id)
+    config.data_client.end_military_affiliation(compact=compact, provider_id=provider_id)
 
     return {'message': 'Military affiliation updated successfully'}
 

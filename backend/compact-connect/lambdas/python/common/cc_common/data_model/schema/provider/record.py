@@ -22,6 +22,7 @@ from cc_common.data_model.schema.fields import (
     CurrentHomeJurisdictionField,
     Jurisdiction,
     LicenseEncumberedStatusField,
+    MilitaryStatusField,
     NationalProviderIdentifier,
     Set,
     UpdateType,
@@ -76,6 +77,10 @@ class ProviderRecordSchema(BaseRecordSchema):
     # Optional fields for account recovery
     recoveryToken = String(required=False, allow_none=False)
     recoveryExpiry = DateTime(required=False, allow_none=False)
+
+    # Military audit status fields
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
+    militaryStatusNote = String(required=False, allow_none=False)
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
@@ -206,6 +211,8 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
+    militaryStatus = MilitaryStatusField(required=False, allow_none=False)
+    militaryStatusNote = String(required=False, allow_none=False)
 
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)

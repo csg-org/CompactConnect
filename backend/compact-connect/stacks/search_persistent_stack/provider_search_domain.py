@@ -521,7 +521,7 @@ class ProviderSearchDomain(Construct):
                 period=Duration.minutes(5),
                 statistic='Minimum',
             ),
-            evaluation_periods=1,  # alert immediately when fewer than 10 searchable documents are detected
+            evaluation_periods=3,  # set 3 periods to account for any temporary drops
             threshold=10,  # set to 10 to account for any documents set by OpenSearch by default
             comparison_operator=ComparisonOperator.LESS_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.BREACHING,

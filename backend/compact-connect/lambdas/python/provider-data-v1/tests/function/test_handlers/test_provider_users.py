@@ -6,9 +6,7 @@ from boto3.dynamodb.conditions import Key
 from cc_common.config import config
 from cc_common.exceptions import CCInternalException
 from common_test.test_constants import (
-    DEFAULT_COMPACT,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-    DEFAULT_PROVIDER_ID,
     DEFAULT_PROVIDER_UPDATE_DATETIME,
 )
 from moto import mock_aws
@@ -238,7 +236,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
                     {
                         'fields': {
                             'key': f'compact/{TEST_COMPACT}/provider/{provider_id}/document-type/military-affiliations'
-                            f'/2024-11-08/1234#military_affiliation.pdf',
+                            f'/2024-11-08T23:59:59+00:00/1234#military_affiliation.pdf',
                             'x-amz-algorithm': 'AWS4-HMAC-SHA256',
                         },
                         'url': 'https://provider-user-bucket.s3.amazonaws.com/',
@@ -338,9 +336,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPatchProviderMilitaryAffiliation(TstFunction):
-    def _when_testing_patch_provider_user_military_affiliation_event_with_custom_claims(self):
-        self._load_provider_data()
-        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+    def _generate_path_api_event(self, test_provider):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'PATCH'
@@ -350,6 +346,11 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
             event['body'] = json.dumps({'status': 'inactive'})
 
         return event
+
+    def _when_testing_patch_provider_user_military_affiliation_event_with_custom_claims(self):
+        self._load_provider_data()
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
+        return self._generate_path_api_event(test_provider)
 
     def _get_military_affiliation_records(self, event):
         provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
@@ -410,14 +411,9 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         from handlers.provider_users import provider_users_api_handler
 
         self.test_data_generator.put_default_military_affiliation_in_provider_table({'status': 'initializing'})
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table()
 
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-            event['httpMethod'] = 'PATCH'
-            event['resource'] = '/v1/provider-users/me/military-affiliation'
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = DEFAULT_PROVIDER_ID
-            event['requestContext']['authorizer']['claims']['custom:compact'] = DEFAULT_COMPACT
-            event['body'] = json.dumps({'status': 'inactive'})
+        event = self._generate_path_api_event(test_provider=test_provider)
 
         # get the military affiliation record loaded in the test setup and confirm it is initializing
         affiliation_record = self._get_military_affiliation_records(event)
@@ -433,3 +429,69 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
 
         self.assertEqual(1, len(affiliation_record))
         self.assertEqual('inactive', affiliation_record[0]['status'])
+
+    def test_patch_provider_military_affiliation_removes_military_status_fields(self):
+        """Test that ending military affiliation removes militaryStatus and militaryStatusNote from provider record."""
+        from handlers.provider_users import provider_users_api_handler
+
+        # Create provider with declined military status and a note
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'militaryStatus': 'declined', 'militaryStatusNote': 'test note'}
+        )
+        self.test_data_generator.put_default_military_affiliation_in_provider_table()
+
+        # Create and execute PATCH event
+        event = self._generate_path_api_event(test_provider)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        # Verify fields are removed from provider record
+        updated_provider_record = self.config.data_client.get_provider_top_level_record(
+            compact=test_provider.compact, provider_id=test_provider.providerId
+        )
+
+        self.assertIsNone(updated_provider_record.militaryStatus)
+        self.assertIsNone(updated_provider_record.militaryStatusNote)
+
+    def test_patch_provider_military_affiliation_creates_provider_update_record(self):
+        """Test that ending military affiliation creates a provider update record with expected values."""
+        from cc_common.data_model.schema.common import UpdateCategory
+        from cc_common.data_model.schema.provider import ProviderUpdateData
+        from handlers.provider_users import provider_users_api_handler
+
+        self._load_provider_data()
+
+        # Create provider with declined military status and a note
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'militaryStatus': 'declined', 'militaryStatusNote': 'test note'}
+        )
+        self.test_data_generator.put_default_military_affiliation_in_provider_table()
+
+        # Create and execute PATCH event
+        event = self._generate_path_api_event(test_provider)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        # Query provider update records
+        stored_provider_update_records = (
+            self.test_data_generator.query_provider_update_records_for_given_record_from_database(test_provider)
+        )
+
+        # Verify exactly one update record was created
+        self.assertEqual(1, len(stored_provider_update_records))
+
+        # Verify the update record contents
+        update_data = ProviderUpdateData.from_database_record(stored_provider_update_records[0])
+        self.assertEqual(UpdateCategory.MILITARY_AFFILIATION_ENDED, update_data.updateType)
+
+        # Verify previous state was captured
+        self.assertIsNotNone(update_data.previous)
+        self.assertEqual('declined', update_data.previous.get('militaryStatus'))
+        self.assertEqual('test note', update_data.previous.get('militaryStatusNote'))
+
+        # Verify removed values
+        self.assertEqual(['militaryStatus', 'militaryStatusNote'], update_data.removedValues)
+        # Verify updated values is empty (no fields were updated, only removed)
+        self.assertEqual({}, update_data.updatedValues)

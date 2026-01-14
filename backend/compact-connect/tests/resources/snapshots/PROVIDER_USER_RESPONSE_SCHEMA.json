@@ -2271,6 +2271,21 @@
     "dateOfUpdate": {
       "format": "date-time",
       "type": "string"
+    },
+    "militaryStatus": {
+      "description": "Status of military affiliation on the provider record",
+      "enum": [
+        "notApplicable",
+        "tentative",
+        "approved",
+        "declined"
+      ],
+      "type": "string"
+    },
+    "militaryStatusNote": {
+      "description": "Optional note about the military status (typically for declines)",
+      "maxLength": 5000,
+      "type": "string"
     }
   },
   "required": [

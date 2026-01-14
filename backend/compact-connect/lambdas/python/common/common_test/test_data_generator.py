@@ -221,7 +221,7 @@ class TestDataGenerator:
             'compact': DEFAULT_COMPACT,
             'type': MILITARY_AFFILIATION_RECORD_TYPE,
             'documentKeys': [
-                f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME.split("T")[0]}/1234#military-waiver.pdf'
+                f'/provider/{DEFAULT_PROVIDER_ID}/document-type/military-affiliations/{DEFAULT_PROVIDER_UPDATE_DATETIME}/1234#military-waiver.pdf'
             ],
             'fileNames': ['military-waiver.pdf'],
             'affiliationType': DEFAULT_MILITARY_AFFILIATION_TYPE,
@@ -613,7 +613,12 @@ class TestDataGenerator:
                 default_military_affiliation, datetime.fromisoformat(DEFAULT_MILITARY_UPDATE_DATE)
             )
 
-            provider_record = TestDataGenerator.generate_default_provider().serialize_to_database_record()
+            provider_record = TestDataGenerator.generate_default_provider(
+                value_overrides={
+                    'militaryStatus': 'notApplicable',
+                    'militaryStatusNote': '',
+                }
+            ).serialize_to_database_record()
             provider_record['dateOfUpdate'] = DEFAULT_PROVIDER_UPDATE_DATETIME
             license_record = default_license_record.serialize_to_database_record()
             license_record['dateOfUpdate'] = DEFAULT_LICENSE_UPDATE_DATETIME

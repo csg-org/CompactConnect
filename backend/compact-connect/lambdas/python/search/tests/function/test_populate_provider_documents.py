@@ -110,6 +110,7 @@ class TestPopulateProviderDocuments(TstFunction):
                     'compactConnectRegisteredEmailAddress': DEFAULT_REGISTERED_EMAIL_ADDRESS,
                     'jurisdictionUploadedLicenseStatus': 'active',
                     'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'militaryStatus': 'notApplicable',
                     'privilegeJurisdictions': ['ne'],
                     'birthMonthDay': '06-06',
                     'licenses': [

@@ -12,6 +12,7 @@ from cc_common.data_model.schema.common import (
     InvestigationStatusEnum,
     LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
+    MilitaryStatus,
     PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
@@ -130,6 +131,11 @@ class ClinicalPrivilegeActionCategoryField(String):
 class InvestigationAgainstField(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in InvestigationAgainstEnum]), **kwargs)
+
+
+class MilitaryStatusField(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in MilitaryStatus]), **kwargs)
 
 
 class PositiveDecimal(Decimal):

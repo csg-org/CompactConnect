@@ -11,6 +11,7 @@ from cc_common.data_model.schema.data_event.api import (
     InvestigationEventDetailSchema,
     LicenseDeactivationDetailSchema,
     LicenseRevertDetailSchema,
+    MilitaryAuditEventDetailSchema,
     PrivilegeIssuanceDetailSchema,
     PrivilegePurchaseEventDetailSchema,
     PrivilegeRenewalDetailSchema,
@@ -542,6 +543,45 @@ class EventBusClient:
         self._publish_event(
             source=source,
             detail_type='privilege.revert',
+            detail=deserialized_detail,
+            event_batch_writer=event_batch_writer,
+        )
+
+    def publish_military_audit_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: UUID,
+        audit_result: str,
+        audit_note: str | None = None,
+        event_batch_writer: EventBatchWriter | None = None,
+    ):
+        """
+        Publish a military audit event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param audit_result: The audit result (approved or declined)
+        :param audit_note: Optional note from the admin
+        :param event_batch_writer: Optional EventBatchWriter for efficient batch publishing
+        """
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'auditResult': audit_result,
+            'eventTime': config.current_standard_datetime,
+        }
+
+        if audit_note:
+            event_detail['auditNote'] = audit_note
+
+        military_audit_detail_schema = MilitaryAuditEventDetailSchema()
+        deserialized_detail = military_audit_detail_schema.dump(event_detail)
+
+        self._publish_event(
+            source=source,
+            detail_type='militaryAffiliation.audit',
             detail=deserialized_detail,
             event_batch_writer=event_batch_writer,
         )

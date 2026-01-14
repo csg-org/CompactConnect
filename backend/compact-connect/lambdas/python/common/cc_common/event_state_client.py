@@ -21,12 +21,14 @@ class NotificationStatus(StrEnum):
 
 
 class EventType(StrEnum):
-    """Enum for encumbrance event types."""
+    """Enum for event types that trigger notifications."""
 
     LICENSE_ENCUMBRANCE = 'license.encumbrance'
     LICENSE_ENCUMBRANCE_LIFTED = 'license.encumbranceLifted'
     PRIVILEGE_ENCUMBRANCE = 'privilege.encumbrance'
     PRIVILEGE_ENCUMBRANCE_LIFTED = 'privilege.encumbranceLifted'
+    MILITARY_AUDIT_APPROVED = 'militaryAffiliation.auditApproved'
+    MILITARY_AUDIT_DECLINED = 'militaryAffiliation.auditDeclined'
 
 
 class EventStateClient:
