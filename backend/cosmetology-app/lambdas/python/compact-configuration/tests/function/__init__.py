@@ -32,8 +32,6 @@ class TstFunction(TstLambdas):
         self.create_compact_configuration_table()
 
     def create_compact_configuration_table(self):
-        from cc_common.data_model.schema.attestation import AttestationRecordSchema
-
         self._compact_configuration_table = boto3.resource('dynamodb').create_table(
             AttributeDefinitions=[
                 {'AttributeName': 'pk', 'AttributeType': 'S'},
@@ -43,17 +41,6 @@ class TstFunction(TstLambdas):
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
             BillingMode='PAY_PER_REQUEST',
         )
-
-        with open('../common/tests/resources/dynamo/attestation.json') as f:
-            json_data = json.load(f)
-            # adding four versions of the same attestation to test getting the latest version
-            for i in range(1, 5):
-                json_data['version'] = str(i)
-                # strip off the pk and sk, then using schema to add them
-                json_data.pop('pk')
-                json_data.pop('sk')
-                serialized_data = AttestationRecordSchema().dump(json_data)
-                self._compact_configuration_table.put_item(Item=serialized_data)
 
     def delete_resources(self):
         self._compact_configuration_table.delete()

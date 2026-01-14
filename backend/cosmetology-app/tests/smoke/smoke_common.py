@@ -445,7 +445,6 @@ def create_test_privilege_record(
     :param license_type: The license type
     :return: The created privilege record data
     """
-    import uuid
     from datetime import UTC, date, datetime
 
     # Get the license type abbreviation to match the expected sort key format
