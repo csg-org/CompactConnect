@@ -945,9 +945,7 @@ class TestEncumbranceEvents(TstFunction):
         return self._generate_privilege_encumbrance_message(message_overrides)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
-    def test_privilege_encumbrance_listener_processes_event(
-        self, mock_state_email
-    ):
+    def test_privilege_encumbrance_listener_processes_event(self, mock_state_email):
         """Test that privilege encumbrance listener processes events and sends state notifications."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_notification_listener
@@ -1038,9 +1036,7 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
-    def test_privilege_encumbrance_listener_identifies_notification_jurisdictions(
-        self, mock_state_email
-    ):
+    def test_privilege_encumbrance_listener_identifies_notification_jurisdictions(self, mock_state_email):
         """Test that privilege encumbrance listener correctly identifies states to notify."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_notification_listener
@@ -1122,9 +1118,7 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual(expected_failure, result)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
-    def test_privilege_encumbrance_listener_excludes_encumbered_jurisdiction_from_notifications(
-        self, mock_state_email
-    ):
+    def test_privilege_encumbrance_listener_excludes_encumbered_jurisdiction_from_notifications(self, mock_state_email):
         """Test that the jurisdiction where encumbrance occurred is not duplicated in notifications."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_notification_listener
@@ -1191,9 +1185,7 @@ class TestEncumbranceEvents(TstFunction):
             )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
-    def test_privilege_encumbrance_listener_notifies_inactive_licenses_and_privileges(
-        self, mock_state_email
-    ):
+    def test_privilege_encumbrance_listener_notifies_inactive_licenses_and_privileges(self, mock_state_email):
         """Test that inactive licenses and privileges generate notifications."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_notification_listener
@@ -1263,9 +1255,7 @@ class TestEncumbranceEvents(TstFunction):
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
     )
-    def test_privilege_encumbrance_lifting_notification_listener_processes_event(
-        self, mock_state_email
-    ):
+    def test_privilege_encumbrance_lifting_notification_listener_processes_event(self, mock_state_email):
         """Test that privilege encumbrance lifting listener processes events and sends state notifications."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
@@ -1624,9 +1614,7 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual(expected_failure, result)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
-    def test_license_encumbrance_notification_listener_processes_event(
-        self, mock_state_email
-    ):
+    def test_license_encumbrance_notification_listener_processes_event(self, mock_state_email):
         """Test that license encumbrance notification listener processes events and sends state notifications."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_notification_listener
@@ -1684,9 +1672,7 @@ class TestEncumbranceEvents(TstFunction):
             )
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
-    def test_license_encumbrance_notification_listener_identifies_notification_jurisdictions(
-        self, mock_state_email
-    ):
+    def test_license_encumbrance_notification_listener_identifies_notification_jurisdictions(self, mock_state_email):
         """Test that license encumbrance notification listener correctly identifies states to notify."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_notification_listener
@@ -1909,10 +1895,8 @@ class TestEncumbranceEvents(TstFunction):
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
     )
-    def test_license_encumbrance_lifting_notification_listener_processes_event(
-        self, mock_state_email
-    ):
-        """Test that license encumbrance lifting notification listener processes events and sends state notifications."""
+    def test_license_encumbrance_lifting_notification_listener_processes_event(self, mock_state_email):
+        """Test that license encumbrance lifting notification listener processes events."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import license_encumbrance_lifting_notification_listener
 
@@ -2282,9 +2266,7 @@ class TestEncumbranceEvents(TstFunction):
             call_args,
         )
 
-    def _when_testing_privilege_lift_handler_with_encumbered_privilege(
-        self, encumbered_status, mock_state_email
-    ):
+    def _when_testing_privilege_lift_handler_with_encumbered_privilege(self, encumbered_status, mock_state_email):
         from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
 
         # Set up test data
