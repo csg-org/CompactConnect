@@ -232,12 +232,9 @@ export class DataApi {
         licenseState,
         licenseType,
         encumbranceType,
-        npdbCategory,
         npdbCategories,
         startDate
     ) {
-        const { $features } = (window as any).Vue?.config?.globalProperties || {};
-
         if (!compact) {
             return Promise.reject(new Error('failed license encumber'));
         }
@@ -249,14 +246,7 @@ export class DataApi {
             licenseState,
             licenseType,
             encumbranceType,
-            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                ? {
-                    npdbCategories,
-                }
-                : {
-                    npdbCategory,
-                }
-            ),
+            npdbCategories,
             startDate,
         }));
     }
@@ -337,12 +327,9 @@ export class DataApi {
         privilegeState,
         licenseType,
         encumbranceType,
-        npdbCategory,
         npdbCategories,
         startDate
     ) {
-        const { $features } = (window as any).Vue?.config?.globalProperties || {};
-
         if (!compact) {
             return Promise.reject(new Error('failed privilege encumber'));
         }
@@ -354,14 +341,7 @@ export class DataApi {
             privilegeState,
             licenseType,
             encumbranceType,
-            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                ? {
-                    npdbCategories,
-                }
-                : {
-                    npdbCategory,
-                }
-            ),
+            npdbCategories,
             startDate,
         }));
     }

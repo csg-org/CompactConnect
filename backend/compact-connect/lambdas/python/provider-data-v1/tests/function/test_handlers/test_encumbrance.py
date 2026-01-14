@@ -1,6 +1,6 @@
 import json
 from datetime import UTC, date, datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key
@@ -47,7 +47,7 @@ def _generate_test_body():
         'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
         # These Enums are expected to be `str` type, so we'll directly access their .value
         'encumbranceType': EncumbranceType.SUSPENSION.value,
-        'clinicalPrivilegeActionCategory': ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE.value,
+        'clinicalPrivilegeActionCategories': [ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE.value],
     }
 
 
@@ -98,8 +98,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             response_body,
         )
 
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
+    def test_privilege_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
@@ -126,8 +125,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-                # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
             }
         )
         loaded_adverse_action = AdverseActionData.from_database_record(item)
@@ -137,8 +134,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             loaded_adverse_action.to_dict(),
         )
 
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
+    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table(self):
         from handlers.encumbrance import encumbrance_handler
 
         event, test_privilege_record = self._when_testing_privilege_encumbrance()
@@ -163,47 +159,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
                 'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
                 'encumbranceDetails': {
                     'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
-                    'adverseActionId': loaded_privilege_update_data.encumbranceDetails['adverseActionId'],
-                },
-            }
-        )
-
-        self.assertEqual(
-            expected_privilege_update_data.to_dict(),
-            loaded_privilege_update_data.to_dict(),
-        )
-        self.assertEqual({'encumberedStatus': 'encumbered'}, loaded_privilege_update_data.updatedValues)
-
-    # TODO - remove the test as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=False)
-    def test_privilege_encumbrance_handler_adds_privilege_update_record_in_provider_data_table_flag_off(
-        self,
-        mock_flag,  # noqa: ARG002
-    ):
-        from handlers.encumbrance import encumbrance_handler
-
-        event, test_privilege_record = self._when_testing_privilege_encumbrance()
-
-        response = encumbrance_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
-
-        # Verify that the encumbrance record was added to the provider data table
-        privilege_update_records = (
-            self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-                test_privilege_record
-            )
-        )
-        self.assertEqual(1, len(privilege_update_records))
-        loaded_privilege_update_data = privilege_update_records[0]
-
-        expected_privilege_update_data = self.test_data_generator.generate_default_privilege_update(
-            value_overrides={
-                'updateType': 'encumbrance',
-                'updatedValues': {'encumberedStatus': 'encumbered'},
-                'effectiveDate': datetime.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATETIME),
-                'createDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
-                'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
                     'adverseActionId': loaded_privilege_update_data.encumbranceDetails['adverseActionId'],
                 },
             }
@@ -345,76 +300,8 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             encumbrance_handler(event, self.mock_context)
         self.assertEqual('Event publishing failed', str(context.exception))
 
-    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
-    def test_privilege_encumbrance_handler_migrates_clinical_privilege_action_category_to_list(self):
-        """Test that the deprecated clinicalPrivilegeActionCategory field is migrated
-        to clinicalPrivilegeActionCategories list."""
-        from cc_common.data_model.schema.adverse_action import AdverseActionData
-        from handlers.encumbrance import encumbrance_handler
-
-        event, test_privilege_record = self._when_testing_privilege_encumbrance()
-
-        response = encumbrance_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
-
-        # Verify that the adverse action record was created with the migrated field
-        adverse_action_encumbrances = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#ADVERSE_ACTION'
-            ),
-        )
-        self.assertEqual(1, len(adverse_action_encumbrances['Items']))
-        item = adverse_action_encumbrances['Items'][0]
-
-        # Load the adverse action record from the database
-        loaded_adverse_action = AdverseActionData.from_database_record(item)
-
-        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-        # Verify that the deprecated field is present in the stored data
-        self.assertIn('clinicalPrivilegeActionCategory', item)
-        self.assertEqual('Unsafe Practice or Substandard Care', loaded_adverse_action.clinicalPrivilegeActionCategory)
-
-        # Verify that the new list field contains the migrated value
-        self.assertIn('clinicalPrivilegeActionCategories', item)
-        self.assertIsNotNone(loaded_adverse_action.clinicalPrivilegeActionCategories)
-        self.assertEqual(
-            ['Unsafe Practice or Substandard Care'], loaded_adverse_action.clinicalPrivilegeActionCategories
-        )
-
-    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
-    def test_privilege_encumbrance_handler_returns_400_if_both_category_fields_provided(self):
-        """Test that a 400 error is returned when both clinicalPrivilegeActionCategory and
-        clinicalPrivilegeActionCategories are provided."""
-        from handlers.encumbrance import encumbrance_handler
-
-        event, test_privilege_record = self._when_testing_privilege_encumbrance(
-            body_overrides={
-                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
-                'clinicalPrivilegeActionCategories': [
-                    'Unsafe Practice or Substandard Care',
-                    'Non-compliance With Requirements',
-                ],
-            }
-        )
-
-        response = encumbrance_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
-        response_body = json.loads(response['body'])
-
-        self.assertIn(
-            'Cannot provide both clinicalPrivilegeActionCategory and clinicalPrivilegeActionCategories',
-            response_body['message'],
-        )
-
-
-mock_flag_client = MagicMock()
-mock_flag_client.return_value = True
-
 
 @mock_aws
-@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
@@ -462,8 +349,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             response_body,
         )
 
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_license_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self, mock_flag):  # noqa: ARG002
+    def test_license_encumbrance_handler_adds_adverse_action_record_in_provider_data_table(self):
         from cc_common.data_model.schema.adverse_action import AdverseActionData
         from handlers.encumbrance import encumbrance_handler
 
@@ -491,8 +377,6 @@ class TestPostLicenseEncumbrance(TstFunction):
                 'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                # TODO - remove this as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
             }
         )
         loaded_adverse_action = AdverseActionData.from_database_record(item)
@@ -627,69 +511,6 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.assertEqual(
             {'message': 'The encumbrance date must not be a future date'},
             response_body,
-        )
-
-    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
-    def test_license_encumbrance_handler_migrates_clinical_privilege_action_category_to_list(self):
-        """Test that the deprecated clinicalPrivilegeActionCategory field is migrated to
-        clinicalPrivilegeActionCategories list."""
-        from cc_common.data_model.schema.adverse_action import AdverseActionData
-        from handlers.encumbrance import encumbrance_handler
-
-        event, test_license_record = self._when_testing_valid_license_encumbrance()
-
-        response = encumbrance_handler(event, self.mock_context)
-        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
-
-        # Verify that the adverse action record was created with the migrated field
-        adverse_action_encumbrances = self._provider_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
-            & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#ADVERSE_ACTION'
-            ),
-        )
-        self.assertEqual(1, len(adverse_action_encumbrances['Items']))
-        item = adverse_action_encumbrances['Items'][0]
-
-        # Load the adverse action record from the database
-        loaded_adverse_action = AdverseActionData.from_database_record(item)
-
-        # TODO - remove this assertion as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-        # Verify that the deprecated field is present in the stored data
-        self.assertIn('clinicalPrivilegeActionCategory', item)
-        self.assertEqual('Unsafe Practice or Substandard Care', loaded_adverse_action.clinicalPrivilegeActionCategory)
-
-        # Verify that the new list field contains the migrated value
-        self.assertIn('clinicalPrivilegeActionCategories', item)
-        self.assertIsNotNone(loaded_adverse_action.clinicalPrivilegeActionCategories)
-        self.assertEqual(
-            ['Unsafe Practice or Substandard Care'], loaded_adverse_action.clinicalPrivilegeActionCategories
-        )
-
-    # TODO - remove this test once the deprecated 'clinicalPrivilegeActionCategory' field is removed  # noqa: FIX002
-    def test_license_encumbrance_handler_returns_400_if_both_category_fields_provided(self):
-        """Test that a 400 error is returned when both clinicalPrivilegeActionCategory
-        and clinicalPrivilegeActionCategories are provided."""
-        from handlers.encumbrance import encumbrance_handler
-
-        event, test_license_record = self._when_testing_valid_license_encumbrance(
-            body_overrides={
-                'clinicalPrivilegeActionCategory': 'Unsafe Practice or Substandard Care',
-                'clinicalPrivilegeActionCategories': [
-                    'Unsafe Practice or Substandard Care',
-                    'Non-compliance With Requirements',
-                ],
-            }
-        )
-
-        response = encumbrance_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
-        response_body = json.loads(response['body'])
-
-        self.assertIn(
-            'Cannot provide both clinicalPrivilegeActionCategory and clinicalPrivilegeActionCategories',
-            response_body['message'],
         )
 
 

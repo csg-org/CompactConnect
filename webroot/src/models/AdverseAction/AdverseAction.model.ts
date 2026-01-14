@@ -83,22 +83,6 @@ export class AdverseAction implements InterfaceAdverseActionCreate {
         return typeName;
     }
 
-    public npdbTypeName(): string {
-        const npdbTypes = this.$tm('licensing.npdbTypes') || [];
-        const npdbType = npdbTypes.find((translate) => translate.key === this.npdbType);
-        const typeName = npdbType?.name || '';
-
-        return typeName;
-    }
-
-    public getNpdbTypeName(npdbType: string): string {
-        const npdbTypes = this.$tm('licensing.npdbTypes') || [];
-        const npdbTypeRecord = npdbTypes.find((translate) => translate.key === npdbType);
-        const typeName = npdbTypeRecord?.name || '';
-
-        return typeName;
-    }
-
     public isActive(): boolean {
         // Determine whether the adverse action is currently in effect
         const { startDate, endDate } = this;
@@ -133,7 +117,6 @@ export class AdverseActionSerializer {
             state: new State({ abbrev: json.jurisdiction }),
             type: json.type,
             encumbranceType: json.encumbranceType,
-            npdbType: json.clinicalPrivilegeActionCategory,
             npdbTypes: Array.isArray(json.clinicalPrivilegeActionCategories)
                 ? json.clinicalPrivilegeActionCategories
                 : [],

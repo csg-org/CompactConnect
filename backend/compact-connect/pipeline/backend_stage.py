@@ -4,7 +4,6 @@ from constructs import Construct
 
 from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
-from stacks.data_migration_stack import DataMigrationStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
 from stacks.event_state_stack import EventStateStack
@@ -217,22 +216,6 @@ class BackendStage(Stage):
             environment_context=environment_context,
             standard_tags=standard_tags,
         )
-
-        # Stack to house data migration custom resources
-        # This stack depends on the API and event listener stacks to ensure
-        # all core infrastructure is in place before migrations run
-        self.data_migration_stack = DataMigrationStack(
-            self,
-            'DataMigrationStack',
-            env=environment,
-            environment_name=environment_name,
-            environment_context=environment_context,
-            standard_tags=standard_tags,
-            persistent_stack=self.persistent_stack,
-        )
-        # Explicitly declare the dependency to ensure proper deployment order
-        self.data_migration_stack.add_dependency(self.api_stack)
-        self.data_migration_stack.add_dependency(self.event_listener_stack)
 
         # Search Persistent Stack - OpenSearch Domain for advanced provider search
         self.search_persistent_stack = SearchPersistentStack(

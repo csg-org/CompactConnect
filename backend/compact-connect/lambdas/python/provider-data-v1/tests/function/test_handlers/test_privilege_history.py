@@ -25,7 +25,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
+                    'clinicalPrivilegeActionCategories': ['Non-compliance With Requirements'],
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -50,7 +50,7 @@ class TestGetProvider(TstFunction):
             value_overrides={
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
+                    'clinicalPrivilegeActionCategories': ['Non-compliance With Requirements'],
                     'licenseJurisdiction': 'oh',
                     'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
                 },
@@ -166,7 +166,7 @@ class TestGetProvider(TstFunction):
                     'createDate': '2023-05-05T12:59:59+00:00',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'effectiveDate': '2022-05-05T12:59:59+00:00',
-                    'note': 'Non-compliance With Requirements',
+                    'npdbCategories': ['Non-compliance With Requirements'],
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
                 },
@@ -222,9 +222,7 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(expected_history, history_data)
 
-    # TODO - remove the mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_get_privilege_history_staff_returns_expected_history(self, mock_flag):  # noqa: ARG002
+    def test_get_privilege_history_staff_returns_expected_history(self):
         from handlers.privilege_history import privilege_history_handler
 
         event = self._when_testing_staff_endpoint()
@@ -257,7 +255,7 @@ class TestGetProvider(TstFunction):
                     'effectiveDate': '2022-05-05T12:59:59+00:00',
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
-                    'note': 'Non-compliance With Requirements, Misconduct or Abuse',
+                    'npdbCategories': ['Non-compliance With Requirements', 'Misconduct or Abuse'],
                 },
             ],
             'jurisdiction': 'ne',

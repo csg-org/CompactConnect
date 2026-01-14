@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 import uuid
 
 import boto3
@@ -38,6 +39,7 @@ from cc_common.data_model.provider_record_util import ProviderUserRecords  # noq
 # importing this here so it can be easily referenced in the rollback upload tests
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData  # noqa: E402 F401
 from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
+from cc_common.data_model.update_tier_enum import UpdateTierEnum  # noqa: E402
 
 _TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
 _TEMP_STAFF_PASSWORD = 'TempPass123!'  # noqa: S105 temporary password for creating test staff users
@@ -228,10 +230,32 @@ def load_smoke_test_env():
 
 
 def call_provider_users_me_endpoint():
+    """Get the provider data from the GET '/v1/provider-users/me' endpoint.
+
+    If a 403 response is received, the token will be refreshed and the request retried once.
+
+    :return: The response body JSON
+    :raises SmokeTestFailureException: If the request fails after retry
+    """
     # Get the provider data from the GET '/v1/provider-users/me' endpoint.
     get_provider_data_response = requests.get(
         url=config.api_base_url + '/v1/provider-users/me', headers=get_provider_user_auth_headers_cached(), timeout=10
     )
+
+    # If we get a 403, the token may have expired - refresh it and retry once
+    if get_provider_data_response.status_code == 403:
+        logger.info('Received 403 response, refreshing provider user token and retrying...')
+        # Clear the cached token to force a refresh
+        if 'TEST_PROVIDER_USER_ID_TOKEN' in os.environ:
+            del os.environ['TEST_PROVIDER_USER_ID_TOKEN']
+
+        # Retry with fresh token
+        get_provider_data_response = requests.get(
+            url=config.api_base_url + '/v1/provider-users/me',
+            headers=get_provider_user_auth_headers_cached(),
+            timeout=10,
+        )
+
     if get_provider_data_response.status_code != 200:
         raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
     # return the response body
@@ -461,6 +485,61 @@ def create_test_privilege_record(
     )
 
     return privilege_data
+
+
+def delete_existing_privilege_records(provider_id: str, compact: str, jurisdiction: str):
+    """Delete all privilege records and privilege update records for a provider in a specific jurisdiction.
+
+    This function queries for and deletes both privilege records and their associated update records
+    using the new SK pattern structure.
+
+    :param provider_id: The provider's ID
+    :param compact: The compact abbreviation
+    :param jurisdiction: The jurisdiction abbreviation (e.g., 'ne')
+    """
+    dynamodb_table = config.provider_user_dynamodb_table
+    pk = f'{compact}#PROVIDER#{provider_id}'
+
+    # Query for all privilege records in the specified jurisdiction
+    original_privilege_records = dynamodb_table.query(
+        KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/{jurisdiction}/')
+    ).get('Items', [])
+
+    # Query for all privilege update records in the specified jurisdiction
+    privilege_update_sk_prefix = f'{compact}#UPDATE#{UpdateTierEnum.TIER_ONE}#privilege/{jurisdiction}/'
+    original_privilege_update_records = []
+    last_evaluated_key = None
+    while True:
+        pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+        query_resp = dynamodb_table.query(
+            KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(privilege_update_sk_prefix),
+            **pagination,
+        )
+        original_privilege_update_records.extend(query_resp.get('Items', []))
+        last_evaluated_key = query_resp.get('LastEvaluatedKey')
+        if not last_evaluated_key:
+            break
+
+    original_privilege_records.extend(original_privilege_update_records)
+
+    # Delete all privilege records
+    for privilege in original_privilege_records:
+        privilege_pk = privilege['pk']
+        privilege_sk = privilege['sk']
+        logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
+        dynamodb_table.delete_item(
+            Key={
+                'pk': privilege_pk,
+                'sk': privilege_sk,
+            }
+        )
+        # give dynamodb time to propagate
+        time.sleep(1)
+
+    logger.info(
+        f'Deleted privilege record and {len(original_privilege_update_records)} privilege update records for '
+        f'jurisdiction {jurisdiction}'
+    )
 
 
 def cleanup_test_provider_records(provider_id: str, compact: str):

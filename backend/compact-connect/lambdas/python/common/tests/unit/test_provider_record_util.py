@@ -911,9 +911,7 @@ class TestProviderRecordUtility(TstLambdas):
         self.maxDiff = None
         self.assertEqual(expected_history, history)
 
-    # TODO - remove mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_construct_simplified_privilege_history_object_returns_encumbrance_notes_if_requested(self, mock_flag):  # noqa: ARG002
+    def test_construct_simplified_privilege_history_object_returns_encumbrance_notes_if_requested(self):
         """Test that construct_simplified_privilege_history_object extracts the encumbrance notes successfully"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
 
@@ -952,7 +950,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {'encumberedStatus': 'licenseEncumbered'},
                 'updateType': 'encumbrance',
                 'encumbranceDetails': {
-                    'clinicalPrivilegeActionCategory': 'Non-compliance With Requirements',
+                    'clinicalPrivilegeActionCategories': ['Non-compliance With Requirements'],
                     'licenseJurisdiction': 'oh',
                 },
             },
@@ -982,7 +980,7 @@ class TestProviderRecordUtility(TstLambdas):
                     'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                     'type': 'privilegeUpdate',
                     'updateType': 'encumbrance',
-                    'note': 'Non-compliance With Requirements',
+                    'npdbCategories': ['Non-compliance With Requirements'],
                 },
             ],
         }
@@ -991,12 +989,7 @@ class TestProviderRecordUtility(TstLambdas):
         self.maxDiff = None
         self.assertEqual(expected_history, history)
 
-    # TODO - remove mock flag as part of https://github.com/csg-org/CompactConnect/issues/1136 # noqa: FIX002
-    @patch('cc_common.feature_flag_client.is_feature_enabled', return_value=True)
-    def test_construct_simplified_privilege_history_object_does_not_return_encumbrance_notes_if_not_requested(
-        self,
-        mock_flag,  # noqa: ARG002
-    ):
+    def test_construct_simplified_privilege_history_object_does_not_return_encumbrance_notes_if_not_requested(self):
         """Test that construct_simplified_privilege_history_object does not extract the encumbrance notes if
         it should not"""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility

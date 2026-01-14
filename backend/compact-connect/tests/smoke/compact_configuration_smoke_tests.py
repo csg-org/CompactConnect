@@ -134,12 +134,13 @@ def test_compact_configuration():
         cleanup_compact_configuration(compact)
 
         # Create test compact configuration data
+        notification_email = config.smoke_test_notification_email
         compact_config = {
             'compactCommissionFee': {'feeAmount': 15.00, 'feeType': 'FLAT_RATE'},
             'licenseeRegistrationEnabled': False,
-            'compactOperationsTeamEmails': ['ops-test@ccSmokeTestFakeEmail.com'],
-            'compactAdverseActionsNotificationEmails': ['adverse-test@ccSmokeTestFakeEmail.com'],
-            'compactSummaryReportNotificationEmails': ['summary-test@ccSmokeTestFakeEmail.com'],
+            'compactOperationsTeamEmails': [notification_email],
+            'compactAdverseActionsNotificationEmails': [notification_email],
+            'compactSummaryReportNotificationEmails': [notification_email],
             'configuredStates': [],
             'transactionFeeConfiguration': {
                 'licenseeCharges': {'chargeAmount': 10.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
@@ -269,10 +270,11 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
             )
 
         # Create test jurisdiction configuration data
+        notification_email = config.smoke_test_notification_email
         jurisdiction_config = {
-            'jurisdictionOperationsTeamEmails': ['state-ops-test@ccSmokeTestFakeEmail.com'],
-            'jurisdictionAdverseActionsNotificationEmails': ['state-adverse-test@ccSmokeTestFakeEmail.com'],
-            'jurisdictionSummaryReportNotificationEmails': ['state-summary-test@ccSmokeTestFakeEmail.com'],
+            'jurisdictionOperationsTeamEmails': [notification_email],
+            'jurisdictionAdverseActionsNotificationEmails': [notification_email],
+            'jurisdictionSummaryReportNotificationEmails': [notification_email],
             'licenseeRegistrationEnabled': True,
             'jurisprudenceRequirements': {
                 'required': True,
