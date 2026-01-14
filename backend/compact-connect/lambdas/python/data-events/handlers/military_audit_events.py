@@ -53,9 +53,9 @@ def military_audit_notification_listener(message: dict, tracker: NotificationTra
         if not provider_email:
             # this should not be possible, since only registered providers can upload military documentation
             # log the error and raise an exception
-            message = 'Provider registered email not found in system'
-            logger.error(message)
-            raise CCInternalException(message)
+            error_message = 'Provider registered email not found in system'
+            logger.error(error_message)
+            raise CCInternalException(error_message)
 
         # Check if we should send the notification (idempotency)
         if not tracker.should_send_provider_notification():
