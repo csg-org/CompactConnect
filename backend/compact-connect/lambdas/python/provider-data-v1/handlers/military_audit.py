@@ -18,7 +18,7 @@ def military_audit_handler(event: dict, context: LambdaContext) -> dict:
     Handle military audit requests from compact admins.
 
     This endpoint allows compact admins to approve or decline military documentation
-    uploaded by providers. The audit result is stored the provider record.
+    uploaded by providers. The audit result is stored in the provider record.
 
     :param event: API Gateway event
     :param context: Lambda context
