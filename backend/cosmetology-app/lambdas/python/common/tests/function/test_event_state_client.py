@@ -63,39 +63,6 @@ class TestEventStateClient(TstFunction):
             item,
         )
 
-    def test_record_notification_attempt_provider_notification_without_jurisdiction(self):
-        """Test that provider notifications don't require jurisdiction."""
-        client = EventStateClient(self.config)
-
-        compact = 'aslp'
-        message_id = 'test-message-456'
-        provider_id = UUID('12345678-1234-1234-1234-123456789abc')
-        event_type = EventType.PRIVILEGE_ENCUMBRANCE
-        event_time = '2024-01-15T10:30:00Z'
-
-        client.record_notification_attempt(
-            compact=compact,
-            message_id=message_id,
-            recipient_type=RecipientType.PROVIDER,
-            status=NotificationStatus.SUCCESS,
-            provider_id=provider_id,
-            event_type=event_type,
-            event_time=event_time,
-        )
-
-        # Query the table to verify the item was created
-        pk = f'COMPACT#{compact}#SQS_MESSAGE#{message_id}'
-        response = self._event_state_table.query(
-            KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': pk}
-        )
-
-        self.assertEqual(1, len(response['Items']))
-        item = response['Items'][0]
-
-        # Verify SK format for provider notification (trailing empty string)
-        self.assertEqual(f'NOTIFICATION#{RecipientType.PROVIDER}#', item['sk'])
-        self.assertNotIn('jurisdiction', item)
-
     def test_record_notification_attempt_failed_status_includes_error_message(self):
         """Test that failed notifications include error messages."""
         client = EventStateClient(self.config)
@@ -145,16 +112,6 @@ class TestEventStateClient(TstFunction):
         client.record_notification_attempt(
             compact=compact,
             message_id=message_id,
-            recipient_type=RecipientType.PROVIDER,
-            status=NotificationStatus.SUCCESS,
-            provider_id=provider_id,
-            event_type=event_type,
-            event_time=event_time,
-        )
-
-        client.record_notification_attempt(
-            compact=compact,
-            message_id=message_id,
             recipient_type=RecipientType.STATE,
             status=NotificationStatus.SUCCESS,
             provider_id=provider_id,
@@ -178,19 +135,17 @@ class TestEventStateClient(TstFunction):
         # Get all attempts
         attempts = client._get_notification_attempts(compact=compact, message_id=message_id)  # noqa SLF001
 
-        # Should have 3 attempts
-        self.assertEqual(3, len(attempts))
+        # Should have 2 attempts
+        self.assertEqual(2, len(attempts))
 
         # Verify keys
         expected_keys = {
-            f'NOTIFICATION#{RecipientType.PROVIDER}#',
             f'NOTIFICATION#{RecipientType.STATE}#oh',
             f'NOTIFICATION#{RecipientType.STATE}#ne',
         }
         self.assertEqual(expected_keys, set(attempts.keys()))
 
         # Verify statuses
-        self.assertEqual(NotificationStatus.SUCCESS, attempts[f'NOTIFICATION#{RecipientType.PROVIDER}#']['status'])
         self.assertEqual(NotificationStatus.SUCCESS, attempts[f'NOTIFICATION#{RecipientType.STATE}#oh']['status'])
         self.assertEqual(NotificationStatus.FAILED, attempts[f'NOTIFICATION#{RecipientType.STATE}#ne']['status'])
 
@@ -198,53 +153,6 @@ class TestEventStateClient(TstFunction):
 @mock_aws
 class TestNotificationTracker(TstFunction):
     """Test suite for NotificationTracker."""
-
-    def test_should_send_provider_notification_returns_true_when_no_previous_attempt(self):
-        """Test that should_send_provider_notification returns True when no previous attempt exists."""
-        tracker = NotificationTracker(compact='aslp', message_id='new-message')
-
-        self.assertTrue(tracker.should_send_provider_notification())
-
-    def test_should_send_provider_notification_returns_false_when_previous_success(self):
-        """Test that should_send_provider_notification returns False when previous attempt succeeded."""
-        compact = 'aslp'
-        message_id = 'test-message-provider-success'
-        provider_id = UUID('12345678-1234-1234-1234-123456789abc')
-
-        # Record a successful provider notification
-        tracker = NotificationTracker(compact=compact, message_id=message_id)
-        tracker.record_success(
-            recipient_type=RecipientType.PROVIDER,
-            provider_id=provider_id,
-            event_type=EventType.LICENSE_ENCUMBRANCE,
-            event_time='2024-01-15T10:30:00Z',
-        )
-
-        # Create new tracker to simulate retry
-        retry_tracker = NotificationTracker(compact=compact, message_id=message_id)
-
-        self.assertFalse(retry_tracker.should_send_provider_notification())
-
-    def test_should_send_provider_notification_returns_true_when_previous_failure(self):
-        """Test that should_send_provider_notification returns True when previous attempt failed."""
-        compact = 'aslp'
-        message_id = 'test-message-provider-fail'
-        provider_id = UUID('12345678-1234-1234-1234-123456789abc')
-
-        # Record a failed provider notification
-        tracker = NotificationTracker(compact=compact, message_id=message_id)
-        tracker.record_failure(
-            recipient_type=RecipientType.PROVIDER,
-            provider_id=provider_id,
-            event_type=EventType.LICENSE_ENCUMBRANCE,
-            event_time='2024-01-15T10:30:00Z',
-            error_message='Test error',
-        )
-
-        # Create new tracker to simulate retry
-        retry_tracker = NotificationTracker(compact=compact, message_id=message_id)
-
-        self.assertTrue(retry_tracker.should_send_provider_notification())
 
     def test_should_send_state_notification_returns_true_when_no_previous_attempt(self):
         """Test that should_send_state_notification returns True when no previous attempt exists."""
@@ -365,11 +273,12 @@ class TestNotificationTracker(TstFunction):
 
         tracker = NotificationTracker(compact=compact, message_id=message_id)
         tracker.record_failure(
-            recipient_type=RecipientType.PROVIDER,
+            recipient_type=RecipientType.STATE,
             provider_id=provider_id,
             event_type=event_type,
             event_time=event_time,
             error_message=error_message,
+            jurisdiction='ne',
         )
 
         # Query the table directly
@@ -395,14 +304,6 @@ class TestNotificationTracker(TstFunction):
         # Record various states
         tracker = NotificationTracker(compact=compact, message_id=message_id)
 
-        # Provider: SUCCESS
-        tracker.record_success(
-            recipient_type=RecipientType.PROVIDER,
-            provider_id=provider_id,
-            event_type=event_type,
-            event_time=event_time,
-        )
-
         # State OH: SUCCESS
         tracker.record_success(
             recipient_type=RecipientType.STATE,
@@ -426,9 +327,6 @@ class TestNotificationTracker(TstFunction):
 
         # Create new tracker to check states
         retry_tracker = NotificationTracker(compact=compact, message_id=message_id)
-
-        # Provider should not be sent (SUCCESS)
-        self.assertFalse(retry_tracker.should_send_provider_notification())
 
         # OH should not be sent (SUCCESS)
         self.assertFalse(retry_tracker.should_send_state_notification('oh'))
