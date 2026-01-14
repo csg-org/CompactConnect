@@ -298,10 +298,7 @@ Resources:
                 Principal:
                   AWS:
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Backend-CrossAccountRole"
-                        - TrustedAccount: !Select [0, !Ref TrustedAccounts]
-                    - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Frontend-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       RoleName:
@@ -331,10 +328,7 @@ Resources:
                 Principal:
                   AWS:
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Backend-CrossAccountRole"
-                        - TrustedAccount: !Select [0, !Ref TrustedAccounts]
-                    - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Frontend-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       RoleName:
@@ -364,10 +358,7 @@ Resources:
                 Principal:
                   AWS:
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Backend-CrossAccountRole"
-                        - TrustedAccount: !Select [0, !Ref TrustedAccounts]
-                    - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Frontend-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       RoleName:
@@ -474,10 +465,7 @@ Resources:
                 Principal:
                   AWS:
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Backend-CrossAccountRole"
-                        - TrustedAccount: !Select [0, !Ref TrustedAccounts]
-                    - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Frontend-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       Policies:

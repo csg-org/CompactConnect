@@ -100,7 +100,7 @@ class BackendPipeline(BasePipeline):
         )
 
         # Create predictable pipeline role before initializing the pipeline
-        pipeline_role = scope.create_predictable_pipeline_role(CCPipelineType.BACKEND)
+        pipeline_role = scope.create_predictable_pipeline_role(CCPipelineType.COSMETOLOGY)
         artifact_bucket.grant_read(pipeline_role)
 
         super().__init__(
@@ -170,7 +170,7 @@ class BackendPipeline(BasePipeline):
         # Add NAG suppressions for the cross-account role's default policy
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            f'{stack.node.path}/BackendCrossAccountRole/DefaultPolicy/Resource',
+            f'{stack.node.path}/CosmetologyCrossAccountRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

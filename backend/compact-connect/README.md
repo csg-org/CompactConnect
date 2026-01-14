@@ -263,8 +263,6 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   the next step.
 - Create a new Route53 hosted zone for the domain name you plan to use for the app in each of the production, beta, and
   test AWS accounts. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
-- Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
-  See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html).
 - With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local machine to authenticate against the Deploy account as an administrator.
 - For every environment, copy the appropriate example context file (`cdk.context.deploy-example.json` for the `Deploy`
   account, `cdk.context.test-example.json` for the `Test` account, `cdk.context.beta-example.json` for the `Beta`
@@ -285,19 +283,28 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   If you opt not to integrate with Slack, remove the `slack` fields from the file.
 - Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deployment account id and
   `us-east-1`, respectively.
-- For each environment (test, beta, prod), you need to deploy both the backend and frontend pipeline stacks:
+- For each environment (test, beta, prod):
+  - bootstrap the environment account with the default template:
+    ```
+    cdk bootstrap --trust $deploy_account --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
+    ```
+  - deploy the backend pipeline stacks (note: you will need to approve the
+  permission change requests for each stack deployment in the terminal):
+    ```
+    cdk deploy --context action=bootstrapDeploy TestBackendPipelineStack BetaBackendPipelineStack ProdBackendPipelineStack
+    ```
+  - Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
+    [custom bootstrap stack](#custom-bootstrap-stack).
 
-1. **Deploy the Backend Pipeline Stacks first (note: you will need to approve the permission change requests for each
-   stack deployment in the terminal)**:
-  `cdk deploy --context action=bootstrapDeploy TestBackendPipelineStack BetaBackendPipelineStack ProdBackendPipelineStack`
+   **Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from
+   the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps
+   except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From
+   there on, the pipelines should integrate as designed.
 
-2. **Then deploy the Frontend App**:
-   See the [UI app for details](../compact-connect-ui-app/README.md).
-
-**Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from
-the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps
-except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From
-there on, the pipelines should integrate as designed.
+- Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
+  See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html). Note that this must be
+  done _after_ first deploy of the application to each application account, as they require SES to be configured
+  before they will process the support request.
 
 ### Subsequent production deploys
 

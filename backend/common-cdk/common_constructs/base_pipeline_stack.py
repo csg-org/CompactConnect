@@ -20,10 +20,11 @@ ALLOWED_ENVIRONMENT_NAMES = [TEST_ENVIRONMENT_NAME, BETA_ENVIRONMENT_NAME, PROD_
 class CCPipelineType(StrEnum):
     BACKEND = 'Backend'
     FRONTEND = 'Frontend'
+    COSMETOLOGY = 'Cosmetology'
 
 
 class BasePipelineStack(Stack):
-    """Base stack with common functionality for all pipeline stacks (both backend and frontend)."""
+    """Base stack with common functionality for all pipeline stacks."""
 
     def __init__(
         self,
