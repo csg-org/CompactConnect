@@ -335,7 +335,7 @@ The access token you receive will be authorized for both operations. If this req
 
 The query endpoint allows you to retrieve a list of providers who have privileges in your jurisdiction, filtered by when their records were last updated. This is useful for identifying which providers have had changes that need to be synchronized to your systems.
 
-**Endpoint**: `POST /v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses/query`
+**Endpoint**: `POST /v1/compacts/<compact>/jurisdictions/<jurisdiction>/providers/query`
 
 **Request Body**:
 ```json
@@ -413,7 +413,7 @@ When querying for providers, results are paginated. To retrieve additional pages
 
 The get provider endpoint returns detailed information about a specific provider's privileges in your jurisdiction.
 
-**Endpoint**: `GET /v1/compacts/<compact>/jurisdictions/<jurisdiction>/licenses/{providerId}`
+**Endpoint**: `GET /v1/compacts/<compact>/jurisdictions/<jurisdiction>/providers/{providerId}`
 
 **Example Response**:
 ```json

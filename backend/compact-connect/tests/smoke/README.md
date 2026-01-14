@@ -37,7 +37,7 @@ Ensure your AWS credentials are configured with appropriate permissions to:
    aws configure sso
    ```
    Follow the prompts to set up your SSO profile using the values from your IAM identity center login
-   (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#sso-configure-profile-token-auto-sso)
+   (see [AWS CLI SSO Configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#sso-configure-profile-token-auto-sso))
 
 2. Log in to AWS SSO:
    ```bash

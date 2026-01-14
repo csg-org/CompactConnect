@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from cc_common.config import config, logger
 from cc_common.data_model.schema.data_event.api import MilitaryAuditEventDetailSchema
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAuditStatus
