@@ -1,7 +1,6 @@
 import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/types';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SESv2Client } from '@aws-sdk/client-sesv2';
-import { S3Client } from '@aws-sdk/client-s3';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Context } from 'aws-lambda';
 
@@ -43,7 +42,6 @@ interface CognitoCustomMessageEvent {
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
     sesClient: SESv2Client;
-    s3Client: S3Client;
 }
 
 export class Lambda implements LambdaInterface {
@@ -63,7 +61,6 @@ export class Lambda implements LambdaInterface {
         this.emailService = new CognitoEmailService({
             logger: logger,
             sesClient: props.sesClient,
-            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
             jurisdictionClient: jurisdictionClient
         });

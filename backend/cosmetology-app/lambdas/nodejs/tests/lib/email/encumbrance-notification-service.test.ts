@@ -2,7 +2,6 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
-import { S3Client } from '@aws-sdk/client-s3';
 import { EncumbranceNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
@@ -42,9 +41,6 @@ const SAMPLE_JURISDICTION_CONFIG = {
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
 
-const asS3Client = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as S3Client;
-
 class MockCompactConfigurationClient extends CompactConfigurationClient {
     constructor() {
         super({
@@ -61,7 +57,6 @@ class MockCompactConfigurationClient extends CompactConfigurationClient {
 describe('EncumbranceNotificationService', () => {
     let encumbranceService: EncumbranceNotificationService;
     let mockSESClient: ReturnType<typeof mockClient>;
-    let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: MockCompactConfigurationClient;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
 
@@ -89,7 +84,6 @@ describe('EncumbranceNotificationService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSESClient = mockClient(SESv2Client);
-        mockS3Client = mockClient(S3Client);
         mockCompactConfigurationClient = new MockCompactConfigurationClient();
         mockJurisdictionClient = {
             getJurisdictionConfigurations: jest.fn(),
@@ -110,7 +104,6 @@ describe('EncumbranceNotificationService', () => {
         encumbranceService = new EncumbranceNotificationService({
             logger: new Logger({ serviceName: 'test' }),
             sesClient: asSESClient(mockSESClient),
-            s3Client: asS3Client(mockS3Client),
             compactConfigurationClient: mockCompactConfigurationClient,
             jurisdictionClient: mockJurisdictionClient
         });

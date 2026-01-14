@@ -2,7 +2,6 @@ import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/typ
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESv2Client } from '@aws-sdk/client-sesv2';
-import { S3Client } from '@aws-sdk/client-s3';
 import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
@@ -17,7 +16,6 @@ const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
     sesClient: SESv2Client;
-    s3Client: S3Client;
 }
 
 export class Lambda implements LambdaInterface {
@@ -39,7 +37,6 @@ export class Lambda implements LambdaInterface {
         this.emailService = new EmailNotificationService({
             logger: logger,
             sesClient: props.sesClient,
-            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
             jurisdictionClient: jurisdictionClient
         });
@@ -47,7 +44,6 @@ export class Lambda implements LambdaInterface {
         this.encumbranceService = new EncumbranceNotificationService({
             logger: logger,
             sesClient: props.sesClient,
-            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
             jurisdictionClient: jurisdictionClient
         });
@@ -55,7 +51,6 @@ export class Lambda implements LambdaInterface {
         this.investigationService = new InvestigationNotificationService({
             logger: logger,
             sesClient: props.sesClient,
-            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
             jurisdictionClient: jurisdictionClient
         });

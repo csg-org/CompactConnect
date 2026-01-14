@@ -65,6 +65,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff`;
         const loginText = `Please immediately [sign in](${loginUrl}) and change your password when prompted.`;
+
         this.insertBody(template,
             `Your temporary password is: \n**${codeParameter}**\n\nYour username is: \n**${usernameParameter}**\n`,
             'center',

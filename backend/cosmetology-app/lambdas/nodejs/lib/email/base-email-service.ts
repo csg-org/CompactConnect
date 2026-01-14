@@ -3,7 +3,6 @@ import * as nodemailer from 'nodemailer';
 
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
-import { S3Client } from '@aws-sdk/client-s3';
 import { TReaderDocument, renderToStaticMarkup } from '@jusdino-ia/email-builder';
 import { CompactConfigurationClient } from '../compact-configuration-client';
 import { JurisdictionClient } from '../jurisdiction-client';
@@ -15,7 +14,6 @@ const environmentVariableService = new EnvironmentVariablesService();
 interface EmailServiceProperties {
     logger: Logger;
     sesClient: SESv2Client;
-    s3Client: S3Client;
     compactConfigurationClient: CompactConfigurationClient;
     jurisdictionClient: JurisdictionClient;
 }
@@ -32,7 +30,6 @@ interface StyledBlockOptions {
 export abstract class BaseEmailService {
     protected readonly logger: Logger;
     protected readonly sesClient: SESv2Client;
-    protected readonly s3Client: S3Client;
     protected readonly compactConfigurationClient: CompactConfigurationClient;
     protected readonly jurisdictionClient: JurisdictionClient;
     private readonly environmentBannerService = new EnvironmentBannerService();
@@ -58,7 +55,6 @@ export abstract class BaseEmailService {
     public constructor(props: EmailServiceProperties) {
         this.logger = props.logger;
         this.sesClient = props.sesClient;
-        this.s3Client = props.s3Client;
         this.compactConfigurationClient = props.compactConfigurationClient;
         this.jurisdictionClient = props.jurisdictionClient;
     }

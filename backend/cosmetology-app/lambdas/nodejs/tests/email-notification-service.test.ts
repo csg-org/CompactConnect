@@ -2,9 +2,6 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { Readable } from 'stream';
-import { sdkStreamMixin } from '@smithy/util-stream';
 import { Lambda } from '../email-notification-service/lambda';
 import { EmailNotificationEvent } from '../lib/models/email-notification-service-event';
 import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
@@ -51,14 +48,10 @@ const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
 
-const asS3Client = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as S3Client;
-
 describe('EmailNotificationServiceLambda', () => {
     let lambda: Lambda;
     let mockDynamoDBClient: ReturnType<typeof mockClient>;
     let mockSESClient: ReturnType<typeof mockClient>;
-    let mockS3Client: ReturnType<typeof mockClient>;
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
@@ -70,7 +63,6 @@ describe('EmailNotificationServiceLambda', () => {
         jest.clearAllMocks();
         mockDynamoDBClient = mockClient(DynamoDBClient);
         mockSESClient = mockClient(SESv2Client);
-        mockS3Client = mockClient(S3Client);
 
         // Reset environment variables
         process.env.FROM_ADDRESS = 'noreply@example.org';
@@ -99,25 +91,9 @@ describe('EmailNotificationServiceLambda', () => {
 
         // Note: SESv2 with nodemailer 7.0.7 uses SendEmailCommand for all email sending
 
-        // Create a mock stream that implements the required AWS SDK interfaces
-        const mockStream = sdkStreamMixin(
-            new Readable({
-                read() {
-                    this.push(Buffer.from('test data'));
-                    this.push(null);
-                }
-            })
-        );
-
-        // Mock S3 response
-        mockS3Client.on(GetObjectCommand).resolves({
-            Body: mockStream
-        });
-
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
-            sesClient: asSESClient(mockSESClient),
-            s3Client: asS3Client(mockS3Client)
+            sesClient: asSESClient(mockSESClient)
         });
     });
 

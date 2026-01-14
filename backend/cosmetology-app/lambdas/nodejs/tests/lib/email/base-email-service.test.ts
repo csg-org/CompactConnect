@@ -2,15 +2,11 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SESv2Client } from '@aws-sdk/client-sesv2';
-import { S3Client } from '@aws-sdk/client-s3';
 import { BaseEmailService } from '../../../lib/email/base-email-service';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
-
-const asS3Client = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as S3Client;
 
 // Create a concrete test implementation of BaseEmailService
 class TestEmailService extends BaseEmailService {
@@ -28,12 +24,10 @@ class TestEmailService extends BaseEmailService {
 describe('BaseEmailService Environment Banner', () => {
     let emailService: TestEmailService;
     let mockSESClient: ReturnType<typeof mockClient>;
-    let mockS3Client: ReturnType<typeof mockClient>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockSESClient = mockClient(SESv2Client);
-        mockS3Client = mockClient(S3Client);
 
         // Reset environment variables
         delete process.env.ENVIRONMENT_NAME;
@@ -43,7 +37,6 @@ describe('BaseEmailService Environment Banner', () => {
         emailService = new TestEmailService({
             logger: new Logger({ serviceName: 'test' }),
             sesClient: asSESClient(mockSESClient),
-            s3Client: asS3Client(mockS3Client),
             compactConfigurationClient: {} as any,
             jurisdictionClient: {} as any
         });

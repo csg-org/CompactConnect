@@ -2,9 +2,6 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { Readable } from 'stream';
-import { sdkStreamMixin } from '@smithy/util-stream';
 import * as nodemailer from 'nodemailer';
 import { EmailNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
@@ -45,9 +42,6 @@ const SAMPLE_JURISDICTION_CONFIG = {
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;
 
-const asS3Client = (mock: ReturnType<typeof mockClient>) =>
-    mock as unknown as S3Client;
-
 const MOCK_TRANSPORT = {
     sendMail: jest.fn().mockImplementation(async () => ({ messageId: 'test-message-id' }))
 };
@@ -55,7 +49,6 @@ const MOCK_TRANSPORT = {
 describe('EmailNotificationService', () => {
     let emailService: EmailNotificationService;
     let mockSESClient: ReturnType<typeof mockClient>;
-    let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: jest.Mocked<CompactConfigurationClient>;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
 
@@ -83,7 +76,6 @@ describe('EmailNotificationService', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSESClient = mockClient(SESv2Client);
-        mockS3Client = mockClient(S3Client);
         mockCompactConfigurationClient = {
             getCompactConfiguration: jest.fn()
         } as any;
@@ -109,7 +101,6 @@ describe('EmailNotificationService', () => {
         emailService = new EmailNotificationService({
             logger: new Logger({ serviceName: 'test' }),
             sesClient: asSESClient(mockSESClient),
-            s3Client: asS3Client(mockS3Client),
             compactConfigurationClient: mockCompactConfigurationClient,
             jurisdictionClient: mockJurisdictionClient
         });

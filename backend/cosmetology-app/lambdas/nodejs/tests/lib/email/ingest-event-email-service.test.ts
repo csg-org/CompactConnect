@@ -56,7 +56,6 @@ describe('IngestEventEmailService', () => {
         emailService = new IngestEventEmailService({
             logger: new Logger({ serviceName: 'test' }),
             sesClient: asSESClient(mockSESClient),
-            s3Client: {} as any,
             compactConfigurationClient: {} as any,
             jurisdictionClient: {} as any
         });
