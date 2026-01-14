@@ -58,8 +58,6 @@ describe('AdverseAction model', () => {
         expect(adverseAction.endDateDisplay()).to.equal('');
         expect(adverseAction.hasEndDate()).to.equal(false);
         expect(adverseAction.encumbranceTypeName()).to.equal('');
-        expect(adverseAction.npdbTypeName()).to.equal('');
-        expect(adverseAction.getNpdbTypeName()).to.equal('');
         expect(adverseAction.isActive()).to.equal(false);
     });
     it('should create an AdverseAction model with specific values', () => {
@@ -97,8 +95,6 @@ describe('AdverseAction model', () => {
         expect(adverseAction.endDateDisplay()).to.equal('Invalid date');
         expect(adverseAction.hasEndDate()).to.equal(true);
         expect(adverseAction.encumbranceTypeName()).to.equal('');
-        expect(adverseAction.npdbTypeName()).to.equal('');
-        expect(adverseAction.getNpdbTypeName('Other')).to.equal('Other');
         expect(adverseAction.isActive()).to.equal(false);
     });
     it('should create an AdverseAction model with specific values (startDate but no endDate)', () => {
@@ -152,7 +148,6 @@ describe('AdverseAction model', () => {
             jurisdiction: 'al',
             type: 'test-type',
             encumbranceType: 'fine',
-            clinicalPrivilegeActionCategory: 'Non-compliance With Requirements',
             clinicalPrivilegeActionCategories: ['Non-compliance With Requirements'],
             creationDate: moment.utc().format(serverDatetimeFormat),
             effectiveStartDate: moment().subtract(1, 'day').format(serverDateFormat),
@@ -168,7 +163,6 @@ describe('AdverseAction model', () => {
         expect(adverseAction.state).to.be.an.instanceof(State);
         expect(adverseAction.state.name()).to.equal('Alabama');
         expect(adverseAction.type).to.equal(data.type);
-        expect(adverseAction.npdbType).to.equal(data.clinicalPrivilegeActionCategory);
         expect(adverseAction.npdbTypes).to.matchPattern(data.clinicalPrivilegeActionCategories);
         expect(adverseAction.creationDate).to.equal(data.creationDate);
         expect(adverseAction.startDate).to.equal(data.effectiveStartDate);
@@ -184,8 +178,6 @@ describe('AdverseAction model', () => {
         );
         expect(adverseAction.hasEndDate()).to.equal(true);
         expect(adverseAction.encumbranceTypeName()).to.equal('Fine');
-        expect(adverseAction.npdbTypeName()).to.equal('Non-compliance With Requirements');
-        expect(adverseAction.getNpdbTypeName(data.clinicalPrivilegeActionCategories[0])).to.equal('Non-compliance With Requirements');
         expect(adverseAction.isActive()).to.equal(true);
     });
     it('should create an AdverseAction model with specific values through serializer (invalid data type from server)', () => {

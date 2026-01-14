@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 6/18/24.
 //
 
-import { authStorage, tokens, FeatureGates } from '@/app.config';
+import { authStorage, tokens } from '@/app.config';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import {
     requestError,
@@ -274,17 +274,9 @@ export class LicenseDataApi implements DataApiInterface {
         npdbCategories: Array<string>,
         startDate: string
     ) {
-        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                ? {
-                    clinicalPrivilegeActionCategories: npdbCategories,
-                }
-                : {
-                    clinicalPrivilegeActionCategory: npdbCategory,
-                }
-            ),
+            clinicalPrivilegeActionCategories: npdbCategories,
             encumbranceEffectiveDate: startDate,
         });
 
@@ -362,21 +354,13 @@ export class LicenseDataApi implements DataApiInterface {
             startDate: string
         }
     ) {
-        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation/${investigationId}`, {
             action: 'close',
             ...(encumbrance
                 ? {
                     encumbrance: {
                         encumbranceType: encumbrance.encumbranceType,
-                        ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                            ? {
-                                clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
-                            }
-                            : {
-                                clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
-                            }
-                        ),
+                        clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
                         encumbranceEffectiveDate: encumbrance.startDate,
                     },
                 }
@@ -432,17 +416,9 @@ export class LicenseDataApi implements DataApiInterface {
         npdbCategories: Array<string>,
         startDate: string
     ) {
-        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
-            ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                ? {
-                    clinicalPrivilegeActionCategories: npdbCategories,
-                }
-                : {
-                    clinicalPrivilegeActionCategory: npdbCategory,
-                }
-            ),
+            clinicalPrivilegeActionCategories: npdbCategories,
             encumbranceEffectiveDate: startDate,
         });
 
@@ -520,21 +496,13 @@ export class LicenseDataApi implements DataApiInterface {
             startDate: string
         }
     ) {
-        const { $features } = (window as any).Vue?.config?.globalProperties || {};
         const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/investigation/${investigationId}`, {
             action: 'close',
             ...(encumbrance
                 ? {
                     encumbrance: {
                         encumbranceType: encumbrance.encumbranceType,
-                        ...($features?.checkGate(FeatureGates.ENCUMBER_MULTI_CATEGORY)
-                            ? {
-                                clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
-                            }
-                            : {
-                                clinicalPrivilegeActionCategory: encumbrance.npdbCategory,
-                            }
-                        ),
+                        clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
                         encumbranceEffectiveDate: encumbrance.startDate,
                     },
                 }

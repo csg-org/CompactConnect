@@ -1160,8 +1160,6 @@ class ApiModel:
                                         ),
                                         'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        # TODO - remove this after migrating to list field # noqa: FIX002
-                                        'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
                                         'clinicalPrivilegeActionCategories': JsonSchema(
                                             type=JsonSchemaType.ARRAY,
                                             description='The categories of clinical privilege action',
@@ -1306,8 +1304,6 @@ class ApiModel:
                                         ),
                                         'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        # TODO - remove this after migrating to list field # noqa: FIX002
-                                        'clinicalPrivilegeActionCategory': JsonSchema(type=JsonSchemaType.STRING),
                                         'clinicalPrivilegeActionCategories': JsonSchema(
                                             type=JsonSchemaType.ARRAY,
                                             description='The categories of clinical privilege action',
@@ -1408,8 +1404,7 @@ class ApiModel:
             type=JsonSchemaType.OBJECT,
             description='Encumbrance data to create',
             additional_properties=False,
-            # TODO - add clinicalPrivilegeActionCategories after migrating  # noqa: FIX002
-            required=['encumbranceEffectiveDate', 'encumbranceType'],
+            required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategories'],
             properties={
                 'encumbranceEffectiveDate': JsonSchema(
                     type=JsonSchemaType.STRING,
@@ -1418,12 +1413,6 @@ class ApiModel:
                     pattern=cc_api.YMD_FORMAT,
                 ),
                 'encumbranceType': self._encumbrance_type_schema,
-                # TODO - remove this after migrating to 'clinicalPrivilegeActionCategories' field  # noqa: FIX002
-                'clinicalPrivilegeActionCategory': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    description='(Deprecated) The category of clinical privilege action. '
-                    'Use clinicalPrivilegeActionCategories instead.',
-                ),
                 'clinicalPrivilegeActionCategories': JsonSchema(
                     type=JsonSchemaType.ARRAY,
                     description='The categories of clinical privilege action',
@@ -2356,6 +2345,11 @@ class ApiModel:
                                 ),
                                 'createDate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                 'note': JsonSchema(type=JsonSchemaType.STRING),
+                                'npdbCategories': JsonSchema(
+                                    type=JsonSchemaType.ARRAY,
+                                    description='The categories of clinical privilege action for encumbrance events',
+                                    items=JsonSchema(type=JsonSchemaType.STRING),
+                                ),
                             },
                         ),
                     ),
