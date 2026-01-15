@@ -10,6 +10,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.frontend_app_config_utility import (
+    AppId,
     COGNITO_AUTH_DOMAIN_SUFFIX,
     PersistentStackFrontendAppConfigUtility,
 )
@@ -441,7 +442,7 @@ class PersistentStack(AppStack):
             front-ends so that these dependencies are properly resolved.
         """
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
-        frontend_app_config = PersistentStackFrontendAppConfigUtility()
+        frontend_app_config = PersistentStackFrontendAppConfigUtility(app_id=AppId.COSMETOLOGY)
 
         # Add staff user pool Cognito configuration
         auth_domain_name = ''
