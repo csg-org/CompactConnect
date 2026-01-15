@@ -443,34 +443,6 @@ class TestRollbackLicenseUpload(TstFunction):
 
         return provider, updated_provider
 
-    def _when_provider_changed_home_jurisdiction_after_license_upload(self):
-        self._when_provider_had_license_created_from_upload()
-
-        provider_update_record = self.test_data_generator.put_default_provider_update_record_in_provider_table(
-            value_overrides={
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                # home jurisdiction was changed during license upload window
-                'createDate': self.default_upload_datetime,
-                'updateType': self.update_categories.HOME_JURISDICTION_CHANGE,
-                'previous': {**self.provider_data.to_dict()},
-                'updatedValues': {
-                    'currentHomeJurisdiction': self.license_jurisdiction,
-                },
-            },
-            # home jurisdiction was changed during license upload window
-            date_of_update_override=self.default_upload_datetime.isoformat(),
-        )
-
-        # Simulate that the provider record was updated during upload
-        self.test_data_generator.put_default_provider_record_in_provider_table(
-            {
-                'currentHomeJurisdiction': self.license_jurisdiction,
-            }
-        )
-
-        return provider_update_record
-
     def test_provider_top_level_record_reset_to_prior_values_when_upload_reverted(self):
         """Test that provider top-level record is reset to values before upload."""
         from handlers.rollback_license_upload import rollback_license_upload
@@ -884,7 +856,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the shas here will need to be updated
                         'updatesDeleted': [
-                            'aslp#UPDATE#1#privilege/ne/slp/2025-10-23T07:15:00+00:00/06b886756a79b796ad10b17bd67057e6',
+                            'aslp#UPDATE#1#privilege/ne/slp/2025-10-23T07:15:00+00:00/0a935b55ca6cdab9d578ef3f3a1c7546',
                             'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6',
                         ],
                     }
@@ -1000,41 +972,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'reason': expected_reason_message,
                                 'recordType': 'privilegeUpdate',
                                 'typeOfUpdate': privilege_update.updateType,
-                            }
-                        ],
-                        'providerId': MOCK_PROVIDER_ID,
-                        'reason': 'Provider has updates that are either '
-                        'unrelated to license upload or '
-                        'occurred after rollback end time. '
-                        'Manual review required.',
-                    }
-                ],
-            },
-            results_data,
-        )
-
-    def test_expected_s3_object_stored_when_provider_skipped_due_to_extra_provider_updates(self):
-        # Setup: Provider had privilege update after upload window
-        provider_update = self._when_provider_changed_home_jurisdiction_after_license_upload()
-
-        results_data = self._perform_rollback_and_get_s3_object()
-
-        # Verify the structure of the results
-        expected_reason_message = 'Provider update occurred after rollback start time. Manual review required.'
-        self.assertEqual(
-            {
-                'executionName': MOCK_EXECUTION_NAME,
-                'failedProviderDetails': [],
-                'revertedProviderSummaries': [],
-                'skippedProviderDetails': [
-                    {
-                        'ineligibleUpdates': [
-                            {
-                                'updateTime': provider_update.dateOfUpdate.isoformat(),
-                                'reason': expected_reason_message,
-                                'recordType': 'providerUpdate',
-                                'typeOfUpdate': provider_update.updateType,
-                                'licenseType': 'N/A',
                             }
                         ],
                         'providerId': MOCK_PROVIDER_ID,

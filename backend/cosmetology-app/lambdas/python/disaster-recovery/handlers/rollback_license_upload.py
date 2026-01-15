@@ -40,11 +40,11 @@ class ProviderRollbackFailedException(Exception):
 class IneligibleUpdate:
     """Represents an update that makes a provider ineligible for rollback."""
 
-    record_type: str  # 'licenseUpdate', 'privilegeUpdate', or 'providerUpdate'
+    record_type: str  # 'licenseUpdate' or 'privilegeUpdate'
     type_of_update: str
     update_time: str
     reason: str
-    license_type: str | None = None  # License type if applicable (None for provider updates)
+    license_type: str | None = None  # License type if applicable
 
 
 @dataclass
@@ -629,7 +629,7 @@ def _build_and_execute_revert_transactions(
     # Split transaction lists into first tier/second tier lists (license/privilege/provider first tier, updates second)
     # then merge the two lists into a single list of transaction items
     primary_record_transaction_items = []  # License, privilege, and provider records
-    update_record_transactions_items = []  # Update records (license updates, privilege updates, provider updates)
+    update_record_transactions_items = []  # Update records (license updates, privilege updates)
     table_name = config.provider_table_name
     reverted_licenses = []
     reverted_privileges = []
@@ -691,22 +691,7 @@ def _build_and_execute_revert_transactions(
     if orphaned_update_check is not None:
         ineligible_updates.append(orphaned_update_check)
 
-    # Step 2: Check provider updates - any after start_datetime make provider ineligible
-    provider_updates = provider_records.get_all_provider_update_records()
-    for update in provider_updates:
-        if update.createDate >= upload_window_start_datetime:
-            ineligible_updates.append(
-                IneligibleUpdate(
-                    record_type='providerUpdate',
-                    type_of_update=update.updateType,
-                    update_time=update.createDate.isoformat(),
-                    reason='Provider update occurred after rollback start time. Manual review required.',
-                    # provider updates are not specific to a license type
-                    license_type='N/A',
-                )
-            )
-
-    # Step 3: Process each license record for the jurisdiction
+    # Step 2: Process each license record for the jurisdiction
     license_records = provider_records.get_license_records(filter_condition=lambda x: x.jurisdiction == jurisdiction)
 
     reverted_licenses_dict = []
