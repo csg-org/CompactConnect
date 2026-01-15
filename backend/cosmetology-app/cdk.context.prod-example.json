@@ -1,7 +1,7 @@
 {
   "ssm_context": {
     "github_repo_string": "csg-org/CompactConnect",
-    "app_name": "compact-connect",
+    "app_name": "cosmetology-compact-connect",
     "environments": {
       "pipeline": {
         "account_id": "000000000000",
@@ -11,7 +11,7 @@
       "prod": {
         "account_id": "000011112222",
         "region": "us-east-1",
-        "domain_name": "compactconnect.org",
+        "domain_name": "cosmetology.compactconnect.org",
         "backup_enabled": true,
         "notifications": {
           "ses_operations_support_email": "justin@example.com",
