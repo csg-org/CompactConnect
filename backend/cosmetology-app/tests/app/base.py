@@ -14,7 +14,6 @@ from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_lambda import CfnEventSourceMapping
 from aws_cdk.aws_sqs import CfnQueue
 from common_constructs.stack import Stack
-from stacks.provider_users import ProviderUsersStack
 
 from app import CompactConnectApp
 from common_constructs.backup_plan import CCBackupPlan
@@ -109,56 +108,6 @@ class TstAppABC(ABC):
         except KeyError as exc:
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
-    def _inspect_provider_users_stack(
-        self,
-        provider_users_stack: ProviderUsersStack,
-        *,
-        domain_name: str = None,
-        allow_local_ui: bool = False,
-        local_ui_port: str = None,
-    ):
-        with self.subTest(provider_users_stack.stack_name):
-            # Make sure our local port ui setting overrides the default
-            provider_users_stack_template = Template.from_stack(provider_users_stack)
-            callbacks = []
-            if domain_name is not None:
-                callbacks.append(f'https://{domain_name}/auth/callback')
-            if allow_local_ui:
-                # 3018 is default
-                local_ui_port = '3018' if not local_ui_port else local_ui_port
-                callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
-
-            # Ensure our provider user pool is created with expected custom attributes
-            provider_users_user_pool = self.get_resource_properties_by_logical_id(
-                provider_users_stack.get_logical_id(provider_users_stack.provider_users.node.default_child),
-                provider_users_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME),
-            )
-
-            # assert that both custom attributes are in schema
-            self.assertIn(
-                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'},
-                provider_users_user_pool['Schema'],
-            )
-            self.assertIn(
-                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'}, provider_users_user_pool['Schema']
-            )
-
-            # ensure we have one user pool for providers
-            provider_users_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 1)
-
-            # Ensure our Provider user pool app client is created with expected values
-            provider_users_user_pool_app_client = self.get_resource_properties_by_logical_id(
-                provider_users_stack.get_logical_id(provider_users_stack.provider_users.ui_client.node.default_child),
-                provider_users_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
-            )
-
-            self.assertEqual(provider_users_user_pool_app_client['CallbackURLs'], callbacks)
-            self.assertEqual(
-                provider_users_user_pool_app_client['ReadAttributes'],
-                ['custom:compact', 'custom:providerId', 'email'],
-            )
-            self.assertEqual(provider_users_user_pool_app_client['WriteAttributes'], ['email'])
-
     def _inspect_state_auth_stack(
         self,
         state_auth_stack: StateAuthStack,
@@ -215,8 +164,7 @@ class TstAppABC(ABC):
                 local_ui_port = '3018' if not local_ui_port else local_ui_port
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
-            # ensure we have one user pool defined in persistent stack for staff users (provider user pool defined in
-            # provider users stack)
+            # ensure we have one user pool defined in persistent stack for staff users
             persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 1)
 
             # Ensure our Staff user pool app client is configured with the expected callbacks and read/write attributes
@@ -363,21 +311,18 @@ class TstAppABC(ABC):
         """Validate that backup resources are created for tables and buckets with backup plans."""
         from aws_cdk.aws_backup import CfnBackupPlan, CfnBackupSelection
 
-        # if in env with backup_enabled, Should have 8 backup plans, 8 backup selections:
+        # if in env with backup_enabled, Should have 6 backup plans, 6 backup selections:
         # - provider table
         # - SSN table
         # - compact config table
-        # - transaction history table
         # - data event table
         # - staff users table
-        # - provider users bucket
         # - staff cognito user backup
-        # Not the provider cognito user backup, since it is in a separate stack
         # Every other environment should be 0
 
         if persistent_stack.environment_context['backup_enabled']:
-            persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 7)
-            persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 7)
+            persistent_stack_template.resource_count_is(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME, 6)
+            persistent_stack_template.resource_count_is(CfnBackupSelection.CFN_RESOURCE_TYPE_NAME, 6)
 
             for plan in [
                 persistent_stack.provider_table.backup_plan,
@@ -567,7 +512,6 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.managed_login_stack)
         self._check_no_stack_annotations(stage.persistent_stack)
-        self._check_no_stack_annotations(stage.provider_users_stack)
         self._check_no_stack_annotations(stage.state_api_stack)
         self._check_no_stack_annotations(stage.state_auth_stack)
         # These are only present if a hosted zone is configured
@@ -608,7 +552,6 @@ class TstAppABC(ABC):
             ('ingest_stack', stage.ingest_stack),
             ('managed_login_stack', stage.managed_login_stack),
             ('persistent_stack', stage.persistent_stack),
-            ('provider_users_stack', stage.provider_users_stack),
             ('state_api_stack', stage.state_api_stack),
             ('state_auth_stack', stage.state_auth_stack),
         ]

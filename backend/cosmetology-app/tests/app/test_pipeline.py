@@ -69,23 +69,6 @@ class TestBackendPipeline(TstAppABC, TestCase):
             self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
-        self._inspect_provider_users_stack(
-            self.app.test_backend_pipeline_stack.test_stage.provider_users_stack,
-            domain_name='app.test.compactconnect.org',
-            allow_local_ui=True,
-        )
-
-        self._inspect_provider_users_stack(
-            self.app.beta_backend_pipeline_stack.beta_backend_stage.provider_users_stack,
-            domain_name='app.beta.compactconnect.org',
-            allow_local_ui=False,
-        )
-
-        self._inspect_provider_users_stack(
-            self.app.prod_backend_pipeline_stack.prod_stage.provider_users_stack,
-            domain_name='app.compactconnect.org',
-        )
-
         self._inspect_state_auth_stack(
             self.app.test_backend_pipeline_stack.test_stage.state_auth_stack,
         )
@@ -177,44 +160,41 @@ class TestBackendPipeline(TstAppABC, TestCase):
     def test_cognito_using_recommended_security_in_prod(self):
         persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
-        provider_users_stack = self.app.prod_backend_pipeline_stack.prod_stage.provider_users_stack
-        provider_users_stack_template = Template.from_stack(provider_users_stack)
 
-        for template in [persistent_stack_template, provider_users_stack_template]:
-            # Make sure both user pools match the security settings above
-            user_pools = template.find_resources(
-                CfnUserPool.CFN_RESOURCE_TYPE_NAME,
-                props={
-                    'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}
-                },
-            )
-            number_of_user_pools = len(user_pools)
+        # Make sure user pool matches the security settings above
+        user_pools = persistent_stack_template.find_resources(
+            CfnUserPool.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}
+            },
+        )
+        number_of_user_pools = len(user_pools)
 
-            # Check risk configurations
-            risk_configurations = template.find_resources(
-                CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
-                props={
-                    'Properties': {
-                        'AccountTakeoverRiskConfiguration': {
-                            'Actions': {
-                                'HighAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
-                                'LowAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
-                                'MediumAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
-                            }
-                        },
-                        'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
-                    }
-                },
-            )
-            # Every user pool should have this risk configuration
-            self.assertEqual(number_of_user_pools, len(risk_configurations))
+        # Check risk configurations
+        risk_configurations = persistent_stack_template.find_resources(
+            CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'AccountTakeoverRiskConfiguration': {
+                        'Actions': {
+                            'HighAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                            'LowAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                            'MediumAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                        }
+                    },
+                    'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
+                }
+            },
+        )
+        # Every user pool should have this risk configuration
+        self.assertEqual(number_of_user_pools, len(risk_configurations))
 
-            # Verify that we're not allowing the implicit grant flow in any of our clients
-            implicit_grant_clients = template.find_resources(
-                CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
-                props={'Properties': {'AllowedOAuthFlows': Match.array_with(['implicit'])}},
-            )
-            self.assertEqual(0, len(implicit_grant_clients))
+        # Verify that we're not allowing the implicit grant flow in any of our clients
+        implicit_grant_clients = persistent_stack_template.find_resources(
+            CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+            props={'Properties': {'AllowedOAuthFlows': Match.array_with(['implicit'])}},
+        )
+        self.assertEqual(0, len(implicit_grant_clients))
 
     def test_cognito_risk_configuration_includes_notify_configuration_when_domain_configured(self):
         """
@@ -224,59 +204,56 @@ class TestBackendPipeline(TstAppABC, TestCase):
         # Test prod stage which has domain configured and RECOMMENDED security
         persistent_stack = self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
-        provider_users_stack = self.app.prod_backend_pipeline_stack.prod_stage.provider_users_stack
-        provider_users_stack_template = Template.from_stack(provider_users_stack)
 
-        for template in [persistent_stack_template, provider_users_stack_template]:
-            # Get all risk configurations first
-            all_risk_configurations = template.find_resources(
-                CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
-            )
+        # Get all risk configurations first
+        all_risk_configurations = persistent_stack_template.find_resources(
+            CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
+        )
 
-            # Find risk configurations that include notify_configuration
-            risk_configurations_with_notify = template.find_resources(
-                CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
-                props={
-                    'Properties': {
-                        'AccountTakeoverRiskConfiguration': {
-                            'Actions': {
-                                'HighAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
-                                'LowAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
-                                'MediumAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
-                            },
-                            'NotifyConfiguration': Match.object_like(
-                                {
-                                    'SourceArn': Match.any_value(),
-                                    'BlockEmail': Match.any_value(),
-                                    'NoActionEmail': Match.any_value(),
-                                    'From': Match.any_value(),
-                                }
-                            ),
+        # Find risk configurations that include notify_configuration
+        risk_configurations_with_notify = persistent_stack_template.find_resources(
+            CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'AccountTakeoverRiskConfiguration': {
+                        'Actions': {
+                            'HighAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                            'LowAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
+                            'MediumAction': {'EventAction': 'MFA_REQUIRED', 'Notify': True},
                         },
-                        'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
-                    }
-                },
+                        'NotifyConfiguration': Match.object_like(
+                            {
+                                'SourceArn': Match.any_value(),
+                                'BlockEmail': Match.any_value(),
+                                'NoActionEmail': Match.any_value(),
+                                'From': Match.any_value(),
+                            }
+                        ),
+                    },
+                    'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
+                }
+            },
+        )
+
+        # Every risk configuration should include notify_configuration when domain is configured
+        self.assertEqual(len(all_risk_configurations), len(risk_configurations_with_notify))
+
+        # Verify that each risk configuration has a non-null from_ email address
+        for logical_id, resource in risk_configurations_with_notify.items():
+            properties = resource['Properties']
+            notify_config = properties['AccountTakeoverRiskConfiguration']['NotifyConfiguration']
+            self.assertIsNotNone(
+                notify_config['From'], f'Risk configuration {logical_id} missing from_ email address'
             )
-
-            # Every risk configuration should include notify_configuration when domain is configured
-            self.assertEqual(len(all_risk_configurations), len(risk_configurations_with_notify))
-
-            # Verify that each risk configuration has a non-null from_ email address
-            for logical_id, resource in risk_configurations_with_notify.items():
-                properties = resource['Properties']
-                notify_config = properties['AccountTakeoverRiskConfiguration']['NotifyConfiguration']
-                self.assertIsNotNone(
-                    notify_config['From'], f'Risk configuration {logical_id} missing from_ email address'
-                )
-                self.assertIn(
-                    '@',
-                    notify_config['From'],
-                    f'Risk configuration {logical_id} has invalid from_ email address: {notify_config["From"]}',
-                )
-                self.assertIsNotNone(notify_config['SourceArn'], f'Risk configuration {logical_id} missing source_arn')
-                self.assertIsNotNone(
-                    notify_config['BlockEmail'], f'Risk configuration {logical_id} missing block_email configuration'
-                )
+            self.assertIn(
+                '@',
+                notify_config['From'],
+                f'Risk configuration {logical_id} has invalid from_ email address: {notify_config["From"]}',
+            )
+            self.assertIsNotNone(notify_config['SourceArn'], f'Risk configuration {logical_id} missing source_arn')
+            self.assertIsNotNone(
+                notify_config['BlockEmail'], f'Risk configuration {logical_id} missing block_email configuration'
+            )
 
     def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack

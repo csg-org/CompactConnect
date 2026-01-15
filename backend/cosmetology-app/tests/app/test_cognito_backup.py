@@ -33,75 +33,64 @@ class TestCognitoBackup(TstAppABC, TestCase):
     def test_cognito_backup_created(self):
         """Test that the Cognito backup bucket is created with proper configuration."""
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
-        provider_users_stack = self.app.test_backend_pipeline_stack.test_stage.provider_users_stack
 
         self.assertIsInstance(persistent_stack.staff_users.backup_system, CognitoUserBackup)
-        self.assertIsInstance(provider_users_stack.provider_users.backup_system, CognitoUserBackup)
 
     def test_cognito_backup_lambda_created(self):
         """Test that the Cognito backup Lambda function is created with proper configuration."""
         persistent_stack = self.app.test_backend_pipeline_stack.test_stage.persistent_stack
-        provider_users_stack = self.app.test_backend_pipeline_stack.test_stage.provider_users_stack
+        stack_template = Template.from_stack(persistent_stack)
 
-        for stack in [persistent_stack, provider_users_stack]:
-            stack_template = Template.from_stack(stack)
-
-            # Verify that we have a Cognito backup Lambda function
-            lambda_function = stack_template.find_resources(
-                CfnFunction.CFN_RESOURCE_TYPE_NAME,
-                props=Match.object_like(
-                    {
-                        'Properties': {
-                            'Handler': 'handlers.cognito_backup.backup_handler',
-                            'Description': 'Export user pool data for backup purposes',
-                        }
+        # Verify that we have a Cognito backup Lambda function
+        lambda_function = stack_template.find_resources(
+            CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props=Match.object_like(
+                {
+                    'Properties': {
+                        'Handler': 'handlers.cognito_backup.backup_handler',
+                        'Description': 'Export user pool data for backup purposes',
                     }
-                ),
-            )
-            self.assertEqual(len(lambda_function), 1, 'Should have one Cognito backup Lambda function')
-            lambda_function_logical_id = list(lambda_function.keys())[0]
+                }
+            ),
+        )
+        self.assertEqual(len(lambda_function), 1, 'Should have one Cognito backup Lambda function')
+        lambda_function_logical_id = list(lambda_function.keys())[0]
 
-            # Verify that the lambda has an event bridge rule
-            stack_template.has_resource_properties(
-                CfnRule.CFN_RESOURCE_TYPE_NAME,
-                props={
-                    'ScheduleExpression': Match.string_like_regexp('cron.*'),
-                    'State': 'ENABLED',
-                    'Targets': [
-                        Match.object_like(
-                            {'Arn': Match.object_like({'Fn::GetAtt': [lambda_function_logical_id, 'Arn']})}
-                        )
-                    ],
-                },
-            )
+        # Verify that the lambda has an event bridge rule
+        stack_template.has_resource_properties(
+            CfnRule.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ScheduleExpression': Match.string_like_regexp('cron.*'),
+                'State': 'ENABLED',
+                'Targets': [
+                    Match.object_like(
+                        {'Arn': Match.object_like({'Fn::GetAtt': [lambda_function_logical_id, 'Arn']})}
+                    )
+                ],
+            },
+        )
 
-            # Find CloudWatch alarms
-            alarm_topic_logical_id = persistent_stack.get_logical_id(persistent_stack.alarm_topic.node.default_child)
-            stack_template.has_resource_properties(
-                CfnAlarm.CFN_RESOURCE_TYPE_NAME,
-                props=Match.object_like(
-                    {
-                        'AlarmDescription': (
-                            'User pool backup export Lambda has failed. User data backup may be incomplete.'
-                        ),
-                        'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
-                        'Threshold': 1,
-                        'EvaluationPeriods': 1,
-                        'AlarmActions': Match.array_with(
-                            [
-                                Match.object_like(
-                                    {'Ref': alarm_topic_logical_id}
-                                    if stack is persistent_stack
-                                    else {
-                                        'Fn::ImportValue': Match.string_like_regexp(
-                                            r'Test-PersistentStack:ExportsOutputRefAlarmTopic.*'
-                                        )
-                                    }
-                                )
-                            ]
-                        ),
-                        'Namespace': 'AWS/Lambda',
-                        'MetricName': 'Errors',
-                    }
-                ),
-            )
+        # Find CloudWatch alarms
+        alarm_topic_logical_id = persistent_stack.get_logical_id(persistent_stack.alarm_topic.node.default_child)
+        stack_template.has_resource_properties(
+            CfnAlarm.CFN_RESOURCE_TYPE_NAME,
+            props=Match.object_like(
+                {
+                    'AlarmDescription': (
+                        'User pool backup export Lambda has failed. User data backup may be incomplete.'
+                    ),
+                    'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
+                    'Threshold': 1,
+                    'EvaluationPeriods': 1,
+                    'AlarmActions': Match.array_with(
+                        [
+                            Match.object_like(
+                                {'Ref': alarm_topic_logical_id}
+                            )
+                        ]
+                    ),
+                    'Namespace': 'AWS/Lambda',
+                    'MetricName': 'Errors',
+                }
+            ),
+        )
