@@ -63,9 +63,7 @@ class TestCognitoBackup(TstAppABC, TestCase):
                 'ScheduleExpression': Match.string_like_regexp('cron.*'),
                 'State': 'ENABLED',
                 'Targets': [
-                    Match.object_like(
-                        {'Arn': Match.object_like({'Fn::GetAtt': [lambda_function_logical_id, 'Arn']})}
-                    )
+                    Match.object_like({'Arn': Match.object_like({'Fn::GetAtt': [lambda_function_logical_id, 'Arn']})})
                 ],
             },
         )
@@ -82,13 +80,7 @@ class TestCognitoBackup(TstAppABC, TestCase):
                     'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
                     'Threshold': 1,
                     'EvaluationPeriods': 1,
-                    'AlarmActions': Match.array_with(
-                        [
-                            Match.object_like(
-                                {'Ref': alarm_topic_logical_id}
-                            )
-                        ]
-                    ),
+                    'AlarmActions': Match.array_with([Match.object_like({'Ref': alarm_topic_logical_id})]),
                     'Namespace': 'AWS/Lambda',
                     'MetricName': 'Errors',
                 }

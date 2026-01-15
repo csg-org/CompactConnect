@@ -10,8 +10,8 @@ from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.frontend_app_config_utility import (
-    AppId,
     COGNITO_AUTH_DOMAIN_SUFFIX,
+    AppId,
     PersistentStackFrontendAppConfigUtility,
 )
 from common_constructs.security_profile import SecurityProfile
@@ -460,7 +460,7 @@ class PersistentStack(AppStack):
         frontend_app_config.set_domain_names(
             ui_domain_name=self.ui_domain_name,
             api_domain_name=self.api_domain_name,
-            search_api_domain_name=self.search_api_domain_name
+            search_api_domain_name=self.search_api_domain_name,
         )
 
         # Add bucket names needed for CSP Lambda

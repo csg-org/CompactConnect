@@ -164,9 +164,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         # Make sure user pool matches the security settings above
         user_pools = persistent_stack_template.find_resources(
             CfnUserPool.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}
-            },
+            props={'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}},
         )
         number_of_user_pools = len(user_pools)
 
@@ -242,9 +240,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         for logical_id, resource in risk_configurations_with_notify.items():
             properties = resource['Properties']
             notify_config = properties['AccountTakeoverRiskConfiguration']['NotifyConfiguration']
-            self.assertIsNotNone(
-                notify_config['From'], f'Risk configuration {logical_id} missing from_ email address'
-            )
+            self.assertIsNotNone(notify_config['From'], f'Risk configuration {logical_id} missing from_ email address')
             self.assertIn(
                 '@',
                 notify_config['From'],

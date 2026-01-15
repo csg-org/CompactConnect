@@ -10,7 +10,6 @@ from common_constructs.frontend_app_config_utility import (
     AppId,
     PersistentStackFrontendAppConfigUtility,
     PersistentStackFrontendAppConfigValues,
-    ProviderUsersStackFrontendAppConfigUtility,
     ProviderUsersStackFrontendAppConfigValues,
     _cross_account_ssm_lookup,
     _get_persistent_stack_parameter_name,
@@ -104,12 +103,12 @@ class TestPersistentStackFrontendAppConfigUtility(TestCase):
     def test_default_app_id_is_jcc(self):
         """Test that default app_id is JCC."""
         util = PersistentStackFrontendAppConfigUtility()
-        self.assertEqual(AppId.JCC, util._app_id)
+        self.assertEqual(AppId.JCC, util._app_id)  # noqa: SLF001
 
     def test_cosmetology_app_id(self):
         """Test setting COSMETOLOGY app_id."""
         util = PersistentStackFrontendAppConfigUtility(app_id=AppId.COSMETOLOGY)
-        self.assertEqual(AppId.COSMETOLOGY, util._app_id)
+        self.assertEqual(AppId.COSMETOLOGY, util._app_id)  # noqa: SLF001
 
     def test_set_staff_cognito_values(self):
         """Test setting staff Cognito values."""
@@ -141,13 +140,13 @@ class TestPersistentStackFrontendAppConfigValues(TestCase):
     def test_load_jcc_uses_string_parameter_lookup(self):
         """Test that JCC app uses standard StringParameter.value_from_lookup."""
         mock_stack = MagicMock()
-        with patch(
-            'common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup'
-        ) as mock_lookup:
-            mock_lookup.return_value = json.dumps({
-                'staff_cognito_domain': 'test-domain',
-                'staff_cognito_client_id': 'test-client',
-            })
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'staff_cognito_domain': 'test-domain',
+                    'staff_cognito_client_id': 'test-client',
+                }
+            )
 
             result = PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
                 mock_stack,
@@ -188,10 +187,12 @@ class TestPersistentStackFrontendAppConfigValues(TestCase):
     def test_load_cosmetology_uses_cross_account_lookup(self, mock_cross_account):
         """Test that COSMETOLOGY app uses cross-account lookup."""
         mock_stack = MagicMock()
-        mock_cross_account.return_value = json.dumps({
-            'staff_cognito_domain': 'cosmo-domain',
-            'staff_cognito_client_id': 'cosmo-client',
-        })
+        mock_cross_account.return_value = json.dumps(
+            {
+                'staff_cognito_domain': 'cosmo-domain',
+                'staff_cognito_client_id': 'cosmo-client',
+            }
+        )
 
         result = PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
             mock_stack,
@@ -213,10 +214,12 @@ class TestPersistentStackFrontendAppConfigValues(TestCase):
     def test_load_cosmetology_defaults_region_to_us_east_1(self, mock_cross_account):
         """Test that COSMETOLOGY app defaults region to us-east-1 if not specified."""
         mock_stack = MagicMock()
-        mock_cross_account.return_value = json.dumps({
-            'staff_cognito_domain': 'test-domain',
-            'staff_cognito_client_id': 'test-client',
-        })
+        mock_cross_account.return_value = json.dumps(
+            {
+                'staff_cognito_domain': 'test-domain',
+                'staff_cognito_client_id': 'test-client',
+            }
+        )
 
         PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
             mock_stack,
@@ -232,9 +235,7 @@ class TestPersistentStackFrontendAppConfigValues(TestCase):
         mock_stack = MagicMock()
         parameter_name = _get_persistent_stack_parameter_name(AppId.JCC)
 
-        with patch(
-            'common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup'
-        ) as mock_lookup:
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
             mock_lookup.return_value = f'dummy-value-for-{parameter_name}'
 
             result = PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
@@ -253,13 +254,13 @@ class TestProviderUsersStackFrontendAppConfigValues(TestCase):
     def test_load_jcc_uses_string_parameter_lookup(self):
         """Test that JCC app uses standard StringParameter.value_from_lookup."""
         mock_stack = MagicMock()
-        with patch(
-            'common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup'
-        ) as mock_lookup:
-            mock_lookup.return_value = json.dumps({
-                'provider_cognito_domain': 'test-provider-domain',
-                'provider_cognito_client_id': 'test-provider-client',
-            })
+        with patch('common_constructs.frontend_app_config_utility.StringParameter.value_from_lookup') as mock_lookup:
+            mock_lookup.return_value = json.dumps(
+                {
+                    'provider_cognito_domain': 'test-provider-domain',
+                    'provider_cognito_client_id': 'test-provider-client',
+                }
+            )
 
             result = ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(
                 mock_stack,

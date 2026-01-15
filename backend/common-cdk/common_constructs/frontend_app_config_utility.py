@@ -231,7 +231,7 @@ class PersistentStackFrontendAppConfigValues:
     def load_persistent_stack_values_from_ssm_parameter(
         stack: Stack,
         app_id: AppId = AppId.JCC,
-        environment_context: Optional[dict] = None,
+        environment_context: dict | None = None,
     ) -> Optional['PersistentStackFrontendAppConfigValues']:
         """
         Load configuration values from an existing SSM Parameter.
@@ -253,9 +253,7 @@ class PersistentStackFrontendAppConfigValues:
 
         if app_id == AppId.JCC:
             # Same-account lookup (using existing behavior)
-            config_value = StringParameter.value_from_lookup(
-                stack, parameter_name, default_value=None
-            )
+            config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
         else:
             # Cross-account lookup for other apps (e.g., COSMETOLOGY)
             if environment_context is None:
@@ -278,10 +276,7 @@ class PersistentStackFrontendAppConfigValues:
         # The first time synth is run, CDK returns a dummy value without actually looking up the value.
         # The second time it's run, it will either return a value if the parameter exists, or None. So we check for
         # both of those cases here.
-        if (
-            config_value is not None
-            and config_value != dummy_value
-        ):
+        if config_value is not None and config_value != dummy_value:
             return PersistentStackFrontendAppConfigValues(config_value)
         if config_value == dummy_value:
             return PersistentStackFrontendAppConfigValues._create_dummy_values()
@@ -393,16 +388,11 @@ class ProviderUsersStackFrontendAppConfigValues:
         exists, otherwise None
         """
         parameter_name = _get_provider_users_stack_parameter_name(app_id)
-        config_value = StringParameter.value_from_lookup(
-            stack, parameter_name, default_value=None
-        )
+        config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
         # The first time synth is run, CDK returns a dummy value without actually looking up the value.
         # The second time it's run, it will either return a value if the parameter exists, or None. So we check for
         # both of those cases here.
-        if (
-            config_value is not None
-            and config_value != f'dummy-value-for-{parameter_name}'
-        ):
+        if config_value is not None and config_value != f'dummy-value-for-{parameter_name}':
             return ProviderUsersStackFrontendAppConfigValues(config_value)
         if config_value == f'dummy-value-for-{parameter_name}':
             return ProviderUsersStackFrontendAppConfigValues._create_dummy_values()
