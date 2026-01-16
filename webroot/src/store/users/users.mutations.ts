@@ -28,6 +28,9 @@ export enum MutationTypes {
     DELETE_USER_REQUEST = '[Users] Delete User Request',
     DELETE_USER_FAILURE = '[Users] Delete User Failure',
     DELETE_USER_SUCCESS = '[Users] Delete User Success',
+    UPDATE_MILITARY_AUDIT_REQUEST = '[Users] Update Military Audit Request',
+    UPDATE_MILITARY_AUDIT_FAILURE = '[Users] Update Military Audit Failure',
+    UPDATE_MILITARY_AUDIT_SUCCESS = '[Users] Update Military Audit Success',
     ENCUMBER_LICENSE_REQUEST = '[Users] Encumber License Request',
     ENCUMBER_LICENSE_FAILURE = '[Users] Encumber License Failure',
     ENCUMBER_LICENSE_SUCCESS = '[Users] Encumber License Success',
@@ -142,6 +145,18 @@ export default {
         state.error = null; // State is handled locally for this to avoid triggering unwanted actions
     },
     [MutationTypes.DELETE_USER_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_MILITARY_AUDIT_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_MILITARY_AUDIT_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UPDATE_MILITARY_AUDIT_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
     },
