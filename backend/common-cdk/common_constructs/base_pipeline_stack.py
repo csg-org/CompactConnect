@@ -1,13 +1,12 @@
-import json
 from enum import StrEnum
 
 from aws_cdk import Environment, RemovalPolicy
 from aws_cdk.aws_iam import CompositePrincipal, Effect, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_s3 import IBucket
-from aws_cdk.aws_ssm import StringParameter
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from constructs import Construct
 
+from common_constructs.ssm_context import SSMContext
 from common_constructs.stack import Stack
 
 TEST_ENVIRONMENT_NAME = 'test'
@@ -21,10 +20,11 @@ ALLOWED_ENVIRONMENT_NAMES = [TEST_ENVIRONMENT_NAME, BETA_ENVIRONMENT_NAME, PROD_
 class CCPipelineType(StrEnum):
     BACKEND = 'Backend'
     FRONTEND = 'Frontend'
+    COSMETOLOGY = 'Cosmetology'
 
 
 class BasePipelineStack(Stack):
-    """Base stack with common functionality for all pipeline stacks (both backend and frontend)."""
+    """Base stack with common functionality for all pipeline stacks."""
 
     def __init__(
         self,
@@ -32,7 +32,7 @@ class BasePipelineStack(Stack):
         construct_id: str,
         environment_name: str,
         env: Environment,
-        pipeline_type: CCPipelineType,
+        pipeline_context_parameter_name: str,
         removal_policy: RemovalPolicy,
         pipeline_access_logs_bucket: IBucket,
         **kwargs,
@@ -45,28 +45,14 @@ class BasePipelineStack(Stack):
         self.removal_policy = removal_policy
         self.access_logs_bucket = pipeline_access_logs_bucket
 
-        if pipeline_type == CCPipelineType.BACKEND:
-            pipeline_context_parameter_name = f'{self.environment_name}-compact-connect-context'
-        else:
-            pipeline_context_parameter_name = f'{self.environment_name}-ui-compact-connect-context'
-
-        # Fetch ssm_context if not provided locally
-        self.parameter = StringParameter.from_string_parameter_name(
+        ssm_context = SSMContext(
             self,
             'PipelineContext',
-            string_parameter_name=pipeline_context_parameter_name,
+            pipeline_context_parameter_name,
+            f'cdk.context.{environment_name}-example.json',
         )
-        value = StringParameter.value_from_lookup(self, self.parameter.parameter_name)
-        # When CDK runs for the first time, it synthesizes fully without actually retrieving the SSM Parameter
-        # value. It, instead, populates parameters and other look-ups with dummy values, synthesizes, collects all
-        # the look-ups together, populates them for real, then re-synthesizes with real values.
-        # To accommodate this pattern, we have to replace this dummy value with one that will actually
-        # let CDK complete its first round of synthesis, so that it can get to its second, real, synthesis.
-        if value != f'dummy-value-for-{pipeline_context_parameter_name}':
-            self.ssm_context = json.loads(value)
-        else:
-            with open(f'cdk.context.{environment_name}-example.json') as f:
-                self.ssm_context = json.load(f)['ssm_context']
+        self.parameter = ssm_context.parameter
+        self.ssm_context = ssm_context.context
 
         self.pipeline_environment_context = self.ssm_context['environments']['pipeline']
         self.connection_arn = self.pipeline_environment_context['connection_arn']

@@ -1,0 +1,84 @@
+{
+  "properties": {
+    "compactAbbr": {
+      "description": "The abbreviation of the compact",
+      "type": "string"
+    },
+    "compactName": {
+      "description": "The full name of the compact",
+      "type": "string"
+    },
+    "compactOperationsTeamEmails": {
+      "description": "List of email addresses for operations team notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "compactAdverseActionsNotificationEmails": {
+      "description": "List of email addresses for adverse actions notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "compactSummaryReportNotificationEmails": {
+      "description": "List of email addresses for summary report notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "licenseeRegistrationEnabled": {
+      "description": "Denotes whether licensee registration is enabled",
+      "type": "boolean"
+    },
+    "configuredStates": {
+      "description": "List of states that have submitted configurations and their live status",
+      "items": {
+        "properties": {
+          "postalAbbreviation": {
+            "description": "The postal abbreviation of the jurisdiction",
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ],
+            "type": "string"
+          },
+          "isLive": {
+            "description": "Whether the state is live and available for registrations.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "postalAbbreviation",
+          "isLive"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "compactAbbr",
+    "compactName",
+    "compactOperationsTeamEmails",
+    "compactAdverseActionsNotificationEmails",
+    "compactSummaryReportNotificationEmails",
+    "licenseeRegistrationEnabled",
+    "configuredStates"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

@@ -15,7 +15,9 @@
         "recaptcha_public_key": "123-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
         "robots_meta": "noindex,nofollow",
         "statsig_key": "client-KFEUsjehfuejILDVUKkRnAF9SSzb8o9uv5lY7Ih",
-        "app_env": "beta"
+        "app_env": "beta",
+        "cosmetology_account_id": "444455556666",
+        "cosmetology_region": "us-east-1"
       }
     }
   }

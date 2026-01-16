@@ -1,0 +1,2 @@
+moto[dynamodb, s3]>=5.0.12, <6
+Faker>=37, <38

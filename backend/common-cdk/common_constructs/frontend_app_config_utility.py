@@ -1,17 +1,79 @@
 import json
+from enum import StrEnum
 from typing import Optional
 
-from aws_cdk import Stack
+from aws_cdk import ContextProvider, Stack
 from aws_cdk.aws_ssm import StringParameter
 from constructs import Construct
 
 HTTPS_PREFIX = 'https://'
 COGNITO_AUTH_DOMAIN_SUFFIX = '.auth.us-east-1.amazoncognito.com'
 
-PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = '/deployment/persistent-stack/frontend_app_configuration'
-PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = (
-    '/deployment/provider-users-stack/frontend_app_configuration'
-)
+
+class AppId(StrEnum):
+    """Application ID enum for identifying different backend applications."""
+
+    JCC = 'jcc'
+    COSMETOLOGY = 'cosmetology'
+
+
+def _cross_account_ssm_lookup(
+    stack: Stack,
+    parameter_name: str,
+    target_account_id: str,
+    target_region: str,
+    dummy_value: str,
+) -> str:
+    """
+    Look up an SSM parameter from a different account than the stack using CDK's context provider.
+
+    This function uses CDK's built-in context provider mechanism to perform cross-account
+    SSM parameter lookups. The lookup is performed at synthesis time using the bootstrap
+    LookupRole in the target account, which has permissions to read the parameter.
+
+    :param stack: The CDK stack performing the lookup
+    :param parameter_name: The SSM parameter name to look up
+    :param target_account_id: The AWS account ID where the parameter exists
+    :param target_region: The AWS region where the parameter exists
+    :param dummy_value: Value returned during first synthesis before the actual lookup
+    :return: The parameter value (or dummy_value on first synth)
+    """
+    # The CDK bootstrap creates a lookup role with this naming convention
+    # This role must be assumable by the account/role performing the synth
+    lookup_role_arn = f'arn:aws:iam::{target_account_id}:role/cdk-hnb659fds-lookup-role-{target_account_id}-{target_region}'
+
+    result = ContextProvider.get_value(
+        stack,
+        provider='ssm',
+        props={
+            'parameterName': parameter_name,
+            'account': target_account_id,
+            'region': target_region,
+            'lookupRoleArn': lookup_role_arn,
+        },
+        include_environment=False,
+        dummy_value=dummy_value,
+        must_exist=True,
+    )
+    return result.value
+
+
+def _get_persistent_stack_parameter_name(app_id: AppId = AppId.JCC) -> str:
+    """Generate SSM parameter name for persistent stack frontend app configuration.
+
+    :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+    :return: The SSM parameter name with app_id in the path
+    """
+    return f'/app/{app_id.value}/deployment/persistent-stack/frontend_app_configuration'
+
+
+def _get_provider_users_stack_parameter_name(app_id: AppId = AppId.JCC) -> str:
+    """Generate SSM parameter name for provider users stack frontend app configuration.
+
+    :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+    :return: The SSM parameter name with app_id in the path
+    """
+    return f'/app/{app_id.value}/deployment/provider-users-stack/frontend_app_configuration'
 
 
 class PersistentStackFrontendAppConfigUtility:
@@ -28,7 +90,13 @@ class PersistentStackFrontendAppConfigUtility:
 
     """
 
-    def __init__(self):
+    def __init__(self, app_id: AppId = AppId.JCC):
+        """
+        Initialize the utility with an optional app_id.
+
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+        """
+        self._app_id = app_id
         self._config: dict[str, str] = {}
 
     def set_staff_cognito_values(self, domain_name: str, client_id: str) -> None:
@@ -89,7 +157,7 @@ class PersistentStackFrontendAppConfigUtility:
         return StringParameter(
             scope,
             resource_id,
-            parameter_name=PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME,
+            parameter_name=_get_persistent_stack_parameter_name(self._app_id),
             string_value=self.get_config_json(),
             description='UI application configuration values',
         )
@@ -103,7 +171,13 @@ class ProviderUsersStackFrontendAppConfigUtility:
     values that need to be shared between the Provider Users stack and Frontend Deployment Stack.
     """
 
-    def __init__(self):
+    def __init__(self, app_id: AppId = AppId.JCC):
+        """
+        Initialize the utility with an optional app_id.
+
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+        """
+        self._app_id = app_id
         self._config: dict[str, str] = {}
 
     def set_provider_cognito_values(self, domain_name: str, client_id: str) -> None:
@@ -136,7 +210,7 @@ class ProviderUsersStackFrontendAppConfigUtility:
         return StringParameter(
             scope,
             resource_id,
-            parameter_name=PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME,
+            parameter_name=_get_provider_users_stack_parameter_name(self._app_id),
             string_value=self.get_config_json(),
             description='Provider user pool configuration values',
         )
@@ -161,26 +235,55 @@ class PersistentStackFrontendAppConfigValues:
     @staticmethod
     def load_persistent_stack_values_from_ssm_parameter(
         stack: Stack,
+        app_id: AppId = AppId.JCC,
+        environment_context: dict | None = None,
     ) -> Optional['PersistentStackFrontendAppConfigValues']:
         """
         Load configuration values from an existing SSM Parameter.
 
+        For JCC (same account), this uses the standard StringParameter.value_from_lookup.
+        For other apps (e.g., COSMETOLOGY), this performs a cross-account lookup using the
+        account ID and region from the stack's environment_context.
+
         :param stack: The CDK stack
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+        :param environment_context: Environment context dict containing cross-account lookup info.
+                                    Required for non-JCC app_ids. Should contain keys like
+                                    '{app_id}_account_id' and '{app_id}_region'.
 
         :return: An instance of UIAppConfigValues with loaded configuration if the parameter exists, otherwise None
         """
-        config_value = StringParameter.value_from_lookup(
-            stack, PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME, default_value=None
-        )
+        parameter_name = _get_persistent_stack_parameter_name(app_id)
+        dummy_value = f'dummy-value-for-{parameter_name}'
+
+        if app_id == AppId.JCC:
+            # Same-account lookup (using existing behavior)
+            config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
+        else:
+            # Cross-account lookup for other apps (e.g., COSMETOLOGY)
+            if environment_context is None:
+                raise ValueError(f'environment_context required for cross-account lookup (app_id={app_id})')
+
+            target_account_id = environment_context.get(f'{app_id.value}_account_id')
+            target_region = environment_context.get(f'{app_id.value}_region', 'us-east-1')
+
+            if not target_account_id:
+                raise ValueError(f'{app_id.value}_account_id not found in environment_context')
+
+            config_value = _cross_account_ssm_lookup(
+                stack=stack,
+                parameter_name=parameter_name,
+                target_account_id=target_account_id,
+                target_region=target_region,
+                dummy_value=dummy_value,
+            )
+
         # The first time synth is run, CDK returns a dummy value without actually looking up the value.
         # The second time it's run, it will either return a value if the parameter exists, or None. So we check for
         # both of those cases here.
-        if (
-            config_value is not None
-            and config_value != f'dummy-value-for-{PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}'
-        ):
+        if config_value is not None and config_value != dummy_value:
             return PersistentStackFrontendAppConfigValues(config_value)
-        if config_value == f'dummy-value-for-{PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}':
+        if config_value == dummy_value:
             return PersistentStackFrontendAppConfigValues._create_dummy_values()
 
         return None
@@ -278,27 +381,25 @@ class ProviderUsersStackFrontendAppConfigValues:
     @staticmethod
     def load_provider_users_stack_values_from_ssm_parameter(
         stack: Stack,
+        app_id: AppId = AppId.JCC,
     ) -> Optional['ProviderUsersStackFrontendAppConfigValues']:
         """
         Load provider user pool configuration values from an existing SSM Parameter.
 
         :param stack: The CDK stack
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
 
         :return: An instance of ProviderUsersStackFrontendAppConfigValues with loaded configuration if the parameter
         exists, otherwise None
         """
-        config_value = StringParameter.value_from_lookup(
-            stack, PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME, default_value=None
-        )
+        parameter_name = _get_provider_users_stack_parameter_name(app_id)
+        config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
         # The first time synth is run, CDK returns a dummy value without actually looking up the value.
         # The second time it's run, it will either return a value if the parameter exists, or None. So we check for
         # both of those cases here.
-        if (
-            config_value is not None
-            and config_value != f'dummy-value-for-{PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}'
-        ):
+        if config_value is not None and config_value != f'dummy-value-for-{parameter_name}':
             return ProviderUsersStackFrontendAppConfigValues(config_value)
-        if config_value == f'dummy-value-for-{PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}':
+        if config_value == f'dummy-value-for-{parameter_name}':
             return ProviderUsersStackFrontendAppConfigValues._create_dummy_values()
 
         return None

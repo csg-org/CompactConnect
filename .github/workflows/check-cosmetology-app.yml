@@ -1,0 +1,110 @@
+name: Check-Cosmetology-Application
+
+on:
+  pull_request:
+    paths:
+      - backend/cosmetology-app/**
+
+env:
+  AWS_REGION : "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  LintPython:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v5
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/cosmetology-app/requirements-dev.txt"
+
+      - name: Lint Code
+        run: "cd backend/cosmetology-app; ruff check $(git ls-files '*.py')"
+
+      - name: Check Dependencies
+        run: "pip-audit"
+
+  LintNode:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v5
+
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+
+      # Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.11.1'
+
+      # Use any cached yarn dependencies (saves build time)
+      - uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      # Install Yarn Dependencies
+      - name: Install Node.js dependencies
+        run: yarn install
+        working-directory: ./backend/cosmetology-app/lambdas/nodejs
+
+      # Run Linter Checks
+      - name: Run linter
+        run: yarn run lint
+        working-directory: ./backend/cosmetology-app/lambdas/nodejs
+
+      # Audit dependencies for vulnerabilities
+      - name: Audit dependencies
+        run: yarn run audit:dependencies
+        working-directory: ./backend/cosmetology-app/lambdas/nodejs
+
+  TestApp:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      # Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.11.1'
+
+      # Use any cached yarn dependencies (saves build time)
+      - uses: actions/cache@v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      # Install Yarn Dependencies
+      - name: Install Node.js dependencies
+        run: yarn install
+        working-directory: ./backend/cosmetology-app/lambdas/nodejs
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/cosmetology-app/requirements-dev.txt"
+      # Note we are currently pinning the pip version to deal with compatibility issues released with pip 25.3
+      # see https://stackoverflow.com/a/79802727 If this issues is addressed in a later version, we can remove the
+      # extra pip install command so we stop pinning the pip version
+      - name: Install all Python dependencies
+        run: "cd backend/cosmetology-app; pip install -U 'pip<25.3'; bin/sync_deps.sh"
+
+      - name: Test backend
+        run: "cd backend/cosmetology-app; bin/run_tests.sh -l all -no"

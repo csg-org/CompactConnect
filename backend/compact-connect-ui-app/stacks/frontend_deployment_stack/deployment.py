@@ -25,6 +25,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
         environment_context: dict,
         persistent_stack_app_config_values: PersistentStackFrontendAppConfigValues,
         provider_users_stack_app_config_values: ProviderUsersStackFrontendAppConfigValues,
+        cosmetology_persistent_stack_app_config_values: PersistentStackFrontendAppConfigValues,
     ):
         stack = Stack.of(scope)
         # Get environment-specific values from context
@@ -71,6 +72,12 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                                 'VUE_APP_COGNITO_CLIENT_ID_LICENSEE': provider_users_stack_app_config_values.provider_cognito_client_id,
                                 'VUE_APP_RECAPTCHA_KEY': recaptcha_public_key,
                                 'VUE_APP_STATSIG_KEY': statsig_client_key,
+                                # Cosmetology app configuration values
+                                'VUE_APP_COSMETOLOGY_API_STATE_ROOT': f'{HTTPS_PREFIX}{cosmetology_persistent_stack_app_config_values.api_domain_name}',
+                                'VUE_APP_COSMETOLOGY_API_LICENSE_ROOT': f'{HTTPS_PREFIX}{cosmetology_persistent_stack_app_config_values.api_domain_name}',
+                                'VUE_APP_COSMETOLOGY_API_SEARCH_ROOT': f'{HTTPS_PREFIX}{cosmetology_persistent_stack_app_config_values.search_api_domain_name}',
+                                'VUE_APP_COSMETOLOGY_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{cosmetology_persistent_stack_app_config_values.staff_cognito_domain}',
+                                'VUE_APP_COSMETOLOGY_COGNITO_CLIENT_ID_STAFF': cosmetology_persistent_stack_app_config_values.staff_cognito_client_id,
                             },
                             entrypoint=['bash'],
                             command=['bin/build.sh'],
