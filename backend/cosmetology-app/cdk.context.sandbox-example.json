@@ -2,9 +2,7 @@
   "sandbox": true,
   "environment_name": "justin",
   "sandbox_active_compact_member_jurisdictions": {
-    "aslp": ["al", "ak", "ar", "co", "de", "ky", "la", "me", "md", "mn", "ms", "mo", "ne", "oh"],
-    "octp": ["al", "ar", "ky", "la", "ms", "ne", "oh"],
-    "coun": ["al", "ar", "fl", "ga", "ky", "ne", "oh", "ut"]
+    "cosm": ["az"]
   },
   "ssm_context": {
     "github_repo_string": "csg-org/CompactConnect",
