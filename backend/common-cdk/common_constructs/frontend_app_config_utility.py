@@ -38,6 +38,10 @@ def _cross_account_ssm_lookup(
     :param dummy_value: Value returned during first synthesis before the actual lookup
     :return: The parameter value (or dummy_value on first synth)
     """
+    # The CDK bootstrap creates a lookup role with this naming convention
+    # This role must be assumable by the account/role performing the synth
+    lookup_role_arn = f'arn:aws:iam::{target_account_id}:role/cdk-hnb659fds-lookup-role-{target_account_id}-{target_region}'
+
     result = ContextProvider.get_value(
         stack,
         provider='ssm',
@@ -45,6 +49,7 @@ def _cross_account_ssm_lookup(
             'parameterName': parameter_name,
             'account': target_account_id,
             'region': target_region,
+            'lookupRoleArn': lookup_role_arn,
         },
         include_environment=False,
         dummy_value=dummy_value,
