@@ -296,15 +296,18 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   - Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
     [custom bootstrap stack](#custom-bootstrap-stack).
 
-   **Important**: When a pipeline stack is deployed, it will automatically trigger a deployment to its environment from
-   the configured branch in your GitHub repo. The first time you deploy the backend pipeline, it should pass all the steps
-   except the final trigger of the frontend pipeline, since the frontend pipeline will not exist until you deploy it. From
-   there on, the pipelines should integrate as designed.
+**Note on OpenSearch Service-Linked Role**: The custom bootstrap templates in this app include creation of a
+service-linked role for Amazon OpenSearch Service VPC access. This role can only exist once per AWS account. If the
+role already exists in the account (e.g., from previous OpenSearch usage), the bootstrap deployment will fail. In that
+case, simply remove the `OpenSearchServiceLinkedRole` resource from the template before running the bootstrap command.
 
 - Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
   See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html). Note that this must be
   done _after_ first deploy of the application to each application account, as they require SES to be configured
   before they will process the support request.
+
+### Bootstrap the secondary accounts
+See backend/multi-account/backups/README for instructions on setting up the secondary accounts and backup resources.
 
 ### Subsequent production deploys
 
