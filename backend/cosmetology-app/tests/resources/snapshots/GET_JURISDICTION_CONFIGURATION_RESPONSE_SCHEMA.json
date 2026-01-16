@@ -3,9 +3,7 @@
     "compact": {
       "description": "The compact this jurisdiction configuration belongs to",
       "enum": [
-        "aslp",
-        "octp",
-        "coun"
+        "cosm"
       ],
       "type": "string"
     },
