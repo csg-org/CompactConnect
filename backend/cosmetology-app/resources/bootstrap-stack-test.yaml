@@ -348,8 +348,12 @@ Resources:
                 Effect: Allow
                 Principal:
                   AWS:
+                    # Trust both backend and frontend pipeline roles from the pipeline account
                     - Fn::Sub:
                         - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
+                        - TrustedAccount: !Select [0, !Ref TrustedAccounts]
+                    - Fn::Sub:
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Frontend-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       RoleName:
