@@ -25,7 +25,7 @@
                     >
                         <CheckIcon v-if="isAuditStatusApproved" class="icon approved" />
                         <AlertIcon v-else-if="isAuditStatusDeclined" class="icon declined" />
-                        <ClockIcon v-if="isAuditStatusPending" class="icon pending" />
+                        <ClockIcon v-else-if="isAuditStatusPending" class="icon pending" />
                     </div>
                     <div class="chunk-text emphasis">{{ auditStatusName }}</div>
                 </div>
