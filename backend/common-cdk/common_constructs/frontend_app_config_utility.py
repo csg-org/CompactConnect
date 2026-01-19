@@ -2,7 +2,7 @@ import json
 from enum import StrEnum
 from typing import Optional
 
-from aws_cdk import ContextProvider, Stack
+from aws_cdk import Stack
 from aws_cdk.aws_ssm import StringParameter
 from constructs import Construct
 
@@ -15,47 +15,6 @@ class AppId(StrEnum):
 
     JCC = 'jcc'
     COSMETOLOGY = 'cosmetology'
-
-
-def _cross_account_ssm_lookup(
-    stack: Stack,
-    parameter_name: str,
-    target_account_id: str,
-    target_region: str,
-    dummy_value: str,
-) -> str:
-    """
-    Look up an SSM parameter from a different account than the stack using CDK's context provider.
-
-    This function uses CDK's built-in context provider mechanism to perform cross-account
-    SSM parameter lookups. The lookup is performed at synthesis time using the bootstrap
-    LookupRole in the target account, which has permissions to read the parameter.
-
-    :param stack: The CDK stack performing the lookup
-    :param parameter_name: The SSM parameter name to look up
-    :param target_account_id: The AWS account ID where the parameter exists
-    :param target_region: The AWS region where the parameter exists
-    :param dummy_value: Value returned during first synthesis before the actual lookup
-    :return: The parameter value (or dummy_value on first synth)
-    """
-    # The CDK bootstrap creates a lookup role with this naming convention
-    # This role must be assumable by the account/role performing the synth
-    lookup_role_arn = f'arn:aws:iam::{target_account_id}:role/cdk-hnb659fds-lookup-role-{target_account_id}-{target_region}'
-
-    result = ContextProvider.get_value(
-        stack,
-        provider='ssm',
-        props={
-            'parameterName': parameter_name,
-            'account': target_account_id,
-            'region': target_region,
-            'lookupRoleArn': lookup_role_arn,
-        },
-        include_environment=False,
-        dummy_value=dummy_value,
-        must_exist=True,
-    )
-    return result.value
 
 
 def _get_persistent_stack_parameter_name(app_id: AppId = AppId.JCC) -> str:
@@ -236,47 +195,30 @@ class PersistentStackFrontendAppConfigValues:
     def load_persistent_stack_values_from_ssm_parameter(
         stack: Stack,
         app_id: AppId = AppId.JCC,
-        environment_context: dict | None = None,
     ) -> Optional['PersistentStackFrontendAppConfigValues']:
         """
         Load configuration values from an existing SSM Parameter.
 
-        For JCC (same account), this uses the standard StringParameter.value_from_lookup.
-        For other apps (e.g., COSMETOLOGY), this performs a cross-account lookup using the
-        account ID and region from the stack's environment_context.
+        This method performs a same-account SSM parameter lookup. For backend applications
+        deployed in different AWS accounts (e.g., COSMETOLOGY), the SSM parameter must be
+        manually copied to the frontend/pipeline account with the same parameter name.
+
+        IMPORTANT: When backend applications create or update SSM parameters for frontend
+        configuration, those parameters must be manually synchronized to the frontend account.
+        See the backend application's README for synchronization instructions.
 
         :param stack: The CDK stack
         :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
-        :param environment_context: Environment context dict containing cross-account lookup info.
-                                    Required for non-JCC app_ids. Should contain keys like
-                                    '{app_id}_account_id' and '{app_id}_region'.
 
         :return: An instance of UIAppConfigValues with loaded configuration if the parameter exists, otherwise None
         """
         parameter_name = _get_persistent_stack_parameter_name(app_id)
         dummy_value = f'dummy-value-for-{parameter_name}'
 
-        if app_id == AppId.JCC:
-            # Same-account lookup (using existing behavior)
-            config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
-        else:
-            # Cross-account lookup for other apps (e.g., COSMETOLOGY)
-            if environment_context is None:
-                raise ValueError(f'environment_context required for cross-account lookup (app_id={app_id})')
-
-            target_account_id = environment_context.get(f'{app_id.value}_account_id')
-            target_region = environment_context.get(f'{app_id.value}_region', 'us-east-1')
-
-            if not target_account_id:
-                raise ValueError(f'{app_id.value}_account_id not found in environment_context')
-
-            config_value = _cross_account_ssm_lookup(
-                stack=stack,
-                parameter_name=parameter_name,
-                target_account_id=target_account_id,
-                target_region=target_region,
-                dummy_value=dummy_value,
-            )
+        # Standard same-account lookup
+        # Note: For backend apps in different accounts, the SSM parameter must be manually
+        # copied to the frontend account. See backend app README for sync instructions.
+        config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
 
         # The first time synth is run, CDK returns a dummy value without actually looking up the value.
         # The second time it's run, it will either return a value if the parameter exists, or None. So we check for

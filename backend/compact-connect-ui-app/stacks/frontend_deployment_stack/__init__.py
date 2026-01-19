@@ -44,10 +44,12 @@ class FrontendDeploymentStack(AppStack):
             ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(self)
         )
 
-        # Load cosmetology app configuration (cross-account lookup)
+        # Load cosmetology app configuration
+        # Note: The cosmetology SSM parameter must be manually copied from the cosmetology account
+        # to this account. See the cosmetology app README for synchronization instructions.
         cosmetology_persistent_stack_frontend_app_config_values = (
             PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
-                self, app_id=AppId.COSMETOLOGY, environment_context=environment_context
+                self, app_id=AppId.COSMETOLOGY
             )
         )
 
@@ -67,7 +69,8 @@ class FrontendDeploymentStack(AppStack):
         if cosmetology_persistent_stack_frontend_app_config_values is None:
             raise ValueError(
                 'Cosmetology Persistent Stack App Configuration not found in SSM. '
-                'Make sure Cosmetology Persistent Stack resources have been deployed.'
+                'The SSM parameter must be manually copied from the cosmetology account to this account. '
+                'See the cosmetology app README for synchronization instructions.'
             )
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
