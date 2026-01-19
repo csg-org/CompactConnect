@@ -3,7 +3,6 @@ from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.frontend_app_config_utility import (
-    AppId,
     PersistentStackFrontendAppConfigValues,
     ProviderUsersStackFrontendAppConfigValues,
 )
@@ -36,21 +35,12 @@ class FrontendDeploymentStack(AppStack):
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
-        # Load the app configuration from both stacks (JCC - same account)
+        # Load the app configuration from both stacks
         persistent_stack_frontend_app_config_values = (
             PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(self)
         )
         provider_users_stack_frontend_app_config_values = (
             ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(self)
-        )
-
-        # Load cosmetology app configuration
-        # Note: The cosmetology SSM parameter must be manually copied from the cosmetology account
-        # to this account. See the cosmetology app README for synchronization instructions.
-        cosmetology_persistent_stack_frontend_app_config_values = (
-            PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
-                self, app_id=AppId.COSMETOLOGY
-            )
         )
 
         # If these parameters could not be found, it means that the app_configuration values have not been deployed to
@@ -65,13 +55,6 @@ class FrontendDeploymentStack(AppStack):
             raise ValueError(
                 'Provider Users Stack App Configuration not found in SSM. '
                 'Make sure Provider Users Stack resources have been deployed.'
-            )
-        if cosmetology_persistent_stack_frontend_app_config_values is None:
-            raise ValueError(
-                'Cosmetology Persistent Stack App Configuration not found in SSM. '
-                'The SSM parameter `/app/cosmetology/deployment/persistent-stack/frontend_app_configuration` '
-                'must be manually copied from the cosmetology account to this account. '
-                'See backend/cosmetology-app/README.md#frontend-configuration-synchronization for instructions.'
             )
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
@@ -118,7 +101,6 @@ class FrontendDeploymentStack(AppStack):
             environment_context=environment_context,
             persistent_stack_app_config_values=persistent_stack_frontend_app_config_values,
             provider_users_stack_app_config_values=provider_users_stack_frontend_app_config_values,
-            cosmetology_persistent_stack_app_config_values=cosmetology_persistent_stack_frontend_app_config_values,
         )
 
         self.distribution = UIDistribution(
