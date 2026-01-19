@@ -4,7 +4,7 @@ import type SESTransport from 'nodemailer/lib/ses-transport';
 
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
-import { TReaderDocument, renderToStaticMarkup } from '@jusdino-ia/email-builder';
+import { TReaderDocument, renderToStaticMarkup } from '@csg-org/email-builder';
 import { CompactConfigurationClient } from '../compact-configuration-client';
 import { JurisdictionClient } from '../jurisdiction-client';
 import { EnvironmentVariablesService } from '../environment-variables-service';

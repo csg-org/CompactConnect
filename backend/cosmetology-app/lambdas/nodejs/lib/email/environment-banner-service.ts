@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { TReaderDocument } from '@csg-org/email-builder';
 import { EnvironmentVariablesService } from '../environment-variables-service';
 
 /**

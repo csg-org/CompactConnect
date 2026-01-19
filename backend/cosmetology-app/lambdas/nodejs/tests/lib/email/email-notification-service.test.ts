@@ -7,7 +7,7 @@ import { EmailNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
-import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { TReaderDocument } from '@csg-org/email-builder';
 import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 jest.mock('nodemailer');

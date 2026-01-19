@@ -6,7 +6,7 @@ import { EncumbranceNotificationService } from '../../../lib/email';
 import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
-import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { TReaderDocument } from '@csg-org/email-builder';
 import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 import { Compact } from '../../../lib/models/compact';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
@@ -465,7 +465,7 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
                 .args[0].input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('This encumbrance restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
+            expect(emailContent).toContain('This encumbrance restricts the provider\'s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should include provider detail link in email content', async () => {
@@ -484,7 +484,7 @@ describe('EncumbranceNotificationService', () => {
                 .input.Content?.Simple?.Body?.Html?.Data;
 
             expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
-            expect(emailContent).toContain('This encumbrance restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
+            expect(emailContent).toContain('This encumbrance restricts the provider\'s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should log warning and continue when no recipients found for jurisdiction', async () => {
@@ -625,7 +625,7 @@ describe('EncumbranceNotificationService', () => {
                 .args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
-            expect(emailContent).toContain('The encumbrance no longer restricts the provider&#39;s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
+            expect(emailContent).toContain('The encumbrance no longer restricts the provider\'s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
         it('should log warning and continue when no recipients found for jurisdiction', async () => {
