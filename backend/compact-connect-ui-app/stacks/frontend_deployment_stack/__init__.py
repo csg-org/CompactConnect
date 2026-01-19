@@ -69,8 +69,9 @@ class FrontendDeploymentStack(AppStack):
         if cosmetology_persistent_stack_frontend_app_config_values is None:
             raise ValueError(
                 'Cosmetology Persistent Stack App Configuration not found in SSM. '
-                'The SSM parameter must be manually copied from the cosmetology account to this account. '
-                'See the cosmetology app README for synchronization instructions.'
+                'The SSM parameter `/app/cosmetology/deployment/persistent-stack/frontend_app_configuration` '
+                'must be manually copied from the cosmetology account to this account. '
+                'See backend/cosmetology-app/README.md#frontend-configuration-synchronization for instructions.'
             )
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]

@@ -42,11 +42,14 @@ class PersistentStackFrontendAppConfigUtility:
     This class provides helper methods for generating and storing configuration
     values that need to be shared between the Persistent stack and Frontend Deployment Stack.
 
-    Note::
-      # The Frontend deployment has dependencies on the backend, in the form of these parameters.
-      # If these change, or if new parameters are introduced, the Frontend deploy will need to be planned
-      # for _after_ the backend so that these dependencies can be properly resolved.
+    Note:
+    The Frontend deployment has dependencies on the backend, in the form of these parameters.
+    If these change, or if new parameters are introduced, the Frontend deploy will need to be planned
+    for _after_ the backend so that these dependencies can be properly resolved.
 
+    For backend applications deployed in different AWS accounts (e.g., COSMETOLOGY), the SSM parameter must be
+    manually copied to the frontend account with the same parameter name.
+    See the comment in the load_persistent_stack_values_from_ssm_parameter method for more details.
     """
 
     def __init__(self, app_id: AppId = AppId.JCC):
@@ -205,7 +208,14 @@ class PersistentStackFrontendAppConfigValues:
 
         IMPORTANT: When backend applications create or update SSM parameters for frontend
         configuration, those parameters must be manually synchronized to the frontend account.
-        See the backend application's README for synchronization instructions.
+        
+        To copy the parameter from the backend account to the frontend account:
+        1. Get the parameter value from the respective backend account:
+           aws ssm get-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration --query 'Parameter.Value' --output text
+        2. Put the parameter value in the respective frontend account:
+           aws ssm put-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration --value "<value>" --type String --overwrite
+
+        This process may be automated in the future through the use of a custom resource with proper cross-account permissions, but for now it is a manual process.
 
         :param stack: The CDK stack
         :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)

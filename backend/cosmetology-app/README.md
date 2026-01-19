@@ -332,6 +332,52 @@ Once the pipelines are established with the above steps, deployments will be aut
 > cross-app dependencies change, you will need to manually create an additional `ui-test-*` tag after the backend
 > deploy completes, to resolve the cross-app dependencies.
 
+## Frontend Configuration Synchronization
+[Back to top](#compact-connect---backend-developer-documentation)
+
+The cosmetology backend application creates SSM parameters containing frontend configuration values (Cognito domains, API endpoints, etc.) that the frontend application needs during deployment. Since the frontend deploys from a different AWS account (the pipeline/deployment account), these SSM parameters must be **manually copied** to the frontend account whenever they are created **or updated**.
+
+> **Note:** If you do not have access to the frontend/pipeline account, coordinate with a JCC AWS administrator who has access to perform the copy operation. You can provide them with the parameter value from Step 1 below.
+
+### Synchronization Process
+
+**Step 1: Get the parameter value from the cosmetology account**
+
+```bash
+# Authenticate your cli credentials for the respective cosmetology account
+
+# Get the parameter value
+VALUE=$(aws ssm get-parameter \
+  --name /app/cosmetology/deployment/persistent-stack/frontend_app_configuration \
+  --query 'Parameter.Value' \
+  --output text \
+  --profile <your cosmetology account profile>)
+```
+
+**Step 2: Copy the parameter to the frontend/pipeline account**
+
+```bash
+# Set your cli credentials to the respective frontend account
+# Create/update the parameter in the frontend account
+aws ssm put-parameter \
+  --name /app/cosmetology/deployment/persistent-stack/frontend_app_configuration \
+  --value "$VALUE" \
+  --type String \
+  --overwrite \
+  --profile <your JCC account profile>
+```
+
+If you do not have access to the frontend/pipeline account, provide the `$VALUE` from Step 1 to a JCC AWS administrator who can perform this step on your behalf.
+
+**Step 3: Verify the copy**
+
+```bash
+# Verify the parameter exists in the frontend account
+aws ssm get-parameter \
+  --name /app/cosmetology/deployment/persistent-stack/frontend_app_configuration \
+  --profile <your JCC account profile>
+```
+
 ## StatSig Feature Flag Setup
 [Back to top](#compact-connect---backend-developer-documentation)
 
