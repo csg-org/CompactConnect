@@ -256,7 +256,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure we have a layer and parameter referencing that layer for each expected runtime
-        for runtime in ['python3.12', 'python3.14']:
+        for runtime in ['python3.14']:
             layers = persistent_stack_template.find_resources(
                 type=CfnLayerVersion.CFN_RESOURCE_TYPE_NAME,
                 props={
