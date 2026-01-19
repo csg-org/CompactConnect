@@ -12,7 +12,7 @@
     "lint:fix": "eslint '**/*.ts' --fix",
     "lint": "eslint '**/*.ts'",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage",
-    "audit:dependencies": "yarn audit --groups dependencies --level moderate"
+    "audit:dependencies": "/bin/bash -c 'yarn audit --groups dependencies --level moderate; [[ $? -ge 4 ]] && exit 1 || exit 0'"
   },
   "author": "Inspiring Apps",
   "license": "UNLICENSED",
