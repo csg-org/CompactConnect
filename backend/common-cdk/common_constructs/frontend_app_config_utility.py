@@ -208,14 +208,17 @@ class PersistentStackFrontendAppConfigValues:
 
         IMPORTANT: When backend applications create or update SSM parameters for frontend
         configuration, those parameters must be manually synchronized to the frontend account.
-        
+
         To copy the parameter from the backend account to the frontend account:
         1. Get the parameter value from the respective backend account:
-           aws ssm get-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration --query 'Parameter.Value' --output text
+           aws ssm get-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration \
+           --profile <your backend account profile> --query 'Parameter.Value' --output text
         2. Put the parameter value in the respective frontend account:
-           aws ssm put-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration --value "<value>" --type String --overwrite
+           aws ssm put-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration \
+           --value "<value>" --type String --overwrite --profile <your frontend account profile>
 
-        This process may be automated in the future through the use of a custom resource with proper cross-account permissions, but for now it is a manual process.
+        This process may be automated in the future through the use of a custom resource with proper cross-account
+        permissions, but for now it is a manual process.
 
         :param stack: The CDK stack
         :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
