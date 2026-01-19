@@ -205,7 +205,7 @@
     "@smithy/uuid" "^1.1.0"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sesv2@^3.901.0":
+"@aws-sdk/client-sesv2@^3.839.0", "@aws-sdk/client-sesv2@^3.901.0":
   version "3.901.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/client-sesv2/-/client-sesv2-3.901.0.tgz#0e36caff43ff8b4503174132140a91b128233afc"
   integrity sha512-xCS2qZlvgbXKZbJW8XgU8OEAL7BJyVqJ5yODOQxa1TJFZ/+wEhik9XZtULjNnQqa29sJDpPltuSDG1aDG2OUxQ==
@@ -2365,11 +2365,12 @@
   dependencies:
     undici-types "~6.19.2"
 
-"@types/nodemailer@^6.4.14":
-  version "6.4.17"
-  resolved "https://registry.npmjs.org/@types/nodemailer/-/nodemailer-6.4.17.tgz"
-  integrity sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==
+"@types/nodemailer@^7.0.4":
+  version "7.0.5"
+  resolved "https://registry.yarnpkg.com/@types/nodemailer/-/nodemailer-7.0.5.tgz#4109582cf0680a1a69457f66adabb9540c4dd19a"
+  integrity sha512-7WtR4MFJUNN2UFy0NIowBRJswj5KXjXDhlZY43Hmots5eGu5q/dTeFd/I6GgJA/qj3RqO6dDy4SvfcV3fOVeIA==
   dependencies:
+    "@aws-sdk/client-sesv2" "^3.839.0"
     "@types/node" "*"
 
 "@types/prop-types@*":

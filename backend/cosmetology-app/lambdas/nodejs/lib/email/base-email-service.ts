@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
+import type SESTransport from 'nodemailer/lib/ses-transport';
 
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
@@ -111,9 +112,10 @@ export abstract class BaseEmailService {
     }) {
         try {
             // Create a nodemailer transport that generates raw MIME messages
-            const transport = nodemailer.createTransport({
+            const sesTransportOptions: SESTransport.Options = {
                 SES: { sesClient: this.sesClient, SendEmailCommand },
-            });
+            };
+            const transport = nodemailer.createTransport(sesTransportOptions);
 
             // Create the email message
             const message = {
