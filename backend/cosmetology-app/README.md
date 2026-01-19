@@ -14,7 +14,6 @@ This is an [AWS-CDK](https://aws.amazon.com/cdk/) based project for the backend 
 - **[Local Development](#local-development)**
 - **[Tests](#tests)**
 - **[Deployment](#deployment)**
-- **[Google reCAPTCHA Setup](#google-recaptcha-setup)**
 - **[Decommissioning](#decommissioning)**
 - **[More Info](#more-info)**
 
@@ -209,11 +208,10 @@ its environment:
 6) Configure your aws cli to authenticate against your own account. There are several ways to do this based on the
    type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
 7) Complete the [StatSig Feature Flag Setup](#statsig-feature-flag-setup) steps for your sandbox environment.
-8) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
-9) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account. See
+8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account. See
    [Custom bootstrap stack](#custom-bootstrap-stack) below for optional custom stack deployment.
-10) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
-11)*Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have
+9) Run `cdk deploy 'Sandbox/*'` to get the initial backend stack resources deployed.
+10) *Optional:* If you have a domain name configured for your sandbox environment, once the backend stacks have
     successfully deployed, you can deploy the frontend UI app as well. See the
     [UI app for details](../compact-connect-ui-app/README.md).
 
@@ -252,10 +250,6 @@ The production environment requires a few steps to fully set up before deploys c
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
 - Complete the [StatSig Feature Flag Setup](#statsig-feature-flag-setup) steps for each environment you will be deploying to (test, beta, prod).
-- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, beta, prod).
-  Use the appropriate domain name for the environment (ie `app.test.compactconnect.org` for test environment,
-  `app.beta.compactconnect.org` for beta environment, `app.compactconnect.org` for production). For the production
-  environment, make sure to complete the billing setup steps as well.
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
@@ -412,46 +406,6 @@ The feature flag system uses StatSig to manage feature flags across different en
        --name "compact-connect/env/{test | beta | prod}/statsig/credentials" \
        --secret-string '{"serverKey": "<your_server_secret_key>", "consoleKey": "<your_console_api_key>"}'
      ```
-
-## Google reCAPTCHA Setup
-[Back to top](#compact-connect---backend-developer-documentation)
-
-The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. Follow these steps to set up reCAPTCHA
-for your environment:
-
-1. Visit https://www.google.com/recaptcha/
-2. Go to "v3 Admin Console"
-   - If needed, enter your Google account credentials
-3. Create a site
-   - Recaptcha type is v3 (score based)
-   - Domain will be the frontend browser domain for the environment ('localhost' for local development)
-   - Google Cloud Platform may require a project name
-   - Submit
-4. Open the Settings for the new site
-   - The Site Key (Public) will need to be set in the cdk.context.json for the appropriate environment under the field
-     named `recaptcha_public_key` for deployments, or in your local `.env` file of the webroot folder (if running the
-     app locally)
-   - The Secret Key (Private) will need to be manually stored in the AWS account in secrets manager, using the
-     following secret name:
-     `compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token`
-   The value of the secret key should be in the following format:
-   ```
-   {
-     "token": "<value of private Secret Key from Google reCAPTCHA>"
-   }
-   ```
-   You can run the following aws cli command to create the secret (make sure you are logged in to the same AWS account
-   you want to store the secret in, under the us-east-1 region):
-   ```
-   aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
-   ```
-
-For Production environments, additional billing setup is required:
-1. In the Settings for a reCAPTCHA site, click "View in Cloud Console"
-2. From the main nav, go to Billing
-3. If you have an existing billing account, you may link it. Otherwise, you can create a New Billing account, where you
-   will add payment information
-4. More info on Google Recaptcha billing: https://cloud.google.com/recaptcha/docs/billing-information
 
 ### Useful commands
 
