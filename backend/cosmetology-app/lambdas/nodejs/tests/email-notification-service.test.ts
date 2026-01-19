@@ -4,7 +4,7 @@ import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { Lambda } from '../email-notification-service/lambda';
 import { EmailNotificationEvent } from '../lib/models/email-notification-service-event';
-import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
+import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 
 const SAMPLE_EVENT: EmailNotificationEvent = {
     template: 'transactionBatchSettlementFailure',

@@ -3,7 +3,7 @@ import 'aws-sdk-client-mock-jest';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { Lambda } from '../cognito-emails/lambda';
-import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
+import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 
 const SAMPLE_COGNITO_EVENT = {
     version: '1',

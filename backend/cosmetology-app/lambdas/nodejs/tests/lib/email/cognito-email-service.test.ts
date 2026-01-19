@@ -5,7 +5,7 @@ import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { CognitoEmailService } from '../../../lib/email';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
 import { TReaderDocument } from '@jusdino-ia/email-builder';
-import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;

@@ -3,7 +3,7 @@ import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { BaseEmailService } from '../../../lib/email/base-email-service';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, beforeEach, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;

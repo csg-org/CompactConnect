@@ -7,7 +7,7 @@ import { CompactConfigurationClient } from '../../../lib/compact-configuration-c
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
 import { TReaderDocument } from '@jusdino-ia/email-builder';
-import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 import { Compact } from '../../../lib/models/compact';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
