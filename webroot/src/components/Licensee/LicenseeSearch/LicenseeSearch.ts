@@ -383,7 +383,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.privilegeState.value = 'co';
         this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
-        // this.formData.militaryStatus.value = 'approved'; // @TODO: Adding this in next PR with military status updates
+        this.formData.militaryStatus.value = 'approved';
         this.formData.investigationStatus.value = 'underInvestigation';
         this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');

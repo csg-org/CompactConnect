@@ -225,6 +225,18 @@ export class DataApi {
         return wait(500).then(() => response);
     }
 
+    // Update Military Audit Status By ID
+    public updateMilitaryAudit(compact, licenseeId, data) {
+        const response = {
+            message: 'success',
+            compact,
+            licenseeId,
+            data,
+        };
+
+        return wait(500).then(() => response);
+    }
+
     // Encumber License for a licensee.
     public encumberLicense(
         compact,
