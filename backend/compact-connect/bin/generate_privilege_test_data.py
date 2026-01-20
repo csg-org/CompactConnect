@@ -54,59 +54,61 @@ def query_eligible_providers(
 ) -> set[str]:
     """Query licenseGSI and return set of provider IDs from eligible license records."""
     provider_ids = set()
-    
+
     # Build GSI PK: C#<compact>#J#<home_state>
     gsi_pk = f'C#{compact.lower()}#J#{home_state.lower()}'
-    
+
     # Build query kwargs
     query_kwargs = {
         'IndexName': 'licenseGSI',
         'KeyConditionExpression': Key('licenseGSIPK').eq(gsi_pk),
     }
-    
+
     # Add license type filter if specified
     if license_type:
         query_kwargs['FilterExpression'] = Attr('licenseType').eq(license_type)
-    
+
     # Also filter for eligible licenses
     if 'FilterExpression' in query_kwargs:
-        query_kwargs['FilterExpression'] = query_kwargs['FilterExpression'] & Attr('jurisdictionUploadedCompactEligibility').eq('eligible')
+        query_kwargs['FilterExpression'] = query_kwargs['FilterExpression'] & Attr(
+            'jurisdictionUploadedCompactEligibility'
+        ).eq('eligible')
     else:
         query_kwargs['FilterExpression'] = Attr('jurisdictionUploadedCompactEligibility').eq('eligible')
-    
+
     print(f'Querying licenseGSI for eligible providers in {home_state}...')
     if license_type:
         print(f'Filtering by license type: {license_type}')
-    
+
     queried_count = 0
     done = False
     start_key = None
-    
+
     while not done and len(provider_ids) < count:
         if start_key:
             query_kwargs['ExclusiveStartKey'] = start_key
-        
+
         response = provider_table.query(**query_kwargs)
         queried_count += len(response.get('Items', []))
-        
+
         for license_item in response.get('Items', []):
             # Check if we already have enough providers
             if len(provider_ids) >= count:
                 break
-            
+
             provider_id = license_item.get('providerId')
             if provider_id:
                 provider_ids.add(provider_id)
                 if len(provider_ids) % 10 == 0:
                     print(f'Found {len(provider_ids)}/{count} unique provider IDs...')
-        
+
         start_key = response.get('LastEvaluatedKey')
         done = start_key is None
-        
+
         # If we've queried all records and still don't have enough, break
         if done:
             break
-    
+
     print(f'Found {len(provider_ids)} unique provider IDs out of {queried_count} license records queried')
     return provider_ids
 
@@ -147,7 +149,7 @@ def create_privilege_record(
     else:
         # Use the first license record (should be the home state license)
         license_record = license_records[0]
-    
+
     license_type = license_record.licenseType
     license_expiration = license_record.dateOfExpiration
 
@@ -226,7 +228,7 @@ def main():
     if args.home_state == args.privilege_state:
         print('Error: home-state and privilege-state must be different')
         sys.exit(1)
-    
+
     # Validate license type if provided
     if args.license_type:
         valid_license_types = config.license_types_for_compact(args.compact)
@@ -279,7 +281,7 @@ def main():
     # Handle provider-id case: skip query and use specific provider
     if not args.provider_id:
         print(f'Querying eligible providers in {args.home_state}...')
-        
+
         # Query eligible provider IDs using licenseGSI
         provider_ids = query_eligible_providers(
             provider_table,
@@ -312,7 +314,9 @@ def main():
         # Load full provider records to get license information
         # Convert provider_id to UUID if it's a string
         provider_id_uuid = UUID(provider_id) if isinstance(provider_id, str) else provider_id
-        provider_user_records = data_client.get_provider_user_records(compact=args.compact, provider_id=provider_id_uuid)
+        provider_user_records = data_client.get_provider_user_records(
+            compact=args.compact, provider_id=provider_id_uuid
+        )
 
         # Check if provider has license records
         license_records = provider_user_records.get_license_records()
@@ -325,23 +329,31 @@ def main():
 
         # Check if provider already has a privilege for this specific license type in the target state
         existing_privileges = provider_user_records.get_privilege_records(
-            filter_condition=lambda p: p.jurisdiction == args.privilege_state and p.licenseType == target_license_type
+            filter_condition=lambda p, license_type=target_license_type: p.jurisdiction == args.privilege_state
+            and p.licenseType == license_type
         )
         if existing_privileges:
             if args.provider_id:
                 print(
-                    f'Error: Provider {provider_id} already has a {target_license_type} privilege in {args.privilege_state}'
+                    f'Error: Provider {provider_id} already has a {target_license_type} '
+                    f'privilege in {args.privilege_state}'
                 )
                 sys.exit(1)
             else:
                 print(
-                    f'Skipping provider {provider_id} - already has a {target_license_type} privilege in {args.privilege_state}'
+                    f'Skipping provider {provider_id} - already has a {target_license_type} '
+                    f'privilege in {args.privilege_state}'
                 )
                 continue
 
         # Create privilege record
         privilege_record = create_privilege_record(
-            provider_user_records, args.compact, args.privilege_state, transaction_id, privilege_number, args.license_type
+            provider_user_records,
+            args.compact,
+            args.privilege_state,
+            transaction_id,
+            privilege_number,
+            args.license_type,
         )
 
         # Create combined provider update expression
