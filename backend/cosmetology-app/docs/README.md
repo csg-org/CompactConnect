@@ -6,9 +6,7 @@ look [here](./design/README.md).
 
 ## Introduction
 
-The Audiology and Speech Language Pathology, Counseling, and Occupational Therapy compact commissions are collectively
-building a system to share professional licensure data between their state licensing boards to facilitate participation
-in their respective occupational licensure compacts. To date, this system is solely composed of a mock API.
+The Cosmetology compact commission is building a system to share professional licensure data between state licensing boards to facilitate participation in the occupational licensure compact.
 
 ## Table of Contents
 - **[How to use the API bulk-upload feature](#how-to-use-the-api-bulk-upload-feature)**
@@ -52,7 +50,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
 | licenseNumber**         | License number | String (max 100 chars) | OT12345 |
-| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `audiologist`, `speech-language pathologist`, `occupational therapist`, `occupational therapy assistant`, `licensed professional counselor` | occupational therapist |
+| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `cosmetology`, `esthetics` | cosmetology |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
 | licenseStatusName | An optional more descriptive name of the license status. | String (max 100 chars) | SUSPENDED |
@@ -67,11 +65,11 @@ leave the field entirely empty. If some of your licenses are missing a required 
 #### Example CSV
 ```csv
 dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,0608337260,A0608337260,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,Gunnar,active,ACTIVE,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
-2024-06-30,0608337260,B0608337260,2024-06-30,audiologist,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
-2024-06-30,0608337260,C0608337260,2024-06-30,speech-language pathologist,毛,Hoover,泽,active,ACTIVE,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
-2024-06-30,0608337260,D0608337260,2024-06-30,speech-language pathologist,Adams,Tuscaloosa,Michael,inactive,EXPIRED,ineligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
-2024-06-30,0608337260,E0608337260,2024-06-30,speech-language pathologist,Carreño Quiñones,Montgomery,José,active,ACTIVE_IN_RENEWAL,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
+2024-06-30,0608337260,A0608337260,2024-06-30,cosmetology,Guðmundsdóttir,Birmingham,Gunnar,active,ACTIVE,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
+2024-06-30,0608337260,B0608337260,2024-06-30,cosmetology,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
+2024-06-30,0608337260,C0608337260,2024-06-30,cosmetology,毛,Hoover,泽,active,ACTIVE,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
+2024-06-30,0608337260,D0608337260,2024-06-30,cosmetology,Adams,Tuscaloosa,Michael,inactive,EXPIRED,ineligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
+2024-06-30,0608337260,E0608337260,2024-06-30,cosmetology,Carreño Quiñones,Montgomery,José,active,ACTIVE_IN_RENEWAL,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
 ```
 
 ### Manual Uploads
@@ -98,7 +96,7 @@ If data is not available for an optional field, it must be left empty in the cas
 **CSV Example with missing optional fields:**
 ```csv
 dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,,OT12345,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
+2024-06-30,,OT12345,2024-06-30,cosmetology,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
 ```
 
 ### What if we don't have data for a required field?

@@ -109,7 +109,7 @@ class FeatureFlagStack(AppStack):
                 FeatureFlagEnvironmentName.SANDBOX,
             ],
             # Note that flags are not updated once set and must be manually updated through the console
-            custom_attributes={'compact': ['aslp']},
+            custom_attributes={'compact': ['cosm']},
             environment_name=environment_name,
         )
 

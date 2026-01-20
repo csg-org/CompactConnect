@@ -24,7 +24,7 @@ You'll need the following information for the execution:
 
 | Parameter | Description                                              | Example |
 |-----------|----------------------------------------------------------|---------|
-| `compact` | The compact abbreviation (lowercase)                     | `"aslp"`, `"octp"`, `"counseling"` |
+| `compact` | The compact abbreviation (lowercase)                     | `"cosm"` |
 | `jurisdiction` | The state/jurisdiction code (lowercase)                  | `"oh"`, `"ky"`, `"ne"` |
 | `startDateTime` | UTC timestamp when problematic uploads began (inclusive) | `"2020-01-15T08:00:00Z"` |
 | `endDateTime` | UTC timestamp when problematic uploads ended (inclusive) | `"2020-01-15T17:59:59Z"` |
@@ -44,14 +44,14 @@ You'll need the following information for the execution:
 1. Click **"Start Execution"**
 2. Enter a descriptive execution name (this will be used for the S3 results folder):
    ```
-   rollback-aslp-oh-2020-01-15
+   rollback-cosm-oh-2020-01-15
    ```
    
 3. Paste the following JSON input (replace values with your specific parameters):
 
 ```json
 {
-  "compact": "aslp",
+  "compact": "cosm",
   "jurisdiction": "oh",
   "startDateTime": "2020-01-15T08:00:00Z",
   "endDateTime": "2020-01-15T17:59:59Z",
@@ -73,7 +73,7 @@ Once the execution completes, comprehensive results are stored in S3. The S3 key
 
 1. Navigate to S3 in the AWS Console
 2. Find the bucket with `disasterrecoveryrollbackresults` in the name.
-3. Navigate to the folder matching your execution name: `rollback-aslp-oh-2025-01-15/`
+3. Navigate to the folder matching your execution name: `rollback-cosm-oh-2025-01-15/`
 4. Download the file: `results.json`
 
 #### Understanding the Results Structure
@@ -92,7 +92,7 @@ Providers that were successfully rolled back (example):
       "licensesReverted": [
         {
           "jurisdiction": "oh",
-          "licenseType": "audiologist",
+          "licenseType": "cosmetology",
           "revisionId": "98765432-10ab-cdef-0123-456789abcdef",
           "action": "REVERT"
         }
@@ -100,7 +100,7 @@ Providers that were successfully rolled back (example):
       "privilegesReverted": [
         {
           "jurisdiction": "ky",
-          "licenseType": "audiologist",
+          "licenseType": "cosmetology",
           "revisionId": "11111111-2222-3333-4444-555555555555",
           "action": "REACTIVATED"
         }
@@ -133,7 +133,7 @@ Providers that require manual review (example):
           "recordType": "licenseUpdate",
           "typeOfUpdate": "encumbrance",
           "updateTime": "2025-01-16T10:30:00Z",
-          "licenseType": "audiologist",
+          "licenseType": "cosmetology",
           "reason": "License was updated with a change unrelated to license upload or the update occurred after rollback end time. Manual review required."
         }
       ]

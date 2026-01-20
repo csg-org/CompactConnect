@@ -1,4 +1,4 @@
-﻿# CompactConnect Automated License Data Upload Instructions
+# CompactConnect Automated License Data Upload Instructions
 
 ## Overview
 
@@ -49,7 +49,7 @@ The credentials will be sent to you in this format:
 ```
 
 You will also receive an email with the following contextual information:
-- **Compact**: The full name of the compact (e.g., "Occupational Therapy", "Audiology and Speech Language Pathology")
+- **Compact**: The full name of the compact (e.g., "Cosmetology")
 - **State**: Your state's postal abbreviation (e.g., "KY", "LA")
 - **Auth URL**: The authentication endpoint URL
 - **License Upload URL**: The API endpoint for uploading license data
@@ -82,8 +82,7 @@ Replace:
 - `<clientSecret>` with your client secret
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky` for Kentucky) - this information was provided
   in the email
-- `<compact>` with the lower-cased compact abbreviation (`octp` for the 'Occupational Therapy' Compact,
-  `aslp` for 'Audiology and Speech Language Pathology' Compact, or `coun` for the 'Counseling' Compact) - this
+- `<compact>` with the lower-cased compact abbreviation (`cosm` for the 'Cosmetology' Compact) - this
   information was provided in the email
 
 Example response:
@@ -124,7 +123,7 @@ curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/com
     "licenseStatusName":"Active",
     "licenseStatus":"active",
     "compactEligibility":"eligible",
-    "licenseType":"audiologist",
+    "licenseType":"cosmetology",
     "givenName":"Jane",
     "middleName":"Marie",
     "familyName":"Smith",
@@ -146,7 +145,7 @@ curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/com
 
 Replace:
 - `<access_token>` with the access token from Step 1
-- `<compact>` with the lower-cased compact abbreviation (e.g., `aslp`, `octp`, or `coun`) - this information was
+- `<compact>` with the lower-cased compact abbreviation (e.g., `cosm`) - this information was
   provided in the email.
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`) - this information was provided in the email
 - The `User-Agent` header value with your own application name, version, and contact information
@@ -178,7 +177,7 @@ curl --location --request GET 'https://state-api.beta.compactconnect.org/v1/comp
 
 Replace:
 - `<access_token>` with the access token from Step 1
-- `<compact>` with the lower-cased compact abbreviation (e.g., `aslp`, `octp`, or `coun`) - this information was
+- `<compact>` with the lower-cased compact abbreviation (e.g., `cosm`) - this information was
   provided in the email.
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`) - this information was provided in the email
 - The `User-Agent` header value with your own application name, version, and contact information
@@ -323,7 +322,7 @@ Replace:
 - `<clientId>` with your client ID
 - `<clientSecret>` with your client secret
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`)
-- `<compact>` with the lower-cased compact abbreviation (`aslp`, `octp`, or `coun`)
+- `<compact>` with the lower-cased compact abbreviation (`cosm`)
 
 **OAuth Scope Reference**:
 - `<jurisdiction>/<compact>.write` - Required for uploading license data
@@ -361,7 +360,7 @@ The query endpoint allows you to retrieve a list of providers who have privilege
     {
       "providerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "type": "provider",
-      "compact": "aslp",
+      "compact": "cosm",
       "dateOfUpdate": "2024-10-05T14:32:10.123Z",
       "licenseJurisdiction": "ky",
       "licenseStatus": "active",
@@ -423,9 +422,9 @@ The get provider endpoint returns detailed information about a specific provider
       "type": "statePrivilege",
       "providerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "privilegeId": "priv_xyz123",
-      "compact": "aslp",
+      "compact": "cosm",
       "jurisdiction": "oh",
-      "licenseType": "audiologist",
+      "licenseType": "cosmetology",
       "status": "active",
       "compactEligibility": "eligible",
       "dateOfIssuance": "2023-01-15",
@@ -442,7 +441,7 @@ The get provider endpoint returns detailed information about a specific provider
       "licenseStatusName": "Active"
     }
   ],
-  "providerUIUrl": "https://app.beta.compactconnect.org/aslp/Licensing/a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  "providerUIUrl": "https://app.beta.cosmetology.compactconnect.org/cosm/Licensing/a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 }
 ```
 
@@ -451,7 +450,7 @@ The get provider endpoint returns detailed information about a specific provider
 - `providerUIUrl`: Direct link to view this provider's details in the CompactConnect web interface
 - Each privilege record combines data from both the privilege and the underlying license record
 
-**Note**: A provider may have multiple privileges in your jurisdiction if they hold multiple license types (e.g., both audiologist and speech-language pathologist licenses).
+**Note**: A provider may have multiple privileges in your jurisdiction if they hold multiple license types.
 
 ## Troubleshooting Common Issues
 
