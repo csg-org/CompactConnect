@@ -245,7 +245,7 @@ the FROM address is using your custom domain. The DMARC authentication will reje
 not properly configured using SPF and DKIM, so if you get the email notification from Cognito, you've verified that the
 authentication is working as expected.
 
-### First deploy to the production environment
+### First deploy to the pipelined environments
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
@@ -290,16 +290,31 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   - Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
     [custom bootstrap stack](#custom-bootstrap-stack).
 
-  > **Note on OpenSearch Service-Linked Role**: When the `SearchPersistentStack` is deployed for the first time, it may
-  > fail to create the OpenSearch domain, with an error like:
-  > ```
-  > Invalid request provided: Before you can proceed, you must enable a service-linked role to give Amazon OpenSearch
-  > Service permissions to access your VPC.
-  > ```
-  > When an OpenSearch domain is first provisioned in an account AWS automatically creates that service-linked role,
-  > however, it may not do so in time to save the CloudFormation deploy. If that happens, look for a new IAM role in
-  > the account, `AWSServiceRoleForAmazonOpenSearchService`. If that role now exists, just retry the deploy and it
-  > should continue without issue.
+  - To get the application stood up for the first time, manually use cdk to deploy the app into the environment account:
+    - While authenticated into the deploy account, synthesize the application:
+      ```sh
+      cdk synth --context pipelineStack=BetaBackendCosmetology --context action=pipelineSynth
+      ```
+    - Authenticate into the environment account and deploy the synthesized application:
+      ```sh
+      cd cdk.out
+      # Beta example here                                        <your environment equivalent>
+      cdk deploy --app . --no-rollback --require-approval never 'BetaBackendCosmetology/Beta/*'
+      ```
+      Some AWS services are not perfectly graceful in handling their initial provisioning. Threre are three expected
+      failures that you just retry to get past. If these happen, log into the AWS console, find the failed stack and
+      just click *retry*. Once the failed stack creation succeeds, you can re-run the `cdk deploy` command to proceed:
+      - In the PersistentStack: StaffUsersGreenUserPoolRiskConfiguration may fail to provision. This is due to a
+        service linked role that Cognito creates at creation-time, which it doesn't reliably create before it fails
+        its own process.
+      - In the SearchPersistentStack: ProviderSearchDomain, may fail for a similar issue. The Opensearch service
+        linked role is created at creation-time and a retry should succeed.
+      - In the ApiStack: CloudFormation will attempt to create all of the API Gateway resources too quickly and will
+        fail with a `429` (too many requests) error when API Gateway rate-limits CloudFormation. Again, retry the
+        stack creation to get past this error.
+
+- Once the application is fully deployed to each environment, create a tag/release in GitHub that matches the pattern
+  for each environment to trigger an initial CI/CD deploy and test the end-to-end pipeline functionality.
 
 - Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
   See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html). Note that this must be
