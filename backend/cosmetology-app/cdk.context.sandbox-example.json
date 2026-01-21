@@ -6,7 +6,7 @@
   },
   "ssm_context": {
     "github_repo_string": "csg-org/CompactConnect",
-    "app_name": "cosmetology-app",
+    "app_name": "cosmetology-compact-connect",
     "environments": {
       "justin": {
         "account_id": "111122223333",
