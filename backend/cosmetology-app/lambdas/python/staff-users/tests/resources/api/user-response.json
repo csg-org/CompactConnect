@@ -9,7 +9,7 @@
   },
   "status": "inactive",
   "permissions": {
-    "aslp": {
+    "cosm": {
       "actions": {
         "readPrivate": true
       },

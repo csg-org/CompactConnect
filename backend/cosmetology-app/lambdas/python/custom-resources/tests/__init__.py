@@ -13,7 +13,7 @@ class TstLambdas(TestCase):
                 # Set to 'true' to enable debug logging
                 'DEBUG': 'false',
                 'AWS_DEFAULT_REGION': 'us-east-1',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': '["oh", "ky", "ne"]',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'ENVIRONMENT_NAME': 'test',

@@ -7,7 +7,7 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'cosm'
 MOCK_SSN = '123-12-1234'
 
 
@@ -38,7 +38,7 @@ class TestGetProvider(TstFunction):
             event['resource'] = '/v1/provider-users/me/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = test_provider.providerId
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_provider.compact
-            event['pathParameters'] = {'jurisdiction': 'ne', 'licenseType': 'slp'}
+            event['pathParameters'] = {'jurisdiction': 'ne', 'licenseType': 'cos'}
 
         return event
 
@@ -65,7 +65,7 @@ class TestGetProvider(TstFunction):
             )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
-                'licenseType': 'slp',
+                'licenseType': 'cos',
                 'compact': test_provider.compact,
                 'providerId': test_provider.providerId,
             }
@@ -95,7 +95,7 @@ class TestGetProvider(TstFunction):
             )
             event['pathParameters'] = {
                 'jurisdiction': 'ne',
-                'licenseType': 'slp',
+                'licenseType': 'cos',
                 'compact': test_provider.compact,
                 'providerId': test_provider.providerId,
             }
@@ -108,7 +108,7 @@ class TestGetProvider(TstFunction):
 
         event = self._when_testing_provider_user_event_with_custom_claims()
 
-        event['pathParameters'] = {'jurisdiction': 'ma', 'licenseType': 'slp'}
+        event['pathParameters'] = {'jurisdiction': 'ma', 'licenseType': 'cos'}
 
         resp = privilege_history_handler(event, self.mock_context)
 
@@ -145,7 +145,7 @@ class TestGetProvider(TstFunction):
         history_data = json.loads(resp['body'])
 
         expected_history = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'events': [
                 {
                     'createDate': '2016-05-05T12:59:59+00:00',
@@ -189,7 +189,7 @@ class TestGetProvider(TstFunction):
         history_data = json.loads(resp['body'])
 
         expected_history = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'events': [
                 {
                     'createDate': '2016-05-05T12:59:59+00:00',
@@ -232,7 +232,7 @@ class TestGetProvider(TstFunction):
         history_data = json.loads(resp['body'])
 
         expected_history = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'events': [
                 {
                     'createDate': '2016-05-05T12:59:59+00:00',

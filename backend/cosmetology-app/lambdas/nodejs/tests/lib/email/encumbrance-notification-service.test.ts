@@ -12,14 +12,14 @@ import { Compact } from '../../../lib/models/compact';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 const SAMPLE_COMPACT_CONFIG: Compact = {
-    pk: 'aslp#CONFIGURATION',
-    sk: 'aslp#CONFIGURATION',
+    pk: 'cosm#CONFIGURATION',
+    sk: 'cosm#CONFIGURATION',
     compactAdverseActionsNotificationEmails: ['adverse@example.com'],
     compactCommissionFee: {
         feeAmount: 3.5,
         feeType: 'FLAT_RATE'
     },
-    compactAbbr: 'aslp',
+    compactAbbr: 'cosm',
     compactName: 'Audiology and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
     compactSummaryReportNotificationEmails: ['summary@example.com'],
@@ -28,11 +28,11 @@ const SAMPLE_COMPACT_CONFIG: Compact = {
 };
 
 const SAMPLE_JURISDICTION_CONFIG = {
-    pk: 'aslp#CONFIGURATION',
-    sk: 'aslp#JURISDICTION#oh',
+    pk: 'cosm#CONFIGURATION',
+    sk: 'cosm#JURISDICTION#oh',
     jurisdictionName: 'Ohio',
     postalAbbreviation: 'oh',
-    compact: 'aslp',
+    compact: 'cosm',
     jurisdictionOperationsTeamEmails: ['oh-ops@example.com'],
     jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com'],
     jurisdictionSummaryReportNotificationEmails: ['oh-summary@example.com']
@@ -112,7 +112,7 @@ describe('EncumbranceNotificationService', () => {
     describe('License Encumbrance Provider Notification', () => {
         it('should send license encumbrance provider notification email', async () => {
             await encumbranceService.sendLicenseEncumbranceProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -145,7 +145,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendLicenseEncumbranceProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 [],
                 'John',
                 'Doe',
@@ -161,7 +161,7 @@ describe('EncumbranceNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -200,7 +200,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -220,7 +220,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -238,7 +238,7 @@ describe('EncumbranceNotificationService', () => {
     describe('License Encumbrance Lifting Provider Notification', () => {
         it('should send license encumbrance lifting provider notification email with correct content', async () => {
             await encumbranceService.sendLicenseEncumbranceLiftingProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -274,7 +274,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendLicenseEncumbranceLiftingProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 [],
                 'John',
                 'Doe',
@@ -293,7 +293,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'ca',
                 'John',
                 'Doe',
@@ -335,7 +335,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -355,7 +355,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -373,7 +373,7 @@ describe('EncumbranceNotificationService', () => {
     describe('Privilege Encumbrance Provider Notification', () => {
         it('should send privilege encumbrance provider notification email with correct content', async () => {
             await encumbranceService.sendPrivilegeEncumbranceProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -409,7 +409,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendPrivilegeEncumbranceProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 [],
                 'John',
                 'Doe',
@@ -428,7 +428,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'ca',
                 'John',
                 'Doe',
@@ -470,7 +470,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should include provider detail link in email content', async () => {
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'ca',
                 'John',
                 'Doe',
@@ -483,7 +483,7 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0]
                 .input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
+            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/cosm/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/cosm/Licensing/provider-123</a>');
             expect(emailContent).toContain('This encumbrance restricts the provider\'s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
@@ -494,7 +494,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -514,7 +514,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -532,7 +532,7 @@ describe('EncumbranceNotificationService', () => {
     describe('Privilege Encumbrance Lifting Provider Notification', () => {
         it('should send privilege encumbrance lifting provider notification email with correct content', async () => {
             await encumbranceService.sendPrivilegeEncumbranceLiftingProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -568,7 +568,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendPrivilegeEncumbranceLiftingProviderNotificationEmail(
-                'aslp',
+                'cosm',
                 [],
                 'John',
                 'Doe',
@@ -587,7 +587,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'ca',
                 'John',
                 'Doe',
@@ -624,7 +624,7 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
                 .args[0].input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
+            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/cosm/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/cosm/Licensing/provider-123</a>');
             expect(emailContent).toContain('The encumbrance no longer restricts the provider\'s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
@@ -635,7 +635,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',
@@ -655,7 +655,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'John',
                 'Doe',

@@ -1,6 +1,6 @@
 {
   "resource": "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/query",
-  "path": "/v1/compacts/aslp/jurisdictions/al/providers/query",
+  "path": "/v1/compacts/cosm/jurisdictions/al/providers/query",
   "httpMethod": "POST",
   "headers": {
     "Accept": "application/json",
@@ -54,7 +54,7 @@
   "queryStringParameters": null,
   "multiValueQueryStringParameters": null,
   "pathParameters": {
-    "compact": "aslp",
+    "compact": "cosm",
     "jurisdiction": "al"
   },
   "stageVariables": null,
@@ -64,7 +64,7 @@
       "claims": {
         "sub": "5ve0e281b3fqndjl67cucu684c",
         "token_use": "access",
-        "scope": "ne/aslp.write aslp/readGeneral ne/aslp.readPrivate",
+        "scope": "ne/cosm.write cosm/readGeneral ne/cosm.readPrivate",
         "auth_time": "1755017510",
         "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_gxBtau7Di",
         "exp": "Tue Aug 12 17:06:50 UTC 2025",
@@ -78,7 +78,7 @@
     "httpMethod": "POST",
     "extendedRequestId": "PM6e4GcZoAMEnTA=",
     "requestTime": "12/Aug/2025:16:51:55 +0000",
-    "path": "/v1/compacts/aslp/jurisdictions/al/providers/query",
+    "path": "/v1/compacts/cosm/jurisdictions/al/providers/query",
     "accountId": "992382587219",
     "protocol": "HTTP/1.1",
     "stage": "justin-blue",

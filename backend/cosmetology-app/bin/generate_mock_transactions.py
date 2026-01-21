@@ -4,7 +4,7 @@
 # it spreads the transactions across a range of dates and providers to simulate real-world data.
 #
 # Run from 'backend/compact-connect' like:
-# bin/generate_mock_transactions.py --compact aslp --start_date 01/01/2024 --end_date 03/01/2024 --count 100
+# bin/generate_mock_transactions.py --compact cosm --start_date 01/01/2024 --end_date 03/01/2024 --count 100
 
 import argparse
 import asyncio

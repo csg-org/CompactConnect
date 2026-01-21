@@ -157,7 +157,7 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
     compact = provider_user_profile['compact']
     # Step 1: Update the staff user's permissions using the PATCH '/v1/staff-users/me/permissions' endpoint.
     staff_users_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
-    patch_body = {'permissions': {'aslp': {'actions': {'readPrivate': True}}}}
+    patch_body = {'permissions': {'cosm': {'actions': {'readPrivate': True}}}}
     patch_response = requests.patch(
         url=config.api_base_url + f'/v1/compacts/{compact}/staff-users/{test_staff_user_id}',
         headers=staff_users_headers,

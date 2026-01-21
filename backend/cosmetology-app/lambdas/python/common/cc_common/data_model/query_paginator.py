@@ -111,7 +111,7 @@ class _PaginatedQueryDecorator:
             'pagination': {'pageSize': page_size, 'prevLastKey': pagination.get('lastKey')},
         }
 
-        # Last key, if present, will be a dict like {'pk': 'some-pk', 'sk': 'aslp/PROVIDER'}
+        # Last key, if present, will be a dict like {'pk': 'some-pk', 'sk': 'cosm/PROVIDER'}
         if last_key is not None:
             last_key = b64encode(json.dumps(last_key).encode('utf-8')).decode('utf-8')
         resp['pagination']['lastKey'] = last_key

@@ -8,8 +8,8 @@ class TestGetAllowedJurisdictions(TstLambdas):
         from cc_common.utils import get_allowed_jurisdictions
 
         resp = get_allowed_jurisdictions(
-            compact='aslp',
-            scopes={'openid', 'email', 'oh/aslp.admin', 'ne/octp.admin'},
+            compact='cosm',
+            scopes={'openid', 'email', 'oh/cosm.admin'},
         )
         self.assertEqual(['oh'], resp)
 
@@ -17,8 +17,8 @@ class TestGetAllowedJurisdictions(TstLambdas):
         from cc_common.utils import get_allowed_jurisdictions
 
         resp = get_allowed_jurisdictions(
-            compact='aslp',
-            scopes={'openid', 'email', 'aslp/admin', 'oh/aslp.admin'},
+            compact='cosm',
+            scopes={'openid', 'email', 'cosm/admin', 'oh/cosm.admin'},
         )
         self.assertEqual(None, resp)
 
@@ -26,7 +26,7 @@ class TestGetAllowedJurisdictions(TstLambdas):
         from cc_common.utils import get_allowed_jurisdictions
 
         resp = get_allowed_jurisdictions(
-            compact='aslp',
-            scopes={'openid', 'email', 'oh/aslp.admin', 'ky/aslp.admin', 'ne/octp.admin'},
+            compact='cosm',
+            scopes={'openid', 'email', 'oh/cosm.admin', 'ky/cosm.admin'},
         )
         self.assertEqual(sorted(['oh', 'ky']), sorted(resp))

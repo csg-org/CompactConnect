@@ -73,7 +73,7 @@ class TestSearchProviders(TstFunction):
     def _create_mock_provider_hit(
         self,
         provider_id: str = '00000000-0000-0000-0000-000000000001',
-        compact: str = 'aslp',
+        compact: str = 'cosm',
         sort_values: list = None,
     ) -> dict:
         """Create a mock OpenSearch hit for a provider document."""
@@ -117,7 +117,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create event with minimal body - just the required query field
-        event = self._create_api_event(compact='aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event(compact='cosm', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -126,7 +126,7 @@ class TestSearchProviders(TstFunction):
 
         # Verify the search was called with correct parameters
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_aslp_providers', body={'query': {'match_all': {}}, 'size': 100}
+            index_name='compact_cosm_providers', body={'query': {'match_all': {}}, 'size': 100}
         )
 
         # Verify response structure
@@ -150,13 +150,13 @@ class TestSearchProviders(TstFunction):
                 ]
             }
         }
-        event = self._create_api_event('aslp', body={'query': custom_query, 'from': 20})
+        event = self._create_api_event('cosm', body={'query': custom_query, 'from': 20})
 
         search_api_handler(event, self.mock_context)
 
         # Verify the custom query was passed through
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_aslp_providers',
+            index_name='compact_cosm_providers',
             body={
                 'query': {'bool': {'must': [{'match': {'givenName': 'John'}}, {'term': {'licenseStatus': 'active'}}]}},
                 'size': 100,
@@ -170,7 +170,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Request size larger than MAX_SIZE
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}, 'size': 500})
+        event = self._create_api_event('cosm', body={'query': {'match_all': {}}, 'size': 500})
 
         result = search_api_handler(event, self.mock_context)
         self.assertEqual(400, result['statusCode'])
@@ -193,7 +193,7 @@ class TestSearchProviders(TstFunction):
         sort_config = [{'providerId': 'asc'}, {'dateOfUpdate': 'desc'}]
         search_after_values = ['provider-uuid-123']
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {'match_all': {}},
                 'sort': sort_config,
@@ -204,7 +204,7 @@ class TestSearchProviders(TstFunction):
         search_api_handler(event, self.mock_context)
 
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_aslp_providers',
+            index_name='compact_cosm_providers',
             body={
                 'query': {'match_all': {}},
                 'size': 100,
@@ -222,7 +222,7 @@ class TestSearchProviders(TstFunction):
 
         # search_after without sort should fail
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {'match_all': {}},
                 'search_after': ['provider-uuid-123'],
@@ -240,7 +240,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with missing required 'query' field
-        event = self._create_api_event('aslp', body={'size': 10})
+        event = self._create_api_event('cosm', body={'size': 10})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -263,7 +263,7 @@ class TestSearchProviders(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('cosm', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -274,7 +274,7 @@ class TestSearchProviders(TstFunction):
                 'providers': [
                     {
                         'birthMonthDay': '06-15',
-                        'compact': 'aslp',
+                        'compact': 'cosm',
                         'compactEligibility': 'eligible',
                         'dateOfExpiration': '2025-12-31',
                         'dateOfUpdate': '2024-01-15T10:30:00+00:00',
@@ -310,7 +310,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'providerId': 'asc'}, {'dateOfUpdate': 'asc'}],
@@ -331,7 +331,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Test with different compacts
-        for compact in ['aslp', 'octp', 'coun']:
+        for compact in ['cosm']:
             mock_opensearch_client.reset_mock()
 
             event = self._create_api_event(compact, body={'query': {'match_all': {}}})
@@ -345,7 +345,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with unsupported route
-        event = self._create_api_event(compact='aslp', scopes_override='openid email')
+        event = self._create_api_event(compact='cosm', scopes_override='openid email')
 
         response = search_api_handler(event, self.mock_context)
 
@@ -359,12 +359,12 @@ class TestSearchProviders(TstFunction):
 
         # Test with 'index' key (terms lookup attack pattern)
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {
                     'terms': {
                         'providerId': {
-                            'index': 'compact_octp_providers',
+                            'index': 'compact_cosm_providers',
                             'id': 'some-uuid',
                             'path': 'providerId',
                         }
@@ -393,7 +393,7 @@ class TestSearchProviders(TstFunction):
                         'fields': ['familyName', 'givenName'],
                         'like': [
                             {
-                                '_index': 'compact_octp_providers',
+                                '_index': 'compact_cosm_providers',
                                 '_id': 'target-provider-uuid',
                             }
                         ],
@@ -423,7 +423,7 @@ class TestSearchProviders(TstFunction):
                             {
                                 'terms': {
                                     'familyName.keyword': {
-                                        'index': 'compact_octp_providers',
+                                        'index': 'compact_cosm_providers',
                                         'id': 'target-uuid',
                                         'path': 'familyName.keyword',
                                     }
@@ -484,7 +484,7 @@ class TestSearchProviders(TstFunction):
                 'providerId': provider_id,
                 'type': 'provider',
                 'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                'compact': 'octp',  # Different from path parameter 'aslp'
+                'compact': 'cosm',  # Same as path parameter 'cosm'
                 'licenseJurisdiction': 'oh',
                 'licenseStatus': 'active',
                 'compactEligibility': 'eligible',

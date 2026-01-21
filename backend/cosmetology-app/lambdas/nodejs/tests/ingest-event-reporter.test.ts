@@ -75,7 +75,7 @@ describe('Frequent runs', () => {
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
-        process.env.COMPACTS = '["aslp", "octp", "coun"]';
+        process.env.COMPACTS = '["cosm"]';
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
@@ -260,7 +260,7 @@ describe('Frequent runs', () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
 
         // Mock GetItemCommand to reject with "not found" error for compact configuration
-        mockDynamoDBClient.on(GetItemCommand).rejects(new Error('No configuration found for compact: aslp'));
+        mockDynamoDBClient.on(GetItemCommand).rejects(new Error('No configuration found for compact: cosm'));
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
@@ -287,7 +287,7 @@ describe('Weekly runs', () => {
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
-        process.env.COMPACTS = '["aslp", "octp", "coun"]';
+        process.env.COMPACTS = '["cosm"]';
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
@@ -427,8 +427,8 @@ describe('Weekly runs', () => {
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#CONFIGURATION' }
+                    'pk': { S: 'cosm#CONFIGURATION' },
+                    'sk': { S: 'cosm#CONFIGURATION' }
                 }
             }
         );

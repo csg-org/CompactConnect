@@ -17,7 +17,7 @@ from smoke_common import (
 )
 
 MOCK_SSN = '999-99-9999'
-COMPACT = 'aslp'
+COMPACT = 'cosm'
 JURISDICTION = 'ne'
 TEST_PROVIDER_GIVEN_NAME = 'Joe'
 TEST_PROVIDER_FAMILY_NAME = 'Dokes'
@@ -62,14 +62,14 @@ def upload_licenses_record():
     Verifies that a license record can be uploaded to the Compact Connect API and the appropriate
     records are created in the provider table as well as the data events table.
 
-    Step 1: Upload a license record through the POST '/v1/compacts/aslp/jurisdictions/ne/licenses' endpoint.
+    Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/ne/licenses' endpoint.
     Step 2: Verify the provider records are added by querying the API.
     Step 3: Verify the license record is recorded in the data events table.
     """
 
     headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
 
-    # Step 1: Upload a license record through the POST '/v1/compacts/aslp/jurisdictions/ne/licenses' endpoint.
+    # Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/ne/licenses' endpoint.
     post_body = [
         {
             'npi': '1111111111',
@@ -81,7 +81,7 @@ def upload_licenses_record():
             'dateOfBirth': '1991-12-10',
             'dateOfIssuance': '2024-12-10',
             'ssn': MOCK_SSN,
-            'licenseType': 'audiologist',
+            'licenseType': 'cosmetologist',
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'AZ',
             'homeAddressCity': 'Omaha',
@@ -162,11 +162,11 @@ def upload_licenses_record():
         raise SmokeTestFailureException('Failed to find license record in provider details.')
 
     license_record = next(
-        (license_record for license_record in licenses if license_record.get('licenseType') == 'audiologist'), None
+        (license_record for license_record in licenses if license_record.get('licenseType') == 'cosmetologist'), None
     )
 
     if not license_record:
-        raise SmokeTestFailureException('Failed to find audiologist license record in provider details.')
+        raise SmokeTestFailureException('Failed to find cosmetologist license record in provider details.')
 
     logger.info(f'License record successfully found in provider details: {license_record}')
 
@@ -180,7 +180,7 @@ def upload_licenses_record():
     license_ingest_record_response = data_events_table.query(
         KeyConditionExpression='pk = :pk AND sk BETWEEN :start_time AND :end_time',
         ExpressionAttributeValues={
-            ':pk': 'COMPACT#aslp#JURISDICTION#ne',
+            ':pk': 'COMPACT#cosm#JURISDICTION#ne',
             ':start_time': f'TYPE#license.ingest#TIME#{int(start_time.timestamp())}',
             ':end_time': f'TYPE#license.ingest#TIME#{int(event_time.timestamp())}',
         },

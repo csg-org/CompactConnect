@@ -26,7 +26,7 @@ class TstLambdas(TestCase):
                 'LICENSE_GSI_NAME': 'licenseGSI',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'SSN_INDEX_NAME': 'ssnIndex',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -86,12 +86,9 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
-                        ],
-                        'coun': [
-                            {'name': 'licensed professional counselor', 'abbreviation': 'lpc'},
+                        'cosm': [
+                            {'name': 'cosmetologist', 'abbreviation': 'cos'},
+                            {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],
                     },
                 ),

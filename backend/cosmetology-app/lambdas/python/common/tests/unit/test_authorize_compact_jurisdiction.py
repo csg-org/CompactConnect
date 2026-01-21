@@ -16,9 +16,9 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/cosm.write'
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'jurisdiction': 'oh',
         }
 
@@ -34,7 +34,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/cosm.write'
         event['pathParameters'] = {}
 
         with self.assertRaises(CCInvalidRequestException):
@@ -52,7 +52,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
             event = json.load(f)
         del event['requestContext']['authorizer']
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'jurisdiction': 'oh',
         }
 
@@ -71,7 +71,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff'
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'jurisdiction': 'oh',
         }
 
@@ -91,9 +91,9 @@ class TestAuthorizeCompact(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff cosm/readGeneral'
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'cosm',
         }
 
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
@@ -109,7 +109,7 @@ class TestAuthorizeCompact(TstLambdas):
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff cosm/readGeneral'
         event['pathParameters'] = {}
 
         with self.assertRaises(CCInvalidRequestException):
@@ -127,7 +127,7 @@ class TestAuthorizeCompact(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
 
         with self.assertRaises(CCUnauthorizedException):
             example_entrypoint(event, self.mock_context)
@@ -144,7 +144,7 @@ class TestAuthorizeCompact(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff'
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
 
         with self.assertRaises(CCAccessDeniedException):
             example_entrypoint(event, self.mock_context)

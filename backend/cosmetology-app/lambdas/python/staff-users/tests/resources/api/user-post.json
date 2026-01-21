@@ -6,7 +6,7 @@
     "familyName": "Williams"
   },
   "permissions": {
-    "aslp": {
+    "cosm": {
       "actions": {
         "readPrivate": true
       },

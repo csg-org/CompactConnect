@@ -1,9 +1,9 @@
 {
-  "pk": "aslp#CONFIGURATION",
-  "sk": "aslp#CONFIGURATION",
+  "pk": "cosm#CONFIGURATION",
+  "sk": "cosm#CONFIGURATION",
   "type": "compact",
-  "compactAbbr": "aslp",
-  "compactName": "Audiology and Speech Language Pathology",
+  "compactAbbr": "cosm",
+  "compactName": "Cosmetology",
   "compactOperationsTeamEmails": ["<email address>"],
   "compactAdverseActionsNotificationEmails": ["<email address>"],
   "compactSummaryReportNotificationEmails": ["<email address>"],

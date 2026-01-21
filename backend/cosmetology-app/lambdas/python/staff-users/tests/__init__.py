@@ -18,7 +18,7 @@ class TstLambdas(TestCase):
                 'USERS_TABLE_NAME': 'provider-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'ENVIRONMENT_NAME': 'test',
             },

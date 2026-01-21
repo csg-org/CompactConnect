@@ -170,7 +170,7 @@ class TestEncumbranceEvents(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': 'ky',  # Different jurisdiction
-                'licenseTypeAbbreviation': 'aud',  # Different license type
+                'licenseTypeAbbreviation': 'cos',  # Different license type
                 # note there is no encumberedStatus present
             }
         )

@@ -66,7 +66,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
@@ -113,7 +113,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_privilege_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/slp#ADVERSE_ACTION'
+                f'{test_privilege_record.compact}#PROVIDER#privilege/{test_privilege_record.jurisdiction}/cos#ADVERSE_ACTION'
             ),
         )
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
@@ -316,7 +316,7 @@ class TestPostLicenseEncumbrance(TstFunction):
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
@@ -364,7 +364,7 @@ class TestPostLicenseEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/slp#ADVERSE_ACTION'
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/cos#ADVERSE_ACTION'
             ),
         )
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
@@ -559,7 +559,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
         return self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
@@ -656,7 +656,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
         event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {adverse_action.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {adverse_action.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
@@ -924,7 +924,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
 
         return self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
@@ -1021,7 +1021,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
 
         event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {adverse_action.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {adverse_action.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,

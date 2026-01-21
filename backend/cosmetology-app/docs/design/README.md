@@ -173,10 +173,10 @@ Each jurisdiction has its own resource server with scopes that control access to
 different compacts. For example, the Kentucky (KY) resource server would have scopes like:
 
 ```
-ky/aslp.admin
-ky/aslp.write
-ky/aslp.readPrivate
-ky/aslp.readSSN
+ky/cosm.admin
+ky/cosm.write
+ky/cosm.readPrivate
+ky/cosm.readSSN
 ky/octp.admin
 ky/octp.write
 ky/octp.readPrivate
@@ -190,10 +190,10 @@ Each compact also has its own resource server with compact-wide scopes, which ar
 all jurisdictions within a compact:
 
 ```
-aslp/admin
-aslp/readGeneral
-aslp/readPrivate
-aslp/readSSN
+cosm/admin
+cosm/readGeneral
+cosm/readPrivate
+cosm/readSSN
 ```
 
 If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
@@ -292,7 +292,7 @@ system.
 CompactConnect maintains a comprehensive historical record of each provider from their first addition to the system.
 Any change to a provider's status, dates, or demographic information creates a supporting record that tracks the change.
 
-For license changes, records use sort keys like `aslp#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
+For license changes, records use sort keys like `cosm#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
 contains:
 - The jurisdiction (e.g., "oh")
 - "UPDATE" indicator
@@ -459,7 +459,7 @@ The function:
 
 ```json
 {
-  "startingCompact": "aslp",
+  "startingCompact": "cosm",
   "startingLastKey": {"pk": "...", "sk": "..."}
 }
 ```

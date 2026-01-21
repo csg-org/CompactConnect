@@ -248,7 +248,7 @@ class TestSignatureAuth(TstLambdas):
         """Test the sign_request utility function works correctly."""
         # Test data
         method = 'POST'
-        path = '/v1/compacts/aslp/jurisdictions/al/providers/query'
+        path = '/v1/compacts/cosm/jurisdictions/al/providers/query'
         query_params = {'pageSize': '50', 'startDateTime': '2024-01-01T00:00:00Z'}
         timestamp = '2024-01-15T10:30:00Z'
         nonce = '550e8400-e29b-41d4-a716-446655440000'
@@ -274,7 +274,7 @@ class TestSignatureAuth(TstLambdas):
         """Test that sign_request properly URL-encodes query parameters."""
         # Test data with special characters
         method = 'GET'
-        path = '/v1/compacts/aslp/jurisdictions/al/providers/query'
+        path = '/v1/compacts/cosm/jurisdictions/al/providers/query'
         query_params = {
             'search': 'test value with spaces',
             'filter': 'status=active&type=provider',
@@ -320,7 +320,7 @@ class TestSignatureAuth(TstLambdas):
         # Create event with specific components
         event = {
             'httpMethod': 'POST',
-            'path': '/v1/compacts/aslp/jurisdictions/al/providers/query',
+            'path': '/v1/compacts/cosm/jurisdictions/al/providers/query',
             'queryStringParameters': {'pageSize': '50', 'startDateTime': '2024-01-01T00:00:00Z'},
             'headers': {
                 'X-Timestamp': '2024-01-15T10:30:00Z',
@@ -333,7 +333,7 @@ class TestSignatureAuth(TstLambdas):
 
         expected = (
             'POST\n'
-            '/v1/compacts/aslp/jurisdictions/al/providers/query\n'
+            '/v1/compacts/cosm/jurisdictions/al/providers/query\n'
             'pageSize=50&startDateTime=2024-01-01T00%3A00%3A00Z\n'
             '2024-01-15T10:30:00Z\n'
             '550e8400-e29b-41d4-a716-446655440000\n'
@@ -349,7 +349,7 @@ class TestSignatureAuth(TstLambdas):
         # Create event with unsorted query parameters
         event = {
             'httpMethod': 'GET',
-            'path': '/v1/compacts/aslp/jurisdictions/al/providers/query',
+            'path': '/v1/compacts/cosm/jurisdictions/al/providers/query',
             'queryStringParameters': {'zebra': 'last', 'alpha': 'first', 'beta': 'second'},
             'headers': {
                 'X-Timestamp': '2024-01-15T10:30:00Z',
@@ -363,7 +363,7 @@ class TestSignatureAuth(TstLambdas):
         # Verify parameters are sorted alphabetically and URL-encoded
         expected = (
             'GET\n'
-            '/v1/compacts/aslp/jurisdictions/al/providers/query\n'
+            '/v1/compacts/cosm/jurisdictions/al/providers/query\n'
             'alpha=first&beta=second&zebra=last\n'
             '2024-01-15T10:30:00Z\n'
             '550e8400-e29b-41d4-a716-446655440000\n'
@@ -378,7 +378,7 @@ class TestSignatureAuth(TstLambdas):
 
         event = {
             'httpMethod': 'GET',
-            'path': '/v1/compacts/aslp/jurisdictions/al/providers',
+            'path': '/v1/compacts/cosm/jurisdictions/al/providers',
             'queryStringParameters': None,
             'headers': {
                 'X-Timestamp': '2024-01-15T10:30:00Z',
@@ -391,7 +391,7 @@ class TestSignatureAuth(TstLambdas):
 
         expected = (
             'GET\n'
-            '/v1/compacts/aslp/jurisdictions/al/providers\n'
+            '/v1/compacts/cosm/jurisdictions/al/providers\n'
             '\n'
             '2024-01-15T10:30:00Z\n'
             '550e8400-e29b-41d4-a716-446655440000\n'
@@ -406,7 +406,7 @@ class TestSignatureAuth(TstLambdas):
 
         event = {
             'httpMethod': 'GET',
-            'path': '/v1/compacts/aslp/jurisdictions/al/providers/query',
+            'path': '/v1/compacts/cosm/jurisdictions/al/providers/query',
             'queryStringParameters': {
                 'search': 'test value with spaces',
                 'filter': 'status=active&type=provider',
@@ -425,7 +425,7 @@ class TestSignatureAuth(TstLambdas):
         # Verify that parameters are sorted alphabetically and URL-encoded
         expected = (
             'GET\n'
-            '/v1/compacts/aslp/jurisdictions/al/providers/query\n'
+            '/v1/compacts/cosm/jurisdictions/al/providers/query\n'
             'filter=status%3Dactive%26type%3Dprovider&search=test%20value%20with%20spaces&special=%21%40%23%24%25%5E%26%2A%28%29&unicode=caf%C3%A9%20r%C3%A9sum%C3%A9\n'
             '2024-01-15T10:30:00Z\n'
             '550e8400-e29b-41d4-a716-446655440000\n'
@@ -552,7 +552,7 @@ class TestSignatureAuth(TstLambdas):
                 # Verify the nonce was stored
                 mock_table.put_item.assert_called_once()
                 call_args = mock_table.put_item.call_args
-                self.assertEqual('NONCE#aslp#JURISDICTION#al', call_args[1]['Item']['pk'])
+                self.assertEqual('NONCE#cosm#JURISDICTION#al', call_args[1]['Item']['pk'])
                 self.assertEqual(f'NONCE#{event["headers"]["X-Nonce"]}', call_args[1]['Item']['sk'])
 
                 # Reset the mock for the second call

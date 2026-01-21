@@ -38,7 +38,7 @@ class TestPaginated(TstFunction):
 
         # Query with page size 5, filtering for 'ky' jurisdiction only
         resp = self.config.data_client.get_providers_sorted_by_family_name(
-            compact='aslp',
+            compact='cosm',
             pagination={'pageSize': 5},
             jurisdiction='ky',  # This will filter out providers 3 and 7
         )
@@ -58,7 +58,7 @@ class TestPaginated(TstFunction):
 
         # now we call again with the last key and ensure we get the remaining 3 providers
         resp = self.config.data_client.get_providers_sorted_by_family_name(
-            compact='aslp', pagination={'pageSize': 5, 'lastKey': resp['pagination']['lastKey']}, jurisdiction='ky'
+            compact='cosm', pagination={'pageSize': 5, 'lastKey': resp['pagination']['lastKey']}, jurisdiction='ky'
         )
         self.assertEqual(len(resp['items']), 3)
         self.assertIsNone(resp['pagination']['lastKey'])
@@ -84,7 +84,7 @@ class TestPaginated(TstFunction):
 
         # Query with page size 5, filtering for 'ky' jurisdiction
         resp = self.config.data_client.get_providers_sorted_by_family_name(
-            compact='aslp',
+            compact='cosm',
             pagination={'pageSize': 5},
             jurisdiction='ky',  # All 5 providers will match
         )

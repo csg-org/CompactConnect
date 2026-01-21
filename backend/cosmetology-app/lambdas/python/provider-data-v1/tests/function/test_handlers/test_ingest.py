@@ -51,9 +51,9 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
+        event['pathParameters'] = {'compact': 'cosm', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = (
-            'openid email stuff aslp/readGeneral aslp/readPrivate'
+            'openid email stuff cosm/readGeneral cosm/readPrivate'
         )
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
@@ -197,7 +197,7 @@ class TestIngest(TstFunction):
                     'DetailType': 'license.deactivation',
                     'Detail': json.dumps(
                         {
-                            'compact': 'aslp',
+                            'compact': 'cosm',
                             'jurisdiction': 'oh',
                             'eventTime': '2024-11-08T23:59:59+00:00',
                             'providerId': provider_id,
@@ -472,7 +472,7 @@ class TestIngest(TstFunction):
         test_ssn = '123-12-1234'
 
         # Before running method under test, ensure the provider ssn record does not exist
-        provider = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{test_ssn}', 'sk': f'aslp#SSN#{test_ssn}'})
+        provider = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{test_ssn}', 'sk': f'cosm#SSN#{test_ssn}'})
         self.assertNotIn('Item', provider)
 
         with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
@@ -486,7 +486,7 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         # Find the provider's id from their ssn
-        provider = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{test_ssn}', 'sk': f'aslp#SSN#{test_ssn}'})['Item']
+        provider = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{test_ssn}', 'sk': f'cosm#SSN#{test_ssn}'})['Item']
         provider_id = provider['providerId']
         # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
         self.assertIsNotNone(provider_id)
@@ -521,11 +521,11 @@ class TestIngest(TstFunction):
 
         # Add an inactive privilege record for this provider in a different jurisdiction (ky)
         inactive_privilege = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ky#',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': 'cosm#PROVIDER#privilege/ky#',
             'type': 'privilege',
             'providerId': provider_id,
-            'compact': 'aslp',
+            'compact': 'cosm',
             'jurisdiction': 'ky',
             'licenseType': 'speech-language pathologist',
             'licenseJurisdiction': 'oh',

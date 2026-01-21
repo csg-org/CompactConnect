@@ -15,7 +15,7 @@ output as input to continue processing.
 
 Example input for resumption:
 {
-    "startingCompact": "aslp",
+    "startingCompact": "cosm",
     "startingLastKey": {"pk": "...", "sk": "..."}
 }
 

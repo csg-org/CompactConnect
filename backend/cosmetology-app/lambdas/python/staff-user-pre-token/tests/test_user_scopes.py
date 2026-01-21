@@ -18,8 +18,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#cosm',
+                'compact': 'cosm',
                 'permissions': {'actions': {'read', 'admin', 'readPrivate', 'readSSN'}, 'jurisdictions': {}},
             }
         )
@@ -29,10 +29,10 @@ class TestGetUserScopesFromDB(TstLambdas):
         self.assertEqual(
             {
                 'profile',
-                'aslp/admin',
-                'aslp/readGeneral',
-                'aslp/readSSN',
-                'aslp/readPrivate',
+                'cosm/admin',
+                'cosm/readGeneral',
+                'cosm/readSSN',
+                'cosm/readPrivate',
             },
             user_data.scopes,
         )
@@ -44,8 +44,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#cosm',
+                'compact': 'cosm',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate', 'readSSN'}}},
             }
         )
@@ -55,11 +55,11 @@ class TestGetUserScopesFromDB(TstLambdas):
         self.assertEqual(
             {
                 'profile',
-                'aslp/readGeneral',
-                'al/aslp.admin',
-                'al/aslp.write',
-                'al/aslp.readPrivate',
-                'al/aslp.readSSN',
+                'cosm/readGeneral',
+                'al/cosm.admin',
+                'al/cosm.write',
+                'al/cosm.readPrivate',
+                'al/cosm.readSSN',
             },
             user_data.scopes,
         )
@@ -83,8 +83,8 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#octp',
-                'compact': 'octp',
+                'sk': 'COMPACT#cosm',
+                'compact': 'cosm',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
@@ -97,9 +97,9 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'aslp/readGeneral',
                 'al/aslp.admin',
                 'al/aslp.write',
-                'octp/readGeneral',
-                'al/octp.admin',
-                'al/octp.write',
+                'cosm/readGeneral',
+                'al/cosm.admin',
+                'al/cosm.write',
             },
             user_data.scopes,
         )

@@ -21,7 +21,7 @@ class TestEventStateClient(TstFunction):
 
     def test_record_notification_attempt_creates_item_with_all_fields(self):
         """Test that record_notification_attempt creates an item with all expected fields."""
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-message-123'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         event_type = EventType.LICENSE_ENCUMBRANCE
@@ -54,7 +54,7 @@ class TestEventStateClient(TstFunction):
                 'eventTime': '2024-01-15T10:30:00Z',
                 'eventType': 'license.encumbrance',
                 'jurisdiction': 'oh',
-                'pk': 'COMPACT#aslp#SQS_MESSAGE#test-message-123',
+                'pk': 'COMPACT#cosm#SQS_MESSAGE#test-message-123',
                 'providerId': '12345678-1234-1234-1234-123456789abc',
                 'sk': 'NOTIFICATION#state#oh',
                 'status': 'SUCCESS',
@@ -67,7 +67,7 @@ class TestEventStateClient(TstFunction):
         """Test that failed notifications include error messages."""
         client = EventStateClient(self.config)
 
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-message-789'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         event_type = EventType.LICENSE_ENCUMBRANCE_LIFTED
@@ -102,7 +102,7 @@ class TestEventStateClient(TstFunction):
         """Test that get_notification_attempts returns all notification attempts for a message."""
         client = EventStateClient(self.config)
 
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-message-multi'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         event_type = EventType.LICENSE_ENCUMBRANCE
@@ -156,13 +156,13 @@ class TestNotificationTracker(TstFunction):
 
     def test_should_send_state_notification_returns_true_when_no_previous_attempt(self):
         """Test that should_send_state_notification returns True when no previous attempt exists."""
-        tracker = NotificationTracker(compact='aslp', message_id='new-message')
+        tracker = NotificationTracker(compact='cosm', message_id='new-message')
 
         self.assertTrue(tracker.should_send_state_notification('oh'))
 
     def test_should_send_state_notification_returns_false_when_previous_success(self):
         """Test that should_send_state_notification returns False when previous attempt succeeded."""
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-message-state-success'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         jurisdiction = 'oh'
@@ -184,7 +184,7 @@ class TestNotificationTracker(TstFunction):
 
     def test_should_send_state_notification_returns_true_when_previous_failure(self):
         """Test that should_send_state_notification returns True when previous attempt failed."""
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-message-state-fail'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         jurisdiction = 'ne'
@@ -207,7 +207,7 @@ class TestNotificationTracker(TstFunction):
 
     def test_should_send_state_notification_independent_per_jurisdiction(self):
         """Test that state notification checks are independent per jurisdiction."""
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-message-multi-state'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
 
@@ -232,7 +232,7 @@ class TestNotificationTracker(TstFunction):
 
     def test_record_success_creates_success_record(self):
         """Test that record_success creates a SUCCESS record in the table."""
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-record-success'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         event_type = EventType.PRIVILEGE_ENCUMBRANCE
@@ -264,7 +264,7 @@ class TestNotificationTracker(TstFunction):
 
     def test_record_failure_creates_failed_record_with_error_message(self):
         """Test that record_failure creates a FAILED record with error message."""
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-record-failure'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         event_type = EventType.LICENSE_ENCUMBRANCE_LIFTED
@@ -295,7 +295,7 @@ class TestNotificationTracker(TstFunction):
 
     def test_tracker_handles_mixed_success_and_failure_states(self):
         """Test that tracker correctly handles a mix of success and failure states."""
-        compact = 'aslp'
+        compact = 'cosm'
         message_id = 'test-mixed-states'
         provider_id = UUID('12345678-1234-1234-1234-123456789abc')
         event_type = EventType.PRIVILEGE_ENCUMBRANCE_LIFTED

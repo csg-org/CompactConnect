@@ -45,7 +45,7 @@ class TestPrivilegeRecordSchema(TstLambdas):
 
         with open('tests/resources/dynamo/privilege.json') as f:
             privilege_data = json.load(f)
-        # This privilege is in the ASLP compact, not Counseling
+        # This privilege is in the COSM compact
         privilege_data['licenseType'] = 'occupational therapist'
 
         with self.assertRaises(ValidationError):
@@ -169,7 +169,7 @@ class TestPrivilegeUpdateRecordSchema(TstLambdas):
 
         with open('tests/resources/dynamo/privilege-update.json') as f:
             privilege_data = json.load(f)
-        # This privilege is in the ASLP compact, not Counseling
+        # This privilege is in the COSM compact
         privilege_data['licenseType'] = 'occupational therapist'
 
         with self.assertRaises(ValidationError):

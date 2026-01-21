@@ -17,7 +17,7 @@ class TstLambdas(TestCase):
                 'DEBUG': 'true',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'USERS_TABLE_NAME': 'users-table',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': '["al", "co"]',
                 'ENVIRONMENT_NAME': 'test',
             },

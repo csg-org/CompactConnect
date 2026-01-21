@@ -23,7 +23,7 @@ sys.path.append(common_lib_path)
 # Import the sign_request function from the common library
 from common_test.sign_request import sign_request  # noqa: E402
 
-COMPACT = 'aslp'
+COMPACT = 'cosm'
 JURISDICTION = 'ne'
 TEST_CLIENT_NAME = 'test-signature-auth-client'
 TEST_KEY_ID = 'test-signature-key-001'

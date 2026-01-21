@@ -295,7 +295,7 @@ class TstFunction(TstLambdas):
             # Update preprocessing message with license data including SSN
             preprocessing_sqs_message_copy.update(
                 {
-                    'compact': 'aslp',
+                    'compact': 'cosm',
                     'jurisdiction': home,
                     'licenseNumber': f'TEST-{ssn_serial}',
                     'licenseType': 'speech-language pathologist',
@@ -320,7 +320,7 @@ class TstFunction(TstLambdas):
                     'familyName': family_name,
                     'givenName': given_name,
                     'middleName': name_faker.unique.first_name(),
-                    'compact': 'aslp',
+                    'compact': 'cosm',
                     'jurisdiction': home,
                     'licenseNumber': f'TEST-{ssn_serial}',
                     'licenseType': 'speech-language pathologist',
@@ -358,7 +358,7 @@ class TstFunction(TstLambdas):
                     self.mock_context,
                 )
                 # we need to get the provider id from the ssn table so it can be used in the ingest message
-                provider_id = self._ssn_table.get_item(Key={'pk': f'aslp#SSN#{ssn}', 'sk': f'aslp#SSN#{ssn}'})['Item'][
+                provider_id = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{ssn}', 'sk': f'cosm#SSN#{ssn}'})['Item'][
                     'providerId'
                 ]
 
@@ -373,12 +373,12 @@ class TstFunction(TstLambdas):
 
             # Add a privilege
             provider_user_records = data_client.get_provider_user_records(
-                compact='aslp',
+                compact='cosm',
                 provider_id=provider_id,
             )
             if privilege_jurisdiction:
                 data_client.create_provider_privileges(
-                    compact='aslp',
+                    compact='cosm',
                     provider_id=provider_id,
                     provider_record=provider_user_records.get_provider_record(),
                     jurisdiction_postal_abbreviations=[privilege_jurisdiction],

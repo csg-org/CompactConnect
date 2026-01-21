@@ -20,12 +20,12 @@ class TestCustomizeScopes(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#cosm',
+                'compact': 'cosm',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'jurisdictions': {
-                        # should correspond to the 'al/aslp.write' scope
+                        # should correspond to the 'al/cosm.write' scope
                         'al': {'write'}
                     },
                 },
@@ -35,11 +35,11 @@ class TestCustomizeScopes(TstLambdas):
         resp = customize_scopes(event, self.mock_context)
 
         self.assertEqual(
-            sorted(['profile', 'aslp/readGeneral', 'al/aslp.write']),
+            sorted(['profile', 'cosm/readGeneral', 'al/cosm.write']),
             sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
         # Check that the user's status is updated in the DB
-        record = self._table.get_item(Key={'pk': f'USER#{sub}', 'sk': 'COMPACT#aslp'})
+        record = self._table.get_item(Key={'pk': f'USER#{sub}', 'sk': 'COMPACT#cosm'})
         self.assertEqual(StaffUserStatus.ACTIVE.value, record['Item']['status'])
 
     def test_should_suppress_cognito_admin_scope(self):
@@ -58,12 +58,12 @@ class TestCustomizeScopes(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{sub}',
-                'sk': 'COMPACT#aslp',
-                'compact': 'aslp',
+                'sk': 'COMPACT#cosm',
+                'compact': 'cosm',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'jurisdictions': {
-                        # should correspond to the 'al/aslp.write' scope
+                        # should correspond to the 'al/cosm.write' scope
                         'al': {'write'}
                     },
                 },
@@ -86,7 +86,7 @@ class TestCustomizeScopes(TstLambdas):
         sub = event['request']['userAttributes']['sub']
 
         # Create a DB record for this user's permissions, one for each of two compacts
-        for compact in ['aslp', 'octp']:
+        for compact in ['cosm']:
             self._table.put_item(
                 Item={
                     'pk': f'USER#{sub}',
@@ -95,7 +95,7 @@ class TestCustomizeScopes(TstLambdas):
                     'status': StaffUserStatus.INACTIVE.value,
                     'permissions': {
                         'jurisdictions': {
-                            # should correspond to the 'aslp/write' and 'al/aslp.write' scopes
+                            # should correspond to the 'cosm/write' and 'al/cosm.write' scopes
                             'al': {'write'}
                         },
                     },
@@ -110,14 +110,14 @@ class TestCustomizeScopes(TstLambdas):
                     'profile',
                     'aslp/readGeneral',
                     'al/aslp.write',
-                    'octp/readGeneral',
-                    'al/octp.write',
+                    'cosm/readGeneral',
+                    'al/cosm.write',
                 ]
             ),
             sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
         # Check that the user's status is updated in the DB
-        for compact in ['aslp', 'octp']:
+        for compact in ['cosm']:
             record = self._table.get_item(Key={'pk': f'USER#{sub}', 'sk': f'COMPACT#{compact}'})
             self.assertEqual(StaffUserStatus.ACTIVE.value, record['Item']['status'])
 

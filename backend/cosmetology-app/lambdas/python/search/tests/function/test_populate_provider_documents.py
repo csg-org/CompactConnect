@@ -11,19 +11,13 @@ from moto import mock_aws
 
 from . import TstFunction
 
-MOCK_ASLP_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
-MOCK_OCTP_PROVIDER_ID = '00000000-0000-0000-0000-000000000002'
-MOCK_COUN_PROVIDER_ID = '00000000-0000-0000-0000-000000000003'
+MOCK_COSM_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 test_license_type_mapping = {
-    'aslp': 'audiologist',
-    'octp': 'occupational therapist',
-    'coun': 'licensed professional counselor',
+    'cosm': 'cosmetologist',
 }
 test_provider_id_mapping = {
-    'aslp': MOCK_ASLP_PROVIDER_ID,
-    'octp': MOCK_OCTP_PROVIDER_ID,
-    'coun': MOCK_COUN_PROVIDER_ID,
+    'cosm': MOCK_COSM_PROVIDER_ID,
 }
 
 
@@ -148,54 +142,6 @@ class TestPopulateProviderDocuments(TstFunction):
         )
 
     @patch('handlers.populate_provider_documents.OpenSearchClient')
-    def test_provider_records_from_all_three_compacts_are_indexed_in_expected_index(self, mock_opensearch_client):
-        from handlers.populate_provider_documents import TIME_THRESHOLD_MS, populate_provider_documents
-
-        # Set up the mock opensearch client
-        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
-
-        compacts = ['aslp', 'octp', 'coun']
-        # add a provider and license record for each of the three compacts
-        for compact in compacts:
-            self._put_test_provider_and_license_record_in_dynamodb_table(compact)
-
-        # mock the context to always return time above the cutoff threshold
-        mock_context = MagicMock()
-        mock_context.get_remaining_time_in_millis.return_value = TIME_THRESHOLD_MS + 60000
-
-        # now run the handler
-        result = populate_provider_documents({}, mock_context)
-
-        # Assert that the OpenSearchClient was instantiated
-        mock_opensearch_client.assert_called_once()
-
-        # Assert that bulk indexing was called once for each compact (3 times total)
-        self.assertEqual(3, mock_client_instance.bulk_index.call_count)
-
-        # Get all calls to bulk_index and verify each compact was indexed
-        bulk_index_calls = mock_client_instance.bulk_index.call_args_list
-        self.assertEqual(self._generate_expected_call_for_document('aslp'), bulk_index_calls[0])
-        self.assertEqual(self._generate_expected_call_for_document('octp'), bulk_index_calls[1])
-        self.assertEqual(self._generate_expected_call_for_document('coun'), bulk_index_calls[2])
-
-        # Verify the result statistics
-        self.assertEqual(
-            {
-                'compacts_processed': [
-                    {'compact': 'aslp', 'providers_failed': 0, 'providers_indexed': 1, 'providers_processed': 1},
-                    {'compact': 'octp', 'providers_failed': 0, 'providers_indexed': 1, 'providers_processed': 1},
-                    {'compact': 'coun', 'providers_failed': 0, 'providers_indexed': 1, 'providers_processed': 1},
-                ],
-                'completed': True,
-                'errors': [],
-                'total_providers_failed': 0,
-                'total_providers_indexed': 3,
-                'total_providers_processed': 3,
-            },
-            result,
-        )
-
-    @patch('handlers.populate_provider_documents.OpenSearchClient')
     def test_pagination_across_invocations_when_time_limit_reached(self, mock_opensearch_client):
         """Test that the handler properly paginates across multiple invocations when approaching time limit.
 
@@ -213,14 +159,14 @@ class TestPopulateProviderDocuments(TstFunction):
         # Set up the mock opensearch client
         mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
-        compacts = ['aslp', 'octp', 'coun']
+        compacts = ['cosm']
         # Add a provider and license record for each of the three compacts
         for compact in compacts:
             self._put_test_provider_and_license_record_in_dynamodb_table(compact)
 
-        # First invocation: Mock time to trigger timeout after processing first compact (aslp)
+        # First invocation: Mock time to trigger timeout after processing first compact (cosm)
         # The time check happens at the START of each while loop iteration:
-        # - Call 1: Processing aslp, plenty of time -> continue
+        # - Call 1: Processing cosm, plenty of time -> continue
         # - Call 2: About to process octp, low time -> timeout and return
         mock_context = MagicMock()
         mock_context.get_remaining_time_in_millis.side_effect = [time_before_cutoff, time_after_cutoff]
@@ -235,7 +181,7 @@ class TestPopulateProviderDocuments(TstFunction):
         # startingLastKey should be None since we haven't started processing octp yet
         self.assertIsNone(first_result['resumeFrom']['startingLastKey'])
 
-        # Verify only aslp was indexed in first invocation
+        # Verify only cosm was indexed in first invocation
         self.assertEqual(1, first_result['total_providers_indexed'])
         self.assertEqual(1, mock_client_instance.bulk_index.call_count)
 
@@ -262,14 +208,13 @@ class TestPopulateProviderDocuments(TstFunction):
         self.assertTrue(second_result['completed'])
         self.assertNotIn('resumeFrom', second_result)
 
-        # Verify octp and coun were indexed in second invocation
+        # All compacts already processed in first invocation
         self.assertEqual(2, second_result['total_providers_indexed'])
         self.assertEqual(2, mock_client_instance.bulk_index.call_count)
 
         # Verify the correct indices were called
         bulk_index_calls = mock_client_instance.bulk_index.call_args_list
         self.assertEqual(self._generate_expected_call_for_document('octp'), bulk_index_calls[0])
-        self.assertEqual(self._generate_expected_call_for_document('coun'), bulk_index_calls[1])
 
     @patch('handlers.populate_provider_documents.OpenSearchClient')
     def test_returns_pagination_info_when_bulk_indexing_fails_after_retries(self, mock_opensearch_client):
@@ -287,13 +232,13 @@ class TestPopulateProviderDocuments(TstFunction):
         mock_client_instance = Mock()
         mock_opensearch_client.return_value = mock_client_instance
 
-        # First compact (aslp) succeeds, second compact (octp) fails with CCInternalException
+        # First compact (cosm) succeeds
         mock_client_instance.bulk_index.side_effect = [
-            {'items': [], 'errors': False},  # aslp succeeds
+            {'items': [], 'errors': False},  # cosm succeeds
             CCInternalException('Connection timeout after 5 retries'),  # octp fails
         ]
 
-        compacts = ['aslp', 'octp', 'coun']
+        compacts = ['cosm']
         # Add a provider and license record for each compact
         for compact in compacts:
             self._put_test_provider_and_license_record_in_dynamodb_table(compact)
@@ -314,7 +259,7 @@ class TestPopulateProviderDocuments(TstFunction):
         # startingLastKey should be None since it was the first batch of octp
         self.assertIsNone(result['resumeFrom']['startingLastKey'])
 
-        # Verify aslp was indexed but octp was not
+        # Verify cosm was indexed
         self.assertEqual(1, result['total_providers_indexed'])
 
         # Verify errors list contains the failure info
@@ -340,6 +285,6 @@ class TestPopulateProviderDocuments(TstFunction):
         self.assertTrue(second_result['completed'])
         self.assertNotIn('resumeFrom', second_result)
 
-        # Verify octp and coun were indexed
+        # Verify all compacts were indexed
         self.assertEqual(2, second_result['total_providers_indexed'])
         self.assertEqual(2, mock_client_instance.bulk_index.call_count)

@@ -33,7 +33,7 @@ class TstLambdas(TestCase):
                 'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
                 'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -93,9 +93,9 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'cosm': [
+                            {'name': 'cosmetologist', 'abbreviation': 'cos'},
+                            {'name': 'esthetician', 'abbreviation': 'esth'},
                         ]
                     },
                 ),

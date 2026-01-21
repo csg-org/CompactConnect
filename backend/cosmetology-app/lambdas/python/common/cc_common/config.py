@@ -128,14 +128,14 @@ class _Config:
         Reshapes the new LICENSE_TYPES format into the previous format for backward compatibility.
         The new format is:
         {
-            "aslp": [
-                {"abbreviation": "aud", "name": "audiologist"},
-                {"abbreviation": "slp", "name": "speech-language pathologist"}
+            "cosm": [
+                {"abbreviation": "cos", "name": "cosmetologist"},
+                {"abbreviation": "esth", "name": "esthetician"}
             ]
         }
         The returned format is:
         {
-            "aslp": ["audiologist", "speech-language pathologist"]
+            "cosm": ["cosmetologist", "esthetician"]
         }
         """
         raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
@@ -147,9 +147,9 @@ class _Config:
         Creates a lookup dictionary for license type abbreviations based on compact and full name.
         Returns a structure like:
         {
-            "aslp": {
-                "audiologist": "aud",
-                "speech-language pathologist": "slp"
+            "cosm": {
+                "cosmetologist": "cos",
+                "esthetician": "esth"
             }
         }
         """

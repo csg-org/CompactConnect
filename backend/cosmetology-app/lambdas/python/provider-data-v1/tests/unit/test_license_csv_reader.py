@@ -11,5 +11,5 @@ class TestCSVParser(TstLambdas):
         with open('../common/tests/resources/licenses.csv') as f:
             reader = LicenseCSVReader()
             for license_row in reader.licenses(f):
-                validated = schema.load({'compact': 'aslp', 'jurisdiction': 'oh', **license_row})
+                validated = schema.load({'compact': 'cosm', 'jurisdiction': 'oh', **license_row})
                 logger.debug('Read validated license', license_data=reader.schema.dump(validated))

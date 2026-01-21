@@ -17,9 +17,9 @@ DEFAULT_LICENSE_ISSUANCE_DATE = '2010-06-06'
 DEFAULT_LICENSE_RENEWAL_DATE = '2020-04-04'
 DEFAULT_LICENSE_JURISDICTION = 'oh'
 DEFAULT_PRIVILEGE_JURISDICTION = 'ne'
-DEFAULT_COMPACT = 'aslp'
-DEFAULT_LICENSE_TYPE = 'speech-language pathologist'
-DEFAULT_LICENSE_TYPE_ABBREVIATION = 'slp'
+DEFAULT_COMPACT = 'cosm'
+DEFAULT_LICENSE_TYPE = 'cosmetologist'
+DEFAULT_LICENSE_TYPE_ABBREVIATION = 'cos'
 DEFAULT_LICENSE_NUMBER = 'A0608337260'
 DEFAULT_LICENSE_STATUS = 'active'
 DEFAULT_LICENSE_STATUS_NAME = 'DEFINITELY_A_HUMAN'
@@ -37,30 +37,16 @@ DEFAULT_COMPACT_TRANSACTION_BATCH = {
 }
 DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM = {
     'description': 'Compact Privilege for Ohio',
-    'itemId': 'priv:aslp-oh',
+    'itemId': 'priv:cosm-oh',
     'name': 'Ohio Compact Privilege',
     'quantity': '1.0',
     'taxable': 'False',
     'unitPrice': '100.00',
     'privilegeId': 'mock-privilege-id-oh',
 }
-DEFAULT_COMPACT_TRANSACTION_COMPACT_LINE_ITEM = {
-    'description': 'Compact fee applied for each privilege purchased',
-    'itemId': 'aslp-compact-fee',
-    'name': 'ASLP Compact Fee',
-    'quantity': '1',
-    'taxable': 'False',
-    'unitPrice': '10.50',
-}
-DEFAULT_COMPACT_TRANSACTION_FEE_LINE_ITEM = {
-    'description': 'credit card transaction fee',
-    'itemId': 'credit-card-transaction-fee',
-    'name': 'Credit Card Transaction Fee',
-    'quantity': '1',
-    'taxable': 'False',
-    'unitPrice': '3.00',
-}
-DEFAULT_PRIVILEGE_ID = 'SLP-NE-1'
+
+
+DEFAULT_PRIVILEGE_ID = 'COS-NE-1'
 DEFAULT_HOME_SELECTION_DATE = '2024-01-01T00:00:00+00:00'
 DEFAULT_HOME_UPDATE_DATE = '2024-01-01T00:00:00+00:00'
 
@@ -126,4 +112,4 @@ DEFAULT_INVESTIGATION_ID = '98765432-9876-9876-9876-987654321098'
 DEFAULT_ADMINISTRATOR_SET_STATUS = 'active'
 
 # Default Dynamo PK/SKs
-DEFAULT_PROVIDER_PK = 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570'
+DEFAULT_PROVIDER_PK = 'cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570'

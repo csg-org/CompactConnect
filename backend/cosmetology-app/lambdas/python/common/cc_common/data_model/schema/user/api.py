@@ -79,7 +79,7 @@ class UserAPISchema(Schema):
 
     @post_dump  # Note _post_ dump, so after any type conversions happen, in this case
     def transform_to_dynamo_permissions(self, data, **kwargs):  # noqa: ARG002 unused-kwargs
-        # { "permissions": { "aslp": { ... } } } -> { "compact": "aslp", "permissions": { ... } }
+        # { "permissions": { "cosm": { ... } } } -> { "compact": "cosm", "permissions": { ... } }
         for compact, compact_permissions in data['permissions'].items():
             data['permissions'] = compact_permissions
             data['compact'] = compact

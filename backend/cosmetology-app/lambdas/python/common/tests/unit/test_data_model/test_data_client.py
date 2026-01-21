@@ -33,7 +33,7 @@ class TestDataClient(TstLambdas):
         self.mock_ssn_table.put_item.side_effect = ClientError(error_response, 'PutItem')
 
         # Call the method
-        provider_id = self.client.get_or_create_provider_id(compact='aslp', ssn='123456789')
+        provider_id = self.client.get_or_create_provider_id(compact='cosm', ssn='123456789')
 
         # Verify the result
         self.assertEqual(provider_id, 'existing_provider_id')
@@ -44,4 +44,4 @@ class TestDataClient(TstLambdas):
 
         # Verify it raises CCNotFoundException
         with self.assertRaises(CCNotFoundException):
-            self.client.get_provider(compact='aslp', provider_id='test_id', detail=True, consistent_read=False)
+            self.client.get_provider(compact='cosm', provider_id='test_id', detail=True, consistent_read=False)

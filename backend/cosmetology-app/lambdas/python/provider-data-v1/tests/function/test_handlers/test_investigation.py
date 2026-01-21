@@ -66,7 +66,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': PRIVILEGE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -133,7 +133,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
 
         # Verify that investigation objects are included in the API response
         api_event = self.test_data_generator.generate_test_api_event(
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.readGeneral',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.readGeneral',
             value_overrides={
                 'httpMethod': 'GET',
                 'resource': '/v1/compacts/{compact}/providers/{providerId}',
@@ -244,7 +244,7 @@ class TestPostLicenseInvestigation(TstFunction):
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': LICENSE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -313,7 +313,7 @@ class TestPostLicenseInvestigation(TstFunction):
 
         # Verify that investigation objects are included in the API response
         api_event = self.test_data_generator.generate_test_api_event(
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.readGeneral',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.readGeneral',
             value_overrides={
                 'httpMethod': 'GET',
                 'resource': '/v1/compacts/{compact}/providers/{providerId}',
@@ -425,7 +425,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
         # First create an investigation
         create_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': PRIVILEGE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -457,7 +457,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
         # Now create the close event
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': PRIVILEGE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
@@ -529,7 +529,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
 
         # Verify that investigation objects are removed from the API response
         api_event = self.test_data_generator.generate_test_api_event(
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.readGeneral',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.readGeneral',
             value_overrides={
                 'httpMethod': 'GET',
                 'resource': '/v1/compacts/{compact}/providers/{providerId}',
@@ -629,7 +629,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         # First create an investigation
         create_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': LICENSE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -661,7 +661,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         # Now create the close event
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': LICENSE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
@@ -733,7 +733,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
 
         # Verify that investigation objects are removed from the API response
         api_event = self.test_data_generator.generate_test_api_event(
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.readGeneral',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.readGeneral',
             value_overrides={
                 'httpMethod': 'GET',
                 'resource': '/v1/compacts/{compact}/providers/{providerId}',
@@ -836,7 +836,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         # Create first investigation
         first_investigation_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': PRIVILEGE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -867,7 +867,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         # Create second investigation
         second_investigation_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': PRIVILEGE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -900,7 +900,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         # Close the second investigation
         close_second_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': PRIVILEGE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
@@ -932,7 +932,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
 
         # Verify that one investigation is still visible in the API response
         api_event = self.test_data_generator.generate_test_api_event(
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.readGeneral',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.readGeneral',
             value_overrides={
                 'httpMethod': 'GET',
                 'resource': '/v1/compacts/{compact}/providers/{providerId}',
@@ -983,7 +983,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         # Now close the first investigation
         close_first_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_privilege_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_privilege_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': PRIVILEGE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
@@ -1073,7 +1073,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         # Create first investigation
         first_investigation_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': LICENSE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -1105,7 +1105,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         # Create second investigation
         second_investigation_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': LICENSE_INVESTIGATION_ENDPOINT_RESOURCE,
@@ -1139,7 +1139,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         # Close the second investigation
         close_second_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': LICENSE_INVESTIGATION_ID_ENDPOINT_RESOURCE,
@@ -1172,7 +1172,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
 
         # Verify that one investigation is still visible in the API response
         api_event = self.test_data_generator.generate_test_api_event(
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.readGeneral',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.readGeneral',
             value_overrides={
                 'httpMethod': 'GET',
                 'resource': '/v1/compacts/{compact}/providers/{providerId}',
@@ -1222,7 +1222,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         # Now close the first investigation
         close_first_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/aslp.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': LICENSE_INVESTIGATION_ID_ENDPOINT_RESOURCE,

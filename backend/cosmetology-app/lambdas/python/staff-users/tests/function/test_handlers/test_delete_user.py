@@ -23,13 +23,13 @@ mock_cognito_client.admin_create_user.return_value = {
 class TestDeleteUser(TstFunction):
     def _assert_user_gone(self):
         user = self._table.get_item(
-            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#aslp'},
+            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#cosm'},
         ).get('Item')
         self.assertEqual(None, user)
 
     def _assert_user_not_gone(self):
         user = self._table.get_item(
-            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#aslp'},
+            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#cosm'},
         ).get('Item')
         self.assertNotEqual(None, user)
 
@@ -39,11 +39,11 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
+        # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -57,11 +57,11 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
+        # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -77,11 +77,11 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
+        # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)
@@ -104,8 +104,8 @@ class TestDeleteUser(TstFunction):
         # The user has admin permission for all of aslp
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)

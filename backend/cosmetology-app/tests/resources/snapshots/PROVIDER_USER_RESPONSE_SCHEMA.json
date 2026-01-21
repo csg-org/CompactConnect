@@ -15,9 +15,7 @@
           },
           "compact": {
             "enum": [
-              "aslp",
-              "octp",
-              "coun"
+              "cosm"
             ],
             "type": "string"
           },
@@ -81,11 +79,8 @@
           },
           "licenseType": {
             "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
+              "cosmetologist",
+              "esthetician"
             ],
             "type": "string"
           },
@@ -150,14 +145,12 @@
                   ],
                   "type": "string"
                 },
-                "compact": {
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ],
-                  "type": "string"
-                },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                 "jurisdiction": {
                   "enum": [
                     "al",
@@ -216,16 +209,13 @@
                   ],
                   "type": "string"
                 },
-                "licenseType": {
-                  "enum": [
-                    "audiologist",
-                    "speech-language pathologist",
-                    "occupational therapist",
-                    "occupational therapy assistant",
-                    "licensed professional counselor"
-                  ],
-                  "type": "string"
-                },
+        "licenseType": {
+          "enum": [
+            "cosmetologist",
+            "esthetician"
+          ],
+          "type": "string"
+        },
                 "dateOfUpdate": {
                   "format": "date-time",
                   "type": "string"
@@ -518,14 +508,12 @@
                   ],
                   "type": "string"
                 },
-                "compact": {
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ],
-                  "type": "string"
-                },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -660,14 +648,12 @@
                   ],
                   "type": "string"
                 },
-                "compact": {
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ],
-                  "type": "string"
-                },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -916,14 +902,12 @@
                   ],
                   "type": "string"
                 },
-                "compact": {
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ],
-                  "type": "string"
-                },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                 "jurisdiction": {
                   "enum": [
                     "al",
@@ -982,16 +966,13 @@
                   ],
                   "type": "string"
                 },
-                "licenseType": {
-                  "enum": [
-                    "audiologist",
-                    "speech-language pathologist",
-                    "occupational therapist",
-                    "occupational therapy assistant",
-                    "licensed professional counselor"
-                  ],
-                  "type": "string"
-                },
+        "licenseType": {
+          "enum": [
+            "cosmetologist",
+            "esthetician"
+          ],
+          "type": "string"
+        },
                 "dateOfUpdate": {
                   "format": "date-time",
                   "type": "string"
@@ -1008,14 +989,12 @@
                       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                       "type": "string"
                     },
-                    "compact": {
-                      "enum": [
-                        "aslp",
-                        "octp",
-                        "coun"
-                      ],
-                      "type": "string"
-                    },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                     "jurisdiction": {
                       "enum": [
                         "al",
@@ -1217,14 +1196,12 @@
                       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                       "type": "string"
                     },
-                    "compact": {
-                      "enum": [
-                        "aslp",
-                        "octp",
-                        "coun"
-                      ],
-                      "type": "string"
-                    },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                     "jurisdiction": {
                       "enum": [
                         "al",
@@ -1425,11 +1402,8 @@
           },
           "licenseType": {
             "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
+              "cosmetologist",
+              "esthetician"
             ],
             "type": "string"
           },
@@ -1442,14 +1416,12 @@
                   ],
                   "type": "string"
                 },
-                "compact": {
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ],
-                  "type": "string"
-                },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -1584,14 +1556,12 @@
                   ],
                   "type": "string"
                 },
-                "compact": {
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ],
-                  "type": "string"
-                },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -1706,9 +1676,7 @@
           },
           "compact": {
             "enum": [
-              "aslp",
-              "octp",
-              "coun"
+              "cosm"
             ],
             "type": "string"
           },
@@ -1929,9 +1897,7 @@
           },
           "compact": {
             "enum": [
-              "aslp",
-              "octp",
-              "coun"
+              "cosm"
             ],
             "type": "string"
           },
@@ -2059,14 +2025,12 @@
       ],
       "type": "string"
     },
-    "compact": {
-      "enum": [
-        "aslp",
-        "octp",
-        "coun"
-      ],
-      "type": "string"
-    },
+        "compact": {
+          "enum": [
+            "cosm"
+          ],
+          "type": "string"
+        },
     "birthMonthDay": {
       "format": "date",
       "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",

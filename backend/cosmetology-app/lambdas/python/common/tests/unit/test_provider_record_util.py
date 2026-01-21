@@ -11,7 +11,7 @@ class TestProviderRecordUtility(TstLambdas):
         # Create a base license record that we'll modify for different test cases
         self.base_license = {
             'type': 'license',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'jurisdiction': 'oh',
             'licenseType': 'physician',
             'licenseNumber': '12345',
@@ -25,10 +25,10 @@ class TestProviderRecordUtility(TstLambdas):
             'dateOfUpdate': '2025-05-12T15:05:08+00:00',
             'type': 'privilege',
             'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-            'compact': 'octp',
+            'compact': 'cosm',
             'jurisdiction': 'al',
             'licenseJurisdiction': 'ky',
-            'licenseType': 'occupational therapy assistant',
+            'licenseType': 'cosmetologist',
             'dateOfIssuance': '2025-04-23T15:47:14+00:00',
             'dateOfRenewal': '2025-04-23T15:47:14+00:00',
             'dateOfExpiration': '2027-02-12',
@@ -183,12 +183,12 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_issuance_update = {
-            'compact': 'octp',
+            'compact': 'cosm',
             'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
+            'licenseType': 'cosmetologist',
             'previous': {},
             'providerId': 'test-provider-id',
             'type': 'privilegeUpdate',
@@ -225,12 +225,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -238,12 +238,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-02-02T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -282,12 +282,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -295,12 +295,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-02-02T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-02-02T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -339,12 +339,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -383,12 +383,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -419,7 +419,7 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = [
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
@@ -442,7 +442,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'encumbrance',
             },
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
@@ -465,12 +465,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'lifting_encumbrance',
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {
                     'attestations': [],
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
@@ -499,12 +499,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -512,7 +512,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:27:35+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-05-01T23:59:00+00:00'),
@@ -535,12 +535,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'encumbrance',
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -548,7 +548,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-07-15T23:59:00+00:00'),
@@ -571,12 +571,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updateType': 'lifting_encumbrance',
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2022-08-19T19:03:56+00:00'),
                 'createDate': datetime.fromisoformat('2025-07-17T15:24:01+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-08-15T15:24:01+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {
                     'attestations': [],
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
@@ -620,12 +620,12 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {
                     'attestations': [],
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
@@ -654,12 +654,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -667,12 +667,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-15T23:59:00+04:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {
                     'attestations': [],
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
@@ -715,12 +715,12 @@ class TestProviderRecordUtility(TstLambdas):
 
         history = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {
                     'attestations': [],
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
@@ -749,12 +749,12 @@ class TestProviderRecordUtility(TstLambdas):
         # Define the expected issuance update
         expected_updates = [
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -762,12 +762,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T03:59:59.999999+00:00'),
                 'jurisdiction': 'al',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {},
                 'providerId': 'test-provider-id',
                 'type': 'privilegeUpdate',
@@ -775,12 +775,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'updatedValues': {},
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T04:00:00+00:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'previous': {
                     'attestations': [],
                     'dateOfExpiration': date.fromisoformat('2025-06-15'),
@@ -820,12 +820,12 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             },
             {
-                'compact': 'octp',
+                'compact': 'cosm',
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'jurisdiction': 'ne',
-                'licenseType': 'occupational therapy assistant',
+                'licenseType': 'cosmetologist',
                 'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
                 'type': 'privilegeUpdate',
                 'updateType': 'deactivation',
@@ -854,9 +854,9 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_history = {
-            'compact': 'octp',
+            'compact': 'cosm',
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
+            'licenseType': 'cosmetologist',
             'privilegeId': 'OTA-AL-12',
             'providerId': 'test-provider-id',
             'events': [
@@ -897,7 +897,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             },
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -930,9 +930,9 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_history = {
-            'compact': 'octp',
+            'compact': 'cosm',
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
+            'licenseType': 'cosmetologist',
             'privilegeId': 'OTA-AL-12',
             'providerId': 'test-provider-id',
             'events': [
@@ -974,7 +974,7 @@ class TestProviderRecordUtility(TstLambdas):
                 'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00+00:00'),
             },
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'createDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'dateOfUpdate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
                 'effectiveDate': datetime.fromisoformat('2025-06-16T00:00:00+04:00'),
@@ -1007,9 +1007,9 @@ class TestProviderRecordUtility(TstLambdas):
 
         # Define the expected issuance update
         expected_history = {
-            'compact': 'octp',
+            'compact': 'cosm',
             'jurisdiction': 'al',
-            'licenseType': 'occupational therapy assistant',
+            'licenseType': 'cosmetologist',
             'privilegeId': 'OTA-AL-12',
             'providerId': 'test-provider-id',
             'events': [

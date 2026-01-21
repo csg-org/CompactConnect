@@ -35,10 +35,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -63,10 +63,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -113,10 +113,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -145,10 +145,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -173,10 +173,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -237,10 +237,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -270,10 +270,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -304,10 +304,10 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'aslp#SIGNATURE_KEYS#al',
-                'sk': 'aslp#JURISDICTION#al#test-key-001',
+                'pk': 'cosm#SIGNATURE_KEYS#al',
+                'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }

@@ -273,9 +273,7 @@ def print_email_template(environment, compact, state):
 
     # Compact name mapping
     compact_names = {
-        'aslp': 'Audiology and Speech Language Pathology',
-        'octp': 'Occupational Therapy',
-        'coun': 'Counseling',
+        'cosm': 'Cosmetology',
     }
 
     compact_name = compact_names.get(compact, compact.upper())

@@ -1,8 +1,8 @@
 {
-  "pk": "aslp#CONFIGURATION",
-  "sk": "aslp#JURISDICTION#oh",
+  "pk": "cosm#CONFIGURATION",
+  "sk": "cosm#JURISDICTION#oh",
   "type": "jurisdiction",
-  "compact": "aslp",
+  "compact": "cosm",
   "jurisdictionName": "ohio",
   "postalAbbreviation": "oh",
   "jurisdictionOperationsTeamEmails": ["some-operations-team@test.com"],

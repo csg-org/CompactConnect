@@ -58,7 +58,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
 
         # setting to an invalid license type name, with a valid abbreviation
         adverse_action_data.licenseType = 'foobar'
-        adverse_action_data.license_abbreviation = 'slp'
+        adverse_action_data.license_abbreviation = 'cos'
 
         with self.assertRaises(ValidationError):
             AdverseActionData.from_database_record(adverse_action_data.serialize_to_database_record())
@@ -112,15 +112,15 @@ class TestAdverseActionDataClass(TstLambdas):
                 'adverseActionId': '98765432-9876-9876-9876-987654321098',
                 'encumbranceType': 'suspension',
                 'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'effectiveStartDate': '2024-02-15',
                 'jurisdiction': 'ne',
                 'licenseType': 'speech-language pathologist',
-                'licenseTypeAbbreviation': 'slp',
-                'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'licenseTypeAbbreviation': 'cos',
+                'pk': 'cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                'sk': 'aslp#PROVIDER#privilege/ne/slp#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
+                'sk': 'cosm#PROVIDER#privilege/ne/cos#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
                 'submittingUser': '12a6377e-c3a5-40e5-bca5-317ec854c556',
                 'type': 'adverseAction',
             },

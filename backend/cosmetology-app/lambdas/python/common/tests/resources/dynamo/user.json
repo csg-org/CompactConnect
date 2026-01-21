@@ -3,13 +3,13 @@
     "S": "USER#a4182428-d061-701c-82e5-a3d1d547d797"
   },
   "sk": {
-    "S": "COMPACT#aslp"
+    "S": "COMPACT#cosm"
   },
   "famGiv": {
     "S": "Williams#Justin"
   },
   "compact": {
-    "S": "aslp"
+    "S": "cosm"
   },
   "dateOfUpdate": {
     "S": "2024-09-12T23:59:59+00:00"

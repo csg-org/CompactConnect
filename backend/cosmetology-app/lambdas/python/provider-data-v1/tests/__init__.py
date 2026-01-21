@@ -32,7 +32,7 @@ class TstLambdas(TestCase):
                 'SSN_INDEX_NAME': 'ssnIndex',
                 'USER_POOL_ID': 'us-east-1-12345',
                 'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -92,15 +92,10 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'cosm': [
+                            {'name': 'cosmetologist', 'abbreviation': 'cos'},
+                            {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],
-                        'octp': [
-                            {'name': 'occupational therapist', 'abbreviation': 'ot'},
-                            {'name': 'occupational therapy assistant', 'abbreviation': 'ota'},
-                        ],
-                        'coun': [{'name': 'licensed professional counselor', 'abbreviation': 'lpc'}],
                     },
                 ),
             },

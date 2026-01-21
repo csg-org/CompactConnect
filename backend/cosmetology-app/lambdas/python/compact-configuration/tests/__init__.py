@@ -16,20 +16,15 @@ class TstLambdas(TestCase):
                 'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'ENVIRONMENT_NAME': 'test',
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'cosm': [
+                            {'name': 'cosmetologist', 'abbreviation': 'cos'},
+                            {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],
-                        'octp': [
-                            {'name': 'occupational therapist', 'abbreviation': 'ot'},
-                            {'name': 'occupational therapy assistant', 'abbreviation': 'ota'},
-                        ],
-                        'coun': [{'name': 'licensed professional counselor', 'abbreviation': 'lpc'}],
                     },
                 ),
             },

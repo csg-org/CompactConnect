@@ -13,8 +13,8 @@ class TestGetMe(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        # The user has admin permission for all of cosm
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
         event['pathParameters'] = {}
         event['body'] = None
 
@@ -25,15 +25,15 @@ class TestGetMe(TstFunction):
 
     def test_get_me(self):
         # Using a compact staff user method because it creates a single user that spans multiple compacts
-        user_id = self._create_compact_staff_user(compacts=['aslp', 'octp'])
+        user_id = self._create_compact_staff_user(compacts=['cosm'])
 
         from handlers.me import get_me
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        # The user has admin permission for all of cosm
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
         event['requestContext']['authorizer']['claims']['sub'] = user_id
         event['pathParameters'] = {}
         event['body'] = None
@@ -48,8 +48,7 @@ class TestGetMe(TstFunction):
         # Verify we've successfully merged permissions from two compacts
         self.assertEqual(
             {
-                'aslp': {'actions': {'read': True}, 'jurisdictions': {}},
-                'octp': {'actions': {'read': True}, 'jurisdictions': {}},
+                'cosm': {'actions': {'read': True}, 'jurisdictions': {}},
             },
             body['permissions'],
         )

@@ -27,10 +27,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             create_date=create_date,
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             investigation_id=investigation_id,
@@ -55,11 +55,11 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
-            'licenseTypeAbbreviation': 'slp',
+            'licenseTypeAbbreviation': 'cos',
             'investigationAgainst': 'privilege',
         }
 
@@ -84,10 +84,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             create_date=create_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
@@ -112,11 +112,11 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
-            'licenseTypeAbbreviation': 'slp',
+            'licenseTypeAbbreviation': 'cos',
             'investigationAgainst': 'license',
         }
 
@@ -141,10 +141,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             close_date=close_date,
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             investigation_id=investigation_id,
@@ -169,11 +169,11 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
-            'licenseTypeAbbreviation': 'slp',
+            'licenseTypeAbbreviation': 'cos',
             'investigationAgainst': 'privilege',
         }
 
@@ -198,10 +198,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             close_date=close_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
@@ -226,11 +226,11 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
-            'licenseTypeAbbreviation': 'slp',
+            'licenseTypeAbbreviation': 'cos',
             'investigationAgainst': 'license',
         }
 
@@ -258,10 +258,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             create_date=create_date,
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             investigation_id=investigation_id,
@@ -288,10 +288,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             create_date=create_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
@@ -318,10 +318,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             close_date=close_date,
             investigation_against=InvestigationAgainstEnum.PRIVILEGE,
             investigation_id=investigation_id,
@@ -348,10 +348,10 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             close_date=close_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,

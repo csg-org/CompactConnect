@@ -17,7 +17,7 @@ class TstLambdas(TestCase):
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'AWS_REGION': 'us-east-1',
                 'ENVIRONMENT_NAME': 'test',
-                'COMPACTS': '["aslp", "octp", "coun"]',
+                'COMPACTS': '["cosm"]',
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
@@ -84,15 +84,10 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'aslp': [
-                            {'name': 'audiologist', 'abbreviation': 'aud'},
-                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        'cosm': [
+                            {'name': 'cosmetologist', 'abbreviation': 'cos'},
+                            {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],
-                        'octp': [
-                            {'name': 'occupational therapist', 'abbreviation': 'ot'},
-                            {'name': 'occupational therapy assistant', 'abbreviation': 'ota'},
-                        ],
-                        'coun': [{'name': 'licensed professional counselor', 'abbreviation': 'lpc'}],
                     },
                 ),
             },

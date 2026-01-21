@@ -3,9 +3,7 @@ class CompactConfigUtility:
 
     # Mapping of compact abbreviations to full names
     COMPACT_NAME_MAPPING: dict[str, str] = {
-        'coun': 'Counseling',
-        'octp': 'Occupational Therapy',
-        'aslp': 'Audiology and Speech Language Pathology',
+        'cosm': 'Cosmetology',
     }
 
     # Mapping of jurisdiction postal abbreviations to full state names

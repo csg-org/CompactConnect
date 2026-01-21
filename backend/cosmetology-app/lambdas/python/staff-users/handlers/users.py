@@ -72,13 +72,13 @@ def patch_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argu
     """Admins update a user's data
 
     Example: This body would be requesting to:
-      - add aslp/admin permission
-      - add oh/aslp admin permission
-      - remove oh/aslp write permission
+      - add cosm/admin permission
+      - add oh/cosm admin permission
+      - remove oh/cosm write permission
     ```json
     {
       "permissions": {
-        "aslp": {
+        "cosm": {
           "actions": {
             "admin": true
           }

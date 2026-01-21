@@ -13,9 +13,9 @@ class TestGetUsers(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has admin permission for all of cosm
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -27,19 +27,19 @@ class TestGetUsers(TstFunction):
     def test_get_users_compact_admin(self):
         from cc_common.data_model.schema.common import StaffUserStatus
 
-        # One user who is a compact admin in both aslp and octp
-        self._create_compact_staff_user(compacts=['aslp', 'octp'])
-        # One board user in each test jurisdiction (oh, ne, ky) with permissions in aslp and octp.
-        self._create_board_staff_users(compacts=['aslp', 'octp'])
+        # One user who is a compact admin in cosm
+        self._create_compact_staff_user(compacts=['cosm'])
+        # One board user in each test jurisdiction (oh, ne, ky) with permissions in cosm.
+        self._create_board_staff_users(compacts=['cosm'])
 
         from handlers.users import get_users
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has admin permission for all of cosm
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = None
 
         resp = get_users(event, self.mock_context)
@@ -54,21 +54,21 @@ class TestGetUsers(TstFunction):
             self.assertEqual(StaffUserStatus.INACTIVE.value, user['status'])
 
     def test_get_users_paginated(self):
-        self._create_compact_staff_user(compacts=['aslp', 'octp'])
-        # Nine users: Three board users in each test jurisdiction (oh, ne, ky) with permissions in aslp and octp.
-        self._create_board_staff_users(compacts=['aslp', 'octp'])
-        self._create_board_staff_users(compacts=['aslp', 'octp'])
-        self._create_board_staff_users(compacts=['aslp', 'octp'])
+        self._create_compact_staff_user(compacts=['cosm'])
+        # Nine users: Three board users in each test jurisdiction (oh, ne, ky) with permissions in cosm.
+        self._create_board_staff_users(compacts=['cosm'])
+        self._create_board_staff_users(compacts=['cosm'])
+        self._create_board_staff_users(compacts=['cosm'])
 
         from handlers.users import get_users
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        # The user has admin permission for all of cosm
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
         event['queryStringParameters'] = {'pageSize': '5'}
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = None
 
         first_resp = get_users(event, self.mock_context)
@@ -89,19 +89,19 @@ class TestGetUsers(TstFunction):
         self.assertIsNone(body['pagination']['lastKey'])
 
     def test_get_users_outside_compact_admin(self):
-        # One user who is a compact admin in aslp
-        self._create_compact_staff_user(compacts=['aslp'])
-        # One board user in each test jurisdiction (oh, ne, ky) with permissions in aslp.
-        self._create_board_staff_users(compacts=['aslp'])
+        # One user who is a compact admin in cosm
+        self._create_compact_staff_user(compacts=['cosm'])
+        # One board user in each test jurisdiction (oh, ne, ky) with permissions in cosm.
+        self._create_board_staff_users(compacts=['cosm'])
 
         from handlers.users import get_users
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of octp (but not aslp)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email octp/admin'
-        event['pathParameters'] = {'compact': 'aslp'}
+        # The user has admin permission for all of cosm
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = None
 
         resp = get_users(event, self.mock_context)

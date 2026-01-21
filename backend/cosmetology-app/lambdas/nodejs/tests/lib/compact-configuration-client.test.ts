@@ -5,8 +5,8 @@ import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { CompactConfigurationClient } from '../../lib/compact-configuration-client';
 
 const SAMPLE_COMPACT_CONFIGURATION = {
-    'pk': { S: 'aslp#CONFIGURATION' },
-    'sk': { S: 'aslp#CONFIGURATION' },
+    'pk': { S: 'cosm#CONFIGURATION' },
+    'sk': { S: 'cosm#CONFIGURATION' },
     'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }]},
     'compactCommissionFee': {
         M: {
@@ -14,7 +14,7 @@ const SAMPLE_COMPACT_CONFIGURATION = {
             'feeType': { S: 'FLAT_RATE' }
         }
     },
-    'compactAbbr': { S: 'aslp' },
+    'compactAbbr': { S: 'cosm' },
     'compactName': { S: 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
     'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
@@ -53,28 +53,28 @@ describe('CompactConfigurationClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const config = await compactConfigurationClient.getCompactConfiguration('aslp');
+        const config = await compactConfigurationClient.getCompactConfiguration('cosm');
 
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
             GetItemCommand,
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#CONFIGURATION' }
+                    'pk': { S: 'cosm#CONFIGURATION' },
+                    'sk': { S: 'cosm#CONFIGURATION' }
                 }
             }
         );
 
         expect(config).toEqual({
-            pk: 'aslp#CONFIGURATION',
-            sk: 'aslp#CONFIGURATION',
+            pk: 'cosm#CONFIGURATION',
+            sk: 'cosm#CONFIGURATION',
             compactAdverseActionsNotificationEmails: ['adverse@example.com'],
             compactCommissionFee: {
                 feeAmount: 3.5,
                 feeType: 'FLAT_RATE'
             },
-            compactAbbr: 'aslp',
+            compactAbbr: 'cosm',
             compactName: 'Audiology and Speech Language Pathology',
             compactOperationsTeamEmails: ['operations@example.com'],
             compactSummaryReportNotificationEmails: ['summary@example.com'],

@@ -13,7 +13,7 @@ class TestLicensePostSchema(TstLambdas):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 
         with open('tests/resources/api/license-post.json') as f:
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
+            LicensePostRequestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **json.load(f)})
 
     def test_invalid_post(self):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
@@ -23,7 +23,7 @@ class TestLicensePostSchema(TstLambdas):
         license_data.pop('ssn')
 
         with self.assertRaises(ValidationError):
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+            LicensePostRequestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_data})
 
     def test_compact_eligible_with_inactive_license_not_allowed(self):
         from cc_common.data_model.schema.license.api import LicensePostRequestSchema
@@ -34,7 +34,7 @@ class TestLicensePostSchema(TstLambdas):
         license_data['compactEligibility'] = 'eligible'
 
         with self.assertRaises(ValidationError):
-            LicensePostRequestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
+            LicensePostRequestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_data})
 
 
 class TestLicenseRecordSchema(TstLambdas):
@@ -91,14 +91,14 @@ class TestLicenseRecordSchema(TstLambdas):
         license_record['ssnLastFour'] = license_record['ssn'][-4:]
         license_record['providerId'] = expected_license_record['providerId']
         del license_record['ssn']
-        license_data = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+        license_data = LicenseIngestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_record})
 
         # Provider will normally be looked up / generated internally, not come from the client
         provider_id = expected_license_record['providerId']
 
         license_record = LicenseRecordSchema().dump(
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'co',
                 'providerId': UUID(provider_id),
                 'ssnLastFour': '1234',
@@ -204,7 +204,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             {
                 'type': 'licenseUpdate',
                 'providerId': uuid4(),
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ky',
                 'licenseType': 'speech-language pathologist',
                 'updateType': loaded_record['updateType'],
@@ -233,7 +233,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
         alternate_record = {
             'type': 'licenseUpdate',
             'providerId': uuid4(),
-            'compact': 'aslp',
+            'compact': 'cosm',
             'jurisdiction': 'ky',
             'licenseType': 'speech-language pathologist',
             'updateType': loaded_record['updateType'],
@@ -279,7 +279,7 @@ class TestLicenseIngestSchema(TstLambdas):
             license_record['providerId'] = uuid4()
             del license_record['ssn']
 
-            result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+            result = LicenseIngestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_record})
             # Verify that the `licenseStatus` and `compactEligibility` fields are renamed to `jurisdictionUploaded*`
             self.assertEqual('active', result['jurisdictionUploadedLicenseStatus'])
             self.assertEqual('eligible', result['jurisdictionUploadedCompactEligibility'])
@@ -300,4 +300,4 @@ class TestLicenseIngestSchema(TstLambdas):
         license_record['compactEligibility'] = 'eligible'
 
         with self.assertRaises(ValidationError):
-            LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+            LicenseIngestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_record})

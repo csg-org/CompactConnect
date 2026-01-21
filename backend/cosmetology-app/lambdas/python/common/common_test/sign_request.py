@@ -38,7 +38,7 @@ def sign_request(
     Where query parameters are sorted alphabetically and URL-encoded.
 
     :param method: HTTP method (e.g., 'GET', 'POST')
-    :param path: Request path (e.g., '/v1/compacts/aslp/jurisdictions/al/providers/query')
+    :param path: Request path (e.g., '/v1/compacts/cosm/jurisdictions/al/providers/query')
     :param query_params: Dictionary of query parameters
     :param timestamp: ISO 8601 timestamp in UTC (e.g., '2024-01-15T10:30:00Z' or '2024-01-15T10:30:00+00:00')
     :param nonce: Unique nonce (e.g., UUID4 string)

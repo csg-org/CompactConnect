@@ -14,7 +14,7 @@ class TestPublicQueryProviders(TstFunction):
     def _when_jurisdiction_is_live_in_compact(self, jurisdiction):
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
-                'compactAbbr': 'aslp',
+                'compactAbbr': 'cosm',
                 'configuredStates': [{'postalAbbreviation': jurisdiction, 'isLive': True}],
             }
         )
@@ -29,7 +29,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
 
         resp = public_query_providers(event, self.mock_context)
@@ -68,7 +68,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
@@ -105,7 +105,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 20}},
         )
@@ -149,7 +149,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
@@ -185,7 +185,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -218,7 +218,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -267,7 +267,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -301,7 +301,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -329,7 +329,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps({'query': {}})
 
         resp = public_query_providers(event, self.mock_context)
@@ -359,7 +359,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['body'] = json.dumps({'query': {'jurisdiction': 'oh'}, 'sorting': {'key': 'invalid'}})
 
         resp = public_query_providers(event, self.mock_context)
@@ -386,7 +386,7 @@ class TestPublicQueryProviders(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
 
         # Test multiple fields with whitespace
         event['body'] = json.dumps(
@@ -430,7 +430,7 @@ class TestPublicGetProvider(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
         resp = public_get_provider(event, self.mock_context)
@@ -467,7 +467,7 @@ class TestPublicGetProvider(TstFunction):
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
         # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'cosm'}
         event['queryStringParameters'] = None
 
         resp = public_get_provider(event, self.mock_context)

@@ -23,7 +23,7 @@ def generate_test_event(method: str, resource: str, scopes: str = None) -> dict:
         event['httpMethod'] = method
         event['resource'] = resource
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'cosm',
         }
 
         if scopes:
@@ -32,7 +32,7 @@ def generate_test_event(method: str, resource: str, scopes: str = None) -> dict:
     return event
 
 
-def load_compact_active_member_jurisdictions(postal_abbreviations: list[str], compact: str = 'aslp'):
+def load_compact_active_member_jurisdictions(postal_abbreviations: list[str], compact: str = 'cosm'):
     """Load active member jurisdictions using the TestDataGenerator."""
     from common_test.test_data_generator import TestDataGenerator
 
@@ -109,8 +109,8 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
 
         self.assertEqual(
             [
-                {'compact': 'aslp', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
-                {'compact': 'aslp', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+                {'compact': 'cosm', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'cosm', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
             ],
             sorted_response,
         )
@@ -185,8 +185,8 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
         self.assertEqual(
             [
-                {'compact': 'aslp', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
-                {'compact': 'aslp', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+                {'compact': 'cosm', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'cosm', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
             ],
             sorted_response,
         )
@@ -196,10 +196,10 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         # Create compact configurations with some jurisdictions marked as live
-        # ASLP compact with some live jurisdictions
+        # COSM compact with some live jurisdictions
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
-                'compactAbbr': 'aslp',
+                'compactAbbr': 'cosm',
                 'configuredStates': [
                     {'postalAbbreviation': 'ky', 'isLive': True},
                     {'postalAbbreviation': 'oh', 'isLive': True},
@@ -219,7 +219,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
             },
         )
 
-        # COUN compact with no live jurisdictions
+        # Additional test setup if needed
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
                 'compactAbbr': 'coun',
@@ -238,12 +238,12 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         response_body = json.loads(response['body'])
 
         # Should return all compacts with their live jurisdictions
-        self.assertIn('aslp', response_body)
+        self.assertIn('cosm', response_body)
         self.assertIn('octp', response_body)
         self.assertIn('coun', response_body)
 
         # Verify the live jurisdictions for each compact
-        self.assertCountEqual(['oh', 'ky'], response_body['aslp'])
+        self.assertCountEqual(['oh', 'ky'], response_body['cosm'])
         self.assertCountEqual(['ne'], response_body['octp'])
         self.assertCountEqual([], response_body['coun'])
 
@@ -254,7 +254,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         # Create compact configurations
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
-                'compactAbbr': 'aslp',
+                'compactAbbr': 'cosm',
                 'configuredStates': [
                     {'postalAbbreviation': 'ky', 'isLive': True},
                     {'postalAbbreviation': 'oh', 'isLive': True},
@@ -274,19 +274,19 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
         # Create event with compact query param
         event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
-        event['queryStringParameters'] = {'compact': 'aslp'}
+        event['queryStringParameters'] = {'compact': 'cosm'}
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
         # Should only return the specified compact
-        self.assertIn('aslp', response_body)
+        self.assertIn('cosm', response_body)
         self.assertNotIn('octp', response_body)
         self.assertNotIn('coun', response_body)
 
         # Verify the live jurisdictions
-        self.assertCountEqual(['ky', 'oh'], response_body['aslp'])
+        self.assertCountEqual(['ky', 'oh'], response_body['cosm'])
 
     def test_get_public_live_compact_jurisdictions_returns_400_if_bad_compact_param(self):
         """Test getting list of live jurisdictions returns 400 when invalid query param provided"""
@@ -295,7 +295,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         # Create compact configurations
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
-                'compactAbbr': 'aslp',
+                'compactAbbr': 'cosm',
                 'configuredStates': [
                     {'postalAbbreviation': 'ky', 'isLive': True},
                 ],
@@ -389,7 +389,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting a compact configuration returns an invalid exception if the HTTP method is invalid."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('PATCH', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='aslp/admin')
+        event = generate_test_event('PATCH', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
@@ -404,7 +404,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting an error if invalid compact is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='aslp/admin')
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
         event['pathParameters']['compact'] = 'invalid_compact'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -420,7 +420,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting a compact configuration returns a compact configuration."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='aslp/admin')
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -428,7 +428,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         self.assertEqual(
             {
-                'compactAbbr': 'aslp',
+                'compactAbbr': 'cosm',
                 'compactName': 'Audiology and Speech Language Pathology',
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
@@ -446,7 +446,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = 'foo'
         # add compact admin scope to the event
-        event['requestContext']['authorizer']['claims']['scopes'] = 'aslp/admin'
+        event['requestContext']['authorizer']['claims']['scopes'] = 'cosm/admin'
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(403, response['statusCode'])
@@ -457,9 +457,9 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
-        event['pathParameters']['compact'] = 'aslp'
+        event['pathParameters']['compact'] = 'cosm'
         # add state admin scope to the event, but not compact admin
-        event['requestContext']['authorizer']['scopes'] = 'oh/aslp.admin'
+        event['requestContext']['authorizer']['scopes'] = 'oh/cosm.admin'
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(403, response['statusCode'])
@@ -694,7 +694,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting a jurisdiction configuration returns an invalid exception if the HTTP method is invalid."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('PATCH', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
+        event = generate_test_event('PATCH', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
         event['pathParameters']['jurisdiction'] = 'ky'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -710,7 +710,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting an error if invalid compact is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
         event['pathParameters']['compact'] = 'invalid_compact'
         event['pathParameters']['jurisdiction'] = 'ky'
 
@@ -727,7 +727,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting an error if invalid jurisdiction is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
         event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -743,7 +743,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting a jurisdiction configuration returns a default configuration if none exists."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/aslp.admin')
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
         event['pathParameters']['jurisdiction'] = 'ky'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -753,7 +753,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         # Verify the jurisdiction name is set correctly from the mapping
         self.assertEqual(
             {
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdictionAdverseActionsNotificationEmails': [],
                 'jurisdictionName': 'Kentucky',
                 'jurisdictionOperationsTeamEmails': [],
@@ -817,9 +817,9 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
         # add compact admin scope to the event, but not state admin
-        event['requestContext']['authorizer']['claims']['scope'] = 'aslp/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'cosm/admin'
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
 
         response = compact_configuration_api_handler(event, self.mock_context)

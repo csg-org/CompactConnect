@@ -22,12 +22,12 @@ from smoke_common import (
     load_smoke_test_env,
 )
 
-COMPACT = 'coun'
+COMPACT = 'cosm'
 JURISDICTION = 'ne'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 
-LICENSE_TYPE = 'licensed professional counselor'
+LICENSE_TYPE = 'cosmetologist'
 
 # Test configuration
 NUM_LICENSES_TO_UPLOAD = 300
@@ -352,7 +352,7 @@ def create_privilege_for_provider(provider_id: str, compact: str):
 
     # Create a privilege record for a different jurisdiction (e.g., 'co' for Colorado)
     privilege_jurisdiction = 'co'
-    license_type_abbr = 'lpc'
+    license_type_abbr = 'cos'
 
     privilege_record = {
         'pk': f'{compact}#PROVIDER#{provider_id}',
@@ -386,7 +386,7 @@ def create_encumbrance_update_for_provider(provider_id: str, compact: str, licen
     :param license_jurisdiction: The jurisdiction of the license
     """
 
-    license_type_abbr = 'lpc'
+    license_type_abbr = 'cos'
     # Use current time or specified time
     now = datetime.now(tz=UTC)
 

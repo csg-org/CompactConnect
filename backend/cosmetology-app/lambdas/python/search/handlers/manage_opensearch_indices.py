@@ -18,8 +18,8 @@ class OpenSearchIndexManager(CustomResourceHandler):
     """
     Custom resource handler to create OpenSearch indices for compacts.
 
-    Creates versioned indices (e.g., compact_aslp_providers_v1) with aliases
-    (e.g., compact_aslp_providers) to enable safe blue-green migrations for
+    Creates versioned indices (e.g., compact_cosm_providers_v1) with aliases
+    (e.g., compact_cosm_providers) to enable safe blue-green migrations for
     future mapping changes. Queries use the alias, allowing the underlying
     index to be swapped without application changes.
     See https://docs.opensearch.org/latest/im-plugin/index-alias/
@@ -49,9 +49,9 @@ class OpenSearchIndexManager(CustomResourceHandler):
 
         compacts = config.compacts
         for compact in compacts:
-            # Create versioned index name (e.g., compact_aslp_providers_v1)
+            # Create versioned index name (e.g., compact_cosm_providers_v1)
             index_name = f'compact_{compact}_providers_{INITIAL_INDEX_VERSION}'
-            # Create alias name (e.g., compact_aslp_providers)
+            # Create alias name (e.g., compact_cosm_providers)
             alias_name = f'compact_{compact}_providers'
             self._create_provider_index_with_alias(
                 client=client,
@@ -156,8 +156,8 @@ class OpenSearchIndexManager(CustomResourceHandler):
         Create the provider index and alias in OpenSearch if they don't exist.
 
         :param client: The OpenSearch client
-        :param index_name: The versioned index name (e.g., compact_aslp_providers_v1)
-        :param alias_name: The alias name (e.g., compact_aslp_providers)
+        :param index_name: The versioned index name (e.g., compact_cosm_providers_v1)
+        :param alias_name: The alias name (e.g., compact_cosm_providers)
         :param number_of_shards: Number of primary shards for the index
         :param number_of_replicas: Number of replica shards for the index
         """

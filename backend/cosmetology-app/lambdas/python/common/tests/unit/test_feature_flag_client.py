@@ -50,7 +50,7 @@ class TestFeatureFlagClient(TstLambdas):
         mock_response = MagicMock()
         mock_response.json.return_value = {'enabled': True}
 
-        context = FeatureFlagContext(user_id='user123', custom_attributes={'licenseType': 'lpc'})
+        context = FeatureFlagContext(user_id='user123', custom_attributes={'licenseType': 'cos'})
 
         with patch('cc_common.feature_flag_client.requests.post', return_value=mock_response) as mock_post:
             result = is_feature_enabled(FeatureFlagEnum.TEST_FLAG, context=context)
@@ -62,7 +62,7 @@ class TestFeatureFlagClient(TstLambdas):
             mock_post.assert_called_once_with(
                 'https://api.example.com/v1/flags/test-flag/check',
                 json={
-                    'context': {'userId': 'user123', 'customAttributes': {'licenseType': 'lpc'}},
+                    'context': {'userId': 'user123', 'customAttributes': {'licenseType': 'cos'}},
                 },
                 timeout=5,
                 headers={'Content-Type': 'application/json'},
@@ -188,10 +188,10 @@ class TestFeatureFlagClient(TstLambdas):
         """Test FeatureFlagContext to_dict with only custom_attributes."""
         from cc_common.feature_flag_client import FeatureFlagContext
 
-        context = FeatureFlagContext(custom_attributes={'licenseType': 'lpc', 'jurisdiction': 'oh'})
+        context = FeatureFlagContext(custom_attributes={'licenseType': 'cos', 'jurisdiction': 'oh'})
         result = context.to_dict()
 
-        self.assertEqual(result, {'customAttributes': {'licenseType': 'lpc', 'jurisdiction': 'oh'}})
+        self.assertEqual(result, {'customAttributes': {'licenseType': 'cos', 'jurisdiction': 'oh'}})
 
     def test_feature_flag_context_with_both_fields(self):
         """Test FeatureFlagContext to_dict with both user_id and custom_attributes."""

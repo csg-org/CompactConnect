@@ -3,11 +3,11 @@
         {
             "type": "statePrivilege",
             "providerId": "123e4567-e89b-12d3-a456-426614174000",
-            "compact": "aslp",
+            "compact": "cosm",
             "jurisdiction": "ne",
             "ssnLastFour": "1234",
-            "licenseType": "speech-language pathologist",
-            "privilegeId": "SLP-NE-1",
+            "licenseType": "cosmetologist",
+            "privilegeId": "COS-NE-1",
             "licenseNumber": "S0608337260",
             "npi": "0608337260",
             "status": "active",
@@ -33,11 +33,11 @@
         {
             "type": "statePrivilege",
             "providerId": "123e4567-e89b-12d3-a456-426614174000",
-            "compact": "aslp",
+            "compact": "cosm",
             "jurisdiction": "ne",
             "ssnLastFour": "1234",
-            "licenseType": "audiologist",
-            "privilegeId": "AUD-NE-1",
+            "licenseType": "esthetician",
+            "privilegeId": "ESTH-NE-1",
             "status": "active",
             "compactEligibility": "eligible",
             "dateOfBirth": "1985-06-06",
@@ -56,5 +56,5 @@
             "licenseStatus": "active"
         }
     ],
-    "providerUIUrl": "https://app.compactconnect.org/aslp/Licensing/860b8fb8-5d0f-4b66-ab6b-1c83d28258ea"
+    "providerUIUrl": "https://app.compactconnect.org/cosm/Licensing/860b8fb8-5d0f-4b66-ab6b-1c83d28258ea"
 }

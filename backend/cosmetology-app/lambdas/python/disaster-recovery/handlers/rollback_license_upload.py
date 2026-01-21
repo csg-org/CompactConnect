@@ -219,7 +219,7 @@ def rollback_license_upload(event: dict, context: LambdaContext):  # noqa: ARG00
 
     Input event structure:
     {
-        'compact': 'aslp',
+        'compact': 'cosm',
         'jurisdiction': 'oh',
         'startDateTime': '2024-01-01T00:00:00Z',
         'endDateTime': '2024-01-01T23:59:59Z',

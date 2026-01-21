@@ -12,7 +12,7 @@ class TestUtils(TstFunction):
 
         with open('tests/resources/api/license-post.json') as f:
             license_record = json.load(f)
-            license_record['compact'] = 'aslp'
+            license_record['compact'] = 'cosm'
             license_record['jurisdiction'] = 'oh'
 
         # generate 100 records and ensure the system processes all of them.

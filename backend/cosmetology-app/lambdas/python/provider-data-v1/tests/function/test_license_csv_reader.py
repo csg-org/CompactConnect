@@ -15,12 +15,12 @@ class TestCSVParser(TstFunction):
 
         # Upload our test file to mocked 'S3' then retrieve it, so we can specifically
         # test our reader's ability to process data from boto3's StreamingBody
-        key = f'aslp/oh/{uuid4().hex}'
+        key = f'cosm/oh/{uuid4().hex}'
         self._bucket.upload_file('../common/tests/resources/licenses.csv', key)
         stream = TextIOWrapper(self._bucket.Object(key).get()['Body'], encoding='utf-8')
 
         schema = LicensePostRequestSchema()
         reader = LicenseCSVReader()
         for license_row in reader.licenses(stream):
-            validated = schema.load({'compact': 'aslp', 'jurisdiction': 'oh', **license_row})
+            validated = schema.load({'compact': 'cosm', 'jurisdiction': 'oh', **license_row})
             logger.debug('Read validated license', license=reader.schema.dump(validated))

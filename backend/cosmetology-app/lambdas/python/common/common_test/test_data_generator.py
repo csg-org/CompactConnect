@@ -534,7 +534,7 @@ class TestDataGenerator:
         """Generate a default compact configuration"""
         default_compact_config = {
             'compactAbbr': DEFAULT_COMPACT,
-            'compactName': 'Audiology and Speech Language Pathology',
+            'compactName': 'Cosmetology',
             'compactCommissionFee': {
                 'feeAmount': Decimal('10.00'),
                 'feeType': 'FLAT_RATE',
@@ -582,7 +582,7 @@ class TestDataGenerator:
     ) -> JurisdictionConfigurationData:
         """Generate a default jurisdiction configuration"""
         default_jurisdiction_config = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
             'jurisprudenceRequirements': {

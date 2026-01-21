@@ -52,7 +52,7 @@ if is_feature_enabled('my-feature-flag-name'):
 # With targeting context
 context = FeatureFlagContext(
     user_id='user-123',
-    custom_attributes={'compact': 'aslp', 'licenseType': 'slp'}
+    custom_attributes={'compact': 'cosm', 'licenseType': 'cos'}
 )
 if is_feature_enabled('my-feature-flag-name', context=context):
     # run feature gated code if enabled

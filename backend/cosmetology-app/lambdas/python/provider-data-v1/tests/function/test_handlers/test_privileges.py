@@ -19,7 +19,7 @@ DEACTIVATION_EVENT = {
     'type': 'privilegeUpdate',
     'updateType': 'deactivation',
     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-    'compact': 'aslp',
+    'compact': 'cosm',
     'jurisdiction': 'ne',
     'licenseType': 'speech-language pathologist',
     'createDate': '2024-11-08T23:59:59+00:00',
@@ -76,12 +76,12 @@ class TestDeactivatePrivilege(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral ne/aslp.readPrivate'
+        # The user has read permission for cosm
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral ne/cosm.readPrivate'
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': expected_provider['providerId'],
-            'licenseType': 'aud',
+            'licenseType': 'cos',
         }
 
         resp = get_provider(event, self.mock_context)
@@ -107,10 +107,10 @@ class TestDeactivatePrivilege(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = scopes
         event['requestContext']['authorizer']['claims']['sub'] = TEST_STAFF_USER_ID
         event['pathParameters'] = {
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
             'jurisdiction': 'ne',
-            'licenseType': 'slp',
+            'licenseType': 'cos',
         }
         event['body'] = json.dumps({'deactivationNote': TEST_NOTE})
 
@@ -124,8 +124,8 @@ class TestDeactivatePrivilege(TstFunction):
         """
         self._load_provider_data()
 
-        # The user has admin permission for aslp
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/admin')
+        # The user has admin permission for cosm
+        resp = self._request_deactivation_with_scopes('openid email cosm/admin cosm/admin')
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
@@ -141,7 +141,7 @@ class TestDeactivatePrivilege(TstFunction):
                     'Detail': json.dumps(
                         {
                             'eventTime': '2024-11-08T23:59:59+00:00',
-                            'compact': 'aslp',
+                            'compact': 'cosm',
                             'jurisdiction': 'ne',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                         }
@@ -159,7 +159,7 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         # The user has admin permission for ne
-        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email ne/cosm.admin')
         self.assertEqual(403, resp['statusCode'])
         self.assertEqual({'message': 'Access denied'}, json.loads(resp['body']))
 
@@ -171,15 +171,15 @@ class TestDeactivatePrivilege(TstFunction):
 
         # The user has admin permission for ne
         with patch('handlers.privileges.config.email_service_client') as mock_email_service_client:
-            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+            resp = self._request_deactivation_with_scopes('openid email cosm/admin')
 
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
         mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
-            compact='aslp',
+            compact='cosm',
             jurisdiction='ne',
-            privilege_id='SLP-NE-1',
+            privilege_id='COS-NE-1',
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
         )
@@ -196,7 +196,7 @@ class TestDeactivatePrivilege(TstFunction):
             privilege['administratorSetStatus'] = 'inactive'
             self.config.provider_table.put_item(Item=privilege)
         # calling deactivation on privilege that is already deactivated
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+        resp = self._request_deactivation_with_scopes('openid email cosm/admin')
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
@@ -213,7 +213,7 @@ class TestDeactivatePrivilege(TstFunction):
                 mock_email_service_client.send_jurisdiction_privilege_deactivation_email
             ).side_effect = CCInternalException('email failed to send')
             # We expect the handler to still return a 200, since the privilege was deactivated
-            resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+            resp = self._request_deactivation_with_scopes('openid email cosm/admin')
 
         self.assertEqual(200, resp['statusCode'])
 
@@ -228,8 +228,8 @@ class TestDeactivatePrivilege(TstFunction):
         """
         self._load_provider_data()
 
-        # The user has read permission for aslp
-        resp = self._request_deactivation_with_scopes('openid email aslp/readGeneral ne/aslp.readPrivate')
+        # The user has read permission for cosm
+        resp = self._request_deactivation_with_scopes('openid email cosm/readGeneral ne/cosm.readPrivate')
         self.assertEqual(403, resp['statusCode'])
 
     def test_deactivate_privilege_not_found(self):
@@ -237,5 +237,5 @@ class TestDeactivatePrivilege(TstFunction):
         If a privilege is not found, the response should be a 404
         """
         # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
+        resp = self._request_deactivation_with_scopes('openid email cosm/admin')
         self.assertEqual(404, resp['statusCode'])

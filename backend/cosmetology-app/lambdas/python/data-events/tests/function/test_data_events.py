@@ -20,7 +20,7 @@ class TestHandleDataEvents(TstFunction):
 
         self.assertEqual({'batchItemFailures': []}, resp)
         key = {
-            'pk': 'COMPACT#aslp#JURISDICTION#oh',
+            'pk': 'COMPACT#cosm#JURISDICTION#oh',
             'sk': 'TYPE#license.validation-error#TIME#1730255454#EVENT#44ec3255-8d59-a6ae-0783-5563a9318a58',
         }
         saved_event = self._data_event_table.get_item(Key=key)['Item']
@@ -32,7 +32,7 @@ class TestHandleDataEvents(TstFunction):
                 **key,
                 'eventTime': '2024-10-30T02:30:54.586569+00:00',
                 'eventType': 'license.validation-error',
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'oh',
                 'recordNumber': Decimal('4'),
                 'errors': {'licenseType': ['Missing data for required field.']},
@@ -54,7 +54,7 @@ class TestHandleDataEvents(TstFunction):
 
         self.assertEqual({'batchItemFailures': []}, resp)
         key = {
-            'pk': 'COMPACT#aslp#JURISDICTION#oh',
+            'pk': 'COMPACT#cosm#JURISDICTION#oh',
             'sk': 'TYPE#license.ingest#TIME#1720727865#EVENT#44ec3255-8d59-a6ae-0783-5563a9318a58',
         }
         saved_event = self._data_event_table.get_item(Key=key)['Item']
@@ -66,7 +66,7 @@ class TestHandleDataEvents(TstFunction):
                 **key,
                 'eventTime': '2024-07-11T19:57:45+00:00',
                 'eventType': 'license.ingest',
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'licenseType': 'speech-language pathologist',
                 'jurisdiction': 'oh',
                 'licenseStatus': 'active',
@@ -92,7 +92,7 @@ class TestHandleDataEvents(TstFunction):
 
         self.assertEqual({'batchItemFailures': []}, resp)
         key = {
-            'pk': 'COMPACT#aslp#JURISDICTION#oh',
+            'pk': 'COMPACT#cosm#JURISDICTION#oh',
             'sk': 'TYPE#license.validation-error#TIME#1730255454#EVENT#44ec3255-8d59-a6ae-0783-5563a9318a58',
         }
         saved_event = self._data_event_table.get_item(Key=key)['Item']
@@ -104,7 +104,7 @@ class TestHandleDataEvents(TstFunction):
                 **key,
                 'eventTime': '2024-10-30T02:30:54.586569+00:00',
                 'eventType': 'license.validation-error',
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'oh',
                 'recordNumber': Decimal('4'),
                 'errors': {'<EMPTY>': ['Unknown field.']},

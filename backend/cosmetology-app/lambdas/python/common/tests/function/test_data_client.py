@@ -27,7 +27,7 @@ class TestDataClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_provider(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
         )
         self.assertEqual(3, len(resp['items']))
@@ -58,7 +58,7 @@ class TestDataClient(TstFunction):
 
         # The field should not be allowed out via API
         resp = client.get_provider(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
         )
         for item in resp['items']:
@@ -92,8 +92,8 @@ class TestDataClient(TstFunction):
         # and that the next privilege number will be 124
         self.config.provider_table.put_item(
             Item={
-                'pk': 'aslp#PRIVILEGE_COUNT',
-                'sk': 'aslp#PRIVILEGE_COUNT',
+                'pk': 'cosm#PRIVILEGE_COUNT',
+                'sk': 'cosm#PRIVILEGE_COUNT',
                 'privilegeCount': 123,
             }
         )
@@ -101,7 +101,7 @@ class TestDataClient(TstFunction):
         test_data_client = DataClient(self.config)
 
         response = test_data_client.create_provider_privileges(
-            compact='aslp',
+            compact='cosm',
             provider_id=DEFAULT_PROVIDER_ID,
             license_type='audiologist',
             jurisdiction_postal_abbreviations=['ky'],
@@ -112,15 +112,15 @@ class TestDataClient(TstFunction):
 
         # Verify that the privilege record was created
         new_privilege = self._provider_table.get_item(
-            Key={'pk': f'aslp#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': 'aslp#PROVIDER#privilege/ky/aud#'}
+            Key={'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': 'cosm#PROVIDER#privilege/ky/cos#'}
         )['Item']
         self.assertEqual(
             {
-                'pk': f'aslp#PROVIDER#{DEFAULT_PROVIDER_ID}',
-                'sk': 'aslp#PROVIDER#privilege/ky/aud#',
+                'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'sk': 'cosm#PROVIDER#privilege/ky/cos#',
                 'type': 'privilege',
                 'providerId': DEFAULT_PROVIDER_ID,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ky',
                 'licenseJurisdiction': 'oh',
                 'licenseType': 'audiologist',
@@ -136,7 +136,7 @@ class TestDataClient(TstFunction):
 
         # Verify that the provider record was updated
         updated_provider = self._provider_table.get_item(
-            Key={'pk': f'aslp#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': 'aslp#PROVIDER'}
+            Key={'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': 'cosm#PROVIDER'}
         )['Item']
         self.assertEqual({'ky'}, updated_provider['privilegeJurisdictions'])
 
@@ -145,7 +145,7 @@ class TestDataClient(TstFunction):
         self.assertEqual(
             {
                 'administratorSetStatus': 'active',
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
@@ -153,10 +153,10 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'ky',
                 'licenseJurisdiction': 'oh',
                 'licenseType': 'audiologist',
-                'pk': f'aslp#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}',
                 'privilegeId': 'AUD-KY-124',
                 'providerId': DEFAULT_PROVIDER_ID,
-                'sk': 'aslp#PROVIDER#privilege/ky/aud#',
+                'sk': 'cosm#PROVIDER#privilege/ky/cos#',
                 'type': 'privilege',
             },
             response[0].serialize_to_database_record(),
@@ -170,7 +170,7 @@ class TestDataClient(TstFunction):
 
         with self.assertRaises(CCInvalidRequestException):
             test_data_client.create_provider_privileges(
-                compact='aslp',
+                compact='cosm',
                 provider_id='test_provider_id',
                 jurisdiction_postal_abbreviations=['ca'],
                 license_expiration_date=date.fromisoformat('2024-10-31'),
@@ -199,7 +199,7 @@ class TestDataClient(TstFunction):
                 {
                     'type': 'privilege',
                     'providerId': provider_uuid,
-                    'compact': 'aslp',
+                    'compact': 'cosm',
                     'jurisdiction': jurisdiction,
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
@@ -216,7 +216,7 @@ class TestDataClient(TstFunction):
 
         # Now update all privileges
         test_data_client.create_provider_privileges(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_uuid,
             jurisdiction_postal_abbreviations=jurisdictions,
             license_expiration_date=date.fromisoformat('2025-10-31'),
@@ -233,13 +233,13 @@ class TestDataClient(TstFunction):
 
         # Verify that all privileges were updated
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_uuid
+            compact='cosm', provider_id=provider_uuid
         )
 
         for jurisdiction in jurisdictions:
             # Get the privilege record using ProviderUserRecords
             privilege_record = provider_user_records.get_specific_privilege_record(
-                jurisdiction=jurisdiction, license_abbreviation='aud'
+                jurisdiction=jurisdiction, license_abbreviation='cos'
             )
             self.assertIsNotNone(privilege_record, f'Privilege record not found for jurisdiction {jurisdiction}')
             self.assertEqual('2025-10-31', privilege_record.dateOfExpiration.isoformat())
@@ -256,7 +256,7 @@ class TestDataClient(TstFunction):
 
         # Verify the provider record was updated correctly
         provider = self._provider_table.get_item(
-            Key={'pk': f'aslp#PROVIDER#{provider_uuid}', 'sk': 'aslp#PROVIDER'},
+            Key={'pk': f'cosm#PROVIDER#{provider_uuid}', 'sk': 'cosm#PROVIDER'},
         )['Item']
         self.assertEqual(set(jurisdictions), provider['privilegeJurisdictions'])
 
@@ -280,7 +280,7 @@ class TestDataClient(TstFunction):
                 {
                     'type': 'privilege',
                     'providerId': provider_uuid,
-                    'compact': 'aslp',
+                    'compact': 'cosm',
                     'jurisdiction': jurisdiction,
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'audiologist',
@@ -299,7 +299,7 @@ class TestDataClient(TstFunction):
         original_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
                 'providerId': provider_uuid,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'licenseJurisdiction': 'oh',
                 'privilegeJurisdictions': set(jurisdictions),
             }
@@ -324,7 +324,7 @@ class TestDataClient(TstFunction):
         # Attempt to update all privileges (should fail)
         with self.assertRaises(CCAwsServiceException):
             test_data_client.create_provider_privileges(
-                compact='aslp',
+                compact='cosm',
                 provider_id=provider_uuid,
                 jurisdiction_postal_abbreviations=jurisdictions,
                 license_expiration_date=date.fromisoformat('2025-10-31'),
@@ -336,8 +336,8 @@ class TestDataClient(TstFunction):
         # Verify that all privileges were restored to their original state
         for jurisdiction in jurisdictions:
             privilege_records = self._provider_table.query(
-                KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_uuid}')
-                & Key('sk').begins_with(f'aslp#PROVIDER#privilege/{jurisdiction}/aud#'),
+                KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_uuid}')
+                & Key('sk').begins_with(f'cosm#PROVIDER#privilege/{jurisdiction}/cos#'),
             )['Items']
 
             self.assertEqual(1, len(privilege_records))  # Only the original privilege record should exist
@@ -347,7 +347,7 @@ class TestDataClient(TstFunction):
 
         # Verify the provider record was restored to its original state
         provider = self._provider_table.get_item(
-            Key={'pk': f'aslp#PROVIDER#{provider_uuid}', 'sk': 'aslp#PROVIDER'},
+            Key={'pk': f'cosm#PROVIDER#{provider_uuid}', 'sk': 'cosm#PROVIDER'},
         )['Item']
         self.assertEqual(set(jurisdictions), provider['privilegeJurisdictions'])
 
@@ -358,14 +358,14 @@ class TestDataClient(TstFunction):
         client = DataClient(self.config)
 
         # First claim should create the counter and return 1
-        privilege_count = client.claim_privilege_number(compact='aslp')
+        privilege_count = client.claim_privilege_number(compact='cosm')
         self.assertEqual(1, privilege_count)
 
         # Verify the counter was created with the correct value
         counter_record = self.config.provider_table.get_item(
             Key={
-                'pk': 'aslp#PRIVILEGE_COUNT',
-                'sk': 'aslp#PRIVILEGE_COUNT',
+                'pk': 'cosm#PRIVILEGE_COUNT',
+                'sk': 'cosm#PRIVILEGE_COUNT',
             }
         )['Item']
         self.assertEqual(1, counter_record['privilegeCount'])
@@ -379,28 +379,28 @@ class TestDataClient(TstFunction):
         # Create initial counter record
         self.config.provider_table.put_item(
             Item={
-                'pk': 'aslp#PRIVILEGE_COUNT',
-                'sk': 'aslp#PRIVILEGE_COUNT',
+                'pk': 'cosm#PRIVILEGE_COUNT',
+                'sk': 'cosm#PRIVILEGE_COUNT',
                 'type': 'privilegeCount',
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'privilegeCount': 42,
             }
         )
 
         # Claim should increment the counter and return 43
-        privilege_count = client.claim_privilege_number(compact='aslp')
+        privilege_count = client.claim_privilege_number(compact='cosm')
         self.assertEqual(43, privilege_count)
 
         # Verify the counter was incremented
         counter_record = self.config.provider_table.get_item(
             Key={
-                'pk': 'aslp#PRIVILEGE_COUNT',
-                'sk': 'aslp#PRIVILEGE_COUNT',
+                'pk': 'cosm#PRIVILEGE_COUNT',
+                'sk': 'cosm#PRIVILEGE_COUNT',
             }
         )['Item']
         self.assertEqual(43, counter_record['privilegeCount'])
         self.assertEqual('privilegeCount', counter_record['type'])
-        self.assertEqual('aslp', counter_record['compact'])
+        self.assertEqual('cosm', counter_record['compact'])
 
     def test_get_ssn_by_provider_id_returns_ssn_if_provider_id_exists(self):
         """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
@@ -411,7 +411,7 @@ class TestDataClient(TstFunction):
         # Create a provider record with an SSN
         self._load_provider_data()
 
-        ssn = client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+        ssn = client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
         self.assertEqual('123-12-1234', ssn)
 
     def test_get_ssn_by_provider_id_raises_exception_if_provider_id_does_not_exist(self):
@@ -423,7 +423,7 @@ class TestDataClient(TstFunction):
 
         # We didn't create the provider this time, so this won't exist
         with self.assertRaises(CCNotFoundException):
-            client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+            client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
 
     def test_get_ssn_by_provider_id_raises_exception_multiple_records_found(self):
         """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
@@ -436,17 +436,17 @@ class TestDataClient(TstFunction):
         # Put a duplicate record into the table, so this provider id has two SSNs associated with it
         self.config.ssn_table.put_item(
             Item={
-                'pk': 'aslp#SSN#123-12-5678',
-                'sk': 'aslp#SSN#123-12-5678',
-                'providerIdGSIpk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
-                'compact': 'aslp',
+                'pk': 'cosm#SSN#123-12-5678',
+                'sk': 'cosm#SSN#123-12-5678',
+                'providerIdGSIpk': 'cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'compact': 'cosm',
                 'ssn': '123-12-5678',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
             }
         )
 
         with self.assertRaises(CCInternalException):
-            client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+            client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
 
     def test_deactivate_privilege_updates_record(self):
         from cc_common.data_model.data_client import DataClient
@@ -456,11 +456,11 @@ class TestDataClient(TstFunction):
 
         # Create the first privilege
         original_privilege = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ne/aud#',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': 'cosm#PROVIDER#privilege/ne/cos#',
             'type': 'privilege',
             'providerId': str(provider_id),
-            'compact': 'aslp',
+            'compact': 'cosm',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
             'jurisdiction': 'ne',
@@ -477,10 +477,10 @@ class TestDataClient(TstFunction):
 
         # Now, deactivate the privilege
         test_data_client.deactivate_privilege(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbr='aud',
+            license_type_abbr='cos',
             deactivation_details={
                 'note': 'test deactivation note',
                 'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
@@ -490,7 +490,7 @@ class TestDataClient(TstFunction):
 
         # Verify that the privilege record was updated
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id
+            compact='cosm', provider_id=provider_id
         )
 
         new_privilege = provider_user_records.get_specific_privilege_record(
@@ -500,11 +500,11 @@ class TestDataClient(TstFunction):
 
         self.assertEqual(
             {
-                'pk': f'aslp#PROVIDER#{provider_id}',
-                'sk': 'aslp#PROVIDER#privilege/ne/aud#',
+                'pk': f'cosm#PROVIDER#{provider_id}',
+                'sk': 'cosm#PROVIDER#privilege/ne/cos#',
                 'type': 'privilege',
                 'providerId': str(provider_id),
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'licenseJurisdiction': 'oh',
                 'licenseType': 'audiologist',
                 'jurisdiction': 'ne',
@@ -527,12 +527,12 @@ class TestDataClient(TstFunction):
 
         self.assertEqual(
             {
-                'pk': f'aslp#PROVIDER#{provider_id}',
-                'sk': 'aslp#UPDATE#1#privilege/ne/aud/2024-11-08T23:59:59+00:00/4cfc2eb51e0e30865dc5f63ec9b54f8a',
+                'pk': f'cosm#PROVIDER#{provider_id}',
+                'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/4cfc2eb51e0e30865dc5f63ec9b54f8a',
                 'type': 'privilegeUpdate',
                 'updateType': 'deactivation',
                 'providerId': str(provider_id),
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ne',
                 'licenseType': 'audiologist',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
@@ -562,7 +562,7 @@ class TestDataClient(TstFunction):
         # The deactivation should not remove 'ne' from privilegeJurisdictions, as that set is intended to include
         # all active/inactive privileges associated with the provider
         provider = self._provider_table.get_item(
-            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+            Key={'pk': f'cosm#PROVIDER#{provider_id}', 'sk': 'cosm#PROVIDER'},
         )['Item']
         self.assertEqual({'ne'}, provider.get('privilegeJurisdictions', set()))
 
@@ -575,10 +575,10 @@ class TestDataClient(TstFunction):
         # We haven't created any providers or privileges but we'll try to deactivate a privilege
         with self.assertRaises(CCNotFoundException):
             test_data_client.deactivate_privilege(
-                compact='aslp',
+                compact='cosm',
                 provider_id='some-provider-id',
                 jurisdiction='ne',
-                license_type_abbr='aud',
+                license_type_abbr='cos',
                 deactivation_details={
                     'note': 'test deactivation note',
                     'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
@@ -594,18 +594,18 @@ class TestDataClient(TstFunction):
 
         # Remove 'ne' from privilegeJurisdictions
         self._provider_table.update_item(
-            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+            Key={'pk': f'cosm#PROVIDER#{provider_id}', 'sk': 'cosm#PROVIDER'},
             UpdateExpression='DELETE privilegeJurisdictions :jurisdiction',
             ExpressionAttributeValues={':jurisdiction': {'ne'}},
         )
 
         # Create the first privilege
         original_privilege = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#PROVIDER#privilege/ne/aud#',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': 'cosm#PROVIDER#privilege/ne/cos#',
             'type': 'privilege',
             'providerId': str(provider_id),
-            'compact': 'aslp',
+            'compact': 'cosm',
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
             'licenseType': 'audiologist',
@@ -619,12 +619,12 @@ class TestDataClient(TstFunction):
         self._provider_table.put_item(Item=original_privilege)
         # We'll create it as if it were already deactivated
         original_history = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': 'aslp#UPDATE#1#privilege/ne/aud/2024-11-08T23:59:59+00:00/5085ab7965ee4b956b621507ff143ab0',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+                'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/5085ab7965ee4b956b621507ff143ab0',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': str(provider_id),
-            'compact': 'aslp',
+            'compact': 'cosm',
             'licenseType': 'audiologist',
             'createDate': '2024-11-08T23:59:59+00:00',
             'effectiveDate': '2024-11-08T23:59:59+00:00',
@@ -649,10 +649,10 @@ class TestDataClient(TstFunction):
         # Now, deactivate the privilege
         with self.assertRaises(CCInvalidRequestException) as context:
             test_data_client.deactivate_privilege(
-                compact='aslp',
+                compact='cosm',
                 provider_id=provider_id,
                 jurisdiction='ne',
-                license_type_abbr='aud',
+                license_type_abbr='cos',
                 deactivation_details={
                     'note': 'test deactivation note',
                     'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
@@ -663,7 +663,7 @@ class TestDataClient(TstFunction):
 
         # Verify that the privilege record was unchanged
         provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id
+            compact='cosm', provider_id=provider_id
         )
 
         new_privilege = provider_user_records.get_specific_privilege_record(
@@ -703,7 +703,7 @@ class TestDataClient(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
                 'providerId': provider_uuid,
-                'compact': 'aslp',
+                'compact': 'cosm',
             }
         )
 
@@ -713,7 +713,7 @@ class TestDataClient(TstFunction):
             self.test_data_generator.put_default_privilege_record_in_provider_table(
                 value_overrides={
                     'providerId': provider_uuid,
-                    'compact': 'aslp',
+                    'compact': 'cosm',
                     'jurisdiction': jurisdiction,
                     'licenseType': 'audiologist',
                     'privilegeId': f'AUD-{jurisdiction.upper()}-1',
@@ -730,7 +730,7 @@ class TestDataClient(TstFunction):
             self.test_data_generator.put_default_license_record_in_provider_table(
                 value_overrides={
                     'providerId': provider_uuid,
-                    'compact': 'aslp',
+                    'compact': 'cosm',
                     'jurisdiction': jurisdiction,
                     'licenseType': 'audiologist',
                 }
@@ -748,7 +748,7 @@ class TestDataClient(TstFunction):
 
         try:
             # Call the method that should handle pagination correctly
-            provider_records = client.get_provider_user_records(compact='aslp', provider_id=provider_uuid)
+            provider_records = client.get_provider_user_records(compact='cosm', provider_id=provider_uuid)
 
             # Verify that we got all the records
             # We expect 1 provider record + 30 privilege records + 30 license records = 61 total
@@ -787,7 +787,7 @@ class TestDataClient(TstFunction):
         investigation = self.test_data_generator.generate_default_investigation(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ne',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'privilege',
@@ -799,11 +799,11 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was created
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_privilege(
             privilege_jurisdiction='ne',
-            privilege_license_type_abbreviation='slp',
+            privilege_license_type_abbreviation='cos',
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -811,10 +811,10 @@ class TestDataClient(TstFunction):
 
         # Verify the complete investigation record structure
         expected_investigation = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
@@ -845,11 +845,11 @@ class TestDataClient(TstFunction):
 
         # Verify the complete update record structure
         expected_update = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': ANY,
             'type': 'privilegeUpdate',
             'updateType': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
@@ -889,9 +889,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'oh',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
@@ -905,11 +905,11 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was created
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction='oh',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -917,10 +917,10 @@ class TestDataClient(TstFunction):
 
         # Verify the complete investigation record structure
         expected_investigation = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
@@ -951,11 +951,11 @@ class TestDataClient(TstFunction):
 
         # Verify the complete update record structure
         expected_update = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
@@ -1010,9 +1010,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': str(provider_id),
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'oh',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
@@ -1042,9 +1042,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': str(provider_id),
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ne',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
@@ -1074,9 +1074,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ne',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
@@ -1090,10 +1090,10 @@ class TestDataClient(TstFunction):
         # Now close the investigation
         closing_user = str(uuid4())
         client.close_investigation(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1102,10 +1102,10 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_privilege(
-            privilege_jurisdiction='ne', privilege_license_type_abbreviation='slp', include_closed=True
+            privilege_jurisdiction='ne', privilege_license_type_abbreviation='cos', include_closed=True
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -1113,10 +1113,10 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information
         expected_investigation_close = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
@@ -1156,11 +1156,11 @@ class TestDataClient(TstFunction):
 
         # Verify the complete closure update record structure
         expected_closure_update = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': ANY,
             'type': 'privilegeUpdate',
             'updateType': 'closingInvestigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
@@ -1198,9 +1198,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'oh',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
@@ -1215,10 +1215,10 @@ class TestDataClient(TstFunction):
         closing_user = str(uuid4())
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='oh',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=close_date,
@@ -1227,12 +1227,12 @@ class TestDataClient(TstFunction):
 
         # grab all provider records to make assertions
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='aslp', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
         # Verify investigation record was updated with close information
         investigation_records = provider_user_records.get_investigation_records_for_license(
-            license_jurisdiction='oh', license_type_abbreviation='slp', include_closed=True
+            license_jurisdiction='oh', license_type_abbreviation='cos', include_closed=True
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -1240,10 +1240,10 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information
         expected_investigation_close = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
@@ -1284,11 +1284,11 @@ class TestDataClient(TstFunction):
 
         # Verify the complete closure update record structure
         expected_closure_update = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'closingInvestigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',
@@ -1339,10 +1339,10 @@ class TestDataClient(TstFunction):
         # Try to close a non-existent investigation
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='aslp',
+                compact='cosm',
                 provider_id=provider_id,
                 jurisdiction='ne',
-                license_type_abbreviation='slp',
+                license_type_abbreviation='cos',
                 investigation_id=uuid4(),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1365,10 +1365,10 @@ class TestDataClient(TstFunction):
         # Try to close a non-existent investigation
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='aslp',
+                compact='cosm',
                 provider_id=provider_id,
                 jurisdiction='oh',
-                license_type_abbreviation='slp',
+                license_type_abbreviation='cos',
                 investigation_id=uuid4(),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1393,9 +1393,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ne',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
@@ -1409,10 +1409,10 @@ class TestDataClient(TstFunction):
         # Now close the investigation
         closing_user = str(uuid4())
         client.close_investigation(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1420,10 +1420,10 @@ class TestDataClient(TstFunction):
         )
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='aslp',
+                compact='cosm',
                 provider_id=provider_id,
                 jurisdiction='ne',
-                license_type_abbreviation='slp',
+                license_type_abbreviation='cos',
                 investigation_id=investigation.investigationId,
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1448,9 +1448,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'oh',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
@@ -1464,10 +1464,10 @@ class TestDataClient(TstFunction):
         # Now close the investigation
         closing_user = str(uuid4())
         client.close_investigation(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='oh',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1475,10 +1475,10 @@ class TestDataClient(TstFunction):
         )
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='aslp',
+                compact='cosm',
                 provider_id=provider_id,
                 jurisdiction='oh',
-                license_type_abbreviation='slp',
+                license_type_abbreviation='cos',
                 investigation_id=investigation.investigationId,
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1502,9 +1502,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'ne',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
@@ -1521,10 +1521,10 @@ class TestDataClient(TstFunction):
 
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1534,8 +1534,8 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#')
+            KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('cosm#PROVIDER#privilege/ne/slp#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -1543,10 +1543,10 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information and encumbrance reference
         expected_investigation_close = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': f'aslp#PROVIDER#privilege/ne/slp#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'speech-language pathologist',
@@ -1578,9 +1578,9 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'aslp',
+                'compact': 'cosm',
                 'jurisdiction': 'oh',
-                'licenseTypeAbbreviation': 'slp',
+                'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'speech-language pathologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
@@ -1597,10 +1597,10 @@ class TestDataClient(TstFunction):
 
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
-            compact='aslp',
+            compact='cosm',
             provider_id=provider_id,
             jurisdiction='oh',
-            license_type_abbreviation='slp',
+            license_type_abbreviation='cos',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1610,8 +1610,8 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER#license/oh/slp#INVESTIGATION#')
+            KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('cosm#PROVIDER#license/oh/slp#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -1619,10 +1619,10 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information and encumbrance reference
         expected_investigation_close = {
-            'pk': f'aslp#PROVIDER#{provider_id}',
-            'sk': f'aslp#PROVIDER#license/oh/slp#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'cosm#PROVIDER#{provider_id}',
+            'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'aslp',
+            'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'speech-language pathologist',

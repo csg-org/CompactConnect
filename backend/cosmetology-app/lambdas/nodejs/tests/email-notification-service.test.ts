@@ -9,13 +9,13 @@ import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 const SAMPLE_EVENT: EmailNotificationEvent = {
     template: 'transactionBatchSettlementFailure',
     recipientType: 'COMPACT_OPERATIONS_TEAM',
-    compact: 'aslp',
+    compact: 'cosm',
     templateVariables: {}
 };
 
 const SAMPLE_COMPACT_CONFIGURATION = {
-    'pk': { S: 'aslp#CONFIGURATION' },
-    'sk': { S: 'aslp#CONFIGURATION' },
+    'pk': { S: 'cosm#CONFIGURATION' },
+    'sk': { S: 'cosm#CONFIGURATION' },
     'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }]},
     'compactCommissionFee': {
         M: {
@@ -23,7 +23,7 @@ const SAMPLE_COMPACT_CONFIGURATION = {
             'feeType': { S: 'FLAT_RATE' }
         }
     },
-    'compactAbbr': { S: 'aslp' },
+    'compactAbbr': { S: 'cosm' },
     'compactName': { S: 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
     'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
@@ -32,8 +32,8 @@ const SAMPLE_COMPACT_CONFIGURATION = {
 };
 
 const SAMPLE_JURISDICTION_CONFIGURATION = {
-    'pk': { S: 'aslp#CONFIGURATION' },
-    'sk': { S: 'aslp#JURISDICTION#oh' },
+    'pk': { S: 'cosm#CONFIGURATION' },
+    'sk': { S: 'cosm#JURISDICTION#oh' },
     'jurisdictionName': { S: 'Ohio' },
     'jurisdictionSummaryReportNotificationEmails': { L: [{ S: 'ohio@example.com' }]},
     'type': { S: 'jurisdiction' }
@@ -73,11 +73,11 @@ describe('EmailNotificationServiceLambda', () => {
         mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
             const key = input.Key;
 
-            if (key.sk.S === 'aslp#CONFIGURATION') {
+            if (key.sk.S === 'cosm#CONFIGURATION') {
                 return Promise.resolve({
                     Item: SAMPLE_COMPACT_CONFIGURATION
                 });
-            } else if (key.sk.S === 'aslp#JURISDICTION#oh') {
+            } else if (key.sk.S === 'cosm#JURISDICTION#oh') {
                 return Promise.resolve({
                     Item: SAMPLE_JURISDICTION_CONFIGURATION
                 });
@@ -227,7 +227,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_DEACTIVATION_JURISDICTION_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeDeactivationJurisdictionNotification',
             recipientType: 'JURISDICTION_SUMMARY_REPORT',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'oh',
             templateVariables: {
                 privilegeId: '123',
@@ -248,8 +248,8 @@ describe('EmailNotificationServiceLambda', () => {
             expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'aslp#CONFIGURATION' },
-                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                    'pk': { S: 'cosm#CONFIGURATION' },
+                    'sk': { S: 'cosm#JURISDICTION#oh' }
                 }
             });
 
@@ -282,7 +282,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'cosm',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -338,7 +338,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -352,15 +352,15 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license encumbrance state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionName': { S: 'California' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -396,14 +396,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should include provider detail link with correct environment URL', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -414,7 +414,7 @@ describe('EmailNotificationServiceLambda', () => {
             const emailData = mockSESClient.commandCalls(
                 SendEmailCommand)[0].args[0].input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailData).toContain('Provider Details: <a href="https://app.test.compactconnect.org/aslp/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/aslp/Licensing/provider-123</a>');
+            expect(emailData).toContain('Provider Details: <a href="https://app.test.compactconnect.org/cosm/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/cosm/Licensing/provider-123</a>');
         });
 
         it('should throw error when required template variables are missing', async () => {
@@ -444,7 +444,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceLiftingProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'cosm',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -502,7 +502,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceLiftingStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -516,14 +516,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license encumbrance lifting state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -586,7 +586,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'cosm',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -642,7 +642,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -656,14 +656,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege encumbrance state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -724,7 +724,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceLiftingProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'aslp',
+            compact: 'cosm',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -782,7 +782,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceLiftingStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -796,14 +796,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege encumbrance lifting state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -865,7 +865,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseInvestigationStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -878,23 +878,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license investigation state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -955,7 +955,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseInvestigationClosedStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -968,23 +968,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license investigation closed state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1047,7 +1047,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeInvestigationStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1060,23 +1060,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege investigation state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1137,7 +1137,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeInvestigationClosedStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1150,23 +1150,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege investigation closed state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#ca' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#JURISDICTION#oh' },
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'aslp#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'aslp#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });

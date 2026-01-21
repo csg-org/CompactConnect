@@ -13,14 +13,14 @@ import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globa
 jest.mock('nodemailer');
 
 const SAMPLE_COMPACT_CONFIG = {
-    pk: 'aslp#CONFIGURATION',
-    sk: 'aslp#CONFIGURATION',
+    pk: 'cosm#CONFIGURATION',
+    sk: 'cosm#CONFIGURATION',
     compactAdverseActionsNotificationEmails: ['adverse@example.com'],
     compactCommissionFee: {
         feeAmount: 3.5,
         feeType: 'FLAT_RATE'
     },
-    compactAbbr: 'aslp',
+    compactAbbr: 'cosm',
     compactName: 'Audiology and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
     compactSummaryReportNotificationEmails: ['summary@example.com'],
@@ -29,11 +29,11 @@ const SAMPLE_COMPACT_CONFIG = {
 };
 
 const SAMPLE_JURISDICTION_CONFIG = {
-    pk: 'aslp#CONFIGURATION',
-    sk: 'aslp#JURISDICTION#OH',
+    pk: 'cosm#CONFIGURATION',
+    sk: 'cosm#JURISDICTION#OH',
     jurisdictionName: 'Ohio',
     postalAbbreviation: 'OH',
-    compact: 'aslp',
+    compact: 'cosm',
     jurisdictionOperationsTeamEmails: ['oh-ops@example.com'],
     jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com'],
     jurisdictionSummaryReportNotificationEmails: ['oh-summary@example.com']
@@ -111,7 +111,7 @@ describe('EmailNotificationService', () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
             await emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'cosm',
                 'COMPACT_OPERATIONS_TEAM'
             );
 
@@ -144,7 +144,7 @@ describe('EmailNotificationService', () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
             await emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'cosm',
                 'SPECIFIC',
                 ['specific@example.com']
             );
@@ -181,21 +181,21 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'cosm',
                 'COMPACT_OPERATIONS_TEAM'
-            )).rejects.toThrow('No recipients found for compact aslp with recipient type COMPACT_OPERATIONS_TEAM');
+            )).rejects.toThrow('No recipients found for compact cosm with recipient type COMPACT_OPERATIONS_TEAM');
         });
 
         it('should throw error for specific recipient type without emails', async () => {
             await expect(emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'cosm',
                 'SPECIFIC'
             )).rejects.toThrow('SPECIFIC recipientType requested but no specific email addresses provided');
         });
 
         it('should throw error for unsupported recipient type', async () => {
             await expect(emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'cosm',
                 'JURISDICTION_OPERATIONS_TEAM'
             )).rejects.toThrow('Unsupported recipient type for compact configuration: JURISDICTION_OPERATIONS_TEAM');
         });
@@ -204,7 +204,7 @@ describe('EmailNotificationService', () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
             await emailService.sendTransactionBatchSettlementFailureEmail(
-                'aslp',
+                'cosm',
                 'COMPACT_OPERATIONS_TEAM'
             );
 
@@ -240,7 +240,7 @@ describe('EmailNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'JURISDICTION_SUMMARY_REPORT',
                 'some-privilege-id',
@@ -280,13 +280,13 @@ describe('EmailNotificationService', () => {
             });
 
             await expect(emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
-                'aslp',
+                'cosm',
                 'oh',
                 'JURISDICTION_SUMMARY_REPORT',
                 'some-privilege-id',
                 'John',
                 'Doe'
-            )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
+            )).rejects.toThrow('No recipients found for jurisdiction oh in compact cosm');
         });
     });
 });

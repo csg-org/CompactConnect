@@ -162,7 +162,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const validationErrors = await eventClient.getValidationErrors('aslp', 'oh', 0, 1);
+        const validationErrors = await eventClient.getValidationErrors('cosm', 'oh', 0, 1);
 
         expect(validationErrors).toEqual([{ 'eventType': 'license.validation-error' }]);
     });
@@ -176,7 +176,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const validationErrors = await eventClient.getValidationErrors('aslp', 'oh', 0, 1);
+        const validationErrors = await eventClient.getValidationErrors('cosm', 'oh', 0, 1);
 
         expect(validationErrors).toEqual([]);
     });
@@ -189,7 +189,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const validationErrors = await eventClient.getIngestFailures('aslp', 'oh', 0, 1);
+        const validationErrors = await eventClient.getIngestFailures('cosm', 'oh', 0, 1);
 
         expect(validationErrors).toEqual([{ 'eventType': 'license.ingest-failure' }]);
     });
@@ -202,7 +202,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const validationErrors = await eventClient.getIngestFailures('aslp', 'oh', 0, 1);
+        const validationErrors = await eventClient.getIngestFailures('cosm', 'oh', 0, 1);
 
         expect(validationErrors).toEqual([]);
     });
@@ -215,7 +215,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const ingestSuccesses = await eventClient.getIngestSuccesses('aslp', 'oh', 0, 1);
+        const ingestSuccesses = await eventClient.getIngestSuccesses('cosm', 'oh', 0, 1);
 
         expect(ingestSuccesses).toEqual([{ 'eventType': 'license.ingest' }]);
     });
@@ -228,7 +228,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const ingestSuccesses = await eventClient.getIngestSuccesses('aslp', 'oh', 0, 1);
+        const ingestSuccesses = await eventClient.getIngestSuccesses('cosm', 'oh', 0, 1);
 
         expect(ingestSuccesses).toEqual([]);
     });
@@ -241,7 +241,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const ingestEvents = await eventClient.getEvents('aslp', 'oh', 0, 1);
+        const ingestEvents = await eventClient.getEvents('cosm', 'oh', 0, 1);
 
         expect(ingestEvents).toEqual({
             ingestFailures: [{ 'eventType': 'license.ingest-failure' }],
@@ -258,7 +258,7 @@ describe('EventClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const ingestEvents = await eventClient.getEvents('aslp', 'oh', 0, 1);
+        const ingestEvents = await eventClient.getEvents('cosm', 'oh', 0, 1);
 
         expect(ingestEvents).toEqual({
             ingestFailures: [],

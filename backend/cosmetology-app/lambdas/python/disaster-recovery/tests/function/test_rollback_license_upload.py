@@ -39,7 +39,7 @@ class TestRollbackLicenseUpload(TstFunction):
         """Set up test fixtures before each test method."""
         super().setUp()
         # Create sample test data
-        self.compact = 'aslp'
+        self.compact = 'cosm'
         self.license_jurisdiction = 'oh'
         self.provider_id = MOCK_PROVIDER_ID
         # default upload time between start and end time
@@ -783,7 +783,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the sha here will need to be updated
                         'updatesDeleted': [
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                            'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
                         ],
                     }
                 ],
@@ -856,8 +856,8 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the shas here will need to be updated
                         'updatesDeleted': [
-                            'aslp#UPDATE#1#privilege/ne/slp/2025-10-23T07:15:00+00:00/0a935b55ca6cdab9d578ef3f3a1c7546',
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6',
+                            'cosm#UPDATE#1#privilege/ne/cos/2025-10-23T07:15:00+00:00/0a935b55ca6cdab9d578ef3f3a1c7546',
+                            'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6',
                         ],
                     }
                 ],
@@ -1222,7 +1222,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'privilegesReverted': [],
                         'providerId': mock_first_provider_id,
                         'updatesDeleted': [
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                            'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
                         ],
                     },
                     {
@@ -1236,7 +1236,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'privilegesReverted': [],
                         'providerId': mock_second_provider_id,
                         'updatesDeleted': [
-                            'aslp#UPDATE#3#license/oh/slp/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
+                            'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6'
                         ],
                     },
                 ],

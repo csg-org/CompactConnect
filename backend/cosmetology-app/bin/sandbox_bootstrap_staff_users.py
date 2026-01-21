@@ -67,5 +67,5 @@ if __name__ == '__main__':
     # Import create_staff_user after setting environment variables that it expects
     import create_staff_user
 
-    bootstrap_board_ed_user(compact='aslp', jurisdiction='oh', email_username=email_username, email_domain=email_domain)
-    bootstrap_compact_ed_user(compact='aslp', email_username=email_username, email_domain=email_domain)
+    bootstrap_board_ed_user(compact='cosm', jurisdiction='oh', email_username=email_username, email_domain=email_domain)
+    bootstrap_compact_ed_user(compact='cosm', email_username=email_username, email_domain=email_domain)

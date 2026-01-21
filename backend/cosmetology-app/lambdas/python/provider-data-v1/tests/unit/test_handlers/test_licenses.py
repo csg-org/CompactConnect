@@ -27,9 +27,9 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -66,8 +66,8 @@ class TestPostLicenses(TstLambdas):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has scopes for aslp, not octp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        # The user has scopes for cosm, not octp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
         event['pathParameters'] = {'compact': 'octp', 'jurisdiction': 'oh'}
 
@@ -92,9 +92,9 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh, not ne
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne'}
+        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'ne'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -124,9 +124,9 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
-        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])

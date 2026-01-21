@@ -5,7 +5,7 @@ from cc_common.config import logger
 
 from tests import TstLambdas
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT = 'cosm'
 TEST_JURISDICTION = 'oh'
 
 
