@@ -608,9 +608,7 @@ class TestIngest(TstFunction):
         self.assertEqual(2, len(provider_data['licenses']))
 
         # Find each license by type
-        cos_license = next(
-            (lic for lic in provider_data['licenses'] if lic['licenseType'] == 'cosmetologist'), None
-        )
+        cos_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'cosmetologist'), None)
         est_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'esthetician'), None)
 
         # Verify both licenses exist

@@ -426,7 +426,6 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
         self.assertEqual('12346', result['batchItemFailures'][1]['itemIdentifier'])
 
-
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_empty_records_returns_empty_batch_failures(self, mock_opensearch_client):
         """Test that an empty Records list returns empty batchItemFailures."""

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import Mock, call
 
 from common_test.test_constants import (
     DEFAULT_LICENSE_EXPIRATION_DATE,

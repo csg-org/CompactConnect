@@ -67,7 +67,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
         )
         self._inspect_persistent_stack(
             self.app.prod_backend_pipeline_stack.prod_stage.persistent_stack,
-            domain_name='app.cosmetology.compactconnect.org'
+            domain_name='app.cosmetology.compactconnect.org',
         )
 
         self._inspect_state_auth_stack(

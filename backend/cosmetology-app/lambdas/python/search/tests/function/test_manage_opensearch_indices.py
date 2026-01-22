@@ -91,9 +91,7 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_opensearch_client.assert_called_once()
 
         # Assert that alias_exists was called for each compact
-        expected_alias_exists_calls = [
-            call('compact_cosm_providers')
-        ]
+        expected_alias_exists_calls = [call('compact_cosm_providers')]
         mock_client_instance.alias_exists.assert_has_calls(expected_alias_exists_calls, any_order=False)
         self.assertEqual(1, mock_client_instance.alias_exists.call_count)
 
@@ -344,7 +342,6 @@ class TestOpenSearchIndexManager(TstFunction):
 
         # Assert that create_alias was NOT called since aliases already exist
         mock_client_instance.create_alias.assert_not_called()
-
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
     def test_on_create_creates_alias_only_when_index_exists_but_alias_does_not(self, mock_opensearch_client):

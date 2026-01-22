@@ -5,8 +5,7 @@ from uuid import UUID, uuid4
 
 from boto3.dynamodb.conditions import Key
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
-from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException
-from common_test.test_constants import DEFAULT_PROVIDER_ID
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -199,7 +198,6 @@ class TestDataClient(TstFunction):
         with self.assertRaises(CCInternalException):
             client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
 
-
     def test_deactivate_privilege_raises_if_privilege_not_found(self):
         from cc_common.data_model.data_client import DataClient
         from cc_common.exceptions import CCNotFoundException
@@ -254,7 +252,7 @@ class TestDataClient(TstFunction):
         # We'll create it as if it were already deactivated
         original_history = {
             'pk': f'cosm#PROVIDER#{provider_id}',
-                'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/6dd62fb59bbae8bd55720ae1491fa87a',
+            'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/6dd62fb59bbae8bd55720ae1491fa87a',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': str(provider_id),
