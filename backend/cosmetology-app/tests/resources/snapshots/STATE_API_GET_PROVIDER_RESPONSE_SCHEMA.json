@@ -36,8 +36,8 @@
           },
           "licenseType": {
             "enum": [
-              "cosmetology",
-              "esthetics"
+              "cosmetologist",
+              "esthetician"
             ],
             "type": "string"
           },
