@@ -64,46 +64,6 @@ class TestGetUserScopesFromDB(TstLambdas):
             user_data.scopes,
         )
 
-    def test_board_ed_user_multi_compact(self):
-        """
-        There is a small number of expected users who will represent multiple compacts within a state.
-        We'll specifically verify handling of what their permissions may look like.
-        """
-        from user_data import UserData
-
-        # Create a DB record for a board executive director's permissions
-        self._table.put_item(
-            Item={
-                'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
-                'compact': 'cosm',
-                'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
-            }
-        )
-        self._table.put_item(
-            Item={
-                'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
-                'compact': 'cosm',
-                'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
-            }
-        )
-
-        user_data = UserData(self._user_sub)
-
-        self.assertEqual(
-            {
-                'profile',
-                'cosm/readGeneral',
-                'al/cosm.admin',
-                'al/cosm.write',
-                'cosm/readGeneral',
-                'al/cosm.admin',
-                'al/cosm.write',
-            },
-            user_data.scopes,
-        )
-
     def test_board_staff(self):
         from user_data import UserData
 
