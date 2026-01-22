@@ -53,18 +53,18 @@ class TestPatchUser(TstFunction):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
 
-        self._when_testing_with_valid_jurisdiction(compact='octp')
+        self._when_testing_with_valid_jurisdiction(compact='cosm')
 
         user = {
             'pk': 'USER#648864e8-10f1-702f-e666-2e0ff3482502',
-            'sk': 'COMPACT#octp',
+            'sk': 'COMPACT#cosm',
             'attributes': {
                 'email': 'test@example.com',
                 'familyName': 'User',
                 'givenName': 'Test',
             },
             'status': StaffUserStatus.INACTIVE.value,
-            'compact': 'octp',
+            'compact': 'cosm',
             'dateOfUpdate': '2024-09-12T12:34:56+00:00',
             'famGiv': 'User#Test',
             'permissions': {'actions': {'read'}, 'jurisdictions': {'oh': {'admin', 'write'}}},
@@ -78,12 +78,12 @@ class TestPatchUser(TstFunction):
 
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email octp/admin oh/octp.admin'
-        event['pathParameters'] = {'compact': 'octp', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
         event['body'] = json.dumps(
             {
                 'permissions': {
-                    'octp': {
+                    'cosm': {
                         'actions': {'read': True, 'admin': False},
                         'jurisdictions': {'oh': {'actions': {'write': True, 'admin': False}}},
                     }
@@ -107,7 +107,7 @@ class TestPatchUser(TstFunction):
                     'givenName': 'Test',
                 },
                 'permissions': {
-                    'octp': {
+                    'cosm': {
                         'actions': {'read': True},
                         'jurisdictions': {'oh': {'actions': {'write': True}}},
                     },
@@ -311,8 +311,8 @@ class TestPatchUser(TstFunction):
         # The user has admin permission for cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         # in this case, the user is attempting to add permission for inactive compact, which is not valid
         event['body'] = json.dumps({'permissions': {'cosm': {'jurisdictions': {'fl': {'actions': {'admin': True}}}}}})
 

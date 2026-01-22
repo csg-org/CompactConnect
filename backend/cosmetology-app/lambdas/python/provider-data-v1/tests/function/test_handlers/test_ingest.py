@@ -201,7 +201,7 @@ class TestIngest(TstFunction):
                             'jurisdiction': 'oh',
                             'eventTime': '2024-11-08T23:59:59+00:00',
                             'providerId': provider_id,
-                            'licenseType': 'speech-language pathologist',
+                            'licenseType': 'cosmetologist',
                         }
                     ),
                     'EventBusName': 'license-data-events',
@@ -527,7 +527,7 @@ class TestIngest(TstFunction):
             'providerId': provider_id,
             'compact': 'cosm',
             'jurisdiction': 'ky',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'licenseJurisdiction': 'oh',
             'dateOfIssuance': '2023-01-01',
             'dateOfRenewal': '2023-01-01',
@@ -561,14 +561,14 @@ class TestIngest(TstFunction):
         Test that multiple license types in the same jurisdiction are handled correctly.
 
         This test:
-        1. Ingests a first active license with licenseType: speech-language pathologist
-        2. For the same provider, ingests a second active license with licenseType: audiologist and a newer
+        1. Ingests a first active license with licenseType: cosmetologist
+        2. For the same provider, ingests a second active license with licenseType: esthetician and a newer
            dateOfIssuance
-        3. Verifies that both licenses are present and that the provider data was copied from the audiologist license
+        3. Verifies that both licenses are present and that the provider data was copied from the esthetician license
         """
         from handlers.ingest import ingest_license_message
 
-        # First, ingest a speech-language pathologist license
+        # First, ingest a cosmetologist license
         provider_id = self._with_ingested_license()
 
         # Get the provider data after the first license ingest
@@ -576,7 +576,7 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('cosmetologist', provider_data_after_first_license['licenses'][0]['licenseType'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -585,11 +585,11 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Update the message to be for an audiologist license with a newer issuance date
+        # Update the message to be for an esthetician license with a newer issuance date
         # and a different givenName to track which license is used for provider data
         message['detail'].update(
             {
-                'licenseType': 'audiologist',
+                'licenseType': 'esthetician',
                 'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
                 'licenseNumber': 'B0608337260',  # Different license number
                 'givenName': 'Audrey',  # Different name to track which license is used
@@ -608,27 +608,27 @@ class TestIngest(TstFunction):
         self.assertEqual(2, len(provider_data['licenses']))
 
         # Find each license by type
-        slp_license = next(
-            (lic for lic in provider_data['licenses'] if lic['licenseType'] == 'speech-language pathologist'), None
+        cos_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseType'] == 'cosmetologist'), None
         )
-        aud_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'audiologist'), None)
+        est_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'esthetician'), None)
 
         # Verify both licenses exist
-        self.assertIsNotNone(slp_license, 'Speech-language pathologist license not found')
-        self.assertIsNotNone(aud_license, 'Audiologist license not found')
+        self.assertIsNotNone(cos_license, 'cosmetologist license not found')
+        self.assertIsNotNone(est_license, 'esthetician license not found')
 
         # Verify license details
-        self.assertEqual('A0608337260', slp_license['licenseNumber'])
-        self.assertEqual('2010-06-06', slp_license['dateOfIssuance'])
-        self.assertEqual('oh', slp_license['jurisdiction'])
-        self.assertEqual('Björk', slp_license['givenName'])
+        self.assertEqual('A0608337260', cos_license['licenseNumber'])
+        self.assertEqual('2010-06-06', cos_license['dateOfIssuance'])
+        self.assertEqual('oh', cos_license['jurisdiction'])
+        self.assertEqual('Björk', cos_license['givenName'])
 
-        self.assertEqual('B0608337260', aud_license['licenseNumber'])
-        self.assertEqual('2020-06-06', aud_license['dateOfIssuance'])
-        self.assertEqual('oh', aud_license['jurisdiction'])
-        self.assertEqual('Audrey', aud_license['givenName'])
+        self.assertEqual('B0608337260', est_license['licenseNumber'])
+        self.assertEqual('2020-06-06', est_license['dateOfIssuance'])
+        self.assertEqual('oh', est_license['jurisdiction'])
+        self.assertEqual('Audrey', est_license['givenName'])
 
-        # Verify that the provider data was copied from the audiologist license (newer issuance date)
+        # Verify that the provider data was copied from the esthetician license (newer issuance date)
         # by checking the givenName
         self.assertEqual('oh', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
@@ -639,13 +639,13 @@ class TestIngest(TstFunction):
         Test that multiple license types in different jurisdictions are handled correctly.
 
         This test:
-        1. Ingests a first active license with licenseType: speech-language pathologist in 'oh'
-        2. For the same provider, ingests a second active license with licenseType: audiologist in 'ky'
+        1. Ingests a first active license with licenseType: cosmetologist in 'oh'
+        2. For the same provider, ingests a second active license with licenseType: esthetician in 'ky'
         3. Verifies that both licenses are present and the provider data is from the most recently issued license
         """
         from handlers.ingest import ingest_license_message
 
-        # First, ingest a speech-language pathologist license in 'oh'
+        # First, ingest a cosmetologist license in 'oh'
         provider_id = self._with_ingested_license()
 
         # Get the provider data after the first license ingest
@@ -653,7 +653,7 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('cosmetologist', provider_data_after_first_license['licenses'][0]['licenseType'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -662,11 +662,11 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Update the message to be for an audiologist license in 'ky' with a newer issuance date
+        # Update the message to be for an esthetician license in 'ky' with a newer issuance date
         # and a different givenName to track which license is used for provider data
         message['detail'].update(
             {
-                'licenseType': 'audiologist',
+                'licenseType': 'esthetician',
                 'jurisdiction': 'ky',
                 'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
                 'licenseNumber': 'B0608337260',  # Different license number
@@ -694,17 +694,17 @@ class TestIngest(TstFunction):
         self.assertIsNotNone(ky_license, 'Kentucky license not found')
 
         # Verify license details
-        self.assertEqual('speech-language pathologist', oh_license['licenseType'])
+        self.assertEqual('cosmetologist', oh_license['licenseType'])
         self.assertEqual('A0608337260', oh_license['licenseNumber'])
         self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
         self.assertEqual('Björk', oh_license['givenName'])
 
-        self.assertEqual('audiologist', ky_license['licenseType'])
+        self.assertEqual('esthetician', ky_license['licenseType'])
         self.assertEqual('B0608337260', ky_license['licenseNumber'])
         self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
         self.assertEqual('Audrey', ky_license['givenName'])
 
-        # Verify that the provider data was copied from the audiologist license in 'ky'
+        # Verify that the provider data was copied from the esthetician license in 'ky'
         # because it has a newer issuance date. We can verify this by checking the givenName.
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])

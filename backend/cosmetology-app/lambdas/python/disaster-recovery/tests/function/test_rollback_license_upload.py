@@ -856,7 +856,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the shas here will need to be updated
                         'updatesDeleted': [
-                            'cosm#UPDATE#1#privilege/ne/cos/2025-10-23T07:15:00+00:00/0a935b55ca6cdab9d578ef3f3a1c7546',
+                            'cosm#UPDATE#1#privilege/ne/cos/2025-10-23T07:15:00+00:00/9cdcf1f7841f3fe3461a0a0bff7e545d',
                             'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/d92450a96739428f1a77c051dce9d4a6',
                         ],
                     }
@@ -1216,7 +1216,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
-                                'licenseType': 'speech-language pathologist',
+                                'licenseType': 'cosmetologist',
                             }
                         ],
                         'privilegesReverted': [],
@@ -1230,7 +1230,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
-                                'licenseType': 'speech-language pathologist',
+                                'licenseType': 'cosmetologist',
                             }
                         ],
                         'privilegesReverted': [],

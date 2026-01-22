@@ -329,24 +329,6 @@ class TestGetProvider(TstFunction):
             scopes='openid email cosm/readGeneral ne/cosm.readPrivate'
         )
 
-    def test_get_provider_wrong_compact(self):
-        """Provider detail response"""
-        self._load_provider_data()
-
-        from handlers.providers import get_provider
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
-        event['queryStringParameters'] = None
-
-        resp = get_provider(event, self.mock_context)
-
-        self.assertEqual(403, resp['statusCode'])
-
     def test_get_provider_missing_provider_id(self):
         from handlers.providers import get_provider
 

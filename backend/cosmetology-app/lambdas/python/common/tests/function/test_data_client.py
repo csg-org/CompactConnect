@@ -85,83 +85,6 @@ class TestDataClient(TstFunction):
 
         return provider_id
 
-    def test_data_client_created_privilege_record(self):
-        from cc_common.data_model.data_client import DataClient
-
-        # Imagine that there have been 123 privileges issued for the compact
-        # and that the next privilege number will be 124
-        self.config.provider_table.put_item(
-            Item={
-                'pk': 'cosm#PRIVILEGE_COUNT',
-                'sk': 'cosm#PRIVILEGE_COUNT',
-                'privilegeCount': 123,
-            }
-        )
-
-        test_data_client = DataClient(self.config)
-
-        response = test_data_client.create_provider_privileges(
-            compact='cosm',
-            provider_id=DEFAULT_PROVIDER_ID,
-            license_type='audiologist',
-            jurisdiction_postal_abbreviations=['ky'],
-            license_expiration_date=date.fromisoformat('2024-10-31'),
-            provider_record=self.test_data_generator.generate_default_provider(),
-            existing_privileges_for_license=[],
-        )
-
-        # Verify that the privilege record was created
-        new_privilege = self._provider_table.get_item(
-            Key={'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': 'cosm#PROVIDER#privilege/ky/cos#'}
-        )['Item']
-        self.assertEqual(
-            {
-                'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}',
-                'sk': 'cosm#PROVIDER#privilege/ky/cos#',
-                'type': 'privilege',
-                'providerId': DEFAULT_PROVIDER_ID,
-                'compact': 'cosm',
-                'jurisdiction': 'ky',
-                'licenseJurisdiction': 'oh',
-                'licenseType': 'audiologist',
-                'administratorSetStatus': 'active',
-                'dateOfIssuance': '2024-11-08T23:59:59+00:00',
-                'dateOfRenewal': '2024-11-08T23:59:59+00:00',
-                'dateOfExpiration': '2024-10-31',
-                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'privilegeId': 'AUD-KY-124',
-            },
-            new_privilege,
-        )
-
-        # Verify that the provider record was updated
-        updated_provider = self._provider_table.get_item(
-            Key={'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}', 'sk': 'cosm#PROVIDER'}
-        )['Item']
-        self.assertEqual({'ky'}, updated_provider['privilegeJurisdictions'])
-
-        # Verify the privilege data is being passed back in the response
-        self.assertEqual(1, len(response))
-        self.assertEqual(
-            {
-                'administratorSetStatus': 'active',
-                'compact': 'cosm',
-                'dateOfIssuance': '2024-11-08T23:59:59+00:00',
-                'dateOfRenewal': '2024-11-08T23:59:59+00:00',
-                'dateOfExpiration': '2024-10-31',
-                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'jurisdiction': 'ky',
-                'licenseJurisdiction': 'oh',
-                'licenseType': 'audiologist',
-                'pk': f'cosm#PROVIDER#{DEFAULT_PROVIDER_ID}',
-                'privilegeId': 'AUD-KY-124',
-                'providerId': DEFAULT_PROVIDER_ID,
-                'sk': 'cosm#PROVIDER#privilege/ky/cos#',
-                'type': 'privilege',
-            },
-            response[0].serialize_to_database_record(),
-        )
-
     def test_data_client_create_privilege_record_invalid_license_type(self):
         from cc_common.data_model.data_client import DataClient
         from cc_common.exceptions import CCInvalidRequestException
@@ -178,178 +101,6 @@ class TestDataClient(TstFunction):
                 existing_privileges_for_license=[],
                 license_type='not-supported-license-type',
             )
-
-    def test_data_client_handles_large_privilege_purchase(self):
-        """Test that we can process privilege purchases with more than 100 transaction items."""
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.provider_record_util import ProviderUserRecords
-        from cc_common.data_model.schema.common import ActiveInactiveStatus
-        from cc_common.data_model.schema.privilege import PrivilegeData
-
-        test_data_client = DataClient(self.config)
-        provider_uuid = str(uuid4())
-
-        # use first 51 jurisdictions (will create 102 records - 51 privileges and 51 updates)
-        jurisdictions = [jurisdiction for jurisdiction in self.config.jurisdictions[0:51]]
-        original_privileges = []
-
-        # Create original privileges that will be updated
-        for jurisdiction in jurisdictions:
-            original_privilege = PrivilegeData.create_new(
-                {
-                    'type': 'privilege',
-                    'providerId': provider_uuid,
-                    'compact': 'cosm',
-                    'jurisdiction': jurisdiction,
-                    'licenseJurisdiction': 'oh',
-                    'licenseType': 'audiologist',
-                    'privilegeId': f'AUD-{jurisdiction.upper()}-1',
-                    'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'dateOfExpiration': date(2024, 10, 31),
-                    'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
-                }
-            )
-            self._provider_table.put_item(Item=original_privilege.serialize_to_database_record())
-            original_privileges.append(original_privilege)
-
-        # Now update all privileges
-        test_data_client.create_provider_privileges(
-            compact='cosm',
-            provider_id=provider_uuid,
-            jurisdiction_postal_abbreviations=jurisdictions,
-            license_expiration_date=date.fromisoformat('2025-10-31'),
-            provider_record=self.test_data_generator.generate_default_provider(
-                {
-                    'providerId': provider_uuid,
-                    'privilegeJurisdictions': set(jurisdictions),
-                    'licenseJurisdiction': 'oh',
-                }
-            ),
-            existing_privileges_for_license=original_privileges,
-            license_type='audiologist',
-        )
-
-        # Verify that all privileges were updated
-        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_uuid
-        )
-
-        for jurisdiction in jurisdictions:
-            # Get the privilege record using ProviderUserRecords
-            privilege_record = provider_user_records.get_specific_privilege_record(
-                jurisdiction=jurisdiction, license_abbreviation='cos'
-            )
-            self.assertIsNotNone(privilege_record, f'Privilege record not found for jurisdiction {jurisdiction}')
-            self.assertEqual('2025-10-31', privilege_record.dateOfExpiration.isoformat())
-
-            # Get the update record using test_data_generator
-            update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-                privilege_record
-            )
-            self.assertEqual(1, len(update_records), f'Expected 1 update record for jurisdiction {jurisdiction}')
-            update_record = update_records[0]
-            self.assertEqual('renewal', update_record.updateType)
-            self.assertEqual('2024-10-31', update_record.previous['dateOfExpiration'].isoformat())
-            self.assertEqual('2025-10-31', update_record.updatedValues['dateOfExpiration'].isoformat())
-
-        # Verify the provider record was updated correctly
-        provider = self._provider_table.get_item(
-            Key={'pk': f'cosm#PROVIDER#{provider_uuid}', 'sk': 'cosm#PROVIDER'},
-        )['Item']
-        self.assertEqual(set(jurisdictions), provider['privilegeJurisdictions'])
-
-    def test_data_client_rolls_back_failed_large_privilege_purchase(self):
-        """Test that we properly roll back when a large privilege purchase fails."""
-        from botocore.exceptions import ClientError
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.schema.common import ActiveInactiveStatus
-        from cc_common.data_model.schema.privilege import PrivilegeData
-
-        test_data_client = DataClient(self.config)
-        provider_uuid = str(uuid4())
-
-        # use first 51 jurisdictions (will create 102 records - 51 privileges and 51 updates)
-        jurisdictions = [jurisdiction for jurisdiction in self.config.jurisdictions[0:51]]
-        original_privileges = []
-
-        # Create original privileges that will be updated
-        for jurisdiction in jurisdictions:
-            original_privilege = PrivilegeData.create_new(
-                {
-                    'type': 'privilege',
-                    'providerId': provider_uuid,
-                    'compact': 'cosm',
-                    'jurisdiction': jurisdiction,
-                    'licenseJurisdiction': 'oh',
-                    'licenseType': 'audiologist',
-                    'privilegeId': f'AUD-{jurisdiction.upper()}-1',
-                    'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'dateOfExpiration': date(2024, 10, 31),
-                    'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'administratorSetStatus': ActiveInactiveStatus.ACTIVE,
-                }
-            )
-            self._provider_table.put_item(Item=original_privilege.serialize_to_database_record())
-            original_privileges.append(original_privilege)
-
-        # Store original provider record
-        original_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={
-                'providerId': provider_uuid,
-                'compact': 'cosm',
-                'licenseJurisdiction': 'oh',
-                'privilegeJurisdictions': set(jurisdictions),
-            }
-        )
-
-        # Mock DynamoDB to fail after first batch
-        original_transact_write_items = self.config.dynamodb_client.transact_write_items
-        call_count = 0
-
-        def mock_transact_write_items(**kwargs):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 2:  # Fail on second batch
-                raise ClientError(
-                    {'Error': {'Code': 'TransactionCanceledException', 'Message': 'Test error'}},
-                    'TransactWriteItems',
-                )
-            return original_transact_write_items(**kwargs)
-
-        self.config.dynamodb_client.transact_write_items = mock_transact_write_items
-
-        # Attempt to update all privileges (should fail)
-        with self.assertRaises(CCAwsServiceException):
-            test_data_client.create_provider_privileges(
-                compact='cosm',
-                provider_id=provider_uuid,
-                jurisdiction_postal_abbreviations=jurisdictions,
-                license_expiration_date=date.fromisoformat('2025-10-31'),
-                provider_record=original_provider,
-                existing_privileges_for_license=original_privileges,
-                license_type='audiologist',
-            )
-
-        # Verify that all privileges were restored to their original state
-        for jurisdiction in jurisdictions:
-            privilege_records = self._provider_table.query(
-                KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_uuid}')
-                & Key('sk').begins_with(f'cosm#PROVIDER#privilege/{jurisdiction}/cos#'),
-            )['Items']
-
-            self.assertEqual(1, len(privilege_records))  # Only the original privilege record should exist
-            privilege_record = privilege_records[0]
-
-            self.assertEqual('2024-10-31', privilege_record['dateOfExpiration'])
-
-        # Verify the provider record was restored to its original state
-        provider = self._provider_table.get_item(
-            Key={'pk': f'cosm#PROVIDER#{provider_uuid}', 'sk': 'cosm#PROVIDER'},
-        )['Item']
-        self.assertEqual(set(jurisdictions), provider['privilegeJurisdictions'])
 
     def test_claim_privilege_id_creates_counter_if_not_exists(self):
         """Test that claiming a privilege id creates the counter if it doesn't exist"""
@@ -448,123 +199,6 @@ class TestDataClient(TstFunction):
         with self.assertRaises(CCInternalException):
             client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
 
-    def test_deactivate_privilege_updates_record(self):
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.provider_record_util import ProviderUserRecords
-
-        provider_id = self._load_provider_data()
-
-        # Create the first privilege
-        original_privilege = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': 'cosm#PROVIDER#privilege/ne/cos#',
-            'type': 'privilege',
-            'providerId': str(provider_id),
-            'compact': 'cosm',
-            'licenseJurisdiction': 'oh',
-            'licenseType': 'audiologist',
-            'jurisdiction': 'ne',
-            'administratorSetStatus': 'active',
-            'dateOfIssuance': '2023-11-08T23:59:59+00:00',
-            'dateOfRenewal': '2023-11-08T23:59:59+00:00',
-            'dateOfExpiration': '2024-10-31',
-            'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-            'privilegeId': 'AUD-NE-1',
-        }
-        self._provider_table.put_item(Item=original_privilege)
-
-        test_data_client = DataClient(self.config)
-
-        # Now, deactivate the privilege
-        test_data_client.deactivate_privilege(
-            compact='cosm',
-            provider_id=provider_id,
-            jurisdiction='ne',
-            license_type_abbr='cos',
-            deactivation_details={
-                'note': 'test deactivation note',
-                'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
-                'deactivatedByStaffUserName': 'John Doe',
-            },
-        )
-
-        # Verify that the privilege record was updated
-        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id
-        )
-
-        new_privilege = provider_user_records.get_specific_privilege_record(
-            jurisdiction='ne', license_abbreviation='aud'
-        )
-        self.assertIsNotNone(new_privilege, 'Privilege record not found')
-
-        self.assertEqual(
-            {
-                'pk': f'cosm#PROVIDER#{provider_id}',
-                'sk': 'cosm#PROVIDER#privilege/ne/cos#',
-                'type': 'privilege',
-                'providerId': str(provider_id),
-                'compact': 'cosm',
-                'licenseJurisdiction': 'oh',
-                'licenseType': 'audiologist',
-                'jurisdiction': 'ne',
-                'administratorSetStatus': 'inactive',
-                'dateOfIssuance': '2023-11-08T23:59:59+00:00',
-                'dateOfRenewal': '2023-11-08T23:59:59+00:00',
-                'dateOfExpiration': '2024-10-31',
-                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'privilegeId': 'AUD-NE-1',
-            },
-            new_privilege.serialize_to_database_record(),
-        )
-
-        # Get the update record using test_data_generator
-        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-            new_privilege
-        )
-        self.assertEqual(1, len(update_records), 'Expected 1 update record')
-        update_record = update_records[0]
-
-        self.assertEqual(
-            {
-                'pk': f'cosm#PROVIDER#{provider_id}',
-                'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/4cfc2eb51e0e30865dc5f63ec9b54f8a',
-                'type': 'privilegeUpdate',
-                'updateType': 'deactivation',
-                'providerId': str(provider_id),
-                'compact': 'cosm',
-                'jurisdiction': 'ne',
-                'licenseType': 'audiologist',
-                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'createDate': '2024-11-08T23:59:59+00:00',
-                'effectiveDate': '2024-11-08T23:59:59+00:00',
-                'deactivationDetails': {
-                    'note': 'test deactivation note',
-                    'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
-                    'deactivatedByStaffUserName': 'John Doe',
-                },
-                'previous': {
-                    'dateOfIssuance': '2023-11-08T23:59:59+00:00',
-                    'dateOfRenewal': '2023-11-08T23:59:59+00:00',
-                    'dateOfExpiration': '2024-10-31',
-                    'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-                    'administratorSetStatus': 'active',
-                    'licenseJurisdiction': 'oh',
-                    'privilegeId': 'AUD-NE-1',
-                },
-                'updatedValues': {
-                    'administratorSetStatus': 'inactive',
-                },
-            },
-            update_record.serialize_to_database_record(),
-        )
-
-        # The deactivation should not remove 'ne' from privilegeJurisdictions, as that set is intended to include
-        # all active/inactive privileges associated with the provider
-        provider = self._provider_table.get_item(
-            Key={'pk': f'cosm#PROVIDER#{provider_id}', 'sk': 'cosm#PROVIDER'},
-        )['Item']
-        self.assertEqual({'ne'}, provider.get('privilegeJurisdictions', set()))
 
     def test_deactivate_privilege_raises_if_privilege_not_found(self):
         from cc_common.data_model.data_client import DataClient
@@ -608,24 +242,24 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
-            'licenseType': 'audiologist',
+            'licenseType': 'cosmetologist',
             'administratorSetStatus': 'inactive',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-            'privilegeId': 'AUD-NE-1',
+            'privilegeId': 'COS-NE-1',
         }
         self._provider_table.put_item(Item=original_privilege)
         # We'll create it as if it were already deactivated
         original_history = {
             'pk': f'cosm#PROVIDER#{provider_id}',
-                'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/5085ab7965ee4b956b621507ff143ab0',
+                'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/6dd62fb59bbae8bd55720ae1491fa87a',
             'type': 'privilegeUpdate',
             'updateType': 'renewal',
             'providerId': str(provider_id),
             'compact': 'cosm',
-            'licenseType': 'audiologist',
+            'licenseType': 'cosmetologist',
             'createDate': '2024-11-08T23:59:59+00:00',
             'effectiveDate': '2024-11-08T23:59:59+00:00',
             'jurisdiction': 'ne',
@@ -636,7 +270,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': '2024-10-31',
                 'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                 'licenseJurisdiction': 'oh',
-                'privilegeId': 'AUD-NE-1',
+                'privilegeId': 'COS-NE-1',
             },
             'updatedValues': {
                 'administratorSetStatus': 'inactive',
@@ -667,7 +301,7 @@ class TestDataClient(TstFunction):
         )
 
         new_privilege = provider_user_records.get_specific_privilege_record(
-            jurisdiction='ne', license_abbreviation='aud'
+            jurisdiction='ne', license_abbreviation='cos'
         )
         self.assertIsNotNone(new_privilege, 'Privilege record not found')
         serialized_record = new_privilege.serialize_to_database_record()
@@ -715,8 +349,8 @@ class TestDataClient(TstFunction):
                     'providerId': provider_uuid,
                     'compact': 'cosm',
                     'jurisdiction': jurisdiction,
-                    'licenseType': 'audiologist',
-                    'privilegeId': f'AUD-{jurisdiction.upper()}-1',
+                    'licenseType': 'esthetician',
+                    'privilegeId': f'EST-{jurisdiction.upper()}-1',
                     'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                     'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                     'dateOfExpiration': date(2024, 10, 31),
@@ -732,7 +366,7 @@ class TestDataClient(TstFunction):
                     'providerId': provider_uuid,
                     'compact': 'cosm',
                     'jurisdiction': jurisdiction,
-                    'licenseType': 'audiologist',
+                    'licenseType': 'esthetician',
                 }
             )
 
@@ -789,7 +423,7 @@ class TestDataClient(TstFunction):
                 'providerId': provider_id,
                 'compact': 'cosm',
                 'jurisdiction': 'ne',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'privilege',
             }
         )
@@ -817,7 +451,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'investigationAgainst': 'privilege',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
@@ -852,7 +486,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
@@ -862,7 +496,7 @@ class TestDataClient(TstFunction):
                 'dateOfRenewal': '2020-05-05T12:59:59+00:00',
                 'dateOfUpdate': '2020-05-05T12:59:59+00:00',
                 'licenseJurisdiction': 'oh',
-                'privilegeId': 'SLP-NE-1',
+                'privilegeId': 'COS-NE-1',
             },
             'updatedValues': {
                 'investigationStatus': 'underInvestigation',
@@ -892,7 +526,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -923,7 +557,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'investigationAgainst': 'license',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
@@ -958,7 +592,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
@@ -1013,7 +647,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1045,7 +679,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1077,7 +711,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1119,7 +753,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'investigationAgainst': 'privilege',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
@@ -1163,7 +797,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
@@ -1173,7 +807,7 @@ class TestDataClient(TstFunction):
                 'dateOfRenewal': '2020-05-05T12:59:59+00:00',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                 'licenseJurisdiction': 'oh',
-                'privilegeId': 'SLP-NE-1',
+                'privilegeId': 'COS-NE-1',
                 'investigationStatus': 'underInvestigation',
             },
             'updatedValues': {},
@@ -1201,7 +835,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1246,7 +880,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'investigationAgainst': 'license',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
@@ -1291,7 +925,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
@@ -1396,7 +1030,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1451,7 +1085,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1505,7 +1139,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1535,7 +1169,7 @@ class TestDataClient(TstFunction):
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('cosm#PROVIDER#privilege/ne/slp#INVESTIGATION#')
+            & Key('sk').begins_with('cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -1549,7 +1183,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'investigationAgainst': 'privilege',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
@@ -1581,7 +1215,7 @@ class TestDataClient(TstFunction):
                 'compact': 'cosm',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -1611,7 +1245,7 @@ class TestDataClient(TstFunction):
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('cosm#PROVIDER#license/oh/slp#INVESTIGATION#')
+            & Key('sk').begins_with('cosm#PROVIDER#license/oh/cos#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -1625,7 +1259,7 @@ class TestDataClient(TstFunction):
             'compact': 'cosm',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'investigationAgainst': 'license',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),

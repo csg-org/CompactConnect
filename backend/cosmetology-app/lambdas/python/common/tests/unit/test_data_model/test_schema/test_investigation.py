@@ -111,7 +111,7 @@ class TestInvestigationDataClass(TstLambdas):
                 'compact': 'cosm',
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'jurisdiction': 'ne',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'pk': pk,
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'sk': sk,

@@ -105,7 +105,7 @@ class TestLicenseDeactivationEvents(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': 'ky',  # Different jurisdiction
-                'licenseType': 'audiologist',  # Different license type
+                'licenseType': 'esthetician',  # Different license type
                 # note there is no licenseDeactivatedStatus present
             }
         )
@@ -190,7 +190,7 @@ class TestLicenseDeactivationEvents(TstFunction):
         self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides={
                 'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseType': 'audiologist',  # Different license type
+                'licenseType': 'esthetician',  # Different license type
                 'jurisdiction': 'ky',
             }
         )

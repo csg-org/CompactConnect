@@ -95,10 +95,10 @@ class TestOpenSearchIndexManager(TstFunction):
             call('compact_cosm_providers')
         ]
         mock_client_instance.alias_exists.assert_has_calls(expected_alias_exists_calls, any_order=False)
-        self.assertEqual(3, mock_client_instance.alias_exists.call_count)
+        self.assertEqual(1, mock_client_instance.alias_exists.call_count)
 
         # Assert that create_index was called for each compact with versioned names
-        self.assertEqual(3, mock_client_instance.create_index.call_count)
+        self.assertEqual(1, mock_client_instance.create_index.call_count)
 
         # Verify the versioned index names in create_index calls
         create_index_calls = mock_client_instance.create_index.call_args_list
@@ -109,7 +109,7 @@ class TestOpenSearchIndexManager(TstFunction):
         )
 
         # Assert that create_alias was called for each compact
-        self.assertEqual(3, mock_client_instance.create_alias.call_count)
+        self.assertEqual(1, mock_client_instance.create_alias.call_count)
         expected_alias_calls = [
             call('compact_cosm_providers_v1', 'compact_cosm_providers'),
         ]
@@ -376,7 +376,7 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_client_instance.create_index.assert_not_called()
 
         # Assert that create_alias was called for each compact (to create the missing aliases)
-        self.assertEqual(3, mock_client_instance.create_alias.call_count)
+        self.assertEqual(1, mock_client_instance.create_alias.call_count)
         expected_alias_calls = [
             call('compact_cosm_providers_v1', 'compact_cosm_providers'),
         ]

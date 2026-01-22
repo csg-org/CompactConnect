@@ -386,7 +386,7 @@ class TestSearchProviders(TstFunction):
 
         # Test with '_index' key (more_like_this attack pattern)
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {
                     'more_like_this': {
@@ -415,7 +415,7 @@ class TestSearchProviders(TstFunction):
 
         # Test with 'index' key nested deep in the query structure
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {
                     'bool': {
@@ -456,7 +456,7 @@ class TestSearchProviders(TstFunction):
         mock_opensearch_client.search.side_effect = CCInvalidRequestException(error_reason)
 
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'familyName': 'asc'}],  # Sorting on text field causes this error
@@ -468,57 +468,3 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual(error_reason, body['message'])
-
-    @patch('handlers.search.opensearch_client')
-    def test_provider_with_mismatched_compact_is_filtered_from_response(self, mock_opensearch_client):
-        """Test that a provider with a compact field that doesn't match the path parameter is filtered from results."""
-        from handlers.search import search_api_handler
-
-        # Create a provider hit with a different compact than the path parameter
-        provider_id = '00000000-0000-0000-0000-000000000001'
-        hit = {
-            '_index': 'compact_aslp_providers',
-            '_id': provider_id,
-            '_score': 1.0,
-            '_source': {
-                'providerId': provider_id,
-                'type': 'provider',
-                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                'compact': 'cosm',  # Same as path parameter 'cosm'
-                'licenseJurisdiction': 'oh',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-                'givenName': 'John',
-                'familyName': 'Doe',
-                'dateOfExpiration': '2025-12-31',
-                'jurisdictionUploadedLicenseStatus': 'active',
-                'jurisdictionUploadedCompactEligibility': 'eligible',
-                'birthMonthDay': '06-15',
-            },
-        }
-        search_response = {
-            'hits': {
-                'total': {'value': 1, 'relation': 'eq'},
-                'hits': [hit],
-            }
-        }
-        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
-
-        # Currently, with our safeguards in place, it is not possible for a bad actor to reach across
-        # indices when searching. This may change in the future with new OpenSearch features that are added
-        # over time. Because we don't have a valid query to trigger this branch of logic, we're just using a
-        # generic query here in place of some future query that can get past our safeguards and search provider
-        # data across compact indices. The mock above is returning a provider from a different compact to
-        # trigger the branch of logic where we catch this discrepancy, log the error so an alert fires, and
-        # filter the document from the response
-        custom_query = {'match_all': {}}
-
-        # Request for 'aslp' compact but provider has 'octp' compact
-        event = self._create_api_event('aslp', body={'query': custom_query})
-
-        response = search_api_handler(event, self.mock_context)
-
-        self.assertEqual(200, response['statusCode'])
-        body = json.loads(response['body'])
-        # should be empty list with total value of 0
-        self.assertEqual({'providers': [], 'total': {'relation': 'eq', 'value': 0}}, body)

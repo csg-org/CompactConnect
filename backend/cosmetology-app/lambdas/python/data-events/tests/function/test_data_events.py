@@ -67,7 +67,7 @@ class TestHandleDataEvents(TstFunction):
                 'eventTime': '2024-07-11T19:57:45+00:00',
                 'eventType': 'license.ingest',
                 'compact': 'cosm',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'jurisdiction': 'oh',
                 'licenseStatus': 'active',
                 'compactEligibility': 'eligible',

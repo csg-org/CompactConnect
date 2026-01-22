@@ -208,27 +208,6 @@ class TestGetPublicCompactJurisdictions(TstFunction):
             },
         )
 
-        # OCTP compact with different live jurisdictions
-        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
-            value_overrides={
-                'compactAbbr': 'octp',
-                'configuredStates': [
-                    {'postalAbbreviation': 'ne', 'isLive': True},
-                    {'postalAbbreviation': 'oh', 'isLive': False},
-                ],
-            },
-        )
-
-        # Additional test setup if needed
-        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
-            value_overrides={
-                'compactAbbr': 'coun',
-                'configuredStates': [
-                    {'postalAbbreviation': 'ky', 'isLive': False},
-                ],
-            },
-        )
-
         # Create event without query params
         event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
         event['queryStringParameters'] = None
@@ -239,13 +218,9 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
         # Should return all compacts with their live jurisdictions
         self.assertIn('cosm', response_body)
-        self.assertIn('octp', response_body)
-        self.assertIn('coun', response_body)
 
         # Verify the live jurisdictions for each compact
         self.assertCountEqual(['oh', 'ky'], response_body['cosm'])
-        self.assertCountEqual(['ne'], response_body['octp'])
-        self.assertCountEqual([], response_body['coun'])
 
     def test_get_public_live_compact_jurisdictions_returns_list_of_live_jurisdictions_in_compact(self):
         """Test getting list of live jurisdictions for compact designated through query param"""
@@ -263,15 +238,6 @@ class TestGetPublicCompactJurisdictions(TstFunction):
             },
         )
 
-        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
-            value_overrides={
-                'compactAbbr': 'octp',
-                'configuredStates': [
-                    {'postalAbbreviation': 'ne', 'isLive': True},
-                ],
-            },
-        )
-
         # Create event with compact query param
         event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
         event['queryStringParameters'] = {'compact': 'cosm'}
@@ -282,8 +248,6 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
         # Should only return the specified compact
         self.assertIn('cosm', response_body)
-        self.assertNotIn('octp', response_body)
-        self.assertNotIn('coun', response_body)
 
         # Verify the live jurisdictions
         self.assertCountEqual(['ky', 'oh'], response_body['cosm'])
@@ -298,15 +262,6 @@ class TestGetPublicCompactJurisdictions(TstFunction):
                 'compactAbbr': 'cosm',
                 'configuredStates': [
                     {'postalAbbreviation': 'ky', 'isLive': True},
-                ],
-            },
-        )
-
-        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
-            value_overrides={
-                'compactAbbr': 'octp',
-                'configuredStates': [
-                    {'postalAbbreviation': 'oh', 'isLive': True},
                 ],
             },
         )
@@ -429,7 +384,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(
             {
                 'compactAbbr': 'cosm',
-                'compactName': 'Audiology and Speech Language Pathology',
+                'compactName': 'Cosmetology',
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'compactSummaryReportNotificationEmails': [],

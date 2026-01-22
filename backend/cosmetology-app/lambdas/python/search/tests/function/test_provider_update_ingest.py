@@ -341,14 +341,6 @@ class TestProviderUpdateIngest(TstFunction):
                     'index': {
                         '_id': MOCK_COSM_PROVIDER_ID,
                         '_index': 'compact_cosm_providers',
-                        'status': 201,
-                        'result': 'created',
-                    }
-                },
-                {
-                    'index': {
-                        '_id': MOCK_COSM_PROVIDER_ID,
-                        '_index': 'compact_octp_providers',
                         'status': 400,
                         'error': {
                             'type': 'mapper_parsing_exception',
@@ -384,7 +376,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify that only the failed document's message ID is in batchItemFailures
         self.assertEqual(1, len(result['batchItemFailures']))
-        self.assertEqual('12346', result['batchItemFailures'][0]['itemIdentifier'])
+        self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_bulk_index_exception_returns_all_batch_item_failures(self, mock_opensearch_client):
@@ -397,7 +389,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Create provider and license records in DynamoDB for both compacts
         self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
-        self._put_test_provider_and_license_record_in_dynamodb_table('octp')
+        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
 
         # Create SQS events with DynamoDB stream records in the body for both providers
         event = {
@@ -416,8 +408,8 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12346',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='octp',
-                            provider_id=MOCK_OCTP_PROVIDER_ID,
+                            compact='cosm',
+                            provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number-2',
                         )
                     ),
@@ -494,7 +486,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify the call arguments
         call_args = mock_opensearch_client.bulk_index.call_args
-        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
+        self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
 
         # Verify no batch item failures for INSERT event
@@ -575,7 +567,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         # Verify the call arguments
         call_args = mock_opensearch_client.bulk_index.call_args
-        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
+        self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
 
         # Verify no batch item failures for REMOVE event
@@ -625,7 +617,7 @@ class TestProviderUpdateIngest(TstFunction):
         # Assert that bulk_delete WAS called with the correct parameters
         self.assertEqual(1, mock_opensearch_client.bulk_delete.call_count)
         call_args = mock_opensearch_client.bulk_delete.call_args
-        self.assertEqual('compact_aslp_providers', call_args.kwargs['index_name'])
+        self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
         self.assertEqual([MOCK_COSM_PROVIDER_ID], call_args.kwargs['document_ids'])
 
         # Verify no batch item failures (deletion is expected behavior, not a failure)

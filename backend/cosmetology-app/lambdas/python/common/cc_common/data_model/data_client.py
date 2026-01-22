@@ -396,7 +396,7 @@ class DataClient:
         :param provider_record: The original provider record
         :param existing_privileges_for_license: The list of existing privileges for the specified license.
         Used to track the original issuance date of the privilege.
-        :param license_type: The type of license (e.g. audiologist, speech-language-pathologist)
+        :param license_type: The type of license (e.g. esthetician, cosmetologist)
         """
         logger.info(
             'Creating provider privileges',

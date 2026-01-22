@@ -69,7 +69,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to a valid license type name, and an invalid abbreviation
-        adverse_action_data.licenseType = 'speech-language pathologist'
+        adverse_action_data.licenseType = 'cosmetologist'
         adverse_action_data.licenseTypeAbbreviation = 'foo'
 
         with self.assertRaises(ValidationError):
@@ -116,7 +116,7 @@ class TestAdverseActionDataClass(TstLambdas):
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'effectiveStartDate': '2024-02-15',
                 'jurisdiction': 'ne',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'licenseTypeAbbreviation': 'cos',
                 'pk': 'cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',

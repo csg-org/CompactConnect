@@ -238,45 +238,6 @@ class TestClient(TstFunction):
         self.assertEqual({'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'}, resp['attributes'])
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
 
-    def test_create_existing_user(self):
-        """In the case that two compact admins invite the same individual to their respective compacts, we want there to
-        only be a single Cognito user created, but two database records for that user (one for each compact). So what
-        we're looking at here is that we have two sets of permissions (DB records, internally) but that they share the
-        same userId.
-        """
-        from cc_common.data_model.schema.common import StaffUserStatus
-        from cc_common.data_model.user_client import UserClient
-
-        client = UserClient(self.config)
-
-        # Create an cosm/oh board admin
-        first_user = client.create_user(
-            compact='cosm',
-            attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
-            permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
-        )
-
-        # Create them again as an cosm/ne board admin
-        second_user = client.create_user(
-            compact='cosm',
-            attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
-            permissions={'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}},
-        )
-
-        self.assertEqual(first_user['userId'], second_user['userId'])
-        self.assertEqual(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'},
-            second_user.keys(),
-        )
-        self.assertEqual(
-            {'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
-            second_user['attributes'],
-        )
-        # The second user should see the second compact permissions, not the first, since they are presented separately
-        self.assertEqual('cosm', second_user['compact'])
-        self.assertEqual({'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}}, second_user['permissions'])
-        self.assertEqual(StaffUserStatus.INACTIVE.value, second_user['status'])
-
     def test_create_existing_user_same_compact(self):
         from cc_common.data_model.user_client import UserClient
 

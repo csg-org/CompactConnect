@@ -206,7 +206,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
                 'providerId': uuid4(),
                 'compact': 'cosm',
                 'jurisdiction': 'ky',
-                'licenseType': 'speech-language pathologist',
+                'licenseType': 'cosmetologist',
                 'updateType': loaded_record['updateType'],
                 'createDate': loaded_record['createDate'],
                 # These two fields should determine the change hash:
@@ -235,7 +235,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             'providerId': uuid4(),
             'compact': 'cosm',
             'jurisdiction': 'ky',
-            'licenseType': 'speech-language pathologist',
+            'licenseType': 'cosmetologist',
             'updateType': loaded_record['updateType'],
             'createDate': loaded_record['createDate'],
             # These two fields should determine the change hash:

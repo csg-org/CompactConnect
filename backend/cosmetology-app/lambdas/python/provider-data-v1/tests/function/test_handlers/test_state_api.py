@@ -122,7 +122,7 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
                     'providerId': provider_id,
                     'jurisdiction': privilege_jurisdiction,
                     'licenseJurisdiction': license_jurisdiction,
-                    'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-{start_serial - i}',
+                    'privilegeId': f'COS-{privilege_jurisdiction.upper()}-{start_serial - i}',
                 },
                 date_of_update_override=date_of_update.isoformat(),
             )
@@ -410,7 +410,7 @@ class TestGetProvider(SignatureTestBase):
                 'providerId': str(provider.providerId),
                 'jurisdiction': privilege_jurisdiction,
                 'licenseJurisdiction': license_jurisdiction,
-                'privilegeId': f'SLP-{privilege_jurisdiction.upper()}-1',
+                'privilegeId': f'COS-{privilege_jurisdiction.upper()}-1',
             }
         )
 

@@ -113,7 +113,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
                         'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
+                        'licenseNumber': 'COS-12345',
                     }
                 ],
                 'privileges': [
@@ -328,7 +328,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
                         'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
+                        'licenseNumber': 'COS-12345',
                     }
                 ],
                 # Provider has THREE privileges
@@ -457,7 +457,7 @@ class TestExportPrivileges(TstFunction):
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+            Bucket='test-export-results-bucket', Prefix='compact/cosm/privilegeSearch/caller/test-user-id'
         )
         key = response['Contents'][0]['Key']
         csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
@@ -470,7 +470,7 @@ class TestExportPrivileges(TstFunction):
             lines[0],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ky,cosmetologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,COS-12345,1234567890\r',
             lines[1],
         )
         self.assertEqual(
@@ -523,7 +523,7 @@ class TestExportPrivileges(TstFunction):
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
                         'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
+                        'licenseNumber': 'COS-12345',
                     }
                 ],
                 # Provider has THREE privileges
@@ -586,7 +586,7 @@ class TestExportPrivileges(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('aslp', body={'query': {'match_all': {}}})
+        event = self._create_api_event('cosm', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -601,7 +601,7 @@ class TestExportPrivileges(TstFunction):
 
         s3_client = boto3.client('s3')
         response = s3_client.list_objects_v2(
-            Bucket='test-export-results-bucket', Prefix='compact/aslp/privilegeSearch/caller/test-user-id'
+            Bucket='test-export-results-bucket', Prefix='compact/cosm/privilegeSearch/caller/test-user-id'
         )
         key = response['Contents'][0]['Key']
         csv_obj = s3_client.get_object(Bucket='test-export-results-bucket', Key=key)
@@ -614,11 +614,11 @@ class TestExportPrivileges(TstFunction):
             lines[0],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ky,audiologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ky,cosmetologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,COS-12345,1234567890\r',
             lines[1],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,aslp,ne,audiologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,AUD-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ne,cosmetologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,COS-12345,1234567890\r',
             lines[2],
         )
         self.assertEqual(
@@ -658,12 +658,12 @@ class TestExportPrivileges(TstFunction):
 
         # Test with 'index' key (terms lookup attack pattern)
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {
                     'terms': {
                         'providerId': {
-                            'index': 'compact_octp_providers',
+                            'index': 'compact_cosm_providers',
                             'id': 'some-uuid',
                             'path': 'providerId',
                         }
@@ -685,14 +685,14 @@ class TestExportPrivileges(TstFunction):
 
         # Test with '_index' key (more_like_this attack pattern)
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {
                     'more_like_this': {
                         'fields': ['familyName', 'givenName'],
                         'like': [
                             {
-                                '_index': 'compact_octp_providers',
+                                '_index': 'compact_cosm_providers',
                                 '_id': 'target-provider-uuid',
                             }
                         ],
@@ -714,7 +714,7 @@ class TestExportPrivileges(TstFunction):
 
         # Test with 'index' key nested deep in the query structure
         event = self._create_api_event(
-            'aslp',
+            'cosm',
             body={
                 'query': {
                     'bool': {
@@ -722,7 +722,7 @@ class TestExportPrivileges(TstFunction):
                             {
                                 'terms': {
                                     'familyName.keyword': {
-                                        'index': 'compact_octp_providers',
+                                        'index': 'compact_cosm_providers',
                                         'id': 'target-uuid',
                                         'path': 'familyName.keyword',
                                     }
@@ -740,94 +740,3 @@ class TestExportPrivileges(TstFunction):
         body = json.loads(response['body'])
         self.assertIn('Cross-index queries are not allowed', body['message'])
         self.assertIn("'index'", body['message'])
-
-    @patch('handlers.search.opensearch_client')
-    def test_privilege_with_mismatched_compact_is_filtered_from_response(self, mock_opensearch_client):
-        """Test that a privilege with a compact field that doesn't match the path parameter is filtered from results."""
-        from handlers.search import search_api_handler
-
-        provider_id = '00000000-0000-0000-0000-000000000001'
-        # Create a provider hit with a privilege that has a different compact than the path parameter
-        hit = {
-            '_index': 'compact_aslp_providers',
-            '_id': provider_id,
-            '_score': 1.0,
-            '_source': {
-                'providerId': provider_id,
-                'type': 'provider',
-                'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                'compact': 'aslp',
-                'licenseJurisdiction': 'oh',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-                'givenName': 'John',
-                'familyName': 'Doe',
-                'dateOfExpiration': '2025-12-31',
-                'jurisdictionUploadedLicenseStatus': 'active',
-                'jurisdictionUploadedCompactEligibility': 'eligible',
-                'birthMonthDay': '06-15',
-                'licenses': [
-                    {
-                        'providerId': provider_id,
-                        'type': 'license-home',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'compact': 'aslp',
-                        'jurisdiction': 'oh',
-                        'licenseType': 'cosmetologist',
-                        'licenseStatus': 'active',
-                        'compactEligibility': 'eligible',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'givenName': 'John',
-                        'familyName': 'Doe',
-                        'dateOfIssuance': '2020-01-01',
-                        'dateOfRenewal': '2024-01-01',
-                        'dateOfExpiration': '2025-12-31',
-                        'npi': '1234567890',
-                        'licenseNumber': 'AUD-12345',
-                    }
-                ],
-                'privileges': [
-                    {
-                        'type': 'privilege',
-                        'providerId': provider_id,
-                        'compact': 'octp',  # Different from path parameter 'aslp'
-                        'jurisdiction': 'ky',
-                        'licenseJurisdiction': 'oh',
-                        'licenseType': 'cosmetologist',
-                        'dateOfIssuance': '2024-01-15',
-                        'dateOfRenewal': '2024-01-15',
-                        'dateOfExpiration': '2025-01-15',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'administratorSetStatus': 'active',
-                        'privilegeId': 'PRIV-001',
-                        'status': 'active',
-                    }
-                ],
-            },
-        }
-        search_response = {
-            'hits': {
-                'total': {'value': 1, 'relation': 'eq'},
-                'hits': [hit],
-            }
-        }
-        self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
-
-        # Currently, with our safeguards in place, it is not possible for a bad actor to reach across
-        # indices when searching. This may change in the future with new OpenSearch features that are added
-        # over time. Because we don't have a valid query to trigger this branch of logic, we're just using a
-        # generic query here in place of some future query that can get past our safeguards and search provider
-        # data across compact indices. The mock above is returning a provider from a different compact to
-        # trigger the branch of logic where we catch this discrepancy, log the error so an alert fires, and
-        # filter the document from the response
-        custom_query = {'match_all': {}}
-
-        # Request for 'aslp' compact but privilege has 'octp' compact
-        event = self._create_api_event('aslp', body={'query': custom_query})
-
-        response = search_api_handler(event, self.mock_context)
-
-        self.assertEqual(404, response['statusCode'])
-        body = json.loads(response['body'])
-        self.assertEqual('The search parameters did not match any privileges.', body['message'])

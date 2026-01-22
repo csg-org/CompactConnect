@@ -171,8 +171,8 @@ class TestGetProvider(TstFunction):
                 },
             ],
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
-            'privilegeId': 'SLP-NE-1',
+            'licenseType': 'cosmetologist',
+            'privilegeId': 'COS-NE-1',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 
@@ -214,8 +214,8 @@ class TestGetProvider(TstFunction):
                 },
             ],
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
-            'privilegeId': 'SLP-NE-1',
+            'licenseType': 'cosmetologist',
+            'privilegeId': 'COS-NE-1',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 
@@ -258,8 +258,8 @@ class TestGetProvider(TstFunction):
                 },
             ],
             'jurisdiction': 'ne',
-            'licenseType': 'speech-language pathologist',
-            'privilegeId': 'SLP-NE-1',
+            'licenseType': 'cosmetologist',
+            'privilegeId': 'COS-NE-1',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
         }
 

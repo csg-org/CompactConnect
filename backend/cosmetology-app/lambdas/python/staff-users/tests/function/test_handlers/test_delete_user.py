@@ -101,7 +101,7 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
+        # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
@@ -125,11 +125,11 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for oh/aslp
+        # The user has admin permission for oh/cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)
@@ -148,11 +148,11 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for aslp/ne, user does not have aslp/oh permissions
+        # The user has admin permission for cosm/ne, user does not have cosm/oh permissions
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/aslp.admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)
@@ -168,11 +168,11 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for aslp/ne, user does not have aslp/oh permissions
+        # The user has admin permission for cosm/ne, user does not have cosm/oh permissions
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/aslp.admin'
-        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)

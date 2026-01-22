@@ -180,7 +180,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('OH', message_data['homeAddressState'])  # Should be trimmed
         self.assertEqual('43215', message_data['homeAddressPostalCode'])  # Should be trimmed
         self.assertEqual('test@example.com', message_data['emailAddress'])  # Should be trimmed
-        self.assertEqual('audiologist', message_data['licenseType'])  # Should be trimmed
+        self.assertEqual('cosmetologist', message_data['licenseType'])  # Should be trimmed
         self.assertEqual('Active', message_data['licenseStatusName'])  # Should be trimmed
 
         # Verify that other fields remain unchanged
@@ -203,7 +203,7 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseStatusName,compact,jurisdiction\n'
             '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,audiologist,Active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,Active,'
             'malicious_compact,malicious_jurisdiction'
         )
 
@@ -249,7 +249,7 @@ class TestProcessObjects(TstFunction):
                         'jurisdiction': 'oh',
                         'recordNumber': 1,
                         'validData': {
-                            'licenseType': 'audiologist',
+                            'licenseType': 'esthetician',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
@@ -329,7 +329,7 @@ class TestProcessObjects(TstFunction):
                         'jurisdiction': 'oh',
                         'recordNumber': 2,
                         'validData': {
-                            'licenseType': 'audiologist',
+                            'licenseType': 'cosmetologist',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
@@ -344,7 +344,7 @@ class TestProcessObjects(TstFunction):
                         },
                         'errors': {
                             '_schema': [
-                                'Duplicate License SSN detected for license type audiologist. '
+                                'Duplicate License SSN detected for license type cosmetologist. '
                                 'SSN matches with record 1. Every record must have a unique SSN per'
                                 ' license type within the same file.'
                             ]
@@ -400,7 +400,7 @@ class TestProcessObjects(TstFunction):
         # Verify the license types are correct
         # Messages might not be in order, so we check both
         license_types = {message_data_1['licenseType'], message_data_2['licenseType']}
-        self.assertEqual({'audiologist', 'speech-language pathologist'}, license_types)
+        self.assertEqual({'esthetician', 'cosmetologist'}, license_types)
 
         # Verify SSNs are the same
         self.assertEqual(message_data_1['ssn'], '123-45-6789')
@@ -453,7 +453,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('Apt 1', message_data['homeAddressStreet2'])
         self.assertEqual('oh', message_data['homeAddressState'])
         self.assertEqual('43215', message_data['homeAddressPostalCode'])
-        self.assertEqual('speech-language pathologist', message_data['licenseType'])
+        self.assertEqual('esthetician', message_data['licenseType'])
         self.assertEqual('active', message_data['licenseStatus'])
         self.assertEqual('ACTIVE', message_data['licenseStatusName'])
         self.assertEqual('eligible', message_data['compactEligibility'])
