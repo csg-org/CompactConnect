@@ -122,8 +122,8 @@ describe('EmailNotificationServiceLambda', () => {
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
             TableName: 'compact-table',
             Key: {
-                'pk': { S: 'aslp#CONFIGURATION' },
-                'sk': { S: 'aslp#CONFIGURATION' }
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#CONFIGURATION' }
             }
         });
 
