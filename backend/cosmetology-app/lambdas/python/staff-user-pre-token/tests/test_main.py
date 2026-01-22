@@ -77,50 +77,6 @@ class TestCustomizeScopes(TstLambdas):
             sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToSuppress']),
         )
 
-    def test_multiple_compact(self):
-        from cc_common.data_model.schema.common import StaffUserStatus
-        from main import customize_scopes
-
-        with open('tests/resources/pre-token-event.json') as f:
-            event = json.load(f)
-        sub = event['request']['userAttributes']['sub']
-
-        # Create a DB record for this user's permissions, one for each of two compacts
-        for compact in ['cosm']:
-            self._table.put_item(
-                Item={
-                    'pk': f'USER#{sub}',
-                    'sk': f'COMPACT#{compact}',
-                    'compact': compact,
-                    'status': StaffUserStatus.INACTIVE.value,
-                    'permissions': {
-                        'jurisdictions': {
-                            # should correspond to the 'cosm/write' and 'al/cosm.write' scopes
-                            'al': {'write'}
-                        },
-                    },
-                }
-            )
-
-        resp = customize_scopes(event, self.mock_context)
-
-        self.assertEqual(
-            sorted(
-                [
-                    'profile',
-                    'aslp/readGeneral',
-                    'al/aslp.write',
-                    'cosm/readGeneral',
-                    'al/cosm.write',
-                ]
-            ),
-            sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
-        )
-        # Check that the user's status is updated in the DB
-        for compact in ['cosm']:
-            record = self._table.get_item(Key={'pk': f'USER#{sub}', 'sk': f'COMPACT#{compact}'})
-            self.assertEqual(StaffUserStatus.ACTIVE.value, record['Item']['status'])
-
     def test_unauthenticated(self):
         """
         We should never actually receive an authenticated request, but if that happens somehow,

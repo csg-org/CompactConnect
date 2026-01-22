@@ -1045,7 +1045,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             'typeOfUpdate': 'ENCUMBRANCE',
                             'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                             'reason': 'Existing ineligible update reason',
-                            'licenseType': 'audiologist',
+                            'licenseType': 'cosmetologist',
                         }
                     ],
                 }
@@ -1062,7 +1062,7 @@ class TestRollbackLicenseUpload(TstFunction):
                     'licensesReverted': [
                         {
                             'jurisdiction': 'tx',
-                            'licenseType': 'audiologist',
+                            'licenseType': 'cosmetologist',
                             'action': 'REVERT',
                         }
                     ],
@@ -1096,7 +1096,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'typeOfUpdate': 'ENCUMBRANCE',
                                 'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                                 'reason': 'Existing ineligible update reason',
-                                'licenseType': 'audiologist',
+                                'licenseType': 'cosmetologist',
                             }
                         ],
                     }
@@ -1113,7 +1113,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'licensesReverted': [
                             {
                                 'jurisdiction': 'tx',
-                                'licenseType': 'audiologist',
+                                'licenseType': 'cosmetologist',
                                 'action': 'REVERT',
                             }
                         ],
