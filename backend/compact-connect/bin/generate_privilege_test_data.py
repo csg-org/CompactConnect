@@ -9,7 +9,7 @@ bin/generate_privilege_test_data.py --compact aslp --home-state oh --privilege-s
 
 To only create privileges for licenses uploaded after a specific date:
 bin/generate_privilege_test_data.py --compact aslp --home-state oh --privilege-state ne --count 10 \
-    --license-uploaded-after "2024-01-15T10:30:00Z"
+    --license-uploaded-after "2028-01-15T10:30:00Z"
 """
 
 import argparse
@@ -58,7 +58,6 @@ def query_eligible_providers(
     license_uploaded_after: datetime | None = None,
 ) -> set[str]:
     """Query licenseGSI or licenseUploadDateGSI and return set of provider IDs from eligible license records."""
-    from calendar import monthrange
 
     from dateutil.relativedelta import relativedelta
 
