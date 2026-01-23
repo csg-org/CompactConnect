@@ -22,6 +22,7 @@ Example:
     bin/modify_test_data.py aslp-al-mock-data.csv
     # Creates: modified-aslp-al-mock-data.csv
 """
+
 import sys
 from csv import DictReader, DictWriter
 from pathlib import Path
@@ -48,11 +49,11 @@ def modify_record(record: dict) -> dict:
         email = record['emailAddress']
         if '@' in email:
             name, domain = email.split('@', 1)
-            record['emailAddress'] = f"{name}.UPDATED@{domain}"
+            record['emailAddress'] = f'{name}.UPDATED@{domain}'
 
     # Address: Append (UPDATED) to street address
     if record.get('homeAddressStreet1') and record['homeAddressStreet1'].strip():
-        record['homeAddressStreet1'] = f"{record['homeAddressStreet1']} (UPDATED)"
+        record['homeAddressStreet1'] = f'{record["homeAddressStreet1"]} (UPDATED)'
 
     # SSN-based modifications for testing various scenarios
     if record.get('ssn'):
@@ -62,16 +63,16 @@ def modify_record(record: dict) -> dict:
         if ssn_numeric.isdigit():
             ssn_int = int(ssn_numeric)
             last_digit = ssn_int % 10
-            
+
             # Records where SSN mod 100 = 0: Set to inactive and ineligible
             if ssn_int % 100 == 0:
                 record['licenseStatus'] = 'inactive'
                 record['compactEligibility'] = 'ineligible'
-            
+
             # Records where SSN ends in 5: Remove email (test missing email handling)
             if last_digit == 5:
                 record['emailAddress'] = ''
-            
+
             # Records where SSN ends in 7: Remove phone (test missing phone handling)
             if last_digit == 7:
                 record['phoneNumber'] = ''
@@ -94,10 +95,10 @@ def modify_csv_file(input_filepath: Path) -> Path:
         ValueError: If CSV is empty or has no header
     """
     if not input_filepath.exists():
-        raise FileNotFoundError(f"Input file not found: {input_filepath}")
+        raise FileNotFoundError(f'Input file not found: {input_filepath}')
 
     # Create output filename with 'modified-' prefix
-    output_filepath = input_filepath.parent / f"modified-{input_filepath.name}"
+    output_filepath = input_filepath.parent / f'modified-{input_filepath.name}'
 
     records_processed = 0
 
@@ -106,7 +107,7 @@ def modify_csv_file(input_filepath: Path) -> Path:
 
         # Verify we have a header
         if not reader.fieldnames:
-            raise ValueError(f"CSV file has no header row: {input_filepath}")
+            raise ValueError(f'CSV file has no header row: {input_filepath}')
 
         with open(output_filepath, 'w', encoding='utf-8', newline='') as outfile:
             writer = DictWriter(outfile, fieldnames=reader.fieldnames)
