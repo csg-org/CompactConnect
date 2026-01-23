@@ -171,7 +171,6 @@ class LicenseeList extends Vue {
             ssnMaskedPartial: () => this.$t('licensing.ssn'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             privilegeStatesDisplay: () => this.$t('licensing.privileges'),
-            statusDisplay: () => this.$t('licensing.status'),
         };
 
         return record;
