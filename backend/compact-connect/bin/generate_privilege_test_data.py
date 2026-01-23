@@ -6,6 +6,10 @@ It creates privilege records directly in the database to simulate recent privile
 
 Run from 'backend/compact-connect' like:
 bin/generate_privilege_test_data.py --compact aslp --home-state oh --privilege-state ne --count 10
+
+To only create privileges for licenses uploaded after a specific date:
+bin/generate_privilege_test_data.py --compact aslp --home-state oh --privilege-state ne --count 10 \
+    --license-uploaded-after "2024-01-15T10:30:00Z"
 """
 
 import argparse
@@ -51,22 +55,141 @@ def query_eligible_providers(
     home_state: str,
     count: int,
     license_type: str | None = None,
+    license_uploaded_after: datetime | None = None,
 ) -> set[str]:
-    """Query licenseGSI and return set of provider IDs from eligible license records."""
+    """Query licenseGSI or licenseUploadDateGSI and return set of provider IDs from eligible license records."""
+    from calendar import monthrange
+
+    from dateutil.relativedelta import relativedelta
+
     provider_ids = set()
 
-    # Build GSI PK: C#<compact>#J#<home_state>
-    gsi_pk = f'C#{compact.lower()}#J#{home_state.lower()}'
+    # Determine which GSI to use based on whether we're filtering by upload date
+    if license_uploaded_after:
+        # Use licenseUploadDateGSI for more efficient date filtering
+        # Note: The GSI only projects providerId, so we need to load full records to filter by type/eligibility
+        # The GSI is partitioned by month, so we may need to query multiple months
 
-    # Build query kwargs
-    query_kwargs = {
-        'IndexName': 'licenseGSI',
-        'KeyConditionExpression': Key('licenseGSIPK').eq(gsi_pk),
-    }
+        current_date = datetime.now(tz=UTC)
+        query_start_date = license_uploaded_after
+
+        print(
+            f'Querying licenseUploadDateGSI for providers with licenses uploaded after {license_uploaded_after.isoformat()}...'
+        )
+        # Iterate through each month from the start date to now
+        month_date = query_start_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        # Collect license items to process
+        license_items_to_check = []
+
+        while month_date <= current_date:
+            year_month = month_date.strftime('%Y-%m')
+            gsi_pk = f'C#{compact.lower()}#J#{home_state.lower()}#D#{year_month}'
+
+            # For the first month, use the specific timestamp
+            # For subsequent months, start from the beginning of the month
+            if month_date.year == query_start_date.year and month_date.month == query_start_date.month:
+                upload_epoch_time = int(query_start_date.timestamp())
+            else:
+                upload_epoch_time = int(month_date.timestamp())
+
+            query_kwargs = {
+                'IndexName': 'licenseUploadDateGSI',
+                'KeyConditionExpression': Key('licenseUploadDateGSIPK').eq(gsi_pk)
+                & Key('licenseUploadDateGSISK').gte(f'TIME#{upload_epoch_time}'),
+            }
+
+            print(f'  Querying month: {year_month}...')
+
+            # Query this month's partition - GSI only returns pk, sk, and providerId
+            queried_count = 0
+            done = False
+            start_key = None
+
+            while not done:
+                if start_key:
+                    query_kwargs['ExclusiveStartKey'] = start_key
+
+                response = provider_table.query(**query_kwargs)
+                items = response.get('Items', [])
+                queried_count += len(items)
+                license_items_to_check.extend(items)
+
+                start_key = response.get('LastEvaluatedKey')
+                done = start_key is None
+
+            print(f'  Found {queried_count} license records in {year_month}')
+
+            # Move to next month
+            month_date = month_date + relativedelta(months=1)
+
+        print(f'Total license records from GSI: {len(license_items_to_check)}')
+        print('Loading full license records to filter by type and eligibility...')
+
+        # Now load the full license records and filter
+        checked_count = 0
+        for item in license_items_to_check:
+            if len(provider_ids) >= count:
+                break
+
+            checked_count += 1
+            if checked_count % 100 == 0:
+                print(
+                    f'  Checked {checked_count}/{len(license_items_to_check)} records, found {len(provider_ids)} eligible providers...'
+                )
+
+            # Load the full license record using pk and sk
+            pk = item.get('pk')
+            sk = item.get('sk')
+
+            if not pk or not sk:
+                continue
+
+            # Get the full license record
+            try:
+                full_record_response = provider_table.get_item(Key={'pk': pk, 'sk': sk})
+                full_license = full_record_response.get('Item')
+
+                if not full_license:
+                    continue
+
+                # Filter by license type if specified
+                if license_type and full_license.get('licenseType') != license_type:
+                    continue
+
+                # Filter by eligibility
+                if full_license.get('jurisdictionUploadedCompactEligibility') != 'eligible':
+                    continue
+
+                # This license meets our criteria
+                provider_id = full_license.get('providerId')
+                if provider_id:
+                    provider_ids.add(provider_id)
+                    if len(provider_ids) % 10 == 0:
+                        print(f'    Found {len(provider_ids)}/{count} unique eligible provider IDs...')
+            except Exception as e:
+                print(f'  Warning: Error loading record {pk}/{sk}: {e}')
+                continue
+
+        print(f'Found {len(provider_ids)} eligible provider IDs after filtering {checked_count} license records')
+        return provider_ids
+    else:
+        # Use the standard licenseGSI
+        # Build GSI PK: C#<compact>#J#<home_state>
+        gsi_pk = f'C#{compact.lower()}#J#{home_state.lower()}'
+
+        # Build query kwargs
+        query_kwargs = {
+            'IndexName': 'licenseGSI',
+            'KeyConditionExpression': Key('licenseGSIPK').eq(gsi_pk),
+        }
+
+        print(f'Querying licenseGSI for eligible providers in {home_state}...')
 
     # Add license type filter if specified
     if license_type:
         query_kwargs['FilterExpression'] = Attr('licenseType').eq(license_type)
+        print(f'Filtering by license type: {license_type}')
 
     # Also filter for eligible licenses
     if 'FilterExpression' in query_kwargs:
@@ -75,10 +198,6 @@ def query_eligible_providers(
         ).eq('eligible')
     else:
         query_kwargs['FilterExpression'] = Attr('jurisdictionUploadedCompactEligibility').eq('eligible')
-
-    print(f'Querying licenseGSI for eligible providers in {home_state}...')
-    if license_type:
-        print(f'Filtering by license type: {license_type}')
 
     queried_count = 0
     done = False
@@ -222,6 +341,11 @@ def main():
     parser.add_argument('--count', type=int, default=10, help='Number of privileges to generate')
     parser.add_argument('--provider-id', type=str, help='Optional: Specific provider ID to add privileges to')
     parser.add_argument('--license-type', type=str, help='Optional: License type to associate with the privilege(s)')
+    parser.add_argument(
+        '--license-uploaded-after',
+        type=str,
+        help='Optional: UTC timestamp (ISO 8601 format) to only consider licenses uploaded after this time',
+    )
 
     args = parser.parse_args()
 
@@ -235,6 +359,23 @@ def main():
         if args.license_type not in valid_license_types:
             print(f'Error: Invalid license type "{args.license_type}" for compact "{args.compact}"')
             print(f'Valid license types: {", ".join(valid_license_types)}')
+            sys.exit(1)
+
+    # Parse and validate license-uploaded-after timestamp if provided
+    license_uploaded_after = None
+    if args.license_uploaded_after:
+        try:
+            # Parse ISO 8601 timestamp string to datetime object
+            license_uploaded_after = datetime.fromisoformat(args.license_uploaded_after.replace('Z', '+00:00'))
+            # Ensure it's timezone-aware and in UTC
+            if license_uploaded_after.tzinfo is None:
+                license_uploaded_after = license_uploaded_after.replace(tzinfo=UTC)
+            else:
+                license_uploaded_after = license_uploaded_after.astimezone(UTC)
+            print(f'Filtering licenses uploaded after: {license_uploaded_after.isoformat()}')
+        except ValueError as e:
+            print(f'Error: Invalid timestamp format for --license-uploaded-after: {e}')
+            print('Expected ISO 8601 format (e.g., "2024-01-15T10:30:00Z" or "2024-01-15T10:30:00+00:00")')
             sys.exit(1)
 
     # Prompt for environment name for safety validation
@@ -282,13 +423,14 @@ def main():
     if not args.provider_id:
         print(f'Querying eligible providers in {args.home_state}...')
 
-        # Query eligible provider IDs using licenseGSI
+        # Query eligible provider IDs using licenseGSI or licenseUploadDateGSI
         provider_ids = query_eligible_providers(
             provider_table,
             args.compact,
             args.home_state,
             args.count,
             args.license_type,
+            license_uploaded_after,
         )
 
         if not provider_ids:
