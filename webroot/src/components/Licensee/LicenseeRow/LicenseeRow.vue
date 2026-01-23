@@ -78,22 +78,6 @@
                 'desc': isSortOptionDescending('practicingLocations'),
             }"></span>
         </div>
-        <div
-            class="cell status"
-            :class="{ 'is-sort-enabled': isSortOptionEnabled('status') }"
-            @click="isSortOptionEnabled('status') && handleSortSelect('status')"
-            @keyup.enter="isSortOptionEnabled('status') && handleSortSelect('status')"
-            :tabindex="(isHeaderRow && isSortOptionEnabled('status')) ? 0 : -1"
-            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
-        >
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.status') }}:</span>
-            {{ item.statusDisplay() }}
-            <span v-if="isSortOptionEnabled('status')" class="sort-icon" :class="{
-                'is-selected': isSortOptionSelected('status'),
-                'asc': isSortOptionAscending('status'),
-                'desc': isSortOptionDescending('status'),
-            }"></span>
-        </div>
     </div>
 </template>
 
