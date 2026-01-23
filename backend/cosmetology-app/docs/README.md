@@ -58,18 +58,17 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | emailAddress | Provider's email address (optional) | Email (max 100 chars) | john.smith@example.com |
 | homeAddressStreet2 | Second line of provider's street address (optional) | String (max 100 chars) | Suite 100 |
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
-| npi | National Provider Identifier (optional) | 10-digit number | 1234567890 |
 | phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |
 ** This field is required by compact commission rule, however, to avoid making a breaking change for states that are already integrated, the API does not enforce this rule. States are responsible for enforcing the compact rule themselves.
 #### Example CSV
 ```csv
-dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,0608337260,A0608337260,2024-06-30,cosmetologist,Guðmundsdóttir,Birmingham,Gunnar,active,ACTIVE,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
-2024-06-30,0608337260,B0608337260,2024-06-30,esthetician,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
-2024-06-30,0608337260,C0608337260,2024-06-30,cosmetologist,毛,Hoover,泽,active,ACTIVE,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
-2024-06-30,0608337260,D0608337260,2024-06-30,cosmetologist,Adams,Tuscaloosa,Michael,inactive,EXPIRED,ineligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
-2024-06-30,0608337260,E0608337260,2024-06-30,cosmetologist,Carreño Quiñones,Montgomery,José,active,ACTIVE_IN_RENEWAL,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
+dateOfIssuance,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
+2024-06-30,A0608337260,2024-06-30,cosmetologist,Guðmundsdóttir,Birmingham,Gunnar,active,ACTIVE,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
+2024-06-30,B0608337260,2024-06-30,esthetician,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
+2024-06-30,C0608337260,2024-06-30,cosmetologist,毛,Hoover,泽,active,ACTIVE,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
+2024-06-30,D0608337260,2024-06-30,cosmetologist,Adams,Tuscaloosa,Michael,inactive,EXPIRED,ineligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
+2024-06-30,E0608337260,2024-06-30,cosmetologist,Carreño Quiñones,Montgomery,José,active,ACTIVE_IN_RENEWAL,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
 ```
 
 ### Manual Uploads
@@ -95,8 +94,8 @@ If data is not available for an optional field, it must be left empty in the cas
 
 **CSV Example with missing optional fields:**
 ```csv
-dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,,COS12345,2024-06-30,cosmetologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
+dateOfIssuance,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
+2024-06-30,COS12345,2024-06-30,cosmetologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
 ```
 
 ### What if we don't have data for a required field?
@@ -114,7 +113,6 @@ The following license fields are publicly visible through CompactConnect's publi
 - Licensee name (given, middle, family, suffix).
 - The jurisdiction and compact their license is associated with.
 - License status and compact eligibility.
-- National Provider Identifier (NPI), if available.
 
 **Fields that are NOT publicly visible include:**
 - Social Security Numbers
