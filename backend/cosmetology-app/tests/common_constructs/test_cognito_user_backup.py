@@ -71,6 +71,24 @@ class TestCognitoUserBackup(TestCase):
             removal_policy=RemovalPolicy.DESTROY,
         )
 
+        # Create test environment context with backup policies
+        cls.environment_context = {
+            'backup_enabled': True,
+            'backup_policies': {
+                'general_data': {
+                    'schedule': {
+                        'week_day': '5',
+                        'year': '*',
+                        'month': '*',
+                        'hour': '5',
+                        'minute': '0',
+                    },
+                    'delete_after_days': 180,
+                    'cold_storage_after_days': 30,
+                }
+            },
+        }
+
         # Create the construct under test
         cls.cognito_backup = CognitoUserBackup(
             cls.stack,
@@ -81,6 +99,7 @@ class TestCognitoUserBackup(TestCase):
             removal_policy=RemovalPolicy.DESTROY,
             backup_infrastructure_stack=cls.backup_infrastructure_stack,
             alarm_topic=cls.alarm_topic,
+            environment_context=cls.environment_context,
         )
 
         cls.template = Template.from_stack(cls.stack)

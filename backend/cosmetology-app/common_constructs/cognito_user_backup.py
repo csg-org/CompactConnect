@@ -54,6 +54,7 @@ class CognitoUserBackup(Construct):
         removal_policy: RemovalPolicy,
         backup_infrastructure_stack: BackupInfrastructureStack,
         alarm_topic: ITopic,
+        environment_context: dict,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -63,7 +64,7 @@ class CognitoUserBackup(Construct):
 
         # Create the backup bucket for this user pool
         self.backup_bucket = self._create_backup_bucket(
-            access_logs_bucket, encryption_key, removal_policy, backup_infrastructure_stack
+            access_logs_bucket, encryption_key, removal_policy, backup_infrastructure_stack, environment_context
         )
 
         # Create the export Lambda function
@@ -81,6 +82,7 @@ class CognitoUserBackup(Construct):
         encryption_key: IKey,
         removal_policy: RemovalPolicy,
         backup_infrastructure_stack: BackupInfrastructureStack,
+        environment_context: dict,
     ) -> Bucket:
         """Create S3 bucket for storing exported user data."""
         self.bucket = Bucket(
@@ -135,8 +137,10 @@ class CognitoUserBackup(Construct):
                     'hour': '6',  # One hour after the export Lambda runs
                     'minute': '0',
                 },
-                'delete_after_days': 730,
-                'cold_storage_after_days': 30,
+                'delete_after_days': environment_context['backup_policies']['general_data']['delete_after_days'],
+                'cold_storage_after_days': environment_context['backup_policies']['general_data'][
+                    'cold_storage_after_days'
+                ],
             },
         )
 

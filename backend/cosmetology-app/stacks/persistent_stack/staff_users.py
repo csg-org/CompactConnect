@@ -112,6 +112,7 @@ class StaffUsers(UserPool, ResourceScopeMixin):
                 removal_policy=removal_policy,
                 backup_infrastructure_stack=backup_infrastructure_stack,
                 alarm_topic=stack.alarm_topic,
+                environment_context=environment_context,
             )
         else:
             # Create placeholder attribute for disabled state
