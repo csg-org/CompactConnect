@@ -6,11 +6,11 @@
 #
 aws-lambda-powertools==3.24.0
     # via -r lambdas/python/cognito-backup/requirements-dev.in
-boto3==1.42.30
+boto3==1.42.34
     # via
     #   -r lambdas/python/cognito-backup/requirements-dev.in
     #   moto
-botocore==1.42.30
+botocore==1.42.34
     # via
     #   -r lambdas/python/cognito-backup/requirements-dev.in
     #   boto3
@@ -32,7 +32,7 @@ iniconfig==2.3.0
     # via pytest
 jinja2==3.1.6
     # via moto
-jmespath==1.0.1
+jmespath==1.1.0
     # via
     #   aws-lambda-powertools
     #   boto3
@@ -45,13 +45,13 @@ markupsafe==3.0.3
     #   werkzeug
 moto[cognitoidp,s3]==5.1.20
     # via -r lambdas/python/cognito-backup/requirements-dev.in
-packaging==25.0
+packaging==26.0
     # via pytest
 pluggy==1.6.0
     # via pytest
 py-partiql-parser==0.6.3
     # via moto
-pycparser==2.23
+pycparser==3.0
     # via cffi
 pygments==2.19.2
     # via pytest

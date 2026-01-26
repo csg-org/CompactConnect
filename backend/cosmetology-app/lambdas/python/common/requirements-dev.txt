@@ -18,21 +18,21 @@ aws-sam-translator==1.103.0
     #   moto
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.42.30
+boto3==1.42.34
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.42.30
+boto3-stubs[full]==1.42.34
     # via -r lambdas/python/common/requirements-dev.in
-boto3-stubs-full==1.42.30
+boto3-stubs-full==1.42.34
     # via boto3-stubs
-botocore==1.42.30
+botocore==1.42.34
     # via
     #   aws-xray-sdk
     #   boto3
     #   moto
     #   s3transfer
-botocore-stubs==1.42.30
+botocore-stubs==1.42.34
     # via boto3-stubs
 certifi==2026.1.4
     # via requests
@@ -57,7 +57,7 @@ idna==3.11
     # via requests
 jinja2==3.1.6
     # via moto
-jmespath==1.0.1
+jmespath==1.1.0
     # via
     #   boto3
     #   botocore
@@ -105,7 +105,7 @@ ply==3.11
     # via jsonpath-ng
 py-partiql-parser==0.6.3
     # via moto
-pycparser==2.23
+pycparser==3.0
     # via cffi
 pydantic==2.12.4
     # via
@@ -113,7 +113,7 @@ pydantic==2.12.4
     #   moto
 pydantic-core==2.41.5
     # via pydantic
-pyparsing==3.3.1
+pyparsing==3.3.2
     # via moto
 python-dateutil==2.9.0.post0
     # via

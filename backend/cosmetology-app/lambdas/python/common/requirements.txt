@@ -10,9 +10,9 @@ argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 aws-lambda-powertools==3.24.0
     # via -r lambdas/python/common/requirements.in
-boto3==1.42.30
+boto3==1.42.34
     # via -r lambdas/python/common/requirements.in
-botocore==1.42.30
+botocore==1.42.34
     # via
     #   boto3
     #   s3transfer
@@ -28,16 +28,16 @@ cryptography==46.0.3
     # via -r lambdas/python/common/requirements.in
 idna==3.11
     # via requests
-jmespath==1.0.1
+jmespath==1.1.0
     # via
     #   aws-lambda-powertools
     #   boto3
     #   botocore
 marshmallow==3.26.2
     # via -r lambdas/python/common/requirements.in
-packaging==25.0
+packaging==26.0
     # via marshmallow
-pycparser==2.23
+pycparser==3.0
     # via cffi
 python-dateutil==2.9.0.post0
     # via botocore
