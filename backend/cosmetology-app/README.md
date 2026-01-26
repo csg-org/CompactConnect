@@ -292,36 +292,45 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
       ```
 
 - To get the application stood up for the first time, manually use cdk to deploy the app into the environment account for each environment account (test, beta, and prod):
-      - While authenticated into the deploy account, synthesize the application:
-        ```sh
-        # Beta example here              <your environment equivalent>
-        cdk synth --context pipelineStack=BetaBackendCosmetology --context action=pipelineSynth
-        ```
-      - Authenticate into the environment account and deploy the synthesized application:
-        ```sh
-        cd cdk.out
-        # Beta example here                                        <your environment equivalent>
-        cdk deploy --app . --no-rollback --require-approval never 'BetaBackendCosmetology/Beta/*'
-        ```
-        Some AWS services are not perfectly graceful in handling their initial provisioning. There are three expected
-        failures that you just retry to get past. If these happen, log into the AWS console, find the failed stack and
-        just click *retry*. Once the failed stack creation succeeds, you can re-run the `cdk deploy` command to proceed:
-        - In the PersistentStack: StaffUsersGreenUserPoolRiskConfiguration may fail to provision. This is due to a
-          service linked role that Cognito creates at creation-time, which it doesn't reliably create before it fails
-          its own process.
-        - In the SearchPersistentStack: ProviderSearchDomain, may fail for a similar issue. The Opensearch service
-          linked role is created at creation-time and a retry should succeed.
-        - In the ApiStack: CloudFormation will attempt to create all of the API Gateway resources too quickly and will
-          fail with a `429` (too many requests) error when API Gateway rate-limits CloudFormation. Again, retry the
-          stack creation to get past this error.
+  - While authenticated into the deploy account, synthesize the application:
+    ```
+    # For Test environment:
+    cdk synth --context pipelineStack=TestBackendCosmetology --context action=pipelineSynth
+    
+    # For Beta environment (after **deploying** the test app):
+    cdk synth --context pipelineStack=BetaBackendCosmetology --context action=pipelineSynth
+    
+    # For Prod environment (after **deploying** the beta app):
+    cdk synth --context pipelineStack=ProdBackendCosmetology --context action=pipelineSynth
+    ```
+  - Authenticate into the environment account and deploy the synthesized application:
+    ```sh
+    cd cdk.out
+    
+    # For Test environment:
+    cdk deploy --app . --no-rollback --require-approval never 'TestBackendCosmetology/Test/*'
+    
+    # For Beta environment (after deploying the test app):
+    cdk deploy --app . --no-rollback --require-approval never 'BetaBackendCosmetology/Beta/*'
+    
+    # For Prod environment (after deploying the beta app):
+    cdk deploy --app . --no-rollback --require-approval never 'ProdBackendCosmetology/Prod/*'
+    ```
+  Some AWS services are not perfectly graceful in handling their initial provisioning. There are three expected failures that you just retry to get past. If these happen, log into the AWS console, find the failed stack and just click *retry*. Once the failed stack creation succeeds, you can re-run the `cdk deploy` command to proceed:
+- In the PersistentStack: StaffUsersGreenUserPoolRiskConfiguration may fail to provision. This is due to a service linked role that Cognito creates at creation-time, which it doesn't reliably create before it fails
+            its own process.
+- In the SearchPersistentStack: ProviderSearchDomain, may fail for a similar issue. The Opensearch service
+            linked role is created at creation-time and a retry should succeed.
+- In the ApiStack: CloudFormation will attempt to create all of the API Gateway resources too quickly and will fail with a `429` (too many requests) error when API Gateway rate-limits CloudFormation. Again, retry the
+            stack creation to get past this error.
 
-- Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
+5. Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
       [custom bootstrap stack](#custom-bootstrap-stack).
 
-5. Once the application is fully deployed to each environment, create a tag/release in GitHub that matches the pattern
+6. Once the application is fully deployed to each environment, create a tag/release in GitHub that matches the pattern
   for each environment to trigger an initial CI/CD deploy and test the end-to-end pipeline functionality.
 
-6. Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
+7. Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
   See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html). Note that this must be
   done _after_ first deploy of the application to each application account, as they require SES to be configured
   before they will process the support request.
