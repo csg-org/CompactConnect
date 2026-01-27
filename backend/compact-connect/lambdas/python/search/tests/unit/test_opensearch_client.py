@@ -2,7 +2,6 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from opensearchpy.exceptions import ConnectionTimeout, RequestError, TransportError
 
 
@@ -146,6 +145,8 @@ class TestOpenSearchClient(TestCase):
 
     def test_search_raises_cc_invalid_request_exception_on_400_request_error(self):
         """Test that search raises CCInvalidRequestException when OpenSearch returns a 400 RequestError."""
+        from cc_common.exceptions import CCInvalidRequestException
+
         client, mock_internal_client = self._create_client_with_mock()
 
         index_name = 'test_index'
@@ -182,6 +183,8 @@ class TestOpenSearchClient(TestCase):
 
     def test_search_raises_cc_invalid_request_exception_with_fallback_on_missing_root_cause(self):
         """Test that search falls back to error type when root_cause is missing."""
+        from cc_common.exceptions import CCInvalidRequestException
+
         client, mock_internal_client = self._create_client_with_mock()
 
         index_name = 'test_index'
@@ -216,6 +219,8 @@ class TestOpenSearchClient(TestCase):
 
     def test_search_raises_cc_invalid_request_exception_on_timeout(self):
         """Test that search raises CCInvalidRequestException when the request times out."""
+        from cc_common.exceptions import CCInvalidRequestException
+
         client, mock_internal_client = self._create_client_with_mock()
 
         index_name = 'test_index'
@@ -370,6 +375,7 @@ class TestOpenSearchClient(TestCase):
     @patch('opensearch_client.time.sleep')
     def test_bulk_index_exponential_backoff_caps_at_max(self, mock_sleep):
         """Test that exponential backoff is capped at MAX_BACKOFF_SECONDS."""
+        from cc_common.exceptions import CCInternalException
         from opensearch_client import MAX_BACKOFF_SECONDS
 
         client, mock_internal_client = self._create_client_with_mock()
@@ -433,6 +439,7 @@ class TestOpenSearchClientIndexManagementRetry(TestCase):
     @patch('opensearch_client.time.sleep')
     def test_create_index_raises_after_max_retries(self, mock_sleep):
         """Test that create_index raises CCInternalException after max retries."""
+        from cc_common.exceptions import CCInternalException
         from opensearch_client import MAX_RETRY_ATTEMPTS
 
         client, mock_internal_client = self._create_client_with_mock()
@@ -516,6 +523,7 @@ class TestOpenSearchClientIndexManagementRetry(TestCase):
     @patch('opensearch_client.time.sleep')
     def test_cluster_health_raises_after_max_retries(self, mock_sleep):
         """Test that cluster_health raises CCInternalException after max retries."""
+        from cc_common.exceptions import CCInternalException
         from opensearch_client import MAX_RETRY_ATTEMPTS
 
         client, mock_internal_client = self._create_client_with_mock()

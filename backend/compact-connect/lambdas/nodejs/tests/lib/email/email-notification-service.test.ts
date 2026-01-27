@@ -1067,4 +1067,95 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).not.toContain('from TX to other');
         });
     });
+
+    describe('Privilege Expiration Reminder', () => {
+        it('should send privilege expiration reminder email with expected subject and content', async () => {
+            await emailService.sendPrivilegeExpirationReminderEmail(
+                'aslp',
+                ['provider@example.com'],
+                'John',
+                'February 16, 2026',
+                [
+                    { jurisdiction: 'oh', licenseType: 'aud', privilegeId: 'AUD-OH-001' },
+                    { jurisdiction: 'ky', licenseType: 'slp', privilegeId: 'SLP-KY-002' }
+                ]
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['provider@example.com']
+                    },
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('Privilege Expiration Reminder')
+                                }
+                            },
+                            Subject: {
+                                Charset: 'UTF-8',
+                                Data: 'Your Compact Connect Privileges Expire on February 16, 2026'
+                            }
+                        }
+                    },
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                }
+            );
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Hello John');
+            expect(htmlContent).toContain('will expire on February 16, 2026');
+            expect(htmlContent).toContain('AUD - OH');
+            expect(htmlContent).toContain('Privilege Id: AUD-OH-001');
+            expect(htmlContent).toContain('SLP - KY');
+            expect(htmlContent).toContain('Privilege Id: SLP-KY-002');
+            expect(htmlContent).toContain('Please visit Compact Connect to renew your privileges before they expire');
+        });
+
+        it('should throw error when no recipients provided', async () => {
+            await expect(emailService.sendPrivilegeExpirationReminderEmail(
+                'aslp',
+                [],
+                'John',
+                'February 16, 2026',
+                [{ jurisdiction: 'oh', licenseType: 'aud', privilegeId: 'AUD-OH-001' }]
+            )).rejects.toThrow('No recipients found for privilege expiration reminder email');
+        });
+
+        it('should throw error when no privileges provided', async () => {
+            await expect(emailService.sendPrivilegeExpirationReminderEmail(
+                'aslp',
+                ['provider@example.com'],
+                'John',
+                'February 16, 2026',
+                []
+            )).rejects.toThrow('No privileges provided for privilege expiration reminder email');
+        });
+
+        it('should send email with single privilege', async () => {
+            await emailService.sendPrivilegeExpirationReminderEmail(
+                'aslp',
+                ['provider@example.com'],
+                'Jane',
+                'March 1, 2026',
+                [{ jurisdiction: 'ne', licenseType: 'slp', privilegeId: 'SLP-NE-123' }]
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Hello Jane');
+            expect(htmlContent).toContain('will expire on March 1, 2026');
+            expect(htmlContent).toContain('SLP - NE');
+            expect(htmlContent).toContain('Privilege Id: SLP-NE-123');
+        });
+    });
 });

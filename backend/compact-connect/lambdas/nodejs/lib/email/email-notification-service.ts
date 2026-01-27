@@ -629,4 +629,54 @@ export class EmailNotificationService extends BaseEmailService {
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send home jurisdiction change state notification email' });
     }
+
+    /**
+     * Sends a reminder email to a provider about expiring privileges
+     * @param compact - The compact name
+     * @param specificEmails - The email address(es) to send the notification to (provider's email)
+     * @param providerFirstName - The provider's first name
+     * @param expirationDate - The formatted expiration date string
+     * @param privileges - Array of expiring privileges with jurisdiction, licenseType, and privilegeId
+     */
+    public async sendPrivilegeExpirationReminderEmail(
+        compact: string,
+        specificEmails: string[],
+        providerFirstName: string,
+        expirationDate: string,
+        privileges: { jurisdiction: string; licenseType: string; privilegeId: string }[]
+    ): Promise<void> {
+        this.logger.info('Sending privilege expiration reminder email', { compact: compact, privilegeCount: privileges.length });
+
+        const recipients = specificEmails;
+
+        if (recipients.length === 0) {
+            throw new Error('No recipients found for privilege expiration reminder email');
+        }
+
+        if (privileges.length === 0) {
+            throw new Error('No privileges provided for privilege expiration reminder email');
+        }
+
+        const emailContent = this.getNewEmailTemplate();
+        const subject = `Your Compact Connect Privileges Expire on ${expirationDate}`;
+        const headerText = 'Privilege Expiration Reminder';
+        const bodyText = `Hello ${providerFirstName},\n\nThis is a reminder that the following privilege(s) will expire on ${expirationDate}:`;
+
+        this.insertHeader(emailContent, headerText);
+        this.insertBody(emailContent, bodyText, 'center');
+
+        privileges.forEach((privilege) => {
+            const titleText = `${privilege.licenseType.toUpperCase()} - ${privilege.jurisdiction.toUpperCase()}`;
+            const privilegeIdText = `Privilege Id: ${privilege.privilegeId}`;
+
+            this.insertTuple(emailContent, titleText, privilegeIdText);
+        });
+
+        this.insertBody(emailContent, '\nPlease visit Compact Connect to renew your privileges before they expire.', 'center');
+        this.insertFooter(emailContent);
+
+        const htmlContent = this.renderTemplate(emailContent);
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send privilege expiration reminder email' });
+    }
 }

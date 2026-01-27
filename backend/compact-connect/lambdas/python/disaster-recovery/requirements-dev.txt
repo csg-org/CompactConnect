@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/disaster-recovery/requirements-dev.in
 #
-boto3==1.42.34
+boto3==1.42.35
     # via moto
-botocore==1.42.34
+botocore==1.42.35
     # via
     #   boto3
     #   moto

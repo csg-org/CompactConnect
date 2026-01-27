@@ -10,9 +10,9 @@ argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 aws-lambda-powertools==3.24.0
     # via -r lambdas/python/common/requirements.in
-boto3==1.42.34
+boto3==1.42.35
     # via -r lambdas/python/common/requirements.in
-botocore==1.42.34
+botocore==1.42.35
     # via
     #   boto3
     #   s3transfer
