@@ -1,0 +1,82 @@
+{
+  "properties": {
+    "compact": {
+      "description": "The compact this jurisdiction configuration belongs to",
+      "enum": [
+        "cosm"
+      ],
+      "type": "string"
+    },
+    "jurisdictionName": {
+      "description": "The name of the jurisdiction",
+      "type": "string"
+    },
+    "postalAbbreviation": {
+      "description": "The postal abbreviation of the jurisdiction",
+      "type": "string"
+    },
+    "jurisdictionOperationsTeamEmails": {
+      "description": "List of email addresses for operations team notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisdictionAdverseActionsNotificationEmails": {
+      "description": "List of email addresses for adverse actions notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisdictionSummaryReportNotificationEmails": {
+      "description": "List of email addresses for summary report notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "jurisprudenceRequirements": {
+      "properties": {
+        "required": {
+          "description": "Whether jurisprudence requirements exist",
+          "type": "boolean"
+        },
+        "linkToDocumentation": {
+          "description": "Optional link to jurisprudence documentation",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "required"
+      ],
+      "type": "object"
+    },
+    "licenseeRegistrationEnabled": {
+      "description": "Denotes whether licensee registration is enabled",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "compact",
+    "jurisdictionName",
+    "postalAbbreviation",
+    "jurisdictionOperationsTeamEmails",
+    "jurisdictionAdverseActionsNotificationEmails",
+    "jurisdictionSummaryReportNotificationEmails",
+    "jurisprudenceRequirements",
+    "licenseeRegistrationEnabled"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

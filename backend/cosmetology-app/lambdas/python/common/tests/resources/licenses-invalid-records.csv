@@ -1,0 +1,6 @@
+dateOfIssuance,npi,licenseNumber,foo,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
+2024-06-30,0608337260,A0608337260,1,2024-06-30,cosmetologist,Guðmundsdóttir,Birmingham,Gunnar,active,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
+2024-06-30,0608337260,A0608337260,,2024-06-30,esthetician,Scott,Huntsville,Patricia,active,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
+2024-06-30,0608337260,A0608337260,,2024-06-30,plumber,毛,Hoover,泽,active,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
+2024-06-30,0608337260,A0608337260,,2024-06-30,esthetician,Adams,Tuscaloosa,Michael,translucent,eligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-31,oh,35007,John,2024-06-30
+2024-06-30,0608337260,A0608337260,,2024-06-30,cosmetologist,Carreño Quiñones,Montgomery,José,active,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-13-32

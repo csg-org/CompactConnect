@@ -1,4 +1,5 @@
 import json
+from enum import StrEnum
 from typing import Optional
 
 from aws_cdk import Stack
@@ -8,10 +9,30 @@ from constructs import Construct
 HTTPS_PREFIX = 'https://'
 COGNITO_AUTH_DOMAIN_SUFFIX = '.auth.us-east-1.amazoncognito.com'
 
-PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = '/deployment/persistent-stack/frontend_app_configuration'
-PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME = (
-    '/deployment/provider-users-stack/frontend_app_configuration'
-)
+
+class AppId(StrEnum):
+    """Application ID enum for identifying different backend applications."""
+
+    JCC = 'jcc'
+    COSMETOLOGY = 'cosmetology'
+
+
+def _get_persistent_stack_parameter_name(app_id: AppId = AppId.JCC) -> str:
+    """Generate SSM parameter name for persistent stack frontend app configuration.
+
+    :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+    :return: The SSM parameter name with app_id in the path
+    """
+    return f'/app/{app_id.value}/deployment/persistent-stack/frontend_app_configuration'
+
+
+def _get_provider_users_stack_parameter_name(app_id: AppId = AppId.JCC) -> str:
+    """Generate SSM parameter name for provider users stack frontend app configuration.
+
+    :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+    :return: The SSM parameter name with app_id in the path
+    """
+    return f'/app/{app_id.value}/deployment/provider-users-stack/frontend_app_configuration'
 
 
 class PersistentStackFrontendAppConfigUtility:
@@ -21,14 +42,23 @@ class PersistentStackFrontendAppConfigUtility:
     This class provides helper methods for generating and storing configuration
     values that need to be shared between the Persistent stack and Frontend Deployment Stack.
 
-    Note::
-      # The Frontend deployment has dependencies on the backend, in the form of these parameters.
-      # If these change, or if new parameters are introduced, the Frontend deploy will need to be planned
-      # for _after_ the backend so that these dependencies can be properly resolved.
+    Note:
+    The Frontend deployment has dependencies on the backend, in the form of these parameters.
+    If these change, or if new parameters are introduced, the Frontend deploy will need to be planned
+    for _after_ the backend so that these dependencies can be properly resolved.
 
+    For backend applications deployed in different AWS accounts (e.g., COSMETOLOGY), the SSM parameter must be
+    manually copied to the frontend account with the same parameter name.
+    See the comment in the load_persistent_stack_values_from_ssm_parameter method for more details.
     """
 
-    def __init__(self):
+    def __init__(self, app_id: AppId = AppId.JCC):
+        """
+        Initialize the utility with an optional app_id.
+
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+        """
+        self._app_id = app_id
         self._config: dict[str, str] = {}
 
     def set_staff_cognito_values(self, domain_name: str, client_id: str) -> None:
@@ -89,7 +119,7 @@ class PersistentStackFrontendAppConfigUtility:
         return StringParameter(
             scope,
             resource_id,
-            parameter_name=PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME,
+            parameter_name=_get_persistent_stack_parameter_name(self._app_id),
             string_value=self.get_config_json(),
             description='UI application configuration values',
         )
@@ -103,7 +133,13 @@ class ProviderUsersStackFrontendAppConfigUtility:
     values that need to be shared between the Provider Users stack and Frontend Deployment Stack.
     """
 
-    def __init__(self):
+    def __init__(self, app_id: AppId = AppId.JCC):
+        """
+        Initialize the utility with an optional app_id.
+
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
+        """
+        self._app_id = app_id
         self._config: dict[str, str] = {}
 
     def set_provider_cognito_values(self, domain_name: str, client_id: str) -> None:
@@ -136,7 +172,7 @@ class ProviderUsersStackFrontendAppConfigUtility:
         return StringParameter(
             scope,
             resource_id,
-            parameter_name=PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME,
+            parameter_name=_get_provider_users_stack_parameter_name(self._app_id),
             string_value=self.get_config_json(),
             description='Provider user pool configuration values',
         )
@@ -161,26 +197,48 @@ class PersistentStackFrontendAppConfigValues:
     @staticmethod
     def load_persistent_stack_values_from_ssm_parameter(
         stack: Stack,
+        app_id: AppId = AppId.JCC,
     ) -> Optional['PersistentStackFrontendAppConfigValues']:
         """
         Load configuration values from an existing SSM Parameter.
 
+        This method performs a same-account SSM parameter lookup. For backend applications
+        deployed in different AWS accounts (e.g., COSMETOLOGY), the SSM parameter must be
+        manually copied to the frontend/pipeline account with the same parameter name.
+
+        IMPORTANT: When backend applications create or update SSM parameters for frontend
+        configuration, those parameters must be manually synchronized to the frontend account.
+
+        To copy the parameter from the backend account to the frontend account:
+        1. Get the parameter value from the respective backend account:
+           aws ssm get-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration \
+           --profile <your backend account profile> --query 'Parameter.Value' --output text
+        2. Put the parameter value in the respective frontend account:
+           aws ssm put-parameter --name /app/{app_id}/deployment/persistent-stack/frontend_app_configuration \
+           --value "<value>" --type String --overwrite --profile <your frontend account profile>
+
+        This process may be automated in the future through the use of a custom resource with proper cross-account
+        permissions, but for now it is a manual process.
+
         :param stack: The CDK stack
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
 
         :return: An instance of UIAppConfigValues with loaded configuration if the parameter exists, otherwise None
         """
-        config_value = StringParameter.value_from_lookup(
-            stack, PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME, default_value=None
-        )
+        parameter_name = _get_persistent_stack_parameter_name(app_id)
+        dummy_value = f'dummy-value-for-{parameter_name}'
+
+        # Standard same-account lookup
+        # Note: For backend apps in different accounts, the SSM parameter must be manually
+        # copied to the frontend account. See backend app README for sync instructions.
+        config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
+
         # The first time synth is run, CDK returns a dummy value without actually looking up the value.
         # The second time it's run, it will either return a value if the parameter exists, or None. So we check for
         # both of those cases here.
-        if (
-            config_value is not None
-            and config_value != f'dummy-value-for-{PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}'
-        ):
+        if config_value is not None and config_value != dummy_value:
             return PersistentStackFrontendAppConfigValues(config_value)
-        if config_value == f'dummy-value-for-{PERSISTENT_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}':
+        if config_value == dummy_value:
             return PersistentStackFrontendAppConfigValues._create_dummy_values()
 
         return None
@@ -278,27 +336,25 @@ class ProviderUsersStackFrontendAppConfigValues:
     @staticmethod
     def load_provider_users_stack_values_from_ssm_parameter(
         stack: Stack,
+        app_id: AppId = AppId.JCC,
     ) -> Optional['ProviderUsersStackFrontendAppConfigValues']:
         """
         Load provider user pool configuration values from an existing SSM Parameter.
 
         :param stack: The CDK stack
+        :param app_id: The application ID (defaults to AppId.JCC for backwards compatibility)
 
         :return: An instance of ProviderUsersStackFrontendAppConfigValues with loaded configuration if the parameter
         exists, otherwise None
         """
-        config_value = StringParameter.value_from_lookup(
-            stack, PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME, default_value=None
-        )
+        parameter_name = _get_provider_users_stack_parameter_name(app_id)
+        config_value = StringParameter.value_from_lookup(stack, parameter_name, default_value=None)
         # The first time synth is run, CDK returns a dummy value without actually looking up the value.
         # The second time it's run, it will either return a value if the parameter exists, or None. So we check for
         # both of those cases here.
-        if (
-            config_value is not None
-            and config_value != f'dummy-value-for-{PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}'
-        ):
+        if config_value is not None and config_value != f'dummy-value-for-{parameter_name}':
             return ProviderUsersStackFrontendAppConfigValues(config_value)
-        if config_value == f'dummy-value-for-{PROVIDER_USERS_STACK_FRONTEND_APP_CONFIGURATION_PARAMETER_NAME}':
+        if config_value == f'dummy-value-for-{parameter_name}':
             return ProviderUsersStackFrontendAppConfigValues._create_dummy_values()
 
         return None

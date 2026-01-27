@@ -1,0 +1,22 @@
+{
+  "ssm_context": {
+    "environments": {
+      "deploy": {
+        "account_id": "000000000000",
+        "region": "us-east-1",
+        "notifications": {
+          "email": [
+            "justin@example.com"
+          ],
+          "slack": [
+            {
+              "channel_name": "ops-monitoring",
+              "channel_id": "C0123456789",
+              "workspace_id": "T01234567"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

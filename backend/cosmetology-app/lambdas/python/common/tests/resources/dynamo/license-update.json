@@ -1,0 +1,42 @@
+{
+  "pk": "cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "sk": "cosm#UPDATE#3#license/oh/cos/2024-11-08T23:59:59+00:00/34702de3dc08e64922605a6b18f3838b",
+  "licenseUploadDateGSIPK": "C#cosm#J#oh#D#2024-11",
+  "licenseUploadDateGSISK": "TIME#1731110399#LT#cos#PID#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "type": "licenseUpdate",
+  "updateType": "renewal",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "compact": "cosm",
+  "jurisdiction": "oh",
+  "createDate": "2024-11-08T23:59:59+00:00",
+  "effectiveDate": "2024-11-08T23:59:59+00:00",
+  "licenseType": "cosmetologist",
+  "dateOfUpdate": "2020-04-07T12:59:59+00:00",
+  "previous": {
+    "npi": "0608337260",
+    "licenseNumber": "A0608337260",
+    "ssnLastFour": "1234",
+    "givenName": "Björk",
+    "middleName": "Gunnar",
+    "familyName": "Guðmundsdóttir",
+    "dateOfIssuance": "2010-06-06",
+    "dateOfRenewal": "2015-06-06",
+    "dateOfExpiration": "2020-06-06",
+    "dateOfBirth": "1985-06-06",
+    "dateOfUpdate": "2020-06-06T12:59:59+00:00",
+    "homeAddressStreet1": "123 A St.",
+    "homeAddressStreet2": "Apt 321",
+    "homeAddressCity": "Columbus",
+    "homeAddressState": "oh",
+    "homeAddressPostalCode": "43004",
+    "emailAddress": "björk@example.com",
+    "phoneNumber": "+13213214321",
+    "jurisdictionUploadedLicenseStatus": "active",
+    "licenseStatusName": "DEFINITELY_A_HUMAN",
+    "jurisdictionUploadedCompactEligibility": "eligible"
+  },
+  "updatedValues": {
+    "dateOfRenewal": "2020-04-04",
+    "dateOfExpiration": "2025-04-04"
+  }
+}
