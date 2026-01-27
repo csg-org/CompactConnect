@@ -4,7 +4,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { IngestEventEmailService } from '../../../lib/email';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
-import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { TReaderDocument } from '@csg-org/email-builder';
 import {
     SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
     SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,

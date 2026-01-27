@@ -4,7 +4,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { SESv2Client } from '@aws-sdk/client-sesv2';
 import { CognitoEmailService } from '../../../lib/email';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
-import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { TReaderDocument } from '@csg-org/email-builder';
 import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>

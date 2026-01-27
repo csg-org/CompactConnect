@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TReaderDocument } from '@jusdino-ia/email-builder';
+import { TReaderDocument } from '@csg-org/email-builder';
 
 /**
  * Utility for capturing email templates during testing
