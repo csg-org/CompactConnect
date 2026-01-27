@@ -390,7 +390,7 @@ aws ssm put-parameter \
   --profile <your JCC account profile>
 ```
 
-If you do not have access to the frontend/pipeline account, provide the `$VALUE` from Step 1 to a JCC AWS administrator who can perform this step on your behalf.
+If you do not have access to the frontend account, provide the `$VALUE` from Step 1 to a JCC AWS administrator who can perform this step on your behalf.
 
 **Step 3: Verify the copy**
 
