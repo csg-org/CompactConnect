@@ -97,3 +97,13 @@ class MilitaryAuditEventDetailSchema(ForgivingSchema):
     )
     auditNote = String(required=False, allow_none=False)
     eventTime = DateTime(required=True, allow_none=False)
+
+
+class HomeJurisdictionChangeEventDetailSchema(ForgivingSchema):
+    """Schema for home jurisdiction change events"""
+
+    compact = Compact(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    previousHomeJurisdiction = String(required=False, allow_none=True)
+    newHomeJurisdiction = String(required=True, allow_none=False)
+    eventTime = DateTime(required=True, allow_none=False)
