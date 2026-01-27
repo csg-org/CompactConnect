@@ -386,6 +386,23 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables?.auditNote || ''
             );
             break;
+        case 'privilegeExpirationReminder':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for privilege expiration reminder email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.expirationDate
+                || !event.templateVariables?.privileges) {
+                throw new Error('Missing required template variables for privilegeExpirationReminder template.');
+            }
+            await this.emailService.sendPrivilegeExpirationReminderEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.expirationDate,
+                event.templateVariables.privileges
+            );
+            break;
         case 'licenseInvestigationStateNotification':
             if (!event.jurisdiction) {
                 throw new Error('No jurisdiction provided for license investigation state notification email');
