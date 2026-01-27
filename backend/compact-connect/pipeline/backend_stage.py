@@ -7,6 +7,7 @@ from stacks.api_stack import ApiStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_listener_stack import EventListenerStack
 from stacks.event_state_stack import EventStateStack
+from stacks.expiration_reminder_stack import ExpirationReminderStack
 from stacks.feature_flag_stack import FeatureFlagStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
@@ -162,6 +163,18 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
+        # Search Persistent Stack - OpenSearch Domain for advanced provider search
+        self.search_persistent_stack = SearchPersistentStack(
+            self,
+            'SearchPersistentStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            vpc_stack=self.vpc_stack,
+            persistent_stack=self.persistent_stack,
+        )
+
         # Reporting and notifications depend on emails, which depend on having a domain name. If we don't configure
         # a HostedZone we won't bother with these whole stacks.
         if self.persistent_stack.hosted_zone:
@@ -184,6 +197,19 @@ class BackendStage(Stage):
                 environment_name=environment_name,
                 standard_tags=standard_tags,
                 persistent_stack=self.persistent_stack,
+            )
+
+            self.expiration_reminder_stack = ExpirationReminderStack(
+                self,
+                'ExpirationReminderStack',
+                env=environment,
+                environment_context=environment_context,
+                standard_tags=standard_tags,
+                environment_name=environment_name,
+                persistent_stack=self.persistent_stack,
+                event_state_stack=self.event_state_stack,
+                search_persistent_stack=self.search_persistent_stack,
+                vpc_stack=self.vpc_stack,
             )
 
         self.transaction_monitoring_stack = TransactionMonitoringStack(
@@ -215,18 +241,6 @@ class BackendStage(Stage):
             environment_name=environment_name,
             environment_context=environment_context,
             standard_tags=standard_tags,
-        )
-
-        # Search Persistent Stack - OpenSearch Domain for advanced provider search
-        self.search_persistent_stack = SearchPersistentStack(
-            self,
-            'SearchPersistentStack',
-            env=environment,
-            environment_context=environment_context,
-            standard_tags=standard_tags,
-            environment_name=environment_name,
-            vpc_stack=self.vpc_stack,
-            persistent_stack=self.persistent_stack,
         )
 
         self.search_api_stack = SearchApiStack(

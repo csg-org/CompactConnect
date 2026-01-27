@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -295,3 +295,43 @@ class TestProcessExpirationReminders(TstLambdas):
             )
 
         self.assertIn('daysBefore', str(ctx.exception))
+
+    def test_handler_calculates_target_date_from_days_before_when_not_provided(self):
+        """Test that handler calculates targetDate from daysBefore when targetDate is not provided."""
+
+        with (
+            patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date') as mock_iter,
+            patch('handlers.expiration_reminders.config') as mock_config,
+            patch('handlers.expiration_reminders.ExpirationReminderTracker') as mock_tracker_class,
+        ):
+            mock_config.compacts = ['aslp']
+            mock_email_client = MagicMock()
+            mock_config.email_service_client = mock_email_client
+
+            mock_tracker_instance = MagicMock()
+            mock_tracker_instance.was_already_sent.return_value = False
+            mock_tracker_class.return_value = mock_tracker_instance
+
+            # Create provider doc with expiration date = today + 30 days
+            today = datetime.now(UTC).date()
+            target_date = today + timedelta(days=30)
+            provider_doc = self._make_provider_doc()
+            provider_doc['privileges'][0]['dateOfExpiration'] = target_date.isoformat()
+
+            mock_iter.return_value = iter([provider_doc])
+
+            from handlers.expiration_reminders import process_expiration_reminders
+
+            # Event with only daysBefore (no targetDate)
+            event = {'daysBefore': 30}
+            resp = process_expiration_reminders(event, self.mock_context)
+
+            # Verify it calculated the correct target date
+            expected_target_date = (today + timedelta(days=30)).isoformat()
+            self.assertEqual(resp['targetDate'], expected_target_date)
+            self.assertEqual(resp['daysBefore'], 30)
+
+            # Verify the generator was called with the calculated date
+            mock_iter.assert_called_once()
+            call_kwargs = mock_iter.call_args.kwargs
+            self.assertEqual(call_kwargs['expiration_date'], target_date)

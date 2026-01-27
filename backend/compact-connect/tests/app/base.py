@@ -579,6 +579,7 @@ class TstAppABC(ABC):
         if stage.persistent_stack.hosted_zone:
             self._check_no_stack_annotations(stage.notification_stack)
             self._check_no_stack_annotations(stage.reporting_stack)
+            self._check_no_stack_annotations(stage.expiration_reminder_stack)
         # No backup stack here, because nexted stack annotations are checked in the parent stack
 
     def _count_stack_resources(self, stack: Stack) -> int:

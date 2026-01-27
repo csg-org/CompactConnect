@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -60,23 +60,34 @@ def process_expiration_reminders(event: dict, context: LambdaContext):  # noqa: 
 
     Event format:
         {
-            "targetDate": "2026-02-16",      # Expiration date to process
-            "daysBefore": 30,                # Days before expiration (30, 7, or 0)
-            "scheduledTime": "2026-01-17..." # When rule triggered (for logging)
+            "daysBefore": 30,                # Days before expiration (30, 7, or 0) - required
+            "targetDate": "2026-02-16",      # Optional: Expiration date to process
+                                            # (if not provided, calculated as today + daysBefore)
+            "scheduledTime": "2026-01-17..." # Optional: When rule triggered (for logging, defaults to current time)
         }
     """
     try:
-        target_date_str = event['targetDate']
         days_before = event['daysBefore']
-        scheduled_time = event['scheduledTime']
-    except KeyError as e:
-        raise CCInvalidRequestException(f'Missing required field: {e.args[0]}') from e
+    except KeyError:
+        raise CCInvalidRequestException('Missing required field: daysBefore') from None
 
     if days_before not in DAYS_BEFORE_TO_EVENT_TYPE:
         raise CCInvalidRequestException(f'Invalid daysBefore value: {days_before}. Must be 30, 7, or 0.')
 
+    # Calculate targetDate if not provided (today + daysBefore)
+    if 'targetDate' in event:
+        target_date_str = event['targetDate']
+        expiration_date = _parse_iso_date(target_date_str)
+    else:
+        # We will be running ~ midnight UTC-4, so now(UTC) should be a few hours into the next day
+        today = datetime.now(UTC).date()
+        expiration_date = today + timedelta(days=days_before)
+        target_date_str = expiration_date.isoformat()
+
+    # Get scheduledTime for logging (default to current time if not provided)
+    scheduled_time = event.get('scheduledTime', datetime.now(UTC).isoformat())
+
     event_type = DAYS_BEFORE_TO_EVENT_TYPE[days_before]
-    expiration_date = _parse_iso_date(target_date_str)
 
     logger.info(
         'Processing privilege expiration reminders',
