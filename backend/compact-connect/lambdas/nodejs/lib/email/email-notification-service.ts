@@ -49,6 +49,8 @@ export class EmailNotificationService extends BaseEmailService {
         switch (recipientType) {
         case 'JURISDICTION_SUMMARY_REPORT':
             return jurisdictionConfig.jurisdictionSummaryReportNotificationEmails;
+        case 'JURISDICTION_OPERATIONS_TEAM':
+            return jurisdictionConfig.jurisdictionOperationsTeamEmails;
         default:
             throw new Error(`Unsupported recipient type for compact configuration: ${recipientType}`);
         }
@@ -557,5 +559,55 @@ export class EmailNotificationService extends BaseEmailService {
         const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send military audit declined notification email' });
+    }
+
+    /**
+     * Sends a notification email to a jurisdiction operations team when a practitioner changes their home state
+     * @param compact - The compact name
+     * @param jurisdiction - The jurisdiction to notify
+     * @param providerFirstName - The provider's first name
+     * @param providerLastName - The provider's last name
+     * @param providerId - The provider's ID
+     * @param previousJurisdiction - The previous home jurisdiction
+     * @param newJurisdiction - The new home jurisdiction
+     */
+    public async sendHomeJurisdictionChangeStateNotificationEmail(
+        compact: string,
+        jurisdiction: string,
+        providerFirstName: string,
+        providerLastName: string,
+        providerId: string,
+        previousJurisdiction: string,
+        newJurisdiction: string
+    ): Promise<void> {
+        this.logger.info('Sending home jurisdiction change state notification email', {
+            compact: compact,
+            jurisdiction: jurisdiction
+        });
+
+        const recipients = await this.getJurisdictionRecipients(
+            compact,
+            jurisdiction,
+            'JURISDICTION_OPERATIONS_TEAM'
+        );
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
+        }
+
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        const report = this.getNewEmailTemplate();
+        const subject = `Practitioner Home State Change - ${compactConfig.compactName}`;
+        const bodyText = `This is to notify you that ${providerFirstName} ${providerLastName} has changed their home state from ${previousJurisdiction} to ${newJurisdiction}.\n\n` +
+            `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
+            'If the above link does not work, you can copy and paste the url into a browser tab, where you are already logged in.';
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText, 'center', true);
+        this.insertFooter(report);
+
+        const htmlContent = this.renderTemplate(report);
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send home jurisdiction change state notification email' });
     }
 }
