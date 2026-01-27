@@ -4,7 +4,7 @@ import * as nodemailer from 'nodemailer';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 import { S3Client } from '@aws-sdk/client-s3';
-import { TReaderDocument, renderToStaticMarkup } from '@jusdino-ia/email-builder';
+import { TReaderDocument, renderToStaticMarkup } from '@csg-org/email-builder';
 import { CompactConfigurationClient } from '../compact-configuration-client';
 import { JurisdictionClient } from '../jurisdiction-client';
 import { EnvironmentVariablesService } from '../environment-variables-service';
