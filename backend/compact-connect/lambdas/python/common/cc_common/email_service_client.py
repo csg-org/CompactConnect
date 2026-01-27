@@ -808,3 +808,75 @@ class EmailServiceClient:
             },
         }
         return self._invoke_lambda(payload)
+
+    def send_home_jurisdiction_change_old_state_notification(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        provider_first_name: str,
+        provider_last_name: str,
+        provider_id: UUID,
+        new_jurisdiction: str,
+    ) -> dict[str, str]:
+        """
+        Notify the old home state that a practitioner has changed their home jurisdiction.
+
+        :param compact: Compact name
+        :param jurisdiction: Old jurisdiction to notify
+        :param provider_first_name: Provider's first name
+        :param provider_last_name: Provider's last name
+        :param provider_id: Provider ID
+        :param new_jurisdiction: New home jurisdiction
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'homeJurisdictionChangeOldStateNotification',
+            'recipientType': 'JURISDICTION_OPERATIONS_TEAM',
+            'templateVariables': {
+                'providerFirstName': provider_first_name,
+                'providerLastName': provider_last_name,
+                'providerId': str(provider_id),
+                'previousJurisdiction': jurisdiction.upper(),
+                'newJurisdiction': new_jurisdiction.upper(),
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_home_jurisdiction_change_new_state_notification(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        provider_first_name: str,
+        provider_last_name: str,
+        provider_id: UUID,
+        previous_jurisdiction: str | None,
+    ) -> dict[str, str]:
+        """
+        Notify the new home state that a practitioner has selected them as their home jurisdiction.
+
+        :param compact: Compact name
+        :param jurisdiction: New jurisdiction to notify
+        :param provider_first_name: Provider's first name
+        :param provider_last_name: Provider's last name
+        :param provider_id: Provider ID
+        :param previous_jurisdiction: Previous home jurisdiction (can be None)
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'homeJurisdictionChangeNewStateNotification',
+            'recipientType': 'JURISDICTION_OPERATIONS_TEAM',
+            'templateVariables': {
+                'providerFirstName': provider_first_name,
+                'providerLastName': provider_last_name,
+                'providerId': str(provider_id),
+                'previousJurisdiction': previous_jurisdiction.upper() if previous_jurisdiction else 'Unlisted Jurisdiction',
+                'newJurisdiction': jurisdiction.upper(),
+            },
+        }
+        return self._invoke_lambda(payload)

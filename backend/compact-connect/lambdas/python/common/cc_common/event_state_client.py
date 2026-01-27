@@ -29,6 +29,7 @@ class EventType(StrEnum):
     PRIVILEGE_ENCUMBRANCE_LIFTED = 'privilege.encumbranceLifted'
     MILITARY_AUDIT_APPROVED = 'militaryAffiliation.auditApproved'
     MILITARY_AUDIT_DECLINED = 'militaryAffiliation.auditDeclined'
+    HOME_JURISDICTION_CHANGE = 'provider.homeJurisdictionChange'
 
 
 class EventStateClient:
