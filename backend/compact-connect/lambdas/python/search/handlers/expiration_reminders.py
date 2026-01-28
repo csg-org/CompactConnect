@@ -100,6 +100,9 @@ def process_expiration_reminders(event: dict, context: LambdaContext):  # noqa: 
     metrics = Metrics()
 
     for compact in config.compacts:
+        compact_provider_count = 0
+        logger.info('Starting processing for compact', compact=compact, target_date=target_date_str)
+
         for provider_doc in iterate_privileges_by_expiration_date(
             compact=compact,
             expiration_date=expiration_date,
@@ -111,6 +114,7 @@ def process_expiration_reminders(event: dict, context: LambdaContext):  # noqa: 
             if not matched_privileges:
                 continue
 
+            compact_provider_count += 1
             metrics = replace(
                 metrics,
                 matched_privileges=metrics.matched_privileges + len(matched_privileges),
@@ -133,6 +137,22 @@ def process_expiration_reminders(event: dict, context: LambdaContext):  # noqa: 
                 already_sent=metrics.already_sent + result['already_sent'],
                 no_email=metrics.no_email + result['no_email'],
             )
+
+            # Log progress every 100 providers per compact
+            if compact_provider_count % 100 == 0:
+                logger.info(
+                    'Progress update',
+                    compact=compact,
+                    providers_processed=compact_provider_count,
+                    metrics=metrics.as_dict(),
+                )
+
+        logger.info(
+            'Completed processing for compact',
+            compact=compact,
+            total_providers_processed=compact_provider_count,
+            metrics=metrics.as_dict(),
+        )
 
     logger.info('Completed processing expiration reminders', metrics=metrics.as_dict())
     return {'targetDate': target_date_str, 'daysBefore': days_before, 'metrics': metrics.as_dict()}
