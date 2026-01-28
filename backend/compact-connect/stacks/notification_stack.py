@@ -201,6 +201,7 @@ class NotificationStack(AppStack):
             timeout=Duration.minutes(1),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
                 'EVENT_STATE_TABLE_NAME': event_state_stack.event_state_table.table_name,
                 **self.common_env_vars,

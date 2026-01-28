@@ -308,7 +308,10 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual({'message': 'Invalid jurisdiction selected.'}, resp_body)
 
-    def test_put_provider_home_jurisdiction_returns_400_with_same_jurisdiction_as_current(self):
+    @patch('cc_common.event_bus_client.EventBusClient.publish_home_jurisdiction_change_event')
+    def test_put_provider_home_jurisdiction_performs_no_op_when_selected_jurisdiction_same_as_current(
+        self, mock_publish
+    ):
         from handlers.provider_users import provider_users_api_handler
 
         (test_provider_record, test_current_license_record, test_privilege_record) = (
@@ -319,10 +322,9 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         resp = provider_users_api_handler(event, self.mock_context)
 
-        self.assertEqual(400, resp['statusCode'])
-        resp_body = json.loads(resp['body'])
+        self.assertEqual(200, resp['statusCode'])
 
-        self.assertEqual({'message': 'New jurisdiction matches current home state.'}, resp_body)
+        mock_publish.assert_not_called()
 
     def test_put_provider_home_jurisdiction_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import provider_users_api_handler
@@ -1084,7 +1086,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         """Test that provider home jurisdiction handler publishes the correct event."""
         from handlers.provider_users import provider_users_api_handler
 
-        # Mock feature flag to return True
+        # Mock feature flag to return False
         mock_is_feature_enabled.return_value = False
 
         (test_provider_record, test_current_license_record, test_privilege_record) = (
