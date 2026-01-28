@@ -116,8 +116,8 @@ class DataEventTable(Table):
             'EventReceiverRule',
             event_bus=event_bus,
             # match any event detail_type except provider.homeJurisdictionChange
-            # (home jurisdiction change events are already recorded in provider history, and are not specific to one jurisdiction
-            # so we don't need to record them in the data events table)
+            # (home jurisdiction change events are already recorded in provider history, and are not specific
+            # to one jurisdiction so we don't need to record them in the data events table)
             event_pattern=EventPattern(detail_type=Match.anything_but('provider.homeJurisdictionChange')),
             targets=[SqsQueue(self.event_processor.queue, dead_letter_queue=self.event_processor.dlq)],
         )
