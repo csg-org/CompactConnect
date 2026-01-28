@@ -308,6 +308,22 @@ class TestPutProviderHomeJurisdiction(TstFunction):
 
         self.assertEqual({'message': 'Invalid jurisdiction selected.'}, resp_body)
 
+    def test_put_provider_home_jurisdiction_returns_400_with_same_jurisdiction_as_current(self):
+        from handlers.provider_users import provider_users_api_handler
+
+        (test_provider_record, test_current_license_record, test_privilege_record) = (
+            self._when_provider_has_one_license_and_privilege()
+        )
+
+        event = self._when_testing_put_provider_home_jurisdiction(STARTING_JURISDICTION, test_provider_record)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        resp_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'New jurisdiction matches current home state.'}, resp_body)
+
     def test_put_provider_home_jurisdiction_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import provider_users_api_handler
 
@@ -1028,3 +1044,28 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         # since in this case they should not be moved over
         self.assertEqual(test_current_license_record.dateOfExpiration, stored_privilege_data.dateOfExpiration)
         self.assertEqual(test_current_license_record.jurisdiction, stored_privilege_data.licenseJurisdiction)
+
+    @patch('cc_common.event_bus_client.EventBusClient.publish_home_jurisdiction_change_event')
+    def test_put_provider_home_jurisdiction_handler_publishes_event(self, mock_publish_event):
+        """Test that provider home jurisdiction handler publishes the correct event."""
+        from handlers.provider_users import provider_users_api_handler
+
+        (test_provider_record, test_current_license_record, test_privilege_record) = (
+            self._when_provider_has_one_license_and_privilege()
+        )
+
+        # Create a license in the new jurisdiction
+        self._when_provider_has_license_in_new_home_state()
+        event = self._when_testing_put_provider_home_jurisdiction(NEW_JURISDICTION, test_provider_record)
+
+        response = provider_users_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify event was published with correct details
+        mock_publish_event.assert_called_once_with(
+            source='org.compactconnect.provider-data',
+            compact=test_provider_record.compact,
+            provider_id=test_provider_record.providerId,
+            previous_home_jurisdiction=STARTING_JURISDICTION,
+            new_home_jurisdiction=NEW_JURISDICTION,
+        )
