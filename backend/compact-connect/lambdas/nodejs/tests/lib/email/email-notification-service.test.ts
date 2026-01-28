@@ -955,4 +955,116 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toContain(expectedResetUrl);
         });
     });
+
+    describe('Home Jurisdiction Change State Notification', () => {
+        it('should send home jurisdiction change state notification email with expected content', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
+
+            await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                'aslp',
+                'oh',
+                'John',
+                'Doe',
+                'provider-123',
+                'TX',
+                'OH'
+            );
+
+            expect(mockJurisdictionClient.getJurisdictionConfiguration).toHaveBeenCalledWith('aslp', 'oh');
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['oh-ops@example.com']
+                    },
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('<!DOCTYPE html>')
+                                }
+                            },
+                            Subject: {
+                                Charset: 'UTF-8',
+                                Data: 'Practitioner Home State Change - Audiology and Speech Language Pathology'
+                            }
+                        }
+                    },
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                }
+            );
+
+            // Get the actual HTML content for detailed validation
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('This is to notify you that John Doe has changed their home state from TX to OH.');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/aslp/Licensing/provider-123');
+        });
+
+        it('should throw error when no recipients found for jurisdiction', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
+                ...SAMPLE_JURISDICTION_CONFIG,
+                jurisdictionOperationsTeamEmails: []
+            });
+
+            await expect(emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                'aslp',
+                'oh',
+                'John',
+                'Doe',
+                'provider-123',
+                'TX',
+                'OH'
+            )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
+        });
+
+        it('should convert previous jurisdiction "other" to "an unlisted jurisdiction" in email content', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
+
+            await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                'aslp',
+                'oh',
+                'Jane',
+                'Smith',
+                'provider-456',
+                'other',
+                'OH'
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('This is to notify you that Jane Smith has changed their home state from an unlisted jurisdiction to OH.');
+            expect(htmlContent).not.toContain('from other to OH');
+        });
+
+        it('should convert new jurisdiction "other" to "an unlisted jurisdiction" in email content', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
+
+            await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                'aslp',
+                'oh',
+                'Bob',
+                'Johnson',
+                'provider-789',
+                'TX',
+                'other'
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('This is to notify you that Bob Johnson has changed their home state from TX to an unlisted jurisdiction.');
+            expect(htmlContent).not.toContain('from TX to other');
+        });
+    });
 });

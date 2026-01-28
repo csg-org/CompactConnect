@@ -70,6 +70,9 @@ class NotificationStack(AppStack):
         self._add_military_audit_notification_listener(
             persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
         )
+        self._add_home_jurisdiction_change_notification_listener(
+            persistent_stack=persistent_stack, data_event_bus=data_event_bus, event_state_stack=event_state_stack
+        )
 
     def _add_privilege_purchase_notification_chain(
         self, persistent_stack: ps.PersistentStack, data_event_bus: IEventBus
@@ -198,6 +201,7 @@ class NotificationStack(AppStack):
             timeout=Duration.minutes(1),
             environment={
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
                 'EVENT_STATE_TABLE_NAME': event_state_stack.event_state_table.table_name,
                 **self.common_env_vars,
@@ -207,6 +211,7 @@ class NotificationStack(AppStack):
 
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_data(emailer_event_listener_handler)
+        persistent_stack.compact_configuration_table.grant_read_data(emailer_event_listener_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(emailer_event_listener_handler)
         event_state_stack.event_state_table.grant_read_write_data(emailer_event_listener_handler)
 
@@ -356,6 +361,20 @@ class NotificationStack(AppStack):
             index='military_audit_events.py',
             handler='military_audit_notification_listener',
             listener_detail_type='militaryAffiliation.audit',
+            persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
+        )
+
+    def _add_home_jurisdiction_change_notification_listener(
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
+    ):
+        """Add the home jurisdiction change notification listener lambda, queues, and event rules."""
+        self._add_emailer_event_listener(
+            construct_id_prefix='HomeJurisdictionChangeNotificationListener',
+            index='home_jurisdiction_events.py',
+            handler='home_jurisdiction_change_notification_listener',
+            listener_detail_type='provider.homeJurisdictionChange',
             persistent_stack=persistent_stack,
             data_event_bus=data_event_bus,
             event_state_stack=event_state_stack,

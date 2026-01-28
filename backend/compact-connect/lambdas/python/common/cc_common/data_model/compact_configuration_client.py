@@ -238,6 +238,42 @@ class CompactConfigurationClient:
         # Load through schema and convert to Jurisdiction model
         return JurisdictionConfigurationData.from_database_record(item)
 
+    def get_jurisdiction_operations_team_emails(self, compact: str, jurisdiction: str) -> list[str] | None:
+        """
+        Get the operations team email addresses for a specific jurisdiction within a compact.
+
+        Returns None if the jurisdiction configuration is not found.
+        Returns an empty list if the configuration exists but no operations team emails are configured.
+        Returns a list of email addresses if operations team emails are configured.
+
+        :param compact: The compact abbreviation
+        :param jurisdiction: The jurisdiction postal abbreviation
+        :return: List of operations team email addresses, empty list if none configured,
+        or None if jurisdiction not found
+        """
+        logger.info('Getting jurisdiction operations team emails', compact=compact, jurisdiction=jurisdiction)
+
+        try:
+            jurisdiction_config = self.get_jurisdiction_configuration(compact=compact, jurisdiction=jurisdiction)
+            operations_emails = jurisdiction_config.jurisdictionOperationsTeamEmails
+
+            if not operations_emails:
+                logger.info(
+                    'No operations team emails configured for jurisdiction',
+                    compact=compact,
+                    jurisdiction=jurisdiction,
+                )
+                return []
+
+            return operations_emails
+        except CCNotFoundException:
+            logger.info(
+                'Jurisdiction configuration not found',
+                compact=compact,
+                jurisdiction=jurisdiction,
+            )
+            return None
+
     def save_jurisdiction_configuration(self, jurisdiction_config: JurisdictionConfigurationData) -> None:
         """
         Save the jurisdiction configuration and update related compact configuration if needed.
