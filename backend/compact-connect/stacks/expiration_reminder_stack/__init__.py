@@ -7,7 +7,6 @@ from aws_cdk.aws_ec2 import SubnetSelection
 from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
 from aws_cdk.aws_logs import QueryDefinition, QueryString, RetentionDays
-from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -44,6 +43,8 @@ class ExpirationReminderStack(AppStack):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
 
         # Create Lambda function for processing expiration reminders
+        # Use the search_api_lambda_role which already has OpenSearch read access configured
+        # in the domain's resource-based access policies
         self.expiration_reminder_handler = PythonFunction(
             self,
             'ExpirationReminderHandler',
@@ -51,6 +52,7 @@ class ExpirationReminderStack(AppStack):
             index=os.path.join('handlers', 'expiration_reminders.py'),
             lambda_dir='search',
             handler='process_expiration_reminders',
+            role=search_persistent_stack.search_api_lambda_role,
             timeout=Duration.minutes(15),  # 15-minute timeout to handle all providers in single execution
             memory_size=2048,  # Higher memory for processing large result sets
             log_retention=RetentionDays.ONE_MONTH,
@@ -69,8 +71,8 @@ class ExpirationReminderStack(AppStack):
         )
 
         # Grant necessary permissions
-        # Read access to OpenSearch domain for querying privileges
-        search_persistent_stack.domain.grant_read(self.expiration_reminder_handler)
+        # OpenSearch access is already configured via search_api_lambda_role which is included
+        # in the domain's resource-based access policies
 
         # Read/write access to EventStateTable for idempotency tracking
         event_state_stack.event_state_table.grant_read_write_data(self.expiration_reminder_handler)
@@ -78,21 +80,10 @@ class ExpirationReminderStack(AppStack):
         # Invoke permission for email notification service
         persistent_stack.email_notification_service_lambda.grant_invoke(self.expiration_reminder_handler)
 
-        # Add CDK Nag suppressions for the Lambda function's IAM role
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{self.expiration_reminder_handler.role.node.path}/DefaultPolicy/Resource',
-            [
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The grant_read method requires wildcard permissions on the OpenSearch domain to '
-                    'read from indices. This is appropriate for a function that needs to query '
-                    'provider indices by expiration date. Additionally, grant_read_write_data on the '
-                    'EventStateTable uses wildcard permissions for item-level operations which is required '
-                    'for tracking notification state.',
-                },
-            ],
-        )
+        # Note: Since we're using the shared search_api_lambda_role, NagSuppressions for OpenSearch
+        # permissions are already applied in SearchPersistentStack. The EventStateTable permissions
+        # added by grant_read_write_data use wildcard permissions which is expected for DynamoDB
+        # item-level operations and is consistent with other Lambda functions in the codebase.
 
         # Create EventBridge rules for each reminder type
         # All rules run daily at midnight UTC-4 (4:00 AM UTC) to process reminders for privileges expiring on the
