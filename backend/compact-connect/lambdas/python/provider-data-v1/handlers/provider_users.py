@@ -137,7 +137,7 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
                     previous_home_jurisdiction=previous_home_jurisdiction,
                     new_home_jurisdiction=selected_jurisdiction,
                 )
-        except config.events_client.exceptions.InternalException:
+        except ClientError as e:
             # Log the error and continue
             logger.error(
                 'Failed to send home state license update notification event',
@@ -145,6 +145,7 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
                 previous_home_jurisdiction=previous_home_jurisdiction,
                 selected_jurisdiction=selected_jurisdiction,
                 provider_id=provider_id,
+                error=str(e),
             )
 
     return {'message': 'ok'}
