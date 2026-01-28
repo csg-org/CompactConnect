@@ -1045,10 +1045,17 @@ class TestPutProviderHomeJurisdiction(TstFunction):
         self.assertEqual(test_current_license_record.dateOfExpiration, stored_privilege_data.dateOfExpiration)
         self.assertEqual(test_current_license_record.jurisdiction, stored_privilege_data.licenseJurisdiction)
 
+    # TODO - remove flag mock when flag is removed #noqa: FIX002
     @patch('cc_common.event_bus_client.EventBusClient.publish_home_jurisdiction_change_event')
-    def test_put_provider_home_jurisdiction_handler_publishes_event(self, mock_publish_event):
+    @patch('cc_common.feature_flag_client.is_feature_enabled')
+    def test_put_provider_home_jurisdiction_handler_publishes_event(
+        self, mock_is_feature_enabled, mock_publish_event
+    ):
         """Test that provider home jurisdiction handler publishes the correct event."""
         from handlers.provider_users import provider_users_api_handler
+
+        # Mock feature flag to return True
+        mock_is_feature_enabled.return_value = True
 
         (test_provider_record, test_current_license_record, test_privilege_record) = (
             self._when_provider_has_one_license_and_privilege()
@@ -1069,3 +1076,29 @@ class TestPutProviderHomeJurisdiction(TstFunction):
             previous_home_jurisdiction=STARTING_JURISDICTION,
             new_home_jurisdiction=NEW_JURISDICTION,
         )
+
+    # TODO - remove test when feature flag is removed #noqa: FIX002
+    @patch('cc_common.event_bus_client.EventBusClient.publish_home_jurisdiction_change_event')
+    @patch('cc_common.feature_flag_client.is_feature_enabled')
+    def test_put_provider_home_jurisdiction_handler_does_not_publish_event_with_flag_off(
+        self, mock_is_feature_enabled, mock_publish_event
+    ):
+        """Test that provider home jurisdiction handler publishes the correct event."""
+        from handlers.provider_users import provider_users_api_handler
+
+        # Mock feature flag to return True
+        mock_is_feature_enabled.return_value = False
+
+        (test_provider_record, test_current_license_record, test_privilege_record) = (
+            self._when_provider_has_one_license_and_privilege()
+        )
+
+        # Create a license in the new jurisdiction
+        self._when_provider_has_license_in_new_home_state()
+        event = self._when_testing_put_provider_home_jurisdiction(NEW_JURISDICTION, test_provider_record)
+
+        response = provider_users_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify event was published with correct details
+        mock_publish_event.assert_not_called()
