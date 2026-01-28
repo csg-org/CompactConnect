@@ -562,6 +562,21 @@ export class EmailNotificationService extends BaseEmailService {
     }
 
     /**
+     * Converts 'other' jurisdiction to 'an unlisted jurisdiction' for display in email messages
+     * @param jurisdiction - The jurisdiction to convert
+     * @returns The converted jurisdiction string
+     */
+    private formatJurisdictionForEmail(jurisdiction: string): string {
+        if (jurisdiction.toLowerCase() === 'other') {
+            return 'an unlisted jurisdiction';
+        }
+        // else we uppercase the jurisdiction
+        else {
+            return jurisdiction.toUpperCase();
+        }
+    }
+
+    /**
      * Sends a notification email to a jurisdiction operations team when a practitioner changes their home state
      * @param compact - The compact name
      * @param jurisdiction - The jurisdiction to notify
@@ -595,10 +610,14 @@ export class EmailNotificationService extends BaseEmailService {
             throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
         }
 
+        // Convert 'other' to 'an unlisted jurisdiction' for email display
+        const formattedPreviousJurisdiction = this.formatJurisdictionForEmail(previousJurisdiction);
+        const formattedNewJurisdiction = this.formatJurisdictionForEmail(newJurisdiction);
+
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
         const report = this.getNewEmailTemplate();
         const subject = `Practitioner Home State Change - ${compactConfig.compactName}`;
-        const bodyText = `This is to notify you that ${providerFirstName} ${providerLastName} has changed their home state from ${previousJurisdiction} to ${newJurisdiction}.\n\n` +
+        const bodyText = `This is to notify you that ${providerFirstName} ${providerLastName} has changed their home state from ${formattedPreviousJurisdiction} to ${formattedNewJurisdiction}.\n\n` +
             `Provider Details: ${environmentVariableService.getUiBasePathUrl()}/${compact}/Licensing/${providerId}\n\n` +
             'If the above link does not work, you can copy and paste the url into a browser tab, where you are already logged in.';
 

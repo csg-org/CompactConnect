@@ -1987,4 +1987,31 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required template variables for privilegeInvestigationClosedStateNotification template.');
         });
     });
+
+    describe('Home Jurisdiction Change New State Notification', () => {
+        const SAMPLE_HOME_JURISDICTION_CHANGE_NEW_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'homeJurisdictionChangeNewStateNotification',
+            recipientType: 'JURISDICTION_OPERATIONS_TEAM',
+            compact: 'aslp',
+            jurisdiction: 'oh',
+            templateVariables: {
+                providerFirstName: 'John',
+                providerLastName: 'Doe',
+                providerId: 'provider-123',
+                previousJurisdiction: 'TX',
+                newJurisdiction: 'OH'
+            }
+        };
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_HOME_JURISDICTION_CHANGE_NEW_STATE_NOTIFICATION_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for home jurisdiction change notification template.');
+        });
+    });
 });
