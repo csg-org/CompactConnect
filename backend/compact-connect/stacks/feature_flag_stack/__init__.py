@@ -132,7 +132,7 @@ class FeatureFlagStack(AppStack):
             'HomeJurisdictionChangeNotificationFlag',
             provider=self.provider,  # Shared provider
             flag_name='home-jurisdiction-change-notification-flag',
-            # Start disabled by default, enable manually through console as needed
+            # Automatically enable for every environment
             auto_enable_envs=[
                 FeatureFlagEnvironmentName.TEST,
                 FeatureFlagEnvironmentName.BETA,

@@ -2594,8 +2594,14 @@ class DataClient:
         )
         top_level_provider_record = provider_user_records.get_provider_record()
         home_jurisdiction_before_update = top_level_provider_record.currentHomeJurisdiction
-        if home_jurisdiction_before_update == selected_jurisdiction:
-            raise CCInvalidRequestException('New jurisdiction matches current home state.')
+        if home_jurisdiction_before_update.lower() == selected_jurisdiction.lower():
+            logger.info(
+                'New selected jurisdiction matches current home state. Returning as this is a no-op',
+                compact=compact,
+                current_home_jurisdiction=home_jurisdiction_before_update,
+                selected_jurisdiction=selected_jurisdiction,
+                provider_id=provider_id,
+            )
 
         # Get all licenses in the new home jurisdiction
         new_home_state_licenses = provider_user_records.get_license_records(
