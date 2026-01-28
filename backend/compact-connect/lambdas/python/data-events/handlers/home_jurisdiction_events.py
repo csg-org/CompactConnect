@@ -144,7 +144,7 @@ def _send_new_state_notification(
     compact: str,
     provider_id: UUID,
     provider_record,
-    previous_jurisdiction: str | None,
+    previous_jurisdiction: str,
     new_jurisdiction: str,
     event_time: str,
     tracker: NotificationTracker,

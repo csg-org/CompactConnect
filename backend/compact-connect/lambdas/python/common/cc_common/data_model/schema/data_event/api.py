@@ -104,6 +104,6 @@ class HomeJurisdictionChangeEventDetailSchema(ForgivingSchema):
 
     compact = Compact(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
-    previousHomeJurisdiction = String(required=False, allow_none=True)
+    previousHomeJurisdiction = String(required=True, allow_none=True)
     newHomeJurisdiction = String(required=True, allow_none=False)
     eventTime = DateTime(required=True, allow_none=False)
