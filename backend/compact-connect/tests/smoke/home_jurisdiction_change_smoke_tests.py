@@ -53,10 +53,13 @@ def test_home_jurisdiction_change_to_jurisdiction(jurisdiction):
 
         logger.info(f'Successfully set home jurisdiction to {jurisdiction}. Response: {response.text}')
     else:
-        logger.info('Current jurisdiction matches requested jurisdiction, skipping test.',
-                    current_jurisdiction=current_jurisdiction)
+        logger.info(
+            'Current jurisdiction matches requested jurisdiction, skipping test.',
+            current_jurisdiction=current_jurisdiction,
+        )
 
     return current_jurisdiction
+
 
 def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction():
     """
