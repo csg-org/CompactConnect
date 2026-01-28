@@ -238,8 +238,8 @@ def create_providers_batch(num_providers: int, days_until_expiration: int, progr
     Create a batch of providers with privileges expiring in the specified number of days.
 
     Uses DynamoDB batch_write_item for efficient bulk writes.
-    The first provider will use the registered email address from smoke_tests_env.json
-    to allow validation that emails are being sent.
+    All providers will use the registered email address from smoke_tests_env.json
+    to avoid spamming external email addresses during testing.
 
     :param num_providers: Total number of providers to create
     :param days_until_expiration: Number of days until privilege expiration
@@ -253,10 +253,10 @@ def create_providers_batch(num_providers: int, days_until_expiration: int, progr
         expiration_date=expiration_date_str,
     )
 
-    # Get the registered email address for validation
+    # Get the registered email address for all providers to avoid spamming external addresses
     registered_email = config.test_provider_user_username
     logger.info(
-        f'Using registered email for first provider: {registered_email}',
+        f'Using registered email for all providers: {registered_email}',
         registered_email=registered_email,
     )
 
@@ -267,13 +267,10 @@ def create_providers_batch(num_providers: int, days_until_expiration: int, progr
     # DynamoDB batch_write_item supports up to 25 items per request
     # So we'll use batch_size=24 (8 providers * 3 items = 24 items per batch)
     with DynamoDBBatchWriter(dynamodb_table, batch_size=24) as batch_writer:
-        for i in range(num_providers):
+        for _ in range(num_providers):
             provider_id = str(uuid.uuid4())
-            # Use registered email for the first provider to validate email delivery
-            if i == 0:
-                email = registered_email
-            else:
-                email = f'loadtest-{days_until_expiration}days-{provider_id[:8]}@example.com'
+            # Use registered email for all providers to avoid spamming external email addresses
+            email = registered_email
 
             provider_record, license_record, privilege_record = create_provider_records(
                 provider_id=provider_id,
