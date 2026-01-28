@@ -875,7 +875,7 @@ class EmailServiceClient:
                 'providerFirstName': provider_first_name,
                 'providerLastName': provider_last_name,
                 'providerId': str(provider_id),
-                'previousJurisdiction': previous_jurisdiction.upper() if previous_jurisdiction else 'Unlisted Jurisdiction',
+                'previousJurisdiction': previous_jurisdiction.upper(),
                 'newJurisdiction': jurisdiction.upper(),
             },
         }

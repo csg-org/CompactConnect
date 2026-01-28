@@ -1022,5 +1022,49 @@ describe('EmailNotificationService', () => {
                 'OH'
             )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
         });
+
+        it('should convert previous jurisdiction "other" to "an unlisted jurisdiction" in email content', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
+
+            await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                'aslp',
+                'oh',
+                'Jane',
+                'Smith',
+                'provider-456',
+                'other',
+                'OH'
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('This is to notify you that Jane Smith has changed their home state from an unlisted jurisdiction to OH.');
+            expect(htmlContent).not.toContain('from other to OH');
+        });
+
+        it('should convert new jurisdiction "other" to "an unlisted jurisdiction" in email content', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
+
+            await emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                'aslp',
+                'oh',
+                'Bob',
+                'Johnson',
+                'provider-789',
+                'TX',
+                'other'
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('This is to notify you that Bob Johnson has changed their home state from TX to an unlisted jurisdiction.');
+            expect(htmlContent).not.toContain('from TX to other');
+        });
     });
 });
