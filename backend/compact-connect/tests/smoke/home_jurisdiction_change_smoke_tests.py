@@ -11,7 +11,7 @@ from smoke_common import (
     call_provider_users_me_endpoint,
     get_provider_user_auth_headers_cached,
     get_provider_user_records,
-    load_smoke_test_env
+    load_smoke_test_env,
 )
 
 # This script can be run locally to test the home jurisdiction change flow against a sandbox environment
@@ -130,9 +130,7 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
     provider_id = provider_info_after_change.get('providerId')
     compact = provider_info_after_change.get('compact')
     provider_user_records = get_provider_user_records(compact=compact, provider_id=provider_id)
-    ne_privileges = provider_user_records.get_privilege_records(
-        filter_condition=lambda p: p.jurisdiction == 'ne'
-    )
+    ne_privileges = provider_user_records.get_privilege_records(filter_condition=lambda p: p.jurisdiction == 'ne')
 
     if not ne_privileges:
         raise SmokeTestFailureException('Nebraska privilege not found after home jurisdiction change')
@@ -146,9 +144,7 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
         )
 
     if ne_privilege.status != 'inactive':
-        raise SmokeTestFailureException(
-            f"Privilege status should be 'inactive', but got '{ne_privilege.status}'"
-        )
+        raise SmokeTestFailureException(f"Privilege status should be 'inactive', but got '{ne_privilege.status}'")
 
     # change home jurisdiction back to original
     logger.info(f'Restoring original home jurisdiction: {original_jurisdiction}')
