@@ -18,11 +18,9 @@ from . import TstFunction
 class TestHomeJurisdictionChangeEvents(TstFunction):
     """Test suite for home jurisdiction change event handlers."""
 
-    def _generate_home_jurisdiction_change_message(
-        self, previous_jurisdiction: str | None, new_jurisdiction: str
-    ):
+    def _generate_home_jurisdiction_change_message(self, previous_jurisdiction: str | None, new_jurisdiction: str):
         """Generate a test EventBridge message for home jurisdiction change events."""
-        message = {
+        return {
             'detail': {
                 'compact': DEFAULT_COMPACT,
                 'providerId': DEFAULT_PROVIDER_ID,
@@ -31,7 +29,6 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
             }
         }
-        return message
 
     def _create_sqs_event(self, message):
         """Create a proper SQS event structure with the message in the body."""
@@ -39,9 +36,7 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_old_state_notification')
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_new_state_notification')
-    def test_both_states_notified_when_changing_to_compact_state(
-        self, mock_send_new_state, mock_send_old_state
-    ):
+    def test_both_states_notified_when_changing_to_compact_state(self, mock_send_new_state, mock_send_old_state):
         """Test that both old and new states are notified when changing to another compact state."""
         from handlers.home_jurisdiction_events import home_jurisdiction_change_notification_listener
 
@@ -143,8 +138,8 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_new_state_notification')
     def test_no_old_state_notification_when_previous_is_other(self, mock_send_new_state, mock_send_old_state):
         """Test that old state is not notified when previous jurisdiction is 'other'."""
-        from handlers.home_jurisdiction_events import home_jurisdiction_change_notification_listener
         from cc_common.data_model.schema.fields import OTHER_JURISDICTION
+        from handlers.home_jurisdiction_events import home_jurisdiction_change_notification_listener
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table(
@@ -273,9 +268,7 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_old_state_notification')
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_new_state_notification')
-    def test_no_notification_when_jurisdiction_has_no_operations_emails(
-        self, mock_send_new_state, mock_send_old_state
-    ):
+    def test_no_notification_when_jurisdiction_has_no_operations_emails(self, mock_send_new_state, mock_send_old_state):
         """Test that notifications are skipped when jurisdiction has no operations team emails."""
         from handlers.home_jurisdiction_events import home_jurisdiction_change_notification_listener
 
@@ -321,9 +314,7 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_old_state_notification')
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_new_state_notification')
-    def test_no_notification_when_jurisdiction_config_not_found(
-        self, mock_send_new_state, mock_send_old_state
-    ):
+    def test_no_notification_when_jurisdiction_config_not_found(self, mock_send_new_state, mock_send_old_state):
         """Test that notifications are skipped when jurisdiction configuration is not found."""
         from handlers.home_jurisdiction_events import home_jurisdiction_change_notification_listener
 

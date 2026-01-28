@@ -133,9 +133,11 @@ class FeatureFlagStack(AppStack):
             provider=self.provider,  # Shared provider
             flag_name='home-jurisdiction-change-notification-flag',
             # Start disabled by default, enable manually through console as needed
-            auto_enable_envs=[FeatureFlagEnvironmentName.TEST,
+            auto_enable_envs=[
+                FeatureFlagEnvironmentName.TEST,
                 FeatureFlagEnvironmentName.BETA,
-                FeatureFlagEnvironmentName.PROD],
+                FeatureFlagEnvironmentName.PROD,
+            ],
             environment_name=environment_name,
         )
 

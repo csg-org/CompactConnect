@@ -248,7 +248,8 @@ class CompactConfigurationClient:
 
         :param compact: The compact abbreviation
         :param jurisdiction: The jurisdiction postal abbreviation
-        :return: List of operations team email addresses, empty list if none configured, or None if jurisdiction not found
+        :return: List of operations team email addresses, empty list if none configured,
+        or None if jurisdiction not found
         """
         logger.info('Getting jurisdiction operations team emails', compact=compact, jurisdiction=jurisdiction)
 

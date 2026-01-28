@@ -2671,7 +2671,8 @@ class DataClient:
 
                     # Get licenses from the current home state
                     current_home_state_licenses = provider_user_records.get_license_records(
-                        filter_condition=lambda license_data: license_data.jurisdiction == home_jurisdiction_before_update
+                        filter_condition=lambda license_data: license_data.jurisdiction
+                        == home_jurisdiction_before_update
                     )
 
                     # Get unique license types from all privileges

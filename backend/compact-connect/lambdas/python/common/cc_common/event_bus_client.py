@@ -18,8 +18,8 @@ from cc_common.data_model.schema.data_event.api import (
     PrivilegeRenewalDetailSchema,
     PrivilegeRevertDetailSchema,
 )
-from cc_common.event_state_client import EventType
 from cc_common.event_batch_writer import EventBatchWriter
+from cc_common.event_state_client import EventType
 from cc_common.utils import ResponseEncoder
 
 

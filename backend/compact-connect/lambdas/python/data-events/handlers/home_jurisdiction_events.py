@@ -4,7 +4,6 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.data_event.api import HomeJurisdictionChangeEventDetailSchema
 from cc_common.data_model.schema.fields import OTHER_JURISDICTION
 from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
-from cc_common.exceptions import CCInternalException
 from cc_common.utils import sqs_handler_with_notification_tracking
 
 
@@ -103,8 +102,12 @@ def _send_old_state_notification(
         return
 
     if tracker.should_send_state_notification(previous_jurisdiction):
-        logger.info('Sending home jurisdiction change notification to old state',
-                    compact=compact, provider_id=provider_id, jurisdiction=previous_jurisdiction)
+        logger.info(
+            'Sending home jurisdiction change notification to old state',
+            compact=compact,
+            provider_id=provider_id,
+            jurisdiction=previous_jurisdiction,
+        )
         try:
             config.email_service_client.send_home_jurisdiction_change_old_state_notification(
                 compact=compact,
