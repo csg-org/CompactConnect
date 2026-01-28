@@ -23,30 +23,40 @@ from smoke_common import (
 TEST_EXPIRATION_DATE = '2050-04-04'
 
 
-def test_home_jurisdiction_change_to_oh():
+def test_home_jurisdiction_change_to_jurisdiction(jurisdiction):
     """
     Simple smoke test that sets the practitioner's home state to 'oh' and verifies a 200 response.
     This test runs first to verify basic functionality before more complex tests.
     """
-    logger.info('Running basic home jurisdiction change test - setting to oh')
-    # ensure we have jurisdiction config for oh
-    test_jurisdiction_configuration(jurisdiction='oh', recreate_compact_config=True)
+    logger.info(f'Running basic home jurisdiction change test - setting to {jurisdiction}')
 
-    # Set home jurisdiction to 'oh'
-    logger.info('Setting home jurisdiction to oh')
-    response = requests.put(
-        f'{config.api_base_url}/v1/provider-users/me/home-jurisdiction',
-        headers=get_provider_user_auth_headers_cached(),
-        json={'jurisdiction': 'oh'},
-        timeout=30,
-    )
+    provider_info_before = call_provider_users_me_endpoint()
 
-    # Verify the response status code
-    if response.status_code != 200:
-        raise SmokeTestFailureException(f'Expected 200 status code, got {response.status_code}: {response.text}')
+    current_jurisdiction = provider_info_before.get('currentHomeJurisdiction')
 
-    logger.info(f'Successfully set home jurisdiction to oh. Response: {response.text}')
+    if current_jurisdiction.lower() != jurisdiction.lower():
+        # ensure we have jurisdiction config for jurisdiction
+        test_jurisdiction_configuration(jurisdiction=jurisdiction, recreate_compact_config=True)
 
+        # Set home jurisdiction to 'oh'
+        logger.info(f'Setting home jurisdiction to {jurisdiction}')
+        response = requests.put(
+            f'{config.api_base_url}/v1/provider-users/me/home-jurisdiction',
+            headers=get_provider_user_auth_headers_cached(),
+            json={'jurisdiction': jurisdiction},
+            timeout=30,
+        )
+
+        # Verify the response status code
+        if response.status_code != 200:
+            raise SmokeTestFailureException(f'Expected 200 status code, got {response.status_code}: {response.text}')
+
+        logger.info(f'Successfully set home jurisdiction to {jurisdiction}. Response: {response.text}')
+    else:
+        logger.info('Current jurisdiction matches requested jurisdiction, skipping test.',
+                    current_jurisdiction=current_jurisdiction)
+
+    return current_jurisdiction
 
 def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction():
     """
@@ -71,7 +81,7 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
     new_jurisdiction = 'other'  # 'other' is the term used by the system for an unlisted jurisdiction
 
     # we must ensure we have a valid live jurisdiction configuration in place for the privilege jurisdiction
-    test_jurisdiction_configuration(jurisdiction='ne', recreate_compact_config=False)
+    test_jurisdiction_configuration(jurisdiction='ne', recreate_compact_config=True)
 
     # Purchase a privilege for the provider
     # This uses the same test_purchasing_privilege function from purchasing_privileges_smoke_tests.py
@@ -406,7 +416,11 @@ if __name__ == '__main__':
     # Load environment variables from smoke_tests_env.json
     load_smoke_test_env()
 
-    # Run tests
-    test_home_jurisdiction_change_to_oh()
-    test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction()
-    test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jurisdiction()
+    # start off in oh in test user isn't set there already
+    original_jurisdiction = test_home_jurisdiction_change_to_jurisdiction('oh')
+    try:
+        test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction()
+        test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jurisdiction()
+    finally:
+        # restore user's original jurisdiction if needed
+        test_home_jurisdiction_change_to_jurisdiction(original_jurisdiction)
