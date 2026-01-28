@@ -63,8 +63,6 @@ class SearchPersistentStack(AppStack):
             assumed_by=ServicePrincipal('lambda.amazonaws.com'),
             description='IAM role for Search API Lambda functions that need read access to OpenSearch Domain',
         )
-        # Prevent any deady-embrace with cross-stack dependencies
-        self.export_value(self.search_api_lambda_role.role_arn)
 
         # Create the OpenSearch domain and associated resources
         self.provider_search_domain = ProviderSearchDomain(
