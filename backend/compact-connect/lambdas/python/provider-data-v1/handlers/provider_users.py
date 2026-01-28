@@ -108,8 +108,18 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
     )
 
     try:
-        config.data_client.update_provider_home_state_jurisdiction(
+        # Update provider home jurisdiction and get the previous home jurisdiction
+        previous_home_jurisdiction = config.data_client.update_provider_home_state_jurisdiction(
             compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction
+        )
+
+        # Publish event for notification processing
+        config.event_bus_client.publish_home_jurisdiction_change_event(
+            source='org.compactconnect.provider-data',
+            compact=compact,
+            provider_id=provider_id,
+            previous_home_jurisdiction=previous_home_jurisdiction,
+            new_home_jurisdiction=selected_jurisdiction,
         )
     except CCInternalException as e:
         logger.error(

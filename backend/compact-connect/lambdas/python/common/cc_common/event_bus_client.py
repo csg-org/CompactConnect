@@ -8,6 +8,7 @@ from cc_common.config import config
 from cc_common.data_model.schema.common import InvestigationAgainstEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
+    HomeJurisdictionChangeEventDetailSchema,
     InvestigationEventDetailSchema,
     LicenseDeactivationDetailSchema,
     LicenseRevertDetailSchema,
@@ -17,6 +18,7 @@ from cc_common.data_model.schema.data_event.api import (
     PrivilegeRenewalDetailSchema,
     PrivilegeRevertDetailSchema,
 )
+from cc_common.event_state_client import EventType
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.utils import ResponseEncoder
 
@@ -584,4 +586,38 @@ class EventBusClient:
             detail_type='militaryAffiliation.audit',
             detail=deserialized_detail,
             event_batch_writer=event_batch_writer,
+        )
+
+    def publish_home_jurisdiction_change_event(
+        self,
+        source: str,
+        compact: str,
+        provider_id: str,
+        previous_home_jurisdiction: str | None,
+        new_home_jurisdiction: str,
+    ):
+        """
+        Publish a home jurisdiction change event to the event bus.
+
+        :param source: The source of the event
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param previous_home_jurisdiction: Previous home jurisdiction (can be None)
+        :param new_home_jurisdiction: New home jurisdiction
+        """
+        event_detail = {
+            'compact': compact,
+            'providerId': provider_id,
+            'previousHomeJurisdiction': previous_home_jurisdiction,
+            'newHomeJurisdiction': new_home_jurisdiction,
+            'eventTime': config.current_standard_datetime,
+        }
+
+        home_jurisdiction_change_detail_schema = HomeJurisdictionChangeEventDetailSchema()
+        deserialized_detail = home_jurisdiction_change_detail_schema.dump(event_detail)
+
+        self._publish_event(
+            source=source,
+            detail_type=EventType.HOME_JURISDICTION_CHANGE.value,
+            detail=deserialized_detail,
         )
