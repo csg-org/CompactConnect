@@ -2602,6 +2602,7 @@ class DataClient:
                 selected_jurisdiction=selected_jurisdiction,
                 provider_id=provider_id,
             )
+            return home_jurisdiction_before_update
 
         # Get all licenses in the new home jurisdiction
         new_home_state_licenses = provider_user_records.get_license_records(
