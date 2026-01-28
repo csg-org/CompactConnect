@@ -10,6 +10,7 @@ from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
     get_provider_user_auth_headers_cached,
+    get_provider_user_records,
     load_smoke_test_env
 )
 
@@ -125,23 +126,28 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
         )
 
     # Verify all privileges now have homeJurisdictionChangeStatus as inactive
-    privileges_after_change = provider_info_after_change.get('privileges', [])
-    ne_privilege_after_change = next(
-        (privilege for privilege in privileges_after_change if privilege['jurisdiction'] == 'ne'), None
+    # Read privilege directly from database to access homeJurisdictionChangeStatus field
+    provider_id = provider_info_after_change.get('providerId')
+    compact = provider_info_after_change.get('compact')
+    provider_user_records = get_provider_user_records(compact=compact, provider_id=provider_id)
+    ne_privileges = provider_user_records.get_privilege_records(
+        filter_condition=lambda p: p.jurisdiction == 'ne'
     )
 
-    if not ne_privilege_after_change:
+    if not ne_privileges:
         raise SmokeTestFailureException('Nebraska privilege not found after home jurisdiction change')
 
-    if ne_privilege_after_change.get('homeJurisdictionChangeStatus') != 'inactive':
+    ne_privilege = ne_privileges[0]
+
+    if ne_privilege.homeJurisdictionChangeStatus != 'inactive':
         raise SmokeTestFailureException(
             f"Privilege homeJurisdictionChangeStatus should be 'inactive', "
-            f"but got '{ne_privilege_after_change.get('homeJurisdictionChangeStatus')}'"
+            f"but got '{ne_privilege.homeJurisdictionChangeStatus}'"
         )
 
-    if ne_privilege_after_change.get('status') != 'inactive':
+    if ne_privilege.status != 'inactive':
         raise SmokeTestFailureException(
-            f"Privilege status should be 'inactive', but got '{ne_privilege_after_change.get('status')}'"
+            f"Privilege status should be 'inactive', but got '{ne_privilege.status}'"
         )
 
     # change home jurisdiction back to original
@@ -289,38 +295,44 @@ def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jur
         # get the provider's information after the home jurisdiction change
         provider_info_after_change = call_provider_users_me_endpoint()
 
-        # verify the privilege is moved to the new jurisdiction
-        privileges_after_change = provider_info_after_change.get('privileges', [])
-        ne_privilege_after_change = next(
-            (privilege for privilege in privileges_after_change if privilege['jurisdiction'] == 'ne'), None
+        # Read privilege directly from database to access homeJurisdictionChangeStatus field
+        provider_id = provider_info_after_change.get('providerId')
+        compact = provider_info_after_change.get('compact')
+        provider_user_records_after_change = get_provider_user_records(compact=compact, provider_id=provider_id)
+        ne_privileges_after_change = provider_user_records_after_change.get_privilege_records(
+            filter_condition=lambda p: p.jurisdiction == 'ne'
         )
-        if not ne_privilege_after_change:
+
+        if not ne_privileges_after_change:
             raise SmokeTestFailureException('Nebraska privilege not found after home jurisdiction change')
-        if ne_privilege_after_change.get('status') != 'active':
+
+        ne_privilege_after_change = ne_privileges_after_change[0]
+
+        if ne_privilege_after_change.status != 'active':
             raise SmokeTestFailureException(
-                f"Privilege should be 'active', but got '{ne_privilege_after_change.get('status')}'"
+                f"Privilege should be 'active', but got '{ne_privilege_after_change.status}'"
             )
         logger.info('privilege is active after home jurisdiction change')
 
-        if ne_privilege_after_change.get('homeJurisdictionChangeStatus') is not None:
+        if ne_privilege_after_change.homeJurisdictionChangeStatus is not None:
             raise SmokeTestFailureException(
                 f"Privilege should not have 'homeJurisdictionChangeStatus' field but found"
-                f" '{ne_privilege_after_change.get('homeJurisdictionChangeStatus')}'"
+                f" '{ne_privilege_after_change.homeJurisdictionChangeStatus}'"
             )
 
         # verify the privilege licenseJurisdiction is the new jurisdiction
-        if ne_privilege_after_change.get('licenseJurisdiction') != new_jurisdiction:
+        if ne_privilege_after_change.licenseJurisdiction != new_jurisdiction:
             raise SmokeTestFailureException(
                 f"Privilege licenseJurisdiction should be '{new_jurisdiction}', "
-                f"but got '{ne_privilege_after_change.get('licenseJurisdiction')}'"
+                f"but got '{ne_privilege_after_change.licenseJurisdiction}'"
             )
         logger.info('privilege licenseJurisdiction is the new jurisdiction')
 
         # verify the expiration date is the same as the license expiration date
-        if ne_privilege_after_change.get('dateOfExpiration') != TEST_EXPIRATION_DATE:
+        if ne_privilege_after_change.dateOfExpiration.isoformat() != TEST_EXPIRATION_DATE:
             raise SmokeTestFailureException(
                 f"Privilege dateOfExpiration should be '{TEST_EXPIRATION_DATE}', "
-                f"but got '{ne_privilege_after_change.get('dateOfExpiration')}'"
+                f"but got '{ne_privilege_after_change.dateOfExpiration.isoformat()}'"
             )
         logger.info('privilege dateOfExpiration is the new expiration date')
         # now move the home jurisdiction back to the original jurisdiction and verify the privilege is moved back
@@ -340,38 +352,46 @@ def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jur
         # get the provider's information after the home jurisdiction change
         provider_info_after_restore = call_provider_users_me_endpoint()
 
-        # verify the privilege is moved back to the original jurisdiction
-        privileges_after_restore = provider_info_after_restore.get('privileges', [])
-        ne_privilege_after_restore = next(
-            (privilege for privilege in privileges_after_restore if privilege['jurisdiction'] == 'ne'), None
+        # Read privilege directly from database to access homeJurisdictionChangeStatus field
+        provider_id_after_restore = provider_info_after_restore.get('providerId')
+        compact_after_restore = provider_info_after_restore.get('compact')
+        provider_user_records_after_restore = get_provider_user_records(
+            compact=compact_after_restore, provider_id=provider_id_after_restore
         )
-        if not ne_privilege_after_restore:
+        ne_privileges_after_restore = provider_user_records_after_restore.get_privilege_records(
+            filter_condition=lambda p: p.jurisdiction == 'ne'
+        )
+
+        if not ne_privileges_after_restore:
             raise SmokeTestFailureException('Nebraska privilege not found after home jurisdiction change')
-        if ne_privilege_after_restore.get('status') != 'active':
+
+        ne_privilege_after_restore = ne_privileges_after_restore[0]
+
+        if ne_privilege_after_restore.status != 'active':
             raise SmokeTestFailureException(
-                f"Privilege should be 'active', but got '{ne_privilege_after_restore.get('status')}'"
+                f"Privilege should be 'active', but got '{ne_privilege_after_restore.status}'"
             )
         logger.info('privilege still has active status')
 
-        if ne_privilege_after_restore.get('homeJurisdictionChangeStatus') is not None:
+        if ne_privilege_after_restore.homeJurisdictionChangeStatus is not None:
             raise SmokeTestFailureException(
                 f"Privilege should not have 'homeJurisdictionChangeStatus' field but found"
-                f" '{ne_privilege_after_restore.get('homeJurisdictionChangeStatus')}'"
+                f" '{ne_privilege_after_restore.homeJurisdictionChangeStatus}'"
             )
 
         # verify the privilege licenseJurisdiction is the original jurisdiction
-        if ne_privilege_after_restore.get('licenseJurisdiction') != original_jurisdiction:
+        if ne_privilege_after_restore.licenseJurisdiction != original_jurisdiction:
             raise SmokeTestFailureException(
                 f"Privilege licenseJurisdiction should be '{original_jurisdiction}', "
-                f"but got '{ne_privilege_after_restore.get('licenseJurisdiction')}'"
+                f"but got '{ne_privilege_after_restore.licenseJurisdiction}'"
             )
         logger.info('privilege licenseJurisdiction is the original jurisdiction')
 
         # verify the expiration date is the same as the license expiration date
-        if ne_privilege_after_restore.get('dateOfExpiration') != original_expiration_date:
+        if ne_privilege_after_restore.dateOfExpiration.isoformat() != original_expiration_date:
             raise SmokeTestFailureException(
                 f"Privilege dateOfExpiration should be '{original_expiration_date}', "
-                f"but got '{ne_privilege_after_restore.get('dateOfExpiration')}'"
+                f"but got '{ne_privilege_after_restore.dateOfExpiration.isoformat()}'"
             )
         logger.info('privilege dateOfExpiration is the original expiration date')
 
