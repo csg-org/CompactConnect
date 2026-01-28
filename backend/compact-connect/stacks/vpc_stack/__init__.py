@@ -29,7 +29,7 @@ class VpcStack(AppStack):
 
     This stack provides network infrastructure including:
     - VPC with private subnets across multiple availability zones
-    - VPC endpoints for AWS services (CloudWatch Logs, DynamoDB)
+    - VPC endpoints for AWS services (CloudWatch Logs, Lambda, DynamoDB, S3)
     - Security groups for OpenSearch and Lambda functions
     - VPC Flow Logs for network monitoring
 
@@ -151,6 +151,37 @@ class VpcStack(AppStack):
                     'id': 'HIPAA.Security-EC2RestrictedCommonPorts',
                     'reason': 'VPC endpoint security groups are automatically managed by CDK. Only HTTPS (port 443) '
                     'is allowed for CloudWatch Logs communication.',
+                },
+                {
+                    'id': 'HIPAA.Security-EC2RestrictedSSH',
+                    'reason': 'VPC endpoint security groups are automatically managed by CDK. SSH is not enabled on '
+                    'this security group.',
+                },
+            ],
+            apply_to_children=True,
+        )
+
+        # VPC Endpoint for Lambda
+        # This allows Lambda functions in the VPC to invoke other Lambda functions without internet access
+        self.lambda_vpc_endpoint = self.vpc.add_interface_endpoint(
+            'LambdaVpcEndpoint',
+            service=InterfaceVpcEndpointAwsService.LAMBDA_,
+        )
+
+        # Suppress CdkNag warnings for the Lambda VPC endpoint security group
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            path=self.lambda_vpc_endpoint.node.path,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-EC23',
+                    'reason': 'VPC endpoint security groups are automatically managed by CDK. Inbound rules are '
+                    'appropriately restricted to HTTPS (port 443) from VPC CIDR block.',
+                },
+                {
+                    'id': 'HIPAA.Security-EC2RestrictedCommonPorts',
+                    'reason': 'VPC endpoint security groups are automatically managed by CDK. Only HTTPS (port 443) '
+                    'is allowed for Lambda service communication.',
                 },
                 {
                     'id': 'HIPAA.Security-EC2RestrictedSSH',
