@@ -7,6 +7,7 @@ from aws_cdk.aws_ec2 import SubnetSelection
 from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
 from aws_cdk.aws_logs import QueryDefinition, QueryString, RetentionDays
+from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -52,7 +53,6 @@ class ExpirationReminderStack(AppStack):
             index=os.path.join('handlers', 'expiration_reminders.py'),
             lambda_dir='search',
             handler='process_expiration_reminders',
-            role=search_persistent_stack.search_api_lambda_role,
             timeout=Duration.minutes(15),  # 15-minute timeout to handle all providers in single execution
             memory_size=2048,  # Higher memory for processing large result sets
             log_retention=RetentionDays.ONE_MONTH,
@@ -71,8 +71,7 @@ class ExpirationReminderStack(AppStack):
         )
 
         # Grant necessary permissions
-        # OpenSearch access is already configured via search_api_lambda_role which is included
-        # in the domain's resource-based access policies
+        search_persistent_stack.provider_search_domain.grant_search_providers(self.expiration_reminder_handler)
 
         # Read/write access to EventStateTable for idempotency tracking
         event_state_stack.event_state_table.grant_read_write_data(self.expiration_reminder_handler)
@@ -80,10 +79,18 @@ class ExpirationReminderStack(AppStack):
         # Invoke permission for email notification service
         persistent_stack.email_notification_service_lambda.grant_invoke(self.expiration_reminder_handler)
 
-        # Note: Since we're using the shared search_api_lambda_role, NagSuppressions for OpenSearch
-        # permissions are already applied in SearchPersistentStack. The EventStateTable permissions
-        # added by grant_read_write_data use wildcard permissions which is expected for DynamoDB
-        # item-level operations and is consistent with other Lambda functions in the codebase.
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.expiration_reminder_handler.role.node.path}/DefaultPolicy/Resource',
+            [
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The grant_read method requires wildcard permissions on the OpenSearch domain to '
+                    'read from indices. This is appropriate for a function that needs to query '
+                    'provider indices by expiration date.',
+                },
+            ],
+        )
 
         # Create EventBridge rules for each reminder type
         # All rules run daily at midnight UTC-4 (4:00 AM UTC) to process reminders for privileges expiring on the

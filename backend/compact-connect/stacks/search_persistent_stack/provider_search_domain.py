@@ -2,7 +2,7 @@ from aws_cdk import Duration, Fn, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_ec2 import EbsDeviceVolumeType, SubnetSelection, SubnetType
-from aws_cdk.aws_iam import Effect, IRole, PolicyStatement, ServicePrincipal
+from aws_cdk.aws_iam import AccountRootPrincipal, Effect, IPrincipal, IRole, PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, ResourcePolicy, RetentionDays
 from aws_cdk.aws_opensearchservice import (
@@ -79,7 +79,7 @@ class ProviderSearchDomain(Construct):
         self._ingest_lambda_role = ingest_lambda_role
         self._index_manager_lambda_role = index_manager_lambda_role
         self._search_api_lambda_role = search_api_lambda_role
-
+        self._compact_abbreviations = compact_abbreviations
         self._is_prod_environment = environment_name == PROD_ENV_NAME
 
         # Determine removal policy based on environment
@@ -207,9 +207,10 @@ class ProviderSearchDomain(Construct):
         )
 
         # Configure access policies
-        self._configure_access_policies(compact_abbreviations)
+        self._configure_access_policies()
 
         # Grant lambda roles access to domain
+        self.grant_search_providers(self._search_api_lambda_role)
         self.domain.grant_read(self._search_api_lambda_role)
         self.domain.grant_write(self._ingest_lambda_role)
         self.domain.grant_read_write(self._index_manager_lambda_role)
@@ -224,7 +225,7 @@ class ProviderSearchDomain(Construct):
         # Add capacity monitoring alarms
         self._add_capacity_alarms(alarm_topic)
 
-    def _configure_access_policies(self, compact_abbreviations: list[str]):
+    def _configure_access_policies(self):
         """
         Configure access policies for the OpenSearch domain.
 
@@ -255,25 +256,9 @@ class ProviderSearchDomain(Construct):
             ],
             resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
         )
-        # Search API policy - restricted to _search endpoint only
-        # POST is required for _search queries even though they are read-only operations
-        # because OpenSearch's search API uses POST to send the query DSL body.
-        # By restricting the resource to /_search, we prevent POST from being used
-        # for document indexing or other write operations.
-        # See: https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ac.html
-        search_api_policy = PolicyStatement(
-            effect=Effect.ALLOW,
-            principals=[self._search_api_lambda_role],
-            actions=[
-                'es:ESHttpPost',
-            ],
-            # define all compact indices to restrict the policy to the search operation
-            resources=[
-                Fn.join(delimiter='', list_of_values=[self.domain.domain_arn, f'/compact_{compact}_providers/_search'])
-                for compact in compact_abbreviations
-            ],
-        )
-        # Add access policy to restrict access to set of roles
+
+        # Delegate read-only search access to account root, so access can be managed by principal policies.
+        search_api_policy = self._get_search_policy(AccountRootPrincipal())
         self.domain.add_access_policies(
             ingest_access_policy,
             index_manager_access_policy,
@@ -639,4 +624,37 @@ class ProviderSearchDomain(Construct):
                 },
             ],
             apply_to_children=True,
+        )
+
+    def grant_search_providers(self, principal: IPrincipal):
+        """
+        Grant search access to the principal policy.
+        """
+        # Add access policy to restrict access to set of roles
+        principal.grant_principal.add_to_principal_policy(
+            self._get_search_policy(),
+        )
+
+    def _get_search_policy(self, principal: IPrincipal = None):
+        """
+        Generate search access policy. Specifies a principal, if provided.
+
+        Search API policy is restricted to _search endpoint only POST is required for _search queries even though they
+        are read-only operations because OpenSearch's search API uses POST to send the query DSL body.
+        By restricting the resource to /_search, we prevent POST from being used for document indexing or other write
+        operations.
+
+        See: https://docs.aws.amazon.com/opensearch-service/latest/developerguide/ac.html
+        """
+        return PolicyStatement(
+            effect=Effect.ALLOW,
+            actions=[
+                'es:ESHttpPost',
+            ],
+            resources=[
+                Fn.join(delimiter='', list_of_values=[self.domain.domain_arn, f'/compact_{compact}_providers/_search'])
+                for compact in self._compact_abbreviations
+            ],
+            # Can't specify principals if this policy is going on a principal policy
+            **({'principals': [principal.grant_principal]} if principal else {}),
         )
