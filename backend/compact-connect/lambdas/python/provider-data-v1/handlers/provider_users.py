@@ -115,9 +115,8 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
 
         # Publish event for notification processing if feature flag is enabled
         from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
-        if is_feature_enabled(
-            FeatureFlagEnum.HOME_JURISDICTION_CHANGE_NOTIFICATION_FLAG, fail_default=False
-        ):
+
+        if is_feature_enabled(FeatureFlagEnum.HOME_JURISDICTION_CHANGE_NOTIFICATION_FLAG, fail_default=False):
             config.event_bus_client.publish_home_jurisdiction_change_event(
                 source='org.compactconnect.provider-data',
                 compact=compact,

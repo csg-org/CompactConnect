@@ -1048,9 +1048,7 @@ class TestPutProviderHomeJurisdiction(TstFunction):
     # TODO - remove flag mock when flag is removed #noqa: FIX002
     @patch('cc_common.event_bus_client.EventBusClient.publish_home_jurisdiction_change_event')
     @patch('cc_common.feature_flag_client.is_feature_enabled')
-    def test_put_provider_home_jurisdiction_handler_publishes_event(
-        self, mock_is_feature_enabled, mock_publish_event
-    ):
+    def test_put_provider_home_jurisdiction_handler_publishes_event(self, mock_is_feature_enabled, mock_publish_event):
         """Test that provider home jurisdiction handler publishes the correct event."""
         from handlers.provider_users import provider_users_api_handler
 
