@@ -10,7 +10,7 @@ from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
     get_provider_user_auth_headers_cached,
-    load_smoke_test_env,
+    load_smoke_test_env
 )
 
 # This script can be run locally to test the home jurisdiction change flow against a sandbox environment
@@ -20,6 +20,31 @@ from smoke_common import (
 
 
 TEST_EXPIRATION_DATE = '2050-04-04'
+
+
+def test_home_jurisdiction_change_to_oh():
+    """
+    Simple smoke test that sets the practitioner's home state to 'oh' and verifies a 200 response.
+    This test runs first to verify basic functionality before more complex tests.
+    """
+    logger.info('Running basic home jurisdiction change test - setting to oh')
+    # ensure we have jurisdiction config for oh
+    test_jurisdiction_configuration(jurisdiction='oh', recreate_compact_config=True)
+
+    # Set home jurisdiction to 'oh'
+    logger.info('Setting home jurisdiction to oh')
+    response = requests.put(
+        f'{config.api_base_url}/v1/provider-users/me/home-jurisdiction',
+        headers=get_provider_user_auth_headers_cached(),
+        json={'jurisdiction': 'oh'},
+        timeout=30,
+    )
+
+    # Verify the response status code
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Expected 200 status code, got {response.status_code}: {response.text}')
+
+    logger.info(f'Successfully set home jurisdiction to oh. Response: {response.text}')
 
 
 def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction():
@@ -42,13 +67,9 @@ def test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_
 
     original_jurisdiction = provider_info_before.get('currentHomeJurisdiction')
     logger.info(f'Original home jurisdiction: {original_jurisdiction}')
-    new_jurisdiction = 'al'  # Alabama - assuming the provider doesn't have a license here
+    new_jurisdiction = 'other'  # 'other' is the term used by the system for an unlisted jurisdiction
 
-    # we must ensure we have a valid live jurisdiction configuration in place for the current, new, and privilege
-    # states so the privilege can be moved over successfully
-    test_jurisdiction_configuration(jurisdiction=original_jurisdiction, recreate_compact_config=True)
-    test_jurisdiction_configuration(jurisdiction=new_jurisdiction, recreate_compact_config=False)
-    # privilege jurisdiction
+    # we must ensure we have a valid live jurisdiction configuration in place for the privilege jurisdiction
     test_jurisdiction_configuration(jurisdiction='ne', recreate_compact_config=False)
 
     # Purchase a privilege for the provider
@@ -237,6 +258,9 @@ def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jur
     new_jurisdiction = 'al'  # Alabama - assuming the provider doesn't have a license here
     logger.info(f'Original home jurisdiction: {original_jurisdiction}')
 
+    # create jurisdiction config for AL
+    test_jurisdiction_configuration(jurisdiction=new_jurisdiction, recreate_compact_config=False)
+
     # In this test, we temporarily add a valid license for the provider in the new jurisdiction,
     # then move the user to the new jurisdiction
     # and verify that the privilege is moved to the new jurisdiction
@@ -366,6 +390,7 @@ if __name__ == '__main__':
     # Load environment variables from smoke_tests_env.json
     load_smoke_test_env()
 
-    # Run test
+    # Run tests
+    test_home_jurisdiction_change_to_oh()
     test_home_jurisdiction_change_inactivates_privileges_when_no_license_in_new_jurisdiction()
     test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jurisdiction()
