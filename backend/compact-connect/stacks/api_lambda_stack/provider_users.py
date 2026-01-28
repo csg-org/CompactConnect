@@ -5,6 +5,7 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, CfnAlarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_lambda import Code, Function, Runtime
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_secretsmanager import Secret
@@ -26,9 +27,11 @@ class ProviderUsersLambdas:
         persistent_stack: ps.PersistentStack,
         provider_users_stack: ProviderUsersStack,
         api_lambda_stack: als.ApiLambdaStack,
+        data_event_bus: EventBus,
     ) -> None:
         self.persistent_stack = persistent_stack
         self.provider_users_stack = provider_users_stack
+        self.data_event_bus = data_event_bus
         stack = Stack.of(scope)
 
         lambda_environment = {
@@ -41,6 +44,7 @@ class ProviderUsersLambdas:
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
+            'EVENT_BUS_NAME': data_event_bus.event_bus_name,
             **stack.common_env_vars,
         }
 
@@ -379,6 +383,7 @@ class ProviderUsersLambdas:
         self.persistent_stack.provider_users_bucket.grant_read_write(provider_users_me_handler)
         self.persistent_stack.email_notification_service_lambda.grant_invoke(provider_users_me_handler)
         self.persistent_stack.compact_configuration_table.grant_read_data(provider_users_me_handler)
+        self.data_event_bus.grant_put_events_to(provider_users_me_handler)
         # Grant Cognito permissions for email update operations
         self.provider_users_stack.provider_users.grant(provider_users_me_handler, 'cognito-idp:AdminGetUser')
         self.provider_users_stack.provider_users.grant(

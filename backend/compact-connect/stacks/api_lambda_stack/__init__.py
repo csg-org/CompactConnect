@@ -116,6 +116,7 @@ class ApiLambdaStack(AppStack):
             persistent_stack=persistent_stack,
             provider_users_stack=provider_users_stack,
             api_lambda_stack=self,
+            data_event_bus=data_event_bus,
         )
 
         # Provider Management lambdas
