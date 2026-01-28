@@ -839,8 +839,8 @@ class EmailServiceClient:
                 'providerFirstName': provider_first_name,
                 'providerLastName': provider_last_name,
                 'providerId': str(provider_id),
-                'previousJurisdiction': jurisdiction.upper(),
-                'newJurisdiction': new_jurisdiction.upper(),
+                'previousJurisdiction': jurisdiction,
+                'newJurisdiction': new_jurisdiction,
             },
         }
         return self._invoke_lambda(payload)
@@ -853,7 +853,7 @@ class EmailServiceClient:
         provider_first_name: str,
         provider_last_name: str,
         provider_id: UUID,
-        previous_jurisdiction: str | None,
+        previous_jurisdiction: str,
     ) -> dict[str, str]:
         """
         Notify the new home state that a practitioner has selected them as their home jurisdiction.
@@ -863,7 +863,7 @@ class EmailServiceClient:
         :param provider_first_name: Provider's first name
         :param provider_last_name: Provider's last name
         :param provider_id: Provider ID
-        :param previous_jurisdiction: Previous home jurisdiction (can be None)
+        :param previous_jurisdiction: Previous home jurisdiction
         :return: Response from the email notification service
         """
         payload = {
@@ -875,8 +875,8 @@ class EmailServiceClient:
                 'providerFirstName': provider_first_name,
                 'providerLastName': provider_last_name,
                 'providerId': str(provider_id),
-                'previousJurisdiction': previous_jurisdiction.upper(),
-                'newJurisdiction': jurisdiction.upper(),
+                'previousJurisdiction': previous_jurisdiction,
+                'newJurisdiction': jurisdiction,
             },
         }
         return self._invoke_lambda(payload)
