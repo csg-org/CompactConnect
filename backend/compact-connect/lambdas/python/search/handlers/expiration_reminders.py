@@ -290,6 +290,7 @@ def iterate_privileges_by_expiration_date(
                 search_body['search_after'] = search_after
 
             response = opensearch_client.search(index_name=index_name, body=search_body)
+            logger.info('Received response from OpenSearch', hits=response.get('hits', {}).get('total', {}))
             hits = response.get('hits', {}).get('hits', [])
             if not hits:
                 break

@@ -2,7 +2,7 @@ from aws_cdk import Duration, Fn, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_ec2 import EbsDeviceVolumeType, SubnetSelection, SubnetType
-from aws_cdk.aws_iam import AccountRootPrincipal, Effect, IPrincipal, IRole, PolicyStatement, ServicePrincipal
+from aws_cdk.aws_iam import Effect, IPrincipal, IRole, PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_logs import LogGroup, ResourcePolicy, RetentionDays
 from aws_cdk.aws_opensearchservice import (
@@ -210,7 +210,6 @@ class ProviderSearchDomain(Construct):
         self._configure_access_policies()
 
         # Grant lambda roles access to domain
-        self.grant_search_providers(self._search_api_lambda_role)
         self.domain.grant_read(self._search_api_lambda_role)
         self.domain.grant_write(self._ingest_lambda_role)
         self.domain.grant_read_write(self._index_manager_lambda_role)
@@ -257,8 +256,7 @@ class ProviderSearchDomain(Construct):
             resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
         )
 
-        # Delegate read-only search access to account root, so access can be managed by principal policies.
-        search_api_policy = self._get_search_policy(AccountRootPrincipal())
+        search_api_policy = self._get_search_policy(self._search_api_lambda_role)
         self.domain.add_access_policies(
             ingest_access_policy,
             index_manager_access_policy,
