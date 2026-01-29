@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: G004
 """
 Modify existing license CSV data for beta testing.
 
@@ -102,7 +103,7 @@ def modify_csv_file(input_filepath: Path) -> Path:
 
     records_processed = 0
 
-    with open(input_filepath, 'r', encoding='utf-8') as infile:
+    with open(input_filepath, encoding='utf-8') as infile:
         reader = DictReader(infile)
 
         # Verify we have a header
@@ -122,7 +123,7 @@ def modify_csv_file(input_filepath: Path) -> Path:
                 if records_processed % 1000 == 0:
                     sys.stdout.write(f'Processed {records_processed} records...\n')
 
-    return output_filepath, records_processed
+    return output_filepath
 
 
 if __name__ == '__main__':
@@ -148,9 +149,9 @@ if __name__ == '__main__':
         input_path = Path(args.input_file)
         logger.info(f'Reading from: {input_path}')
 
-        output_path, count = modify_csv_file(input_path)
+        output_path = modify_csv_file(input_path)
 
-        logger.info(f'Successfully processed {count} records')
+        logger.info('Successfully processed records')
         logger.info(f'Output written to: {output_path}')
 
     except FileNotFoundError as e:
@@ -159,6 +160,6 @@ if __name__ == '__main__':
     except ValueError as e:
         logger.error(f'Error: {e}')
         sys.exit(1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f'Unexpected error: {e}')
         sys.exit(1)

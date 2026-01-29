@@ -73,7 +73,8 @@ def query_eligible_providers(
         query_start_date = license_uploaded_after
 
         print(
-            f'Querying licenseUploadDateGSI for providers with licenses uploaded after {license_uploaded_after.isoformat()}...'
+            f'Querying licenseUploadDateGSI for providers with licenses uploaded '
+            f'after {license_uploaded_after.isoformat()}...'
         )
         # Iterate through each month from the start date to now
         month_date = query_start_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -134,7 +135,8 @@ def query_eligible_providers(
             checked_count += 1
             if checked_count % 100 == 0:
                 print(
-                    f'  Checked {checked_count}/{len(license_items_to_check)} records, found {len(provider_ids)} eligible providers...'
+                    f'  Checked {checked_count}/{len(license_items_to_check)} records, '
+                    f'found {len(provider_ids)} eligible providers...'
                 )
 
             # Load the full license record using pk and sk
@@ -166,24 +168,24 @@ def query_eligible_providers(
                     provider_ids.add(provider_id)
                     if len(provider_ids) % 10 == 0:
                         print(f'    Found {len(provider_ids)}/{count} unique eligible provider IDs...')
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 print(f'  Warning: Error loading record {pk}/{sk}: {e}')
                 continue
 
         print(f'Found {len(provider_ids)} eligible provider IDs after filtering {checked_count} license records')
         return provider_ids
-    else:
-        # Use the standard licenseGSI
-        # Build GSI PK: C#<compact>#J#<home_state>
-        gsi_pk = f'C#{compact.lower()}#J#{home_state.lower()}'
 
-        # Build query kwargs
-        query_kwargs = {
-            'IndexName': 'licenseGSI',
-            'KeyConditionExpression': Key('licenseGSIPK').eq(gsi_pk),
-        }
+    # Use the standard licenseGSI
+    # Build GSI PK: C#<compact>#J#<home_state>
+    gsi_pk = f'C#{compact.lower()}#J#{home_state.lower()}'
 
-        print(f'Querying licenseGSI for eligible providers in {home_state}...')
+    # Build query kwargs
+    query_kwargs = {
+        'IndexName': 'licenseGSI',
+        'KeyConditionExpression': Key('licenseGSIPK').eq(gsi_pk),
+    }
+
+    print(f'Querying licenseGSI for eligible providers in {home_state}...')
 
     # Add license type filter if specified
     if license_type:
