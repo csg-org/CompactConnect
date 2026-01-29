@@ -19,14 +19,14 @@ attestations:
     displayName: "Personal Information Home State Attestation"
     description: "For declaring that the applicant is a resident of the state they have listed as their home state."
     text: |-
-      I hereby attest and affirm that this is my legal name, my accurate personal information and licensure information and that I am a resident of the state listed on this page.*
+      I hereby attest and affirm that this is my legal name, my accurate personal information and licensure information, and that I am a resident of the Home State listed on this page.*
     required: true
     locale: "en"
   - attestationId: "military-personal-information-state-license-attestation"
     displayName: "Military Personal Information State License Attestation"
     description: "For active military or military spouse declaring that they hold a license in the listed state."
     text: |-
-      As active duty military or the spouse of such, I hereby attest and affirm that this is my personal and licensure information and I hold an eligible license in the state listed on this page.*
+      As active duty military or the spouse of such, I hereby attest and affirm that this is my personal and licensure information and that I hold an eligible license in the Home State listed on this page.*
     required: true
     locale: "en"
   - attestationId: "personal-information-address-attestation"
