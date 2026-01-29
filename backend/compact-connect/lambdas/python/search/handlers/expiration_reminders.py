@@ -7,12 +7,14 @@ from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.compact_configuration_utils import CompactConfigUtility
+from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.email_service_client import PrivilegeExpirationReminderTemplateVariables
 from cc_common.exceptions import CCInvalidRequestException
 from expiration_reminder_tracker import ExpirationEventType, ExpirationReminderTracker
 from opensearch_client import OpenSearchClient
 
-DEFAULT_PAGE_SIZE = 100
+DEFAULT_PAGE_SIZE = 1000
 
 # Map days before expiration to ExpirationEventType
 DAYS_BEFORE_TO_EVENT_TYPE = {
@@ -108,26 +110,17 @@ def process_expiration_reminders(event: dict, context: LambdaContext):  # noqa: 
             expiration_date=expiration_date,
             page_size=DEFAULT_PAGE_SIZE,
         ):
-            matched_privileges = extract_expiring_privileges_from_provider_document(
-                provider_document=provider_doc, expiration_date=expiration_date
-            )
-            if not matched_privileges:
-                continue
-
             compact_provider_count += 1
             metrics = replace(
                 metrics,
-                matched_privileges=metrics.matched_privileges + len(matched_privileges),
                 providers_with_matches=metrics.providers_with_matches + 1,
             )
 
-            # Process this provider's notification
             result = _process_provider_notification(
                 compact=compact,
                 provider_doc=provider_doc,
                 expiration_date=expiration_date,
                 event_type=event_type,
-                matched_privileges=matched_privileges,
             )
             metrics = replace(
                 metrics,
@@ -164,7 +157,6 @@ def _process_provider_notification(
     provider_doc: dict,
     expiration_date: date,
     event_type: ExpirationEventType,
-    matched_privileges: list[dict],
 ) -> dict[str, int]:
     """
     Process a single provider's expiration reminder notification.
@@ -173,15 +165,11 @@ def _process_provider_notification(
     """
     result = {'sent': 0, 'skipped': 0, 'failed': 0, 'already_sent': 0, 'no_email': 0}
 
-    provider_id_str = provider_doc.get('providerId')
-    if not provider_id_str:
-        logger.warning('Provider document missing providerId', compact=compact)
-        result['skipped'] = 1
-        return result
+    provider_id_str = provider_doc['providerId']
 
     try:
         provider_id = UUID(provider_id_str)
-    except ValueError:
+    except (ValueError, TypeError):
         logger.warning('Invalid providerId format', provider_id=provider_id_str, compact=compact)
         result['skipped'] = 1
         return result
@@ -215,24 +203,40 @@ def _process_provider_notification(
         result['already_sent'] = 1
         return result
 
-    # Prepare and send email
-    provider_first_name = provider_doc.get('givenName', 'Provider')
+    # Prepare and send email (provider_doc is schema-validated)
+    provider_first_name = provider_doc['givenName']
 
-    # Format privileges for email template
-    email_privileges = [
-        {
-            'jurisdiction': p.get('jurisdiction', ''),
-            'licenseType': p.get('licenseType', ''),
-            'privilegeId': p.get('privilegeId', ''),
-        }
-        for p in matched_privileges
-    ]
+    try:
+        # Build full privileges list for email (state name, license type, privilege id, ISO date per privilege)
+        email_privileges = []
+        for privilege in provider_doc['privileges']:
+            jurisdiction_code = privilege['jurisdiction']
+            jurisdiction_display = CompactConfigUtility.get_jurisdiction_name(jurisdiction_code)
+            if jurisdiction_display is None:
+                raise ValueError(f'Unknown jurisdiction code for display name: {jurisdiction_code!r}')
+            email_privileges.append({
+                'jurisdiction': jurisdiction_display,
+                'licenseType': privilege['licenseType'],
+                'privilegeId': privilege['privilegeId'],
+                'dateOfExpiration': privilege['dateOfExpiration'],
+            })
 
-    template_variables = PrivilegeExpirationReminderTemplateVariables(
-        provider_first_name=provider_first_name,
-        expiration_date=expiration_date,
-        privileges=email_privileges,
-    )
+        template_variables = PrivilegeExpirationReminderTemplateVariables(
+            provider_first_name=provider_first_name,
+            expiration_date=expiration_date,
+            privileges=email_privileges,
+        )
+    except ValueError as e:  # invalid template data (missing/unknown jurisdiction, date, etc.)
+        tracker.record_failure(error_message=str(e))
+        logger.error(
+            'Failed to build expiration reminder template',
+            provider_id=str(provider_id),
+            compact=compact,
+            event_type=event_type,
+            error=str(e),
+        )
+        result['failed'] = 1
+        return result
 
     try:
         config.email_service_client.send_privilege_expiration_reminder_email(
@@ -290,8 +294,8 @@ def iterate_privileges_by_expiration_date(
                 search_body['search_after'] = search_after
 
             response = opensearch_client.search(index_name=index_name, body=search_body)
-            logger.info('Received response from OpenSearch', hits=response.get('hits', {}).get('total', {}))
-            hits = response.get('hits', {}).get('hits', [])
+            logger.info('Received response from OpenSearch', hits=response['hits']['total'])
+            hits = response['hits']['hits']
             if not hits:
                 break
 
@@ -299,7 +303,7 @@ def iterate_privileges_by_expiration_date(
             if len(hits) < page_size:
                 is_last_page = True
             else:
-                search_after = hits[-1].get('sort')
+                search_after = hits[-1]['sort']
 
             # Reverse the list so we can pop() (O(1)) while maintaining original ordering.
             current_page_hits = list(reversed(hits))
@@ -308,42 +312,24 @@ def iterate_privileges_by_expiration_date(
         yield _provider_document_from_hit(hit)
 
 
-def extract_expiring_privileges_from_provider_document(*, provider_document: dict, expiration_date: date) -> list[dict]:
-    """
-    Return privileges in the provider document expiring on expiration_date and active.
-
-    If the generator merged `inner_hits` into `provider_document['privileges']`, this
-    will typically be a tight list already; we still filter defensively.
-    """
-    privileges = provider_document.get('privileges', []) or []
-    expiration_date_str = expiration_date.isoformat()
-    return [
-        p
-        for p in privileges
-        if p.get('dateOfExpiration') == expiration_date_str and str(p.get('status', '')).lower() == 'active'
-    ]
-
-
 def _provider_document_from_hit(hit: dict) -> dict:
     """
-    Normalize an OpenSearch hit into a provider document shape for downstream processing.
+    Validate an OpenSearch hit's _source as a provider document via ProviderGeneralResponseSchema.
 
-    If `inner_hits.privileges` is present, replace the provider's `privileges` list with
-    only the matched privileges so we don't have to scan the full provider privileges list.
+    Returns the full provider document (including the complete privileges list) for the notification email.
+    Raises ValidationError if the document does not conform to the schema.
     """
-    provider_doc = dict(hit.get('_source', {}) or {})
-
-    inner_hits = (hit.get('inner_hits') or {}).get('privileges', {}).get('hits', {}).get('hits', [])
-    if inner_hits:
-        provider_doc['privileges'] = [ih.get('_source', {}) for ih in inner_hits]
-
-    return provider_doc
+    return ProviderGeneralResponseSchema().load(dict(hit['_source']))
 
 
 def _build_expiration_query(*, expiration_date: date, page_size: int) -> dict:
     return {
         'query': {
             'nested': {
+                # Nested query for privileges
+                # This query is applied to each inner object (privilege) individually, so only privileges that match
+                # the _entire_ query are included in the results. This means that an individual privilege must be both
+                # active _and_ expire on the specified date to be included in the results.
                 'path': 'privileges',
                 'query': {
                     'bool': {
@@ -353,7 +339,6 @@ def _build_expiration_query(*, expiration_date: date, page_size: int) -> dict:
                         ],
                     },
                 },
-                'inner_hits': {'size': 100},
             },
         },
         # Required for search_after pagination

@@ -230,8 +230,18 @@ class TestEmailServiceClient(TstLambdas):
         test_model = self._generate_test_model(mock_lambda_client)
 
         privileges = [
-            {'jurisdiction': 'oh', 'licenseType': 'aud', 'privilegeId': 'AUD-OH-001'},
-            {'jurisdiction': 'ky', 'licenseType': 'slp', 'privilegeId': 'SLP-KY-002'},
+            {
+                'jurisdiction': 'Ohio',
+                'licenseType': 'aud',
+                'privilegeId': 'AUD-OH-001',
+                'dateOfExpiration': '2026-02-16',
+            },
+            {
+                'jurisdiction': 'Kentucky',
+                'licenseType': 'slp',
+                'privilegeId': 'SLP-KY-002',
+                'dateOfExpiration': '2026-03-01',
+            },
         ]
 
         template_variables = PrivilegeExpirationReminderTemplateVariables(
@@ -259,7 +269,7 @@ class TestEmailServiceClient(TstLambdas):
                     ],
                     'templateVariables': {
                         'providerFirstName': 'John',
-                        'expirationDate': 'February 16, 2026',
+                        'expirationDate': '2026-02-16',
                         'privileges': privileges,
                     },
                 }
