@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "query": {
+      "additionalProperties": false,
+      "description": "The query parameters",
+      "properties": {
+        "providerId": {
+          "description": "Internal UUID for the provider",
+          "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+          "type": "string"
+        },
+        "jurisdiction": {
+          "description": "Filter for providers with privilege/license in a jurisdiction",
+          "enum": [
+            "al",
+            "az",
+            "co",
+            "ks",
+            "ky",
+            "md",
+            "oh",
+            "tn",
+            "va",
+            "wa"
+          ],
+          "type": "string"
+        },
+        "givenName": {
+          "description": "Filter for providers with a given name (familyName is required if givenName is provided)",
+          "maxLength": 100,
+          "type": "string"
+        },
+        "familyName": {
+          "description": "Filter for providers with a family name",
+          "maxLength": 100,
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "pagination": {
+      "additionalProperties": false,
+      "properties": {
+        "lastKey": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": "string"
+        },
+        "pageSize": {
+          "maximum": 100,
+          "minimum": 5,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "sorting": {
+      "description": "How to sort results",
+      "properties": {
+        "key": {
+          "description": "The key to sort results by",
+          "enum": [
+            "dateOfUpdate",
+            "familyName"
+          ],
+          "type": "string"
+        },
+        "direction": {
+          "description": "Direction to sort results by",
+          "enum": [
+            "ascending",
+            "descending"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "query"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

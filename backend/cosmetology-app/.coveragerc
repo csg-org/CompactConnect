@@ -1,0 +1,15 @@
+[run]
+data_file = ../.coverage
+
+omit =
+  */site-packages/*
+  */cdk.out/*
+  */smoke-test/*
+  */tests/*
+  */bin/*
+
+[report]
+skip_empty = true
+
+[html]
+directory = coverage

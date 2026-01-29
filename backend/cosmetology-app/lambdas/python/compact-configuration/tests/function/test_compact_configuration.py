@@ -1,0 +1,977 @@
+# ruff: noqa: E501 line-too-long
+import json
+from datetime import datetime
+from unittest.mock import patch
+
+from cc_common.exceptions import CCInternalException
+from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
+from moto import mock_aws
+
+from . import TstFunction
+
+STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions'
+PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE = '/v1/public/compacts/{compact}/jurisdictions'
+LIVE_JURISDICTIONS_ENDPOINT_RESOURCE = '/v1/public/jurisdictions/live'
+
+COMPACT_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}'
+JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE = '/v1/compacts/{compact}/jurisdictions/{jurisdiction}'
+
+
+def generate_test_event(method: str, resource: str, scopes: str = None) -> dict:
+    with open('../common/tests/resources/api-event.json') as f:
+        event = json.load(f)
+        event['httpMethod'] = method
+        event['resource'] = resource
+        event['pathParameters'] = {
+            'compact': 'cosm',
+        }
+
+        if scopes:
+            event['requestContext']['authorizer']['claims']['scope'] = scopes
+
+    return event
+
+
+def load_compact_active_member_jurisdictions(postal_abbreviations: list[str], compact: str = 'cosm'):
+    """Load active member jurisdictions using the TestDataGenerator."""
+    from common_test.test_data_generator import TestDataGenerator
+
+    TestDataGenerator.put_compact_active_member_jurisdictions(
+        compact=compact, postal_abbreviations=postal_abbreviations
+    )
+
+
+@mock_aws
+class TestGetStaffUsersCompactJurisdictions(TstFunction):
+    """Test suite for get compact jurisdiction endpoints."""
+
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_method(self):
+        """Test getting an empty list if no jurisdictions configured."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PATCH', STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'invalid_compact'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid compact abbreviation: invalid_compact'},
+            response_body,
+        )
+
+    def test_get_compact_jurisdictions_returns_empty_list_if_no_active_jurisdictions(self):
+        """Test getting an empty list if no jurisdictions configured."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            [],
+            response_body,
+        )
+
+    def test_get_compact_jurisdictions_returns_list_of_configured_jurisdictions(self):
+        """Test getting list of jurisdictions configured for a compact."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Load jurisdictions and active member jurisdictions
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky', 'oh'])
+
+        event = generate_test_event('GET', STAFF_USERS_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Sort to ensure consistent order for comparison
+        sorted_response = sorted(response_body, key=lambda x: x['postalAbbreviation'])
+
+        self.assertEqual(
+            [
+                {'compact': 'cosm', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'cosm', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+            ],
+            sorted_response,
+        )
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
+class TestGetPublicCompactJurisdictions(TstFunction):
+    """Test suite for get compact jurisdiction endpoints."""
+
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_http_method(self):
+        """Test getting an empty list if no jurisdictions configured."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PATCH', PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
+    def test_get_compact_jurisdictions_returns_invalid_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'invalid_compact'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid compact abbreviation: invalid_compact'},
+            response_body,
+        )
+
+    def test_get_compact_jurisdictions_returns_empty_list_if_no_active_jurisdictions(self):
+        """Test getting an empty list if no jurisdictions configured."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            [],
+            response_body,
+        )
+
+    def test_get_compact_jurisdictions_returns_list_of_configured_jurisdictions(self):
+        """Test getting list of jurisdictions configured for a compact."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Load jurisdictions and active member jurisdictions
+        load_compact_active_member_jurisdictions(postal_abbreviations=['ky', 'oh'])
+
+        event = generate_test_event('GET', PUBLIC_COMPACT_JURISDICTION_ENDPOINT_RESOURCE)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Sort to ensure consistent order for comparison
+        sorted_response = sorted(response_body, key=lambda x: x['postalAbbreviation'])
+
+        self.assertEqual(
+            [
+                {'compact': 'cosm', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'cosm', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+            ],
+            sorted_response,
+        )
+
+    def test_get_public_live_compact_jurisdictions_returns_list_of_all_live_jurisdictions(self):
+        """Test getting list of live jurisdictions across all compacts when no query param provided"""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create compact configurations with some jurisdictions marked as live
+        # COSM compact with some live jurisdictions
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'cosm',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                    {'postalAbbreviation': 'ne', 'isLive': False},
+                ],
+            },
+        )
+
+        # Create event without query params
+        event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event['queryStringParameters'] = None
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Should return all compacts with their live jurisdictions
+        self.assertIn('cosm', response_body)
+
+        # Verify the live jurisdictions for each compact
+        self.assertCountEqual(['oh', 'ky'], response_body['cosm'])
+
+    def test_get_public_live_compact_jurisdictions_returns_list_of_live_jurisdictions_in_compact(self):
+        """Test getting list of live jurisdictions for compact designated through query param"""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create compact configurations
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'cosm',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True},
+                    {'postalAbbreviation': 'oh', 'isLive': True},
+                    {'postalAbbreviation': 'ne', 'isLive': False},
+                ],
+            },
+        )
+
+        # Create event with compact query param
+        event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event['queryStringParameters'] = {'compact': 'cosm'}
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Should only return the specified compact
+        self.assertIn('cosm', response_body)
+
+        # Verify the live jurisdictions
+        self.assertCountEqual(['ky', 'oh'], response_body['cosm'])
+
+    def test_get_public_live_compact_jurisdictions_returns_400_if_bad_compact_param(self):
+        """Test getting list of live jurisdictions returns 400 when invalid query param provided"""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create compact configurations
+        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={
+                'compactAbbr': 'cosm',
+                'configuredStates': [
+                    {'postalAbbreviation': 'ky', 'isLive': True},
+                ],
+            },
+        )
+
+        # Create event with invalid compact query param
+        event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
+        event['queryStringParameters'] = {'compact': 'invalid_compact'}
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Verify the error message
+        self.assertEqual({'message': 'Invalid request query param: invalid_compact'}, response_body)
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
+class TestStaffUsersCompactConfiguration(TstFunction):
+    """Test suite for managing compact configurations."""
+
+    def _when_testing_get_compact_configuration_with_existing_compact_configuration(self):
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table()
+        event = generate_test_event(
+            'GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes=f'{compact_config.compactAbbr}/admin'
+        )
+        event['pathParameters']['compact'] = compact_config['compactAbbr']
+        return event, compact_config
+
+    def _when_testing_put_compact_configuration_with_existing_configuration(self):
+        from cc_common.utils import ResponseEncoder
+
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table()
+
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = compact_config.compactAbbr
+        # add compact admin scope to the event
+        event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        # we only allow the following values in the body
+        event['body'] = json.dumps(
+            {
+                'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
+                'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
+                'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
+                'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
+                'configuredStates': compact_config.configuredStates,
+            },
+            cls=ResponseEncoder,
+        )
+        return event, compact_config
+
+    def _when_testing_put_compact_configuration(self):
+        from cc_common.utils import ResponseEncoder
+
+        compact_config = self.test_data_generator.generate_default_compact_configuration(
+            value_overrides={'licenseeRegistrationEnabled': False}
+        )
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = compact_config.compactAbbr
+        # add compact admin scope to the event
+        event['requestContext']['authorizer']['claims']['scope'] = f'{compact_config.compactAbbr}/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        # we only allow the following values in the body
+        event['body'] = json.dumps(
+            {
+                'licenseeRegistrationEnabled': compact_config.licenseeRegistrationEnabled,
+                'compactOperationsTeamEmails': compact_config.compactOperationsTeamEmails,
+                'compactAdverseActionsNotificationEmails': compact_config.compactAdverseActionsNotificationEmails,
+                'compactSummaryReportNotificationEmails': compact_config.compactSummaryReportNotificationEmails,
+                'configuredStates': compact_config.configuredStates,
+            },
+            cls=ResponseEncoder,
+        )
+        return event, compact_config
+
+    def test_get_compact_configuration_returns_invalid_exception_if_invalid_http_method(self):
+        """Test getting a compact configuration returns an invalid exception if the HTTP method is invalid."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PATCH', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
+    def test_get_compact_configuration_returns_unauthorized_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+        event['pathParameters']['compact'] = 'invalid_compact'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Access denied'},
+            response_body,
+        )
+
+    def test_get_compact_configuration_returns_empty_compact_configuration_if_no_configuration_exists(self):
+        """Test getting a compact configuration returns a compact configuration."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {
+                'compactAbbr': 'cosm',
+                'compactName': 'Cosmetology',
+                'compactOperationsTeamEmails': [],
+                'compactAdverseActionsNotificationEmails': [],
+                'compactSummaryReportNotificationEmails': [],
+                'licenseeRegistrationEnabled': False,
+                'configuredStates': [],
+            },
+            response_body,
+        )
+
+    def test_put_compact_configuration_rejects_invalid_compact_with_auth_error(self):
+        """Test putting a compact configuration rejects an invalid compact abbreviation."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'foo'
+        # add compact admin scope to the event
+        event['requestContext']['authorizer']['claims']['scopes'] = 'cosm/admin'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_rejects_state_admin_with_auth_error(self):
+        """Test putting a compact configuration rejects an invalid compact abbreviation."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['compact'] = 'cosm'
+        # add state admin scope to the event, but not compact admin
+        event['requestContext']['authorizer']['scopes'] = 'oh/cosm.admin'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
+    def test_put_compact_configuration_stores_new_compact_configuration(self):
+        """Test putting a compact configuration stores the compact configuration."""
+        from cc_common.data_model.schema.compact import CompactConfigurationData
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, compact_config = self._when_testing_put_compact_configuration()
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # load the record from the configuration table
+        serialized_compact_config = compact_config.serialize_to_database_record()
+        response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_compact_config['pk'], 'sk': serialized_compact_config['sk']}
+        )
+
+        stored_compact_data = CompactConfigurationData.from_database_record(response['Item'])
+
+        self.assertEqual(compact_config.to_dict(), stored_compact_data.to_dict())
+
+    def test_put_compact_configuration_rejects_disabling_licensee_registration(self):
+        """Test that a compact configuration update is rejected if trying to disable licensee registration after enabling it."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with licenseeRegistrationEnabled=True
+        event, _ = self._when_testing_put_compact_configuration_with_existing_configuration()
+
+        # Now attempt to update with licenseeRegistrationEnabled=False
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = False
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
+
+    def test_put_compact_configuration_rejects_removing_configured_states(self):
+        """Test that removing states from configuredStates is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with some configured states
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'oh', 'isLive': True},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to remove one of the states
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False},
+            # Removed Ohio
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('States cannot be removed from configuredStates', response_body['message'])
+        self.assertIn('oh', response_body['message'])
+
+    def test_put_compact_configuration_rejects_downgrading_is_live_status(self):
+        """Test that changing isLive from true to false is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with a live state
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': True},
+            {'postalAbbreviation': 'oh', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to change Kentucky from live to non-live
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False},  # Changed to false
+            {'postalAbbreviation': 'oh', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('cannot be changed from live to non-live status', response_body['message'])
+        self.assertIn('ky', response_body['message'])
+
+    def test_put_compact_configuration_allows_upgrading_is_live_status(self):
+        """Test that changing isLive from false to true is allowed."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with a non-live state
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now change Kentucky from non-live to live
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': True},  # Changed to true
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be accepted
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the state was updated in the database
+        stored_compact_data = self.config.compact_configuration_client.get_compact_configuration(
+            original_config.compactAbbr
+        )
+        configured_states = stored_compact_data.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], 'ky')
+        self.assertTrue(configured_states[0]['isLive'])
+
+    def test_put_compact_configuration_rejects_adding_new_states(self):
+        """Test that adding new states to configuredStates is rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with one state
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False},
+        ]
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to add a new state
+        event, _ = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'oh', 'isLive': True},  # New state
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('States cannot be manually added to configuredStates', response_body['message'])
+        self.assertIn('oh', response_body['message'])
+
+    def test_put_compact_configuration_rejects_duplicate_configured_states(self):
+        """Test that duplicate states in configuredStates are rejected."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, original_config = self._when_testing_put_compact_configuration()
+        body = json.loads(event['body'])
+        body['configuredStates'] = [
+            {'postalAbbreviation': 'ky', 'isLive': False},
+            {'postalAbbreviation': 'oh', 'isLive': True},
+            {'postalAbbreviation': 'ky', 'isLive': True},  # Duplicate
+        ]
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Duplicate states found in configuredStates', response_body['message'])
+        self.assertIn('ky', response_body['message'])
+        self.assertIn('Each state can only appear once', response_body['message'])
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
+class TestStaffUsersJurisdictionConfiguration(TstFunction):
+    """Test suite for managing jurisdiction configurations."""
+
+    def _when_testing_put_jurisdiction_configuration(self, create_compact=True):
+        from cc_common.utils import ResponseEncoder
+
+        if create_compact:
+            self.test_data_generator.put_default_compact_configuration_in_configuration_table()
+
+        jurisdiction_config = self.test_data_generator.generate_default_jurisdiction_configuration()
+        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters']['jurisdiction'] = jurisdiction_config.postalAbbreviation
+        # add compact admin scope to the event
+        event['requestContext']['authorizer']['claims']['scope'] = (
+            f'{jurisdiction_config.postalAbbreviation}/{jurisdiction_config.compact}.admin'
+        )
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        event['body'] = json.dumps(
+            {
+                'jurisdictionOperationsTeamEmails': jurisdiction_config.jurisdictionOperationsTeamEmails,
+                'jurisdictionAdverseActionsNotificationEmails': jurisdiction_config.jurisdictionAdverseActionsNotificationEmails,
+                'jurisdictionSummaryReportNotificationEmails': jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
+                'licenseeRegistrationEnabled': jurisdiction_config.licenseeRegistrationEnabled,
+                'jurisprudenceRequirements': jurisdiction_config.jurisprudenceRequirements,
+            },
+            cls=ResponseEncoder,
+        )
+
+        return event, jurisdiction_config
+
+    def test_get_jurisdiction_configuration_returns_invalid_exception_if_invalid_http_method(self):
+        """Test getting a jurisdiction configuration returns an invalid exception if the HTTP method is invalid."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PATCH', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event['pathParameters']['jurisdiction'] = 'ky'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid HTTP method'},
+            response_body,
+        )
+
+    def test_get_jurisdiction_configuration_returns_unauthorized_exception_if_invalid_compact(self):
+        """Test getting an error if invalid compact is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event['pathParameters']['compact'] = 'invalid_compact'
+        event['pathParameters']['jurisdiction'] = 'ky'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Access denied'},
+            response_body,
+        )
+
+    def test_get_jurisdiction_configuration_returns_unauthorized_exception_if_invalid_jurisdiction(self):
+        """Test getting an error if invalid jurisdiction is provided."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        self.assertEqual(
+            {'message': 'Access denied'},
+            response_body,
+        )
+
+    def test_get_jurisdiction_configuration_returns_empty_jurisdiction_configuration_if_no_configuration_exists(self):
+        """Test getting a jurisdiction configuration returns a default configuration if none exists."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event['pathParameters']['jurisdiction'] = 'ky'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Verify the jurisdiction name is set correctly from the mapping
+        self.assertEqual(
+            {
+                'compact': 'cosm',
+                'jurisdictionAdverseActionsNotificationEmails': [],
+                'jurisdictionName': 'Kentucky',
+                'jurisdictionOperationsTeamEmails': [],
+                'jurisdictionSummaryReportNotificationEmails': [],
+                'jurisprudenceRequirements': {'linkToDocumentation': None, 'required': False},
+                'licenseeRegistrationEnabled': False,
+                'postalAbbreviation': 'ky',
+            },
+            response_body,
+        )
+
+    def test_get_jurisdiction_configuration_returns_configuration_if_exists(self):
+        """Test getting a jurisdiction configuration returns the existing configuration."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        test_jurisdiction_config = (
+            self.test_data_generator.put_default_jurisdiction_configuration_in_configuration_table()
+        )
+
+        # Now retrieve it
+        event = generate_test_event(
+            'GET',
+            JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE,
+            scopes=f'{test_jurisdiction_config.postalAbbreviation}/{test_jurisdiction_config.compact}.admin',
+        )
+        event['pathParameters']['jurisdiction'] = test_jurisdiction_config.postalAbbreviation
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+        response_body = json.loads(response['body'])
+
+        # Verify the returned configuration matches what we created
+        self.assertEqual(
+            {
+                'compact': test_jurisdiction_config.compact,
+                'jurisdictionName': test_jurisdiction_config.jurisdictionName,
+                'jurisprudenceRequirements': test_jurisdiction_config.jurisprudenceRequirements,
+                'postalAbbreviation': test_jurisdiction_config.postalAbbreviation,
+                'jurisdictionOperationsTeamEmails': test_jurisdiction_config.jurisdictionOperationsTeamEmails,
+                'jurisdictionAdverseActionsNotificationEmails': test_jurisdiction_config.jurisdictionAdverseActionsNotificationEmails,
+                'jurisdictionSummaryReportNotificationEmails': test_jurisdiction_config.jurisdictionSummaryReportNotificationEmails,
+                'licenseeRegistrationEnabled': test_jurisdiction_config.licenseeRegistrationEnabled,
+            },
+            response_body,
+        )
+
+    def test_put_jurisdiction_configuration_rejects_invalid_jurisdiction_with_auth_error(self):
+        """Test putting a jurisdiction configuration rejects an invalid jurisdiction abbreviation."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        # Set the jurisdiction to an invalid one
+        event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
+    def test_put_jurisdiction_configuration_rejects_compact_admin_with_auth_error(self):
+        """Test putting a jurisdiction configuration rejects an update request from a compact admin."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
+        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        # add compact admin scope to the event, but not state admin
+        event['requestContext']['authorizer']['claims']['scope'] = 'cosm/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(403, response['statusCode'])
+        self.assertIn('Access denied', json.loads(response['body'])['message'])
+
+    def test_put_jurisdiction_configuration_stores_jurisdiction_configuration(self):
+        """Test putting a jurisdiction configuration stores the jurisdiction configuration."""
+        from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # load the record from the configuration table
+        serialized_jurisdiction_config = jurisdiction_config.serialize_to_database_record()
+        response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_jurisdiction_config['pk'], 'sk': serialized_jurisdiction_config['sk']}
+        )
+
+        stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(response['Item'])
+
+        self.assertEqual(jurisdiction_config.to_dict(), stored_jurisdiction_data.to_dict())
+
+    def test_put_jurisdiction_configuration_accepts_null_values_for_optional_fields(self):
+        """Test putting a jurisdiction configuration accepts null values for optional fields."""
+        from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
+        from cc_common.utils import ResponseEncoder
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+
+        # Modify the body to include null values for optional fields
+        body = json.loads(event['body'])
+
+        # Set linkToDocumentation to null
+        body['jurisprudenceRequirements'] = {'required': True, 'linkToDocumentation': None}
+
+        event['body'] = json.dumps(body, cls=ResponseEncoder)
+
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        # Verify the configuration was stored with null values
+        serialized_jurisdiction_config = jurisdiction_config.serialize_to_database_record()
+        db_response = self.config.compact_configuration_table.get_item(
+            Key={'pk': serialized_jurisdiction_config['pk'], 'sk': serialized_jurisdiction_config['sk']}
+        )
+
+        stored_jurisdiction_data = JurisdictionConfigurationData.from_database_record(db_response['Item'])
+        stored_dict = stored_jurisdiction_data.to_dict()
+
+        # Verify the optional fields have null values
+        self.assertIsNone(stored_dict['jurisprudenceRequirements']['linkToDocumentation'])
+
+    def test_put_jurisdiction_configuration_rejects_disabling_licensee_registration(self):
+        """Test that a jurisdiction configuration update is rejected if trying to disable licensee registration after enabling it."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a jurisdiction configuration with licenseeRegistrationEnabled=True
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        # Set licenseeRegistrationEnabled to True in the request body
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Now attempt to update with licenseeRegistrationEnabled=False
+        event, _ = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = False
+        event['body'] = json.dumps(body)
+
+        # Should be rejected with a 400 error
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        response_body = json.loads(response['body'])
+        self.assertIn('Once licensee registration has been enabled, it cannot be disabled', response_body['message'])
+
+    def test_put_jurisdiction_configuration_adds_state_to_configured_states_when_enabling_registration(self):
+        """Test that enabling licensee registration automatically adds the state to compact's configuredStates."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with empty configuredStates
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': []}
+        )
+
+        # Create a jurisdiction configuration with licenseeRegistrationEnabled=True
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the configuration
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the state was added to the compact's configuredStates
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], jurisdiction_config.postalAbbreviation)
+        self.assertFalse(configured_states[0]['isLive'])
+
+    def test_put_jurisdiction_configuration_raises_exception_if_compact_configuration_not_found(self):
+        """Test the unlikely but possible scenario that a state sets its status to live
+        and the compact config can't be found."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create a jurisdiction configuration with licenseeRegistrationEnabled=True, without a compact config
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration(create_compact=False)
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # In this case, we raise an exception to fire an alert since the compact config should be present
+        with self.assertRaises(CCInternalException):
+            compact_configuration_api_handler(event, self.mock_context)
+
+    def test_put_jurisdiction_configuration_does_not_add_duplicate_state_to_configured_states(self):
+        """Test that a state is not added to configuredStates if it already exists."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # Create a jurisdiction configuration for the same state with licenseeRegistrationEnabled=True
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Create a compact configuration with the state already in configuredStates
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': [{'postalAbbreviation': 'ky', 'isLive': True}]}
+        )
+
+        # Submit the configuration
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the configuredStates list is unchanged (no duplicate added)
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], 'ky')
+        self.assertTrue(configured_states[0]['isLive'])  # Should preserve existing isLive status
+
+    def test_put_jurisdiction_configuration_only_adds_state_to_compact_when_changing_from_false_to_true(self):
+        """Test that changing licenseeRegistrationEnabled from false to true adds the state to configuredStates."""
+        from handlers.compact_configuration import compact_configuration_api_handler
+
+        # First, create a compact configuration with empty configuredStates
+        compact_config = self.test_data_generator.put_default_compact_configuration_in_configuration_table(
+            value_overrides={'configuredStates': []}
+        )
+
+        # Create a jurisdiction configuration with licenseeRegistrationEnabled=False
+        event, jurisdiction_config = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = False
+        event['body'] = json.dumps(body)
+
+        # Submit the initial configuration
+        compact_configuration_api_handler(event, self.mock_context)
+
+        # Verify the state was not added to configuredStates
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+        self.assertEqual(len(configured_states), 0)
+
+        # Now update to enable licensee registration
+        event, _ = self._when_testing_put_jurisdiction_configuration()
+        body = json.loads(event['body'])
+        body['licenseeRegistrationEnabled'] = True
+        event['body'] = json.dumps(body)
+
+        # Submit the updated configuration
+        response = compact_configuration_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        # Verify the state was added to configuredStates
+        updated_compact_config = self.config.compact_configuration_client.get_compact_configuration(
+            compact_config.compactAbbr
+        )
+        configured_states = updated_compact_config.configuredStates
+
+        self.assertEqual(len(configured_states), 1)
+        self.assertEqual(configured_states[0]['postalAbbreviation'], jurisdiction_config.postalAbbreviation)
+        self.assertFalse(configured_states[0]['isLive'])

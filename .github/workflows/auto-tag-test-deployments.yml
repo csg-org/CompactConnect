@@ -37,6 +37,17 @@ jobs:
 
           echo "Created tag: $TAG_NAME"
 
+      - name: Create Cosmetology Test Tag
+        run: |
+          SHORT_SHA=$(git rev-parse --short ${{ github.sha }})
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="cosm-test-${TIMESTAMP}-${SHORT_SHA}"
+
+          git tag -a "$TAG_NAME" -m "Auto-generated test deployment tag for cosmetology service (commit: ${{ github.sha }})"
+          git push origin "$TAG_NAME"
+
+          echo "Created tag: $TAG_NAME"
+
       # We're deploying the backend and UI in parallel here, since that is _usually_ fine. However,
       # the UI deployment does have some dependencies on the backend, in the form of parameters like
       # S3 bucket urls, cognito domains, etc. If those change, or if new parameters are introduced,

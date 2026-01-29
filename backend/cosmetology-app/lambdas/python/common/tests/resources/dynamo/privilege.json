@@ -1,0 +1,16 @@
+{
+  "pk": "cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "sk": "cosm#PROVIDER#privilege/ne/cos#",
+  "type": "privilege",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "compact": "cosm",
+  "jurisdiction": "ne",
+  "licenseJurisdiction": "oh",
+  "licenseType": "cosmetologist",
+  "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+  "dateOfRenewal": "2020-05-05T12:59:59+00:00",
+  "dateOfExpiration": "2025-04-04",
+  "dateOfUpdate": "2020-05-05T12:59:59+00:00",
+  "privilegeId": "COS-NE-1",
+  "administratorSetStatus": "active"
+}

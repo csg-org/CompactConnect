@@ -1,0 +1,469 @@
+{
+  "properties": {
+    "privileges": {
+      "items": {
+        "properties": {
+          "type": {
+            "enum": [
+              "privilege"
+            ],
+            "type": "string"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "compact": {
+            "enum": [
+              "cosm"
+            ],
+            "type": "string"
+          },
+          "jurisdiction": {
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ],
+            "type": "string"
+          },
+          "licenseJurisdiction": {
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ],
+            "type": "string"
+          },
+          "licenseType": {
+            "enum": [
+              "cosmetologist",
+              "esthetician"
+            ],
+            "type": "string"
+          },
+          "dateOfIssuance": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "dateOfRenewal": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "dateOfExpiration": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "dateOfUpdate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "privilegeId": {
+            "type": "string"
+          },
+          "administratorSetStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "history": {
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "privilegeUpdate"
+                  ],
+                  "type": "string"
+                },
+                "updateType": {
+                  "enum": [
+                    "deactivation",
+                    "expiration",
+                    "issuance",
+                    "other",
+                    "renewal",
+                    "encumbrance",
+                    "lifting_encumbrance",
+                    "licenseDeactivation"
+                  ],
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
+                "jurisdiction": {
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ],
+                  "type": "string"
+                },
+                "licenseType": {
+                  "enum": [
+                    "cosmetologist",
+                    "esthetician"
+                  ],
+                  "type": "string"
+                },
+                "dateOfUpdate": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "previous": {
+                  "properties": {
+                    "administratorSetStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "dateOfExpiration": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "type": "string"
+                    },
+                    "dateOfIssuance": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "type": "string"
+                    },
+                    "dateOfRenewal": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "type": "string"
+                    },
+                    "dateOfUpdate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "licenseJurisdiction": {
+                      "enum": [
+                        "al",
+                        "az",
+                        "co",
+                        "ks",
+                        "ky",
+                        "md",
+                        "oh",
+                        "tn",
+                        "va",
+                        "wa"
+                      ],
+                      "type": "string"
+                    },
+                    "privilegeId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "administratorSetStatus",
+                    "dateOfExpiration",
+                    "dateOfIssuance",
+                    "dateOfRenewal",
+                    "dateOfUpdate",
+                    "licenseJurisdiction",
+                    "privilegeId"
+                  ],
+                  "type": "object"
+                },
+                "updatedValues": {
+                  "properties": {
+                    "administratorSetStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "dateOfExpiration": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "type": "string"
+                    },
+                    "dateOfIssuance": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "type": "string"
+                    },
+                    "dateOfRenewal": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                      "type": "string"
+                    },
+                    "dateOfUpdate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "licenseJurisdiction": {
+                      "enum": [
+                        "al",
+                        "az",
+                        "co",
+                        "ks",
+                        "ky",
+                        "md",
+                        "oh",
+                        "tn",
+                        "va",
+                        "wa"
+                      ],
+                      "type": "string"
+                    },
+                    "privilegeId": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "type",
+                "updateType",
+                "providerId",
+                "compact",
+                "jurisdiction",
+                "licenseType",
+                "dateOfUpdate",
+                "previous",
+                "updatedValues"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "adverseActions": {
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "adverseAction"
+                  ],
+                  "type": "string"
+                },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "jurisdiction": {
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ],
+                  "type": "string"
+                },
+                "licenseTypeAbbreviation": {
+                  "type": "string"
+                },
+                "licenseType": {
+                  "type": "string"
+                },
+                "actionAgainst": {
+                  "type": "string"
+                },
+                "effectiveStartDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "creationDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "adverseActionId": {
+                  "type": "string"
+                },
+                "effectiveLiftDate": {
+                  "format": "date",
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string"
+                },
+                "dateOfUpdate": {
+                  "format": "date-time",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "compact",
+                "providerId",
+                "jurisdiction",
+                "licenseTypeAbbreviation",
+                "licenseType",
+                "actionAgainst",
+                "effectiveStartDate",
+                "creationDate",
+                "adverseActionId",
+                "dateOfUpdate"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "type",
+          "providerId",
+          "compact",
+          "jurisdiction",
+          "licenseJurisdiction",
+          "licenseType",
+          "dateOfIssuance",
+          "dateOfRenewal",
+          "dateOfExpiration",
+          "dateOfUpdate",
+          "administratorSetStatus",
+          "privilegeId",
+          "status"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "type": {
+      "enum": [
+        "provider"
+      ],
+      "type": "string"
+    },
+    "providerId": {
+      "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+      "type": "string"
+    },
+    "npi": {
+      "pattern": "^[0-9]{10}$",
+      "type": "string"
+    },
+    "givenName": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "middleName": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "familyName": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "suffix": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "compact": {
+      "enum": [
+        "cosm"
+      ],
+      "type": "string"
+    },
+    "licenseJurisdiction": {
+      "enum": [
+        "al",
+        "az",
+        "co",
+        "ks",
+        "ky",
+        "md",
+        "oh",
+        "tn",
+        "va",
+        "wa"
+      ],
+      "type": "string"
+    },
+    "privilegeJurisdictions": {
+      "items": {
+        "enum": [
+          "al",
+          "az",
+          "co",
+          "ks",
+          "ky",
+          "md",
+          "oh",
+          "tn",
+          "va",
+          "wa"
+        ],
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "dateOfUpdate": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "providerId",
+    "dateOfUpdate",
+    "compact",
+    "licenseJurisdiction",
+    "givenName",
+    "familyName",
+    "privilegeJurisdictions"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

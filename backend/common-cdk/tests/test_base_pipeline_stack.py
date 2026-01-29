@@ -32,7 +32,7 @@ class ConcretePipelineStack(BasePipelineStack):
         *,
         environment_name,
         env,
-        pipeline_type,
+        pipeline_context_parameter_name,
         removal_policy,
         pipeline_access_logs_bucket,
         standard_tags,
@@ -45,7 +45,7 @@ class ConcretePipelineStack(BasePipelineStack):
         :param construct_id: The construct ID for this stack.
         :param environment_name: The environment name.
         :param env: The AWS environment.
-        :param pipeline_type: The pipeline type (Backend or Frontend).
+        :param pipeline_context_parameter_name: The SSM parameter name for the pipeline context.
         :param removal_policy: The removal policy.
         :param pipeline_access_logs_bucket: The access logs bucket.
         :param standard_tags: Standard tags for the stack.
@@ -56,7 +56,7 @@ class ConcretePipelineStack(BasePipelineStack):
             construct_id,
             environment_name=environment_name,
             env=env,
-            pipeline_type=pipeline_type,
+            pipeline_context_parameter_name=pipeline_context_parameter_name,
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             standard_tags=standard_tags,
@@ -107,7 +107,7 @@ class TestBasePipelineStackBackend(TestCase):
             'TestPipelineStack',
             environment_name=TEST_ENVIRONMENT_NAME,
             env=self.env,
-            pipeline_type=CCPipelineType.BACKEND,
+            pipeline_context_parameter_name=f'{TEST_ENVIRONMENT_NAME}-compact-connect-context',
             removal_policy=RemovalPolicy.DESTROY,
             pipeline_access_logs_bucket=self.access_logs_bucket,
             standard_tags=self.standard_tags,
@@ -134,7 +134,7 @@ class TestBasePipelineStackBackend(TestCase):
             'TestPipelineStackBackend',
             environment_name=TEST_ENVIRONMENT_NAME,
             env=self.env,
-            pipeline_type=CCPipelineType.BACKEND,
+            pipeline_context_parameter_name=f'{TEST_ENVIRONMENT_NAME}-compact-connect-context',
             removal_policy=RemovalPolicy.DESTROY,
             pipeline_access_logs_bucket=self.access_logs_bucket,
             standard_tags=self.standard_tags,
@@ -182,7 +182,7 @@ class TestBasePipelineStackBackend(TestCase):
             'TestPipelineStack',
             environment_name=TEST_ENVIRONMENT_NAME,
             env=self.env,
-            pipeline_type=CCPipelineType.BACKEND,
+            pipeline_context_parameter_name=f'{TEST_ENVIRONMENT_NAME}-compact-connect-context',
             removal_policy=RemovalPolicy.DESTROY,
             pipeline_access_logs_bucket=self.access_logs_bucket,
             standard_tags=self.standard_tags,
@@ -243,7 +243,7 @@ class TestBasePipelineStackBackend(TestCase):
             'TestPipelineStackBackend',
             environment_name=TEST_ENVIRONMENT_NAME,
             env=self.env,
-            pipeline_type=CCPipelineType.BACKEND,
+            pipeline_context_parameter_name=f'{TEST_ENVIRONMENT_NAME}-compact-connect-context',
             removal_policy=RemovalPolicy.DESTROY,
             pipeline_access_logs_bucket=self.access_logs_bucket,
             standard_tags=self.standard_tags,
@@ -307,7 +307,7 @@ class TestBasePipelineStackFrontend(TestCase):
             'TestPipelineStack',
             environment_name=TEST_ENVIRONMENT_NAME,
             env=self.env,
-            pipeline_type=CCPipelineType.FRONTEND,
+            pipeline_context_parameter_name=f'{TEST_ENVIRONMENT_NAME}-ui-compact-connect-context',
             removal_policy=RemovalPolicy.RETAIN,
             pipeline_access_logs_bucket=self.access_logs_bucket,
             standard_tags=self.standard_tags,
@@ -334,7 +334,7 @@ class TestBasePipelineStackFrontend(TestCase):
             'TestPipelineStackFrontend',
             environment_name=TEST_ENVIRONMENT_NAME,
             env=self.env,
-            pipeline_type=CCPipelineType.FRONTEND,
+            pipeline_context_parameter_name=f'{TEST_ENVIRONMENT_NAME}-ui-compact-connect-context',
             removal_policy=RemovalPolicy.DESTROY,
             pipeline_access_logs_bucket=self.access_logs_bucket,
             standard_tags=self.standard_tags,
@@ -382,7 +382,7 @@ class TestBasePipelineStackFrontend(TestCase):
             'TestPipelineStackFrontend',
             environment_name=TEST_ENVIRONMENT_NAME,
             env=self.env,
-            pipeline_type=CCPipelineType.FRONTEND,
+            pipeline_context_parameter_name=f'{TEST_ENVIRONMENT_NAME}-ui-compact-connect-context',
             removal_policy=RemovalPolicy.DESTROY,
             pipeline_access_logs_bucket=self.access_logs_bucket,
             standard_tags=self.standard_tags,
