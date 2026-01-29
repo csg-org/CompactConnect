@@ -470,6 +470,29 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.licenseType
             );
             break;
+        case 'homeJurisdictionChangeOldStateNotification':
+        case 'homeJurisdictionChangeNewStateNotification':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for home jurisdiction change notification template.');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.providerId
+                || !event.templateVariables?.previousJurisdiction
+                || !event.templateVariables?.newJurisdiction) {
+                throw new Error('Missing required template variables for home jurisdiction change notification template.');
+            }
+            // Both templates call the same method
+            await this.emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.previousJurisdiction,
+                event.templateVariables.newJurisdiction
+            );
+            break;
         default:
             logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);
