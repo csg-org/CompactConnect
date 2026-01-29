@@ -241,7 +241,6 @@ def create_privilege_record(
     compact: str,
     privilege_state: str,
     transaction_id: str,
-    privilege_number: int,
     license_type: str | None = None,
 ) -> dict:
     """Create a privilege record for the provider."""
@@ -273,6 +272,8 @@ def create_privilege_record(
 
     # Get license type abbreviation
     license_type_abbr: str = config.license_type_abbreviations[compact][license_type]
+    # Claim privilege number for this provider
+    privilege_number = config.data_client.claim_privilege_number(compact)
 
     # Format privilege ID
     privilege_id = f'{license_type_abbr.upper()}-{privilege_state.upper()}-{int(privilege_number)}'
@@ -449,9 +450,6 @@ def main():
             break
         transaction_id = generate_transaction_id()
 
-        # Claim privilege number for this provider
-        privilege_number = data_client.claim_privilege_number(args.compact)
-
         # Load full provider records to get license information
         # Convert provider_id to UUID if it's a string
         provider_id_uuid = UUID(provider_id) if isinstance(provider_id, str) else provider_id
@@ -493,7 +491,6 @@ def main():
             args.compact,
             args.privilege_state,
             transaction_id,
-            privilege_number,
             args.license_type,
         )
 
@@ -513,7 +510,7 @@ def main():
             )
 
             processed_count += 1
-            print(f'Created privilege for provider {provider_id} (privilege number {privilege_number})')
+            print(f'Created privilege for provider {provider_id} (privilege id {privilege_record["privilegeId"]})')
 
         except Exception as e:
             print(f'Error creating privilege for provider {provider_id}: {e}')
