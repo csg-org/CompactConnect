@@ -18,7 +18,7 @@ from . import TstFunction
 class TestHomeJurisdictionChangeEvents(TstFunction):
     """Test suite for home jurisdiction change event handlers."""
 
-    def _generate_home_jurisdiction_change_message(self, previous_jurisdiction: str | None, new_jurisdiction: str):
+    def _generate_home_jurisdiction_change_message(self, previous_jurisdiction: str, new_jurisdiction: str):
         """Generate a test EventBridge message for home jurisdiction change events."""
         return {
             'detail': {
@@ -160,7 +160,7 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
             }
         )
 
-        message = self._generate_home_jurisdiction_change_message(None, 'tx')
+        message = self._generate_home_jurisdiction_change_message(OTHER_JURISDICTION, 'tx')
         event = self._create_sqs_event(message)
 
         # Execute the handler
