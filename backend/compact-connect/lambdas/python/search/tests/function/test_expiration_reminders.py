@@ -8,35 +8,20 @@ from tests import TstLambdas
 class TestExpirationRemindersOpenSearch(TstLambdas):
     """Tests for OpenSearch query and data extraction."""
 
-    def test_extract_expiring_privileges_filters_by_date_and_active_status(self):
-        from handlers.expiration_reminders import extract_expiring_privileges_from_provider_document
-
-        expiration_date = date(2026, 2, 16)
-        provider_doc = {
-            'providerId': 'p1',
-            'privileges': [
-                {'privilegeId': 'a', 'dateOfExpiration': '2026-02-16', 'status': 'active'},
-                {'privilegeId': 'b', 'dateOfExpiration': '2026-02-16', 'status': 'inactive'},
-                {'privilegeId': 'c', 'dateOfExpiration': '2026-02-15', 'status': 'active'},
-            ],
-        }
-
-        matched = extract_expiring_privileges_from_provider_document(
-            provider_document=provider_doc,
-            expiration_date=expiration_date,
-        )
-
-        self.assertEqual([{'privilegeId': 'a', 'dateOfExpiration': '2026-02-16', 'status': 'active'}], matched)
-
     def test_iterate_privileges_by_expiration_date_paginates_with_search_after_and_yields_in_order(self):
-        # Patch the module-level opensearch_client used by the generator
-        with patch('handlers.expiration_reminders.opensearch_client') as mock_client:
+        # Patch the module-level opensearch_client and schema load (validation would require full fixture)
+        with (
+            patch('handlers.expiration_reminders.opensearch_client') as mock_client,
+            patch('handlers.expiration_reminders.ProviderGeneralResponseSchema') as mock_schema_class,
+        ):
             mock_client.search = MagicMock()
+            mock_schema_class.return_value.load.side_effect = lambda doc: doc
 
             # Page 1: p1, p2
             mock_client.search.side_effect = [
                 {
                     'hits': {
+                        'total': {'value': 3, 'relation': 'eq'},
                         'hits': [
                             {
                                 '_source': {'providerId': 'p1', 'privileges': []},
@@ -46,18 +31,19 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
                                 '_source': {'providerId': 'p2', 'privileges': []},
                                 'sort': ['p2'],
                             },
-                        ]
+                        ],
                     }
                 },
                 # Page 2: p3
                 {
                     'hits': {
+                        'total': {'value': 3, 'relation': 'eq'},
                         'hits': [
                             {
                                 '_source': {'providerId': 'p3', 'privileges': []},
                                 'sort': ['p3'],
                             }
-                        ]
+                        ],
                     }
                 },
             ]
@@ -84,33 +70,45 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
             self.assertEqual(second_call_kwargs['index_name'], 'compact_aslp_providers')
             self.assertEqual(second_call_kwargs['body']['search_after'], ['p2'])
 
-    def test_iterate_privileges_by_expiration_date_merges_inner_hits_privileges_into_provider_document(self):
-        with patch('handlers.expiration_reminders.opensearch_client') as mock_client:
+    def test_iterate_privileges_by_expiration_date_returns_full_provider_document(self):
+        """Provider document includes full privileges list from _source (no inner_hits filtering)."""
+        with (
+            patch('handlers.expiration_reminders.opensearch_client') as mock_client,
+            patch('handlers.expiration_reminders.ProviderGeneralResponseSchema') as mock_schema_class,
+        ):
+            full_privileges = [
+                {
+                    'privilegeId': 'a',
+                    'jurisdiction': 'oh',
+                    'licenseType': 'aud',
+                    'dateOfExpiration': '2026-02-16',
+                    'status': 'active',
+                },
+                {
+                    'privilegeId': 'b',
+                    'jurisdiction': 'ky',
+                    'licenseType': 'slp',
+                    'dateOfExpiration': '2026-03-01',
+                    'status': 'active',
+                },
+            ]
             mock_client.search = MagicMock(
                 return_value={
                     'hits': {
+                        'total': {'value': 1, 'relation': 'eq'},
                         'hits': [
                             {
                                 '_source': {
                                     'providerId': 'p1',
-                                    'privileges': [{'privilegeId': 'should_be_replaced'}],
+                                    'privileges': full_privileges,
                                 },
                                 'sort': ['p1'],
-                                'inner_hits': {
-                                    'privileges': {
-                                        'hits': {
-                                            'hits': [
-                                                {'_source': {'privilegeId': 'a'}},
-                                                {'_source': {'privilegeId': 'b'}},
-                                            ]
-                                        }
-                                    }
-                                },
                             }
-                        ]
+                        ],
                     }
                 }
             )
+            mock_schema_class.return_value.load.side_effect = lambda doc: doc
 
             from handlers.expiration_reminders import iterate_privileges_by_expiration_date
 
@@ -123,7 +121,7 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
             )
 
             self.assertEqual(provider_doc['providerId'], 'p1')
-            self.assertEqual(provider_doc['privileges'], [{'privilegeId': 'a'}, {'privilegeId': 'b'}])
+            self.assertEqual(provider_doc['privileges'], full_privileges)
 
 
 class TestProcessExpirationReminders(TstLambdas):
@@ -187,6 +185,16 @@ class TestProcessExpirationReminders(TstLambdas):
             self.assertEqual(resp['metrics']['failed'], 0)
             self.assertEqual(resp['daysBefore'], 30)
             mock_email_client.send_privilege_expiration_reminder_email.assert_called_once()
+            call_kwargs = mock_email_client.send_privilege_expiration_reminder_email.call_args.kwargs
+            tv = call_kwargs['template_variables']
+            self.assertEqual(tv.provider_first_name, 'John')
+            self.assertEqual(tv.expiration_date.isoformat(), '2026-02-16')
+            self.assertEqual(len(tv.privileges), 1)
+            priv = tv.privileges[0]
+            self.assertEqual(priv['jurisdiction'], 'Ohio', 'jurisdiction must be full state name')
+            self.assertEqual(priv['licenseType'], 'aud')
+            self.assertEqual(priv['privilegeId'], 'a')
+            self.assertEqual(priv['dateOfExpiration'], '2026-02-16', 'dateOfExpiration must be ISO 8601')
             mock_tracker_instance.record_success.assert_called_once()
 
             # Verify tracker was created with correct event_type
@@ -270,6 +278,36 @@ class TestProcessExpirationReminders(TstLambdas):
             self.assertEqual(resp['metrics']['failed'], 1)
             mock_tracker_instance.record_failure.assert_called_once()
             self.assertIn('Email service down', mock_tracker_instance.record_failure.call_args.kwargs['error_message'])
+
+    def test_handler_records_failure_when_privilege_has_unknown_jurisdiction(self):
+        """Unknown jurisdiction code raises when building template; handler records failure."""
+        with (
+            patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date') as mock_iter,
+            patch('handlers.expiration_reminders.config') as mock_config,
+            patch('handlers.expiration_reminders.ExpirationReminderTracker') as mock_tracker_class,
+        ):
+            mock_config.compacts = ['aslp']
+            mock_email_client = MagicMock()
+            mock_config.email_service_client = mock_email_client
+
+            mock_tracker_instance = MagicMock()
+            mock_tracker_instance.was_already_sent.return_value = False
+            mock_tracker_class.return_value = mock_tracker_instance
+
+            # Privilege with jurisdiction not in CompactConfigUtility.JURISDICTION_NAME_MAPPING
+            doc = self._make_provider_doc()
+            doc['privileges'][0]['jurisdiction'] = 'xx'
+            mock_iter.return_value = iter([doc])
+
+            from handlers.expiration_reminders import process_expiration_reminders
+
+            resp = process_expiration_reminders(self._make_event(), self.mock_context)
+
+            self.assertEqual(resp['metrics']['sent'], 0)
+            self.assertEqual(resp['metrics']['failed'], 1)
+            mock_tracker_instance.record_failure.assert_called_once()
+            failure_msg = mock_tracker_instance.record_failure.call_args.kwargs['error_message']
+            self.assertIn('Unknown jurisdiction', failure_msg)
 
     def test_handler_validates_days_before_value(self):
         from cc_common.exceptions import CCInvalidRequestException

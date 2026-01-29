@@ -45,7 +45,7 @@ class PrivilegeExpirationReminderTemplateVariables:
 
     provider_first_name: str
     expiration_date: date
-    privileges: list[dict]  # Each dict has: jurisdiction, licenseType, privilegeId
+    privileges: list[dict]
 
 
 class ProviderNotificationMethod(Protocol):
@@ -832,7 +832,7 @@ class EmailServiceClient:
 
         :param compact: Compact name
         :param provider_email: Email address of the provider
-        :param template_variables: Template variables for the email (provider name, expiration date, privileges)
+        :param template_variables: Provider name, expiration date, privileges (state, license type, id, date).
         :return: Response from the email notification service
         """
         payload = {
@@ -842,7 +842,7 @@ class EmailServiceClient:
             'specificEmails': [provider_email],
             'templateVariables': {
                 'providerFirstName': template_variables.provider_first_name,
-                'expirationDate': template_variables.expiration_date.strftime('%B %d, %Y'),
+                'expirationDate': template_variables.expiration_date.isoformat(),
                 'privileges': template_variables.privileges,
             },
         }
