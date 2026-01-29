@@ -7,7 +7,9 @@
     "EventPattern": {
       "detail-type": [
         {
-          "prefix": ""
+          "anything-but": [
+            "provider.homeJurisdictionChange"
+          ]
         }
       ]
     },
