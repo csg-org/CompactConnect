@@ -36,7 +36,7 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_old_state_notification')
     @patch('cc_common.email_service_client.EmailServiceClient.send_home_jurisdiction_change_new_state_notification')
-    def test_both_states_notified_when_changing_to_compact_state(self, mock_send_new_state, mock_send_old_state):
+    def test_both_states_notified_when_changing_compact_state(self, mock_send_new_state, mock_send_old_state):
         """Test that both old and new states are notified when changing to another compact state."""
         from handlers.home_jurisdiction_events import home_jurisdiction_change_notification_listener
 
