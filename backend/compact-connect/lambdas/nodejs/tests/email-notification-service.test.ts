@@ -631,6 +631,118 @@ describe('EmailNotificationServiceLambda', () => {
         });
     });
 
+    describe('Privilege Expiration Reminder', () => {
+        const SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT: EmailNotificationEvent = {
+            template: 'privilegeExpirationReminder',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['provider@example.com'],
+            templateVariables: {
+                providerFirstName: 'Mary',
+                expirationDate: '2026-02-16',
+                privileges: [
+                    {
+                        jurisdiction: 'Ohio',
+                        licenseType: 'audiologist',
+                        privilegeId: 'AUD-OH-001',
+                        dateOfExpiration: '2026-02-16',
+                    },
+                    {
+                        jurisdiction: 'Kentucky',
+                        licenseType: 'speech-language pathologist',
+                        privilegeId: 'SLP-KY-002',
+                        dateOfExpiration: '2026-03-01',
+                    },
+                ],
+            },
+        };
+
+        it('should successfully send privilege expiration reminder email with new payload', async () => {
+            const response = await lambda.handler(SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockSESClient).toHaveReceivedCommandTimes(SendEmailCommand, 1);
+            const sendCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const input = sendCall.args[0].input;
+            expect(input.Destination?.ToAddresses).toEqual(['provider@example.com']);
+            expect(input.Content?.Simple?.Subject?.Data).toBe('Your Compact Connect Privileges Expire on February 16, 2026');
+            const htmlData = input.Content?.Simple?.Body?.Html?.Data ?? '';
+            expect(htmlData).toContain('Privilege Expiration Reminder');
+            expect(htmlData).toContain('Hello Mary');
+            expect(htmlData).toContain('February 16, 2026');
+            expect(htmlData).toContain('Ohio, audiologist');
+            expect(htmlData).toContain('#AUD-OH-001');
+            expect(htmlData).toContain('Kentucky, speech-language pathologist');
+            expect(htmlData).toContain('#SLP-KY-002');
+        });
+
+        it('should throw error when no recipients found', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for privilege expiration reminder email');
+        });
+
+        it('should throw error when required template variables missing', async () => {
+            const eventMissingVars: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventMissingVars, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for privilegeExpirationReminder template');
+        });
+
+        it('should throw error when privileges array is empty', async () => {
+            const eventEmptyPrivileges: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT,
+                templateVariables: {
+                    ...SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT.templateVariables,
+                    privileges: []
+                }
+            };
+
+            await expect(lambda.handler(eventEmptyPrivileges, {} as any))
+                .rejects
+                .toThrow('privilegeExpirationReminder template requires a non-empty privileges array');
+        });
+
+        it('should throw error when privilege row missing required fields', async () => {
+            const eventInvalidPrivilege: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT,
+                templateVariables: {
+                    ...SAMPLE_PRIVILEGE_EXPIRATION_REMINDER_EVENT.templateVariables,
+                    privileges: [
+                        {
+                            jurisdiction: 'Ohio',
+                            licenseType: 'audiologist',
+                            privilegeId: 'AUD-OH-001',
+                            dateOfExpiration: '2026-02-16',
+                        },
+                        {
+                            jurisdiction: 'Kentucky',
+                            privilegeId: 'SLP-KY-002',
+                            dateOfExpiration: '2026-03-01',
+                            // missing licenseType
+                        },
+                    ],
+                }
+            };
+
+            await expect(lambda.handler(eventInvalidPrivilege, {} as any))
+                .rejects
+                .toThrow(/Invalid privilege at index 1/);
+        });
+    });
+
     describe('Multiple Registration Attempt Notification', () => {
         const SAMPLE_MULTIPLE_REGISTRATION_ATTEMPT_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'multipleRegistrationAttemptNotification',

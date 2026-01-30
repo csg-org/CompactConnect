@@ -8,7 +8,7 @@ import { Context } from 'aws-lambda';
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
-import { EmailNotificationService, EncumbranceNotificationService, InvestigationNotificationService } from '../lib/email';
+import { EmailNotificationService, EncumbranceNotificationService, InvestigationNotificationService, type PrivilegeExpirationReminderRow } from '../lib/email';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
@@ -384,6 +384,35 @@ export class Lambda implements LambdaInterface {
                 event.compact,
                 event.specificEmails,
                 event.templateVariables?.auditNote || ''
+            );
+            break;
+        case 'privilegeExpirationReminder':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for privilege expiration reminder email');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.expirationDate
+                || !event.templateVariables?.privileges) {
+                throw new Error('Missing required template variables for privilegeExpirationReminder template.');
+            }
+            const privileges = event.templateVariables.privileges as Array<{ jurisdiction?: string; licenseType?: string; privilegeId?: string; dateOfExpiration?: string }>;
+            if (!Array.isArray(privileges) || privileges.length === 0) {
+                throw new Error('privilegeExpirationReminder template requires a non-empty privileges array.');
+            }
+            for (let i = 0; i < privileges.length; i++) {
+                const p = privileges[i];
+                if (!p?.jurisdiction || !p?.licenseType || !p?.privilegeId || !p?.dateOfExpiration) {
+                    throw new Error(
+                        `privilegeExpirationReminder template requires each privilege to have jurisdiction, licenseType, privilegeId, and dateOfExpiration (ISO 8601). Invalid privilege at index ${i}.`
+                    );
+                }
+            }
+            await this.emailService.sendPrivilegeExpirationReminderEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.expirationDate,
+                privileges as PrivilegeExpirationReminderRow[]
             );
             break;
         case 'licenseInvestigationStateNotification':
