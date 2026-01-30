@@ -176,7 +176,7 @@ export class Licensee implements InterfaceLicensee {
         let stateNames: Array<string> = [];
 
         if (this.privileges?.length) {
-            stateNames = this.privileges.filter((privilege: License) => (privilege?.status === LicenseStatus.ACTIVE)).map((privilege: License) => privilege?.issueState?.name() || '');
+            stateNames = this.privileges.map((privilege: License) => privilege?.issueState?.name() || '');
         } else {
             stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }

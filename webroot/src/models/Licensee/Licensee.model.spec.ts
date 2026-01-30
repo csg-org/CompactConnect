@@ -191,7 +191,7 @@ describe('Licensee model', () => {
         expect(licensee.getStateListDisplay([])).to.equal('');
         expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
-        expect(licensee.privilegeStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.statusDisplay()).to.equal('Active');
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
