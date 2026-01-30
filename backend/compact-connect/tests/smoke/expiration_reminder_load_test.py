@@ -348,7 +348,7 @@ def find_lambda_function_name(partial_name: str) -> str:
         raise SmokeTestFailureException(f'Failed to list Lambda functions: {str(e)}') from e
 
 
-def invoke_expiration_reminder_lambda(days_before: int):
+def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
     """
     Invoke the expiration reminder Lambda asynchronously and poll CloudWatch Logs for completion.
 
@@ -356,7 +356,8 @@ def invoke_expiration_reminder_lambda(days_before: int):
     Polls CloudWatch Logs to find the completion message with metrics.
 
     :param days_before: Days before expiration (30, 7, or 0)
-    :return: Dict containing targetDate, daysBefore, and metrics
+    :param compact: Compact to process (e.g. 'aslp', 'coun', 'octp')
+    :return: Dict containing targetDate, daysBefore, compact, and metrics
     """
     # Search for "ExpirationReminder" since CDK truncates function names
     lambda_name = find_lambda_function_name('ExpirationReminder')
@@ -387,7 +388,7 @@ def invoke_expiration_reminder_lambda(days_before: int):
             f'Failed to get Lambda function details: {str(e)}'
         ) from e
 
-    event = {'daysBefore': days_before}
+    event = {'daysBefore': days_before, 'compact': compact}
 
     logger.info(f'Invoking expiration reminder Lambda asynchronously for {days_before}-day reminder', event=event)
     try:
@@ -408,7 +409,7 @@ def invoke_expiration_reminder_lambda(days_before: int):
         logger.info('Lambda invocation accepted, polling CloudWatch Logs for completion...', log_group=log_group_name)
 
         # Poll CloudWatch Logs for the completion message
-        # The Lambda logs "Completed processing expiration reminders" with metrics
+        # The Lambda logs "Completed processing for compact" (or "Completed processing expiration reminders") with metrics
         max_wait_time = 960  # 16 minutes (Lambda timeout is 15 minutes)
         check_interval = 10  # Check every 10 seconds
         start_time = time.time()
@@ -443,8 +444,8 @@ def invoke_expiration_reminder_lambda(days_before: int):
                         if log_level != 'DEBUG':
                             logger.info(f'Lambda log [{log_level}]: {log_message}')
 
-                        # Check for completion message
-                        if 'Completed processing expiration reminders' in log_message:
+                        # Check for completion message (handler logs "Completed processing for compact" with metrics)
+                        if 'Completed processing' in log_message and log_json.get('metrics'):
                             metrics = log_json.get('metrics', {})
 
                             if metrics:
