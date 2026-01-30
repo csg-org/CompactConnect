@@ -277,21 +277,14 @@ def _process_provider_notification(
     """
     result = {'sent': 0, 'skipped': 0, 'failed': 0, 'already_sent': 0, 'no_email': 0}
 
-    provider_id_str = provider_doc['providerId']
-
-    try:
-        provider_id = UUID(provider_id_str)
-    except (ValueError, TypeError):
-        logger.warning('Invalid providerId format', provider_id=provider_id_str, compact=compact)
-        result['skipped'] = 1
-        return result
+    provider_id = provider_doc['providerId']
 
     # Check for registered email - providers with privileges should always be registered
     provider_email = provider_doc.get('compactConnectRegisteredEmailAddress')
     if not provider_email:
         logger.error(
             'Provider with privileges has no registered email address',
-            provider_id=str(provider_id),
+            provider_id=provider_id,
             compact=compact,
         )
         result['no_email'] = 1
@@ -308,7 +301,7 @@ def _process_provider_notification(
     if tracker.was_already_sent():
         logger.debug(
             'Reminder already sent, skipping',
-            provider_id=str(provider_id),
+            provider_id=provider_id,
             compact=compact,
             event_type=event_type,
         )
@@ -443,9 +436,8 @@ def _build_expiration_query(*, expiration_date: date, page_size: int) -> dict:
         'query': {
             'nested': {
                 # Nested query for privileges
-                # This query is applied to each inner object (privilege) individually, so only privileges that match
-                # the _entire_ query are included in the results. This means that an individual privilege must be both
-                # active _and_ expire on the specified date to be included in the results.
+                # This query will match any privilege that matches the _entire_ query, so only providers with at least 
+                # one privilege that is active and expires on the specified date will be included in the results.
                 'path': 'privileges',
                 'query': {
                     'bool': {
