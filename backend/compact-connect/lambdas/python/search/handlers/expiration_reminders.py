@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Generator
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
@@ -15,6 +16,10 @@ from expiration_reminder_tracker import ExpirationEventType, ExpirationReminderT
 from opensearch_client import OpenSearchClient
 
 DEFAULT_PAGE_SIZE = 1000
+
+# Pagination / continuation: invoke self when remaining time is below this (ms)
+TIMEOUT_BUFFER_MS = 120_000  # 2 minutes
+MAX_CONTINUATION_DEPTH = 100  # Safety limit
 
 # Map days before expiration to ExpirationEventType
 DAYS_BEFORE_TO_EVENT_TYPE = {
@@ -52,29 +57,70 @@ class Metrics:
         }
 
 
-def process_expiration_reminders(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+@dataclass
+class PaginatedProviderResult:
+    """Provider document with pagination cursor for continuation support."""
+
+    provider_doc: dict
+    search_after: list
+
+
+def _initialize_metrics(accumulated: dict[str, int] | None) -> Metrics:
+    """Initialize metrics, merging any accumulated metrics from previous invocations."""
+    if not accumulated:
+        return Metrics()
+    return Metrics(
+        sent=accumulated.get('sent', 0),
+        skipped=accumulated.get('skipped', 0),
+        failed=accumulated.get('failed', 0),
+        already_sent=accumulated.get('alreadySent', 0),
+        no_email=accumulated.get('noEmail', 0),
+        matched_privileges=accumulated.get('matchedPrivileges', 0),
+        providers_with_matches=accumulated.get('providersWithMatches', 0),
+    )
+
+
+def process_expiration_reminders(event: dict, context: LambdaContext):
     """
     Process privilege expiration reminders:
     - Query OpenSearch (paginated) for privileges expiring on target date
     - Check idempotency tracker for each provider
     - Send email notification if not already sent
     - Record success/failure for idempotency
+    - Invoke self with pagination state when approaching 15-minute timeout
 
     Event format:
         {
             "daysBefore": 30,                # Days before expiration (30, 7, or 0) - required
+            "compact": "aslp",               # Compact to process - required
             "targetDate": "2026-02-16",      # Optional: Expiration date to process
                                             # (if not provided, calculated as today + daysBefore)
             "scheduledTime": "2026-01-17..." # Optional: When rule triggered (for logging, defaults to current time)
+            "_continuation": { ... }         # Internal: set when self-invoking for pagination
+
         }
     """
     try:
         days_before = event['daysBefore']
-    except KeyError:
-        raise CCInvalidRequestException('Missing required field: daysBefore') from None
+        compact = event['compact']
+    except KeyError as e:
+        raise CCInvalidRequestException(f'Missing required field: {e.args[0]}') from None
 
     if days_before not in DAYS_BEFORE_TO_EVENT_TYPE:
         raise CCInvalidRequestException(f'Invalid daysBefore value: {days_before}. Must be 30, 7, or 0.')
+
+    if compact not in config.compacts:
+        raise CCInvalidRequestException(f'Invalid compact: {compact}. Must be one of {config.compacts}.')
+
+    # Parse continuation state (if this is a continuation invocation)
+    continuation = event.get('_continuation', {})
+    initial_search_after = continuation.get('searchAfter')
+    continuation_depth = continuation.get('depth', 0)
+    accumulated_metrics = continuation.get('accumulatedMetrics')
+
+    if continuation_depth >= MAX_CONTINUATION_DEPTH:
+        logger.error('Max continuation depth exceeded', depth=continuation_depth, compact=compact)
+        raise RuntimeError(f'Exceeded maximum continuation depth of {MAX_CONTINUATION_DEPTH}') from None
 
     # Calculate targetDate if not provided (today + daysBefore)
     if 'targetDate' in event:
@@ -88,67 +134,133 @@ def process_expiration_reminders(event: dict, context: LambdaContext):  # noqa: 
 
     # Get scheduledTime for logging (default to current time if not provided)
     scheduled_time = event.get('scheduledTime', datetime.now(UTC).isoformat())
-
     event_type = DAYS_BEFORE_TO_EVENT_TYPE[days_before]
 
     logger.info(
         'Processing privilege expiration reminders',
+        compact=compact,
         target_date=target_date_str,
         days_before=days_before,
         event_type=event_type,
         scheduled_time=scheduled_time,
+        continuation_depth=continuation_depth,
     )
 
-    metrics = Metrics()
+    metrics = _initialize_metrics(accumulated_metrics)
+    compact_provider_count = 0
+    logger.info('Starting processing for compact', compact=compact, target_date=target_date_str)
 
-    for compact in config.compacts:
-        compact_provider_count = 0
-        logger.info('Starting processing for compact', compact=compact, target_date=target_date_str)
-
-        for provider_doc in iterate_privileges_by_expiration_date(
-            compact=compact,
-            expiration_date=expiration_date,
-            page_size=DEFAULT_PAGE_SIZE,
-        ):
-            compact_provider_count += 1
-            metrics = replace(
-                metrics,
-                providers_with_matches=metrics.providers_with_matches + 1,
-            )
-
-            result = _process_provider_notification(
-                compact=compact,
-                provider_doc=provider_doc,
-                expiration_date=expiration_date,
-                event_type=event_type,
-            )
-            metrics = replace(
-                metrics,
-                sent=metrics.sent + result['sent'],
-                skipped=metrics.skipped + result['skipped'],
-                failed=metrics.failed + result['failed'],
-                already_sent=metrics.already_sent + result['already_sent'],
-                no_email=metrics.no_email + result['no_email'],
-            )
-
-            # Log progress every 100 providers per compact
-            if compact_provider_count % 100 == 0:
-                logger.info(
-                    'Progress update',
-                    compact=compact,
-                    providers_processed=compact_provider_count,
-                    metrics=metrics.as_dict(),
-                )
-
-        logger.info(
-            'Completed processing for compact',
-            compact=compact,
-            total_providers_processed=compact_provider_count,
-            metrics=metrics.as_dict(),
+    for result in iterate_privileges_by_expiration_date(
+        compact=compact,
+        expiration_date=expiration_date,
+        page_size=DEFAULT_PAGE_SIZE,
+        initial_search_after=initial_search_after,
+    ):
+        compact_provider_count += 1
+        metrics = replace(
+            metrics,
+            providers_with_matches=metrics.providers_with_matches + 1,
         )
 
-    logger.info('Completed processing expiration reminders', metrics=metrics.as_dict())
-    return {'targetDate': target_date_str, 'daysBefore': days_before, 'metrics': metrics.as_dict()}
+        provider_result = _process_provider_notification(
+            compact=compact,
+            provider_doc=result.provider_doc,
+            expiration_date=expiration_date,
+            event_type=event_type,
+        )
+        metrics = replace(
+            metrics,
+            sent=metrics.sent + provider_result['sent'],
+            skipped=metrics.skipped + provider_result['skipped'],
+            failed=metrics.failed + provider_result['failed'],
+            already_sent=metrics.already_sent + provider_result['already_sent'],
+            no_email=metrics.no_email + provider_result['no_email'],
+        )
+
+        # Check if approaching timeout; invoke continuation if so
+        if context.get_remaining_time_in_millis() < TIMEOUT_BUFFER_MS:
+            logger.info(
+                'Approaching timeout, invoking continuation',
+                compact=compact,
+                providers_processed=compact_provider_count,
+                remaining_time_ms=context.get_remaining_time_in_millis(),
+            )
+            return _invoke_continuation(
+                event=event,
+                context=context,
+                search_after=result.search_after,
+                metrics=metrics,
+                depth=continuation_depth,
+            )
+
+        # Log progress every 100 providers processed
+        if compact_provider_count % 100 == 0:
+            logger.info(
+                'Progress update',
+                compact=compact,
+                providers_processed=compact_provider_count,
+                metrics=metrics.as_dict(),
+            )
+
+    logger.info(
+        'Completed processing for compact',
+        compact=compact,
+        total_providers_processed=compact_provider_count,
+        metrics=metrics.as_dict(),
+    )
+    return {
+        'status': 'complete',
+        'targetDate': target_date_str,
+        'daysBefore': days_before,
+        'compact': compact,
+        'metrics': metrics.as_dict(),
+        'totalInvocations': continuation_depth + 1,
+    }
+
+
+def _invoke_continuation(
+    *,
+    event: dict,
+    context: LambdaContext,
+    search_after: list,
+    metrics: Metrics,
+    depth: int,
+) -> dict:
+    """Invoke this Lambda asynchronously to continue processing with pagination state."""
+    continuation_event = {
+        'daysBefore': event['daysBefore'],
+        'compact': event['compact'],
+        'targetDate': event.get('targetDate'),
+        'scheduledTime': event.get('scheduledTime'),
+        '_continuation': {
+            'searchAfter': search_after,
+            'depth': depth + 1,
+            'accumulatedMetrics': metrics.as_dict(),
+        },
+    }
+    continuation_event = {k: v for k, v in continuation_event.items() if v is not None}
+
+    logger.info(
+        'Invoking continuation',
+        compact=event['compact'],
+        next_depth=depth + 1,
+        current_metrics=metrics.as_dict(),
+        remaining_time_ms=context.get_remaining_time_in_millis(),
+    )
+
+    config.lambda_client.invoke(
+        FunctionName=context.function_name,
+        InvocationType='Event',
+        Payload=json.dumps(continuation_event),
+    )
+
+    return {
+        'status': 'continued',
+        'compact': event['compact'],
+        'nextInvocationDepth': depth + 1,
+        'resumeFrom': {'searchAfter': search_after},
+        'metricsAtContinuation': metrics.as_dict(),
+    }
 
 
 def _process_provider_notification(
@@ -271,16 +383,17 @@ def iterate_privileges_by_expiration_date(
     compact: str,
     expiration_date: date,
     page_size: int = DEFAULT_PAGE_SIZE,
-) -> Generator[dict, None, None]:
+    initial_search_after: list | None = None,
+) -> Generator[PaginatedProviderResult, None, None]:
     """
-    Generator yielding provider documents with (potentially) matching privileges.
+    Generator yielding provider documents with pagination cursors.
 
     OpenSearch pagination is handled internally using `search_after`. Results are yielded
-    one provider at a time, and the current page is consumed by popping a single hit
-    per iteration so memory usage decreases as the page is processed.
+    one provider at a time with their cursor for continuation support. Use
+    initial_search_after to resume from a previous invocation.
     """
     index_name = f'compact_{compact}_providers'
-    search_after = None
+    search_after = initial_search_after
     current_page_hits: list[dict] = []
     is_last_page = False
 
@@ -309,7 +422,10 @@ def iterate_privileges_by_expiration_date(
             current_page_hits = list(reversed(hits))
 
         hit = current_page_hits.pop()
-        yield _provider_document_from_hit(hit)
+        yield PaginatedProviderResult(
+            provider_doc=_provider_document_from_hit(hit),
+            search_after=hit['sort'],
+        )
 
 
 def _provider_document_from_hit(hit: dict) -> dict:

@@ -1,6 +1,8 @@
+import json
 import os
 
 from aws_cdk import Duration
+from aws_cdk import aws_iam as iam
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_ec2 import SubnetSelection
@@ -24,7 +26,7 @@ class ExpirationReminderStack(AppStack):
 
     This stack provides scheduled email notifications to providers about expiring privileges:
     - Lambda function for processing expiration reminders
-    - Three EventBridge rules (30-day, 7-day, day-of) that run daily
+    - EventBridge rules per compact and reminder type (30-day, 7-day, day-of) that run daily
     - CloudWatch alarms for errors and execution duration
     - OpenSearch integration for querying privileges by expiration date
     """
@@ -79,6 +81,20 @@ class ExpirationReminderStack(AppStack):
         # Invoke permission for email notification service
         persistent_stack.email_notification_service_lambda.grant_invoke(self.expiration_reminder_handler)
 
+        # Self-invocation permission for pagination when execution approaches 15-minute timeout
+        # Use standalone policy to avoid circular dependency when Lambda invokes itself
+        # see https://github.com/aws/aws-cdk/issues/11020#issuecomment-842946562
+        self_invoke_statement = iam.PolicyStatement(
+            actions=['lambda:InvokeFunction'],
+            resources=[self.expiration_reminder_handler.function_arn],
+        )
+        self_invoke_policy = iam.Policy(
+            self,
+            'ExpirationReminderSelfInvokePolicy',
+            statements=[self_invoke_statement],
+        )
+        self_invoke_policy.attach_to_role(self.expiration_reminder_handler.role)
+
         NagSuppressions.add_resource_suppressions_by_path(
             self,
             f'{self.expiration_reminder_handler.role.node.path}/DefaultPolicy/Resource',
@@ -92,47 +108,31 @@ class ExpirationReminderStack(AppStack):
             ],
         )
 
-        # Create EventBridge rules for each reminder type
+        # Create EventBridge rules per compact and reminder type
         # All rules run daily at midnight UTC-4 (4:00 AM UTC) to process reminders for privileges expiring on the
-        # calculated target date
-        Rule(
-            self,
-            'ExpirationReminder30DayRule',
-            description='Daily rule to send 30-day expiration reminders',
-            schedule=Schedule.cron(week_day='*', hour='4', minute='0', month='*', year='*'),
-            targets=[
-                LambdaFunction(
-                    handler=self.expiration_reminder_handler,
-                    event=RuleTargetInput.from_object({'daysBefore': 30}),
+        # calculated target date. Each invocation processes a single compact.
+        reminder_configs = [
+            {'days_before': 30, 'suffix': '30Day'},
+            {'days_before': 7, 'suffix': '7Day'},
+            {'days_before': 0, 'suffix': 'DayOf'},
+        ]
+        for compact in json.loads(self.common_env_vars['COMPACTS']):
+            for reminder_config in reminder_configs:
+                Rule(
+                    self,
+                    f'ExpirationReminder{reminder_config["suffix"]}Rule{compact.upper()}',
+                    description=f'Daily rule to send {reminder_config["days_before"]}-day expiration reminders for {compact}',
+                    schedule=Schedule.cron(week_day='*', hour='4', minute='0', month='*', year='*'),
+                    targets=[
+                        LambdaFunction(
+                            handler=self.expiration_reminder_handler,
+                            event=RuleTargetInput.from_object({
+                                'daysBefore': reminder_config['days_before'],
+                                'compact': compact,
+                            }),
+                        )
+                    ],
                 )
-            ],
-        )
-
-        Rule(
-            self,
-            'ExpirationReminder7DayRule',
-            description='Daily rule to send 7-day expiration reminders',
-            schedule=Schedule.cron(week_day='*', hour='4', minute='0', month='*', year='*'),
-            targets=[
-                LambdaFunction(
-                    handler=self.expiration_reminder_handler,
-                    event=RuleTargetInput.from_object({'daysBefore': 7}),
-                )
-            ],
-        )
-
-        Rule(
-            self,
-            'ExpirationReminderDayOfRule',
-            description='Daily rule to send day-of expiration reminders',
-            schedule=Schedule.cron(week_day='*', hour='4', minute='0', month='*', year='*'),
-            targets=[
-                LambdaFunction(
-                    handler=self.expiration_reminder_handler,
-                    event=RuleTargetInput.from_object({'daysBefore': 0}),
-                )
-            ],
-        )
 
         # CloudWatch alarm for Lambda errors
         Alarm(

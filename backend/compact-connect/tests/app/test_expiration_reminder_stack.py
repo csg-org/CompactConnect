@@ -51,7 +51,7 @@ class TestExpirationReminderStack(TstAppABC, TestCase):
         self.assertEqual(handler_properties['Handler'], 'handlers.expiration_reminders.process_expiration_reminders')
 
     def test_eventbridge_rules_created(self):
-        """Test that all three EventBridge rules (30-day, 7-day, day-of) are created."""
+        """Test that EventBridge rules per compact and reminder type (30-day, 7-day, day-of) are created."""
         # Stack is only created if hosted_zone is configured
         if not hasattr(self.app.sandbox_backend_stage, 'expiration_reminder_stack'):
             self.skipTest('ExpirationReminderStack not created (hosted_zone not configured)')
@@ -62,30 +62,47 @@ class TestExpirationReminderStack(TstAppABC, TestCase):
         # Get all EventBridge rules
         rules = expiration_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME)
 
-        # Verify we have exactly 3 rules
-        self.assertEqual(len(rules), 3, 'Should have exactly 3 EventBridge rules')
+        # Number of rules = compacts * 3 reminder types (30-day, 7-day, day-of)
+        context = self.get_context()
+        compacts = context['compacts']
+        expected_rule_count = len(compacts) * 3
+        self.assertEqual(
+            len(rules),
+            expected_rule_count,
+            f'Should have {expected_rule_count} EventBridge rules (one per compact per reminder type)',
+        )
 
-        # Verify all rules have the same schedule (daily at 10:00 AM UTC) and are enabled
+        # Verify all rules have the same schedule (daily at 4:00 AM UTC) and are enabled
         handler_logical_id = expiration_stack.get_logical_id(
             expiration_stack.expiration_reminder_handler.node.default_child
         )
 
-        for rule_name in ['ExpirationReminder30DayRule', 'ExpirationReminder7DayRule', 'ExpirationReminderDayOfRule']:
-            rule_logical_id = expiration_stack.get_logical_id(
-                expiration_stack.node.find_child(rule_name).node.default_child
-            )
-            rule = TestExpirationReminderStack.get_resource_properties_by_logical_id(rule_logical_id, resources=rules)
+        reminder_configs = [
+            {'suffix': '30Day'},
+            {'suffix': '7Day'},
+            {'suffix': 'DayOf'},
+        ]
+        for compact in compacts:
+            for reminder_config in reminder_configs:
+                rule_name = f'ExpirationReminder{reminder_config["suffix"]}Rule{compact.upper()}'
+                rule_logical_id = expiration_stack.get_logical_id(
+                    expiration_stack.node.find_child(rule_name).node.default_child
+                )
+                rule = TestExpirationReminderStack.get_resource_properties_by_logical_id(
+                    rule_logical_id, resources=rules
+                )
 
-            self.assertEqual(rule['ScheduleExpression'], 'cron(0 4 ? * * *)')  # Daily at midnight UTC-4 (4:00 AM UTC)
-            self.assertEqual(rule['State'], 'ENABLED')
-            # Verify the rule targets the Lambda function
-            # The Arn is a GetAtt reference to the Lambda function
-            target_arn = rule['Targets'][0]['Arn']
-            if isinstance(target_arn, dict) and 'Fn::GetAtt' in target_arn:
-                self.assertEqual(target_arn['Fn::GetAtt'][0], handler_logical_id)
-            else:
-                # Fallback: just verify the target exists
-                self.assertIn('Arn', rule['Targets'][0])
+                self.assertEqual(
+                    rule['ScheduleExpression'],
+                    'cron(0 4 ? * * *)',  # Daily at midnight UTC-4 (4:00 AM UTC)
+                )
+                self.assertEqual(rule['State'], 'ENABLED')
+                # Verify the rule targets the Lambda function
+                target_arn = rule['Targets'][0]['Arn']
+                if isinstance(target_arn, dict) and 'Fn::GetAtt' in target_arn:
+                    self.assertEqual(target_arn['Fn::GetAtt'][0], handler_logical_id)
+                else:
+                    self.assertIn('Arn', rule['Targets'][0])
 
     def test_duration_alarm_configured(self):
         """Test that the duration alarm is configured with a 10-minute threshold."""
