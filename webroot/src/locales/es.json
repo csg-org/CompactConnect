@@ -558,7 +558,7 @@
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
-        "licensingListDescription": "Haga clic en un licenciatario para ver el estado de cada privilegio. Esta página muestra los privilegios anteriores y activos.",
+        "licensingListDescription": "Haga clic en un licenciatario para ver el estado de sus privilegios. La columna “Privilegios” incluye tanto los privilegios anteriores como los vigentes.",
         "searchTitle": "Iniciar una búsqueda",
         "searchTitlePublic": "Verificar un privilegio compacto",
         "attestation": "Atestación",
