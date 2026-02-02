@@ -358,7 +358,7 @@ export abstract class BaseEmailService {
                 },
                 'props': {
                     'width': null,
-                    'height': 24,
+                    'height': 100,
                     'url': `${BaseEmailService.getEmailImageBaseUrl()}/compact-connect-logo-final.png`,
                     'alt': '',
                     'linkHref': null,
