@@ -395,12 +395,17 @@ export class Lambda implements LambdaInterface {
                 || !event.templateVariables?.privileges) {
                 throw new Error('Missing required template variables for privilegeExpirationReminder template.');
             }
-            const privileges = event.templateVariables.privileges as Array<{ jurisdiction?: string; licenseType?: string; privilegeId?: string; dateOfExpiration?: string }>;
+            const privileges = event.templateVariables.privileges as Array<{ jurisdiction?: string; 
+                licenseType?: string; privilegeId?: 
+                string; dateOfExpiration?: string;
+                formattedExpirationDate?: string }>;
+
             if (!Array.isArray(privileges) || privileges.length === 0) {
                 throw new Error('privilegeExpirationReminder template requires a non-empty privileges array.');
             }
             for (let i = 0; i < privileges.length; i++) {
                 const p = privileges[i];
+
                 if (!p?.jurisdiction || !p?.licenseType || !p?.privilegeId || !p?.dateOfExpiration) {
                     throw new Error(
                         `privilegeExpirationReminder template requires each privilege to have jurisdiction, licenseType, privilegeId, and dateOfExpiration (ISO 8601). Invalid privilege at index ${i}.`

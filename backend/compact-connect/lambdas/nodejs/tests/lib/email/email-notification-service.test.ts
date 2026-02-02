@@ -1102,7 +1102,7 @@ describe('EmailNotificationService', () => {
                             Body: {
                                 Html: {
                                     Charset: 'UTF-8',
-                                    Data: expect.stringContaining('Privilege Expiration Reminder'),
+                                    Data: expect.stringContaining('Hi John,'),
                                 },
                             },
                             Subject: {
@@ -1119,15 +1119,17 @@ describe('EmailNotificationService', () => {
             const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
-            expect(htmlContent).toContain('Hello John');
-            expect(htmlContent).toContain('will expire on February 16, 2026');
+            expect(htmlContent).toContain('Hi John,');
+            expect(htmlContent).toContain('one or more of your privileges will expire on');
+            expect(htmlContent).toContain('02/16/2026');
             expect(htmlContent).toContain('Ohio, audiologist');
             expect(htmlContent).toContain('#AUD-OH-001');
-            expect(htmlContent).toContain('Expires: February 16, 2026');
             expect(htmlContent).toContain('Kentucky, speech-language pathologist');
             expect(htmlContent).toContain('#SLP-KY-002');
-            expect(htmlContent).toContain('Expires: March 1, 2026');
-            expect(htmlContent).toContain('Please visit Compact Connect to renew your privileges before they expire');
+            expect(htmlContent).toContain('03/01/2026');
+            // Verify two-column table headers
+            expect(htmlContent).toContain('Privilege');
+            expect(htmlContent).toContain('Expires');
         });
 
         it('should throw error when no recipients provided', async () => {
@@ -1181,11 +1183,11 @@ describe('EmailNotificationService', () => {
             const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
-            expect(htmlContent).toContain('Hello Jane');
-            expect(htmlContent).toContain('will expire on March 1, 2026');
+            expect(htmlContent).toContain('Hi Jane,');
+            expect(htmlContent).toContain('one or more of your privileges will expire on');
+            expect(htmlContent).toContain('03/01/2026');
             expect(htmlContent).toContain('Nebraska, speech-language pathologist');
             expect(htmlContent).toContain('#SLP-NE-123');
-            expect(htmlContent).toContain('Expires: March 1, 2026');
         });
     });
 });

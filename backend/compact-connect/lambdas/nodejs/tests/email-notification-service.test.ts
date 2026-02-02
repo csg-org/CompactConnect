@@ -667,16 +667,22 @@ describe('EmailNotificationServiceLambda', () => {
             expect(mockSESClient).toHaveReceivedCommandTimes(SendEmailCommand, 1);
             const sendCall = mockSESClient.commandCalls(SendEmailCommand)[0];
             const input = sendCall.args[0].input;
+
             expect(input.Destination?.ToAddresses).toEqual(['provider@example.com']);
             expect(input.Content?.Simple?.Subject?.Data).toBe('Your Compact Connect Privileges Expire on February 16, 2026');
             const htmlData = input.Content?.Simple?.Body?.Html?.Data ?? '';
-            expect(htmlData).toContain('Privilege Expiration Reminder');
-            expect(htmlData).toContain('Hello Mary');
-            expect(htmlData).toContain('February 16, 2026');
+
+            expect(htmlData).toContain('Hi Mary,');
+            expect(htmlData).toContain('one or more of your privileges will expire on');
+            expect(htmlData).toContain('02/16/2026');
             expect(htmlData).toContain('Ohio, audiologist');
             expect(htmlData).toContain('#AUD-OH-001');
             expect(htmlData).toContain('Kentucky, speech-language pathologist');
             expect(htmlData).toContain('#SLP-KY-002');
+            expect(htmlData).toContain('03/01/2026');
+            // Verify two-column table headers are present
+            expect(htmlData).toContain('Privilege');
+            expect(htmlData).toContain('Expires');
         });
 
         it('should throw error when no recipients found', async () => {

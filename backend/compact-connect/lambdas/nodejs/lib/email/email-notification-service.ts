@@ -11,7 +11,17 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 function formatIsoDateForDisplay(isoDate: string): string {
     const [year, month, day] = isoDate.split('-').map(Number);
     const monthName = MONTH_NAMES[month - 1];
+
     return `${monthName} ${day}, ${year}`;
+}
+
+/** Format an ISO 8601 date string (YYYY-MM-DD) for display as MM/DD/YYYY (e.g. "02/16/2026"). Timezone-neutral. */
+function formatIsoDateAsSlashFormat(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    const paddedMonth = String(month).padStart(2, '0');
+    const paddedDay = String(day).padStart(2, '0');
+
+    return `${paddedMonth}/${paddedDay}/${year}`;
 }
 
 /**
@@ -677,23 +687,54 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         const expirationDateDisplay = formatIsoDateForDisplay(expirationDate);
+        const expirationDateSlash = formatIsoDateAsSlashFormat(expirationDate);
 
         const emailContent = this.getNewEmailTemplate();
         const subject = `Your Compact Connect Privileges Expire on ${expirationDateDisplay}`;
-        const headerText = 'Privilege Expiration Reminder';
-        const bodyText = `Hello ${providerFirstName},\n\nThis is a reminder that the following privilege(s) will expire on ${expirationDateDisplay}:`;
 
-        this.insertHeader(emailContent, headerText);
-        this.insertBody(emailContent, bodyText, 'center');
+        // Logo at the top
+        this.insertLogo(emailContent);
 
-        privileges.forEach((privilege) => {
-            const titleText = `${privilege.jurisdiction}, ${privilege.licenseType}`;
-            const detailText = `#${privilege.privilegeId}  Expires: ${formatIsoDateForDisplay(privilege.dateOfExpiration)}`;
-
-            this.insertTuple(emailContent, titleText, detailText);
+        // Greeting text
+        this.insertBody(emailContent, `Hi ${providerFirstName},`, 'center', false, {
+            'padding': { 'top': 44, 'bottom': 0, 'right': 76, 'left': 76 }
         });
 
-        this.insertBody(emailContent, '\nPlease visit Compact Connect to renew your privileges before they expire.', 'center');
+        // "This message is to inform you..." text
+        this.insertBody(
+            emailContent,
+            'This message is to inform you that one or more of your privileges will expire on:',
+            'center',
+            false,
+            { 'padding': { 'top': 24, 'bottom': 0, 'right': 32, 'left': 32 }}
+        );
+
+        // Bold expiration date
+        this.insertBody(emailContent, expirationDateSlash, 'center', false, {
+            'fontSize': 19,
+            'fontWeight': 'bold',
+            'padding': { 'top': 4, 'bottom': 0, 'right': 60, 'left': 60 }
+        });
+
+        // Explanation text
+        this.insertBody(
+            emailContent,
+            'When a privilege is expired, you can no longer use it to practice. In order to renew your privileges, you must first renew your home state license. A full list of the privileges and their expiration dates is below:',
+            'center',
+            false,
+            { 'padding': { 'top': 24, 'bottom': 24, 'right': 32, 'left': 32 }}
+        );
+
+        // Insert the two-column privilege expiration list table
+        const privilegesForTable = privileges.map((privilege) => ({
+            jurisdiction: privilege.jurisdiction,
+            licenseType: privilege.licenseType,
+            privilegeId: privilege.privilegeId,
+            formattedExpirationDate: formatIsoDateAsSlashFormat(privilege.dateOfExpiration)
+        }));
+
+        this.insertPrivilegeExpirationListSection(emailContent, privilegesForTable);
+
         this.insertFooter(emailContent);
 
         const htmlContent = this.renderTemplate(emailContent);
