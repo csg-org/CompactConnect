@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.ingest import SanitizedLicenseIngestDataEventSchema
+from cc_common.event_state_client import EventType
 from cc_common.utils import sqs_handler
 
 
@@ -12,7 +13,7 @@ def handle_data_events(message: dict):
 
     event_type = message['detail-type']
     # in the case of a licence.ingest event, we sanitize the PII from the license record
-    if event_type == 'license.ingest':
+    if event_type == EventType.LICENSE_INGEST:
         sanitized_schema = SanitizedLicenseIngestDataEventSchema()
         # by loading and dumping the data, we ensure that the data is sanitized as the schema
         # will remove all fields that are not explicitly defined in the schema

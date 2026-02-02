@@ -108,7 +108,8 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
     )
 
     try:
-        config.data_client.update_provider_home_state_jurisdiction(
+        # Update provider home jurisdiction and get the previous home jurisdiction
+        previous_home_jurisdiction = config.data_client.update_provider_home_state_jurisdiction(
             compact=compact, provider_id=provider_id, selected_jurisdiction=selected_jurisdiction
         )
     except CCInternalException as e:
@@ -120,6 +121,32 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
             error=str(e),
         )
         raise
+
+    # if user is attempting to set their home state to the same value already recorded on their record
+    # this is a no-op and we skip sending notifications
+    if previous_home_jurisdiction != selected_jurisdiction:
+        try:
+            # Publish event for notification processing if feature flag is enabled
+            from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
+
+            if is_feature_enabled(FeatureFlagEnum.HOME_JURISDICTION_CHANGE_NOTIFICATION_FLAG, fail_default=False):
+                config.event_bus_client.publish_home_jurisdiction_change_event(
+                    source='org.compactconnect.provider-data',
+                    compact=compact,
+                    provider_id=provider_id,
+                    previous_home_jurisdiction=previous_home_jurisdiction,
+                    new_home_jurisdiction=selected_jurisdiction,
+                )
+        except ClientError as e:
+            # Log the error and continue
+            logger.error(
+                'Failed to send home state license update notification event',
+                compact=compact,
+                previous_home_jurisdiction=previous_home_jurisdiction,
+                selected_jurisdiction=selected_jurisdiction,
+                provider_id=provider_id,
+                error=str(e),
+            )
 
     return {'message': 'ok'}
 

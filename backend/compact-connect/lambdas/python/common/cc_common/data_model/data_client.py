@@ -2559,7 +2559,7 @@ class DataClient:
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'selected_jurisdiction')
     def update_provider_home_state_jurisdiction(
         self, *, compact: str, provider_id: str, selected_jurisdiction: str
-    ) -> None:
+    ) -> str | None:
         """
         Update the provider's home jurisdiction and handle their privileges according to business rules.
 
@@ -2584,6 +2584,7 @@ class DataClient:
         :param compact: The compact name
         :param provider_id: The provider ID
         :param selected_jurisdiction: The new home jurisdiction selected by the provider
+        :return: The previous home jurisdiction (before the update), or None if there was no previous home jurisdiction
         :raises CCInternalException: If any transaction fails during the update process
         """
         logger.info('Updating provider user home jurisdiction')
@@ -2592,7 +2593,16 @@ class DataClient:
             compact=compact, provider_id=provider_id
         )
         top_level_provider_record = provider_user_records.get_provider_record()
-        current_home_jurisdiction = top_level_provider_record.currentHomeJurisdiction
+        home_jurisdiction_before_update = top_level_provider_record.currentHomeJurisdiction
+        if home_jurisdiction_before_update.lower() == selected_jurisdiction.lower():
+            logger.info(
+                'New selected jurisdiction matches current home state. Returning as this is a no-op',
+                compact=compact,
+                current_home_jurisdiction=home_jurisdiction_before_update,
+                selected_jurisdiction=selected_jurisdiction,
+                provider_id=provider_id,
+            )
+            return home_jurisdiction_before_update
 
         # Get all licenses in the new home jurisdiction
         new_home_state_licenses = provider_user_records.get_license_records(
@@ -2668,7 +2678,8 @@ class DataClient:
 
                     # Get licenses from the current home state
                     current_home_state_licenses = provider_user_records.get_license_records(
-                        filter_condition=lambda license_data: license_data.jurisdiction == current_home_jurisdiction
+                        filter_condition=lambda license_data: license_data.jurisdiction
+                        == home_jurisdiction_before_update
                     )
 
                     # Get unique license types from all privileges
@@ -2691,7 +2702,7 @@ class DataClient:
                                 'User likely previously moved to a state with no known license '
                                 'and privileges were deactivated. Will not move privileges over.',
                                 license_type=license_type,
-                                current_home_jurisdiction=current_home_jurisdiction,
+                                current_home_jurisdiction=home_jurisdiction_before_update,
                                 new_home_state_licenses=new_home_state_licenses,
                             )
                             continue
@@ -2734,6 +2745,9 @@ class DataClient:
 
             # Execute all transactions in batches
             self._execute_batched_transactions(all_transaction_items)
+
+            # Return the previous home jurisdiction
+            return home_jurisdiction_before_update
 
         except Exception as e:
             logger.error(

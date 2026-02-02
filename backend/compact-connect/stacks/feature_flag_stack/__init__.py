@@ -127,6 +127,20 @@ class FeatureFlagStack(AppStack):
             environment_name=environment_name,
         )
 
+        self.home_jurisdiction_change_notification_flag = FeatureFlagResource(
+            self,
+            'HomeJurisdictionChangeNotificationFlag',
+            provider=self.provider,  # Shared provider
+            flag_name='home-jurisdiction-change-notification-flag',
+            # Automatically enable for every environment
+            auto_enable_envs=[
+                FeatureFlagEnvironmentName.TEST,
+                FeatureFlagEnvironmentName.BETA,
+                FeatureFlagEnvironmentName.PROD,
+            ],
+            environment_name=environment_name,
+        )
+
     def _create_common_provider(self, environment_name: str) -> Provider:
         # Create shared Lambda function for managing all feature flags
         # This function is reused across all FeatureFlagResource instances

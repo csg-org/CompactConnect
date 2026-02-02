@@ -33,6 +33,7 @@ class TstFunction(TstLambdas):
         self.create_rate_limit_table()
         self.create_event_state_table()
         self.create_provider_table()
+        self.create_compact_configuration_table()
 
     def create_data_event_table(self):
         self._data_event_table = boto3.resource('dynamodb').create_table(
@@ -120,8 +121,24 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_compact_configuration_table(self):
+        """Create the compact configuration table for testing."""
+        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
     def delete_resources(self):
         self._data_event_table.delete()
         self._rate_limit_table.delete()
         self._event_state_table.delete()
         self._provider_table.delete()
+        self._compact_configuration_table.delete()
