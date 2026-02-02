@@ -575,6 +575,7 @@
     "licensing": {
         "license": "License",
         "licensingListTitle": "Licensing Data",
+        "licensingListDescription": "Click on a licensee to view the status of their privilege(s). The “Privileges” column includes both past and active privileges.",
         "attestation": "Attestation",
         "stateProvidedEmail": "State-provided email",
         "accountEmail": "Account email",
