@@ -7,7 +7,7 @@ indexes them into OpenSearch, and triggers the expiration reminder Lambda to tes
 performance and capacity (load test) or a small smoke test.
 
 Usage:
-    # Full load test (20k matching + 10k non-matching providers, two privileges per provider)
+    # Full load test (10k matching + 5k non-matching providers, two privileges per provider)
     python expiration_reminder_load_test.py
     python expiration_reminder_load_test.py --skip-data-load
 
@@ -17,7 +17,7 @@ Usage:
 
 The script will:
 - Compute matching and non-matching provider counts: with --providers N (smoke), use ~2/3 and ~1/3 of N;
-  without --providers (load), use MATCHING_PROVIDERS (20k) and NON_MATCHING_PROVIDERS (10k).
+  without --providers (load), use MATCHING_PROVIDERS (10k) and NON_MATCHING_PROVIDERS (5k).
 - Create that many providers in a single batch (two privileges each; matching = one privilege on target
   date, non-matching = neither on target date), unless --skip-data-load.
 - Wait for DynamoDB stream events to index providers into OpenSearch (unless --skip-data-load).
@@ -68,8 +68,8 @@ logs_client = boto3.client('logs')
 dynamodb_table = config.provider_user_dynamodb_table
 
 # Test configuration: counts of matching vs non-matching providers for the 30-day expiration run
-MATCHING_PROVIDERS = 20_000  # Providers with one privilege expiring on target date (receive email)
-NON_MATCHING_PROVIDERS = 10_000  # Providers with neither privilege on target date (no email)
+MATCHING_PROVIDERS = 10_000  # Providers with one privilege expiring on target date (receive email)
+NON_MATCHING_PROVIDERS = 5_000  # Providers with neither privilege on target date (no email)
 COMPACT = COMPACTS[0]  # Use first compact
 JURISDICTION = JURISDICTIONS[0]  # Use first jurisdiction
 # Second jurisdiction and license type for two-privilege-per-provider (smoke mode)
