@@ -301,3 +301,102 @@ class TestLicenseIngestSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             LicenseIngestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_record})
+
+
+class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
+    """
+    Tests for the LicenseExpirationStatusMixin applied to LicenseGeneralResponseSchema.
+
+    This mixin corrects stale 'licenseStatus' values when loading license data from sources
+    like OpenSearch where the status may not have been updated after expiration.
+    """
+
+    def _make_license_data(self, *, license_status='active', date_of_expiration='2100-01-01'):
+        """Create minimal valid license data for testing."""
+        return {
+            'providerId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+            'type': 'license',
+            'dateOfUpdate': '2024-01-01T00:00:00+00:00',
+            'compact': 'cosm',
+            'jurisdiction': 'oh',
+            'licenseType': 'cosmetologist',
+            'licenseStatus': license_status,
+            'jurisdictionUploadedLicenseStatus': 'active',
+            'compactEligibility': 'eligible',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'givenName': 'John',
+            'familyName': 'Doe',
+            'dateOfIssuance': '2024-01-01',
+            'dateOfExpiration': date_of_expiration,
+            'homeAddressStreet1': '123 Main St',
+            'homeAddressCity': 'Columbus',
+            'homeAddressState': 'OH',
+            'homeAddressPostalCode': '43215',
+        }
+
+    def test_expired_license_status_corrected_to_inactive(self):
+        """When licenseStatus is 'active' but dateOfExpiration is in the past, licenseStatus becomes 'inactive'."""
+        from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
+
+        license_data = self._make_license_data(
+            license_status='active',
+            date_of_expiration='2020-01-01',  # Expired
+        )
+
+        result = LicenseGeneralResponseSchema().load(license_data)
+
+        self.assertEqual('inactive', result['licenseStatus'])
+
+    def test_unexpired_license_status_remains_active(self):
+        """When licenseStatus is 'active' and dateOfExpiration is in the future, licenseStatus stays 'active'."""
+        from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
+
+        license_data = self._make_license_data(
+            license_status='active',
+            date_of_expiration='2100-01-01',  # Far in the future
+        )
+
+        result = LicenseGeneralResponseSchema().load(license_data)
+
+        self.assertEqual('active', result['licenseStatus'])
+
+    def test_already_inactive_license_status_remains_inactive(self):
+        """When licenseStatus is already 'inactive', it stays 'inactive' regardless of expiration."""
+        from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
+
+        license_data = self._make_license_data(
+            license_status='inactive',
+            date_of_expiration='2100-01-01',  # Not expired, but status is inactive
+        )
+
+        result = LicenseGeneralResponseSchema().load(license_data)
+
+        self.assertEqual('inactive', result['licenseStatus'])
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T03:59:59+00:00'))
+    def test_license_status_active_right_before_expiration_utc_minus_four(self):
+        """License status remains 'active' right before midnight UTC-4 on expiration day."""
+        from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
+
+        license_data = self._make_license_data(
+            license_status='active',
+            date_of_expiration='2024-11-08',  # Expires at midnight UTC-4 on Nov 9
+        )
+
+        result = LicenseGeneralResponseSchema().load(license_data)
+
+        self.assertEqual('active', result['licenseStatus'])
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-09T04:00:00+00:00'))
+    def test_license_status_corrected_to_inactive_at_expiration_utc_minus_four(self):
+        """License status corrected to 'inactive' at midnight UTC-4 on the day after expiration."""
+        from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
+
+        license_data = self._make_license_data(
+            license_status='active',
+            date_of_expiration='2024-11-08',  # Expired at midnight UTC-4 on Nov 9
+        )
+
+        result = LicenseGeneralResponseSchema().load(license_data)
+
+        self.assertEqual('inactive', result['licenseStatus'])

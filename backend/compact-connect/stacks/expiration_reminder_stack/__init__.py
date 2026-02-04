@@ -126,10 +126,12 @@ class ExpirationReminderStack(AppStack):
                     targets=[
                         LambdaFunction(
                             handler=self.expiration_reminder_handler,
-                            event=RuleTargetInput.from_object({
-                                'daysBefore': reminder_config['days_before'],
-                                'compact': compact,
-                            }),
+                            event=RuleTargetInput.from_object(
+                                {
+                                    'daysBefore': reminder_config['days_before'],
+                                    'compact': compact,
+                                }
+                            ),
                         )
                     ],
                 )
