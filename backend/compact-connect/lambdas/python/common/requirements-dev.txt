@@ -18,21 +18,21 @@ aws-sam-translator==1.103.0
     #   moto
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.42.35
+boto3==1.42.42
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.42.35
+boto3-stubs[full]==1.42.42
     # via -r lambdas/python/common/requirements-dev.in
-boto3-stubs-full==1.42.35
+boto3-stubs-full==1.42.41
     # via boto3-stubs
-botocore==1.42.35
+botocore==1.42.42
     # via
     #   aws-xray-sdk
     #   boto3
     #   moto
     #   s3transfer
-botocore-stubs==1.42.35
+botocore-stubs==1.42.41
     # via boto3-stubs
 certifi==2026.1.4
     # via requests
@@ -42,7 +42,7 @@ cfn-lint==1.41.0
     # via moto
 charset-normalizer==3.4.4
     # via requests
-cryptography==46.0.3
+cryptography==46.0.4
     # via
     #   -r lambdas/python/common/requirements-dev.in
     #   joserfc
@@ -177,7 +177,7 @@ urllib3==2.6.3
     #   responses
 werkzeug==3.1.5
     # via moto
-wrapt==2.0.1
+wrapt==2.1.1
     # via aws-xray-sdk
 xmltodict==1.0.2
     # via moto
