@@ -38,9 +38,7 @@ class ExpirationReminderTracker:
     _TTL_DAYS = 90
     _SUCCESS_STATUS = 'SUCCESS'
 
-    def __init__(
-        self, *, compact: str, provider_id: UUID, expiration_date: str, event_type: ExpirationEventType
-    ):
+    def __init__(self, *, compact: str, provider_id: UUID, expiration_date: str, event_type: ExpirationEventType):
         """
         Initialize the tracker for a specific provider, expiration date, and reminder type.
 

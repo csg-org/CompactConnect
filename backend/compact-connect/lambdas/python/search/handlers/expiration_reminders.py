@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Generator
 from dataclasses import dataclass, replace
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -127,12 +127,12 @@ def process_expiration_reminders(event: dict, context: LambdaContext):
         expiration_date = _parse_iso_date(target_date_str)
     else:
         # We will be running ~ midnight UTC-4, so now(UTC) should be a few hours into the next day
-        today = datetime.now(UTC).date()
+        today = config.current_standard_datetime.date()
         expiration_date = today + timedelta(days=days_before)
         target_date_str = expiration_date.isoformat()
 
     # Get scheduledTime for logging (default to current time if not provided)
-    scheduled_time = event.get('scheduledTime', datetime.now(UTC).isoformat())
+    scheduled_time = event.get('scheduledTime', config.current_standard_datetime.isoformat())
     event_type = DAYS_BEFORE_TO_EVENT_TYPE[days_before]
 
     logger.info(

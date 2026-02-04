@@ -204,12 +204,10 @@ class TestProcessExpirationReminders(TstLambdas):
         }
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
-    def test_handler_sends_email_and_records_success(self, mock_iter, mock_config, mock_tracker_class):
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
+    def test_handler_sends_email_and_records_success(self, mock_iter, mock_email_service_client, mock_tracker_class):
+        mock_email_client = mock_email_service_client
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = False
@@ -251,12 +249,10 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertEqual(ExpirationEventType.PRIVILEGE_EXPIRATION_30_DAY, tracker_call['event_type'])
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
-    def test_handler_skips_when_already_sent(self, mock_iter, mock_config, mock_tracker_class):
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
+    def test_handler_skips_when_already_sent(self, mock_iter, mock_email_service_client, mock_tracker_class):
+        mock_email_client = mock_email_service_client
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = True
@@ -278,13 +274,11 @@ class TestProcessExpirationReminders(TstLambdas):
         mock_email_client.send_privilege_expiration_reminder_email.assert_not_called()
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
-    def test_handler_logs_error_for_provider_without_email(self, mock_iter, mock_config, mock_tracker_class):
+    def test_handler_logs_error_for_provider_without_email(self, mock_iter, mock_email_service_client, mock_tracker_class):
         """Provider without email address is skipped and logged as noEmail."""
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
+        mock_email_client = mock_email_service_client
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = False
@@ -306,14 +300,11 @@ class TestProcessExpirationReminders(TstLambdas):
         mock_email_client.send_privilege_expiration_reminder_email.assert_not_called()
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
-    def test_handler_records_failure_on_email_error(self, mock_iter, mock_config, mock_tracker_class):
+    def test_handler_records_failure_on_email_error(self, mock_iter, mock_email_client, mock_tracker_class):
         """Email service raises exception; handler records failure."""
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
         mock_email_client.send_privilege_expiration_reminder_email.side_effect = Exception('Email service down')
-        mock_config.email_service_client = mock_email_client
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = False
@@ -336,15 +327,12 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertIn('Email service down', mock_tracker_instance.record_failure.call_args.kwargs['error_message'])
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
     def test_handler_records_failure_when_privilege_has_unknown_jurisdiction(
-        self, mock_iter, mock_config, mock_tracker_class
+        self, mock_iter, mock_email_client, mock_tracker_class
     ):
         """Unknown jurisdiction code raises when building template; handler records failure."""
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = False
@@ -411,29 +399,17 @@ class TestProcessExpirationReminders(TstLambdas):
             )
         self.assertIn('compact', str(ctx.exception))
 
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
-    @patch('handlers.expiration_reminders.datetime')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2026-01-17T12:00:00+00:00'))
     def test_handler_calculates_target_date_from_days_before_when_not_provided(
-        self, mock_datetime_class, mock_iter, mock_config, mock_tracker_class
+        self, mock_iter, mock_tracker_class, mock_email_client
     ):
         """When targetDate is not provided, handler calculates it based on daysBefore."""
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
-
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = False
         mock_tracker_class.return_value = mock_tracker_instance
-
-        # Mock datetime.now(UTC).date() to return fixed date
-        today = date(2026, 1, 17)
-        mock_now = MagicMock()
-        mock_now.date.return_value = today
-        mock_datetime_class.now.return_value = mock_now
-        # Passthrough other datetime methods
-        mock_datetime_class.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
 
         from handlers.expiration_reminders import process_expiration_reminders
 
@@ -442,9 +418,8 @@ class TestProcessExpirationReminders(TstLambdas):
         resp = process_expiration_reminders({'daysBefore': 30, 'compact': 'aslp'}, self.mock_context)
 
         self.assertEqual('complete', resp['status'])
-        # Verify it calculated the correct target date
-        expected_target_date = (today + timedelta(days=30)).isoformat()
-        self.assertEqual(expected_target_date, resp['targetDate'])
+        # Verify it calculated the correct target date (2026-01-17 + 30 days = 2026-02-16)
+        self.assertEqual('2026-02-16', resp['targetDate'])
         self.assertEqual(30, resp['daysBefore'])
 
         # Verify the generator was called with the calculated date and no initial_search_after
@@ -454,15 +429,12 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertIsNone(call_kwargs.get('initial_search_after'))
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
     def test_handler_continuation_parses_accumulated_metrics_and_search_after(
-        self, mock_iter, mock_config, mock_tracker_class
+        self, mock_iter, mock_email_client, mock_tracker_class
     ):
         """Continuation event with _continuation state merges accumulated metrics and resumes from searchAfter."""
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.side_effect = [False, True, True, False, False]
@@ -503,18 +475,13 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertEqual(['cursor1'], call_kwargs['initial_search_after'])
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
+    @patch('cc_common.config._Config.lambda_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
     def test_handler_invokes_itself_with_pagination_values_when_reaching_limit(
-        self, mock_iter, mock_config, mock_tracker_class
+        self, mock_iter, mock_lambda_client, mock_email_client, mock_tracker_class
     ):
         """Handler detects remaining time is low, invokes itself with continuation state."""
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
-        mock_lambda_client = MagicMock()
-        mock_config.lambda_client = mock_lambda_client
-        mock_config.lambda_function_name = 'test-function'
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = False
@@ -533,6 +500,7 @@ class TestProcessExpirationReminders(TstLambdas):
         # TIMEOUT_BUFFER_MS is 120,000 (2 minutes), so set remaining time to 100,000 (< buffer)
         mock_context_below_time_threshold = MagicMock()
         mock_context_below_time_threshold.get_remaining_time_in_millis.return_value = 100_000
+        mock_context_below_time_threshold.function_name = 'test-expiration-reminders'
 
         resp = process_expiration_reminders(self._make_event(), mock_context_below_time_threshold)
 
@@ -570,15 +538,12 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertIn(str(MAX_CONTINUATION_DEPTH), str(ctx.exception))
 
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
-    @patch('handlers.expiration_reminders.config')
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
-    def test_handler_only_includes_active_privileges_in_email(self, mock_iter, mock_config, mock_tracker_class):
+    def test_handler_only_includes_active_privileges_in_email(self, mock_iter, mock_email_client, mock_tracker_class):
         """
         Only active privileges are included in the email; inactive privileges are filtered out.
         """
-        mock_config.compacts = ['aslp']
-        mock_email_client = MagicMock()
-        mock_config.email_service_client = mock_email_client
 
         mock_tracker_instance = MagicMock()
         mock_tracker_instance.was_already_sent.return_value = False
