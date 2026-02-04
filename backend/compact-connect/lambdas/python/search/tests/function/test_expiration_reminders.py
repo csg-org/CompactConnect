@@ -1,5 +1,6 @@
+# ruff: noqa ARG002 unused args
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -276,7 +277,9 @@ class TestProcessExpirationReminders(TstLambdas):
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
     @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
-    def test_handler_logs_error_for_provider_without_email(self, mock_iter, mock_email_service_client, mock_tracker_class):
+    def test_handler_logs_error_for_provider_without_email(
+        self, mock_iter, mock_email_service_client, mock_tracker_class
+    ):
         """Provider without email address is skipped and logged as noEmail."""
         mock_email_client = mock_email_service_client
 

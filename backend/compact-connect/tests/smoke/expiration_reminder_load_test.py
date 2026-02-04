@@ -68,7 +68,7 @@ logs_client = boto3.client('logs')
 dynamodb_table = config.provider_user_dynamodb_table
 
 # Test configuration: counts of matching vs non-matching providers for the 30-day expiration run
-MATCHING_PROVIDERS = 20_000   # Providers with one privilege expiring on target date (receive email)
+MATCHING_PROVIDERS = 20_000  # Providers with one privilege expiring on target date (receive email)
 NON_MATCHING_PROVIDERS = 10_000  # Providers with neither privilege on target date (no email)
 COMPACT = COMPACTS[0]  # Use first compact
 JURISDICTION = JURISDICTIONS[0]  # Use first jurisdiction
@@ -77,9 +77,7 @@ JURISDICTION_2 = JURISDICTIONS[1] if len(JURISDICTIONS) > 1 else JURISDICTIONS[0
 if COMPACT in LICENSE_TYPES and LICENSE_TYPES[COMPACT]:
     LICENSE_TYPE = LICENSE_TYPES[COMPACT][0]['name']
     LICENSE_TYPE_2 = (
-        LICENSE_TYPES[COMPACT][1]['name']
-        if len(LICENSE_TYPES[COMPACT]) > 1
-        else LICENSE_TYPES[COMPACT][0]['name']
+        LICENSE_TYPES[COMPACT][1]['name'] if len(LICENSE_TYPES[COMPACT]) > 1 else LICENSE_TYPES[COMPACT][0]['name']
     )
 else:
     raise SmokeTestFailureException(f'No license types found for compact {COMPACT}')
@@ -116,11 +114,7 @@ class DynamoDBBatchWriter:
         # DynamoDB batch_write_item requires a dict keyed by table name
         table_name = self._table.name
         response = self._table.meta.client.batch_write_item(
-            RequestItems={
-                table_name: [
-                    {'PutRequest': {'Item': item}} for item in items_to_write
-                ]
-            }
+            RequestItems={table_name: [{'PutRequest': {'Item': item}} for item in items_to_write]}
         )
 
         # Check for unprocessed items (shouldn't happen with proper batch sizing, but handle it)
@@ -188,9 +182,7 @@ def create_provider_records(
     ):
         abbr = get_license_type_abbreviation(_license_type)
         if not abbr:
-            raise SmokeTestFailureException(
-                f'Could not find abbreviation for license type: {_license_type}'
-            )
+            raise SmokeTestFailureException(f'Could not find abbreviation for license type: {_license_type}')
 
     now = datetime.now(tz=UTC)
     given_name = f'TestProvider{provider_id[:8]}'
@@ -341,9 +333,7 @@ def find_lambda_function_name(partial_name: str) -> str:
                     logger.info(f'Found Lambda function: {function_name}')
                     return function_name
 
-        raise SmokeTestFailureException(
-            f'Lambda function containing "{partial_name}" not found. '
-        )
+        raise SmokeTestFailureException(f'Lambda function containing "{partial_name}" not found. ')
     except ClientError as e:
         raise SmokeTestFailureException(f'Failed to list Lambda functions: {str(e)}') from e
 
@@ -384,9 +374,7 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
 
         logger.info('Found log group for Lambda', log_group=log_group_name, function_name=lambda_name)
     except ClientError as e:
-        raise SmokeTestFailureException(
-            f'Failed to get Lambda function details: {str(e)}'
-        ) from e
+        raise SmokeTestFailureException(f'Failed to get Lambda function details: {str(e)}') from e
 
     event = {'daysBefore': days_before, 'compact': compact}
 
@@ -402,14 +390,14 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
         if response.get('FunctionError'):
             error_payload = json.loads(response['Payload'].read())
             raise SmokeTestFailureException(
-                f'expiration_reminder Lambda invocation failed: {response.get("FunctionError")}, '
-                f'error: {error_payload}'
+                f'expiration_reminder Lambda invocation failed: {response.get("FunctionError")}, error: {error_payload}'
             )
 
         logger.info('Lambda invocation accepted, polling CloudWatch Logs for completion...', log_group=log_group_name)
 
         # Poll CloudWatch Logs for the completion message
-        # The Lambda logs "Completed processing for compact" (or "Completed processing expiration reminders") with metrics
+        # The Lambda logs "Completed processing for compact"
+        # (or "Completed processing expiration reminders") with metrics
         max_wait_time = 960  # 16 minutes (Lambda timeout is 15 minutes)
         check_interval = 10  # Check every 10 seconds
         start_time = time.time()
@@ -476,8 +464,7 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
                 logger.info(f'Still waiting for Lambda completion... ({int(elapsed)}s elapsed)')
 
         raise SmokeTestFailureException(
-            f'Lambda did not complete within {max_wait_time}s timeout. '
-            'Check CloudWatch Logs for details.'
+            f'Lambda did not complete within {max_wait_time}s timeout. Check CloudWatch Logs for details.'
         )
 
     except ClientError as e:

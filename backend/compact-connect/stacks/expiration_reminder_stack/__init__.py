@@ -121,7 +121,8 @@ class ExpirationReminderStack(AppStack):
                 Rule(
                     self,
                     f'ExpirationReminder{reminder_config["suffix"]}Rule{compact.upper()}',
-                    description=f'Daily rule to send {reminder_config["days_before"]}-day expiration reminders for {compact}',
+                    description=f'Daily rule to send {reminder_config["days_before"]}-day expiration '
+                    f'reminders for {compact}',
                     schedule=Schedule.cron(week_day='*', hour='4', minute='0', month='*', year='*'),
                     targets=[
                         LambdaFunction(
