@@ -1,5 +1,5 @@
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -113,9 +113,7 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
 
     @patch('handlers.expiration_reminders.ProviderGeneralResponseSchema')
     @patch('handlers.expiration_reminders.opensearch_client')
-    def test_iterate_privileges_by_expiration_date_returns_full_provider_document(
-        self, mock_client, mock_schema_class
-    ):
+    def test_iterate_privileges_by_expiration_date_returns_full_provider_document(self, mock_client, mock_schema_class):
         """Provider document includes full privileges list from _source (no inner_hits filtering)."""
         full_privileges = [
             {
@@ -181,7 +179,8 @@ class TestProcessExpirationReminders(TstLambdas):
         doc = {
             'providerId': provider_id or str(uuid4()),
             'givenName': given_name,
-            'privileges': privileges or [
+            'privileges': privileges
+            or [
                 {
                     'privilegeId': 'a',
                     'dateOfExpiration': '2026-02-16',
@@ -218,9 +217,11 @@ class TestProcessExpirationReminders(TstLambdas):
 
         from handlers.expiration_reminders import PaginatedProviderResult, process_expiration_reminders
 
-        mock_iter.return_value = iter([
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
-        ])
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
+            ]
+        )
 
         resp = process_expiration_reminders(self._make_event(days_before=30), self.mock_context)
 
@@ -263,9 +264,11 @@ class TestProcessExpirationReminders(TstLambdas):
 
         from handlers.expiration_reminders import PaginatedProviderResult, process_expiration_reminders
 
-        mock_iter.return_value = iter([
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
-        ])
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
+            ]
+        )
 
         resp = process_expiration_reminders(self._make_event(days_before=7), self.mock_context)
 
@@ -289,9 +292,11 @@ class TestProcessExpirationReminders(TstLambdas):
 
         from handlers.expiration_reminders import PaginatedProviderResult, process_expiration_reminders
 
-        mock_iter.return_value = iter([
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(email=None), search_after=['cursor1']),
-        ])
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(email=None), search_after=['cursor1']),
+            ]
+        )
 
         resp = process_expiration_reminders(self._make_event(days_before=0), self.mock_context)
 
@@ -316,9 +321,11 @@ class TestProcessExpirationReminders(TstLambdas):
 
         from handlers.expiration_reminders import PaginatedProviderResult, process_expiration_reminders
 
-        mock_iter.return_value = iter([
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
-        ])
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
+            ]
+        )
 
         resp = process_expiration_reminders(self._make_event(), self.mock_context)
 
@@ -348,9 +355,11 @@ class TestProcessExpirationReminders(TstLambdas):
 
         doc = self._make_provider_doc()
         doc['privileges'][0]['jurisdiction'] = 'xx'
-        mock_iter.return_value = iter([
-            PaginatedProviderResult(provider_doc=doc, search_after=['cursor1']),
-        ])
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=doc, search_after=['cursor1']),
+            ]
+        )
 
         resp = process_expiration_reminders(self._make_event(), self.mock_context)
 
@@ -474,11 +483,13 @@ class TestProcessExpirationReminders(TstLambdas):
         }
 
         # This invocation processes 1 new email, 2 already sent
-        mock_iter.return_value = iter([
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor2']),
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor3']),
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor4']),
-        ])
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor2']),
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor3']),
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor4']),
+            ]
+        )
 
         resp = process_expiration_reminders(event_with_continuation, self.mock_context)
 
@@ -512,9 +523,11 @@ class TestProcessExpirationReminders(TstLambdas):
         from handlers.expiration_reminders import PaginatedProviderResult, process_expiration_reminders
 
         # Return one provider doc
-        mock_iter.return_value = iter([
-            PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
-        ])
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=self._make_provider_doc(), search_after=['cursor1']),
+            ]
+        )
 
         # Mock the context to simulate approaching timeout
         # TIMEOUT_BUFFER_MS is 120,000 (2 minutes), so set remaining time to 100,000 (< buffer)
@@ -555,3 +568,69 @@ class TestProcessExpirationReminders(TstLambdas):
         with self.assertRaises(RuntimeError) as ctx:
             process_expiration_reminders(event, self.mock_context)
         self.assertIn(str(MAX_CONTINUATION_DEPTH), str(ctx.exception))
+
+    @patch('handlers.expiration_reminders.ExpirationReminderTracker')
+    @patch('handlers.expiration_reminders.config')
+    @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
+    def test_handler_only_includes_active_privileges_in_email(self, mock_iter, mock_config, mock_tracker_class):
+        """
+        Only active privileges are included in the email; inactive privileges are filtered out.
+        """
+        mock_config.compacts = ['aslp']
+        mock_email_client = MagicMock()
+        mock_config.email_service_client = mock_email_client
+
+        mock_tracker_instance = MagicMock()
+        mock_tracker_instance.was_already_sent.return_value = False
+        mock_tracker_class.return_value = mock_tracker_instance
+
+        from handlers.expiration_reminders import PaginatedProviderResult, process_expiration_reminders
+
+        # Create provider with three privileges:
+        # 1. Inactive (encumbered)
+        # 2. Inactive (was stale-expired in OpenSearch, schema corrected status to inactive)
+        # 3. Active and expiring on target date
+        privileges = [
+            {
+                'privilegeId': 'encumbered-priv',
+                'dateOfExpiration': '2026-02-16',
+                'status': 'inactive',  # Encumbered - results in inactive status
+                'jurisdiction': 'oh',
+                'licenseType': 'aud',
+            },
+            {
+                'privilegeId': 'active-expiring-priv',
+                'dateOfExpiration': '2026-02-16',
+                'status': 'active',  # Active privilege expiring on target date
+                'jurisdiction': 'ne',
+                'licenseType': 'aud',
+            },
+        ]
+        provider_doc = self._make_provider_doc(privileges=privileges)
+
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=provider_doc, search_after=['cursor1']),
+            ]
+        )
+
+        # Use daysBefore=0 to simulate day-of expiration notification
+        resp = process_expiration_reminders(self._make_event(days_before=0), self.mock_context)
+
+        self.assertEqual('complete', resp['status'])
+        self.assertEqual(1, resp['metrics']['sent'])
+
+        # Verify only the active privilege was passed to the email client
+        mock_email_client.send_privilege_expiration_reminder_email.assert_called_once()
+        call_kwargs = mock_email_client.send_privilege_expiration_reminder_email.call_args.kwargs
+        tv = call_kwargs['template_variables']
+
+        # Should only have 1 privilege (the active one)
+        self.assertEqual(1, len(tv.privileges), 'Only active privileges should be included in email')
+
+        # Verify it's the correct privilege
+        priv = tv.privileges[0]
+        self.assertEqual('active-expiring-priv', priv['privilegeId'])
+        self.assertEqual('Nebraska', priv['jurisdiction'])
+        self.assertEqual('aud', priv['licenseType'])
+        self.assertEqual('2026-02-16', priv['dateOfExpiration'])

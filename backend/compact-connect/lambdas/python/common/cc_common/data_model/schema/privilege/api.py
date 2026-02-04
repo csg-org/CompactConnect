@@ -1,14 +1,17 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import Schema
+from datetime import date
+
+from marshmallow import Schema, pre_load
 from marshmallow.fields import List, Nested, Raw, String
 from marshmallow.validate import ContainsNoneOf, Length
 
+from cc_common.config import config
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionGeneralResponseSchema,
     AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.common import UpdateCategory
+from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -17,6 +20,42 @@ from cc_common.data_model.schema.fields import (
     UpdateType,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
+
+
+class PrivilegeExpirationStatusMixin:
+    """
+    Mixin that checks for stale 'status' values when loading privilege data.
+
+    OpenSearch documents may have stale status values because the status field is calculated
+    at write time. If the dateOfExpiration has passed since the last update, the status
+    should be 'inactive' even if the stored value says 'active'.
+
+    This mixin should be applied to privilege API response schemas that load data from
+    OpenSearch or other sources where the status may be stale.
+    """
+
+    @pre_load
+    def check_for_stale_status(self, in_data, **kwargs):
+        """Set status to inactive if the privilege has expired."""
+        if in_data.get('status') != ActiveInactiveStatus.ACTIVE:
+            # Already inactive, no check needed
+            return in_data
+
+        date_of_expiration = in_data.get('dateOfExpiration')
+        if date_of_expiration is None:
+            return in_data
+
+        # Parse the expiration date (handle both string and date objects)
+        if isinstance(date_of_expiration, str):
+            expiration_date = date.fromisoformat(date_of_expiration)
+        else:
+            expiration_date = date_of_expiration
+
+        # If expired, set the status to inactive
+        if expiration_date < config.expiration_resolution_date:
+            in_data['status'] = ActiveInactiveStatus.INACTIVE
+
+        return in_data
 
 
 class AttestationVersionResponseSchema(Schema):
@@ -57,7 +96,7 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     privilegeId = String(required=False, allow_none=False)
 
 
-class PrivilegeGeneralResponseSchema(ForgivingSchema):
+class PrivilegeGeneralResponseSchema(PrivilegeExpirationStatusMixin, ForgivingSchema):
     """
     Schema defining fields available to all staff users with only the 'readGeneral' permission.
 
@@ -92,7 +131,7 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
-class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
+class PrivilegeReadPrivateResponseSchema(PrivilegeExpirationStatusMixin, ForgivingSchema):
     """
     Schema defining fields available to staff users with the 'readPrivate' or higher permission.
 
@@ -131,7 +170,7 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
 
 
-class PrivilegePublicResponseSchema(ForgivingSchema):
+class PrivilegePublicResponseSchema(PrivilegeExpirationStatusMixin, ForgivingSchema):
     """
     Privilege object fields, as seen by the public lookup endpoints.
 

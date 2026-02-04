@@ -4,7 +4,6 @@ import json
 from collections.abc import Generator
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
-from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -312,19 +311,30 @@ def _process_provider_notification(
     provider_first_name = provider_doc['givenName']
 
     try:
-        # Build full privileges list for email (state name, license type, privilege id, ISO date per privilege)
+        # Build privileges list for email, filtering to only active privileges.
         email_privileges = []
         for privilege in provider_doc['privileges']:
+            # Only include active privileges in the email
+            if privilege.get('status') != 'active':
+                logger.info(
+                    'Skipping inactive privilege',
+                    provider_id=provider_id,
+                    compact=compact,
+                    privilege_id=privilege['privilegeId'],
+                )
+                continue
             jurisdiction_code = privilege['jurisdiction']
             jurisdiction_display = CompactConfigUtility.get_jurisdiction_name(jurisdiction_code)
             if jurisdiction_display is None:
                 raise ValueError(f'Unknown jurisdiction code for display name: {jurisdiction_code!r}')
-            email_privileges.append({
-                'jurisdiction': jurisdiction_display,
-                'licenseType': privilege['licenseType'],
-                'privilegeId': privilege['privilegeId'],
-                'dateOfExpiration': privilege['dateOfExpiration'],
-            })
+            email_privileges.append(
+                {
+                    'jurisdiction': jurisdiction_display,
+                    'licenseType': privilege['licenseType'],
+                    'privilegeId': privilege['privilegeId'],
+                    'dateOfExpiration': privilege['dateOfExpiration'],
+                }
+            )
 
         template_variables = PrivilegeExpirationReminderTemplateVariables(
             provider_first_name=provider_first_name,
@@ -436,7 +446,7 @@ def _build_expiration_query(*, expiration_date: date, page_size: int) -> dict:
         'query': {
             'nested': {
                 # Nested query for privileges
-                # This query will match any privilege that matches the _entire_ query, so only providers with at least 
+                # This query will match any privilege that matches the _entire_ query, so only providers with at least
                 # one privilege that is active and expires on the specified date will be included in the results.
                 'path': 'privileges',
                 'query': {
