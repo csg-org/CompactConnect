@@ -20,6 +20,7 @@ import {
 import {
     stateList,
     dateFormatPatterns,
+    AppModes,
     AuthTypes,
     getHostedLoginUri
 } from '@/app.config';
@@ -85,6 +86,10 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     //
     // Computed
     //
+    get appMode(): AppModes {
+        return this.$store.state.appMode;
+    }
+
     get stateOptions(): Array<SelectOption> {
         const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
 
@@ -165,7 +170,7 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     }
 
     get hostedForgotPasswordUriLicensee(): string {
-        return getHostedLoginUri(AuthTypes.LICENSEE, '/forgotPassword');
+        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/forgotPassword');
     }
 
     get isUsingMockApi(): boolean {

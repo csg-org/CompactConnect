@@ -14,6 +14,7 @@ import {
 import { RouteRecordName } from 'vue-router';
 import {
     authStorage,
+    AppModes,
     AuthTypes,
     relativeTimeFormats,
     AUTH_TYPE
@@ -47,6 +48,8 @@ class App extends Vue {
     // Lifecycle
     //
     async created() {
+        this.setAppModeFromCompact(this.routeCompactType);
+
         if (this.userStore.isLoggedIn) {
             await this.handleAuth();
         }
@@ -100,6 +103,18 @@ class App extends Vue {
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
             await this.getAccount();
             await this.setCurrentCompact();
+        }
+    }
+
+    setAppModeFromCompact(compact: CompactType | null): void {
+        let appMode = AppModes.JCC;
+
+        if (compact === CompactType.COSMETOLOGY) {
+            appMode = AppModes.COSMETOLOGY;
+        }
+
+        if (this.globalStore.appMode !== appMode) {
+            this.$store.dispatch('setAppMode', appMode);
         }
     }
 
@@ -192,6 +207,9 @@ class App extends Vue {
                 });
             }
         }
+
+        // Set the app mode based on the current compact
+        this.setAppModeFromCompact(userDefaultCompact?.type || null);
     }
 
     setRelativeTimeFormats() {

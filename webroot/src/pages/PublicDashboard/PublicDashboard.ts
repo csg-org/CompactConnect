@@ -8,6 +8,7 @@
 import { Component, Vue } from 'vue-facing-decorator';
 import {
     authStorage,
+    AppModes,
     AuthTypes,
     getHostedLoginUri,
     AUTH_LOGIN_GOTO_PATH,
@@ -42,6 +43,10 @@ export default class DashboardPublic extends Vue {
     //
     // Computed
     //
+    get appMode(): AppModes {
+        return this.$store.state.appMode;
+    }
+
     get bypassQuery(): string {
         const bypass: string = (this.$route.query?.bypass as string) || '';
 
@@ -59,11 +64,11 @@ export default class DashboardPublic extends Vue {
     }
 
     get hostedLoginUriStaff(): string {
-        return getHostedLoginUri(AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(this.appMode, AuthTypes.STAFF, this.hostedLoginUriPath);
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(AuthTypes.LICENSEE, this.hostedLoginUriPath);
+        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, this.hostedLoginUriPath);
     }
 
     get isUsingMockApi(): boolean {

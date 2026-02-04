@@ -500,6 +500,11 @@
             "name": "Counseling",
             "abbrev": "Counseling",
             "key": "coun"
+        },
+        {
+            "name": "Cosmetology and Esthetics",
+            "abbrev": "COSM",
+            "key": "cosm"
         }
     ],
     "compact": {
@@ -812,6 +817,18 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun",
                 "abbrev": "lpc"
+            },
+            {
+                "name": "Cosmetologist",
+                "key": "cosmetologist",
+                "compactKey": "cosm",
+                "abbrev": "cos"
+            },
+            {
+                "name": "Esthetician",
+                "key": "esthetician",
+                "compactKey": "cosm",
+                "abbrev": "esth"
             }
         ],
         "disciplineTypes": [

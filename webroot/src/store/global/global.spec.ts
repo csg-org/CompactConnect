@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { AuthTypes } from '@/app.config';
+import { AuthTypes, AppModes } from '@/app.config';
 import mutations, { MutationTypes } from './global.mutations';
 import actions from './global.actions';
 
@@ -98,6 +98,14 @@ describe('Global Store Mutations', () => {
         mutations[MutationTypes.SET_MODAL_LOGOUT_ONLY](state, isModalLogoutOnly);
 
         expect(state.isModalLogoutOnly).to.equal(isModalLogoutOnly);
+    });
+    it('should successfully set app mode', () => {
+        const state = {};
+        const appMode = AppModes.JCC;
+
+        mutations[MutationTypes.SET_APP_MODE](state, appMode);
+
+        expect(state.appMode).to.equal(appMode);
     });
     it('should successfully set auth type', () => {
         const state = {};

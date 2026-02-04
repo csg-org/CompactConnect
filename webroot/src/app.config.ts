@@ -8,6 +8,14 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import localStorage from '@store/local.storage';
 import moment from 'moment';
 
+// ===============
+// =  App Modes  =
+// ===============
+export enum AppModes {
+    JCC = 'jcc',
+    COSMETOLOGY = 'cosmo',
+}
+
 // =========================
 // =  Authorization Types  =
 // =========================
@@ -25,7 +33,7 @@ export type CognitoConfig = {
     clientId: string;
     authDomain: string;
 };
-export const getCognitoConfig = (authType: AuthTypes): CognitoConfig => {
+export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): CognitoConfig => {
     const config: CognitoConfig = {
         scopes: '',
         clientId: '',
@@ -35,12 +43,23 @@ export const getCognitoConfig = (authType: AuthTypes): CognitoConfig => {
     switch (authType) {
     case AuthTypes.STAFF:
         config.scopes = staffLoginScopes;
-        if (envConfig.cognitoClientIdStaff) {
-            config.clientId = envConfig.cognitoClientIdStaff;
+
+        if (appMode === AppModes.JCC) {
+            if (envConfig.cognitoClientIdStaff) {
+                config.clientId = envConfig.cognitoClientIdStaff;
+            }
+            if (envConfig.cognitoAuthDomainStaff) {
+                config.authDomain = envConfig.cognitoAuthDomainStaff;
+            }
+        } else if (appMode === AppModes.COSMETOLOGY) {
+            if (envConfig.cognitoClientIdStaffCosmo) {
+                config.clientId = envConfig.cognitoClientIdStaffCosmo;
+            }
+            if (envConfig.cognitoAuthDomainStaffCosmo) {
+                config.authDomain = envConfig.cognitoAuthDomainStaffCosmo;
+            }
         }
-        if (envConfig.cognitoAuthDomainStaff) {
-            config.authDomain = envConfig.cognitoAuthDomainStaff;
-        }
+
         break;
     case AuthTypes.LICENSEE:
         config.scopes = licenseeLoginScopes;
@@ -58,9 +77,9 @@ export const getCognitoConfig = (authType: AuthTypes): CognitoConfig => {
     return config;
 };
 
-export const getHostedLoginUri = (authType: AuthTypes, hostedIdpPath = '/login'): string => {
+export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login'): string => {
     const { domain } = envConfig;
-    const { scopes, clientId, authDomain } = getCognitoConfig(authType);
+    const { scopes, clientId, authDomain } = getCognitoConfig(appMode, authType);
     const loginUriQuery = [
         `?client_id=${clientId}`,
         `&response_type=code`,
@@ -308,6 +327,7 @@ export const compacts = {
     aslp: {},
     octp: {},
     coun: {},
+    cosm: {},
 };
 
 // =============================
