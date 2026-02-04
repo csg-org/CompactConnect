@@ -673,7 +673,7 @@ describe('EmailNotificationServiceLambda', () => {
             const htmlData = input.Content?.Simple?.Body?.Html?.Data ?? '';
 
             expect(htmlData).toContain('Hi Mary,');
-            expect(htmlData).toContain('one or more of your privileges will expire on');
+            expect(htmlData).toContain('Your privilege(s) to practice expires on');
             expect(htmlData).toContain('02/16/2026');
             expect(htmlData).toContain('Ohio, audiologist');
             expect(htmlData).toContain('#AUD-OH-001');

@@ -703,7 +703,7 @@ export class EmailNotificationService extends BaseEmailService {
         // "This message is to inform you..." text
         this.insertBody(
             emailContent,
-            'This message is to inform you that one or more of your privileges will expire on:',
+            'Your privilege(s) to practice expires on:',
             'center',
             false,
             { 'padding': { 'top': 24, 'bottom': 0, 'right': 32, 'left': 32 }}
@@ -719,7 +719,7 @@ export class EmailNotificationService extends BaseEmailService {
         // Explanation text
         this.insertBody(
             emailContent,
-            'When a privilege is expired, you can no longer use it to practice. In order to renew your privileges, you must first renew your home state license. A full list of the privileges and their expiration dates is below:',
+            'Upon expiration, you may not use your Compact privilege to provide patient/client services. You must renew your home state license in order to renew your Compact privilege to practice.',
             'center',
             false,
             { 'padding': { 'top': 24, 'bottom': 24, 'right': 32, 'left': 32 }}

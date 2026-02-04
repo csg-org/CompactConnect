@@ -1120,7 +1120,7 @@ describe('EmailNotificationService', () => {
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('Hi John,');
-            expect(htmlContent).toContain('one or more of your privileges will expire on');
+            expect(htmlContent).toContain('Your privilege(s) to practice expires on');
             expect(htmlContent).toContain('02/16/2026');
             expect(htmlContent).toContain('Ohio, audiologist');
             expect(htmlContent).toContain('#AUD-OH-001');
@@ -1184,7 +1184,7 @@ describe('EmailNotificationService', () => {
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('Hi Jane,');
-            expect(htmlContent).toContain('one or more of your privileges will expire on');
+            expect(htmlContent).toContain('Your privilege(s) to practice expires on');
             expect(htmlContent).toContain('03/01/2026');
             expect(htmlContent).toContain('Nebraska, speech-language pathologist');
             expect(htmlContent).toContain('#SLP-NE-123');
