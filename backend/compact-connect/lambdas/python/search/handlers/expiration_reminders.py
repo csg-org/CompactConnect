@@ -409,7 +409,7 @@ def iterate_privileges_by_expiration_date(
             if search_after is not None:
                 search_body['search_after'] = search_after
 
-            response = opensearch_client.search(index_name=index_name, body=search_body)
+            response = opensearch_client.search_with_retry(index_name=index_name, body=search_body)
             logger.info('Received response from OpenSearch', hits=response['hits']['total'])
             hits = response['hits']['hits']
             if not hits:

@@ -18,11 +18,11 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
     def test_iterate_privileges_by_expiration_date_paginates_with_search_after_and_yields_in_order(
         self, mock_client, mock_schema_class
     ):
-        mock_client.search = MagicMock()
+        mock_client.search_with_retry = MagicMock()
         mock_schema_class.return_value.load.side_effect = lambda doc: doc
 
         # Page 1: p1, p2
-        mock_client.search.side_effect = [
+        mock_client.search_with_retry.side_effect = [
             {
                 'hits': {
                     'total': {'value': 3, 'relation': 'eq'},
@@ -66,8 +66,8 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
         self.assertEqual([r.search_after for r in results], [['p1'], ['p2'], ['p3']])
 
         # Verify pagination: second call includes search_after from last hit in page 1
-        first_call_kwargs = mock_client.search.call_args_list[0].kwargs
-        second_call_kwargs = mock_client.search.call_args_list[1].kwargs
+        first_call_kwargs = mock_client.search_with_retry.call_args_list[0].kwargs
+        second_call_kwargs = mock_client.search_with_retry.call_args_list[1].kwargs
 
         self.assertEqual('compact_aslp_providers', first_call_kwargs['index_name'])
         self.assertNotIn('search_after', first_call_kwargs['body'])
@@ -81,7 +81,7 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
         self, mock_client, mock_schema_class
     ):
         """When initial_search_after is provided, first OpenSearch query uses it."""
-        mock_client.search = MagicMock(
+        mock_client.search_with_retry = MagicMock(
             return_value={
                 'hits': {
                     'total': {'value': 1, 'relation': 'eq'},
@@ -109,8 +109,8 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
 
         self.assertEqual(1, len(results))
         self.assertEqual('p2', results[0].provider_doc['providerId'])
-        mock_client.search.assert_called_once()
-        self.assertEqual(['p1'], mock_client.search.call_args.kwargs['body']['search_after'])
+        mock_client.search_with_retry.assert_called_once()
+        self.assertEqual(['p1'], mock_client.search_with_retry.call_args.kwargs['body']['search_after'])
 
     @patch('handlers.expiration_reminders.ProviderGeneralResponseSchema')
     @patch('handlers.expiration_reminders.opensearch_client')
@@ -132,7 +132,7 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
                 'status': 'active',
             },
         ]
-        mock_client.search = MagicMock(
+        mock_client.search_with_retry = MagicMock(
             return_value={
                 'hits': {
                     'total': {'value': 1, 'relation': 'eq'},
