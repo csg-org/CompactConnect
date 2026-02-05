@@ -107,6 +107,13 @@ describe('Global Store Mutations', () => {
 
         expect(state.appMode).to.equal(appMode);
     });
+    it('should successfully set app mode display', () => {
+        const state = {};
+
+        mutations[MutationTypes.SET_APP_MODE_DISPLAY](state, true);
+
+        expect(state.isAppModeDisplayed).to.equal(true);
+    });
     it('should successfully set auth type', () => {
         const state = {};
         const authType = AuthTypes.LICENSEE;
@@ -189,6 +196,23 @@ describe('Global Store Actions', () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_MODAL_LOGOUT_ONLY, isLogoutOnly]);
+    });
+    it('should successfully set app mode', () => {
+        const commit = sinon.spy();
+        const appMode = AppModes.JCC;
+
+        actions.setAppMode({ commit }, appMode);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE, appMode]);
+    });
+    it('should successfully set app mode display', () => {
+        const commit = sinon.spy();
+
+        actions.setAppModeDisplay({ commit }, true);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE_DISPLAY, true]);
     });
     it('should successfully set auth type', () => {
         const commit = sinon.spy();

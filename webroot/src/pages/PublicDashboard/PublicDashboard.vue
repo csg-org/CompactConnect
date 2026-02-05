@@ -76,6 +76,28 @@
                 <StaffUserIcon class="login-icon" />
                 {{ $t('navigation.loginAsStaff') }}
             </div>
+
+            <a
+                v-if="!isUsingMockApi"
+                :href="hostedLoginUriStaffCosmo"
+                class="login-link small"
+                rel="noopener noreferrer"
+            >
+                <StaffUserIcon class="login-icon" />
+                {{ $t('navigation.loginAsStaff') }} COSMO
+            </a>
+            <div
+                v-else
+                class="login-link small"
+                @click="bypassToStaffLoginCosmo"
+                @keyup.enter="bypassToStaffLoginCosmo"
+                tabindex="0"
+                role="button"
+                :aria-label="$t('navigation.loginAsStaff')"
+            >
+                <StaffUserIcon class="login-icon" />
+                {{ $t('navigation.loginAsStaff') }} COSMO
+            </div>
         </div>
         </div>
         <div class="dashboard-footer">

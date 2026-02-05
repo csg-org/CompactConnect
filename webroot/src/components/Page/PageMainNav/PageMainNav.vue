@@ -71,6 +71,9 @@
                 :hideIfNotMultiple="true"
             />
         </div>
+        <div v-if="$store.state.isAppModeDisplayed" class="app-mode">
+            App mode: {{ $store.state.appMode }}
+        </div>
         <div v-if="isLoggedIn" class="separator"></div>
         <ul
             class="nav my-nav"

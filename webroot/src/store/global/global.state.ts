@@ -14,6 +14,7 @@ export interface State {
     isModalOpen: boolean;
     isModalLogoutOnly: boolean;
     appMode: AppModes;
+    isAppModeDisplayed: boolean;
     authType: AuthTypes;
     isNavExpanded: boolean;
 }
@@ -25,6 +26,7 @@ export const state: State = {
     isModalOpen: false,
     isModalLogoutOnly: false,
     appMode: AppModes.JCC,
+    isAppModeDisplayed: true, // @TODO
     authType: AuthTypes.PUBLIC,
     isNavExpanded: false,
 };

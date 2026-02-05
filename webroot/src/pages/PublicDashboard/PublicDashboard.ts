@@ -64,11 +64,15 @@ export default class DashboardPublic extends Vue {
     }
 
     get hostedLoginUriStaff(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(AppModes.JCC, AuthTypes.STAFF, this.hostedLoginUriPath);
+    }
+
+    get hostedLoginUriStaffCosmo(): string {
+        return getHostedLoginUri(AppModes.COSMETOLOGY, AuthTypes.STAFF, this.hostedLoginUriPath);
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, this.hostedLoginUriPath);
+        return getHostedLoginUri(AppModes.JCC, AuthTypes.LICENSEE, this.hostedLoginUriPath);
     }
 
     get isUsingMockApi(): boolean {
@@ -82,6 +86,9 @@ export default class DashboardPublic extends Vue {
         switch (this.bypassQuery) {
         case 'login-staff':
             this.bypassToStaffLogin();
+            break;
+        case 'login-staff-cosmo':
+            this.bypassToStaffLoginCosmo();
             break;
         case 'login-practitioner':
             this.bypassToLicenseeLogin();
@@ -100,6 +107,15 @@ export default class DashboardPublic extends Vue {
         } else {
             this.$store.dispatch('startLoading');
             window.location.replace(this.hostedLoginUriStaff);
+        }
+    }
+
+    bypassToStaffLoginCosmo(): void {
+        if (this.isUsingMockApi) {
+            this.mockStaffLogin(AppModes.COSMETOLOGY);
+        } else {
+            this.$store.dispatch('startLoading');
+            window.location.replace(this.hostedLoginUriStaffCosmo);
         }
     }
 
@@ -125,7 +141,7 @@ export default class DashboardPublic extends Vue {
         });
     }
 
-    async mockStaffLogin(): Promise<void> {
+    async mockStaffLogin(appMode = AppModes.JCC): Promise<void> {
         const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
         const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         const data = {
@@ -140,6 +156,7 @@ export default class DashboardPublic extends Vue {
         authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
+        this.$store.dispatch('setAppMode', appMode);
 
         if (goto && (!gotoAuthType || gotoAuthType === AuthTypes.STAFF)) {
             this.$router.push({ path: goto });

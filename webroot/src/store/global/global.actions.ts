@@ -33,6 +33,9 @@ export default {
     setAppMode: ({ commit }, mode) => {
         commit(MutationTypes.SET_APP_MODE, mode);
     },
+    setAppModeDisplay: ({ commit }, isDisplayed) => {
+        commit(MutationTypes.SET_APP_MODE_DISPLAY, isDisplayed);
+    },
     setAuthType: ({ commit }, type) => {
         commit(MutationTypes.SET_AUTH_TYPE, type);
     },

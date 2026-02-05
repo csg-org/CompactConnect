@@ -26,6 +26,8 @@ import AutoLogout from '@components/AutoLogout/AutoLogout.vue';
 import { StatsigUser } from '@statsig/js-client';
 import moment from 'moment';
 
+const appWindow = window as any;
+
 @Component({
     name: 'App',
     components: {
@@ -56,6 +58,7 @@ class App extends Vue {
 
         this.setRelativeTimeFormats();
         this.setFeatureGateRefetchInterval();
+        this.addAppModeDebugger();
     }
 
     async beforeUnmount() {
@@ -221,6 +224,18 @@ class App extends Vue {
 
     closeModal() {
         this.$store.dispatch('clearMessages');
+    }
+
+    addAppModeDebugger(): void {
+        appWindow.ccModeToggle = () => {
+            if (this.globalStore.isAppModeDisplayed) {
+                this.$store.dispatch('setAppModeDisplay', false);
+                console.log('CompactConnect app mode display: DISABLED');
+            } else {
+                this.$store.dispatch('setAppModeDisplay', true);
+                console.log('CompactConnect app mode display: ENABLED');
+            }
+        };
     }
 
     //

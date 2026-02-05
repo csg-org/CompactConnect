@@ -20,6 +20,7 @@ export enum MutationTypes {
     SET_MODAL_OPEN = '[Global] Modal isOpen set',
     SET_MODAL_LOGOUT_ONLY = '[Global] Modal isLogoutOnly set',
     SET_APP_MODE = '[Global] App mode set',
+    SET_APP_MODE_DISPLAY = '[Global] App mode displayed set',
     SET_AUTH_TYPE = '[Global] Auth type set',
     EXPAND_NAV_MENU = '[Global] Expand nav menu',
     COLLAPSE_NAV_MENU = '[Global] Collapse nav menu',
@@ -57,6 +58,9 @@ export default {
     },
     [MutationTypes.SET_APP_MODE]: (state: State, mode: AppModes) => {
         state.appMode = mode;
+    },
+    [MutationTypes.SET_APP_MODE_DISPLAY]: (state: State, isDisplayed: boolean) => {
+        state.isAppModeDisplayed = isDisplayed;
     },
     [MutationTypes.SET_AUTH_TYPE]: (state: State, type: AuthTypes) => {
         state.authType = type;
