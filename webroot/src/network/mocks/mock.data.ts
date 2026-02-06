@@ -161,6 +161,39 @@ export const staffAccount = {
                 },
             },
         },
+        cosm: {
+            actions: {
+                admin: true,
+                readPrivate: true,
+                readSsn: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+            },
+        },
     },
 };
 

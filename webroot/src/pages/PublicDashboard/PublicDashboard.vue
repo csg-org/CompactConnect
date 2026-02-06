@@ -67,8 +67,8 @@
             <div
                 v-else
                 class="login-link small"
-                @click="mockStaffLogin"
-                @keyup.enter="mockStaffLogin"
+                @click="bypassToStaffLogin"
+                @keyup.enter="bypassToStaffLogin"
                 tabindex="0"
                 role="button"
                 :aria-label="$t('navigation.loginAsStaff')"

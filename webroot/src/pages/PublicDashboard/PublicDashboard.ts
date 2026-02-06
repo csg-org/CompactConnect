@@ -103,7 +103,7 @@ export default class DashboardPublic extends Vue {
 
     bypassToStaffLogin(): void {
         if (this.isUsingMockApi) {
-            this.mockStaffLogin();
+            this.mockStaffLogin(AppModes.JCC);
         } else {
             this.$store.dispatch('startLoading');
             window.location.replace(this.hostedLoginUriStaff);
@@ -141,7 +141,7 @@ export default class DashboardPublic extends Vue {
         });
     }
 
-    async mockStaffLogin(appMode = AppModes.JCC): Promise<void> {
+    async mockStaffLogin(appMode: AppModes): Promise<void> {
         const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
         const gotoAuthType = authStorage.getItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         const data = {
@@ -154,9 +154,10 @@ export default class DashboardPublic extends Vue {
 
         authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
         authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
+        this.$store.dispatch('setAppMode', appMode);
+        console.log(`appMode set to ${appMode}`);
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
-        this.$store.dispatch('setAppMode', appMode);
 
         if (goto && (!gotoAuthType || gotoAuthType === AuthTypes.STAFF)) {
             this.$router.push({ path: goto });

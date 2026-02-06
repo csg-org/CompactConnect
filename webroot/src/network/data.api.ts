@@ -16,12 +16,13 @@ export class DataApi {
     /**
      * Initialize API Axios interceptors with injected store context.
      * @param {Router} router
+     * @param {Store} store
      */
-    public initInterceptors(router) {
-        stateDataApi.initInterceptors(router);
-        licenseDataApi.initInterceptors(router);
-        searchDataApi.initInterceptors(router);
-        userDataApi.initInterceptors(router);
+    public initInterceptors(router, store) {
+        stateDataApi.initInterceptors(router, store);
+        licenseDataApi.initInterceptors(router, store);
+        searchDataApi.initInterceptors(router, store);
+        userDataApi.initInterceptors(router, store);
         exampleDataApi.initInterceptors(router);
     }
 

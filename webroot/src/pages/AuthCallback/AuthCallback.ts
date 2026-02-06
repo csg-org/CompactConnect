@@ -12,18 +12,13 @@ import Card from '@components/Card/Card.vue';
 import {
     authStorage,
     AppModes,
+    CognitoStateTypes,
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
 } from '@/app.config';
 import axios from 'axios';
-
-export enum CognitoStateTypes {
-    STAFF_JCC = 'staff',
-    STAFF_COSMETOLOGY = 'staff-cosmo',
-    LICENSEE_JCC = 'licensee',
-}
 
 @Component({
     name: 'AuthCallback',

@@ -8,8 +8,13 @@
 import { createRouter, createWebHistory, RouteLocationNormalized as Route } from 'vue-router';
 import routes from '@router/routes';
 import store from '@/store';
-import { authStorage, AUTH_TYPE, AuthTypes } from '@/app.config';
-import { CompactSerializer } from '@models/Compact/Compact.model';
+import {
+    AppModes,
+    authStorage,
+    AUTH_TYPE,
+    AuthTypes
+} from '@/app.config';
+import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL || '/'),
@@ -34,10 +39,21 @@ router.beforeEach(async (to, from, next) => {
     const isStaffRoute = to.matched.some((route) => route.meta.staffAccess);
     const routeParamCompactType = to.params?.compact;
 
-    // If the store does not have the requested compact, set it from the route (e.g. page refreshes)
     if (routeParamCompactType) {
+        const { appMode } = store.state;
+        let expectedAppMode = AppModes.JCC;
         const { currentCompact } = store.getters['user/state'];
 
+        // Update the app mode based on attempted compact route, if needed
+        if (routeParamCompactType === CompactType.COSMETOLOGY) {
+            expectedAppMode = AppModes.COSMETOLOGY;
+        }
+
+        if (!appMode || appMode !== expectedAppMode) {
+            store.dispatch('setAppMode', expectedAppMode);
+        }
+
+        // If the store does not have the requested compact, set it from the route (e.g. page refreshes)
         if (!currentCompact || currentCompact.type !== routeParamCompactType) {
             await store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: routeParamCompactType }));
         }

@@ -46,13 +46,14 @@ export class StateDataApi implements DataApiInterface {
     /**
      * Attach Axios interceptors with injected contexts.
      * https://github.com/axios/axios#interceptors
-     * @param {Store} store
+     * @param {Router} router
+     * @param {Store}  store
      */
-    public initInterceptors(store) {
-        const requestSuccessInterceptor = requestSuccess();
+    public initInterceptors(router, store) {
+        const requestSuccessInterceptor = requestSuccess(store);
         const requestErrorInterceptor = requestError();
         const responseSuccessInterceptor = responseSuccess();
-        const responseErrorInterceptor = responseError(store);
+        const responseErrorInterceptor = responseError(router);
 
         // Request Interceptors
         this.api.interceptors.request.use(

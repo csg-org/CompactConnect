@@ -50,6 +50,7 @@ class App extends Vue {
     // Lifecycle
     //
     async created() {
+        await this.$router.isReady();
         this.setAppModeFromCompact(this.routeCompactType);
 
         if (this.userStore.isLoggedIn) {
@@ -102,6 +103,8 @@ class App extends Vue {
     async handleAuth() {
         const authType = this.setAuthType();
 
+        this.setAppModeFromCompact(this.routeCompactType);
+
         if (authType !== AuthTypes.PUBLIC) {
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
             await this.getAccount();
@@ -110,10 +113,12 @@ class App extends Vue {
     }
 
     setAppModeFromCompact(compact: CompactType | null): void {
-        let appMode = AppModes.JCC;
+        let { appMode } = this.globalStore;
 
         if (compact === CompactType.COSMETOLOGY) {
             appMode = AppModes.COSMETOLOGY;
+        } else {
+            appMode = AppModes.JCC;
         }
 
         if (this.globalStore.appMode !== appMode) {
