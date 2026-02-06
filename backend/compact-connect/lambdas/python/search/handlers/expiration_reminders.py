@@ -314,7 +314,7 @@ def _process_provider_notification(
         # Build privileges list for email, filtering to only active privileges.
         email_privileges = []
         for privilege in provider_doc['privileges']:
-            # Only include active privileges in the email
+            # Only include active privileges in the email per the feature request requirements
             if privilege.get('status') != 'active':
                 logger.info(
                     'Skipping inactive privilege',

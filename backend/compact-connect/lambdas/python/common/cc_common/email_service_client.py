@@ -100,8 +100,8 @@ class EmailServiceClient:
             )
 
             if response.get('FunctionError'):
-                error_message = 'Failed to send email notification'
-                self._logger.error(error_message, payload=payload, response=response)
+                error_message = f'Failed to send email notification: {response.get("FunctionError")}'
+                self._logger.error(error_message)
                 raise CCInternalException(error_message)
 
             return response
