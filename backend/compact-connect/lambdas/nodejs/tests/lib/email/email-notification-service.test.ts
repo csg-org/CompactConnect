@@ -11,7 +11,7 @@ import { CompactConfigurationClient } from '../../../lib/compact-configuration-c
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
 import { TReaderDocument } from '@csg-org/email-builder';
-import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 jest.mock('nodemailer');
 
