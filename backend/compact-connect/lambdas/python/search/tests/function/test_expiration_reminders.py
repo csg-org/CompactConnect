@@ -602,3 +602,66 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertEqual('Nebraska', priv['jurisdiction'])
         self.assertEqual('aud', priv['licenseType'])
         self.assertEqual('2026-02-16', priv['dateOfExpiration'])
+
+    @patch('handlers.expiration_reminders.ExpirationReminderTracker')
+    @patch('cc_common.config._Config.email_service_client')
+    @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
+    def test_handler_increments_matched_privileges_metric(self, mock_iter, mock_email_client, mock_tracker_class):
+        """Metrics.matchedPrivileges is incremented by the count of active privileges expiring on target date per provider."""
+        mock_tracker_instance = MagicMock()
+        mock_tracker_instance.was_already_sent.return_value = False
+        mock_tracker_class.return_value = mock_tracker_instance
+
+        from handlers.expiration_reminders import PaginatedProviderResult, process_expiration_reminders
+
+        target = '2026-02-16'
+        # Provider 1: two privileges expiring on target date (both active)
+        privileges_p1 = [
+            {
+                'privilegeId': 'p1-priv-1',
+                'dateOfExpiration': target,
+                'status': 'active',
+                'jurisdiction': 'oh',
+                'licenseType': 'aud',
+            },
+            {
+                'privilegeId': 'p1-priv-2',
+                'dateOfExpiration': target,
+                'status': 'active',
+                'jurisdiction': 'ky',
+                'licenseType': 'slp',
+            },
+        ]
+        # Provider 2: one privilege expiring on target, one on another date (only first counts)
+        privileges_p2 = [
+            {
+                'privilegeId': 'p2-priv-1',
+                'dateOfExpiration': target,
+                'status': 'active',
+                'jurisdiction': 'ne',
+                'licenseType': 'aud',
+            },
+            {
+                'privilegeId': 'p2-priv-2',
+                'dateOfExpiration': '2026-03-01',
+                'status': 'active',
+                'jurisdiction': 'oh',
+                'licenseType': 'slp',
+            },
+        ]
+        doc1 = self._make_provider_doc(provider_id='p1', privileges=privileges_p1)
+        doc2 = self._make_provider_doc(provider_id='p2', privileges=privileges_p2)
+
+        mock_iter.return_value = iter(
+            [
+                PaginatedProviderResult(provider_doc=doc1, search_after=['cursor1']),
+                PaginatedProviderResult(provider_doc=doc2, search_after=['cursor2']),
+            ]
+        )
+
+        resp = process_expiration_reminders(self._make_event(), self.mock_context)
+
+        self.assertEqual('complete', resp['status'])
+        # 2 + 1 = 3 matched privileges (active and expiring on target date)
+        self.assertEqual(3, resp['metrics']['matchedPrivileges'])
+        self.assertEqual(2, resp['metrics']['providersWithMatches'])

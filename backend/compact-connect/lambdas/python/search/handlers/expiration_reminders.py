@@ -174,6 +174,7 @@ def process_expiration_reminders(event: dict, context: LambdaContext):
             failed=metrics.failed + provider_result['failed'],
             already_sent=metrics.already_sent + provider_result['already_sent'],
             no_email=metrics.no_email + provider_result['no_email'],
+            matched_privileges=metrics.matched_privileges + provider_result['matched_privileges'],
         )
 
         # Check if approaching timeout; invoke continuation if so
@@ -272,11 +273,19 @@ def _process_provider_notification(
     """
     Process a single provider's expiration reminder notification.
 
-    :return: Dict with counts for sent, skipped, failed, already_sent, no_email
+    :return: Dict with counts for sent, skipped, failed, already_sent, no_email, matched_privileges
     """
-    result = {'sent': 0, 'skipped': 0, 'failed': 0, 'already_sent': 0, 'no_email': 0}
+    result = {'sent': 0, 'skipped': 0, 'failed': 0, 'already_sent': 0, 'no_email': 0, 'matched_privileges': 0}
 
     provider_id = provider_doc['providerId']
+
+    # Count privileges that match the expiration query (active + expiring on target date)
+    expiration_date_str = expiration_date.isoformat()
+    result['matched_privileges'] = sum(
+        1
+        for p in provider_doc.get('privileges', [])
+        if p.get('status') == 'active' and p.get('dateOfExpiration') == expiration_date_str
+    )
 
     # Check for registered email - providers with privileges should always be registered
     provider_email = provider_doc.get('compactConnectRegisteredEmailAddress')
