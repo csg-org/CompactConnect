@@ -13,4 +13,4 @@ cdk.out
 cdk.context.json
 *-cdk.context.json
 # smoke test env
-smoke_tests_env.json
+*smoke_tests_env.json

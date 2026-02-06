@@ -107,8 +107,8 @@ new AWS organization that we will set up here. Have them:
 ### Configure Permission Set Inline Policies
 To enhance security, configure inline policies on IAM Identity Center permission sets to restrict certain actions:
 
-#### Lambda Function Code Update Protection
-We do not want users updating runtime code out of bands of our CI/CD reviewal and deployment process. Apply the following inline policy to the `AWSPowerUserAccess` permission set to prevent unauthorized Lambda function updates, as well as updates to our backup resources:
+#### Lambda Function Code Update Protection and Resource Deletion Prevention
+We do not want users updating runtime code or deleting critical resources outside of our CI/CD review and deployment process. Apply the following inline policy to the `AWSPowerUserAccess` permission set.
 
 1. Log into the AWS Management account console via your IAM Identity Center user
 2. Go to the IAM Identity Center service, Permission sets view
@@ -150,16 +150,73 @@ We do not want users updating runtime code out of bands of our CI/CD reviewal an
 			"Resource": [
 				"*"
 			]
+		},
+		{
+			"Sid": "DenyResourceModification",
+			"Effect": "Deny",
+			"Action": [
+				"dynamodb:Delete*",
+				"s3:Delete*",
+				"s3:Create*",
+				"s3:Put*",
+				"s3:Replicate*",
+				"s3:Update*",
+				"events:Delete*",
+				"sqs:DeleteQueue",
+				"sns:Delete*",
+				"ses:Delete*",
+				"ses:Update*",
+				"cognito-idp:DeleteUserPool",
+				"cognito-idp:DeleteUserPoolDomain",
+				"cognito-idp:DeleteGroup",
+				"cognito-idp:DeleteIdentityProvider",
+				"cognito-idp:DeleteResourceServer",
+				"cognito-idp:DeleteManagedLoginBranding",
+				"ec2:DeleteVpc",
+				"ec2:DeleteSubnet",
+				"ec2:DeleteSecurityGroup",
+				"ec2:DeleteInternetGateway",
+				"ec2:DeleteNatGateway",
+				"ec2:DeleteRouteTable",
+				"ec2:DeleteRoute",
+				"ec2:DeleteNetworkAcl",
+				"ec2:DeleteNetworkAclEntry",
+				"ec2:DeleteVpnConnection",
+				"ec2:DeleteVpnGateway",
+				"ec2:DeleteVpcEndpoint",
+				"ec2:DeleteVpcEndpointServiceConfigurations",
+				"ec2:DeleteVpcPeeringConnection",
+				"ec2:DeleteFlowLogs",
+				"ec2:DeleteEgressOnlyInternetGateway",
+				"kms:ScheduleKeyDeletion",
+				"kms:Disable*",
+				"kms:Delete*",
+				"secretsmanager:Delete*",
+				"apigateway:DELETE",
+				"apigateway:PATCH",
+				"apigateway:PUT",
+				"apigateway:POST",
+				"apigateway:RemoveCertificateFromDomain",
+				"apigateway:SetWebACL",
+				"apigateway:Update*",
+				"es:Delete*"
+			],
+			"Resource": [
+				"*"
+			]
 		}
 	]
 }
 ```
 
-6. Name the policy `DenyComputeAndBackupUpdates`
+6. Name the policy `DenyComputeBackupAndResourceModifications`
 7. Select "Create policy"
 8. The policy will automatically apply to all users assigned to the `AWSPowerUserAccess` permission set
 
-This policy prevents power users from modifying Lambda functions and backup resources while still allowing CloudFormation deployments to make updates during CI/CD processes.
+This policy prevents power users from:
+- Modifying Lambda functions, Step Functions, and backup resources
+- Deleting critical infrastructure resources
+- Modifying S3 bucket configurations and API Gateway resources
 
 ### Disallow Root
 - Log into the AWS Management account console via your IAM Identity Center user

@@ -5,6 +5,7 @@ export default {
     testMatch: ['**/tests/**/*.test.[jt]s?(x)'],
     moduleFileExtensions: ['ts', 'js'],
     verbose: true,
+    setupFilesAfterEnv: ['<rootDir>/tests/jest.setup.ts'],
     testPathIgnorePatterns: [
         '<rootDir>/node_modules/',
     ],
