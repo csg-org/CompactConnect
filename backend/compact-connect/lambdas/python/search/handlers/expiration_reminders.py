@@ -188,6 +188,7 @@ def process_expiration_reminders(event: dict, context: LambdaContext):
             return _invoke_continuation(
                 event=event,
                 context=context,
+                target_date_str=target_date_str,
                 search_after=result.search_after,
                 metrics=metrics,
                 depth=continuation_depth,
@@ -222,6 +223,7 @@ def _invoke_continuation(
     *,
     event: dict,
     context: LambdaContext,
+    target_date_str: str,
     search_after: list,
     metrics: Metrics,
     depth: int,
@@ -230,7 +232,7 @@ def _invoke_continuation(
     continuation_event = {
         'daysBefore': event['daysBefore'],
         'compact': event['compact'],
-        'targetDate': event.get('targetDate'),
+        'targetDate': target_date_str,
         'scheduledTime': event.get('scheduledTime'),
         '_continuation': {
             'searchAfter': search_after,
