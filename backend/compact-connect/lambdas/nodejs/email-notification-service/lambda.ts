@@ -386,7 +386,7 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables?.auditNote || ''
             );
             break;
-        case 'privilegeExpirationReminder':
+        case 'privilegeExpirationReminder': {
             if (!event.specificEmails?.length) {
                 throw new Error('No recipients found for privilege expiration reminder email');
             }
@@ -395,8 +395,8 @@ export class Lambda implements LambdaInterface {
                 || !event.templateVariables?.privileges) {
                 throw new Error('Missing required template variables for privilegeExpirationReminder template.');
             }
-            const privileges = event.templateVariables.privileges as Array<{ jurisdiction?: string; 
-                licenseType?: string; privilegeId?: 
+            const privileges = event.templateVariables.privileges as Array<{ jurisdiction?: string;
+                licenseType?: string; privilegeId?:
                 string; dateOfExpiration?: string;
                 formattedExpirationDate?: string }>;
 
@@ -420,6 +420,7 @@ export class Lambda implements LambdaInterface {
                 privileges as PrivilegeExpirationReminderRow[]
             );
             break;
+        }
         case 'licenseInvestigationStateNotification':
             if (!event.jurisdiction) {
                 throw new Error('No jurisdiction provided for license investigation state notification email');
