@@ -454,21 +454,23 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
 
         logger.info('Lambda invocation accepted, polling CloudWatch Logs for completion...', log_group=log_group_name)
 
-        # Poll CloudWatch Logs for the completion message
-        # The Lambda logs "Completed processing for compact"
-        # (or "Completed processing expiration reminders") with metrics
-        max_wait_time = 960  # 16 minutes (Lambda timeout is 15 minutes)
+        # Poll CloudWatch Logs for the completion message.
+        # Keep waiting as long as the log group is still emitting new events.
+        # Fail only if no new logs appear for inactivity_timeout_sec (Lambda likely crashed or stopped).
+        inactivity_timeout_sec = 5 * 60  # 5 minute with no new log events
         check_interval = 10  # Check every 10 seconds
+        log_lookback_sec = 600  # Fetch events from last 10 minutes
         start_time = time.time()
+        last_activity_time = time.time()
         seen_event_ids = set()  # Track which log events we've already processed
 
-        while time.time() - start_time < max_wait_time:
+        while time.time() - last_activity_time <= inactivity_timeout_sec:
             # Get recent log events
             try:
                 log_events_response = logs_client.filter_log_events(
                     logGroupName=log_group_name,
                     limit=100,
-                    startTime=int((time.time() - 300) * 1000),  # Last 5 minutes
+                    startTime=int((time.time() - log_lookback_sec) * 1000),
                 )
 
                 # Process new log events
@@ -478,6 +480,7 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
                         continue  # Skip events we've already processed
 
                     seen_event_ids.add(event_id)
+                    last_activity_time = time.time()  # Any new log = Lambda still running
                     message = event.get('message', '')
 
                     # Log all new messages to relay progress to CLI
@@ -523,7 +526,8 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
                 logger.info(f'Still waiting for Lambda completion... ({int(elapsed)}s elapsed)')
 
         raise SmokeTestFailureException(
-            f'Lambda did not complete within {max_wait_time}s timeout. Check CloudWatch Logs for details.'
+            f'Log group produced no new events for {inactivity_timeout_sec}s (inactivity timeout). '
+            'Lambda may have crashed or stopped. Check CloudWatch Logs for details.'
         )
 
     except ClientError as e:
