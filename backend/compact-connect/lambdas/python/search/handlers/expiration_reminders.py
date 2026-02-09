@@ -6,14 +6,13 @@ from dataclasses import dataclass, replace
 from datetime import date, timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from marshmallow import ValidationError
-
 from cc_common.config import config, logger
 from cc_common.data_model.compact_configuration_utils import CompactConfigUtility
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.email_service_client import PrivilegeExpirationReminderTemplateVariables
 from cc_common.exceptions import CCInvalidRequestException
 from expiration_reminder_tracker import ExpirationEventType, ExpirationReminderTracker
+from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
 
 DEFAULT_PAGE_SIZE = 1000

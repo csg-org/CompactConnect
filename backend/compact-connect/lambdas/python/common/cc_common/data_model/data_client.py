@@ -862,8 +862,9 @@ class DataClient:
 
         # Get all military affiliation records that are INITIALIZING or ACTIVE
         active_military_affiliation_records = provider_user_records.get_military_affiliation_records(
-            filter_condition=lambda record: record.status
-            in [MilitaryAffiliationStatus.INITIALIZING, MilitaryAffiliationStatus.ACTIVE]
+            filter_condition=lambda record: (
+                record.status in [MilitaryAffiliationStatus.INITIALIZING, MilitaryAffiliationStatus.ACTIVE]
+            )
         )
 
         # Create provider update record to track the removal of military status fields
@@ -2312,7 +2313,7 @@ class DataClient:
 
             # Get the privilege record
             privilege_records = provider_user_records.get_privilege_records(
-                filter_condition=lambda p: (p.jurisdiction == jurisdiction and p.licenseType == license_type_name)
+                filter_condition=lambda p: p.jurisdiction == jurisdiction and p.licenseType == license_type_name
             )
 
             if not privilege_records:
@@ -2611,8 +2612,9 @@ class DataClient:
 
         # Get all privileges for the provider that were not deactivated previously
         all_active_privileges = provider_user_records.get_privilege_records(
-            filter_condition=lambda privilege: privilege.homeJurisdictionChangeStatus
-            != HomeJurisdictionChangeStatusEnum.INACTIVE
+            filter_condition=lambda privilege: (
+                privilege.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+            )
         )
 
         if not all_active_privileges:
@@ -2678,8 +2680,9 @@ class DataClient:
 
                     # Get licenses from the current home state
                     current_home_state_licenses = provider_user_records.get_license_records(
-                        filter_condition=lambda license_data: license_data.jurisdiction
-                        == home_jurisdiction_before_update
+                        filter_condition=lambda license_data: (
+                            license_data.jurisdiction == home_jurisdiction_before_update
+                        )
                     )
 
                     # Get unique license types from all privileges
@@ -2827,8 +2830,10 @@ class DataClient:
         privileges_for_license_type = [
             privilege
             for privilege in provider_user_records.get_privilege_records(
-                filter_condition=lambda p: p.licenseType == license_type
-                and p.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+                filter_condition=lambda p: (
+                    p.licenseType == license_type
+                    and p.homeJurisdictionChangeStatus != HomeJurisdictionChangeStatusEnum.INACTIVE
+                )
             )
         ]
 
