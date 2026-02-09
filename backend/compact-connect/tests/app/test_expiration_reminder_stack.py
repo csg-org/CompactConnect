@@ -105,7 +105,7 @@ class TestExpirationReminderStack(TstAppABC, TestCase):
                     self.assertIn('Arn', rule['Targets'][0])
 
     def test_duration_alarm_configured(self):
-        """Test that the duration alarm is configured with a 10-minute threshold."""
+        """Test that the duration alarm is configured with a 14-minute threshold."""
         # Stack is only created if hosted_zone is configured
         if not hasattr(self.app.sandbox_backend_stage, 'expiration_reminder_stack'):
             self.skipTest('ExpirationReminderStack not created (hosted_zone not configured)')
@@ -125,7 +125,7 @@ class TestExpirationReminderStack(TstAppABC, TestCase):
         )
 
         # Verify threshold is 10 minutes (600,000 milliseconds)
-        self.assertEqual(duration_alarm['Threshold'], 600_000)
+        self.assertEqual(duration_alarm['Threshold'], 840_000)
         self.assertEqual(duration_alarm['ComparisonOperator'], 'GreaterThanThreshold')
         self.assertEqual(duration_alarm['EvaluationPeriods'], 1)
         self.assertEqual(duration_alarm['MetricName'], 'Duration')

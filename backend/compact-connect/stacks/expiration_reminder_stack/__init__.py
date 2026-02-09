@@ -150,15 +150,15 @@ class ExpirationReminderStack(AppStack):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
-        # CloudWatch alarm for Lambda execution duration (triggers if exceeds 10 minutes)
+        # CloudWatch alarm for Lambda execution duration (triggers if exceeds 14 minutes)
         Alarm(
             self,
             'ExpirationReminderDurationAlarm',
             metric=self.expiration_reminder_handler.metric_duration(statistic=Stats.MAXIMUM, period=Duration.days(1)),
             evaluation_periods=1,
-            threshold=600_000,  # 10 minutes in milliseconds
+            threshold=840_000,  # 14 minutes in milliseconds
             actions_enabled=True,
-            alarm_description=f'{self.expiration_reminder_handler.node.path} Lambda Duration exceeded 10 minutes',
+            alarm_description=f'{self.expiration_reminder_handler.node.path} Lambda Duration exceeded 14 minutes',
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
