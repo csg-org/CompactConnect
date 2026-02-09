@@ -19,12 +19,18 @@ const {
 // ================================================================================================
 const environmentValues = {
     webFrontend: 'app.compactconnect.org',
+    // JCC
     dataApi: 'api.compactconnect.org',
     searchApi: 'search.compactconnect.org',
     s3UploadUrlState: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com',
     s3UploadUrlProvider: 'prod-persistentstack-providerusersbucket5c7b202b-ffpgh4fyozwk.s3.amazonaws.com',
     cognitoStaff: 'staff-auth.compactconnect.org',
     cognitoProvider: 'licensee-auth.compactconnect.org',
+    // COSMETOLOGY
+    dataApiCosmo: 'api.cosmetology.compactconnect.org',
+    searchApiCosmo: 'search.cosmetology.compactconnect.org',
+    s3UploadUrlStateCosmo: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5j.s3.amazonaws.com',
+    cognitoStaffCosmo: 'staff-auth.cosmetology.compactconnect.org',
 };
 
 /**
@@ -46,12 +52,18 @@ const prepareLambdaForTest = () => {
     // Replace placeholders with test values
     const replacements = {
         '##WEB_FRONTEND##': environmentValues.webFrontend,
+        // JCC
         '##DATA_API##': environmentValues.dataApi,
         '##SEARCH_API##': environmentValues.searchApi,
         '##S3_UPLOAD_URL_STATE##': environmentValues.s3UploadUrlState,
         '##S3_UPLOAD_URL_PROVIDER##': environmentValues.s3UploadUrlProvider,
         '##COGNITO_STAFF##': environmentValues.cognitoStaff,
         '##COGNITO_PROVIDER##': environmentValues.cognitoProvider,
+        // COSMETOLOGY
+        '##DATA_API_COSMO##': environmentValues.dataApiCosmo,
+        '##SEARCH_API_COSMO##': environmentValues.searchApiCosmo,
+        '##S3_UPLOAD_URL_STATE_COSMO##': environmentValues.s3UploadUrlStateCosmo,
+        '##COGNITO_STAFF_COSMO##': environmentValues.cognitoStaffCosmo,
     };
 
     // Apply all replacements to the Lambda code
@@ -70,13 +82,19 @@ const prepareLambdaForTest = () => {
 };
 
 const buildCspHeaders = (environment) => {
+    const cognitoIdpUrl = 'https://cognito-idp.us-east-1.amazonaws.com';
+    // JCC
     const dataApiUrl = (environment?.dataApi) ? `https://${environment.dataApi}` : '';
     const searchApiUrl = (environment?.searchApi) ? `https://${environment.searchApi}` : '';
     const s3UploadUrlState = (environment?.s3UploadUrlState) ? `https://${environment.s3UploadUrlState}` : '';
     const s3UploadUrlProvider = (environment?.s3UploadUrlProvider) ? `https://${environment.s3UploadUrlProvider}` : '';
     const cognitoStaffUrl = (environment?.cognitoStaff) ? `https://${environment.cognitoStaff}` : '';
     const cognitoProviderUrl = (environment?.cognitoProvider) ? `https://${environment.cognitoProvider}` : '';
-    const cognitoIdpUrl = 'https://cognito-idp.us-east-1.amazonaws.com';
+    // COSMETOLOGY
+    const dataApiUrlCosmo = (environment?.dataApiCosmo) ? `https://${environment.dataApiCosmo}` : '';
+    const searchApiUrlCosmo = (environment?.searchApiCosmo) ? `https://${environment.searchApiCosmo}` : '';
+    const s3UploadUrlStateCosmo = (environment?.s3UploadUrlStateCosmo) ? `https://${environment.s3UploadUrlStateCosmo}` : '';
+    const cognitoStaffUrlCosmo = (environment?.cognitoStaffCosmo) ? `https://${environment.cognitoStaffCosmo}` : '';
     // src configs are maintained here as arrays for ease of maintenance;
     // defining them as static strings could lead to long lines of code.
     const cspDefaultSrc = [
@@ -128,11 +146,13 @@ const buildCspHeaders = (environment) => {
         '\'self\'',
         'data:',
         dataApiUrl,
+        dataApiUrlCosmo,
         'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspMediaSrc = [
         '\'self\'',
         dataApiUrl,
+        dataApiUrlCosmo,
     ].join(' ');
     const cspFrameSrc = [
         '\'self\'',
@@ -152,12 +172,18 @@ const buildCspHeaders = (environment) => {
     ].join(' ');
     const cspConnectSrc = [
         '\'self\'',
+        // JCC
         dataApiUrl,
         searchApiUrl,
         s3UploadUrlState,
         s3UploadUrlProvider,
         cognitoStaffUrl,
         cognitoProviderUrl,
+        // COSMETOLOGY
+        dataApiUrlCosmo,
+        searchApiUrlCosmo,
+        s3UploadUrlStateCosmo,
+        cognitoStaffUrlCosmo,
         cognitoIdpUrl,
         'https://www.google.com/recaptcha/',
         // Begin Statsig domains

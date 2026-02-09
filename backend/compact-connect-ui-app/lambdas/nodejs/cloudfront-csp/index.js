@@ -13,17 +13,23 @@
  *
  * These values are injected into the lambda function at build time. See the
  * `generate_csp_lambda_code` function in
- * backend/compact-connect/stacks/frontend_deployment_stack/distribution.py
+ * backend/compact-connect-ui-app/stacks/frontend_deployment_stack/distribution.py
  * @type {object}
  */
 const environmentValues = {
     webFrontend: `##WEB_FRONTEND##`,
+    // JCC
     dataApi: `##DATA_API##`,
     searchApi: `##SEARCH_API##`,
     s3UploadUrlState: `##S3_UPLOAD_URL_STATE##`,
     s3UploadUrlProvider: `##S3_UPLOAD_URL_PROVIDER##`,
     cognitoStaff: `##COGNITO_STAFF##`,
     cognitoProvider: `##COGNITO_PROVIDER##`,
+    // COSMETOLOGY
+    dataApiCosmo: `##DATA_API_COSMO##`,
+    searchApiCosmo: `##SEARCH_API_COSMO##`,
+    s3UploadUrlStateCosmo: `##S3_UPLOAD_URL_STATE_COSMO##`,
+    cognitoStaffCosmo: `##COGNITO_STAFF_COSMO##`,
 };
 
 // ============================================================================
@@ -62,12 +68,18 @@ const getFullyQualified = (domain) => {
 const getEnvironmentUrls = () => {
     const environmentUrls = {};
 
+    // JCC
     environmentUrls.dataApi = getFullyQualified(environmentValues.dataApi);
     environmentUrls.searchApi = getFullyQualified(environmentValues.searchApi);
     environmentUrls.s3UploadUrlState = getFullyQualified(environmentValues.s3UploadUrlState);
     environmentUrls.s3UploadUrlProvider = getFullyQualified(environmentValues.s3UploadUrlProvider);
     environmentUrls.cognitoStaff = getFullyQualified(environmentValues.cognitoStaff);
     environmentUrls.cognitoProvider = getFullyQualified(environmentValues.cognitoProvider);
+    // COSMETOLOGY
+    environmentUrls.dataApiCosmo = getFullyQualified(environmentValues.dataApiCosmo);
+    environmentUrls.searchApiCosmo = getFullyQualified(environmentValues.searchApiCosmo);
+    environmentUrls.s3UploadUrlStateCosmo = getFullyQualified(environmentValues.s3UploadUrlStateCosmo);
+    environmentUrls.cognitoStaffCosmo = getFullyQualified(environmentValues.cognitoStaffCosmo);
 
     return environmentUrls;
 };
@@ -214,11 +226,13 @@ const setCspHeader = (headers = {}) => {
                 'self',
                 'data:',
                 domains.dataApi,
+                domains.dataApiCosmo,
                 'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('media-src', [
                 'self',
                 domains.dataApi,
+                domains.dataApiCosmo,
             ]),
             buildSrcString('frame-src', [
                 'self',
@@ -238,12 +252,18 @@ const setCspHeader = (headers = {}) => {
             ]),
             buildSrcString('connect-src', [
                 'self',
+                // JCC
                 domains.dataApi,
                 domains.searchApi,
                 domains.s3UploadUrlState,
                 domains.s3UploadUrlProvider,
                 domains.cognitoStaff,
                 domains.cognitoProvider,
+                // COSMETOLOGY
+                domains.dataApiCosmo,
+                domains.searchApiCosmo,
+                domains.s3UploadUrlStateCosmo,
+                domains.cognitoStaffCosmo,
                 cognitoIdpUrl,
                 'https://www.google.com/recaptcha/',
                 // Begin Statsig domains
