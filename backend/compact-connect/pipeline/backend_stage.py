@@ -37,6 +37,7 @@ class BackendStage(Stage):
     ):
         super().__init__(scope, construct_id, **kwargs)
 
+        self.environment_name = environment_name
         standard_tags = StandardTags(**self.node.get_context('tags'), environment=environment_name)
 
         environment = Environment(account=environment_context['account_id'], region=environment_context['region'])
@@ -175,43 +176,6 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
-        # Reporting and notifications depend on emails, which depend on having a domain name. If we don't configure
-        # a HostedZone we won't bother with these whole stacks.
-        if self.persistent_stack.hosted_zone:
-            self.notification_stack = NotificationStack(
-                self,
-                'NotificationStack',
-                env=environment,
-                environment_context=environment_context,
-                standard_tags=standard_tags,
-                environment_name=environment_name,
-                persistent_stack=self.persistent_stack,
-                event_state_stack=self.event_state_stack,
-            )
-
-            self.reporting_stack = ReportingStack(
-                self,
-                'ReportingStack',
-                env=environment,
-                environment_context=environment_context,
-                environment_name=environment_name,
-                standard_tags=standard_tags,
-                persistent_stack=self.persistent_stack,
-            )
-
-            self.expiration_reminder_stack = ExpirationReminderStack(
-                self,
-                'ExpirationReminderStack',
-                env=environment,
-                environment_context=environment_context,
-                standard_tags=standard_tags,
-                environment_name=environment_name,
-                persistent_stack=self.persistent_stack,
-                event_state_stack=self.event_state_stack,
-                search_persistent_stack=self.search_persistent_stack,
-                vpc_stack=self.vpc_stack,
-            )
-
         self.transaction_monitoring_stack = TransactionMonitoringStack(
             self,
             'TransactionMonitoringStack',
@@ -253,3 +217,43 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
             search_persistent_stack=self.search_persistent_stack,
         )
+
+        # Reporting and notifications depend on emails, which depend on having a domain name. If we don't configure
+        # a HostedZone we won't bother with these whole stacks.
+        if self.persistent_stack.hosted_zone:
+            self.notification_stack = NotificationStack(
+                self,
+                'NotificationStack',
+                env=environment,
+                environment_context=environment_context,
+                standard_tags=standard_tags,
+                environment_name=environment_name,
+                persistent_stack=self.persistent_stack,
+                event_state_stack=self.event_state_stack,
+            )
+
+            self.reporting_stack = ReportingStack(
+                self,
+                'ReportingStack',
+                env=environment,
+                environment_context=environment_context,
+                environment_name=environment_name,
+                standard_tags=standard_tags,
+                persistent_stack=self.persistent_stack,
+            )
+
+            # Expiration reminder stack is not deployed in beta
+            # to reduce noise in that environment.
+            if environment_name != 'beta':
+                self.expiration_reminder_stack = ExpirationReminderStack(
+                    self,
+                    'ExpirationReminderStack',
+                    env=environment,
+                    environment_context=environment_context,
+                    standard_tags=standard_tags,
+                    environment_name=environment_name,
+                    persistent_stack=self.persistent_stack,
+                    event_state_stack=self.event_state_stack,
+                    search_persistent_stack=self.search_persistent_stack,
+                    vpc_stack=self.vpc_stack,
+                )
