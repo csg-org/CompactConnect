@@ -447,7 +447,8 @@ class ProviderSearchDomain(Construct):
         ).add_alarm_action(SnsAction(alarm_topic))
 
         # Alarm: Cluster Status YELLOW - Degraded
-        # Yellow status indicates degraded state that should be monitored
+        # Yellow status indicates degraded state that should be monitored.
+        # Only fire after 15 minutes sustained to reduce noise.
         Alarm(
             self,
             'ClusterStatusYellowAlarm',
@@ -458,7 +459,7 @@ class ProviderSearchDomain(Construct):
                 period=Duration.minutes(5),
                 statistic='Sum',
             ),
-            evaluation_periods=1,  # Alert when yellow status is detected
+            evaluation_periods=3,  # 15 minutes sustained (3 × 5 min) before alerting
             threshold=1,
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
@@ -504,7 +505,7 @@ class ProviderSearchDomain(Construct):
                 period=Duration.minutes(5),
                 statistic='Minimum',
             ),
-            evaluation_periods=3,  # set 3 periods to account for any temporary drops
+            evaluation_periods=6,  # set 6 periods (30 minutes) to account for any temporary drops
             threshold=10,  # set to 10 to account for any documents set by OpenSearch by default
             comparison_operator=ComparisonOperator.LESS_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.BREACHING,
