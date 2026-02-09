@@ -115,13 +115,13 @@ class App extends Vue {
     setAppModeFromCompact(compact: CompactType | null): void {
         let { appMode } = this.globalStore;
 
-        if (compact === CompactType.COSMETOLOGY) {
-            appMode = AppModes.COSMETOLOGY;
-        } else {
-            appMode = AppModes.JCC;
-        }
+        if (!appMode) {
+            if (compact === CompactType.COSMETOLOGY) {
+                appMode = AppModes.COSMETOLOGY;
+            } else {
+                appMode = AppModes.JCC;
+            }
 
-        if (this.globalStore.appMode !== appMode) {
             this.$store.dispatch('setAppMode', appMode);
         }
     }

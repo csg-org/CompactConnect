@@ -53,6 +53,7 @@ describe('PublicDashboard page', async () => {
             scopes: '',
             clientId: '',
             authDomain: '',
+            state: '',
         });
     });
     it('should use fallback idp path in app.config', async () => {

@@ -155,7 +155,6 @@ export default class DashboardPublic extends Vue {
         authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
         authStorage.removeItem(AUTH_LOGIN_GOTO_PATH_AUTH_TYPE);
         this.$store.dispatch('setAppMode', appMode);
-        console.log(`appMode set to ${appMode}`);
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
 
