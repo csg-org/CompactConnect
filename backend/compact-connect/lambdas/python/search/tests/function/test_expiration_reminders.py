@@ -204,6 +204,101 @@ class TestProcessExpirationReminders(TstLambdas):
             'scheduledTime': '2026-01-17T10:00:00Z',
         }
 
+    def _valid_provider_source_for_schema(self, provider_id: str = 'valid-provider-123') -> dict:
+        """Build a provider _source that passes ProviderGeneralResponseSchema (for OpenSearch hit)."""
+        return {
+            'providerId': provider_id,
+            'type': 'provider',
+            'dateOfUpdate': '2026-01-01T00:00:00',
+            'compact': 'aslp',
+            'licenseJurisdiction': 'oh',
+            'currentHomeJurisdiction': 'oh',
+            'licenseStatus': 'active',
+            'compactEligibility': 'eligible',
+            'givenName': 'Jane',
+            'familyName': 'Doe',
+            'dateOfExpiration': '2026-02-16',
+            'jurisdictionUploadedLicenseStatus': 'active',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'birthMonthDay': '01-15',
+            'compactConnectRegisteredEmailAddress': 'valid@example.com',
+            'privileges': [
+                {
+                    'type': 'privilege',
+                    'providerId': provider_id,
+                    'compact': 'aslp',
+                    'jurisdiction': 'oh',
+                    'licenseJurisdiction': 'oh',
+                    'licenseType': 'aud',
+                    'dateOfIssuance': '2025-01-01',
+                    'dateOfRenewal': '2025-01-01',
+                    'dateOfExpiration': '2026-02-16',
+                    'dateOfUpdate': '2025-01-01T00:00:00',
+                    'administratorSetStatus': 'active',
+                    'privilegeId': 'priv-1',
+                    'status': 'active',
+                },
+            ],
+        }
+
+    @patch('handlers.expiration_reminders.ExpirationReminderTracker')
+    @patch('cc_common.config._Config.email_service_client')
+    @patch('handlers.expiration_reminders.opensearch_client')
+    def test_handler_skips_invalid_schema_hit_and_sends_notification_for_valid_hit(
+        self, mock_opensearch, mock_email_client, mock_tracker_class
+    ):
+        """When OpenSearch returns one invalid (missing required field) and one valid provider, only the valid one gets a notification."""
+        mock_opensearch.search_with_retry = MagicMock(
+            return_value={
+                'hits': {
+                    'total': {'value': 2, 'relation': 'eq'},
+                    'hits': [
+                        {
+                            '_id': 'invalid-hit-id',
+                            '_source': {
+                                # Missing required 'givenName' -> ValidationError
+                                'providerId': 'invalid-provider-456',
+                                'type': 'provider',
+                                'dateOfUpdate': '2026-01-01T00:00:00',
+                                'compact': 'aslp',
+                                'licenseJurisdiction': 'oh',
+                                'licenseStatus': 'active',
+                                'compactEligibility': 'eligible',
+                                'familyName': 'Bad',
+                                'dateOfExpiration': '2026-02-16',
+                                'jurisdictionUploadedLicenseStatus': 'active',
+                                'jurisdictionUploadedCompactEligibility': 'eligible',
+                                'birthMonthDay': '06-20',
+                                'privileges': [],
+                            },
+                            'sort': ['invalid-provider-456'],
+                        },
+                        {
+                            '_id': 'valid-hit-id',
+                            '_source': self._valid_provider_source_for_schema(),
+                            'sort': ['valid-provider-123'],
+                        },
+                    ],
+                }
+            }
+        )
+
+        mock_tracker_instance = MagicMock()
+        mock_tracker_instance.was_already_sent.return_value = False
+        mock_tracker_class.return_value = mock_tracker_instance
+
+        from handlers.expiration_reminders import process_expiration_reminders
+
+        resp = process_expiration_reminders(self._make_event(days_before=30), self.mock_context)
+
+        self.assertEqual('complete', resp['status'])
+        self.assertEqual(1, resp['metrics']['sent'], 'Exactly one notification should be sent for the valid provider')
+        self.assertEqual(1, resp['metrics']['providersWithMatches'])
+        mock_email_client.send_privilege_expiration_reminder_email.assert_called_once()
+        call_kwargs = mock_email_client.send_privilege_expiration_reminder_email.call_args.kwargs
+        self.assertEqual('valid@example.com', call_kwargs['provider_email'])
+        self.assertEqual('Jane', call_kwargs['template_variables'].provider_first_name)
+
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
     @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
@@ -453,7 +548,7 @@ class TestProcessExpirationReminders(TstLambdas):
             '_continuation': {
                 'searchAfter': ['cursor1'],
                 'depth': 1,
-                'accumulatedMetrics': {'sent': 100, 'skipped': 2, 'alreadySent': 5},
+                'accumulatedMetrics': {'sent': 100, 'alreadySent': 5},
             },
         }
 
@@ -470,7 +565,6 @@ class TestProcessExpirationReminders(TstLambdas):
 
         self.assertEqual('complete', resp['status'])
         self.assertEqual(101, resp['metrics']['sent'])
-        self.assertEqual(2, resp['metrics']['skipped'])
         self.assertEqual(7, resp['metrics']['alreadySent'])
         self.assertEqual(2, resp['totalInvocations'])
         mock_iter.assert_called_once()

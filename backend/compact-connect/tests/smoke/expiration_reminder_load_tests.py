@@ -582,7 +582,6 @@ def run_load_test(skip_data_load: bool = False, providers: int | None = None):
         logger.info('=' * 80)
         logger.info(f'Lambda Execution Duration: {lambda_duration:.2f} seconds')
         logger.info(f'Notifications Sent: {metrics.get("sent", 0)}')
-        logger.info(f'Notifications Skipped: {metrics.get("skipped", 0)}')
         logger.info(f'Notifications Failed: {metrics.get("failed", 0)}')
         logger.info(f'Already Sent (idempotency): {metrics.get("alreadySent", 0)}')
         logger.info(f'No Email Address: {metrics.get("noEmail", 0)}')

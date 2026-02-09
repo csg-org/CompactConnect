@@ -6,6 +6,8 @@ from dataclasses import dataclass, replace
 from datetime import date, timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from marshmallow import ValidationError
+
 from cc_common.config import config, logger
 from cc_common.data_model.compact_configuration_utils import CompactConfigUtility
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
@@ -37,7 +39,6 @@ class Metrics:
     """Tracks notification processing statistics."""
 
     sent: int = 0
-    skipped: int = 0
     failed: int = 0
     already_sent: int = 0
     no_email: int = 0
@@ -47,7 +48,6 @@ class Metrics:
     def as_dict(self) -> dict[str, int]:
         return {
             'sent': self.sent,
-            'skipped': self.skipped,
             'failed': self.failed,
             'alreadySent': self.already_sent,
             'noEmail': self.no_email,
@@ -70,7 +70,6 @@ def _initialize_metrics(accumulated: dict[str, int] | None) -> Metrics:
         return Metrics()
     return Metrics(
         sent=accumulated.get('sent', 0),
-        skipped=accumulated.get('skipped', 0),
         failed=accumulated.get('failed', 0),
         already_sent=accumulated.get('alreadySent', 0),
         no_email=accumulated.get('noEmail', 0),
@@ -170,7 +169,6 @@ def process_expiration_reminders(event: dict, context: LambdaContext):
         metrics = replace(
             metrics,
             sent=metrics.sent + provider_result['sent'],
-            skipped=metrics.skipped + provider_result['skipped'],
             failed=metrics.failed + provider_result['failed'],
             already_sent=metrics.already_sent + provider_result['already_sent'],
             no_email=metrics.no_email + provider_result['no_email'],
@@ -275,9 +273,9 @@ def _process_provider_notification(
     """
     Process a single provider's expiration reminder notification.
 
-    :return: Dict with counts for sent, skipped, failed, already_sent, no_email, matched_privileges
+    :return: Dict with counts for sent, failed, already_sent, no_email, matched_privileges
     """
-    result = {'sent': 0, 'skipped': 0, 'failed': 0, 'already_sent': 0, 'no_email': 0, 'matched_privileges': 0}
+    result = {'sent': 0, 'failed': 0, 'already_sent': 0, 'no_email': 0, 'matched_privileges': 0}
 
     provider_id = provider_doc['providerId']
 
@@ -405,6 +403,9 @@ def iterate_privileges_by_expiration_date(
     OpenSearch pagination is handled internally using `search_after`. Results are yielded
     one provider at a time with their cursor for continuation support. Use
     initial_search_after to resume from a previous invocation.
+
+    If a hit fails schema validation (ValidationError), it is logged and skipped so a bad
+    document does not abort the run.
     """
     index_name = f'compact_{compact}_providers'
     search_after = initial_search_after
@@ -436,8 +437,22 @@ def iterate_privileges_by_expiration_date(
             current_page_hits = list(reversed(hits))
 
         hit = current_page_hits.pop()
+        try:
+            provider_doc = _provider_document_from_hit(hit)
+        except ValidationError as e:
+            hit_id = hit.get('_id')
+            provider_id_from_source = (hit.get('_source') or {}).get('providerId')
+            logger.error(
+                'Skipping hit due to provider document validation error',
+                hit_id=hit_id,
+                provider_id=provider_id_from_source,
+                compact=compact,
+                validation_messages=str(e.messages) if getattr(e, 'messages', None) else str(e),
+            )
+            continue
+
         yield PaginatedProviderResult(
-            provider_doc=_provider_document_from_hit(hit),
+            provider_doc=provider_doc,
             search_after=hit['sort'],
         )
 
