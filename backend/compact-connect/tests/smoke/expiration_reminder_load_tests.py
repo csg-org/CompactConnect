@@ -85,79 +85,6 @@ else:
     raise SmokeTestFailureException(f'No license types found for compact {COMPACT}')
 
 
-class DynamoDBBatchWriter:
-    """Utility class to batch DynamoDB put_item operations for better efficiency."""
-
-    def __init__(self, table, batch_size: int = 25):
-        """
-        Initialize the batch writer.
-
-        :param table: DynamoDB table resource (boto3 resource Table)
-        :param batch_size: Batch size to use for API calls, default: 25 (DynamoDB max)
-        """
-        self._table = table
-        self._batch_size = batch_size
-        self._batch = None
-        self._count = 0
-        self.failed_item_count = 0
-        self.failed_items = None
-
-    def _do_batch_write(self):
-        """Execute the batch write operation."""
-        # DynamoDB batch_write_item has a hard limit of 25 items per request
-        # Slice out exactly 25 items (or fewer if batch is smaller) and keep remainder
-        max_items_per_request = 25
-        items_to_write = self._batch[:max_items_per_request]
-        remaining_items = self._batch[max_items_per_request:]
-
-        if not items_to_write:
-            return
-
-        # DynamoDB batch_write_item requires a dict keyed by table name
-        table_name = self._table.name
-        response = self._table.meta.client.batch_write_item(
-            RequestItems={table_name: [{'PutRequest': {'Item': item}} for item in items_to_write]}
-        )
-
-        # Check for unprocessed items (shouldn't happen with proper batch sizing, but handle it)
-        unprocessed = response.get('UnprocessedItems', {})
-        if unprocessed:
-            unprocessed_count = len(unprocessed.get(table_name, []))
-            self.failed_item_count += unprocessed_count
-            logger.warning(f'Unprocessed items in batch write: {unprocessed_count}')
-
-        # Keep remaining items for next batch write
-        self._batch = remaining_items
-        self._count = len(remaining_items)
-
-    def __enter__(self):
-        self._batch = []
-        self._count = 0
-        self.failed_items = []
-        self.failed_item_count = 0
-        return self
-
-    def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
-        # Flush any remaining items (may require multiple calls if > 25 items)
-        while len(self._batch) > 0:
-            self._do_batch_write()
-        if exc_val is not None:
-            raise exc_val
-
-    def put_item(self, item: dict):
-        """
-        Add an item to the batch. Will automatically flush when batch size is reached.
-
-        :param item: Dictionary representing the DynamoDB item to write
-        """
-        if self._batch is None:
-            raise RuntimeError('This object must be used as a context manager')
-        self._batch.append(item)
-        self._count += 1
-        if self._count >= self._batch_size:
-            self._do_batch_write()
-
-
 def create_provider_records(
     provider_id: str,
     compact: str,
@@ -281,7 +208,7 @@ def create_providers_batch(
     created = 0
     created_keys: list[dict] = []  # (pk, sk) for every item created, for fast batch delete at cleanup
 
-    with DynamoDBBatchWriter(dynamodb_table, batch_size=24) as batch_writer:
+    with dynamodb_table.batch_writer() as batch:
         for i in range(total):
             provider_id = str(uuid.uuid4())
             if i < matching_count:
@@ -302,10 +229,10 @@ def create_providers_batch(
                 email=registered_email,
             )
 
-            batch_writer.put_item(provider_record)
-            batch_writer.put_item(license_record)
-            batch_writer.put_item(priv_1)
-            batch_writer.put_item(priv_2)
+            batch.put_item(Item=provider_record)
+            batch.put_item(Item=license_record)
+            batch.put_item(Item=priv_1)
+            batch.put_item(Item=priv_2)
 
             # Track keys for cleanup (batch delete by pk/sk, no query needed)
             for record in (provider_record, license_record, priv_1, priv_2):
@@ -314,9 +241,6 @@ def create_providers_batch(
 
             if created % progress_log_interval == 0:
                 logger.info(f'Created {created}/{total} providers')
-
-    if batch_writer.failed_item_count > 0:
-        logger.warning(f'Failed to write {batch_writer.failed_item_count} items during batch write')
 
     logger.info(f'Completed creating {total} providers (target date: {target_date.isoformat()})')
     return matching_count, created_keys
