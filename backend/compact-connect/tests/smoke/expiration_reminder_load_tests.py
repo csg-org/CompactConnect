@@ -23,6 +23,8 @@ The script will:
 - Wait for DynamoDB stream events to index providers into OpenSearch (unless --skip-data-load).
 - Invoke the expiration reminder Lambda for the 30-day event.
 - Display metrics from the Lambda execution.
+- Clean up: when data load was performed, delete all created provider, license, and privilege records
+  from DynamoDB after the test completes (whether successful or not).
 
 Options:
     --providers N       Total number of fake providers to load (smoke mode). Allocates ~2/3 to
@@ -251,7 +253,7 @@ def create_providers_batch(
     non_matching_count: int,
     target_days_until_expiration: int = 30,
     progress_log_interval: int = 1000,
-) -> int:
+) -> tuple[int, list[str]]:
     """
     Create providers with two privileges each: matching_count match the target date (receive email),
     non_matching_count do not (neither privilege on target date).
@@ -263,7 +265,7 @@ def create_providers_batch(
     :param non_matching_count: Number of providers that do not match (no email).
     :param target_days_until_expiration: Days until the target expiration date (default 30).
     :param progress_log_interval: Interval for progress logging.
-    :return: matching_count for use as expected_sent.
+    :return: Tuple of (matching_count for use as expected_sent, list of created provider IDs for cleanup).
     """
     target_date = datetime.now(UTC).date() + timedelta(days=target_days_until_expiration)
     other_date_matching = target_date + timedelta(days=30)
@@ -277,10 +279,12 @@ def create_providers_batch(
 
     registered_email = config.test_provider_user_username
     created = 0
+    provider_ids: list[str] = []
 
     with DynamoDBBatchWriter(dynamodb_table, batch_size=24) as batch_writer:
         for i in range(total):
             provider_id = str(uuid.uuid4())
+            provider_ids.append(provider_id)
             if i < matching_count:
                 exp_1, exp_2 = target_date, other_date_matching
             else:
@@ -312,7 +316,62 @@ def create_providers_batch(
         logger.warning(f'Failed to write {batch_writer.failed_item_count} items during batch write')
 
     logger.info(f'Completed creating {total} providers (target date: {target_date.isoformat()})')
-    return matching_count
+    return matching_count, provider_ids
+
+
+def delete_provider_records_batch(provider_ids: list[str], compact: str, progress_log_interval: int = 500):
+    """
+    Delete all DynamoDB records (provider, license, privilege) for the given provider IDs.
+    Uses paginated query per provider so all records are removed regardless of count.
+
+    :param provider_ids: List of provider IDs to delete.
+    :param compact: Compact abbreviation (e.g. 'aslp').
+    :param progress_log_interval: Log progress every N providers.
+    """
+    if not provider_ids:
+        return
+
+    logger.info(f'Cleaning up {len(provider_ids)} test providers (provider, license, privilege records)...')
+
+    deleted_total = 0
+    failed_count = 0
+
+    for i, provider_id in enumerate(provider_ids):
+        if progress_log_interval and (i + 1) % progress_log_interval == 0:
+            logger.info(f'Cleanup progress: {i + 1}/{len(provider_ids)} providers, {deleted_total} records deleted')
+
+        pk = f'{compact}#PROVIDER#{provider_id}'
+        try:
+            # Paginate through all items for this provider (provider, licenses, privileges, updates)
+            last_evaluated_key = None
+            items_to_delete: list[dict] = []
+
+            while True:
+                kwargs = {
+                    'KeyConditionExpression': 'pk = :pk',
+                    'ExpressionAttributeValues': {':pk': pk},
+                }
+                if last_evaluated_key:
+                    kwargs['ExclusiveStartKey'] = last_evaluated_key
+
+                response = dynamodb_table.query(**kwargs)
+                items_to_delete.extend(response.get('Items', []))
+                last_evaluated_key = response.get('LastEvaluatedKey')
+                if not last_evaluated_key:
+                    break
+
+            with dynamodb_table.batch_writer() as batch:
+                for item in items_to_delete:
+                    batch.delete_item(Key={'pk': item['pk'], 'sk': item['sk']})
+                    deleted_total += 1
+
+        except ClientError as e:
+            failed_count += 1
+            logger.warning(f'Failed to delete records for provider {provider_id}: {e.response["Error"]["Code"]} - {e}')
+
+    logger.info(f'✓ Cleanup complete: {deleted_total} records deleted for {len(provider_ids)} providers')
+    if failed_count > 0:
+        logger.warning(f'Failed to delete records for {failed_count} provider(s)')
 
 
 def find_lambda_function_name(partial_name: str) -> str:
@@ -479,6 +538,7 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
 def run_load_test(skip_data_load: bool = False, providers: int | None = None):
     """
     Run the complete load test or smoke test.
+    Cleans up created provider, license, and privilege records when data load was performed.
 
     :param skip_data_load: If True, skip creating providers and indexing steps.
     :param providers: If set, smoke mode: create this many providers (~2/3 matching, ~1/3 non-matching).
@@ -490,6 +550,8 @@ def run_load_test(skip_data_load: bool = False, providers: int | None = None):
     logger.info('=' * 80)
 
     expected_sent = None
+    created_provider_ids: list[str] = []
+
     try:
         if not skip_data_load:
             if providers is not None:
@@ -505,7 +567,7 @@ def run_load_test(skip_data_load: bool = False, providers: int | None = None):
             logger.info(
                 f'Step 1: Creating {total} providers ({matching_count} matching, {non_matching_count} non-matching)...'
             )
-            expected_sent = create_providers_batch(
+            expected_sent, created_provider_ids = create_providers_batch(
                 matching_count=matching_count,
                 non_matching_count=non_matching_count,
                 target_days_until_expiration=30,
@@ -570,6 +632,19 @@ def run_load_test(skip_data_load: bool = False, providers: int | None = None):
     except Exception as e:
         logger.error('Load test failed', exc_info=e)
         raise
+
+    finally:
+        if created_provider_ids:
+            logger.info('Step 4: Cleaning up test provider, license, and privilege records...')
+            try:
+                progress_interval = max(1, len(created_provider_ids) // 10) if len(created_provider_ids) > 10 else None
+                delete_provider_records_batch(
+                    provider_ids=created_provider_ids,
+                    compact=COMPACT,
+                    progress_log_interval=progress_interval or 500,
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.error(f'Cleanup failed (test data may remain in DynamoDB): {e}', exc_info=e)
 
 
 if __name__ == '__main__':
