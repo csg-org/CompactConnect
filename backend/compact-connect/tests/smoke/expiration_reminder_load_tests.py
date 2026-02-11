@@ -397,7 +397,7 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
                             if log_level != 'DEBUG':
                                 logger.info(f'Lambda log [{log_level}]: {log_message}')
 
-                            # Check for completion message (handler logs "Completed processing for compact" with metrics)
+                            # Check for completion message (handler logs "Completed processing" with metrics)
                             if 'Completed processing' in log_message and log_json.get('metrics'):
                                 metrics = log_json.get('metrics', {})
 
