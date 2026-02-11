@@ -29,8 +29,8 @@ class PrivilegeExpirationStatusMixin:
     OpenSearch documents may have stale status values because the status field is calculated
     at write time. If the dateOfExpiration has passed since the last update, the status
     should be 'inactive' even if the stored value in OpenSearch says 'active'. To account for this,
-    this mixin performs the same expiration check that is performed when loading them from DynamoDB,
-    so the status will factor in the date of expiration and show the correct active/inactive status.
+    this mixin performs the same expiration check that is performed when loading privilege records from
+    DynamoDB, so the status will factor in the date of expiration and show the correct active/inactive status.
 
     This mixin should be applied to privilege API response schemas that load data from
     OpenSearch or other sources where the status may be stale.

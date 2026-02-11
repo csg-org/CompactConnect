@@ -34,7 +34,7 @@ class LicenseExpirationStatusMixin:
     calculated at write time. If the dateOfExpiration has passed since the last update,
     the licenseStatus should be 'inactive' even if the stored value in OpenSearch says 'active'.
     To account for this, this mixin performs the same expiration check that is performed when loading
-    them from DynamoDB, so the status will factor in the date of expiration and show the correct
+    license records from DynamoDB, so the status will factor in the date of expiration and show the correct
     active/inactive status.
 
     This mixin should be applied to license API response schemas that load data from
