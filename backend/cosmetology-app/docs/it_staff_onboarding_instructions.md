@@ -137,8 +137,7 @@ curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/com
     "homeAddressState":"KY",
     "homeAddressPostalCode":"40202",
     "emailAddress":"jane.smith@example.com",
-    "phoneNumber":"+15555551234",
-    "npi":"1234567890"
+    "phoneNumber":"+15555551234"
   }
 ]'
 ```
@@ -436,7 +435,6 @@ The get provider endpoint returns detailed information about a specific provider
       "givenName": "Jane",
       "middleName": "Marie",
       "familyName": "Smith",
-      "npi": "1234567890",
       "licenseNumber": "LIC123456",
       "licenseStatusName": "Active"
     }

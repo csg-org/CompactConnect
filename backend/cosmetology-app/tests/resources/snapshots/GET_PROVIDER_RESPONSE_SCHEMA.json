@@ -147,10 +147,6 @@
                       ],
                       "type": "string"
                     },
-                    "npi": {
-                      "pattern": "^[0-9]{10}$",
-                      "type": "string"
-                    },
                     "licenseNumber": {
                       "maxLength": 100,
                       "minLength": 1,
@@ -282,10 +278,6 @@
                         "eligible",
                         "ineligible"
                       ],
-                      "type": "string"
-                    },
-                    "npi": {
-                      "pattern": "^[0-9]{10}$",
                       "type": "string"
                     },
                     "licenseNumber": {
@@ -579,10 +571,6 @@
             "enum": [
               "underInvestigation"
             ],
-            "type": "string"
-          },
-          "npi": {
-            "pattern": "^[0-9]{10}$",
             "type": "string"
           },
           "licenseNumber": {
@@ -1259,10 +1247,6 @@
     },
     "providerId": {
       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-      "type": "string"
-    },
-    "npi": {
-      "pattern": "^[0-9]{10}$",
       "type": "string"
     },
     "ssnLastFour": {

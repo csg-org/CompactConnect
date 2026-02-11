@@ -49,10 +49,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "npi": {
-            "pattern": "^[0-9]{10}$",
-            "type": "string"
-          },
           "status": {
             "enum": [
               "active",
@@ -201,7 +197,8 @@
           "familyName",
           "givenName",
           "licenseJurisdiction",
-          "licenseStatus"
+          "licenseStatus",
+          "licenseNumber"
         ],
         "type": "object"
       },

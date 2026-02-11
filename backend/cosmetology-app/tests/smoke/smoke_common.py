@@ -316,7 +316,6 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
     """
     # Default test license data
     default_license_data = {
-        'npi': '1111111111',
         'licenseNumber': 'TEST-LIC-123',
         'homeAddressPostalCode': '68001',
         'givenName': 'TestProvider',

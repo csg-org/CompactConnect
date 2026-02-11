@@ -654,10 +654,6 @@
                     "coun"
                   ]
                 },
-                "npi": {
-                  "pattern": "^[0-9]{10}$",
-                  "type": "string"
-                },
                 "givenName": {
                   "maxLength": 100,
                   "type": "string"
@@ -833,7 +829,8 @@
                       "licenseStatus",
                       "licenseType",
                       "providerId",
-                      "type"
+                      "type",
+                      "licenseNumber"
                     ],
                     "type": "object",
                     "properties": {
@@ -1084,10 +1081,6 @@
                         "enum": [
                           "underInvestigation"
                         ]
-                      },
-                      "npi": {
-                        "pattern": "^[0-9]{10}$",
-                        "type": "string"
                       },
                       "homeAddressPostalCode": {
                         "maxLength": 7,

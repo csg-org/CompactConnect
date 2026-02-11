@@ -12,7 +12,6 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     Jurisdiction,
-    NationalProviderIdentifier,
     Set,
     SocialSecurityNumber,
 )
@@ -95,7 +94,6 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -145,7 +143,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -189,7 +186,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -323,8 +319,7 @@ class StatePrivilegeGeneralResponseSchema(ForgivingSchema):
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
 
 
 class StatePrivilegePrivateResponseSchema(StatePrivilegeGeneralResponseSchema):

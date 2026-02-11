@@ -746,17 +746,14 @@
             "homeAddressStreet1",
             "licenseStatus",
             "licenseType",
-            "ssn"
+            "ssn",
+            "licenseNumber"
           ],
           "type": "object",
           "properties": {
             "homeAddressStreet2": {
               "maxLength": 100,
               "minLength": 1,
-              "type": "string"
-            },
-            "npi": {
-              "pattern": "^[0-9]{10}$",
               "type": "string"
             },
             "homeAddressPostalCode": {
@@ -952,10 +949,6 @@
                   "enum": [
                     "cosm"
                   ]
-                },
-                "npi": {
-                  "pattern": "^[0-9]{10}$",
-                  "type": "string"
                 },
                 "givenName": {
                   "maxLength": 100,
@@ -1204,7 +1197,8 @@
                 "privilegeId",
                 "providerId",
                 "status",
-                "type"
+                "type",
+                "licenseNumber"
               ],
               "type": "object",
               "properties": {
@@ -1322,10 +1316,6 @@
                   "minLength": 5,
                   "type": "string",
                   "format": "email"
-                },
-                "npi": {
-                  "pattern": "^[0-9]{10}$",
-                  "type": "string"
                 },
                 "homeAddressPostalCode": {
                   "maxLength": 7,

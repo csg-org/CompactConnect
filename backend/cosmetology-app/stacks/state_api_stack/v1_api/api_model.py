@@ -186,6 +186,7 @@ class ApiModel:
                     type=JsonSchemaType.OBJECT,
                     required=[
                         'ssn',
+                        'licenseNumber',
                         'givenName',
                         'familyName',
                         'dateOfBirth',
@@ -217,7 +218,6 @@ class ApiModel:
     @property
     def _common_license_properties(self) -> dict:
         return {
-            'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
             'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
@@ -262,7 +262,6 @@ class ApiModel:
             properties={
                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
                 'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
                 'ssnLastFour': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{4}$'),
                 'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                 'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
@@ -337,6 +336,7 @@ class ApiModel:
                 'givenName',
                 'licenseJurisdiction',
                 'licenseStatus',
+                'licenseNumber',
             ],
             properties={
                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['statePrivilege']),
@@ -349,7 +349,6 @@ class ApiModel:
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
                 'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
                 'ssnLastFour': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{4}$'),

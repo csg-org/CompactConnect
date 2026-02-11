@@ -145,12 +145,12 @@
                   ],
                   "type": "string"
                 },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
                 "jurisdiction": {
                   "enum": [
                     "al",
@@ -209,13 +209,13 @@
                   ],
                   "type": "string"
                 },
-        "licenseType": {
-          "enum": [
-            "cosmetologist",
-            "esthetician"
-          ],
-          "type": "string"
-        },
+                "licenseType": {
+                  "enum": [
+                    "cosmetologist",
+                    "esthetician"
+                  ],
+                  "type": "string"
+                },
                 "dateOfUpdate": {
                   "format": "date-time",
                   "type": "string"
@@ -234,10 +234,6 @@
                         "eligible",
                         "ineligible"
                       ],
-                      "type": "string"
-                    },
-                    "npi": {
-                      "pattern": "^[0-9]{10}$",
                       "type": "string"
                     },
                     "licenseNumber": {
@@ -353,7 +349,8 @@
                     "homeAddressState",
                     "homeAddressPostalCode",
                     "jurisdictionUploadedLicenseStatus",
-                    "jurisdictionUploadedCompactEligibility"
+                    "jurisdictionUploadedCompactEligibility",
+                    "licenseNumber"
                   ],
                   "type": "object"
                 },
@@ -371,10 +368,6 @@
                         "eligible",
                         "ineligible"
                       ],
-                      "type": "string"
-                    },
-                    "npi": {
-                      "pattern": "^[0-9]{10}$",
                       "type": "string"
                     },
                     "licenseNumber": {
@@ -508,12 +501,12 @@
                   ],
                   "type": "string"
                 },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -648,12 +641,12 @@
                   ],
                   "type": "string"
                 },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -754,10 +747,6 @@
             "enum": [
               "underInvestigation"
             ],
-            "type": "string"
-          },
-          "npi": {
-            "pattern": "^[0-9]{10}$",
             "type": "string"
           },
           "licenseNumber": {
@@ -868,7 +857,8 @@
           "compactEligibility",
           "jurisdictionUploadedLicenseStatus",
           "jurisdictionUploadedCompactEligibility",
-          "history"
+          "history",
+          "licenseNumber"
         ],
         "type": "object"
       },
@@ -902,12 +892,12 @@
                   ],
                   "type": "string"
                 },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
                 "jurisdiction": {
                   "enum": [
                     "al",
@@ -966,13 +956,13 @@
                   ],
                   "type": "string"
                 },
-        "licenseType": {
-          "enum": [
-            "cosmetologist",
-            "esthetician"
-          ],
-          "type": "string"
-        },
+                "licenseType": {
+                  "enum": [
+                    "cosmetologist",
+                    "esthetician"
+                  ],
+                  "type": "string"
+                },
                 "dateOfUpdate": {
                   "format": "date-time",
                   "type": "string"
@@ -989,12 +979,12 @@
                       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                       "type": "string"
                     },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                    "compact": {
+                      "enum": [
+                        "cosm"
+                      ],
+                      "type": "string"
+                    },
                     "jurisdiction": {
                       "enum": [
                         "al",
@@ -1196,12 +1186,12 @@
                       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                       "type": "string"
                     },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                    "compact": {
+                      "enum": [
+                        "cosm"
+                      ],
+                      "type": "string"
+                    },
                     "jurisdiction": {
                       "enum": [
                         "al",
@@ -1416,12 +1406,12 @@
                   ],
                   "type": "string"
                 },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -1556,12 +1546,12 @@
                   ],
                   "type": "string"
                 },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+                "compact": {
+                  "enum": [
+                    "cosm"
+                  ],
+                  "type": "string"
+                },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -1969,10 +1959,6 @@
       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
       "type": "string"
     },
-    "npi": {
-      "pattern": "^[0-9]{10}$",
-      "type": "string"
-    },
     "ssnLastFour": {
       "pattern": "^[0-9]{4}$",
       "type": "string"
@@ -2025,12 +2011,12 @@
       ],
       "type": "string"
     },
-        "compact": {
-          "enum": [
-            "cosm"
-          ],
-          "type": "string"
-        },
+    "compact": {
+      "enum": [
+        "cosm"
+      ],
+      "type": "string"
+    },
     "birthMonthDay": {
       "format": "date",
       "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",

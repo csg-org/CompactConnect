@@ -48,7 +48,6 @@ PRIVILEGE_CSV_FIELDS = [
     'licenseStatus',
     'licenseStatusName',
     'licenseNumber',
-    'npi',
 ]
 
 
@@ -582,7 +581,7 @@ def _create_flattened_privilege(privilege: dict, license_record: dict) -> dict:
         license_copy.pop(field, None)
 
     # Merge license data into flattened record
-    # License fields like givenName, familyName, npi, etc. get added
+    # License fields like givenName, familyName, licenseNumber, etc. get added
     flattened.update(license_copy)
 
     return flattened

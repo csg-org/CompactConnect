@@ -27,7 +27,6 @@ from cc_common.data_model.schema.fields import (
     ITUTE164PhoneNumber,
     Jurisdiction,
     LicenseEncumberedStatusField,
-    NationalProviderIdentifier,
     UpdateType,
 )
 from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
@@ -58,8 +57,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
     firstUploadDate = DateTime(required=False, allow_none=False)
 
     # Provided fields
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     ssnLastFour = String(required=True, allow_none=False)
 
     # optional field for setting encumbrance status
@@ -172,8 +170,7 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     DB -> load() -> Python
     """
 
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     ssnLastFour = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
