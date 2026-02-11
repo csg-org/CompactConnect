@@ -349,12 +349,8 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
             InvocationType='Event',  # Asynchronous invocation
             Payload=json.dumps(event),
         )
-
-        if response.get('FunctionError'):
-            error_payload = json.loads(response['Payload'].read())
-            raise SmokeTestFailureException(
-                f'expiration_reminder Lambda invocation failed: {response.get("FunctionError")}, error: {error_payload}'
-            )
+        if response.get('StatusCode') != 202:
+            raise SmokeTestFailureException(f'Unexpected status code: {response.get("StatusCode")}')
 
         logger.info('Lambda invocation accepted, polling CloudWatch Logs for completion...', log_group=log_group_name)
 
