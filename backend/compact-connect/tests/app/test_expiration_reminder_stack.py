@@ -124,7 +124,7 @@ class TestExpirationReminderStack(TstAppABC, TestCase):
             duration_alarm_logical_id, resources=alarms
         )
 
-        # Verify threshold is 10 minutes (600,000 milliseconds)
+        # Verify threshold is 14 minutes (840,000 milliseconds)
         self.assertEqual(duration_alarm['Threshold'], 840_000)
         self.assertEqual(duration_alarm['ComparisonOperator'], 'GreaterThanThreshold')
         self.assertEqual(duration_alarm['EvaluationPeriods'], 1)
