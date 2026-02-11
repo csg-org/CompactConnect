@@ -170,13 +170,14 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
         """
         Test that capacity monitoring alarms are configured for proactive scaling.
 
-        Verifies six critical alarms:
+        Verifies seven critical alarms:
         1. Free Storage Space < 50% threshold
         2. JVM Memory Pressure > 85% threshold
         3. CPU Utilization > 70% threshold
         4. Cluster Status RED for critical issues
-        5. Cluster Status YELLOW for degraded state
+        5. Cluster Status YELLOW for degraded state (15 min sustained)
         6. Automated Snapshot Failure for backup issues
+        7. Searchable Documents < 10 for data loss detection (30 min sustained)
 
         These alarms give DevOps team time to plan scaling activities before hitting limits.
         """
@@ -232,7 +233,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
             },
         )
 
-        # Verify Cluster Status YELLOW Alarm
+        # Verify Cluster Status YELLOW Alarm (15 min sustained to reduce non-prod noise)
         search_template.has_resource_properties(
             'AWS::CloudWatch::Alarm',
             {
@@ -240,7 +241,7 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
                 'Namespace': 'AWS/ES',
                 'Threshold': 1,
                 'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
-                'EvaluationPeriods': 1,
+                'EvaluationPeriods': 3,
             },
         )
 
@@ -253,6 +254,18 @@ class TestSearchPersistentStack(TstAppABC, TestCase):
                 'Threshold': 1,
                 'ComparisonOperator': 'GreaterThanOrEqualToThreshold',
                 'EvaluationPeriods': 1,
+            },
+        )
+
+        # Verify Searchable Documents Alarm (30 min sustained to reduce noise)
+        search_template.has_resource_properties(
+            'AWS::CloudWatch::Alarm',
+            {
+                'MetricName': 'SearchableDocuments',
+                'Namespace': 'AWS/ES',
+                'Threshold': 10,
+                'ComparisonOperator': 'LessThanThreshold',
+                'EvaluationPeriods': 6,
             },
         )
 

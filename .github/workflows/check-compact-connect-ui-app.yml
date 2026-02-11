@@ -24,6 +24,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v5
 
+      - name: Upgrade pip
+        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
+        run: pip install --upgrade 'pip>=26.0'
+
       - name: Install dev dependencies
         run: "pip install -r backend/compact-connect-ui-app/requirements-dev.txt"
 
@@ -82,6 +86,10 @@ jobs:
         with:
           python-version: '3.14'
 
+      - name: Upgrade pip
+        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
+        run: pip install --upgrade 'pip>=26.0'
+
       # Setup Node
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -103,7 +111,7 @@ jobs:
         run: "pip install -r backend/compact-connect-ui-app/requirements-dev.txt"
 
       - name: Install all Python dependencies
-        run: "cd backend/compact-connect; pip install -U 'pip<25.3'; bin/sync_deps.sh"
+        run: "cd backend/compact-connect-ui-app; bin/sync_deps.sh"
 
-      - name: Test backend
+      - name: Test frontend
         run: "cd backend/compact-connect-ui-app; bin/run_tests.sh -l all -no"

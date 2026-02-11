@@ -712,8 +712,9 @@ class ProviderUserRecords:
         else:
             # if jurisdiction is not provided, we filter by the user's current home jurisdiction
             current_home_jurisdiction_license_records = self.get_license_records(
-                filter_condition=lambda license_data: license_data.jurisdiction
-                == self.get_provider_record().currentHomeJurisdiction
+                filter_condition=lambda license_data: (
+                    license_data.jurisdiction == self.get_provider_record().currentHomeJurisdiction
+                )
             )
             # if there are no licenses for their current home jurisdiction, we will search through all licenses
             license_records = (

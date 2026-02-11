@@ -24,6 +24,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - name: Upgrade pip
+        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
+        run: pip install --upgrade 'pip>=26.0'
+
       - name: Install dev dependencies
         run: "pip install -r backend/multi-account/control-tower/requirements-dev.txt"
 
@@ -44,6 +48,10 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+
+      - name: Upgrade pip
+        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
+        run: pip install --upgrade 'pip>=26.0'
 
       - name: Install dev dependencies
         run: "pip install -r backend/multi-account/control-tower/requirements-dev.txt"

@@ -470,8 +470,9 @@ def main():
 
         # Check if provider already has a privilege for this specific license type in the target state
         existing_privileges = provider_user_records.get_privilege_records(
-            filter_condition=lambda p, license_type=target_license_type: p.jurisdiction == args.privilege_state
-            and p.licenseType == license_type
+            filter_condition=lambda p, license_type=target_license_type: (
+                p.jurisdiction == args.privilege_state and p.licenseType == license_type
+            )
         )
         if existing_privileges:
             if args.provider_id:

@@ -4,20 +4,20 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras backups/requirements-dev.in
 #
-boto3==1.42.11
+boto3==1.42.44
     # via moto
-botocore==1.42.11
+botocore==1.42.44
     # via
     #   boto3
     #   moto
     #   s3transfer
-certifi==2025.11.12
+certifi==2026.1.4
     # via requests
 cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.4
     # via requests
-cryptography==46.0.3
+cryptography==46.0.4
     # via moto
 idna==3.11
     # via requests
@@ -25,7 +25,7 @@ iniconfig==2.3.0
     # via pytest
 jinja2==3.1.6
     # via moto
-jmespath==1.0.1
+jmespath==1.1.0
     # via
     #   boto3
     #   botocore
@@ -33,13 +33,13 @@ markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-moto==5.1.18
+moto==5.1.20
     # via -r backups/requirements-dev.in
-packaging==25.0
+packaging==26.0
     # via pytest
 pluggy==1.6.0
     # via pytest
-pycparser==2.23
+pycparser==3.0
     # via cffi
 pygments==2.19.2
     # via pytest
@@ -61,12 +61,12 @@ s3transfer==0.16.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-urllib3==2.6.2
+urllib3==2.6.3
     # via
     #   botocore
     #   requests
     #   responses
-werkzeug==3.1.4
+werkzeug==3.1.5
     # via moto
 xmltodict==1.0.2
     # via moto

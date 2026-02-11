@@ -10,7 +10,7 @@ import {
     SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
     SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD
 } from '../../sample-records';
-import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESv2Client;

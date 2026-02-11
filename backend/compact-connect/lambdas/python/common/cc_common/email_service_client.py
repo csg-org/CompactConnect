@@ -37,6 +37,17 @@ class InvestigationNotificationTemplateVariables:
     provider_id: UUID
 
 
+@dataclass
+class PrivilegeExpirationReminderTemplateVariables:
+    """
+    Template variables for privilege expiration reminder emails.
+    """
+
+    provider_first_name: str
+    expiration_date: date
+    privileges: list[dict]
+
+
 class ProviderNotificationMethod(Protocol):
     """Protocol for provider encumbrance notification methods."""
 
@@ -90,7 +101,7 @@ class EmailServiceClient:
 
             if response.get('FunctionError'):
                 error_message = f'Failed to send email notification: {response.get("FunctionError")}'
-                self._logger.error(error_message, payload=payload)
+                self._logger.error(error_message)
                 raise CCInternalException(error_message)
 
             return response
@@ -805,6 +816,34 @@ class EmailServiceClient:
             'specificEmails': [provider_email],
             'templateVariables': {
                 'auditNote': audit_note,
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_privilege_expiration_reminder_email(
+        self,
+        *,
+        compact: str,
+        provider_email: str,
+        template_variables: PrivilegeExpirationReminderTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a privilege expiration reminder email to a provider.
+
+        :param compact: Compact name
+        :param provider_email: Email address of the provider
+        :param template_variables: Provider name, expiration date, privileges (state, license type, id, date).
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'privilegeExpirationReminder',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [provider_email],
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'expirationDate': template_variables.expiration_date.isoformat(),
+                'privileges': template_variables.privileges,
             },
         }
         return self._invoke_lambda(payload)

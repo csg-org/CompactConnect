@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+from unittest.mock import patch
 
 from tests import TstLambdas
 
@@ -72,10 +74,16 @@ class TestSanitizeProviderData(TstLambdas):
 
         self.assertEqual(expected_provider, resp)
 
-    def test_sanitized_provider_record_returned_if_caller_does_not_have_read_private_permissions_for_jurisdiction(self):
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-01T12:00:00+00:00'))
+    def test_sanitized_provider_record_returned_if_caller_does_not_have_read_private_permissions_for_jurisdiction(
+        self,
+    ):
+        # Mock datetime so schema expiration checks keep license/privilege status active (test data expires 2025-04-04)
         self.when_testing_general_provider_info_returned(
             scopes={'openid', 'email', 'aslp/readGeneral', 'az/aslp.readPrivate'}
         )
 
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-01T12:00:00+00:00'))
     def test_sanitized_provider_record_returned_if_caller_does_not_have_any_read_private_permissions(self):
+        # Mock datetime so schema expiration checks keep license/privilege status active (test data expires 2025-04-04)
         self.when_testing_general_provider_info_returned(scopes={'openid', 'email', 'aslp/readGeneral'})

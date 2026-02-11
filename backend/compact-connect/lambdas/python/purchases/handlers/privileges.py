@@ -283,8 +283,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     # Check for any adverse actions that have been lifted 2 years ago
     latest_allowed_encumbrance_lift = _get_latest_allowed_encumbrance_lift()
     blocking_encumbrance_records = provider_user_records.get_adverse_action_records(
-        filter_condition=lambda record: record.effectiveLiftDate is None
-        or record.effectiveLiftDate > latest_allowed_encumbrance_lift
+        filter_condition=lambda record: (
+            record.effectiveLiftDate is None or record.effectiveLiftDate > latest_allowed_encumbrance_lift
+        )
     )
     if blocking_encumbrance_records:
         raise CCInvalidRequestException(
@@ -293,9 +294,11 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     # we now validate that the license type matches one of the license types from the home state license records
     matching_license_records = provider_user_records.get_license_records(
-        filter_condition=lambda record: record.licenseType == body['licenseType']
-        and record.jurisdiction == current_home_jurisdiction
-        and record.compactEligibility == CompactEligibilityStatus.ELIGIBLE,
+        filter_condition=lambda record: (
+            record.licenseType == body['licenseType']
+            and record.jurisdiction == current_home_jurisdiction
+            and record.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+        ),
     )
 
     if not matching_license_records:

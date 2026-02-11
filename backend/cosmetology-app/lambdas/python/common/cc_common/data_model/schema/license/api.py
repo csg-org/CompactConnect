@@ -3,7 +3,9 @@
 Schema for API objects.
 """
 
-from marshmallow import ValidationError, validates_schema
+from datetime import date
+
+from marshmallow import ValidationError, pre_load, validates_schema
 from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
@@ -22,6 +24,42 @@ from cc_common.data_model.schema.fields import (
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
+
+
+class LicenseExpirationStatusMixin:
+    """
+    Mixin that corrects stale 'licenseStatus' values when loading license data.
+
+    OpenSearch documents may have stale status values because the licenseStatus field is
+    calculated at write time. If the dateOfExpiration has passed since the last update,
+    the licenseStatus should be 'inactive' even if the stored value says 'active'.
+
+    This mixin should be applied to license API response schemas that load data from
+    OpenSearch or other sources where the status may be stale.
+    """
+
+    @pre_load
+    def correct_expired_license_status(self, in_data, **kwargs):
+        """Set licenseStatus to inactive if the license has expired."""
+        if in_data.get('licenseStatus') != ActiveInactiveStatus.ACTIVE:
+            # Already inactive, no correction needed
+            return in_data
+
+        date_of_expiration = in_data.get('dateOfExpiration')
+        if date_of_expiration is None:
+            return in_data
+
+        # Parse the expiration date (handle both string and date objects)
+        if isinstance(date_of_expiration, str):
+            expiration_date = date.fromisoformat(date_of_expiration)
+        else:
+            expiration_date = date_of_expiration
+
+        # If expired, correct the status to inactive
+        if expiration_date < config.expiration_resolution_date:
+            in_data['licenseStatus'] = ActiveInactiveStatus.INACTIVE
+
+        return in_data
 
 
 class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
@@ -111,7 +149,7 @@ class LicenseReportResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
 
 
-class LicenseGeneralResponseSchema(ForgivingSchema):
+class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
     """
     License object fields, as seen by staff users with only the 'readGeneral' permission.
 
@@ -152,7 +190,7 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
 
-class LicenseReadPrivateResponseSchema(ForgivingSchema):
+class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
     """
     License object fields, as seen by staff users with only the 'readPrivate' permission.
 
