@@ -113,5 +113,5 @@ jobs:
       - name: Install all Python dependencies
         run: "cd backend/compact-connect-ui-app; bin/sync_deps.sh"
 
-      - name: Test backend
+      - name: Test frontend
         run: "cd backend/compact-connect-ui-app; bin/run_tests.sh -l all -no"

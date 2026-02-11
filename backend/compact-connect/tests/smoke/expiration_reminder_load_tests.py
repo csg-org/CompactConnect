@@ -7,7 +7,8 @@ indexes them into OpenSearch, and triggers the expiration reminder Lambda to tes
 performance and capacity (load test) or a small smoke test.
 
 Usage:
-    # Full load test (10k matching + 5k non-matching providers, two privileges per provider)
+    # Full load test (10k matching providers with privileges expiring soon + 5k providers with privilege not expiring
+    soon, two privileges per provider)
     python expiration_reminder_load_test.py
     python expiration_reminder_load_test.py --skip-data-load
 
@@ -182,11 +183,12 @@ def create_providers_batch(
     progress_log_interval: int = 1000,
 ) -> tuple[int, list[str]]:
     """
-    Create providers with two privileges each: matching_count match the target date (receive email),
+    Create providers with two privileges each: matching_count match the target expiration date (receive email),
     non_matching_count do not (neither privilege on target date).
 
-    Matching providers have one privilege expiring on the target date and one later, so the reminder
-    email shows both privileges. Non-matching providers have both privileges expiring on other dates.
+    Matching providers have two active privileges, one privilege expiring on the target date and one later. The reminder
+    notification should include all the user's active privileges, so both privileges will be included. Non-matching
+    providers have both privileges expiring on other dates.
 
     :param matching_count: Number of providers that match the 30-day search (will receive email).
     :param non_matching_count: Number of providers that do not match (no email).
@@ -194,14 +196,14 @@ def create_providers_batch(
     :param progress_log_interval: Interval for progress logging.
     :return: Tuple of (matching_count for use as expected_sent, list of {'pk', 'sk'} for cleanup).
     """
-    target_date = datetime.now(UTC).date() + timedelta(days=target_days_until_expiration)
-    other_date_matching = target_date + timedelta(days=30)
-    other_date_non_matching = target_date + timedelta(days=60)
+    target_expiration_date = datetime.now(UTC).date() + timedelta(days=target_days_until_expiration)
+    other_date_matching = target_expiration_date + timedelta(days=30)
+    other_date_non_matching = target_expiration_date + timedelta(days=60)
 
     total = matching_count + non_matching_count
     logger.info(
-        f'Creating {total} providers (two privileges each): {matching_count} matching target date, '
-        f'{non_matching_count} non-matching (target: {target_date.isoformat()})',
+        f'Creating {total} providers (two privileges each): {matching_count} matching target expiration date, '
+        f'{non_matching_count} non-matching (target expiration: {target_expiration_date.isoformat()})',
     )
 
     registered_email = config.test_provider_user_username
@@ -212,7 +214,7 @@ def create_providers_batch(
         for i in range(total):
             provider_id = str(uuid.uuid4())
             if i < matching_count:
-                exp_1, exp_2 = target_date, other_date_matching
+                exp_1, exp_2 = target_expiration_date, other_date_matching
             else:
                 exp_1, exp_2 = other_date_non_matching, other_date_non_matching + timedelta(days=30)
 
@@ -242,7 +244,7 @@ def create_providers_batch(
             if created % progress_log_interval == 0:
                 logger.info(f'Created {created}/{total} providers')
 
-    logger.info(f'Completed creating {total} providers (target date: {target_date.isoformat()})')
+    logger.info(f'Completed creating {total} providers (target expiration: {target_expiration_date.isoformat()})')
     return matching_count, created_keys
 
 

@@ -638,7 +638,7 @@ class ProviderSearchDomain(Construct):
         """
         Generate search access policy. Specifies a principal, if provided.
 
-        Search API policy is restricted to _search endpoint only POST is required for _search queries even though they
+        Search API policy is restricted to _search endpoint only. POST is required for _search queries even though they
         are read-only operations because OpenSearch's search API uses POST to send the query DSL body.
         By restricting the resource to /_search, we prevent POST from being used for document indexing or other write
         operations.

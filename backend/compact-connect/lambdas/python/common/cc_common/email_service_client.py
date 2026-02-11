@@ -825,7 +825,7 @@ class EmailServiceClient:
         *,
         compact: str,
         provider_email: str,
-        template_variables: 'PrivilegeExpirationReminderTemplateVariables',
+        template_variables: PrivilegeExpirationReminderTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a privilege expiration reminder email to a provider.

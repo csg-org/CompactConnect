@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from moto import mock_aws
 
+from common_test.test_constants import DEFAULT_COMPACT
 from tests import TstLambdas
 
 
@@ -56,7 +57,7 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
 
         results = list(
             iterate_privileges_by_expiration_date(
-                compact='aslp',
+                compact=DEFAULT_COMPACT,
                 expiration_date=date(2026, 2, 16),
                 page_size=2,
             )
@@ -100,7 +101,7 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
 
         results = list(
             iterate_privileges_by_expiration_date(
-                compact='aslp',
+                compact=DEFAULT_COMPACT,
                 expiration_date=date(2026, 2, 16),
                 page_size=2,
                 initial_search_after=['p1'],
@@ -154,7 +155,7 @@ class TestExpirationRemindersOpenSearch(TstLambdas):
 
         result = next(
             iterate_privileges_by_expiration_date(
-                compact='aslp',
+                compact=DEFAULT_COMPACT,
                 expiration_date=date(2026, 2, 16),
                 page_size=100,
             )
@@ -195,7 +196,7 @@ class TestProcessExpirationReminders(TstLambdas):
             doc['compactConnectRegisteredEmailAddress'] = email
         return doc
 
-    def _make_event(self, days_before: int = 30, compact: str = 'aslp') -> dict:
+    def _make_event(self, days_before: int = 30, compact: str = DEFAULT_COMPACT) -> dict:
         """Helper to create a valid event for testing."""
         return {
             'targetDate': '2026-02-16',
@@ -210,7 +211,7 @@ class TestProcessExpirationReminders(TstLambdas):
             'providerId': provider_id,
             'type': 'provider',
             'dateOfUpdate': '2026-01-01T00:00:00',
-            'compact': 'aslp',
+            'compact': DEFAULT_COMPACT,
             'licenseJurisdiction': 'oh',
             'currentHomeJurisdiction': 'oh',
             'licenseStatus': 'active',
@@ -226,7 +227,7 @@ class TestProcessExpirationReminders(TstLambdas):
                 {
                     'type': 'privilege',
                     'providerId': provider_id,
-                    'compact': 'aslp',
+                    'compact': DEFAULT_COMPACT,
                     'jurisdiction': 'oh',
                     'licenseJurisdiction': 'oh',
                     'licenseType': 'aud',
@@ -260,7 +261,7 @@ class TestProcessExpirationReminders(TstLambdas):
                                 'providerId': 'invalid-provider-456',
                                 'type': 'provider',
                                 'dateOfUpdate': '2026-01-01T00:00:00',
-                                'compact': 'aslp',
+                                'compact': DEFAULT_COMPACT,
                                 'licenseJurisdiction': 'oh',
                                 'licenseStatus': 'active',
                                 'compactEligibility': 'eligible',
@@ -323,7 +324,7 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertEqual(1, resp['metrics']['sent'])
         self.assertEqual(0, resp['metrics']['failed'])
         self.assertEqual(30, resp['daysBefore'])
-        self.assertEqual('aslp', resp['compact'])
+        self.assertEqual(DEFAULT_COMPACT, resp['compact'])
         mock_email_client.send_privilege_expiration_reminder_email.assert_called_once()
         call_kwargs = mock_email_client.send_privilege_expiration_reminder_email.call_args.kwargs
         tv = call_kwargs['template_variables']
@@ -465,7 +466,7 @@ class TestProcessExpirationReminders(TstLambdas):
                 {
                     'targetDate': '2026-02-16',
                     'daysBefore': 999,  # Invalid
-                    'compact': 'aslp',
+                    'compact': DEFAULT_COMPACT,
                 },
                 self.mock_context,
             )
@@ -476,7 +477,7 @@ class TestProcessExpirationReminders(TstLambdas):
         from handlers.expiration_reminders import process_expiration_reminders
 
         with self.assertRaises(CCInvalidRequestException) as ctx:
-            process_expiration_reminders({'targetDate': '2026-02-16', 'compact': 'aslp'}, self.mock_context)
+            process_expiration_reminders({'targetDate': '2026-02-16', 'compact': DEFAULT_COMPACT}, self.mock_context)
         self.assertIn('daysBefore', str(ctx.exception))
 
     def test_handler_requires_compact_field(self):
@@ -513,7 +514,7 @@ class TestProcessExpirationReminders(TstLambdas):
 
         mock_iter.return_value = iter([])
 
-        resp = process_expiration_reminders({'daysBefore': 30, 'compact': 'aslp'}, self.mock_context)
+        resp = process_expiration_reminders({'daysBefore': 30, 'compact': DEFAULT_COMPACT}, self.mock_context)
 
         self.assertEqual('complete', resp['status'])
         # Verify it calculated the correct target date (2026-01-17 + 30 days = 2026-02-16)
@@ -544,7 +545,7 @@ class TestProcessExpirationReminders(TstLambdas):
         event_with_continuation = {
             'targetDate': '2026-02-16',
             'daysBefore': 30,
-            'compact': 'aslp',
+            'compact': DEFAULT_COMPACT,
             '_continuation': {
                 'searchAfter': ['cursor1'],
                 'depth': 1,
@@ -611,7 +612,7 @@ class TestProcessExpirationReminders(TstLambdas):
         self.assertEqual('Event', call_kwargs['InvocationType'])
         payload = json.loads(call_kwargs['Payload'])
         self.assertEqual(30, payload['daysBefore'])
-        self.assertEqual('aslp', payload['compact'])
+        self.assertEqual(DEFAULT_COMPACT, payload['compact'])
         self.assertEqual(['cursor1'], payload['_continuation']['searchAfter'])
         self.assertEqual(1, payload['_continuation']['depth'])
         self.assertEqual(1, payload['_continuation']['accumulatedMetrics']['sent'])
@@ -623,7 +624,7 @@ class TestProcessExpirationReminders(TstLambdas):
         event = {
             'targetDate': '2026-02-16',
             'daysBefore': 30,
-            'compact': 'aslp',
+            'compact': DEFAULT_COMPACT,
             '_continuation': {
                 'searchAfter': ['cursor1'],
                 'depth': MAX_CONTINUATION_DEPTH,
@@ -637,6 +638,7 @@ class TestProcessExpirationReminders(TstLambdas):
     @patch('handlers.expiration_reminders.ExpirationReminderTracker')
     @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.expiration_reminders.iterate_privileges_by_expiration_date')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2026-02-16T12:00:00+00:00'))
     def test_handler_only_includes_active_privileges_in_email(self, mock_iter, mock_email_client, mock_tracker_class):
         """
         Only active privileges are included in the email; inactive privileges are filtered out.
@@ -681,6 +683,14 @@ class TestProcessExpirationReminders(TstLambdas):
 
         self.assertEqual('complete', resp['status'])
         self.assertEqual(1, resp['metrics']['sent'])
+
+        # verify the iterator was called with expected params
+        mock_iter.assert_called_once_with(
+            compact=DEFAULT_COMPACT,
+            expiration_date=date.fromisoformat('2026-02-16'),
+            page_size=1000,
+            initial_search_after=None,
+        )
 
         # Verify only the active privilege was passed to the email client
         mock_email_client.send_privilege_expiration_reminder_email.assert_called_once()
