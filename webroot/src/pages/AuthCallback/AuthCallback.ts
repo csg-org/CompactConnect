@@ -86,20 +86,31 @@ export default class AuthCallback extends Vue {
 
             let errorCount = 0;
 
-            await this.getTokensStaffJcc().catch(() => {
-                errorCount += 1;
-            });
-
-            if (errorCount > 0) {
-                await this.getTokensStaffCosmo().catch(() => {
+            await this.getTokensStaffJcc()
+                .then(() => {
+                    this.$store.dispatch('setAppMode', AppModes.JCC);
+                })
+                .catch(() => {
                     errorCount += 1;
                 });
+
+            if (errorCount > 0) {
+                await this.getTokensStaffCosmo()
+                    .then(() => {
+                        this.$store.dispatch('setAppMode', AppModes.COSMETOLOGY);
+                    })
+                    .catch(() => {
+                        errorCount += 1;
+                    });
             }
 
             if (errorCount > 1) {
-                await this.getTokensLicenseeJcc().catch(() => {
-                    errorCount += 1;
-                });
+                await this.getTokensLicenseeJcc()
+                    .then(() => {
+                        this.$store.dispatch('setAppMode', AppModes.JCC);
+                    }).catch(() => {
+                        errorCount += 1;
+                    });
             }
 
             if (errorCount > 2) {

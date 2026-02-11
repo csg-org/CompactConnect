@@ -176,7 +176,7 @@
         - _Server_ :arrow_heading_up:
             - IA Test: `42km9ho786d28dp812j88kvscq`
             - CSG Test: `TODO`
-            - Beta: TODO
+            - Beta: `TODO`
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `42km9ho786d28dp812j88kvscq`

@@ -55,6 +55,7 @@ export default {
         state.messages = [];
         state.isModalOpen = false;
         state.isModalLogoutOnly = false;
+        state.appMode = AppModes.JCC;
     },
     [MutationTypes.SET_APP_MODE]: (state: State, mode: AppModes) => {
         state.appMode = mode;

@@ -26,7 +26,7 @@ export const state: State = {
     isModalOpen: false,
     isModalLogoutOnly: false,
     appMode: AppModes.JCC,
-    isAppModeDisplayed: true, // @TODO
+    isAppModeDisplayed: false,
     authType: AuthTypes.PUBLIC,
     isNavExpanded: false,
 };
