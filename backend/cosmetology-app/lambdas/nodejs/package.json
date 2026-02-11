@@ -5,7 +5,7 @@
   "description": "NodeJS lambdas for Compact Connect",
   "resolutions": {
     "@aws-sdk/client-sesv2": "^3.901.0",
-     "fast-xml-parser": "5.3.4"
+    "fast-xml-parser": "5.3.4"
   },
   "scripts": {
     "build": "tsc",
