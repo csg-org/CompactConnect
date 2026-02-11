@@ -47,7 +47,6 @@ from datetime import UTC, date, datetime, timedelta
 import boto3
 from botocore.exceptions import ClientError
 from smoke_common import (
-    COMPACTS,
     JURISDICTIONS,
     LICENSE_TYPES,
     SmokeTestFailureException,
@@ -73,14 +72,14 @@ dynamodb_table = config.provider_user_dynamodb_table
 # Test configuration: counts of matching vs non-matching providers for the 30-day expiration run
 MATCHING_PROVIDERS = 10_000  # Providers with one privilege expiring on target date (receive email)
 NON_MATCHING_PROVIDERS = 5_000  # Providers with neither privilege on target date (no email)
-COMPACT = COMPACTS[0]  # Use first compact
+COMPACT = 'aslp'  # Use aslp compact as it has two license types to test two privileges
 JURISDICTION = JURISDICTIONS[0]  # Use first jurisdiction
-# Second jurisdiction and license type for two-privilege-per-provider (smoke mode)
-JURISDICTION_2 = JURISDICTIONS[1] if len(JURISDICTIONS) > 1 else JURISDICTIONS[0]
+# Second jurisdiction and license type for two-privilege-per-provider
+JURISDICTION_2 = JURISDICTIONS[1]
 if COMPACT in LICENSE_TYPES and LICENSE_TYPES[COMPACT]:
     LICENSE_TYPE = LICENSE_TYPES[COMPACT][0]['name']
     LICENSE_TYPE_2 = (
-        LICENSE_TYPES[COMPACT][1]['name'] if len(LICENSE_TYPES[COMPACT]) > 1 else LICENSE_TYPES[COMPACT][0]['name']
+        LICENSE_TYPES[COMPACT][1]['name']
     )
 else:
     raise SmokeTestFailureException(f'No license types found for compact {COMPACT}')
