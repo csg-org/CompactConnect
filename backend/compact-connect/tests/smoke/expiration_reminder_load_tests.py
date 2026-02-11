@@ -78,9 +78,7 @@ JURISDICTION = JURISDICTIONS[0]  # Use first jurisdiction
 JURISDICTION_2 = JURISDICTIONS[1]
 if COMPACT in LICENSE_TYPES and LICENSE_TYPES[COMPACT]:
     LICENSE_TYPE = LICENSE_TYPES[COMPACT][0]['name']
-    LICENSE_TYPE_2 = (
-        LICENSE_TYPES[COMPACT][1]['name']
-    )
+    LICENSE_TYPE_2 = LICENSE_TYPES[COMPACT][1]['name']
 else:
     raise SmokeTestFailureException(f'No license types found for compact {COMPACT}')
 
