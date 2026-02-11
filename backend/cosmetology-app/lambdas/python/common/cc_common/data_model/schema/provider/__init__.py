@@ -46,10 +46,6 @@ class ProviderData(CCDataClass):
         return self._data['ssnLastFour']
 
     @property
-    def npi(self) -> str | None:
-        return self._data.get('npi')
-
-    @property
     def givenName(self) -> str:
         return self._data['givenName']
 

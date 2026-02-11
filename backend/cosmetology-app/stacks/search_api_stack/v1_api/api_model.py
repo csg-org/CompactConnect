@@ -213,10 +213,6 @@ class ApiModel:
                     type=JsonSchemaType.STRING,
                     max_length=100,
                 ),
-                'npi': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    pattern='^[0-9]{10}$',
-                ),
                 'licenseStatus': JsonSchema(
                     type=JsonSchemaType.STRING,
                     enum=['active', 'inactive'],
@@ -308,6 +304,7 @@ class ApiModel:
                 'homeAddressCity',
                 'homeAddressState',
                 'homeAddressPostalCode',
+                'licenseNumber',
             ],
             properties={
                 'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
@@ -325,8 +322,7 @@ class ApiModel:
                 'jurisdictionUploadedCompactEligibility': JsonSchema(
                     type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']
                 ),
-                'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
-                'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
+                'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                 'givenName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'middleName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'familyName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),

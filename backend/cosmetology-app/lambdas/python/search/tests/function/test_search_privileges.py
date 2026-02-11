@@ -112,7 +112,6 @@ class TestExportPrivileges(TstFunction):
                         'dateOfIssuance': '2020-01-01',
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
-                        'npi': '1234567890',
                         'licenseNumber': 'COS-12345',
                     }
                 ],
@@ -327,7 +326,6 @@ class TestExportPrivileges(TstFunction):
                         'dateOfIssuance': '2020-01-01',
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
-                        'npi': '1234567890',
                         'licenseNumber': 'COS-12345',
                     }
                 ],
@@ -466,15 +464,15 @@ class TestExportPrivileges(TstFunction):
         lines = csv_content.strip().split('\n')
         self.assertEqual(3, len(lines))  # Header + 2 data rows
         self.assertEqual(
-            'type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber,npi\r',
+            'type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber\r',
             lines[0],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ky,cosmetologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,COS-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ky,cosmetologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,COS-12345\r',
             lines[1],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ne,cosmetologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,COS-12345,1234567890',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ne,cosmetologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,COS-12345',
             lines[2],
         )
 
@@ -522,7 +520,6 @@ class TestExportPrivileges(TstFunction):
                         'dateOfIssuance': '2020-01-01',
                         'dateOfRenewal': '2024-01-01',
                         'dateOfExpiration': '2025-12-31',
-                        'npi': '1234567890',
                         'licenseNumber': 'COS-12345',
                     }
                 ],
@@ -610,19 +607,19 @@ class TestExportPrivileges(TstFunction):
         lines = csv_content.strip().split('\n')
         self.assertEqual(4, len(lines))  # Header + 3 data rows
         self.assertEqual(
-            'type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber,npi\r',
+            'type,providerId,compact,jurisdiction,licenseType,privilegeId,status,compactEligibility,dateOfExpiration,dateOfIssuance,dateOfRenewal,familyName,givenName,middleName,suffix,licenseJurisdiction,licenseStatus,licenseStatusName,licenseNumber\r',
             lines[0],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ky,cosmetologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,COS-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ky,cosmetologist,PRIV-KY-001,active,eligible,2025-01-15,2024-01-15,2024-01-15,Doe,John,,,oh,active,,COS-12345\r',
             lines[1],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ne,cosmetologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,COS-12345,1234567890\r',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,ne,cosmetologist,PRIV-NE-001,active,eligible,2025-02-01,2024-02-01,2024-02-01,Doe,John,,,oh,active,,COS-12345\r',
             lines[2],
         )
         self.assertEqual(
-            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,co,cosmetologist,PRIV-CO-001,inactive,eligible,2025-03-01,2024-03-01,2024-03-01,Doe,John,,,oh,active,,COS-12345,1234567890',
+            'statePrivilege,00000000-0000-0000-0000-000000000001,cosm,co,cosmetologist,PRIV-CO-001,inactive,eligible,2025-03-01,2024-03-01,2024-03-01,Doe,John,,,oh,active,,COS-12345',
             lines[3],
         )
 

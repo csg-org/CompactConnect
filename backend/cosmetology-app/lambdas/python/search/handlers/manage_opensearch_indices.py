@@ -237,7 +237,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
             'compactEligibility': {'type': 'keyword'},
             'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
-            'npi': {'type': 'keyword'},
             'licenseNumber': {'type': 'keyword'},
             'givenName': {
                 'type': 'text',
@@ -326,7 +325,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'licenseJurisdiction': {'type': 'keyword'},
                     'licenseStatus': {'type': 'keyword'},
                     'compactEligibility': {'type': 'keyword'},
-                    'npi': {'type': 'keyword'},
                     'givenName': {
                         'type': 'text',
                         'analyzer': 'custom_ascii_analyzer',

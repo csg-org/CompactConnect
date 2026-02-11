@@ -95,7 +95,6 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
                     # Set the jurisdiction where we'll create privileges
                     'privilegeJurisdictions': {privilege_jurisdiction},
                     'ssnLastFour': str(start_serial - i),
-                    'npi': f'{start_serial - i:010d}',
                     'givenName': f'Provider{i}',
                     'familyName': f'TestFamily{i}',
                 },
@@ -108,7 +107,6 @@ class TestQueryJurisdictionProviders(SignatureTestBase):
                     'providerId': provider_id,
                     'jurisdiction': license_jurisdiction,
                     'ssnLastFour': str(start_serial - i),
-                    'npi': f'{start_serial - i:010d}',
                     'licenseNumber': f'TEST-{start_serial - i}',
                     'givenName': f'Provider{i}',
                     'familyName': f'TestFamily{i}',
@@ -452,7 +450,6 @@ class TestGetProvider(SignatureTestBase):
                     'licenseType': 'cosmetologist',
                     'privilegeId': 'COS-NE-1',
                     'licenseNumber': 'A0608337260',
-                    'npi': '0608337260',
                     'status': 'active',
                     'compactEligibility': 'eligible',
                     'dateOfExpiration': '2025-04-04',
@@ -541,7 +538,6 @@ class TestGetProvider(SignatureTestBase):
                     'homeAddressState': 'oh',
                     'homeAddressPostalCode': '43004',
                     'phoneNumber': '+13213214321',
-                    'npi': '0608337260',
                     'licenseNumber': 'A0608337260',
                 }
             ],

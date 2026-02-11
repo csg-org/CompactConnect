@@ -20,7 +20,6 @@ from cc_common.data_model.schema.fields import (
     CompactEligibility,
     Jurisdiction,
     LicenseEncumberedStatusField,
-    NationalProviderIdentifier,
     Set,
     UpdateType,
 )
@@ -55,7 +54,6 @@ class ProviderRecordSchema(BaseRecordSchema):
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
 
     ssnLastFour = String(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -177,7 +175,6 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
     ssnLastFour = String(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))

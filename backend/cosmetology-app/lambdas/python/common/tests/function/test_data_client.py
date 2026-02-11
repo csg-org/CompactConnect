@@ -594,7 +594,6 @@ class TestDataClient(TstFunction):
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
-                'npi': '0608337260',
                 'licenseNumber': 'A0608337260',
                 'ssnLastFour': '1234',
                 'givenName': 'Björk',
@@ -927,7 +926,6 @@ class TestDataClient(TstFunction):
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
-                'npi': '0608337260',
                 'licenseNumber': 'A0608337260',
                 'ssnLastFour': '1234',
                 'givenName': 'Björk',

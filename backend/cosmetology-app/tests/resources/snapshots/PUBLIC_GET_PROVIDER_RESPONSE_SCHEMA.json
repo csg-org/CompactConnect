@@ -386,10 +386,6 @@
       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
       "type": "string"
     },
-    "npi": {
-      "pattern": "^[0-9]{10}$",
-      "type": "string"
-    },
     "givenName": {
       "maxLength": 100,
       "minLength": 1,
