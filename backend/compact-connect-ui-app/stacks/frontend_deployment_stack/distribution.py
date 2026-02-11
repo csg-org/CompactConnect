@@ -34,6 +34,7 @@ S3_URL_SUFFIX = '.s3.amazonaws.com'
 
 def generate_csp_lambda_code(
     persistent_stack_values: PersistentStackFrontendAppConfigValues,
+    persistent_stack_values_cosmetology: PersistentStackFrontendAppConfigValues,
     provider_users_stack_values: ProviderUsersStackFrontendAppConfigValues,
 ) -> str:
     """
@@ -45,6 +46,7 @@ def generate_csp_lambda_code(
     This function reads the template file and replaces placeholders with actual values.
 
     :param persistent_stack_values: The values from the persistent stack
+    :param persistent_stack_values_cosmetology: The values from the cosmetology persistent stack
     :param provider_users_stack_values: The values from the provider users stack
     :return: The generated Lambda function code
     """
@@ -56,12 +58,18 @@ def generate_csp_lambda_code(
     # Replace placeholders with actual values
     replacements = {
         '##WEB_FRONTEND##': persistent_stack_values.ui_domain_name,
+        # JCC
         '##DATA_API##': persistent_stack_values.api_domain_name,
         '##SEARCH_API##': persistent_stack_values.search_api_domain_name,
         '##S3_UPLOAD_URL_STATE##': f'{persistent_stack_values.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##S3_UPLOAD_URL_PROVIDER##': f'{persistent_stack_values.provider_users_bucket_name}{S3_URL_SUFFIX}',
         '##COGNITO_STAFF##': persistent_stack_values.staff_cognito_domain,
         '##COGNITO_PROVIDER##': provider_users_stack_values.provider_cognito_domain,
+        # COSMETOLOGY
+        '##DATA_API_COSMO##': persistent_stack_values_cosmetology.api_domain_name,
+        '##SEARCH_API_COSMO##': persistent_stack_values_cosmetology.search_api_domain_name,
+        '##S3_UPLOAD_URL_STATE_COSMO##': f'{persistent_stack_values_cosmetology.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
+        '##COGNITO_STAFF_COSMO##': persistent_stack_values_cosmetology.staff_cognito_domain,
     }
 
     for placeholder, value in replacements.items():
@@ -80,6 +88,7 @@ class UIDistribution(Distribution):
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         access_logs_bucket: AccessLogsBucket,
         persistent_stack_frontend_app_config_values: PersistentStackFrontendAppConfigValues,
+        persistent_stack_frontend_app_config_values_cosmetology: PersistentStackFrontendAppConfigValues,
         provider_users_stack_frontend_app_config_values: ProviderUsersStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
@@ -118,7 +127,9 @@ class UIDistribution(Distribution):
 
         # Generate the CSP Lambda code with injected values
         csp_function_code = generate_csp_lambda_code(
-            persistent_stack_frontend_app_config_values, provider_users_stack_frontend_app_config_values
+            persistent_stack_frontend_app_config_values,
+            persistent_stack_frontend_app_config_values_cosmetology,
+            provider_users_stack_frontend_app_config_values
         )
 
         self.csp_function = Function(

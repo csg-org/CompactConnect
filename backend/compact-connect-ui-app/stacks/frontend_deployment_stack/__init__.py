@@ -3,6 +3,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.frontend_app_config_utility import (
+    AppId,
     PersistentStackFrontendAppConfigValues,
     ProviderUsersStackFrontendAppConfigValues,
 )
@@ -39,6 +40,11 @@ class FrontendDeploymentStack(AppStack):
         persistent_stack_frontend_app_config_values = (
             PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(self)
         )
+        persistent_stack_frontend_app_config_values_cosmetology = (
+            PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
+                self, app_id=AppId.COSMETOLOGY
+            )
+        )
         provider_users_stack_frontend_app_config_values = (
             ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(self)
         )
@@ -50,6 +56,12 @@ class FrontendDeploymentStack(AppStack):
             raise ValueError(
                 'Persistent Stack App Configuration not found in SSM. '
                 'Make sure Persistent Stack resources have been deployed.'
+            )
+        if persistent_stack_frontend_app_config_values_cosmetology is None:
+            raise ValueError(
+                'Persistent Stack App Configuration (cosmetology) not found in SSM. '
+                'Make sure Cosmetology Persistent Stack resources have been deployed and the parameter '
+                'has been copied to this account.'
             )
         if provider_users_stack_frontend_app_config_values is None:
             raise ValueError(
@@ -100,6 +112,7 @@ class FrontendDeploymentStack(AppStack):
             ui_bucket=self.ui_bucket,
             environment_context=environment_context,
             persistent_stack_app_config_values=persistent_stack_frontend_app_config_values,
+            persistent_stack_app_config_values_cosmetology=persistent_stack_frontend_app_config_values_cosmetology,
             provider_users_stack_app_config_values=provider_users_stack_frontend_app_config_values,
         )
 
@@ -110,5 +123,6 @@ class FrontendDeploymentStack(AppStack):
             security_profile=security_profile,
             access_logs_bucket=self.frontend_access_logs_bucket,
             persistent_stack_frontend_app_config_values=persistent_stack_frontend_app_config_values,
+            persistent_stack_frontend_app_config_values_cosmetology=persistent_stack_frontend_app_config_values_cosmetology,
             provider_users_stack_frontend_app_config_values=provider_users_stack_frontend_app_config_values,
         )
