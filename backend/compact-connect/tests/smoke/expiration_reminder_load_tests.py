@@ -365,54 +365,66 @@ def invoke_expiration_reminder_lambda(days_before: int, compact: str = 'aslp'):
         seen_event_ids = set()  # Track which log events we've already processed
 
         while time.time() - last_activity_time <= inactivity_timeout_sec:
-            # Get recent log events
+            # Get recent log events, paginating through all pages each cycle
             try:
-                log_events_response = logs_client.filter_log_events(
-                    logGroupName=log_group_name,
-                    limit=100,
-                    startTime=int((time.time() - log_lookback_sec) * 1000),
-                )
+                next_token = None
+                while True:
+                    filter_kwargs = {
+                        'logGroupName': log_group_name,
+                        'limit': 100,
+                        'startTime': int((time.time() - log_lookback_sec) * 1000),
+                    }
+                    if next_token is not None:
+                        filter_kwargs['nextToken'] = next_token
 
-                # Process new log events
-                for event in log_events_response.get('events', []):
-                    event_id = event.get('eventId')
-                    if event_id in seen_event_ids:
-                        continue  # Skip events we've already processed
+                    log_events_response = logs_client.filter_log_events(**filter_kwargs)
 
-                    seen_event_ids.add(event_id)
-                    last_activity_time = time.time()  # Any new log = Lambda still running
-                    message = event.get('message', '')
+                    # Process new log events from this page
+                    for log_event in log_events_response.get('events', []):
+                        event_id = log_event.get('eventId')
+                        if event_id in seen_event_ids:
+                            continue  # Skip events we've already processed
 
-                    # Log all new messages to relay progress to CLI
-                    # Lambda Powertools logs JSON format
-                    try:
-                        log_json = json.loads(message.strip())
-                        log_level = log_json.get('level', 'INFO')
-                        log_message = log_json.get('message', '')
+                        seen_event_ids.add(event_id)
+                        last_activity_time = time.time()  # Any new log = Lambda still running
+                        message = log_event.get('message', '')
 
-                        # Relay log messages to CLI (skip DEBUG level)
-                        if log_level != 'DEBUG':
-                            logger.info(f'Lambda log [{log_level}]: {log_message}')
+                        # Log all new messages to relay progress to CLI
+                        # Lambda Powertools logs JSON format
+                        try:
+                            log_json = json.loads(message.strip())
+                            log_level = log_json.get('level', 'INFO')
+                            log_message = log_json.get('message', '')
 
-                        # Check for completion message (handler logs "Completed processing for compact" with metrics)
-                        if 'Completed processing' in log_message and log_json.get('metrics'):
-                            metrics = log_json.get('metrics', {})
+                            # Relay log messages to CLI (skip DEBUG level)
+                            if log_level != 'DEBUG':
+                                logger.info(f'Lambda log [{log_level}]: {log_message}')
 
-                            if metrics:
-                                target_date = log_json.get('targetDate', '')
-                                days_before_logged = log_json.get('daysBefore', days_before)
+                            # Check for completion message (handler logs "Completed processing for compact" with metrics)
+                            if 'Completed processing' in log_message and log_json.get('metrics'):
+                                metrics = log_json.get('metrics', {})
 
-                                logger.info('Lambda completed successfully', metrics=metrics)
-                                return {
-                                    'targetDate': target_date,
-                                    'daysBefore': days_before_logged,
-                                    'metrics': metrics,
-                                }
-                            logger.warning('Completion message found but no metrics in log entry')
-                    except json.JSONDecodeError:
-                        logger.info(f'Lambda log: {message[:200]}')
-                    except (ValueError, KeyError) as e:
-                        logger.warning(f'Error processing log event: {str(e)}', message=message[:200])
+                                if metrics:
+                                    target_date = log_json.get('targetDate', '')
+                                    days_before_logged = log_json.get('daysBefore', days_before)
+
+                                    logger.info('Lambda completed successfully', metrics=metrics)
+                                    return {
+                                        'targetDate': target_date,
+                                        'daysBefore': days_before_logged,
+                                        'metrics': metrics,
+                                    }
+                                logger.warning('Completion message found but no metrics in log entry')
+                        except json.JSONDecodeError:
+                            logger.info(f'Lambda log: {message[:200]}')
+                        except (ValueError, KeyError) as e:
+                            logger.warning(f'Error processing log event: {str(e)}', message=message[:200])
+
+                    next_token = log_events_response.get('nextToken')
+                    # Must check for empty events (https://github.com/boto/boto3/issues/4258)
+                    # empty events + nextToken can cause infinite loop
+                    if not log_events_response.get('events') or next_token is None:
+                        break
 
             except ClientError as e:
                 if e.response['Error']['Code'] == 'ResourceNotFoundException':
