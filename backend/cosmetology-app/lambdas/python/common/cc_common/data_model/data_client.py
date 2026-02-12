@@ -1811,7 +1811,7 @@ class DataClient:
 
             # Get the privilege record
             privilege_records = provider_user_records.get_privilege_records(
-                filter_condition=lambda p: (p.jurisdiction == jurisdiction and p.licenseType == license_type_name)
+                filter_condition=lambda p: p.jurisdiction == jurisdiction and p.licenseType == license_type_name
             )
 
             if not privilege_records:

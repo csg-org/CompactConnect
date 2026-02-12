@@ -74,43 +74,6 @@ class ApiModel:
         return self.api._v1_search_providers_request_model
 
     @property
-    def _export_privileges_request_schema(self) -> JsonSchema:
-        """
-        Return the export privileges request schema.
-
-        This schema is similar to the search request schema but without pagination parameters.
-        The export endpoint does not support pagination - it returns all results as a CSV file.
-        """
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            additional_properties=False,
-            required=['query'],
-            properties={
-                'query': JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    description='The OpenSearch query body',
-                ),
-            },
-        )
-
-    @property
-    def search_privileges_request_model(self) -> Model:
-        """
-        Return the export privileges request model, which should only be created once per API.
-
-        This model is used for the privilege export endpoint and does not include
-        pagination parameters (size, from, search_after).
-        """
-        if hasattr(self.api, '_v1_search_privileges_request_model'):
-            return self.api._v1_search_privileges_request_model
-        self.api._v1_search_privileges_request_model = self.api.add_model(
-            'V1ExportPrivilegesRequestModel',
-            description='Export privileges request model - query only, no pagination',
-            schema=self._export_privileges_request_schema,
-        )
-        return self.api._v1_search_privileges_request_model
-
-    @property
     def _search_response_total_schema(self) -> JsonSchema:
         """Return the common total hits schema used by search response models"""
         return JsonSchema(
@@ -147,27 +110,6 @@ class ApiModel:
             ),
         )
         return self.api._v1_search_providers_response_model
-
-    @property
-    def search_privileges_response_model(self) -> Model:
-        """Return the export privileges response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_search_privileges_response_model'):
-            return self.api._v1_search_privileges_response_model
-        self.api._v1_search_privileges_response_model = self.api.add_model(
-            'V1ExportPrivilegesResponseModel',
-            description='Export privileges response model with presigned URL to CSV file',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['fileUrl'],
-                properties={
-                    'fileUrl': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='Presigned URL to download the CSV file containing the export results',
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_search_privileges_response_model
 
     @property
     def _providers_response_schema(self):
