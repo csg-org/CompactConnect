@@ -148,7 +148,7 @@ class TstAppABC(ABC):
         self,
         persistent_stack: PersistentStack,
         *,
-        domain_name: str = None,
+        ui_domain_name: str = None,
         allow_local_ui: bool = False,
         local_ui_port: str = None,
     ):
@@ -157,8 +157,8 @@ class TstAppABC(ABC):
             persistent_stack_template = Template.from_stack(persistent_stack)
 
             callbacks = []
-            if domain_name is not None:
-                callbacks.append(f'https://{domain_name}/auth/callback')
+            if ui_domain_name is not None:
+                callbacks.append(f'https://{ui_domain_name}/auth/callback')
             if allow_local_ui:
                 # 3018 is default
                 local_ui_port = '3018' if not local_ui_port else local_ui_port

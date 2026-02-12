@@ -130,6 +130,12 @@ class AppStack(Stack):
 
     @property
     def ui_domain_name(self) -> str | None:
+        # Allow explicit override via environment context for cases where the UI is hosted
+        # on a different domain than the backend's hosted zone (e.g. cosmetology backend uses
+        # cosmetology.compactconnect.org but the UI is at app.compactconnect.org)
+        override = self.environment_context.get('ui_domain_name_override')
+        if override is not None:
+            return override
         if self.hosted_zone is not None:
             return f'app.{self.hosted_zone.zone_name}'
         return None
@@ -137,7 +143,7 @@ class AppStack(Stack):
     @property
     def allowed_origins(self) -> list[str]:
         allowed_origins = []
-        if self.hosted_zone is not None:
+        if self.ui_domain_name is not None:
             allowed_origins.append(f'https://{self.ui_domain_name}')
 
         if self.environment_context.get('allow_local_ui', False):
