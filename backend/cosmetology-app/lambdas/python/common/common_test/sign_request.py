@@ -7,7 +7,6 @@ using ECDSA with SHA-256 as required by the CompactConnect signature authenticat
 The sign_request function in this module is tested and validated against the actual
 authentication system, making it a reliable reference for client implementations.
 
-For complete documentation, see: docs/client_signature_auth.md
 """
 
 import base64
