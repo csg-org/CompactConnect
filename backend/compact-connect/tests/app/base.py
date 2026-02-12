@@ -552,6 +552,15 @@ class TstAppABC(ABC):
                 },
             )
 
+        # When a custom domain is configured, verify the API Gateway domain uses TLS 1.2
+        if api_stack.hosted_zone is not None:
+            api_template.has_resource_properties(
+                'AWS::ApiGateway::DomainName',
+                {
+                    'SecurityPolicy': 'TLS_1_2',
+                },
+            )
+
     def _check_no_stack_annotations(self, stack: Stack):
         with self.subTest(f'Security Rules: {stack.stack_name}'):
             errors = Annotations.from_stack(stack).find_error('*', Match.string_like_regexp('.*'))
