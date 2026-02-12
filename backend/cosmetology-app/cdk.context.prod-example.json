@@ -12,6 +12,7 @@
         "account_id": "000011112222",
         "region": "us-east-1",
         "domain_name": "cosmetology.compactconnect.org",
+        "ui_domain_name_override": "app.compactconnect.org",
         "backup_enabled": true,
         "notifications": {
           "ses_operations_support_email": "justin@example.com",

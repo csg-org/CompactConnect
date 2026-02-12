@@ -12,6 +12,7 @@
         "account_id": "222233334444",
         "region": "us-east-1",
         "domain_name": "beta.cosmetology.compactconnect.org",
+        "ui_domain_name_override": "app.beta.compactconnect.org",
         "backup_enabled": false,
         "notifications": {
           "ses_operations_support_email": "justin@example.com",
