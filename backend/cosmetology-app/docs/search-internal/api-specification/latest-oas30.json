@@ -184,9 +184,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "cosm"
                         ]
                       },
                       "jurisdiction": {
@@ -292,9 +290,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "providerId": {
@@ -454,9 +450,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "jurisdiction": {
@@ -649,9 +643,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
+                    "cosm"
                   ]
                 },
                 "givenName": {
@@ -837,9 +829,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "cosm"
                         ]
                       },
                       "homeAddressStreet2": {
@@ -935,9 +925,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "providerId": {
@@ -1160,9 +1148,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "jurisdiction": {
@@ -1314,9 +1300,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "cosm"
                         ]
                       },
                       "providerId": {

@@ -123,7 +123,7 @@ curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/com
     "licenseStatusName":"Active",
     "licenseStatus":"active",
     "compactEligibility":"eligible",
-    "licenseType":"cosmetology",
+    "licenseType":"cosmetologist",
     "givenName":"Jane",
     "middleName":"Marie",
     "familyName":"Smith",
