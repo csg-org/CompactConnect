@@ -35,6 +35,7 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
+import { CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
@@ -109,14 +110,21 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     get licenseTypeOptions(): Array<SelectOption> {
         const options = [{ value: '', name: `- ${this.$t('common.select')} -`, isDisabled: true }];
         const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const enabledCompacts = [
+            CompactType.ASLP,
+            CompactType.OT,
+            CompactType.COUNSELING,
+        ];
 
-        licenseTypes.forEach((licenseType) => {
-            options.push({
-                value: licenseType.key,
-                name: licenseType.name,
-                isDisabled: false,
+        licenseTypes
+            .filter((licenseType) => enabledCompacts.includes(licenseType.compactKey))
+            .forEach((licenseType) => {
+                options.push({
+                    value: licenseType.key,
+                    name: licenseType.name,
+                    isDisabled: false,
+                });
             });
-        });
 
         return options;
     }

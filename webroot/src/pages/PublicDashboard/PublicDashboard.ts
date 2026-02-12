@@ -14,15 +14,18 @@ import {
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
 } from '@/app.config';
+import Card from '@components/Card/Card.vue';
 import SearchIcon from '@components/Icons/Search/Search.vue';
 import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
 import StaffUserIcon from '@components/Icons/StaffUser/StaffUser.vue';
 import LicenseeUserIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import { CompactType } from '@models/Compact/Compact.model';
 
 @Component({
     name: 'DashboardPublic',
     components: {
+        Card,
         SearchIcon,
         RegisterIcon,
         StaffUserIcon,
@@ -73,6 +76,10 @@ export default class DashboardPublic extends Vue {
 
     get hostedLoginUriLicensee(): string {
         return getHostedLoginUri(AppModes.JCC, AuthTypes.LICENSEE, this.hostedLoginUriPath);
+    }
+
+    get compactTypes(): typeof CompactType {
+        return CompactType;
     }
 
     get isUsingMockApi(): boolean {
@@ -139,6 +146,26 @@ export default class DashboardPublic extends Vue {
                 recoveryId,
             },
         });
+    }
+
+    getCompactDisplay(compactType: CompactType): string {
+        const compacts = this.$tm('compacts') || [];
+        const selectedCompact = compacts.find((compact) => compact?.key === compactType);
+        const shouldAddAbbrev = [
+            CompactType.ASLP,
+            CompactType.OT,
+        ].includes(compactType);
+        let compactDisplay = '';
+
+        if (selectedCompact) {
+            compactDisplay += selectedCompact.name;
+
+            if (shouldAddAbbrev && selectedCompact.abbrev) {
+                compactDisplay += ` (${selectedCompact.abbrev})`;
+            }
+        }
+
+        return compactDisplay.trim();
     }
 
     async mockStaffLogin(appMode: AppModes): Promise<void> {

@@ -1,6 +1,6 @@
 {
     "common": {
-        "appName": "Compact Connect",
+        "appName": "CompactConnect",
         "yes": "Yes",
         "no": "No",
         "back": "Back",
@@ -378,11 +378,16 @@
         "dashboard": "Dashboard",
         "goToDashboard": "Go to dashboard",
         "login": "Login",
-        "loginAsStaff": "Login as Compact or State Staff",
-        "loginAsProvider": "Login as Practitioner",
+        "loginAsStaff": "Compact / State Staff Login",
+        "loginAsStaffSubtext": "Select a compact",
+        "loginAsProvider": "Practitioner login",
+        "loginAsProviderSubtext": "Access your account and privileges",
         "register": "Register",
-        "registerAsProvider": "Register as Practitioner",
+        "registerAsProvider": "Create an account",
+        "registerAsProviderSubtext": "Don't have an account?",
         "verifyPrivilege": "Verify a compact privilege",
+        "verifyPrivilegeSubtext": "Look up practitioner credentials and status",
+        "verifyPrivilegeSearch": "Go to search",
         "home": "Home",
         "upload": "Upload data",
         "licensing": "Search licensing data",
@@ -508,6 +513,7 @@
         }
     ],
     "compact": {
+        "welcomeTo": "Welcome to",
         "settingsTitle": "Settings",
         "configuration": "Configuration",
         "paymentProcessorCredentials": "Authorize.net credentials",
@@ -547,7 +553,6 @@
     },
     "stateUpload": {
         "formTitle": "Compact data upload",
-        "formSubtext": "Current uploads are for test purposes and the data will not be saved permanently",
         "uploadHint": "Only 1 CSV",
         "successTitle": "Your document has been uploaded successfully",
         "successSubTitle": "If your document encounters any errors during processing you will be notified via email"
