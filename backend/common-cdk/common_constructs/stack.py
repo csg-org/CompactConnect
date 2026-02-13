@@ -98,10 +98,10 @@ class AppStack(Stack):
         self.environment_context = environment_context
         self.environment_name = environment_name
 
-        # Guard: prod and beta MUST have a domain_name configured
-        if environment_name in ('prod', 'beta') and not environment_context.get('domain_name'):
+        # Guard: all pipeline environments (test, beta, prod) MUST have a domain_name configured
+        if environment_name in ('test', 'beta', 'prod') and not environment_context.get('domain_name'):
             raise ValueError(
-                f"Production and beta environments require 'domain_name' to be configured. "
+                f"Pipeline environments (test, beta, prod) require 'domain_name' to be configured. "
                 f"Environment '{environment_name}' is missing this required configuration."
             )
 
