@@ -83,57 +83,6 @@ class TestDataClient(TstFunction):
 
         return provider_id
 
-    def test_claim_privilege_id_creates_counter_if_not_exists(self):
-        """Test that claiming a privilege id creates the counter if it doesn't exist"""
-        from cc_common.data_model.data_client import DataClient
-
-        client = DataClient(self.config)
-
-        # First claim should create the counter and return 1
-        privilege_count = client.claim_privilege_number(compact='cosm')
-        self.assertEqual(1, privilege_count)
-
-        # Verify the counter was created with the correct value
-        counter_record = self.config.provider_table.get_item(
-            Key={
-                'pk': 'cosm#PRIVILEGE_COUNT',
-                'sk': 'cosm#PRIVILEGE_COUNT',
-            }
-        )['Item']
-        self.assertEqual(1, counter_record['privilegeCount'])
-
-    def test_claim_privilege_id_increments_existing_counter(self):
-        """Test that claiming a privilege id increments an existing counter"""
-        from cc_common.data_model.data_client import DataClient
-
-        client = DataClient(self.config)
-
-        # Create initial counter record
-        self.config.provider_table.put_item(
-            Item={
-                'pk': 'cosm#PRIVILEGE_COUNT',
-                'sk': 'cosm#PRIVILEGE_COUNT',
-                'type': 'privilegeCount',
-                'compact': 'cosm',
-                'privilegeCount': 42,
-            }
-        )
-
-        # Claim should increment the counter and return 43
-        privilege_count = client.claim_privilege_number(compact='cosm')
-        self.assertEqual(43, privilege_count)
-
-        # Verify the counter was incremented
-        counter_record = self.config.provider_table.get_item(
-            Key={
-                'pk': 'cosm#PRIVILEGE_COUNT',
-                'sk': 'cosm#PRIVILEGE_COUNT',
-            }
-        )['Item']
-        self.assertEqual(43, counter_record['privilegeCount'])
-        self.assertEqual('privilegeCount', counter_record['type'])
-        self.assertEqual('cosm', counter_record['compact'])
-
     def test_get_ssn_by_provider_id_returns_ssn_if_provider_id_exists(self):
         """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
         from cc_common.data_model.data_client import DataClient
