@@ -343,7 +343,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'dateOfExpiration': {'type': 'date'},
                     'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
                     'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
-                    'privilegeJurisdictions': {'type': 'keyword'},
                     'providerFamGivMid': {'type': 'keyword'},
                     'providerDateOfUpdate': {'type': 'date'},
                     'birthMonthDay': {'type': 'keyword'},

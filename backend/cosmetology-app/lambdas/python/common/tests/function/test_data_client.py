@@ -67,7 +67,6 @@ class TestDataClient(TstFunction):
         with open('tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)
         provider_id = UUID(provider_record['providerId'])
-        provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
         self._provider_table.put_item(Item=provider_record)
 
         with open('tests/resources/dynamo/privilege.json') as f:
@@ -83,23 +82,6 @@ class TestDataClient(TstFunction):
         self._ssn_table.put_item(Item=provider_ssn_record)
 
         return provider_id
-
-    def test_data_client_create_privilege_record_invalid_license_type(self):
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.exceptions import CCInvalidRequestException
-
-        test_data_client = DataClient(self.config)
-
-        with self.assertRaises(CCInvalidRequestException):
-            test_data_client.create_provider_privileges(
-                compact='cosm',
-                provider_id='test_provider_id',
-                jurisdiction_postal_abbreviations=['ca'],
-                license_expiration_date=date.fromisoformat('2024-10-31'),
-                provider_record=self.test_data_generator.generate_default_provider(),
-                existing_privileges_for_license=[],
-                license_type='not-supported-license-type',
-            )
 
     def test_claim_privilege_id_creates_counter_if_not_exists(self):
         """Test that claiming a privilege id creates the counter if it doesn't exist"""
@@ -272,8 +254,6 @@ class TestDataClient(TstFunction):
             # Verify we have all privileges from all jurisdictions
             privilege_records = provider_records.get_privilege_records()
             self.assertEqual(30, len(privilege_records))
-            privilege_jurisdictions = {priv.jurisdiction for priv in privilege_records}
-            self.assertEqual(set(jurisdictions), privilege_jurisdictions)
 
             # Verify we have all license records
             license_records = provider_records.get_license_records()

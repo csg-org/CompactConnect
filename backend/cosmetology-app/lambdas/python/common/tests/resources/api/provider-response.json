@@ -1,16 +1,15 @@
 {
   "type": "provider",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "givenName": "Björk",
+  "givenName": "Bj\u00f6rk",
   "middleName": "Gunnar",
-  "familyName": "Guðmundsdóttir",
+  "familyName": "Gu\u00f0mundsd\u00f3ttir",
   "licenseStatus": "active",
   "compactEligibility": "eligible",
   "jurisdictionUploadedLicenseStatus": "active",
   "jurisdictionUploadedCompactEligibility": "eligible",
   "compact": "cosm",
   "licenseJurisdiction": "oh",
-  "privilegeJurisdictions": ["ne"],
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "dateOfExpiration": "2025-04-04",
   "birthMonthDay": "06-06"

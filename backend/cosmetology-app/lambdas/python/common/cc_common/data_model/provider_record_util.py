@@ -136,25 +136,21 @@ class ProviderRecordUtility:
 
     @staticmethod
     def populate_provider_record(
-        current_provider_record: ProviderData | None, license_record: dict, privilege_records: list[dict]
+        current_provider_record: ProviderData | None, license_record: dict
     ) -> ProviderData:
         """
-        Create a provider record from a license record and privilege records.
+        Create a provider record from a license record.
 
         :param current_provider_record: The current provider record to update if it currently exists.
         :param license_record: The license record to use as a basis for the provider record
-        :param privilege_records: List of privilege records
         :return: A provider record ready to be persisted
         """
-        privilege_jurisdictions = {record['jurisdiction'] for record in privilege_records}
         if current_provider_record is None:
             return ProviderData.create_new(
                 {
                     'providerId': license_record['providerId'],
                     'compact': license_record['compact'],
                     'licenseJurisdiction': license_record['jurisdiction'],
-                    # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
-                    **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
                     **license_record,
                 }
             )
@@ -166,8 +162,6 @@ class ProviderRecordUtility:
                 **current_provider_record.to_dict(),
                 # update the license jurisdiction to match the new license
                 'licenseJurisdiction': license_record['jurisdiction'],
-                # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
-                **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
                 # now override the key values on the current provider record with the new license record
                 **license_record,
             }

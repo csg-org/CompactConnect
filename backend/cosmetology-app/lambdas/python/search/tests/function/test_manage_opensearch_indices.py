@@ -230,7 +230,6 @@ class TestOpenSearchIndexManager(TstFunction):
                                 'fields': {'keyword': {'ignore_above': 256, 'type': 'keyword'}},
                                 'type': 'text',
                             },
-                            'privilegeJurisdictions': {'type': 'keyword'},
                             'privileges': {
                                 'properties': {
                                     'administratorSetStatus': {'type': 'keyword'},

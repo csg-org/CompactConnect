@@ -183,7 +183,6 @@ The system queries each month in the time range and collects unique provider IDs
 For each successfully reverted provider, the system publishes events to the EventBridge event bus:
 
 - `license.reverted` events for each reverted license
-- `privilege.reverted` events for each reactivated privilege
 
 These events include:
 - The rollback reason

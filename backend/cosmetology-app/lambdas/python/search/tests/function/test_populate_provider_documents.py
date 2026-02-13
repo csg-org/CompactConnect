@@ -101,7 +101,6 @@ class TestPopulateProviderDocuments(TstFunction):
                     'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
                     'jurisdictionUploadedLicenseStatus': 'active',
                     'jurisdictionUploadedCompactEligibility': 'eligible',
-                    'privilegeJurisdictions': ['ne'],
                     'birthMonthDay': '06-06',
                     'licenses': [
                         {

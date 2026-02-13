@@ -65,7 +65,6 @@ class ProviderRecordSchema(BaseRecordSchema):
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
 
@@ -145,13 +144,6 @@ class ProviderRecordSchema(BaseRecordSchema):
                 quote(in_data.get('middleName', '').lower()),
             ),
         )
-        return in_data
-
-    @pre_dump
-    def remove_empty_privilege_jurisdictions(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        # DynamoDB doesn't accept empty sets, so remove privilegeJurisdictions if empty
-        if 'privilegeJurisdictions' in in_data and not in_data['privilegeJurisdictions']:
-            del in_data['privilegeJurisdictions']
         return in_data
 
     @post_load

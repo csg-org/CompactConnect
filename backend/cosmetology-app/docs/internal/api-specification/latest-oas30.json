@@ -4478,7 +4478,6 @@
                 "jurisdictionUploadedLicenseStatus",
                 "licenseJurisdiction",
                 "licenseStatus",
-                "privilegeJurisdictions",
                 "providerId",
                 "type"
               ],
@@ -4539,24 +4538,6 @@
                     "active",
                     "inactive"
                   ]
-                },
-                "privilegeJurisdictions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "al",
-                      "az",
-                      "co",
-                      "ks",
-                      "ky",
-                      "md",
-                      "oh",
-                      "tn",
-                      "va",
-                      "wa"
-                    ]
-                  }
                 },
                 "type": {
                   "type": "string",
@@ -4987,7 +4968,6 @@
           "familyName",
           "givenName",
           "licenseJurisdiction",
-          "privilegeJurisdictions",
           "providerId",
           "type"
         ],
@@ -5413,24 +5393,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "privilegeJurisdictions": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "al",
-                "az",
-                "co",
-                "ks",
-                "ky",
-                "md",
-                "oh",
-                "tn",
-                "va",
-                "wa"
-              ]
-            }
-          },
           "type": {
             "type": "string",
             "enum": [
@@ -5662,7 +5624,6 @@
                 "familyName",
                 "givenName",
                 "licenseJurisdiction",
-                "privilegeJurisdictions",
                 "providerId",
                 "type"
               ],
@@ -5711,24 +5672,6 @@
                   "maxLength": 100,
                   "minLength": 1,
                   "type": "string"
-                },
-                "privilegeJurisdictions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "al",
-                      "az",
-                      "co",
-                      "ks",
-                      "ky",
-                      "md",
-                      "oh",
-                      "tn",
-                      "va",
-                      "wa"
-                    ]
-                  }
                 },
                 "type": {
                   "type": "string",
@@ -6090,7 +6033,6 @@
           "givenName",
           "licenseJurisdiction",
           "licenses",
-          "privilegeJurisdictions",
           "privileges",
           "providerId",
           "type"
@@ -6704,24 +6646,6 @@
               "active",
               "inactive"
             ]
-          },
-          "privilegeJurisdictions": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "al",
-                "az",
-                "co",
-                "ks",
-                "ky",
-                "md",
-                "oh",
-                "tn",
-                "va",
-                "wa"
-              ]
-            }
           },
           "type": {
             "type": "string",

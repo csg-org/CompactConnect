@@ -14,8 +14,6 @@ class TestProviderRecordSchema(TstLambdas):
 
         with open('tests/resources/dynamo/provider.json') as f:
             expected_provider_record = json.load(f)
-        # Convert this to the expected type coming out of the DB
-        expected_provider_record['privilegeJurisdictions'] = set(expected_provider_record['privilegeJurisdictions'])
 
         schema = ProviderRecordSchema()
         loaded_record = schema.load(expected_provider_record.copy())
