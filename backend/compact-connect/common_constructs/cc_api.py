@@ -17,7 +17,8 @@ from aws_cdk.aws_apigateway import (
     MethodLoggingLevel,
     ResponseType,
     RestApi,
-    StageOptions, SecurityPolicy,
+    SecurityPolicy,
+    StageOptions,
 )
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData

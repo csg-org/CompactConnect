@@ -666,7 +666,6 @@ def _build_and_execute_revert_transactions(
     reverted_licenses_dict = []
 
     for license_record in license_records:
-
         # Get license updates for this license after start_datetime
         license_updates_after_start = provider_records.get_update_records_for_license(
             jurisdiction=license_record.jurisdiction,

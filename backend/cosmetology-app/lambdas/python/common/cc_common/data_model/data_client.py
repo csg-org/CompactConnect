@@ -8,7 +8,7 @@ from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
-from cc_common.config import _Config, config, logger, metrics
+from cc_common.config import _Config, config, logger
 from cc_common.data_model.provider_record_util import (
     ProviderRecordType,
     ProviderUserRecords,
@@ -17,7 +17,6 @@ from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.common import (
-    ActiveInactiveStatus,
     CCDataClass,
     InvestigationAgainstEnum,
     InvestigationStatusEnum,

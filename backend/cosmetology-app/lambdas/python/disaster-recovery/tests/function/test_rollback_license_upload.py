@@ -980,8 +980,6 @@ class TestRollbackLicenseUpload(TstFunction):
         }
         mock_event_bus_client.publish_license_revert_event.assert_called_once_with(**expected_license_kwargs)
 
-
-
     def test_transaction_failure_is_logged_and_provider_marked_as_failed(self):
         """Test that transaction failures are properly logged and the provider is marked as failed."""
         from botocore.exceptions import ClientError

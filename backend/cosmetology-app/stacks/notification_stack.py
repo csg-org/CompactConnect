@@ -3,17 +3,13 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, TreatMissingData
-from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_events import EventBus, EventPattern, IEventBus, Rule
-from aws_cdk.aws_events_targets import SqsQueue
+from aws_cdk.aws_events import EventBus
 from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
 from common_constructs.queue_event_listener import QueueEventListener
-from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import event_state_stack as ess
 from stacks import persistent_stack as ps

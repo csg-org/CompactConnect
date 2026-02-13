@@ -3,7 +3,7 @@ from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
-from cc_common.config import config, logger
+from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
@@ -135,9 +135,7 @@ class ProviderRecordUtility:
         return latest_licenses[0]
 
     @staticmethod
-    def populate_provider_record(
-        current_provider_record: ProviderData | None, license_record: dict
-    ) -> ProviderData:
+    def populate_provider_record(current_provider_record: ProviderData | None, license_record: dict) -> ProviderData:
         """
         Create a provider record from a license record.
 
@@ -630,9 +628,6 @@ class ProviderUserRecords:
         # Build privileges dict with investigations and adverseActions
         for privilege_record in self._privilege_records:
             privilege_dict = privilege_record.to_dict()
-            privilege_updates = self.get_update_records_for_privilege(
-                privilege_record.jurisdiction, privilege_record.licenseType
-            )
 
             privilege_dict['adverseActions'] = [
                 rec.to_dict()

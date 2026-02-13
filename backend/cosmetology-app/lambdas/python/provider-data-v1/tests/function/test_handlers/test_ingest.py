@@ -12,7 +12,7 @@ from .. import TstFunction
 class TestIngest(TstFunction):
     @staticmethod
     def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
-        # The canned response resource assumes that the provider will be given 
+        # The canned response resource assumes that the provider will be given
         # one license renewal. We didn't do any of that here, so we'll reset that data
         expected_provider['privileges'] = []
 

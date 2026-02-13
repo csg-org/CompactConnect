@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from glob import glob
 from random import randint
@@ -257,7 +257,6 @@ class TstFunction(TstLambdas):
         :param names: A list of tuples, each containing a family name and given name
         :param date_of_update: Fixed date to use for provider updates, if None uses random dates
         """
-        from cc_common.data_model.data_client import DataClient
         from handlers.ingest import ingest_license_message, preprocess_license_ingest
 
         with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
@@ -361,4 +360,3 @@ class TstFunction(TstLambdas):
                     {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
                     self.mock_context,
                 )
-

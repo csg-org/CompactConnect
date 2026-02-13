@@ -1,14 +1,9 @@
-from boto3.dynamodb.conditions import Key
-
 from cc_common.config import _Config, logger
 from cc_common.data_model.schema.compact import CompactConfigurationData
-from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
-from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCInternalException, CCNotFoundException
-from cc_common.utils import logger_inject_kwargs
 
 
 class CompactConfigurationClient:
