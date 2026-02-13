@@ -128,7 +128,6 @@ class ApiModel:
                 'jurisdictionUploadedCompactEligibility',
                 'compact',
                 'licenseJurisdiction',
-                'privilegeJurisdictions',
                 'dateOfUpdate',
                 'dateOfExpiration',
                 'birthMonthDay',
@@ -182,13 +181,6 @@ class ApiModel:
                 'currentHomeJurisdiction': JsonSchema(
                     type=JsonSchemaType.STRING,
                     enum=stack.node.get_context('jurisdictions'),
-                ),
-                'privilegeJurisdictions': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        enum=stack.node.get_context('jurisdictions'),
-                    ),
                 ),
                 'dateOfUpdate': JsonSchema(
                     type=JsonSchemaType.STRING,

@@ -16,9 +16,6 @@ class TestSanitizeProviderData(TstLambdas):
 
         resp = sanitize_provider_data_based_on_caller_scopes(compact='cosm', provider=test_provider, scopes=scopes)
 
-        # cast to set to match schema
-        expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
-
         self.assertEqual(expected_provider, resp)
 
     def test_full_provider_record_returned_if_caller_has_compact_read_private_permissions(self):
@@ -63,8 +60,6 @@ class TestSanitizeProviderData(TstLambdas):
         # also remove the ssn from the license record
         del expected_provider['licenses'][0]['ssnLastFour']
         del expected_provider['licenses'][0]['dateOfBirth']
-        # cast to set to match schema
-        expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
         self.assertEqual(expected_provider, resp)
 

@@ -402,7 +402,6 @@ class TestDataGenerator:
             'compact': DEFAULT_COMPACT,
             'type': PROVIDER_RECORD_TYPE,
             'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'privilegeJurisdictions': {DEFAULT_PRIVILEGE_JURISDICTION},
             'jurisdictionUploadedLicenseStatus': DEFAULT_LICENSE_STATUS,
             'jurisdictionUploadedCompactEligibility': DEFAULT_COMPACT_ELIGIBILITY,
             'ssnLastFour': DEFAULT_SSN_LAST_FOUR,

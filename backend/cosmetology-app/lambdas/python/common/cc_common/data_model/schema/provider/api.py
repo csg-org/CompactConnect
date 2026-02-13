@@ -103,7 +103,6 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Raw(required=False, allow_none=False)
     birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
@@ -151,7 +150,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Raw(required=False, allow_none=False)
     birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
@@ -189,7 +187,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
 
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))

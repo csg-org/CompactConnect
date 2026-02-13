@@ -444,7 +444,6 @@ class ApiModel:
                 'jurisdictionUploadedCompactEligibility',
                 'compact',
                 'licenseJurisdiction',
-                'privilegeJurisdictions',
                 'dateOfUpdate',
                 'dateOfExpiration',
                 'birthMonthDay',
@@ -463,7 +462,6 @@ class ApiModel:
                 'familyName',
                 'compact',
                 'licenseJurisdiction',
-                'privilegeJurisdictions',
                 'dateOfUpdate',
                 'dateOfExpiration',
                 'birthMonthDay',
@@ -956,10 +954,6 @@ class ApiModel:
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'licenseJurisdiction': JsonSchema(
                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
-            ),
-            'privilegeJurisdictions': JsonSchema(
-                type=JsonSchemaType.ARRAY,
-                items=JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
             ),
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
@@ -1474,7 +1468,6 @@ class ApiModel:
                 'licenseJurisdiction',
                 'givenName',
                 'familyName',
-                'privilegeJurisdictions',
             ],
             properties={
                 'privileges': JsonSchema(
@@ -1746,7 +1739,6 @@ class ApiModel:
                 'familyName',
                 'compact',
                 'licenseJurisdiction',
-                'privilegeJurisdictions',
             ],
             properties=self._common_public_provider_properties,
         )
@@ -1764,10 +1756,6 @@ class ApiModel:
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
             'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-            'privilegeJurisdictions': JsonSchema(
-                type=JsonSchemaType.ARRAY,
-                items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-            ),
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
         }
 

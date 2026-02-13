@@ -54,24 +54,6 @@
             ],
             "type": "string"
           },
-          "privilegeJurisdictions": {
-            "items": {
-              "enum": [
-                "al",
-                "az",
-                "co",
-                "ks",
-                "ky",
-                "md",
-                "oh",
-                "tn",
-                "va",
-                "wa"
-              ],
-              "type": "string"
-            },
-            "type": "array"
-          },
           "dateOfUpdate": {
             "format": "date-time",
             "type": "string"
@@ -83,8 +65,7 @@
           "givenName",
           "familyName",
           "compact",
-          "licenseJurisdiction",
-          "privilegeJurisdictions"
+          "licenseJurisdiction"
         ],
         "type": "object"
       },

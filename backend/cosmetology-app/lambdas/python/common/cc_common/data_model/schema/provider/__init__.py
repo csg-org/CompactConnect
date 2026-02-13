@@ -74,10 +74,6 @@ class ProviderData(CCDataClass):
         return self._data.get('birthMonthDay')
 
     @property
-    def privilegeJurisdictions(self) -> set[str]:
-        return self._data.get('privilegeJurisdictions', set())
-
-    @property
     def encumberedStatus(self) -> str | None:
         return self._data.get('encumberedStatus')
 

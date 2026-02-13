@@ -11,7 +11,6 @@ from cc_common.data_model.provider_record_util import ProviderRecordUtility, Pro
 from cc_common.data_model.schema.common import LICENSE_UPLOAD_UPDATE_CATEGORIES
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.record import LicenseRecordSchema
-from cc_common.data_model.schema.privilege import PrivilegeData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.event_batch_writer import EventBatchWriter
@@ -805,12 +804,10 @@ def _build_and_execute_revert_transactions(
     primary_record_transaction_items.clear()
 
     try:
-        privilege_records: list[PrivilegeData] = provider_records_after_rollback.get_privilege_records()
         best_license = provider_records_after_rollback.find_best_license_in_current_known_licenses()
         updated_provider_record = ProviderRecordUtility.populate_provider_record(
             current_provider_record=top_level_provider_record,
             license_record=best_license.to_dict(),
-            privilege_records=[privilege.to_dict() for privilege in privilege_records],
         )
         add_put(updated_provider_record.serialize_to_database_record(), update_record=False)
     except CCNotFoundException:

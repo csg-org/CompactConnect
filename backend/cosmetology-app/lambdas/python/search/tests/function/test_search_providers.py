@@ -284,7 +284,6 @@ class TestSearchProviders(TstFunction):
                         'jurisdictionUploadedLicenseStatus': 'active',
                         'licenseJurisdiction': 'oh',
                         'licenseStatus': 'active',
-                        'privilegeJurisdictions': [],
                         'providerId': '00000000-0000-0000-0000-000000000001',
                         'type': 'provider',
                     }
