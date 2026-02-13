@@ -295,98 +295,6 @@ class TestRollbackLicenseUpload(TstFunction):
 
         return existing_update, original_license, first_update, second_update, final_license
 
-    def _when_provider_had_privilege_deactivated_from_upload(self, upload_datetime: datetime = None):
-        """
-        Set up a scenario where a provider's privilege was deactivated due to license deactivation during upload.
-        Returns the privilege and its update record.
-        """
-        from cc_common.data_model.schema.common import LicenseDeactivatedStatusEnum
-
-        if upload_datetime is None:
-            upload_datetime = self.default_upload_datetime
-
-        # provider has privilege in Nebraska that was deactivated by upload
-        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
-            {
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                'jurisdiction': 'ne',
-                'licenseJurisdiction': self.license_jurisdiction,
-                'dateOfUpdate': self.default_start_datetime - timedelta(days=30),
-                'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
-                'dateOfExpiration': datetime.fromisoformat(MOCK_DATETIME_STRING),
-            }
-        )
-
-        # Create deactivation update record
-        privilege_update = self.test_data_generator.put_default_privilege_update_record_in_provider_table(
-            {
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                'jurisdiction': 'ne',
-                'licenseType': privilege.licenseType,
-                'updateType': self.update_categories.LICENSE_DEACTIVATION,
-                'createDate': upload_datetime,
-                'effectiveDate': upload_datetime,
-                'previous': {**privilege.to_dict()},
-                'updatedValues': {
-                    'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
-                },
-            }
-        )
-
-        return privilege, privilege_update
-
-    def _when_provider_had_privilege_issued_during_upload(self):
-        """
-        Set up a scenario where a provider had a non-upload-related privilege update AFTER the upload window.
-        This makes them ineligible for automatic rollback.
-        Returns the privilege and its update record.
-        """
-
-        return self.test_data_generator.put_default_privilege_record_in_provider_table(
-            {
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                'jurisdiction': 'ne',
-                'licenseJurisdiction': self.license_jurisdiction,
-                'dateOfIssuance': self.default_upload_datetime,
-            }
-        )
-
-    def _when_provider_had_privilege_update_after_upload(self, after_upload_datetime: datetime = None):
-        """
-        Set up a scenario where a provider had a non-upload-related privilege update AFTER the upload window.
-        This makes them ineligible for automatic rollback.
-        Returns the privilege and its update record.
-        """
-        if after_upload_datetime is None:
-            after_upload_datetime = self.default_end_datetime + timedelta(hours=1)
-
-        privilege = self.test_data_generator.put_default_privilege_record_in_provider_table(
-            {
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                'jurisdiction': 'ne',
-                'licenseJurisdiction': self.license_jurisdiction,
-            }
-        )
-
-        # Create a non-upload-related update (e.g., renewal) after the window
-        privilege_update = self.test_data_generator.put_default_privilege_update_record_in_provider_table(
-            {
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                'jurisdiction': 'ne',
-                'licenseType': privilege.licenseType,
-                'updateType': self.update_categories.RENEWAL,  # Not LICENSE_DEACTIVATION
-                'createDate': after_upload_datetime,
-                'effectiveDate': after_upload_datetime,
-            }
-        )
-
-        return privilege, privilege_update
-
     def _when_provider_had_license_update_after_upload(self, after_upload_datetime: datetime = None):
         """
         Set up a scenario where a provider had a non-upload-related license update AFTER the upload window.
@@ -567,48 +475,6 @@ class TestRollbackLicenseUpload(TstFunction):
             existing_update.serialize_to_database_record(), license_updates[0].serialize_to_database_record()
         )
 
-    def test_provider_privilege_record_reactivated_when_upload_reverted(self):
-        """Test that privilege is reactivated when license deactivation is reverted."""
-        from handlers.rollback_license_upload import rollback_license_upload
-
-        # Setup: Privilege was deactivated during upload due to license deactivation
-        # license was uploaded before rollback window
-        self._when_provider_had_license_updated_from_upload(
-            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
-        )
-        self._when_provider_had_privilege_deactivated_from_upload()
-
-        # Execute: Perform rollback
-        event = self._generate_test_event()
-
-        result = rollback_license_upload(event, Mock())
-
-        # Assert: Rollback completed successfully
-        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
-        self.assertEqual(result['providersReverted'], 1)
-
-        # Verify: Privilege has been reactivated (status should be 'active')
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=self.compact,
-            provider_id=self.provider_id,
-            include_update_tier=UpdateTierEnum.TIER_THREE,
-        )
-        privileges = provider_records.get_privilege_records()
-        self.assertEqual(len(privileges), 1)
-        privilege_record = privileges[0]
-        self.assertEqual(privilege_record.status, 'active', 'Privilege should be reactivated')
-        self.assertIsNone(privilege_record.licenseDeactivatedStatus)
-
-        # Verify: Privilege update record has been deleted
-        privilege_updates = provider_records.get_all_privilege_update_records()
-        self.assertEqual(len(privilege_updates), 0, 'Privilege update records should be deleted')
-
-        # make sure license record was reactivated as well
-        license_record = provider_records.get_specific_license_record(
-            jurisdiction=self.license_jurisdiction, license_abbreviation=privilege_record.licenseTypeAbbreviation
-        )
-        self.assertEqual('active', license_record.licenseStatus)
-
     def test_provider_license_updates_and_license_record_within_time_period_removed_when_upload_reverted(self):
         """Test that license update records and license record within the time window are deleted."""
         from handlers.rollback_license_upload import rollback_license_upload
@@ -674,35 +540,6 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual(len(licenses), 1, 'License should still exist')
         license_updates = provider_records.get_all_license_update_records()
         self.assertEqual(2, len(license_updates), 'License updates should still exist')
-
-    def test_provider_skipped_if_privilege_updates_detected_after_time_period_when_upload_reverted(self):
-        """Test that provider is skipped if non-upload-related privilege updates exist after time window."""
-        from handlers.rollback_license_upload import rollback_license_upload
-
-        # Setup: Provider had privilege update after upload window
-        self._when_provider_had_license_updated_from_upload()
-        self._when_provider_had_privilege_update_after_upload()
-
-        # Execute: Perform rollback
-        event = self._generate_test_event()
-
-        result = rollback_license_upload(event, Mock())
-
-        # Assert: Rollback completed but provider was skipped
-        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
-        self.assertEqual(1, result['providersSkipped'])
-        self.assertEqual(0, result['providersReverted'])
-
-        # Verify: Privilege record and update still exist (not rolled back)
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=self.compact,
-            provider_id=self.provider_id,
-            include_update_tier=UpdateTierEnum.TIER_THREE,
-        )
-        privileges = provider_records.get_privilege_records()
-        self.assertEqual(1, len(privileges), 'Privilege should still exist')
-        privilege_updates = provider_records.get_all_privilege_update_records()
-        self.assertEqual(1, len(privilege_updates), 'Privilege update should still exist')
 
     # Validation tests
     def test_rollback_validates_datetime_format(self):
@@ -779,7 +616,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'licenseType': original_license.licenseType,
                             }
                         ],
-                        'privilegesReverted': [],
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the sha here will need to be updated
                         'updatesDeleted': [
@@ -812,53 +648,8 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'licenseType': new_license.licenseType,
                             }
                         ],
-                        'privilegesReverted': [],
                         'providerId': self.provider_id,
                         'updatesDeleted': [],
-                    }
-                ],
-                'skippedProviderDetails': [],
-            },
-            results_data,
-        )
-
-    def test_expected_s3_object_stored_when_provider_privilege_record_reactivated_from_rollback(self):
-        # Setup: Privilege was deactivated during upload due to license deactivation
-        # license was uploaded before rollback window
-        self._when_provider_had_license_updated_from_upload(
-            license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
-        )
-        privilege, privilege_update = self._when_provider_had_privilege_deactivated_from_upload()
-
-        results_data = self._perform_rollback_and_get_s3_object()
-
-        # Verify the structure of the results
-        self.assertEqual(
-            {
-                'executionName': MOCK_EXECUTION_NAME,
-                'failedProviderDetails': [],
-                'revertedProviderSummaries': [
-                    {
-                        'licensesReverted': [
-                            {
-                                'action': 'REVERT',
-                                'jurisdiction': self.license_jurisdiction,
-                                'licenseType': privilege.licenseType,
-                            }
-                        ],
-                        'privilegesReverted': [
-                            {
-                                'action': 'REACTIVATED',
-                                'jurisdiction': privilege.jurisdiction,
-                                'licenseType': privilege.licenseType,
-                            }
-                        ],
-                        'providerId': self.provider_id,
-                        # NOTE: if the test update data is modified, the shas here will need to be updated
-                        'updatesDeleted': [
-                            'cosm#UPDATE#1#privilege/ne/cos/2025-10-23T07:15:00+00:00/9cdcf1f7841f3fe3461a0a0bff7e545d',
-                            'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ecd7b0d5fbe7c32dff89c9864ebb8daf',
-                        ],
                     }
                 ],
                 'skippedProviderDetails': [],
@@ -895,83 +686,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'reason': expected_reason_message,
                                 'recordType': 'licenseUpdate',
                                 'typeOfUpdate': encumbrance_update.updateType,
-                            }
-                        ],
-                        'providerId': MOCK_PROVIDER_ID,
-                        'reason': 'Provider has updates that are either '
-                        'unrelated to license upload or '
-                        'occurred after rollback end time. '
-                        'Manual review required.',
-                    }
-                ],
-            },
-            results_data,
-        )
-
-    def test_expected_s3_object_stored_when_provider_skipped_due_to_privilege_issuance(self):
-        # Setup: Provider had privilege update after upload window
-        self._when_provider_had_license_updated_from_upload()
-        privilege = self._when_provider_had_privilege_issued_during_upload()
-
-        results_data = self._perform_rollback_and_get_s3_object()
-
-        # Verify the structure of the results
-        expected_reason_message = (
-            f"Privilege in jurisdiction '{privilege.jurisdiction}' issued after license upload. Manual review required."
-        )
-        self.assertEqual(
-            {
-                'executionName': MOCK_EXECUTION_NAME,
-                'failedProviderDetails': [],
-                'revertedProviderSummaries': [],
-                'skippedProviderDetails': [
-                    {
-                        'ineligibleUpdates': [
-                            {
-                                'updateTime': privilege.dateOfIssuance.isoformat(),
-                                'licenseType': privilege.licenseType,
-                                'reason': expected_reason_message,
-                                'recordType': 'privilegeUpdate',
-                                'typeOfUpdate': 'Issuance',
-                            }
-                        ],
-                        'providerId': MOCK_PROVIDER_ID,
-                        'reason': 'Provider has updates that are either '
-                        'unrelated to license upload or '
-                        'occurred after rollback end time. '
-                        'Manual review required.',
-                    }
-                ],
-            },
-            results_data,
-        )
-
-    def test_expected_s3_object_stored_when_provider_skipped_due_to_extra_privilege_updates(self):
-        # Setup: Provider had privilege update after upload window
-        self._when_provider_had_license_updated_from_upload()
-        privilege, privilege_update = self._when_provider_had_privilege_update_after_upload()
-
-        results_data = self._perform_rollback_and_get_s3_object()
-
-        # Verify the structure of the results
-        expected_reason_message = (
-            "Privilege in jurisdiction 'ne' was updated with a change unrelated to license upload. "
-            'Manual review required.'
-        )
-        self.assertEqual(
-            {
-                'executionName': MOCK_EXECUTION_NAME,
-                'failedProviderDetails': [],
-                'revertedProviderSummaries': [],
-                'skippedProviderDetails': [
-                    {
-                        'ineligibleUpdates': [
-                            {
-                                'updateTime': privilege_update.createDate.isoformat(),
-                                'licenseType': privilege.licenseType,
-                                'reason': expected_reason_message,
-                                'recordType': 'privilegeUpdate',
-                                'typeOfUpdate': privilege_update.updateType,
                             }
                         ],
                         'providerId': MOCK_PROVIDER_ID,
@@ -1022,12 +736,10 @@ class TestRollbackLicenseUpload(TstFunction):
         existing_reverted_provider_id = str(uuid4())
         existing_failed_provider_id = str(uuid4())
 
-        # Setup: Create existing provider with license that will be reverted
-        # This provider will have a privilege that gets reactivated
+        # Setup: Create provider with license that will be reverted
         self._when_provider_had_license_updated_from_upload(
             license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
         )
-        self._when_provider_had_privilege_deactivated_from_upload()
 
         # Create initial S3 results with data in all fields
         s3_key = f'licenseUploadRollbacks/{MOCK_EXECUTION_NAME}/results.json'
@@ -1066,7 +778,6 @@ class TestRollbackLicenseUpload(TstFunction):
                             'action': 'REVERT',
                         }
                     ],
-                    'privilegesReverted': [],
                     'updatesDeleted': ['existing-update-sha-1'],
                 }
             ],
@@ -1117,7 +828,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                             }
                         ],
-                        'privilegesReverted': [],
                         'updatesDeleted': ['existing-update-sha-1'],
                     },
                     {
@@ -1126,13 +836,6 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'action': 'REVERT',
                                 'jurisdiction': self.license_jurisdiction,
-                                'licenseType': ANY,
-                            }
-                        ],
-                        'privilegesReverted': [
-                            {
-                                'action': 'REACTIVATED',
-                                'jurisdiction': 'ne',
                                 'licenseType': ANY,
                             }
                         ],
@@ -1219,7 +922,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'licenseType': 'cosmetologist',
                             }
                         ],
-                        'privilegesReverted': [],
                         'providerId': mock_first_provider_id,
                         'updatesDeleted': [
                             'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ecd7b0d5fbe7c32dff89c9864ebb8daf'
@@ -1233,7 +935,6 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'licenseType': 'cosmetologist',
                             }
                         ],
-                        'privilegesReverted': [],
                         'providerId': mock_second_provider_id,
                         'updatesDeleted': [
                             'cosm#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ecd7b0d5fbe7c32dff89c9864ebb8daf'
@@ -1246,16 +947,15 @@ class TestRollbackLicenseUpload(TstFunction):
         )
 
     @patch('handlers.rollback_license_upload.config.event_bus_client')
-    def test_event_bus_client_called_with_expected_arguments_for_revert_events(self, mock_event_bus_client):
-        """Test that event bus client methods are called with expected arguments when publishing revert events."""
+    def test_event_bus_client_called_with_expected_arguments_for_license_revert_events(self, mock_event_bus_client):
+        """Test that only license revert event is published (privilege reactivation not supported)."""
         from handlers.rollback_license_upload import rollback_license_upload
 
-        # Setup: License was updated during upload and privilege was deactivated
-        # This scenario will trigger both license and privilege revert events
+        # Setup: License was updated during upload
+        # This scenario will trigger license revert event
         original_license, license_update, updated_license = self._when_provider_had_license_updated_from_upload(
             license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
         )
-        privilege, privilege_update = self._when_provider_had_privilege_deactivated_from_upload()
 
         # Execute: Perform rollback
         event = self._generate_test_event()
@@ -1280,34 +980,16 @@ class TestRollbackLicenseUpload(TstFunction):
         }
         mock_event_bus_client.publish_license_revert_event.assert_called_once_with(**expected_license_kwargs)
 
-        # Verify: publish_privilege_revert_event was called with expected arguments
-        expected_privilege_kwargs = {
-            'source': 'org.compactconnect.disaster-recovery',
-            'compact': self.compact,
-            'provider_id': self.provider_id,
-            'jurisdiction': privilege.jurisdiction,
-            'license_type': privilege.licenseType,
-            'rollback_reason': 'Test rollback',
-            'start_time': self.default_start_datetime,
-            'end_time': self.default_end_datetime,
-            'execution_name': MOCK_EXECUTION_NAME,
-            'event_batch_writer': ANY,
-        }
-        mock_event_bus_client.publish_privilege_revert_event.assert_called_once_with(**expected_privilege_kwargs)
+
 
     def test_transaction_failure_is_logged_and_provider_marked_as_failed(self):
         """Test that transaction failures are properly logged and the provider is marked as failed."""
         from botocore.exceptions import ClientError
 
-        # Setup: Create a scenario with privilege deactivation which will have PUT, DELETE, and UPDATE operations
-        # - License update (DELETE of update record)
-        # - Privilege update (DELETE of update record)
-        # - Privilege reactivation (UPDATE to remove licenseDeactivatedStatus)
-        # - Provider record update (PUT)
+        # Setup: License updated during upload (revert will perform DELETE of update record and PUT of reverted license)
         self._when_provider_had_license_updated_from_upload(
             license_upload_datetime=self.default_start_datetime - timedelta(hours=1)
         )
-        self._when_provider_had_privilege_deactivated_from_upload()
 
         # Mock the transaction to fail with a ClientError
         mock_error = ClientError(

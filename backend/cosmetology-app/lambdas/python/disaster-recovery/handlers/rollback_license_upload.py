@@ -8,7 +8,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords
-from cc_common.data_model.schema.common import LICENSE_UPLOAD_UPDATE_CATEGORIES, UpdateCategory
+from cc_common.data_model.schema.common import LICENSE_UPLOAD_UPDATE_CATEGORIES
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.record import LicenseRecordSchema
 from cc_common.data_model.schema.privilege import PrivilegeData
@@ -22,9 +22,6 @@ from marshmallow import ValidationError
 # this is set as a safety net to prevent accidental rollback over large time period
 # it can be modified if needed
 MAX_ROLLBACK_WINDOW_SECONDS = 7 * 24 * 60 * 60
-
-# Privilege update category for license deactivations
-PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY = UpdateCategory.LICENSE_DEACTIVATION
 
 
 class ProviderRollbackFailedException(Exception):
@@ -74,21 +71,11 @@ class RevertedLicense:
 
 
 @dataclass
-class RevertedPrivilege:
-    """Details of a reverted privilege for event publishing."""
-
-    jurisdiction: str
-    license_type: str
-    action: str
-
-
-@dataclass
 class ProviderRevertedSummary:
     """Summary for a provider that was successfully reverted."""
 
     provider_id: str
     licenses_reverted: list[RevertedLicense] = field(default_factory=list)
-    privileges_reverted: list[RevertedPrivilege] = field(default_factory=list)
     updates_deleted: list[str] = field(default_factory=list)  # List of SKs for deleted update records
 
 
@@ -140,14 +127,6 @@ class RollbackResults:
                         }
                         for license_record in summary.licenses_reverted
                     ],
-                    'privilegesReverted': [
-                        {
-                            'jurisdiction': privilege.jurisdiction,
-                            'licenseType': privilege.license_type,
-                            'action': privilege.action,
-                        }
-                        for privilege in summary.privileges_reverted
-                    ],
                     'updatesDeleted': summary.updates_deleted,
                 }
                 for summary in self.reverted_provider_summaries
@@ -193,14 +172,6 @@ class RollbackResults:
                             action=reverted_license['action'],
                         )
                         for reverted_license in summary.get('licensesReverted', [])
-                    ],
-                    privileges_reverted=[
-                        RevertedPrivilege(
-                            jurisdiction=reverted_privilege['jurisdiction'],
-                            license_type=reverted_privilege['licenseType'],
-                            action=reverted_privilege['action'],
-                        )
-                        for reverted_privilege in summary.get('privilegesReverted', [])
                     ],
                     updates_deleted=summary.get('updatesDeleted', []),
                 )
@@ -628,11 +599,10 @@ def _build_and_execute_revert_transactions(
     """
     # Split transaction lists into first tier/second tier lists (license/privilege/provider first tier, updates second)
     # then merge the two lists into a single list of transaction items
-    primary_record_transaction_items = []  # License, privilege, and provider records
-    update_record_transactions_items = []  # Update records (license updates, privilege updates)
+    primary_record_transaction_items = []  # License and provider records
+    update_record_transactions_items = []  # Update records (license updates)
     table_name = config.provider_table_name
     reverted_licenses = []
-    reverted_privileges = []
     updates_deleted_sks = []  # List of SKs for deleted update records
     ineligible_updates: list[IneligibleUpdate] = []
 
@@ -697,98 +667,6 @@ def _build_and_execute_revert_transactions(
     reverted_licenses_dict = []
 
     for license_record in license_records:
-        privileges_associated_with_license = provider_records.get_privileges_associated_with_license(
-            license_jurisdiction=license_record.jurisdiction,
-            license_type_abbreviation=license_record.licenseTypeAbbreviation,
-        )
-
-        # Check if any privileges were issued for this license since the upload start date
-        for privilege in privileges_associated_with_license:
-            if privilege.dateOfIssuance >= upload_window_start_datetime:
-                ineligible_updates.append(
-                    IneligibleUpdate(
-                        record_type='privilegeUpdate',
-                        type_of_update='Issuance',
-                        update_time=privilege.dateOfIssuance.isoformat(),
-                        license_type=license_record.licenseType,
-                        reason=f"Privilege in jurisdiction '{privilege.jurisdiction}' issued after license upload. "
-                        'Manual review required.',
-                    )
-                )
-            # Check updates associated with this privilege that are after the start_datetime
-            privilege_updates_after_start_time = provider_records.get_update_records_for_privilege(
-                jurisdiction=privilege.jurisdiction,
-                license_type=privilege.licenseType,
-                filter_condition=lambda x: x.createDate >= upload_window_start_datetime,
-            )
-
-            # Check privilege updates for eligibility
-            for privilege_update in privilege_updates_after_start_time:
-                if privilege_update.updateType != PRIVILEGE_LICENSE_DEACTIVATION_CATEGORY:
-                    # Non-license-deactivation privilege update makes provider ineligible for rollback
-                    ineligible_updates.append(
-                        IneligibleUpdate(
-                            record_type='privilegeUpdate',
-                            type_of_update=privilege_update.updateType,
-                            update_time=privilege_update.createDate.isoformat(),
-                            license_type=privilege_update.licenseType,
-                            # include privilege jurisdiction in reason
-                            reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was updated "
-                            f'with a change unrelated to license upload. Manual review required.',
-                        )
-                    )
-                elif privilege_update.createDate > upload_window_end_datetime:
-                    # privilege update after upload window makes provider ineligible
-                    ineligible_updates.append(
-                        IneligibleUpdate(
-                            record_type='privilegeUpdate',
-                            type_of_update=privilege_update.updateType,
-                            update_time=privilege_update.createDate.isoformat(),
-                            license_type=privilege_update.licenseType,
-                            # include privilege jurisdiction in reason
-                            reason=f"Privilege in jurisdiction '{privilege_update.jurisdiction}' was deactivated "
-                            'after rollback end time. Manual review required.',
-                        )
-                    )
-                else:
-                    # License deactivation within window cause privilege deactivation - revert the deactivation
-                    serialized_privilege_update = privilege_update.serialize_to_database_record()
-                    add_delete(serialized_privilege_update['pk'], serialized_privilege_update['sk'], update_record=True)
-                    updates_deleted_sks.append(serialized_privilege_update['sk'])
-                    logger.info('Will delete privilege deactivation update record if provider is eligible for rollback')
-
-                    # Reactivate the privilege
-                    privilege_record = provider_records.get_specific_privilege_record(
-                        jurisdiction=privilege_update.jurisdiction,
-                        license_abbreviation=license_record.licenseTypeAbbreviation,
-                    )
-                    if privilege_record:
-                        logger.info(
-                            'privilege record found associated with deactivation, reactivating privilege',
-                            provider_id=provider_id,
-                            privilege_jurisdiction=privilege_record.jurisdiction,
-                            license_type=privilege_record.licenseType,
-                        )
-                        # Remove the licenseDeactivatedStatus field to reactivate using UPDATE operation
-                        serialized_privilege = privilege_record.serialize_to_database_record()
-                        primary_record_transaction_items.append(
-                            {
-                                'Update': {
-                                    'TableName': table_name,
-                                    'Key': {'pk': serialized_privilege['pk'], 'sk': serialized_privilege['sk']},
-                                    'UpdateExpression': 'REMOVE licenseDeactivatedStatus',
-                                }
-                            }
-                        )
-                        logger.info('Will reactivate privilege record if provider is eligible for rollback')
-
-                        reverted_privileges.append(
-                            RevertedPrivilege(
-                                jurisdiction=privilege_record.jurisdiction,
-                                license_type=privilege_record.licenseType,
-                                action='REACTIVATED',
-                            )
-                        )
 
         # Get license updates for this license after start_datetime
         license_updates_after_start = provider_records.get_update_records_for_license(
@@ -959,13 +837,11 @@ def _build_and_execute_revert_transactions(
         'Completed rollback for provider',
         provider_id=provider_id,
         licenses_reverted=reverted_licenses,
-        privileges_reverted=reverted_privileges,
         updates_deleted=updates_deleted_sks,
     )
     return ProviderRevertedSummary(
         provider_id=provider_id,
         licenses_reverted=reverted_licenses,
-        privileges_reverted=reverted_privileges,
         updates_deleted=updates_deleted_sks,
     )
 
@@ -979,7 +855,7 @@ def _publish_revert_events(
     execution_name: str,
 ):
     """
-    Publish revert events for all reverted licenses and privileges.
+    Publish revert events for all reverted licenses.
 
     :param revert_summary: Summary of reverted provider records
     :param compact: The compact name
@@ -1012,35 +888,6 @@ def _publish_revert_events(
                     provider_id=revert_summary.provider_id,
                     jurisdiction=reverted_license.jurisdiction,
                     license_type=reverted_license.license_type,
-                    rollback_reason=rollback_reason,
-                    start_time=start_datetime,
-                    end_time=end_datetime,
-                    error=str(e),
-                )
-
-        # Publish privilege revert events
-        for reverted_privilege in revert_summary.privileges_reverted:
-            try:
-                config.event_bus_client.publish_privilege_revert_event(
-                    source='org.compactconnect.disaster-recovery',
-                    compact=compact,
-                    provider_id=revert_summary.provider_id,
-                    jurisdiction=reverted_privilege.jurisdiction,
-                    license_type=reverted_privilege.license_type,
-                    rollback_reason=rollback_reason,
-                    start_time=start_datetime,
-                    end_time=end_datetime,
-                    execution_name=execution_name,
-                    event_batch_writer=event_writer,
-                )
-            except Exception as e:  # noqa BLE001
-                # this event publishing is not business critical, so we log the error and move on
-                logger.error(
-                    'Unable to publish privilege revert event',
-                    compact=compact,
-                    provider_id=revert_summary.provider_id,
-                    jurisdiction=reverted_privilege.jurisdiction,
-                    license_type=reverted_privilege.license_type,
                     rollback_reason=rollback_reason,
                     start_time=start_datetime,
                     end_time=end_datetime,
