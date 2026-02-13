@@ -7,7 +7,7 @@ import { Context } from 'aws-lambda';
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
-import { EmailNotificationService, EncumbranceNotificationService, InvestigationNotificationService } from '../lib/email';
+import { EncumbranceNotificationService, InvestigationNotificationService } from '../lib/email';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
@@ -19,7 +19,6 @@ interface LambdaProperties {
 }
 
 export class Lambda implements LambdaInterface {
-    private readonly emailService: EmailNotificationService;
     private readonly encumbranceService: EncumbranceNotificationService;
     private readonly investigationService: InvestigationNotificationService;
 
@@ -32,13 +31,6 @@ export class Lambda implements LambdaInterface {
         const jurisdictionClient = new JurisdictionClient({
             logger: logger,
             dynamoDBClient: props.dynamoDBClient,
-        });
-
-        this.emailService = new EmailNotificationService({
-            logger: logger,
-            sesClient: props.sesClient,
-            compactConfigurationClient: compactConfigurationClient,
-            jurisdictionClient: jurisdictionClient
         });
 
         this.encumbranceService = new EncumbranceNotificationService({
@@ -79,32 +71,6 @@ export class Lambda implements LambdaInterface {
         }
 
         switch (event.template) {
-        case 'transactionBatchSettlementFailure':
-            await this.emailService.sendTransactionBatchSettlementFailureEmail(
-                event.compact,
-                event.recipientType,
-                event.specificEmails,
-                event.templateVariables.batchFailureErrorMessage
-            );
-            break;
-        case 'privilegeDeactivationJurisdictionNotification':
-            if (!event.jurisdiction) {
-                throw new Error('Missing required jurisdiction field.');
-            }
-            if (!event.templateVariables.privilegeId
-                || !event.templateVariables.providerFirstName
-                || !event.templateVariables.providerLastName) {
-                throw new Error('Missing required template variables for privilegeDeactivationJurisdictionNotification template.');
-            }
-            await this.emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
-                event.compact,
-                event.jurisdiction,
-                event.recipientType,
-                event.templateVariables.privilegeId,
-                event.templateVariables.providerFirstName,
-                event.templateVariables.providerLastName
-            );
-            break;
         case 'licenseEncumbranceProviderNotification':
             if (!event.templateVariables.providerFirstName
                 || !event.templateVariables.providerLastName
