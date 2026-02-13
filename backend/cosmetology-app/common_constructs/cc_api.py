@@ -111,7 +111,7 @@ class CCApi(RestApi):
             ],
         )
 
-        # Disable the default execute-api endpoint for prod and beta so all traffic must use the custom domain.
+        # Disable the default execute-api url for prod and beta so all traffic must use the custom domain.
         disable_execute_api_endpoint = environment_name in ('prod', 'beta')
 
         super().__init__(
