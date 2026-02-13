@@ -17,12 +17,13 @@ class TestDataMigration(TestCase):
         from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 
         app = App()
-        # The persistent stack and layer are required for DataMigration, as an internal lambda depends on it
+        # The persistent stack and layer are required for DataMigration, as an internal lambda depends on it.
+        # Use a non-pipeline environment name so domain_name is not required (avoids HostedZone.from_lookup in tests).
         common_stack = AppStack(
             app,
             'CommonStack',
             environment_context={},
-            environment_name='test',
+            environment_name='sandbox',
             standard_tags=StandardTags(project='compact-connect', service='compact-connect', environment='test'),
         )
         # Create common lambda layers
