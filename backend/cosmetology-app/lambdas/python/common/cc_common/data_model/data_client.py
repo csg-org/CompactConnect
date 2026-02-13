@@ -4,7 +4,6 @@ from datetime import time as dtime
 from urllib.parse import quote
 from uuid import UUID, uuid4
 
-from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
@@ -343,31 +342,6 @@ class DataClient:
                 logger.error('Failed to fetch all provider records', unprocessed_keys=response['UnprocessedKeys'])
 
         return providers
-
-    @logger_inject_kwargs(logger, 'compact')
-    def claim_privilege_number(self, compact: str) -> int:
-        """
-        Claim a unique privilege number for a compact by atomically incrementing the privilege counter.
-        If the counter doesn't exist yet, it will be created with an initial value of 1.
-        """
-        logger.info('Claiming privilege number')
-        resp = self.config.provider_table.update_item(
-            Key={
-                'pk': f'{compact}#PRIVILEGE_COUNT',
-                'sk': f'{compact}#PRIVILEGE_COUNT',
-            },
-            UpdateExpression='ADD #count :increment',
-            ExpressionAttributeNames={
-                '#count': 'privilegeCount',
-            },
-            ExpressionAttributeValues={
-                ':increment': 1,
-            },
-            ReturnValues='UPDATED_NEW',
-        )
-        privilege_count = resp['Attributes']['privilegeCount']
-        logger.info('Claimed privilege number', privilege_count=privilege_count)
-        return privilege_count
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def get_provider_top_level_record(self, *, compact: str, provider_id: str) -> ProviderData:
