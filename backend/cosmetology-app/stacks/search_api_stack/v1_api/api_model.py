@@ -329,7 +329,6 @@ class ApiModel:
                 'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
                 'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-                'activeSince': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'investigationStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['underInvestigation']),
             },
         )

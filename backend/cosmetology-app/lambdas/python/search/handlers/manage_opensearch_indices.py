@@ -291,7 +291,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'compactTransactionId': {'type': 'keyword'},
             'privilegeId': {'type': 'keyword'},
             'status': {'type': 'keyword'},
-            'activeSince': {'type': 'date'},
             'investigationStatus': {'type': 'keyword'},
         }
 
