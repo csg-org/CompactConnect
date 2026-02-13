@@ -97,6 +97,14 @@ class AppStack(Stack):
 
         self.environment_context = environment_context
         self.environment_name = environment_name
+
+        # Guard: prod and beta MUST have a domain_name configured
+        if environment_name in ('prod', 'beta') and not environment_context.get('domain_name'):
+            raise ValueError(
+                f"Production and beta environments require 'domain_name' to be configured. "
+                f"Environment '{environment_name}' is missing this required configuration."
+            )
+
         # We only set the API_BASE_URL common env var if the API_DOMAIN_NAME is set
         # The API_BASE_URL is used by the feature flag client to call the flag check endpoint
         if self.api_domain_name:
