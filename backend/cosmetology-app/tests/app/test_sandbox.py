@@ -35,7 +35,7 @@ class TestSandbox(TstSandbox):
 
         self._inspect_persistent_stack(
             self.app.sandbox_backend_stage.persistent_stack,
-            domain_name='app.justin.cosmetology.compactconnect.org',
+            ui_domain_name='app.justin.compactconnect.org',
             allow_local_ui=True,
         )
 
@@ -55,8 +55,9 @@ class TestSandboxNoDomain(TstSandbox):
     def get_context(cls):
         context = super().get_context()
 
-        # Drop domain name to ensure we still handle the optional DNS setup
+        # Drop domain name and ui_domain_name_override to ensure we still handle the optional DNS setup
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
+        del context['ssm_context']['environments'][context['environment_name']]['ui_domain_name_override']
         return context
 
     def test_synth_sandbox_no_domain(self):
@@ -80,8 +81,9 @@ class TestSandboxLocalUiPortOverride(TstSandbox):
     def get_context(cls):
         context = super().get_context()
 
-        # Drop domain name to ensure we still handle the optional DNS setup
+        # Drop domain name and ui_domain_name_override to ensure we still handle the optional DNS setup
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
+        del context['ssm_context']['environments'][context['environment_name']]['ui_domain_name_override']
         context['ssm_context']['environments'][context['environment_name']]['local_ui_port'] = '5432'
 
         return context
@@ -116,6 +118,7 @@ class TestSandboxNoUi(TestCase):
         context['aws:cdk:bundling-stacks'] = []
 
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
+        del context['ssm_context']['environments'][context['environment_name']]['ui_domain_name_override']
         del context['ssm_context']['environments'][context['environment_name']]['allow_local_ui']
 
         with self.assertRaises(ValueError):

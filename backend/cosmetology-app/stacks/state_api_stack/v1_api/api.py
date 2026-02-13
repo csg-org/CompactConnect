@@ -4,7 +4,6 @@ from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 
 from stacks import persistent_stack as ps
 from stacks.state_api_stack.v1_api.bulk_upload_url import BulkUploadUrl
-from stacks.state_api_stack.v1_api.provider_management import ProviderManagement
 
 from .api_model import ApiModel
 from .post_licenses import PostLicenses
@@ -23,13 +22,9 @@ class V1Api:
         self.api_model = ApiModel(api=self.api)
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
-        read_scopes = []
         write_scopes = []
         # set the compact level scopes
         for compact in _active_compacts:
-            # We only set the readGeneral permission scope at the compact level, since users with any permissions
-            # within a compact are implicitly granted this scope
-            read_scopes.append(f'{compact}/readGeneral')
             write_scopes.append(f'{compact}/write')
 
             _active_compact_jurisdictions = persistent_stack.get_list_of_active_jurisdictions_for_compact_environment(
@@ -42,11 +37,6 @@ class V1Api:
             for jurisdiction in _active_compact_jurisdictions:
                 write_scopes.append(f'{jurisdiction}/{compact}.write')
 
-        read_auth_method_options = MethodOptions(
-            authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.api.state_auth_authorizer,
-            authorization_scopes=read_scopes,
-        )
         write_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.state_auth_authorizer,
@@ -62,16 +52,6 @@ class V1Api:
         self.compact_jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')
         # /v1/compacts/{compact}/jurisdictions/{jurisdiction}
         self.compact_jurisdiction_resource = self.compact_jurisdictions_resource.add_resource('{jurisdiction}')
-
-        # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/{providerId}
-        # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/query
-        providers_resource = self.compact_jurisdiction_resource.add_resource('providers')
-        self.provider_management = ProviderManagement(
-            resource=providers_resource,
-            method_options=read_auth_method_options,
-            persistent_stack=persistent_stack,
-            api_model=self.api_model,
-        )
 
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload

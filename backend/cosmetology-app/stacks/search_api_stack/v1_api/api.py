@@ -3,7 +3,6 @@ from __future__ import annotations
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 
 from stacks import persistent_stack, search_persistent_stack
-from stacks.search_api_stack.v1_api.privilege_search import PrivilegeSearch
 from stacks.search_api_stack.v1_api.provider_search import ProviderSearch
 
 from .api_model import ApiModel
@@ -49,15 +48,6 @@ class V1Api:
         providers_resource = self.compact_resource.add_resource('providers')
         self.provider_search = ProviderSearch(
             resource=providers_resource,
-            method_options=read_auth_method_options,
-            search_persistent_stack=search_persistent_stack,
-            api_model=self.api_model,
-        )
-
-        # POST /v1/compacts/{compact}/privileges
-        privileges_resource = self.compact_resource.add_resource('privileges')
-        self.privilege_search = PrivilegeSearch(
-            resource=privileges_resource,
             method_options=read_auth_method_options,
             search_persistent_stack=search_persistent_stack,
             api_model=self.api_model,

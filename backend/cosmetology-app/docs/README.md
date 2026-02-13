@@ -49,7 +49,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | homeAddressPostalCode* | Postal/ZIP code of provider's home address | String (5-7 chars) | 12345 |
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
-| licenseNumber**         | License number | String (max 100 chars) | OT12345 |
+| licenseNumber* | License number | String (max 100 chars) | OT12345 |
 | licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `cosmetologist`, `esthetician` | cosmetologist |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
@@ -60,7 +60,6 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
 | phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |
-** This field is required by compact commission rule, however, to avoid making a breaking change for states that are already integrated, the API does not enforce this rule. States are responsible for enforcing the compact rule themselves.
 #### Example CSV
 ```csv
 dateOfIssuance,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
@@ -120,12 +119,6 @@ The following license fields are publicly visible through CompactConnect's publi
 - Email addresses
 - Phone numbers
 - Date of birth
-
-### What if I want to receive CompactConnect data back to my state IT system?
-State IT systems can retrieve data via the CompactConnect State-API, which provides HTTP endpoints for querying the 
-system for compact privilege data for a respective state. See [Retrieving Data from CompactConnect](it_staff_onboarding_instructions.md#retrieving-data-from-compactconnect)
-
-Note that CompactConnect has additional security requirements for automatic API retrieval of data from the system. Please see the [Client Signature Authentication documentation](./client_signature_auth.md) for detailed information about implementing request signing for secure data retrieval.
 
 ## Open API Specification
 [Back to top](#compact-connect---technical-user-guide)

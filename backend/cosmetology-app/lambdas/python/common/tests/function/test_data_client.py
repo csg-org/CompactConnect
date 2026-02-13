@@ -5,7 +5,6 @@ from uuid import UUID, uuid4
 
 from boto3.dynamodb.conditions import Key
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
-from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -67,7 +66,6 @@ class TestDataClient(TstFunction):
         with open('tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)
         provider_id = UUID(provider_record['providerId'])
-        provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
         self._provider_table.put_item(Item=provider_record)
 
         with open('tests/resources/dynamo/privilege.json') as f:
@@ -83,74 +81,6 @@ class TestDataClient(TstFunction):
         self._ssn_table.put_item(Item=provider_ssn_record)
 
         return provider_id
-
-    def test_data_client_create_privilege_record_invalid_license_type(self):
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.exceptions import CCInvalidRequestException
-
-        test_data_client = DataClient(self.config)
-
-        with self.assertRaises(CCInvalidRequestException):
-            test_data_client.create_provider_privileges(
-                compact='cosm',
-                provider_id='test_provider_id',
-                jurisdiction_postal_abbreviations=['ca'],
-                license_expiration_date=date.fromisoformat('2024-10-31'),
-                provider_record=self.test_data_generator.generate_default_provider(),
-                existing_privileges_for_license=[],
-                license_type='not-supported-license-type',
-            )
-
-    def test_claim_privilege_id_creates_counter_if_not_exists(self):
-        """Test that claiming a privilege id creates the counter if it doesn't exist"""
-        from cc_common.data_model.data_client import DataClient
-
-        client = DataClient(self.config)
-
-        # First claim should create the counter and return 1
-        privilege_count = client.claim_privilege_number(compact='cosm')
-        self.assertEqual(1, privilege_count)
-
-        # Verify the counter was created with the correct value
-        counter_record = self.config.provider_table.get_item(
-            Key={
-                'pk': 'cosm#PRIVILEGE_COUNT',
-                'sk': 'cosm#PRIVILEGE_COUNT',
-            }
-        )['Item']
-        self.assertEqual(1, counter_record['privilegeCount'])
-
-    def test_claim_privilege_id_increments_existing_counter(self):
-        """Test that claiming a privilege id increments an existing counter"""
-        from cc_common.data_model.data_client import DataClient
-
-        client = DataClient(self.config)
-
-        # Create initial counter record
-        self.config.provider_table.put_item(
-            Item={
-                'pk': 'cosm#PRIVILEGE_COUNT',
-                'sk': 'cosm#PRIVILEGE_COUNT',
-                'type': 'privilegeCount',
-                'compact': 'cosm',
-                'privilegeCount': 42,
-            }
-        )
-
-        # Claim should increment the counter and return 43
-        privilege_count = client.claim_privilege_number(compact='cosm')
-        self.assertEqual(43, privilege_count)
-
-        # Verify the counter was incremented
-        counter_record = self.config.provider_table.get_item(
-            Key={
-                'pk': 'cosm#PRIVILEGE_COUNT',
-                'sk': 'cosm#PRIVILEGE_COUNT',
-            }
-        )['Item']
-        self.assertEqual(43, counter_record['privilegeCount'])
-        self.assertEqual('privilegeCount', counter_record['type'])
-        self.assertEqual('cosm', counter_record['compact'])
 
     def test_get_ssn_by_provider_id_returns_ssn_if_provider_id_exists(self):
         """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
@@ -197,127 +127,6 @@ class TestDataClient(TstFunction):
 
         with self.assertRaises(CCInternalException):
             client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
-
-    def test_deactivate_privilege_raises_if_privilege_not_found(self):
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.exceptions import CCNotFoundException
-
-        test_data_client = DataClient(self.config)
-
-        # We haven't created any providers or privileges but we'll try to deactivate a privilege
-        with self.assertRaises(CCNotFoundException):
-            test_data_client.deactivate_privilege(
-                compact='cosm',
-                provider_id='some-provider-id',
-                jurisdiction='ne',
-                license_type_abbr='cos',
-                deactivation_details={
-                    'note': 'test deactivation note',
-                    'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
-                    'deactivatedByStaffUserName': 'John Doe',
-                },
-            )
-
-    def test_deactivate_privilege_on_inactive_privilege_raises_exception(self):
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.provider_record_util import ProviderUserRecords
-
-        provider_id = self._load_provider_data()
-
-        # Remove 'ne' from privilegeJurisdictions
-        self._provider_table.update_item(
-            Key={'pk': f'cosm#PROVIDER#{provider_id}', 'sk': 'cosm#PROVIDER'},
-            UpdateExpression='DELETE privilegeJurisdictions :jurisdiction',
-            ExpressionAttributeValues={':jurisdiction': {'ne'}},
-        )
-
-        # Create the first privilege
-        original_privilege = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': 'cosm#PROVIDER#privilege/ne/cos#',
-            'type': 'privilege',
-            'providerId': str(provider_id),
-            'compact': 'cosm',
-            'jurisdiction': 'ne',
-            'licenseJurisdiction': 'oh',
-            'licenseType': 'cosmetologist',
-            'administratorSetStatus': 'inactive',
-            'dateOfIssuance': '2023-11-08T23:59:59+00:00',
-            'dateOfRenewal': '2023-11-08T23:59:59+00:00',
-            'dateOfExpiration': '2024-10-31',
-            'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-            'privilegeId': 'COS-NE-1',
-        }
-        self._provider_table.put_item(Item=original_privilege)
-        # We'll create it as if it were already deactivated
-        original_history = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': 'cosm#UPDATE#1#privilege/ne/cos/2024-11-08T23:59:59+00:00/6dd62fb59bbae8bd55720ae1491fa87a',
-            'type': 'privilegeUpdate',
-            'updateType': 'renewal',
-            'providerId': str(provider_id),
-            'compact': 'cosm',
-            'licenseType': 'cosmetologist',
-            'createDate': '2024-11-08T23:59:59+00:00',
-            'effectiveDate': '2024-11-08T23:59:59+00:00',
-            'jurisdiction': 'ne',
-            'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-            'previous': {
-                'dateOfIssuance': '2023-11-08T23:59:59+00:00',
-                'dateOfRenewal': '2023-11-08T23:59:59+00:00',
-                'dateOfExpiration': '2024-10-31',
-                'dateOfUpdate': '2023-11-08T23:59:59+00:00',
-                'licenseJurisdiction': 'oh',
-                'privilegeId': 'COS-NE-1',
-            },
-            'updatedValues': {
-                'administratorSetStatus': 'inactive',
-            },
-        }
-        self._provider_table.put_item(Item=original_history)
-
-        test_data_client = DataClient(self.config)
-
-        # Now, deactivate the privilege
-        with self.assertRaises(CCInvalidRequestException) as context:
-            test_data_client.deactivate_privilege(
-                compact='cosm',
-                provider_id=provider_id,
-                jurisdiction='ne',
-                license_type_abbr='cos',
-                deactivation_details={
-                    'note': 'test deactivation note',
-                    'deactivatedByStaffUserId': 'a4182428-d061-701c-82e5-a3d1d547d797',
-                    'deactivatedByStaffUserName': 'John Doe',
-                },
-            )
-        self.assertEqual('Privilege already deactivated', context.exception.message)
-
-        # Verify that the privilege record was unchanged
-        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id
-        )
-
-        new_privilege = provider_user_records.get_specific_privilege_record(
-            jurisdiction='ne', license_abbreviation='cos'
-        )
-        self.assertIsNotNone(new_privilege, 'Privilege record not found')
-        serialized_record = new_privilege.serialize_to_database_record()
-        # the serialize_to_database_record() call automatically generates a new dateOfUpdate stamp,
-        # setting it back to the original timestamp for comparison
-        serialized_record['dateOfUpdate'] = original_privilege['dateOfUpdate']
-        self.assertEqual(original_privilege, serialized_record)
-
-        # Verify the update record is unchanged using test_data_generator
-        update_records = self.test_data_generator.query_privilege_update_records_for_given_record_from_database(
-            new_privilege
-        )
-        self.assertEqual(1, len(update_records), 'Expected 1 update record')
-        self.assertEqual(original_history, update_records[0].serialize_to_database_record())
-
-        # 'ne' should still be removed from privilegeJurisdictions
-        provider = provider_user_records.get_provider_record()
-        self.assertEqual(set(), provider.privilegeJurisdictions)
 
     def test_get_provider_user_records_correctly_handles_pagination(self):
         """Test that get_provider_user_records correctly handles pagination by returning all records.
@@ -393,8 +202,6 @@ class TestDataClient(TstFunction):
             # Verify we have all privileges from all jurisdictions
             privilege_records = provider_records.get_privilege_records()
             self.assertEqual(30, len(privilege_records))
-            privilege_jurisdictions = {priv.jurisdiction for priv in privilege_records}
-            self.assertEqual(set(jurisdictions), privilege_jurisdictions)
 
             # Verify we have all license records
             license_records = provider_records.get_license_records()
@@ -594,7 +401,6 @@ class TestDataClient(TstFunction):
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
-                'npi': '0608337260',
                 'licenseNumber': 'A0608337260',
                 'ssnLastFour': '1234',
                 'givenName': 'Björk',
@@ -927,7 +733,6 @@ class TestDataClient(TstFunction):
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
-                'npi': '0608337260',
                 'licenseNumber': 'A0608337260',
                 'ssnLastFour': '1234',
                 'givenName': 'Björk',

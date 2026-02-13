@@ -44,7 +44,6 @@ schema = LicensePostRequestSchema()
 
 FIELDS = (
     'ssn',
-    'npi',
     'licenseNumber',
     'licenseType',
     'licenseStatus',
@@ -146,10 +145,8 @@ def get_mock_license(
     license_data = {
         #                                              |Zero padded 4 digit int|
         'ssn': f'{ssn_prefix}-{(i // 10_000) % 100:02}-{(i % 10_000):04}',
-        # Some have NPI, some don't
-        'npi': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
-        # Some have License number, some don't
-        'licenseNumber': generate_mock_license_number() if choice([True, False]) else None,
+        # licenseNumber is required
+        'licenseNumber': generate_mock_license_number(),
         'licenseType': choice(LICENSE_TYPES[compact]),
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),

@@ -134,12 +134,6 @@ def ingest_license_message(message: dict):
                     licenses_organized.setdefault(record['jurisdiction'], {})
                     licenses_organized[record['jurisdiction']][record['licenseType']] = record
 
-                # Get all privilege jurisdictions, directly from privilege records
-                privilege_records = ProviderRecordUtility.get_records_of_type(
-                    provider_records,
-                    ProviderRecordType.PRIVILEGE,
-                )
-
                 # Get the home jurisdiction selection, if it exists
                 current_provider_record = ProviderData.create_new(
                     ProviderRecordUtility.get_provider_record(provider_records)
@@ -147,7 +141,6 @@ def ingest_license_message(message: dict):
 
             except CCNotFoundException:
                 licenses_organized = {}
-                privilege_records = []
                 current_provider_record = None
 
             # Set (or replace) the posted license for its jurisdiction
@@ -199,9 +192,7 @@ def ingest_license_message(message: dict):
                 logger.info('Updating provider data')
 
                 provider_record = ProviderRecordUtility.populate_provider_record(
-                    current_provider_record=current_provider_record,
-                    license_record=posted_license_record,
-                    privilege_records=privilege_records,
+                    current_provider_record=current_provider_record, license_record=posted_license_record
                 )
                 # Update our provider data
                 dynamo_transactions.append(

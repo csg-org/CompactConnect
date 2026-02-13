@@ -386,10 +386,6 @@
       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
       "type": "string"
     },
-    "npi": {
-      "pattern": "^[0-9]{10}$",
-      "type": "string"
-    },
     "givenName": {
       "maxLength": 100,
       "minLength": 1,
@@ -431,24 +427,6 @@
       ],
       "type": "string"
     },
-    "privilegeJurisdictions": {
-      "items": {
-        "enum": [
-          "al",
-          "az",
-          "co",
-          "ks",
-          "ky",
-          "md",
-          "oh",
-          "tn",
-          "va",
-          "wa"
-        ],
-        "type": "string"
-      },
-      "type": "array"
-    },
     "dateOfUpdate": {
       "format": "date-time",
       "type": "string"
@@ -461,8 +439,7 @@
     "compact",
     "licenseJurisdiction",
     "givenName",
-    "familyName",
-    "privilegeJurisdictions"
+    "familyName"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import datetime
 from unittest.mock import patch
 
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
@@ -20,8 +20,6 @@ class TestTransformations(TstFunction):
         database, then returned via the API. We will specifically test that chain, end to end, to make sure the
         transformations all happen as expected.
         """
-        from cc_common.data_model.provider_record_util import ProviderUserRecords
-
         # Before we get started, we'll pre-set the SSN/providerId association we expect
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
@@ -83,49 +81,26 @@ class TestTransformations(TstFunction):
         # This should fully ingest the license, which will result in it being written to the DB
         ingest_license_message(event, self.mock_context)
 
-        from cc_common.data_model.data_client import DataClient
-
         # We'll fetch the provider id from the ssn table
-        client = DataClient(self.config)
         provider_id = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{license_ssn}', 'sk': f'cosm#SSN#{license_ssn}'})[
             'Item'
         ]['providerId']
         self.assertEqual(expected_provider_id, provider_id)
-        provider_user_records: ProviderUserRecords = client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id
+
+        # Get the provider and all update records straight from the table, to inspect them
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
+
+        # One record for each of: provider and license (no privileges in cosmetology model)
+        self.assertEqual(2, len(provider_user_records.provider_records))
+        records = {item['type']: item for item in provider_user_records.provider_records}
 
         # Expected representation of each record in the database
         with open('../common/tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
-            # this should be set during the registration flow
-            # provider should be active and compact eligible
             expected_provider['licenseStatus'] = 'active'
             expected_provider['compactEligibility'] = 'eligible'
-
-        # Add a privilege to practice in Nebraska
-        client.create_provider_privileges(
-            compact='cosm',
-            provider_id=provider_id,
-            provider_record=provider_user_records.get_provider_record(),
-            # using values in expected privilege json file
-            jurisdiction_postal_abbreviations=['ne'],
-            license_expiration_date=date(2025, 4, 4),
-            existing_privileges_for_license=[],
-            license_type='cosmetologist',
-        )
-
-        # Get the provider and all update records straight from the table, to inspect them
-        provider_user_records: ProviderUserRecords = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
-        )
-
-        # One record for each of: provider, license, and privilege
-        self.assertEqual(3, len(provider_user_records.provider_records))
-        records = {item['type']: item for item in provider_user_records.provider_records}
-
-        # Convert this to the data type expected from DynamoDB
-        expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
         with open('../common/tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
@@ -137,33 +112,16 @@ class TestTransformations(TstFunction):
             expected_license['licenseUploadDateGSISK'] = (
                 'TIME#1731110399#LT#cos#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
             )
-        with open('../common/tests/resources/dynamo/privilege.json') as f:
-            expected_privilege = json.load(f)
-            # privilege status should be active
-            expected_privilege['status'] = 'active'
 
         # each record has a dynamic dateOfUpdate field that we'll remove for comparison
-        for record in [
-            expected_provider,
-            expected_license,
-            expected_privilege,
-            *records.values(),
-        ]:
-            # Drop dynamic field
+        for record in [expected_provider, expected_license, *records.values()]:
             del record['dateOfUpdate']
-        # These fields will be dynamic, so we'll remove them from comparison
         del expected_provider['providerDateOfUpdate']
         del records['provider']['providerDateOfUpdate']
-        del expected_privilege['dateOfIssuance']
-        del expected_privilege['dateOfRenewal']
-        # removing dynamic fields
-        del records['privilege']['dateOfIssuance']
-        del records['privilege']['dateOfRenewal']
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
         self.assertEqual(expected_license, records['license'])
-        self.assertEqual(expected_privilege, records['privilege'])
 
         from handlers.providers import get_provider
 
@@ -187,21 +145,14 @@ class TestTransformations(TstFunction):
 
         # Force the provider id to match
         expected_provider['providerId'] = provider_id
+        # privileges tied to active states
+        expected_provider['privileges'] = []
 
         # Drop dynamic fields from comparison
         del provider_data['dateOfUpdate']
         del provider_data['licenses'][0]['dateOfUpdate']
-        del provider_data['privileges'][0]['dateOfUpdate']
-        del provider_data['privileges'][0]['dateOfIssuance']
-        del provider_data['privileges'][0]['dateOfRenewal']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
-        del expected_provider['privileges'][0]['dateOfUpdate']
-        del expected_provider['privileges'][0]['dateOfIssuance']
-        del expected_provider['privileges'][0]['dateOfRenewal']
-
-        # in this case, this should be set to the privilege issued date, which is the mock time used by this test
-        expected_provider['privileges'][0]['activeSince'] = '2024-11-08T23:59:59+00:00'
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.maxDiff = None

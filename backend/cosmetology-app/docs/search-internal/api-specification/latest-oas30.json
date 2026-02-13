@@ -91,7 +91,6 @@
                 "jurisdictionUploadedLicenseStatus",
                 "licenseJurisdiction",
                 "licenseStatus",
-                "privilegeJurisdictions",
                 "providerId",
                 "type"
               ],
@@ -184,9 +183,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "cosm"
                         ]
                       },
                       "jurisdiction": {
@@ -292,9 +289,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "providerId": {
@@ -408,11 +403,6 @@
                         "type": "string",
                         "format": "date"
                       },
-                      "activeSince": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
-                      },
                       "privilegeId": {
                         "type": "string"
                       },
@@ -454,9 +444,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "jurisdiction": {
@@ -649,14 +637,8 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
+                    "cosm"
                   ]
-                },
-                "npi": {
-                  "pattern": "^[0-9]{10}$",
-                  "type": "string"
                 },
                 "givenName": {
                   "maxLength": 100,
@@ -682,67 +664,6 @@
                     "active",
                     "inactive"
                   ]
-                },
-                "privilegeJurisdictions": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "enum": [
-                      "al",
-                      "ak",
-                      "az",
-                      "ar",
-                      "ca",
-                      "co",
-                      "ct",
-                      "de",
-                      "dc",
-                      "fl",
-                      "ga",
-                      "hi",
-                      "id",
-                      "il",
-                      "in",
-                      "ia",
-                      "ks",
-                      "ky",
-                      "la",
-                      "me",
-                      "md",
-                      "ma",
-                      "mi",
-                      "mn",
-                      "ms",
-                      "mo",
-                      "mt",
-                      "ne",
-                      "nv",
-                      "nh",
-                      "nj",
-                      "nm",
-                      "ny",
-                      "nc",
-                      "nd",
-                      "oh",
-                      "ok",
-                      "or",
-                      "pa",
-                      "pr",
-                      "ri",
-                      "sc",
-                      "sd",
-                      "tn",
-                      "tx",
-                      "ut",
-                      "vt",
-                      "va",
-                      "vi",
-                      "wa",
-                      "wv",
-                      "wi",
-                      "wy"
-                    ]
-                  }
                 },
                 "type": {
                   "type": "string",
@@ -833,16 +754,15 @@
                       "licenseStatus",
                       "licenseType",
                       "providerId",
-                      "type"
+                      "type",
+                      "licenseNumber"
                     ],
                     "type": "object",
                     "properties": {
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "cosm"
                         ]
                       },
                       "homeAddressStreet2": {
@@ -938,9 +858,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "providerId": {
@@ -1085,10 +1003,6 @@
                           "underInvestigation"
                         ]
                       },
-                      "npi": {
-                        "pattern": "^[0-9]{10}$",
-                        "type": "string"
-                      },
                       "homeAddressPostalCode": {
                         "maxLength": 7,
                         "minLength": 5,
@@ -1167,9 +1081,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "aslp",
-                                "octp",
-                                "coun"
+                                "cosm"
                               ]
                             },
                             "jurisdiction": {
@@ -1321,9 +1233,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "aslp",
-                          "octp",
-                          "coun"
+                          "cosm"
                         ]
                       },
                       "providerId": {

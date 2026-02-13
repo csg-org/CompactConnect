@@ -12,6 +12,7 @@
         "account_id": "111122223333",
         "region": "us-east-1",
         "domain_name": "test.cosmetology.compactconnect.org",
+        "ui_domain_name_override": "app.test.compactconnect.org",
         "backup_enabled": true,
         "allow_local_ui": true,
         "notifications": {

@@ -46,10 +46,6 @@ class ProviderData(CCDataClass):
         return self._data['ssnLastFour']
 
     @property
-    def npi(self) -> str | None:
-        return self._data.get('npi')
-
-    @property
     def givenName(self) -> str:
         return self._data['givenName']
 
@@ -76,10 +72,6 @@ class ProviderData(CCDataClass):
     @property
     def birthMonthDay(self) -> str | None:
         return self._data.get('birthMonthDay')
-
-    @property
-    def privilegeJurisdictions(self) -> set[str]:
-        return self._data.get('privilegeJurisdictions', set())
 
     @property
     def encumberedStatus(self) -> str | None:

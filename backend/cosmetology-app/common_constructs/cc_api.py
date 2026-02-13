@@ -17,6 +17,7 @@ from aws_cdk.aws_apigateway import (
     MethodLoggingLevel,
     ResponseType,
     RestApi,
+    SecurityPolicy,
     StageOptions,
 )
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
@@ -89,7 +90,14 @@ class CCApi(RestApi):
                 validation=CertificateValidation.from_dns(hosted_zone=stack.hosted_zone),
                 subject_alternative_names=[stack.hosted_zone.zone_name],
             )
-            domain_kwargs = {'domain_name': DomainNameOptions(certificate=certificate, domain_name=domain_name)}
+            domain_kwargs = {
+                'domain_name': DomainNameOptions(
+                    certificate=certificate,
+                    domain_name=domain_name,
+                    # this resource defaults to TLS_1_2, but we will explicitly set this anyway
+                    security_policy=SecurityPolicy.TLS_1_2,
+                )
+            }
 
         access_log_group = LogGroup(scope, 'ApiAccessLogGroup', retention=RetentionDays.ONE_MONTH)
         NagSuppressions.add_resource_suppressions(
@@ -103,10 +111,14 @@ class CCApi(RestApi):
             ],
         )
 
+        # Disable the default execute-api endpoint for all pipeline environments so traffic must use the custom domain.
+        disable_execute_api_endpoint = environment_name in ('test', 'beta', 'prod')
+
         super().__init__(
             scope,
             construct_id,
             cloud_watch_role=True,
+            disable_execute_api_endpoint=disable_execute_api_endpoint,
             deploy_options=StageOptions(
                 # NOTE: If we are ever updating our pipeline architecture which requires a change to the pipeline stack
                 # name, the domain base path mapping for the API will fail to deploy unless we change the name of the

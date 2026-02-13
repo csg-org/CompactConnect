@@ -1,14 +1,9 @@
-from boto3.dynamodb.conditions import Key
-
 from cc_common.config import _Config, logger
 from cc_common.data_model.schema.compact import CompactConfigurationData
-from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.compact.record import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
-from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCInternalException, CCNotFoundException
-from cc_common.utils import logger_inject_kwargs
 
 
 class CompactConfigurationClient:
@@ -258,84 +253,6 @@ class CompactConfigurationClient:
                 jurisdiction=jurisdiction_config.postalAbbreviation,
             )
             raise CCInternalException(message) from e
-
-    @logger_inject_kwargs(logger, 'compact')
-    def get_privilege_purchase_options(self, *, compact: str):
-        logger.info('Getting privilege purchase options for compact')
-
-        # Get all compact configurations (both compact and jurisdiction records)
-        # Use pagination to ensure we get all records
-        all_items = []
-        query_params = {
-            'Select': 'ALL_ATTRIBUTES',
-            'KeyConditionExpression': Key('pk').eq(f'{compact}#CONFIGURATION'),
-        }
-
-        while True:
-            response = self.config.compact_configuration_table.query(**query_params)
-            all_items.extend(response.get('Items', []))
-
-            # Check if there are more records to fetch
-            last_evaluated_key = response.get('LastEvaluatedKey')
-            if not last_evaluated_key:
-                break
-
-            # Set up for next page
-            query_params['ExclusiveStartKey'] = last_evaluated_key
-
-        logger.info(
-            'Retrieved all configuration records',
-            total_items=len(all_items),
-        )
-
-        # Get the compact configuration from the response items to access configuredStates
-        compact_config_item = next((item for item in all_items if item['type'] == COMPACT_TYPE), None)
-
-        if compact_config_item and compact_config_item.get('configuredStates'):
-            live_jurisdictions = {
-                state['postalAbbreviation'] for state in compact_config_item['configuredStates'] if state.get('isLive')
-            }
-
-            if not live_jurisdictions:
-                logger.info('No live jurisdictions found for compact. Returning empty list')
-                # in this case, there is nothing to return, so we return an empty list, and let the caller decide to
-                # raise an exception or not.
-                return {'items': []}
-
-            logger.info(
-                'Filtering privilege purchase options by live jurisdictions',
-                live_jurisdictions=list(live_jurisdictions),
-            )
-            # Filter jurisdictions to only include live ones
-            filtered_items = [
-                item
-                for item in all_items
-                if item.get('type') == COMPACT_TYPE
-                or (
-                    item.get('type') == JURISDICTION_TYPE
-                    and item.get('postalAbbreviation', '').lower() in live_jurisdictions
-                )
-            ]
-
-            # Return in the expected format for backward compatibility
-            return {
-                'items': filtered_items,
-                'pagination': {
-                    'pageSize': len(filtered_items),
-                    'prevLastKey': None,
-                    'lastKey': None,
-                },
-            }
-
-        message = 'Compact configuration not found or has no configuredStates when filtering privilege purchase options'
-        logger.info(
-            message,
-            compact_config_found=compact_config_item is not None,
-            configured_states=compact_config_item.get('configuredStates') if compact_config_item else None,
-        )
-        # in this case, there is nothing to return, so we return an empty list, and let the caller decide to raise
-        # an exception or not.
-        return {'items': []}
 
     def update_compact_configured_states(self, compact: str, configured_states: list[dict]) -> None:
         """

@@ -1,9 +1,7 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from datetime import timedelta
-
 from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import DateTime, Email, Integer, List, Nested, Raw, String
-from marshmallow.validate import Length, OneOf, Range, Regexp
+from marshmallow.fields import Integer, List, Nested, Raw, String
+from marshmallow.validate import Length, Range, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import CCRequestSchema
@@ -12,8 +10,6 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     Jurisdiction,
-    NationalProviderIdentifier,
-    Set,
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.license.api import (
@@ -95,7 +91,6 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -107,7 +102,6 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Raw(required=False, allow_none=False)
     birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
@@ -145,7 +139,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -156,7 +149,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Raw(required=False, allow_none=False)
     birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
@@ -189,13 +181,11 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
 
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
@@ -244,141 +234,6 @@ class QueryProvidersRequestSchema(CCRequestSchema):
     sorting = Nested(SortingSchema, required=False, allow_none=False)
 
 
-class QueryJurisdictionProvidersRequestSchema(CCRequestSchema):
-    """
-    Schema for jurisdiction-specific query providers requests.
-
-    This schema is used to validate incoming requests to the jurisdiction-specific query providers API endpoint.
-    It supports time window filtering by dateOfUpdate through startDateTime and endDateTime query parameters.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-    class QuerySchema(CCRequestSchema):
-        """
-        Nested schema for the query object within the request.
-        """
-
-        startDateTime = DateTime(required=True, allow_none=False)
-        endDateTime = DateTime(required=True, allow_none=False)
-
-    class PaginationSchema(ForgivingSchema):
-        """
-        Nested schema for the pagination object within the request.
-        """
-
-        lastKey = String(required=False, allow_none=False, validate=Length(min=1, max=1024))
-        pageSize = Integer(required=False, allow_none=False)
-
-    class SortingSchema(ForgivingSchema):
-        """
-        Nested schema for the sorting object within the request.
-        """
-
-        direction = String(required=False, allow_none=False)
-
-    @validates_schema
-    def validate_query(self, data, **kwargs):
-        """
-        Time filter cannot be larger than 7 days.
-        """
-        if data['query']['endDateTime'] - data['query']['startDateTime'] > timedelta(days=7):
-            raise ValidationError('Time filter cannot be larger than 7 days.')
-
-    query = Nested(QuerySchema, required=True, allow_none=False)
-    pagination = Nested(PaginationSchema, required=False, allow_none=False)
-    sorting = Nested(SortingSchema, required=False, allow_none=False)
-
-
-class StatePrivilegeGeneralResponseSchema(ForgivingSchema):
-    """
-    Schema for flattened state privilege responses with general (non-private) fields only.
-
-    This schema combines privilege and license data into a single flattened record
-    for external state IT system consumption, excluding private/sensitive fields.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    type = String(required=True, allow_none=False, validate=OneOf(['statePrivilege']))
-    providerId = Raw(required=True, allow_none=False)
-    compact = Compact(required=True, allow_none=False)
-    jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
-    status = ActiveInactive(required=True, allow_none=False)
-    compactEligibility = CompactEligibility(required=True, allow_none=False)
-    dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
-    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
-    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseStatus = ActiveInactive(required=True, allow_none=False)
-
-    # Optional non-private fields
-    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
-    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-
-
-class StatePrivilegePrivateResponseSchema(StatePrivilegeGeneralResponseSchema):
-    """
-    Schema for flattened state privilege responses including private/sensitive fields.
-
-    Extends the general schema to include private fields like SSN, addresses, etc.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    # Private fields
-    ssnLastFour = String(required=False, allow_none=False, validate=Length(min=4, max=4))
-    emailAddress = Email(required=False, allow_none=False)
-    dateOfBirth = Raw(required=False, allow_none=False)
-    homeAddressStreet1 = String(required=False, allow_none=False, validate=Length(2, 100))
-    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
-    homeAddressCity = String(required=False, allow_none=False, validate=Length(2, 100))
-    homeAddressState = String(required=False, allow_none=False, validate=Length(2, 100))
-    homeAddressPostalCode = String(required=False, allow_none=False, validate=Length(5, 7))
-    phoneNumber = String(required=False, allow_none=False, validate=Regexp(r'^\+[0-9]{8,15}$'))
-
-
-class StateProviderDetailPrivateResponseSchema(ForgivingSchema):
-    """
-    Schema for state provider detail response.
-
-    This schema is used for the state API GET provider endpoint that returns
-    a simplified, flattened view of provider data for external state IT systems.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    privileges = List(Nested(StatePrivilegePrivateResponseSchema, required=True, allow_none=False))
-    providerUIUrl = String(required=True, allow_none=False)
-
-
-class StateProviderDetailGeneralResponseSchema(ForgivingSchema):
-    """
-    Schema for state provider detail response.
-
-    This schema is used for the state API GET provider endpoint that returns
-    a simplified, flattened view of provider data for external state IT systems.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    privileges = List(Nested(StatePrivilegeGeneralResponseSchema, required=True, allow_none=False))
-    providerUIUrl = String(required=True, allow_none=False)
-
-
 class SearchProvidersRequestSchema(CCRequestSchema):
     """
     Schema for advanced search providers requests.
@@ -423,29 +278,5 @@ class SearchProvidersRequestSchema(CCRequestSchema):
         Dangerous patterns blocked:
         - Terms lookup with external index: {"terms": {"field": {"index": "other_index", ...}}}
         - More like this with external docs: {"more_like_this": {"like": [{"_index": "other_index"}]}}
-        """
-        _validate_no_cross_index_keys(data.get('query', {}))
-
-
-class ExportPrivilegesRequestSchema(CCRequestSchema):
-    """
-    Schema for Exporting list of privileges into CSV file.
-
-    This schema is used to validate incoming requests to the advanced search providers API endpoint.
-    It accepts an OpenSearch DSL query body for flexible querying of the provider index.
-
-    Serialization direction:
-    API -> load() -> Python
-    """
-
-    # The OpenSearch query body - we use Raw to allow the full flexibility of OpenSearch queries
-    query = Raw(required=True, allow_none=False)
-
-    @validates_schema
-    def validate_no_cross_index_queries(self, data, **kwargs):
-        """
-        Validate that the query does not contain cross-index lookup attempts.
-
-        This is a defense-in-depth security measure. See SearchProvidersRequestSchema for details.
         """
         _validate_no_cross_index_keys(data.get('query', {}))

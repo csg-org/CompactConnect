@@ -45,9 +45,9 @@ class TestQueryProviders(TstFunction):
     def test_query_providers_updated_sorting(self):
         from handlers.providers import query_providers
 
-        # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
+        # 20 providers with licenses in oh (two batches)
+        self._generate_providers(home='oh', start_serial=9999)
+        self._generate_providers(home='oh', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -74,8 +74,7 @@ class TestQueryProviders(TstFunction):
     def test_query_providers_family_name_sorting(self):
         from handlers.providers import query_providers
 
-        # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        # We'll force the first 10 names, to be a set of values we know are challenging characters
+        # 20 providers with licenses in oh (two batches); first 10 have challenging name characters
         names = [
             ('山田', '1'),
             ('後藤', '2'),
@@ -88,10 +87,8 @@ class TestQueryProviders(TstFunction):
             ('Figueroa', '9'),
             ('Frías', '10'),
         ]
-        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999, names=names)
-        # We'll leave the last 10 names to be randomly generated to let the Faker data set come up with some
-        # interesting values, to leave the door open to identify new edge cases.
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
+        self._generate_providers(home='oh', start_serial=9999, names=names)
+        self._generate_providers(home='oh', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -119,10 +116,9 @@ class TestQueryProviders(TstFunction):
     def test_query_providers_by_family_name(self):
         from handlers.providers import query_providers
 
-        # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
+        # 10 providers with licenses in oh, including Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -151,10 +147,9 @@ class TestQueryProviders(TstFunction):
     def test_query_providers_given_name_only_not_allowed(self):
         from handlers.providers import query_providers
 
-        # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
+        # 10 providers with licenses in oh, including Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -181,9 +176,9 @@ class TestQueryProviders(TstFunction):
         """If sorting is not specified, familyName is default"""
         from handlers.providers import query_providers
 
-        # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
+        # 20 providers with licenses (10 in oh, 10 in ne)
+        self._generate_providers(home='oh', start_serial=9999)
+        self._generate_providers(home='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -209,9 +204,9 @@ class TestQueryProviders(TstFunction):
     def test_query_providers_invalid_sorting(self):
         from handlers.providers import query_providers
 
-        # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
+        # 20 providers with licenses (10 in oh, 10 in ne)
+        self._generate_providers(home='oh', start_serial=9999)
+        self._generate_providers(home='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -233,7 +228,6 @@ class TestQueryProviders(TstFunction):
         # Create providers with known names for testing
         self._generate_providers(
             home='oh',
-            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -318,15 +312,9 @@ class TestGetProvider(TstFunction):
         )
 
     def test_get_provider_with_matching_license_jurisdiction_level_read_private_access(self):
-        # test provider has a license in oh and a privilege in ne
+        # test provider has a license in oh
         self._when_testing_get_provider_with_read_private_access(
             scopes='openid email cosm/readGeneral oh/cosm.readPrivate'
-        )
-
-    def test_get_provider_with_matching_privilege_jurisdiction_level_read_private_access(self):
-        # test provider has a license in oh and a privilege in ne
-        self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email cosm/readGeneral ne/cosm.readPrivate'
         )
 
     def test_get_provider_missing_provider_id(self):
@@ -432,29 +420,9 @@ class TestGetProviderSSN(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'ssn': '123-12-1234'}, json.loads(resp['body']))
 
-    def test_get_provider_ssn_returns_ssn_if_caller_has_read_ssn_privilege_jurisdiction_scope(self):
-        """
-        The provider has a privilege in ne, and the caller has readSSN permission for ne.
-        """
-        self._load_provider_data()
-
-        from handlers.providers import get_provider_ssn
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral ne/cosm.readSSN'
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
-
-        resp = get_provider_ssn(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-        self.assertEqual({'ssn': '123-12-1234'}, json.loads(resp['body']))
-
     def test_get_provider_ssn_forbidden_without_correct_jurisdiction_level_scope(self):
         """
-        The provider has no license or privilege in ky, and the caller has readSSN permission for ky.
+        The provider has no license in ky, and the caller has readSSN permission for ky.
         """
         self._load_provider_data()
 

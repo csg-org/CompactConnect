@@ -1,8 +1,7 @@
 """
 Signature Authentication Module
 
-This module provides decorators for validating ECDSA-based request signatures as described in the
-client_signature_auth.md documentation.
+This module provides decorators for validating ECDSA-based request signatures.
 """
 
 import base64

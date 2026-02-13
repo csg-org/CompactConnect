@@ -118,11 +118,11 @@ class TestProcessObjects(TstFunction):
 
         # Create CSV content with whitespace in string fields
         csv_content = (
-            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
-            '123-45-6789,1234567890,'
+            '123-45-6789,'
             '  LICENSE123  ,'
             '  John  ,'
             '  Middle  ,'
@@ -187,7 +187,6 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('cosm', message_data['compact'])
         self.assertEqual('oh', message_data['jurisdiction'])
         self.assertEqual('123-45-6789', message_data['ssn'])
-        self.assertEqual('1234567890', message_data['npi'])
         self.assertEqual('active', message_data['licenseStatus'])
         self.assertEqual('eligible', message_data['compactEligibility'])
 
@@ -198,11 +197,11 @@ class TestProcessObjects(TstFunction):
         # Create CSV content that includes compact and jurisdiction fields
         # These should NOT be allowed to overwrite the values from the URL path
         csv_content = (
-            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseStatusName,compact,jurisdiction\n'
-            '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
+            '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,Active,'
             'malicious_compact,malicious_jurisdiction'
         )
@@ -253,7 +252,6 @@ class TestProcessObjects(TstFunction):
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
-                            'npi': '1234567890',
                             'licenseNumber': 'LICENSE123',
                             'givenName': 'John',
                             'middleName': 'Middle',
@@ -278,13 +276,13 @@ class TestProcessObjects(TstFunction):
         # Create CSV content that includes duplicate SSNs
         # Rows that duplicate the same SSN will be considered an error and not processed
         csv_content = (
-            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
-            '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
+            '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,Active\n'
-            '123-45-6789,1234567890,LICENSE456,Jane,Middle,Smith,,1995-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
+            '123-45-6789,LICENSE456,Jane,Middle,Smith,,1995-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,Active'
         )
 
@@ -333,7 +331,6 @@ class TestProcessObjects(TstFunction):
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
-                            'npi': '1234567890',
                             'licenseNumber': 'LICENSE456',
                             'givenName': 'Jane',
                             'middleName': 'Middle',
@@ -362,13 +359,13 @@ class TestProcessObjects(TstFunction):
 
         # Create CSV content that includes duplicate SSNs but different license types
         csv_content = (
-            'ssn,npi,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
-            '123-45-6789,1234567890,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
+            '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,Active\n'
-            '123-45-6789,1234567890,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
+            '123-45-6789,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,'
             'Active'
         )
@@ -412,10 +409,10 @@ class TestProcessObjects(TstFunction):
 
         # Create CSV content without BOM in the string (BOM will be added during encoding)
         csv_content = (
-            'dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,'
+            'dateOfIssuance,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,'
             'licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,'
             'dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal\n'
-            '2024-06-30,0608337260,BOM0608337260,2024-06-30,esthetician,TestFamily,Columbus,'
+            '2024-06-30,BOM0608337260,2024-06-30,esthetician,TestFamily,Columbus,'
             'TestMiddle,active,ACTIVE,eligible,529-31-5413,123 BOM Test St.,Apt 1,2024-06-30,oh,43215,'
             'TestGiven,2024-06-30'
         )
@@ -458,7 +455,6 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('ACTIVE', message_data['licenseStatusName'])
         self.assertEqual('eligible', message_data['compactEligibility'])
         self.assertEqual('529-31-5413', message_data['ssn'])
-        self.assertEqual('0608337260', message_data['npi'])
 
         # Verify injected fields
         self.assertEqual('cosm', message_data['compact'])

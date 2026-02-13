@@ -431,14 +431,6 @@ POST /v1/compacts/{compact}/providers/search
 
 Returns provider records matching the query. Response includes the full provider document with licenses and privileges.
 
-#### Privilege CSV Export
-```
-POST /v1/compacts/{compact}/privileges/export
-```
-
-Returns flattened privilege records. This endpoint queries the same provider index but extracts and flattens
-privileges, combining privilege data with license data to provide a denormalized list of objects which are then exported to a CSV file for downloading.
-
 ### Document Indexing
 
 #### Initial Population / Re-indexing

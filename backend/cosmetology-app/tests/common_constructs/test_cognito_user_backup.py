@@ -31,12 +31,13 @@ class TestCognitoUserBackup(TestCase):
     def setUpClass(cls):
         """Set up test infrastructure."""
         cls.app = App()
-        # The persistent stack and layer are required for CognitoUserBackup, as an internal lambda depends on it
+        # The persistent stack and layer are required for CognitoUserBackup, as an internal lambda depends on it.
+        # Use a non-pipeline environment name so domain_name is not required (avoids HostedZone.from_lookup in tests).
         common_stack = AppStack(
             cls.app,
             'CommonStack',
             environment_context={},
-            environment_name='test',
+            environment_name='sandbox',
             standard_tags=StandardTags(project='compact-connect', service='compact-connect', environment='test'),
         )
         # Create common lambda layers
