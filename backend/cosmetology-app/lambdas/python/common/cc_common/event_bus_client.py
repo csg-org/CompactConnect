@@ -11,9 +11,6 @@ from cc_common.data_model.schema.data_event.api import (
     InvestigationEventDetailSchema,
     LicenseDeactivationDetailSchema,
     LicenseRevertDetailSchema,
-    PrivilegeIssuanceDetailSchema,
-    PrivilegePurchaseEventDetailSchema,
-    PrivilegeRenewalDetailSchema,
     PrivilegeRevertDetailSchema,
 )
 from cc_common.event_batch_writer import EventBatchWriter
@@ -85,93 +82,6 @@ class EventBusClient:
             'Detail': json.dumps(loaded_detail, cls=ResponseEncoder),
             'EventBusName': config.event_bus_name,
         }
-
-    def publish_privilege_purchase_event(
-        self,
-        source: str,
-        jurisdiction: str,
-        compact: str,
-        provider_email: str,
-        privileges: list[dict],
-        total_cost: str,
-        cost_line_items: list[dict],
-        event_batch_writer: EventBatchWriter | None = None,
-    ):
-        event_detail = {
-            'jurisdiction': jurisdiction,
-            'compact': compact,
-            'providerEmail': provider_email,
-            'privileges': privileges,
-            'totalCost': total_cost,
-            'costLineItems': cost_line_items,
-            'eventTime': config.current_standard_datetime.isoformat(),
-        }
-
-        privilege_purchase_detail_schema = PrivilegePurchaseEventDetailSchema()
-
-        loaded_detail = privilege_purchase_detail_schema.load(event_detail)
-        deserialized_detail = privilege_purchase_detail_schema.dump(loaded_detail)
-
-        self._publish_event(
-            source=source,
-            detail_type='privilege.purchase',
-            detail=deserialized_detail,
-            event_batch_writer=event_batch_writer,
-        )
-
-    def publish_privilege_issued_event(
-        self,
-        source: str,
-        jurisdiction: str,
-        compact: str,
-        provider_email: str,
-        event_batch_writer: EventBatchWriter | None = None,
-    ):
-        event_detail = {
-            'jurisdiction': jurisdiction,
-            'compact': compact,
-            'providerEmail': provider_email,
-            'eventTime': config.current_standard_datetime.isoformat(),
-        }
-
-        privilege_issued_detail_schema = PrivilegeIssuanceDetailSchema()
-
-        loaded_detail = privilege_issued_detail_schema.load(event_detail)
-        deserialized_detail = privilege_issued_detail_schema.dump(loaded_detail)
-
-        self._publish_event(
-            source=source,
-            detail_type='privilege.issued',
-            detail=deserialized_detail,
-            event_batch_writer=event_batch_writer,
-        )
-
-    def publish_privilege_renewed_event(
-        self,
-        source: str,
-        jurisdiction: str,
-        compact: str,
-        provider_email: str,
-        event_batch_writer: EventBatchWriter | None = None,
-    ):
-        event_detail = {
-            'jurisdiction': jurisdiction,
-            'compact': compact,
-            'providerEmail': provider_email,
-            'eventTime': config.current_standard_datetime.isoformat(),
-        }
-
-        privilege_renewal_detail_schema = PrivilegeRenewalDetailSchema()
-
-        loaded_detail = privilege_renewal_detail_schema.load(event_detail)
-        deserialized_detail = privilege_renewal_detail_schema.dump(loaded_detail)
-
-        self._publish_event(
-            source=source,
-            detail_type='privilege.renewed',
-            detail=deserialized_detail,
-            event_batch_writer=event_batch_writer,
-        )
 
     def publish_license_encumbrance_event(
         self,

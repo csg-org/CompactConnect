@@ -69,10 +69,6 @@ class ProviderManagement:
             method_options=ssn_method_options,
             get_provider_ssn_handler=api_lambda_stack.provider_management_lambdas.get_provider_ssn_handler,
         )
-        self._add_deactivate_privilege(
-            method_options=admin_method_options,
-            deactivate_privilege_handler=api_lambda_stack.provider_management_lambdas.deactivate_privilege_handler,
-        )
 
         self._add_encumber_privilege(
             method_options=admin_method_options,
@@ -193,56 +189,6 @@ class ProviderManagement:
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         )
         self.ssn_api_throttling_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
-
-    def _add_deactivate_privilege(
-        self,
-        method_options: MethodOptions,
-        deactivate_privilege_handler: PythonFunction,
-    ):
-        """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
-        /licenseType/{licenseType}/deactivate endpoint."""
-        deactivate_resource = self.privilege_jurisdiction_license_type_resource.add_resource('deactivate')
-
-        # Create a metric to track privilege deactivation notification failures
-        privilege_deactivation_notification_failed_metric = Metric(
-            namespace='compact-connect',
-            metric_name='privilege-deactivation-notification-failed',
-            statistic='Sum',
-            period=Duration.minutes(5),
-            dimensions_map={'service': 'common'},
-        )
-
-        # Create an alarm that will fire if any privilege deactivation notification fails
-        self.privilege_deactivation_notification_failed_alarm = Alarm(
-            self.api,
-            'PrivilegeDeactivationNotificationFailedAlarm',
-            metric=privilege_deactivation_notification_failed_metric,
-            threshold=1,
-            evaluation_periods=1,
-            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-            treat_missing_data=TreatMissingData.NOT_BREACHING,
-            alarm_description=f'{self.api.node.path} Privilege deactivation notification failed. '
-            f'One or more notifications to providers or jurisdictions failed to send during privilege deactivation. '
-            f'Investigation required to ensure all parties have been properly notified.',
-        )
-        self.privilege_deactivation_notification_failed_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
-
-        deactivate_resource.add_method(
-            'POST',
-            request_validator=self.api.parameter_body_validator,
-            request_models={'application/json': self.api_model.post_privilege_deactivation_request_model},
-            method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={'application/json': self.api_model.message_response_model},
-                ),
-            ],
-            integration=LambdaIntegration(deactivate_privilege_handler, timeout=Duration.seconds(29)),
-            request_parameters={'method.request.header.Authorization': True},
-            authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer,
-            authorization_scopes=method_options.authorization_scopes,
-        )
 
     def _add_encumber_privilege(
         self,

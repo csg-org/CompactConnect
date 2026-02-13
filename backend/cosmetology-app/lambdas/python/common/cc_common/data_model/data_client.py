@@ -30,7 +30,6 @@ from cc_common.data_model.schema.common import (
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
@@ -880,91 +879,6 @@ class DataClient:
             result.extend([update.to_dict() for update in privilege_updates])
 
         return result
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbr')
-    def deactivate_privilege(
-        self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str, deactivation_details: dict
-    ) -> None:
-        """
-        Deactivate a privilege for a provider in a jurisdiction.
-
-        This will update the privilege record to have a administratorSetStatus of 'inactive'.
-
-        :param str compact: The compact to deactivate the privilege for
-        :param str provider_id: The provider to deactivate the privilege for
-        :param str jurisdiction: The jurisdiction to deactivate the privilege for
-        :param str license_type_abbr: The license type abbreviation to deactivate the privilege for
-        :param dict deactivation_details: The details of the deactivation to be added to the history record
-        :raises CCNotFoundException: If the privilege record is not found
-        """
-        # Get the privilege record
-
-        privilege_data = self.get_privilege_data(
-            compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type_abbr=license_type_abbr
-        )
-
-        privilege_record = privilege_data[0]
-
-        # If already inactive, do nothing
-        if privilege_record.get('administratorSetStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:
-            logger.info('Provider already inactive. Doing nothing.')
-            raise CCInvalidRequestException('Privilege already deactivated')
-
-        now = config.current_standard_datetime
-
-        # Create the update record
-        # Use the schema to generate the update record with proper pk/sk
-        privilege_update_record = PrivilegeUpdateRecordSchema().dump(
-            {
-                'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                'updateType': UpdateCategory.DEACTIVATION,
-                'providerId': provider_id,
-                'compact': compact,
-                'jurisdiction': jurisdiction,
-                'createDate': now,
-                'effectiveDate': now,
-                'licenseType': privilege_record['licenseType'],
-                'deactivationDetails': deactivation_details,
-                'previous': {
-                    # We're relying on the schema to trim out unneeded fields
-                    **privilege_record,
-                },
-                'updatedValues': {
-                    'administratorSetStatus': ActiveInactiveStatus.INACTIVE,
-                },
-            }
-        )
-
-        # Update the privilege record and create history record
-        logger.info('Deactivating privilege')
-        self.config.dynamodb_client.transact_write_items(
-            TransactItems=[
-                # Set the privilege record's administratorSetStatus to inactive and update the dateOfUpdate
-                {
-                    'Update': {
-                        'TableName': self.config.provider_table.name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#'},
-                        },
-                        'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
-                        'ExpressionAttributeValues': {
-                            ':status': {'S': ActiveInactiveStatus.INACTIVE},
-                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                        },
-                    },
-                },
-                # Create a history record, reflecting this change
-                {
-                    'Put': {
-                        'TableName': self.config.provider_table.name,
-                        'Item': TypeSerializer().serialize(privilege_update_record)['M'],
-                    },
-                },
-            ],
-        )
-
-        return privilege_record
 
     def _generate_encumbered_status_update_item(
         self,
