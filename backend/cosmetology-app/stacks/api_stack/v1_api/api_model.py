@@ -96,7 +96,7 @@ class ApiModel:
                             ),
                             'jurisdiction': JsonSchema(
                                 type=JsonSchemaType.STRING,
-                                description='Filter for providers with privilege/license in a jurisdiction',
+                                description='Filter for providers with license in a jurisdiction',
                                 enum=self.api.node.get_context('jurisdictions'),
                             ),
                             'givenName': JsonSchema(

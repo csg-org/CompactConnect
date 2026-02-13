@@ -20,8 +20,6 @@ class TestTransformations(TstFunction):
         database, then returned via the API. We will specifically test that chain, end to end, to make sure the
         transformations all happen as expected.
         """
-        from cc_common.data_model.provider_record_util import ProviderUserRecords
-
         # Before we get started, we'll pre-set the SSN/providerId association we expect
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
@@ -83,17 +81,11 @@ class TestTransformations(TstFunction):
         # This should fully ingest the license, which will result in it being written to the DB
         ingest_license_message(event, self.mock_context)
 
-        from cc_common.data_model.data_client import DataClient
-
         # We'll fetch the provider id from the ssn table
-        client = DataClient(self.config)
         provider_id = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{license_ssn}', 'sk': f'cosm#SSN#{license_ssn}'})[
             'Item'
         ]['providerId']
         self.assertEqual(expected_provider_id, provider_id)
-        provider_user_records: ProviderUserRecords = client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id
-        )
 
         # Get the provider and all update records straight from the table, to inspect them
         provider_user_records = self.config.data_client.get_provider_user_records(

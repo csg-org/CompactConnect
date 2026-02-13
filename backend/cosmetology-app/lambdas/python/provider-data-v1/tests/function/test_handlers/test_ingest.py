@@ -167,8 +167,6 @@ class TestIngest(TstFunction):
         expected_provider['licenses'][0]['licenseStatus'] = 'inactive'
         expected_provider['compactEligibility'] = 'ineligible'
         expected_provider['licenses'][0]['compactEligibility'] = 'ineligible'
-        # ensure the privilege record is also set to inactive
-        expected_provider['privileges'][0]['status'] = 'inactive'
 
         provider_data = self._get_provider_via_api(provider_id)
 

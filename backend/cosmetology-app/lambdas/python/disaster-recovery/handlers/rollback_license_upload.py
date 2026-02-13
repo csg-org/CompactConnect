@@ -10,7 +10,6 @@ from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema.common import LICENSE_UPLOAD_UPDATE_CATEGORIES
 from cc_common.data_model.schema.license import LicenseData
-from cc_common.data_model.schema.license.record import LicenseRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.event_batch_writer import EventBatchWriter
@@ -36,7 +35,7 @@ class ProviderRollbackFailedException(Exception):
 class IneligibleUpdate:
     """Represents an update that makes a provider ineligible for rollback."""
 
-    record_type: str  # 'licenseUpdate' or 'privilegeUpdate'
+    record_type: str  # 'licenseUpdate'
     type_of_update: str
     update_time: str
     reason: str
@@ -596,7 +595,7 @@ def _build_and_execute_revert_transactions(
 
     Returns either a summary of what was reverted or details about why the provider was skipped.
     """
-    # Split transaction lists into first tier/second tier lists (license/privilege/provider first tier, updates second)
+    # Split transaction lists into first tier/second tier lists (license/provider first tier, updates second)
     # then merge the two lists into a single list of transaction items
     primary_record_transaction_items = []  # License and provider records
     update_record_transactions_items = []  # Update records (license updates)
@@ -662,8 +661,6 @@ def _build_and_execute_revert_transactions(
 
     # Step 2: Process each license record for the jurisdiction
     license_records = provider_records.get_license_records(filter_condition=lambda x: x.jurisdiction == jurisdiction)
-
-    reverted_licenses_dict = []
 
     for license_record in license_records:
         # Get license updates for this license after start_datetime
@@ -738,10 +735,6 @@ def _build_and_execute_revert_transactions(
 
             add_put(serialized_reverted_license, update_record=False)
             logger.info('Reverting license record to pre-upload state')
-
-            # Track for provider record regeneration
-            license_schema = LicenseRecordSchema()
-            reverted_licenses_dict.append(license_schema.load(serialized_reverted_license))
 
             reverted_licenses.append(
                 RevertedLicense(
