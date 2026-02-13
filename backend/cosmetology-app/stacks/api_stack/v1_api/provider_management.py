@@ -30,7 +30,6 @@ class ProviderManagement:
         admin_method_options: MethodOptions,
         ssn_method_options: MethodOptions,
         api_model: ApiModel,
-        privilege_history_function: PythonFunction,
         api_lambda_stack: ApiLambdaStack,
     ):
         super().__init__()
@@ -88,11 +87,6 @@ class ProviderManagement:
         self._add_investigation_license(
             method_options=admin_method_options,
             investigation_handler=api_lambda_stack.provider_management_lambdas.provider_investigation_handler,
-        )
-
-        self._add_get_privilege_history(
-            method_options=method_options,
-            privilege_history_function=privilege_history_function,
         )
 
     def _add_get_provider(
@@ -368,28 +362,6 @@ class ProviderManagement:
                 ),
             ],
             integration=LambdaIntegration(investigation_handler, timeout=Duration.seconds(29)),
-            request_parameters={'method.request.header.Authorization': True},
-            authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer,
-            authorization_scopes=method_options.authorization_scopes,
-        )
-
-    def _add_get_privilege_history(
-        self,
-        method_options: MethodOptions,
-        privilege_history_function: PythonFunction,
-    ):
-        self.privilege_history_resource = self.privilege_jurisdiction_license_type_resource.add_resource('history')
-
-        self.privilege_history_resource.add_method(
-            'GET',
-            method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={'application/json': self.api_model.privilege_history_response_model},
-                ),
-            ],
-            integration=LambdaIntegration(privilege_history_function, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,

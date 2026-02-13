@@ -1,19 +1,17 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow.fields import List, Nested, Raw, String
-from marshmallow.validate import ContainsNoneOf, Length
+from marshmallow.validate import Length
 
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionGeneralResponseSchema,
     AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.base_record import ForgivingSchema
-from cc_common.data_model.schema.common import UpdateCategory
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
     InvestigationStatusField,
     Jurisdiction,
-    UpdateType,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
@@ -62,9 +60,6 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    # This field shows how long the privilege have been continuously active according to
-    # its history
-    activeSince = Raw(required=False, allow_none=False)
     # This field is only set if the privilege is under investigation
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
@@ -93,9 +88,6 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    # This field shows how long the privilege have been continuously active according to
-    # its history
-    activeSince = Raw(required=False, allow_none=False)
     # This field is only set if the privilege is under investigation
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
 
@@ -127,44 +119,3 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    # This field shows how long the privilege have been continuously active according to
-    # its history
-    activeSince = Raw(required=False, allow_none=False)
-
-
-class PrivilegeHistoryEventResponseSchema(ForgivingSchema):
-    """
-    Privilege history event object fields, as seen by the public lookup endpoint.
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    type = String(required=True, allow_none=False)
-    # We specifically prohibit returning investigation updates as a backup protection from accidental
-    # disclosure via the API
-    updateType = UpdateType(
-        required=True,
-        allow_none=False,
-        validate=ContainsNoneOf((UpdateCategory.INVESTIGATION, UpdateCategory.CLOSING_INVESTIGATION)),
-    )
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    effectiveDate = Raw(required=True, allow_none=False)
-    createDate = Raw(required=True, allow_none=False)
-    note = String(required=False, allow_none=True)
-    # in the case of encumbrance events, we return the list of categories rather than a note
-    npdbCategories = List(String(), required=False, allow_none=True)
-
-
-class PrivilegeHistoryResponseSchema(ForgivingSchema):
-    """
-    Privilege history object fields, as seen by the public lookup endpoint.
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    providerId = Raw(required=True, allow_none=False)
-    compact = Compact(required=True, allow_none=False)
-    jurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
-    privilegeId = String(required=True, allow_none=False)
-    events = List(Nested(PrivilegeHistoryEventResponseSchema(), required=False, allow_none=False))

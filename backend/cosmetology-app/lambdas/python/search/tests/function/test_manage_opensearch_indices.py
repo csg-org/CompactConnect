@@ -233,7 +233,6 @@ class TestOpenSearchIndexManager(TstFunction):
                             'privilegeJurisdictions': {'type': 'keyword'},
                             'privileges': {
                                 'properties': {
-                                    'activeSince': {'type': 'date'},
                                     'administratorSetStatus': {'type': 'keyword'},
                                     'adverseActions': {
                                         'properties': {
