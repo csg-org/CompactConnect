@@ -172,6 +172,8 @@ const buildCspHeaders = (environment) => {
     ].join(' ');
     const cspConnectSrc = [
         '\'self\'',
+        cognitoIdpUrl,
+        'https://www.google.com/recaptcha/',
         // JCC
         dataApiUrl,
         searchApiUrl,
@@ -184,8 +186,6 @@ const buildCspHeaders = (environment) => {
         searchApiUrlCosmo,
         s3UploadUrlStateCosmo,
         cognitoStaffUrlCosmo,
-        cognitoIdpUrl,
-        'https://www.google.com/recaptcha/',
         // Begin Statsig domains
         'https://api.statsig.com/',
         'https://featuregates.org/',

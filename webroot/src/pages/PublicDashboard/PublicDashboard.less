@@ -38,10 +38,11 @@
             }
 
             &.lower {
-                bottom: -5px;
+                bottom: 0;
                 left: 0;
                 width: 80%;
                 max-width: 100rem;
+                line-height: 0.5;
 
                 .splash-image {
                     fill: transparent;
@@ -66,7 +67,7 @@
     .dashboard-content-container {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-self: stretch;
         justify-content: center;
         width: 100%;
         padding: 0 4rem;
@@ -74,6 +75,16 @@
         @media @largeDesktopWidth {
             width: auto;
             min-width: 45%;
+            margin-top: 2rem;
+        }
+
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
         }
     }
 
@@ -196,6 +207,10 @@
 
         @media @desktopWidth {
             flex-direction: row;
+        }
+
+        @media @largeDesktopWidth {
+            margin-top: auto;
         }
 
         .footer-link {

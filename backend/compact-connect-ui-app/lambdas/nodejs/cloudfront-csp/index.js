@@ -252,6 +252,8 @@ const setCspHeader = (headers = {}) => {
             ]),
             buildSrcString('connect-src', [
                 'self',
+                cognitoIdpUrl,
+                'https://www.google.com/recaptcha/',
                 // JCC
                 domains.dataApi,
                 domains.searchApi,
@@ -264,8 +266,6 @@ const setCspHeader = (headers = {}) => {
                 domains.searchApiCosmo,
                 domains.s3UploadUrlStateCosmo,
                 domains.cognitoStaffCosmo,
-                cognitoIdpUrl,
-                'https://www.google.com/recaptcha/',
                 // Begin Statsig domains
                 'https://api.statsig.com/',
                 'https://featuregates.org/',
