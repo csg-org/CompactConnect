@@ -7,6 +7,7 @@
 
 <template>
     <svg class="icon licensee-user-icon stroke-fill-type" viewBox="0 0 50 51">
+        <rect x="1.5" y="2" width="47" height="47" rx="3" stroke-width="2.5" stroke-linejoin="round"/>
         <path class="custom-fill" d="M29.8659 13.0256C29.8659 12.2824 29.8659 11.9108 29.7212 11.6269C29.594 11.3772
             29.391 11.1742 29.1413 11.047C28.8574 10.9023 28.4858 10.9023 27.7426 10.9023H22.2574C21.5142 10.9023
             21.1426 10.9023 20.8587 11.047C20.609 11.1742 20.406 11.3772 20.2787 11.6269C20.1341 11.9108 20.1341
@@ -27,7 +28,6 @@
             20.4895C30.3407 20.3622 30.1377 20.1592 30.0105 19.9095C29.8659 19.6256 29.8659 19.254 29.8659
             18.5108V13.0256Z"
             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <rect x="1.5" y="2" width="47" height="47" rx="3" stroke-width="2.5" stroke-linejoin="round"/>
     </svg>
 
 </template>

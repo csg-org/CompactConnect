@@ -100,9 +100,10 @@ export class SearchDataApi implements DataApiInterface {
      * Attach Axios interceptors with injected contexts.
      * https://github.com/axios/axios#interceptors
      * @param {Router} router
+     * @param {Store}  store
      */
-    public initInterceptors(router) {
-        const requestSuccessInterceptor = requestSuccess();
+    public initInterceptors(router, store) {
+        const requestSuccessInterceptor = requestSuccess(store);
         const requestErrorInterceptor = requestError();
         const responseSuccessInterceptor = responseSuccess();
         const responseErrorInterceptor = responseError(router);

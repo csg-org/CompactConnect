@@ -377,11 +377,16 @@
         "dashboard": "Panel",
         "goToDashboard": "Ir al panel de control",
         "login": "Iniciar sesión",
-        "loginAsStaff": "Iniciar sesión como personal compacto o estatal",
-        "loginAsProvider": "Iniciar sesión como practicante",
+        "loginAsStaff": "Inicio de sesión del personal del Pacto / Estado",
+        "loginAsStaffSubtext": "Seleccione un compacto",
+        "loginAsProvider": "Inicio de sesión de practicante",
+        "loginAsProviderSubtext": "Accede a tu cuenta y privilegios",
         "register": "Registro",
-        "registerAsProvider": "Registrarse como practicante",
-        "verifyPrivilege": "Verificar un privilegio del compacto",
+        "registerAsProvider": "Crear una cuenta",
+        "registerAsProviderSubtext": "¿No tienes una cuenta?",
+        "verifyPrivilege": "Verificar un privilegio compacto",
+        "verifyPrivilegeSubtext": "Busque credenciales y estado del profesional",
+        "verifyPrivilegeSearch": "Ir a la búsqueda",
         "home": "Hogar",
         "upload": "Subir",
         "licensing": "Licencia",
@@ -484,9 +489,15 @@
             "name": "Asesoramiento",
             "abbrev": "Counseling",
             "key": "coun"
+        },
+        {
+            "name": "Cosmetología y Estética",
+            "abbrev": "COSM",
+            "key": "cosm"
         }
     ],
     "compact": {
+        "welcome": "Bienvenido a CompactConnect",
         "settingsTitle": "Ajustes",
         "configuration": "Configuración",
         "paymentProcessorCredentials": "Authorize.net cartas credenciales",
@@ -526,7 +537,6 @@
     },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
-        "formSubtext": "Las cargas actuales son para fines de prueba y los datos no se guardarán de forma permanente.",
         "uploadHint": "Sólo 1 archivo CSV",
         "successTitle": "Su documento ha sido subido exitosamente",
         "successSubTitle": "Si su documento encuentra algún error durante el procesamiento, se le notificará por correo electrónico."
@@ -796,6 +806,18 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun",
                 "abbrev": "lpc"
+            },
+            {
+                "name": "Cosmetólogo",
+                "key": "cosmetologist",
+                "compactKey": "cosm",
+                "abbrev": "cos"
+            },
+            {
+                "name": "Esteticista",
+                "key": "esthetician",
+                "compactKey": "cosm",
+                "abbrev": "esth"
             }
         ],
         "disciplineTypes": [

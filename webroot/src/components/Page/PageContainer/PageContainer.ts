@@ -49,6 +49,7 @@ class PageContainer extends Vue {
     get includePageHeader(): boolean {
         const nonHeaderRouteNames: Array<string> = [
             'Logout',
+            'DashboardPublic',
             'LicenseeVerification',
             'MfaResetConfirmLicensee',
         ];
@@ -69,6 +70,7 @@ class PageContainer extends Vue {
 
     get includeMainNav(): boolean {
         const nonMainNavRouteNames: Array<string> = [
+            'DashboardPublic', // This is a custom splash page with custom button navigation
             'LicenseeVerification', // This is a printer-friendly page
             'MfaResetConfirmLicensee', // This is a standalone automation page accessed from emailed link
         ];

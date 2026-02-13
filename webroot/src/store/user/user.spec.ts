@@ -9,6 +9,7 @@ import {
     authStorage,
     tokens,
     FeeTypes,
+    AppModes,
     AuthTypes
 } from '@/app.config';
 import chaiMatchPattern from 'chai-match-pattern';
@@ -742,25 +743,27 @@ describe('User Store Actions', async () => {
         expect(dispatch.calledOnce).to.equal(false);
     });
     it('should successfully set staff refresh token timeout', () => {
+        const rootState = { appMode: AppModes.JCC };
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const refreshToken = 'test_refresh_token';
         const expiresIn = 7200;
         const authType = 'staff';
 
-        actions.setRefreshTokenTimeout({ commit, dispatch }, { refreshToken, expiresIn, authType });
+        actions.setRefreshTokenTimeout({ rootState, commit, dispatch }, { refreshToken, expiresIn, authType });
 
         expect(commit.calledOnce).to.equal(true);
         expect(dispatch.calledOnce).to.equal(false);
     });
     it('should successfully set licensee refresh token timeout', () => {
+        const rootState = { appMode: AppModes.JCC };
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const refreshToken = 'test_refresh_token';
         const expiresIn = 7200;
         const authType = 'licensee';
 
-        actions.setRefreshTokenTimeout({ commit, dispatch }, { refreshToken, expiresIn, authType });
+        actions.setRefreshTokenTimeout({ rootState, commit, dispatch }, { refreshToken, expiresIn, authType });
 
         expect(commit.calledOnce).to.equal(true);
         expect(dispatch.calledOnce).to.equal(false);

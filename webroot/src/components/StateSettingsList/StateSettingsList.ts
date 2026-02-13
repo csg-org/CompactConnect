@@ -188,7 +188,7 @@ class StateSettingsList extends mixins(MixinForm) {
 
             this.initialCompactConfig = compactConfig;
 
-            if (Array.isArray(compactConfig.configuredStates)) {
+            if (Array.isArray(compactConfig?.configuredStates)) {
                 this.compactConfigStates = [];
                 compactConfig.configuredStates.forEach((serverState) => {
                     this.compactConfigStates.push({

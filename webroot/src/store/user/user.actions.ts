@@ -9,6 +9,7 @@ import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
 import {
     authStorage,
+    AppModes,
     AuthTypes,
     tokens,
     AUTH_TYPE,
@@ -235,13 +236,19 @@ export default {
             dispatch('setRefreshTokenTimeout', { refreshToken, expiresIn, authType });
         }
     },
-    setRefreshTokenTimeout: async ({ commit, dispatch }, { refreshToken, expiresIn, authType }) => {
+    setRefreshTokenTimeout: async ({ rootState, commit, dispatch }, { refreshToken, expiresIn, authType }) => {
+        const { appMode } = rootState;
         let cognitoClientId;
         let cognitoAuthDomain;
 
         if (authType === AuthTypes.STAFF) {
-            cognitoClientId = config.cognitoClientIdStaff;
-            cognitoAuthDomain = config.cognitoAuthDomainStaff;
+            if (appMode === AppModes.JCC) {
+                cognitoClientId = config.cognitoClientIdStaff;
+                cognitoAuthDomain = config.cognitoAuthDomainStaff;
+            } else if (appMode === AppModes.COSMETOLOGY) {
+                cognitoClientId = config.cognitoClientIdStaffCosmo;
+                cognitoAuthDomain = config.cognitoAuthDomainStaffCosmo;
+            }
         } else if (authType === AuthTypes.LICENSEE) {
             cognitoClientId = config.cognitoClientIdLicensee;
             cognitoAuthDomain = config.cognitoAuthDomainLicensee;

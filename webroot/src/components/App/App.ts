@@ -14,6 +14,7 @@ import {
 import { RouteRecordName } from 'vue-router';
 import {
     authStorage,
+    AppModes,
     AuthTypes,
     relativeTimeFormats,
     AUTH_TYPE
@@ -24,6 +25,8 @@ import Modal from '@components/Modal/Modal.vue';
 import AutoLogout from '@components/AutoLogout/AutoLogout.vue';
 import { StatsigUser } from '@statsig/js-client';
 import moment from 'moment';
+
+const appWindow = window as any;
 
 @Component({
     name: 'App',
@@ -47,12 +50,16 @@ class App extends Vue {
     // Lifecycle
     //
     async created() {
+        await this.$router.isReady();
+        this.setAppModeFromCompact(this.routeCompactType);
+
         if (this.userStore.isLoggedIn) {
             await this.handleAuth();
         }
 
         this.setRelativeTimeFormats();
         this.setFeatureGateRefetchInterval();
+        this.addAppModeDebugger();
     }
 
     async beforeUnmount() {
@@ -96,10 +103,26 @@ class App extends Vue {
     async handleAuth() {
         const authType = this.setAuthType();
 
+        this.setAppModeFromCompact(this.routeCompactType);
+
         if (authType !== AuthTypes.PUBLIC) {
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
             await this.getAccount();
             await this.setCurrentCompact();
+        }
+    }
+
+    setAppModeFromCompact(compact: CompactType | null): void {
+        let { appMode } = this.globalStore;
+
+        if (!appMode) {
+            if (compact === CompactType.COSMETOLOGY) {
+                appMode = AppModes.COSMETOLOGY;
+            } else {
+                appMode = AppModes.JCC;
+            }
+
+            this.$store.dispatch('setAppMode', appMode);
         }
     }
 
@@ -192,6 +215,9 @@ class App extends Vue {
                 });
             }
         }
+
+        // Set the app mode based on the current compact
+        this.setAppModeFromCompact(userDefaultCompact?.type || null);
     }
 
     setRelativeTimeFormats() {
@@ -203,6 +229,18 @@ class App extends Vue {
 
     closeModal() {
         this.$store.dispatch('clearMessages');
+    }
+
+    addAppModeDebugger(): void {
+        appWindow.ccModeToggle = () => {
+            if (this.globalStore.isAppModeDisplayed) {
+                this.$store.dispatch('setAppModeDisplay', false);
+                console.log('CompactConnect app mode display: DISABLED');
+            } else {
+                this.$store.dispatch('setAppModeDisplay', true);
+                console.log('CompactConnect app mode display: ENABLED');
+            }
+        };
     }
 
     //

@@ -45,6 +45,10 @@ export interface EnvConfig {
     apiUrlLicense?: string;
     apiUrlSearch?: string;
     apiUrlUser?: string;
+    apiUrlStateCosmo?: string;
+    apiUrlLicenseCosmo?: string;
+    apiUrlSearchCosmo?: string;
+    apiUrlUserCosmo?: string;
     apiUrlExample?: string;
     apiKeyExample?: string;
     cognitoRegion?: string;
@@ -52,6 +56,8 @@ export interface EnvConfig {
     cognitoClientIdStaff?: string;
     cognitoAuthDomainLicensee?: string;
     cognitoClientIdLicensee?: string;
+    cognitoAuthDomainStaffCosmo?: string;
+    cognitoClientIdStaffCosmo?: string;
     recaptchaKey?: string;
     statsigKey?: string;
     isStatsigDisabled?: boolean;
@@ -78,6 +84,10 @@ export const config: EnvConfig = {
     apiUrlLicense: context.VUE_APP_API_LICENSE_ROOT,
     apiUrlSearch: context.VUE_APP_API_SEARCH_ROOT,
     apiUrlUser: context.VUE_APP_API_USER_ROOT,
+    apiUrlStateCosmo: context.VUE_APP_API_STATE_ROOT_COSMO,
+    apiUrlLicenseCosmo: context.VUE_APP_API_LICENSE_ROOT_COSMO,
+    apiUrlSearchCosmo: context.VUE_APP_API_SEARCH_ROOT_COSMO,
+    apiUrlUserCosmo: context.VUE_APP_API_USER_ROOT_COSMO,
     apiUrlExample: '/api',
     apiKeyExample: 'example',
     cognitoRegion: context.VUE_APP_COGNITO_REGION,
@@ -85,6 +95,8 @@ export const config: EnvConfig = {
     cognitoClientIdStaff: context.VUE_APP_COGNITO_CLIENT_ID_STAFF,
     cognitoAuthDomainLicensee: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE,
     cognitoClientIdLicensee: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE,
+    cognitoAuthDomainStaffCosmo: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO,
+    cognitoClientIdStaffCosmo: context.VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO,
     recaptchaKey: context.VUE_APP_RECAPTCHA_KEY,
     statsigKey: context.VUE_APP_STATSIG_KEY,
     isStatsigDisabled: (context.VUE_APP_STATSIG_DISABLED === 'true'),

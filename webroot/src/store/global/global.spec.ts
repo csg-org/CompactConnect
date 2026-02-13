@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { AuthTypes } from '@/app.config';
+import { AuthTypes, AppModes } from '@/app.config';
 import mutations, { MutationTypes } from './global.mutations';
 import actions from './global.actions';
 
@@ -81,6 +81,7 @@ describe('Global Store Mutations', () => {
             messages: [],
             isModalOpen: false,
             isModalLogoutOnly: false,
+            appMode: AppModes.JCC,
         });
     });
     it('should successfully set modal open', () => {
@@ -98,6 +99,21 @@ describe('Global Store Mutations', () => {
         mutations[MutationTypes.SET_MODAL_LOGOUT_ONLY](state, isModalLogoutOnly);
 
         expect(state.isModalLogoutOnly).to.equal(isModalLogoutOnly);
+    });
+    it('should successfully set app mode', () => {
+        const state = {};
+        const appMode = AppModes.JCC;
+
+        mutations[MutationTypes.SET_APP_MODE](state, appMode);
+
+        expect(state.appMode).to.equal(appMode);
+    });
+    it('should successfully set app mode display', () => {
+        const state = {};
+
+        mutations[MutationTypes.SET_APP_MODE_DISPLAY](state, true);
+
+        expect(state.isAppModeDisplayed).to.equal(true);
     });
     it('should successfully set auth type', () => {
         const state = {};
@@ -181,6 +197,23 @@ describe('Global Store Actions', () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_MODAL_LOGOUT_ONLY, isLogoutOnly]);
+    });
+    it('should successfully set app mode', () => {
+        const commit = sinon.spy();
+        const appMode = AppModes.JCC;
+
+        actions.setAppMode({ commit }, appMode);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE, appMode]);
+    });
+    it('should successfully set app mode display', () => {
+        const commit = sinon.spy();
+
+        actions.setAppModeDisplay({ commit }, true);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE_DISPLAY, true]);
     });
     it('should successfully set auth type', () => {
         const commit = sinon.spy();

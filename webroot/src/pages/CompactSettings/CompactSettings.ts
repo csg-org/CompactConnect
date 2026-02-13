@@ -6,7 +6,7 @@
 //
 
 import { Component, Vue, Watch } from 'vue-facing-decorator';
-import { AuthTypes } from '@/app.config';
+import { AppModes, AuthTypes } from '@/app.config';
 import Section from '@components/Section/Section.vue';
 import PaymentProcessorConfig from '@components/PaymentProcessorConfig/PaymentProcessorConfig.vue';
 import CompactSettingsConfig from '@components/CompactSettingsConfig/CompactSettingsConfig.vue';
@@ -68,6 +68,10 @@ export default class CompactSettings extends Vue {
             currentPermission.compact.type === this.currentCompact?.type) || null;
 
         return compactPermission;
+    }
+
+    get shouldShowPaymentConfig(): boolean {
+        return this.globalStore.appMode === AppModes.JCC;
     }
 
     get isCompactAdmin(): boolean {

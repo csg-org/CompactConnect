@@ -31,8 +31,8 @@ import './registerServiceWorker';
     // Enable vue-devtools. Can make environment-specific if needed.
     app.config.performance = true;
 
-    // Inject router into API interceptors (avoids circular dependency)
-    network.dataApi.initInterceptors(router);
+    // Inject modules into API interceptors (avoids circular dependency)
+    network.dataApi.initInterceptors(router, store);
 
     //
     // ALLOW ACCESS TO VUE INSTANCE SERVICES

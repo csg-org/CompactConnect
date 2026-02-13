@@ -8,6 +8,7 @@
 import { Component, Vue } from 'vue-facing-decorator';
 import {
     authStorage,
+    AppModes,
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
@@ -30,6 +31,10 @@ export default class Logout extends Vue {
     //
     // Computed
     //
+    get appMode(): AppModes {
+        return this.$store.state.appMode;
+    }
+
     get userStore() {
         return this.$store.state.user;
     }
@@ -39,14 +44,30 @@ export default class Logout extends Vue {
     }
 
     get hostedLogoutUriStaff(): string {
-        const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
+        const {
+            domain,
+            cognitoAuthDomainStaff,
+            cognitoClientIdStaff,
+            cognitoAuthDomainStaffCosmo,
+            cognitoClientIdStaffCosmo
+        } = this.$envConfig;
+        let cognitoAuthDomain = cognitoAuthDomainStaff;
+        let cognitoClientId = cognitoClientIdStaff;
+
+        // Adjust cognito params based on app mode
+        if (this.appMode === AppModes.COSMETOLOGY) {
+            cognitoAuthDomain = cognitoAuthDomainStaffCosmo;
+            cognitoClientId = cognitoClientIdStaffCosmo;
+        }
+
+        // Create the logout URI
         const logoutLink = encodeURIComponent(`${(domain as string)}/Logout`);
         const logoutUriQuery = [
-            `?client_id=${cognitoClientIdStaff}`,
+            `?client_id=${cognitoClientId}`,
             `&logout_uri=${logoutLink}`
         ].join('');
         const idpPath = '/logout';
-        const logoutUri = `${cognitoAuthDomainStaff}${idpPath}${logoutUriQuery}`;
+        const logoutUri = `${cognitoAuthDomain}${idpPath}${logoutUriQuery}`;
 
         return logoutUri;
     }
