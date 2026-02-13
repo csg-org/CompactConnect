@@ -10,7 +10,6 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     Jurisdiction,
-    Set,
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.license.api import (

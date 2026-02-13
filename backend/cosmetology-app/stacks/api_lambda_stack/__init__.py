@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from common_constructs.stack import AppStack
 from constructs import Construct

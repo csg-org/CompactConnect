@@ -20,7 +20,6 @@ from cc_common.data_model.schema.fields import (
     CompactEligibility,
     Jurisdiction,
     LicenseEncumberedStatusField,
-    Set,
     UpdateType,
 )
 from cc_common.data_model.update_tier_enum import UpdateTierEnum

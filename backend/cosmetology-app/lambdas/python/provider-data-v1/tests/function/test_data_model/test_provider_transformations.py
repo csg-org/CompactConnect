@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import datetime
 from unittest.mock import patch
 
 from cc_common.data_model.update_tier_enum import UpdateTierEnum

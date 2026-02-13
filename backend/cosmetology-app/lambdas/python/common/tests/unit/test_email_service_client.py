@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 from cc_common.config import logger
 
 from tests import TstLambdas

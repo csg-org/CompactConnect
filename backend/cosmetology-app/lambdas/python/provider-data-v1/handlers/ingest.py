@@ -192,8 +192,7 @@ def ingest_license_message(message: dict):
                 logger.info('Updating provider data')
 
                 provider_record = ProviderRecordUtility.populate_provider_record(
-                    current_provider_record=current_provider_record,
-                    license_record=posted_license_record
+                    current_provider_record=current_provider_record, license_record=posted_license_record
                 )
                 # Update our provider data
                 dynamo_transactions.append(
