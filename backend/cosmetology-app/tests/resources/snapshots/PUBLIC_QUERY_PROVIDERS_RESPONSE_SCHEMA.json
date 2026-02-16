@@ -106,7 +106,7 @@
           "type": "string"
         },
         "jurisdiction": {
-          "description": "Filter for providers with license in a jurisdiction",
+          "description": "Filter for providers with privilege/license in a jurisdiction",
           "enum": [
             "al",
             "az",
