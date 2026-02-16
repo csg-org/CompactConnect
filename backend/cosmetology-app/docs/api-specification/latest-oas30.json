@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "StateApi",
-    "version": "2026-02-12T15:29:10Z"
+    "version": "2026-02-16T16:29:16Z"
   },
   "servers": [
     {
@@ -10,228 +10,6 @@
     }
   ],
   "paths": {
-    "/v1/compacts/{compact}": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/jurisdictions/{jurisdiction}": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload": {
-      "get": {
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "200 response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SandboStateMW9czXwgYk67"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "SandboxStateAPIStackStateApiStateAuthAuthorizer7F83A6D3": [
-              "cosm/write",
-              "az/cosm.write"
-            ]
-          }
-        ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
     "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses": {
       "post": {
         "parameters": [
@@ -300,9 +78,19 @@
             ]
           }
         ]
-      },
-      "options": {
+      }
+    },
+    "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload": {
+      "get": {
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "compact",
             "in": "path",
@@ -321,139 +109,25 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/SandboStateMW9czXwgYk67"
                 }
               }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/jurisdictions": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
+        },
+        "security": [
+          {
+            "SandboxStateAPIStackStateApiStateAuthAuthorizer7F83A6D3": [
+              "cosm/write",
+              "az/cosm.write"
+            ]
           }
-        }
-      }
-    },
-    "/": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Vary": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
+        ]
       }
     }
   },

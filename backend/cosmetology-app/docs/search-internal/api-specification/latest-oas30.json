@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "SearchApi",
-    "version": "2025-12-02T19:49:45Z"
+    "version": "2026-02-16T17:23:42Z"
   },
   "servers": [
     {
@@ -13,6 +13,14 @@
     "/v1/compacts/{compact}/providers/search": {
       "post": {
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "compact",
             "in": "path",
@@ -26,7 +34,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboSearctZ4sfzliddmr"
+                "$ref": "#/components/schemas/SandboSearcFlaGc2hNzmIy"
               }
             }
           },
@@ -38,18 +46,60 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboSearcRcmFGOzNZ5TZ"
+                  "$ref": "#/components/schemas/SandboSearcEzLOjtUlVHxz"
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "SandboxSearchAPIStackSearchApiStaffUsersPoolAuthorizer469875BC": [
+              "cosm/readGeneral"
+            ]
+          }
+        ]
       }
     }
   },
   "components": {
     "schemas": {
-      "SandboSearcRcmFGOzNZ5TZ": {
+      "SandboSearcFlaGc2hNzmIy": {
+        "required": [
+          "query"
+        ],
+        "type": "object",
+        "properties": {
+          "search_after": {
+            "type": "array",
+            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
+          },
+          "size": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "description": "Number of results to return"
+          },
+          "query": {
+            "type": "object",
+            "description": "The OpenSearch query body"
+          },
+          "from": {
+            "minimum": 0,
+            "type": "integer",
+            "description": "Starting document offset for pagination"
+          },
+          "sort": {
+            "type": "array",
+            "description": "Sort order for results (required for search_after pagination)",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SandboSearcEzLOjtUlVHxz": {
         "required": [
           "providers",
           "total"
@@ -126,58 +176,15 @@
                         "type": "string",
                         "enum": [
                           "al",
-                          "ak",
                           "az",
-                          "ar",
-                          "ca",
                           "co",
-                          "ct",
-                          "de",
-                          "dc",
-                          "fl",
-                          "ga",
-                          "hi",
-                          "id",
-                          "il",
-                          "in",
-                          "ia",
                           "ks",
                           "ky",
-                          "la",
-                          "me",
                           "md",
-                          "ma",
-                          "mi",
-                          "mn",
-                          "ms",
-                          "mo",
-                          "mt",
-                          "ne",
-                          "nv",
-                          "nh",
-                          "nj",
-                          "nm",
-                          "ny",
-                          "nc",
-                          "nd",
                           "oh",
-                          "ok",
-                          "or",
-                          "pa",
-                          "pr",
-                          "ri",
-                          "sc",
-                          "sd",
                           "tn",
-                          "tx",
-                          "ut",
-                          "vt",
                           "va",
-                          "vi",
-                          "wa",
-                          "wv",
-                          "wi",
-                          "wy"
+                          "wa"
                         ]
                       },
                       "compact": {
@@ -190,79 +197,16 @@
                         "type": "string",
                         "enum": [
                           "al",
-                          "ak",
                           "az",
-                          "ar",
-                          "ca",
                           "co",
-                          "ct",
-                          "de",
-                          "dc",
-                          "fl",
-                          "ga",
-                          "hi",
-                          "id",
-                          "il",
-                          "in",
-                          "ia",
                           "ks",
                           "ky",
-                          "la",
-                          "me",
                           "md",
-                          "ma",
-                          "mi",
-                          "mn",
-                          "ms",
-                          "mo",
-                          "mt",
-                          "ne",
-                          "nv",
-                          "nh",
-                          "nj",
-                          "nm",
-                          "ny",
-                          "nc",
-                          "nd",
                           "oh",
-                          "ok",
-                          "or",
-                          "pa",
-                          "pr",
-                          "ri",
-                          "sc",
-                          "sd",
                           "tn",
-                          "tx",
-                          "ut",
-                          "vt",
                           "va",
-                          "vi",
-                          "wa",
-                          "wv",
-                          "wi",
-                          "wy"
+                          "wa"
                         ]
-                      },
-                      "attestations": {
-                        "type": "array",
-                        "items": {
-                          "required": [
-                            "attestationId",
-                            "version"
-                          ],
-                          "type": "object",
-                          "properties": {
-                            "attestationId": {
-                              "maxLength": 100,
-                              "type": "string"
-                            },
-                            "version": {
-                              "maxLength": 100,
-                              "type": "string"
-                            }
-                          }
-                        }
                       },
                       "investigations": {
                         "type": "array",
@@ -300,58 +244,15 @@
                               "type": "string",
                               "enum": [
                                 "al",
-                                "ak",
                                 "az",
-                                "ar",
-                                "ca",
                                 "co",
-                                "ct",
-                                "de",
-                                "dc",
-                                "fl",
-                                "ga",
-                                "hi",
-                                "id",
-                                "il",
-                                "in",
-                                "ia",
                                 "ks",
                                 "ky",
-                                "la",
-                                "me",
                                 "md",
-                                "ma",
-                                "mi",
-                                "mn",
-                                "ms",
-                                "mo",
-                                "mt",
-                                "ne",
-                                "nv",
-                                "nh",
-                                "nj",
-                                "nm",
-                                "ny",
-                                "nc",
-                                "nd",
                                 "oh",
-                                "ok",
-                                "or",
-                                "pa",
-                                "pr",
-                                "ri",
-                                "sc",
-                                "sd",
                                 "tn",
-                                "tx",
-                                "ut",
-                                "vt",
                                 "va",
-                                "vi",
-                                "wa",
-                                "wv",
-                                "wi",
-                                "wy"
+                                "wa"
                               ]
                             },
                             "submittingUser": {
@@ -451,58 +352,15 @@
                               "type": "string",
                               "enum": [
                                 "al",
-                                "ak",
                                 "az",
-                                "ar",
-                                "ca",
                                 "co",
-                                "ct",
-                                "de",
-                                "dc",
-                                "fl",
-                                "ga",
-                                "hi",
-                                "id",
-                                "il",
-                                "in",
-                                "ia",
                                 "ks",
                                 "ky",
-                                "la",
-                                "me",
                                 "md",
-                                "ma",
-                                "mi",
-                                "mn",
-                                "ms",
-                                "mo",
-                                "mt",
-                                "ne",
-                                "nv",
-                                "nh",
-                                "nj",
-                                "nm",
-                                "ny",
-                                "nc",
-                                "nd",
                                 "oh",
-                                "ok",
-                                "or",
-                                "pa",
-                                "pr",
-                                "ri",
-                                "sc",
-                                "sd",
                                 "tn",
-                                "tx",
-                                "ut",
-                                "vt",
                                 "va",
-                                "vi",
-                                "wa",
-                                "wv",
-                                "wi",
-                                "wy"
+                                "wa"
                               ]
                             },
                             "licenseTypeAbbreviation": {
@@ -580,58 +438,15 @@
                   "type": "string",
                   "enum": [
                     "al",
-                    "ak",
                     "az",
-                    "ar",
-                    "ca",
                     "co",
-                    "ct",
-                    "de",
-                    "dc",
-                    "fl",
-                    "ga",
-                    "hi",
-                    "id",
-                    "il",
-                    "in",
-                    "ia",
                     "ks",
                     "ky",
-                    "la",
-                    "me",
                     "md",
-                    "ma",
-                    "mi",
-                    "mn",
-                    "ms",
-                    "mo",
-                    "mt",
-                    "ne",
-                    "nv",
-                    "nh",
-                    "nj",
-                    "nm",
-                    "ny",
-                    "nc",
-                    "nd",
                     "oh",
-                    "ok",
-                    "or",
-                    "pa",
-                    "pr",
-                    "ri",
-                    "sc",
-                    "sd",
                     "tn",
-                    "tx",
-                    "ut",
-                    "vt",
                     "va",
-                    "vi",
-                    "wa",
-                    "wv",
-                    "wi",
-                    "wy"
+                    "wa"
                   ]
                 },
                 "compact": {
@@ -679,58 +494,15 @@
                   "type": "string",
                   "enum": [
                     "al",
-                    "ak",
                     "az",
-                    "ar",
-                    "ca",
                     "co",
-                    "ct",
-                    "de",
-                    "dc",
-                    "fl",
-                    "ga",
-                    "hi",
-                    "id",
-                    "il",
-                    "in",
-                    "ia",
                     "ks",
                     "ky",
-                    "la",
-                    "me",
                     "md",
-                    "ma",
-                    "mi",
-                    "mn",
-                    "ms",
-                    "mo",
-                    "mt",
-                    "ne",
-                    "nv",
-                    "nh",
-                    "nj",
-                    "nm",
-                    "ny",
-                    "nc",
-                    "nd",
                     "oh",
-                    "ok",
-                    "or",
-                    "pa",
-                    "pr",
-                    "ri",
-                    "sc",
-                    "sd",
                     "tn",
-                    "tx",
-                    "ut",
-                    "vt",
                     "va",
-                    "vi",
-                    "wa",
-                    "wv",
-                    "wi",
-                    "wy"
+                    "wa"
                   ]
                 },
                 "licenses": {
@@ -751,11 +523,11 @@
                       "jurisdiction",
                       "jurisdictionUploadedCompactEligibility",
                       "jurisdictionUploadedLicenseStatus",
+                      "licenseNumber",
                       "licenseStatus",
                       "licenseType",
                       "providerId",
-                      "type",
-                      "licenseNumber"
+                      "type"
                     ],
                     "type": "object",
                     "properties": {
@@ -774,58 +546,15 @@
                         "type": "string",
                         "enum": [
                           "al",
-                          "ak",
                           "az",
-                          "ar",
-                          "ca",
                           "co",
-                          "ct",
-                          "de",
-                          "dc",
-                          "fl",
-                          "ga",
-                          "hi",
-                          "id",
-                          "il",
-                          "in",
-                          "ia",
                           "ks",
                           "ky",
-                          "la",
-                          "me",
                           "md",
-                          "ma",
-                          "mi",
-                          "mn",
-                          "ms",
-                          "mo",
-                          "mt",
-                          "ne",
-                          "nv",
-                          "nh",
-                          "nj",
-                          "nm",
-                          "ny",
-                          "nc",
-                          "nd",
                           "oh",
-                          "ok",
-                          "or",
-                          "pa",
-                          "pr",
-                          "ri",
-                          "sc",
-                          "sd",
                           "tn",
-                          "tx",
-                          "ut",
-                          "vt",
                           "va",
-                          "vi",
-                          "wa",
-                          "wv",
-                          "wi",
-                          "wy"
+                          "wa"
                         ]
                       },
                       "homeAddressStreet1": {
@@ -869,58 +598,15 @@
                               "type": "string",
                               "enum": [
                                 "al",
-                                "ak",
                                 "az",
-                                "ar",
-                                "ca",
                                 "co",
-                                "ct",
-                                "de",
-                                "dc",
-                                "fl",
-                                "ga",
-                                "hi",
-                                "id",
-                                "il",
-                                "in",
-                                "ia",
                                 "ks",
                                 "ky",
-                                "la",
-                                "me",
                                 "md",
-                                "ma",
-                                "mi",
-                                "mn",
-                                "ms",
-                                "mo",
-                                "mt",
-                                "ne",
-                                "nv",
-                                "nh",
-                                "nj",
-                                "nm",
-                                "ny",
-                                "nc",
-                                "nd",
                                 "oh",
-                                "ok",
-                                "or",
-                                "pa",
-                                "pr",
-                                "ri",
-                                "sc",
-                                "sd",
                                 "tn",
-                                "tx",
-                                "ut",
-                                "vt",
                                 "va",
-                                "vi",
-                                "wa",
-                                "wv",
-                                "wi",
-                                "wy"
+                                "wa"
                               ]
                             },
                             "submittingUser": {
@@ -995,6 +681,7 @@
                       },
                       "licenseNumber": {
                         "maxLength": 100,
+                        "minLength": 1,
                         "type": "string"
                       },
                       "investigationStatus": {
@@ -1088,58 +775,15 @@
                               "type": "string",
                               "enum": [
                                 "al",
-                                "ak",
                                 "az",
-                                "ar",
-                                "ca",
                                 "co",
-                                "ct",
-                                "de",
-                                "dc",
-                                "fl",
-                                "ga",
-                                "hi",
-                                "id",
-                                "il",
-                                "in",
-                                "ia",
                                 "ks",
                                 "ky",
-                                "la",
-                                "me",
                                 "md",
-                                "ma",
-                                "mi",
-                                "mn",
-                                "ms",
-                                "mo",
-                                "mt",
-                                "ne",
-                                "nv",
-                                "nh",
-                                "nj",
-                                "nm",
-                                "ny",
-                                "nc",
-                                "nd",
                                 "oh",
-                                "ok",
-                                "or",
-                                "pa",
-                                "pr",
-                                "ri",
-                                "sc",
-                                "sd",
                                 "tn",
-                                "tx",
-                                "ut",
-                                "vt",
                                 "va",
-                                "vi",
-                                "wa",
-                                "wv",
-                                "wi",
-                                "wy"
+                                "wa"
                               ]
                             },
                             "licenseTypeAbbreviation": {
@@ -1210,69 +854,6 @@
                   "type": "string",
                   "format": "date"
                 },
-                "militaryAffiliations": {
-                  "type": "array",
-                  "items": {
-                    "required": [
-                      "affiliationType",
-                      "compact",
-                      "dateOfUpdate",
-                      "dateOfUpload",
-                      "fileNames",
-                      "providerId",
-                      "status",
-                      "type"
-                    ],
-                    "type": "object",
-                    "properties": {
-                      "dateOfUpload": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
-                      },
-                      "compact": {
-                        "type": "string",
-                        "enum": [
-                          "cosm"
-                        ]
-                      },
-                      "providerId": {
-                        "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                        "type": "string"
-                      },
-                      "affiliationType": {
-                        "type": "string",
-                        "enum": [
-                          "militaryMember",
-                          "militaryMemberSpouse"
-                        ]
-                      },
-                      "type": {
-                        "type": "string",
-                        "enum": [
-                          "militaryAffiliation"
-                        ]
-                      },
-                      "dateOfUpdate": {
-                        "type": "string",
-                        "format": "date-time"
-                      },
-                      "fileNames": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "active",
-                          "inactive"
-                        ]
-                      }
-                    }
-                  }
-                },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
@@ -1308,41 +889,14 @@
             }
           }
         }
-      },
-      "SandboSearctZ4sfzliddmr": {
-        "required": [
-          "query"
-        ],
-        "type": "object",
-        "properties": {
-          "search_after": {
-            "type": "array",
-            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
-          },
-          "size": {
-            "maximum": 100,
-            "minimum": 1,
-            "type": "integer",
-            "description": "Number of results to return"
-          },
-          "query": {
-            "type": "object",
-            "description": "The OpenSearch query body"
-          },
-          "from": {
-            "minimum": 0,
-            "type": "integer",
-            "description": "Starting document offset for pagination"
-          },
-          "sort": {
-            "type": "array",
-            "description": "Sort order for results (required for search_after pagination)",
-            "items": {
-              "type": "object"
-            }
-          }
-        },
-        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "SandboxSearchAPIStackSearchApiStaffUsersPoolAuthorizer469875BC": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "x-amazon-apigateway-authtype": "cognito_user_pools"
       }
     }
   },
