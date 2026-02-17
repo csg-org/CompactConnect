@@ -1,7 +1,6 @@
 import json
 from unittest.mock import patch
 
-from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from . import TstFunction
@@ -446,6 +445,7 @@ class TestSearchProviders(TstFunction):
     @patch('handlers.search.opensearch_client')
     def test_opensearch_request_error_returns_400_with_error_message(self, mock_opensearch_client):
         """Test that OpenSearch RequestError with status 400 returns error message to caller."""
+        from cc_common.exceptions import CCInvalidRequestException
         from handlers.search import search_api_handler
 
         # Create a RequestError with realistic OpenSearch error structure

@@ -378,8 +378,8 @@ class TstFunction(TstLambdas):
                 patch_kwargs['new_callable'] = lambda: date_of_update
             else:
                 # Use random dates for variation
-                patch_kwargs['new_callable'] = lambda: datetime.now(tz=UTC).replace(microsecond=0) - timedelta(
-                    days=randint(1, 365)
+                patch_kwargs['new_callable'] = lambda: (
+                    datetime.now(tz=UTC).replace(microsecond=0) - timedelta(days=randint(1, 365))
                 )
 
             with patch(

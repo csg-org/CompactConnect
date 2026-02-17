@@ -331,6 +331,45 @@ export abstract class BaseEmailService {
         report['root']['data']['childrenIds'].push(blockHeaderId);
     }
 
+    /**
+     * Inserts just the logo without a heading. Useful for emails that have
+     * a different layout where the greeting comes right after the logo.
+     */
+    protected insertLogo(report: TReaderDocument): void {
+        // Insert environment banner first (above logo)
+        if (this.shouldShowEnvironmentBannerIfNonProdEnvironment) {
+            this.environmentBannerService.insertEnvironmentBannerIfNonProd(report);
+        }
+
+        const blockLogoId = 'block-logo';
+
+        report[blockLogoId] = {
+            'type': 'Image',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 40,
+                        'bottom': 8,
+                        'right': 68,
+                        'left': 68
+                    },
+                    'backgroundColor': null,
+                    'textAlign': 'center'
+                },
+                'props': {
+                    'width': null,
+                    'height': 100,
+                    'url': `${BaseEmailService.getEmailImageBaseUrl()}/compact-connect-logo-final.png`,
+                    'alt': '',
+                    'linkHref': null,
+                    'contentAlignment': 'middle'
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockLogoId);
+    }
+
     protected insertBody(
         report: TReaderDocument,
         bodyText: string,
@@ -729,5 +768,290 @@ export abstract class BaseEmailService {
      */
     protected renderTemplate(template: TReaderDocument): string {
         return renderToStaticMarkup(template, { rootBlockId: 'root' });
+    }
+
+    /**
+     * Inserts a privilege expiration list section with a two-column table layout.
+     * Displays privileges with their expiration dates in a styled table format.
+     *
+     * @param report - The email template document to modify
+     * @param privileges - Array of privilege objects with jurisdiction, licenseType, privilegeId, and formattedExpirationDate
+     */
+    protected insertPrivilegeExpirationListSection(
+        report: TReaderDocument,
+        privileges: {
+            jurisdiction: string;
+            licenseType: string;
+            privilegeId: string;
+            formattedExpirationDate: string;
+        }[]
+    ): void {
+        // Insert the table header row
+        this.insertPrivilegeTableHeader(report);
+
+        // Insert divider after header
+        this.insertPrivilegeTableDivider(report);
+
+        // Insert each privilege row with a divider after it
+        privileges.forEach((privilege) => {
+            this.insertPrivilegeTableRow(
+                report,
+                `${privilege.jurisdiction}, ${privilege.licenseType}`,
+                `#${privilege.privilegeId}`,
+                privilege.formattedExpirationDate
+            );
+
+            // Add divider after each row
+            this.insertPrivilegeTableDivider(report);
+        });
+
+        // Add bottom spacing container
+        this.insertPrivilegeTableBottomSpacer(report);
+    }
+
+    /**
+     * Inserts the header row for the privilege expiration table
+     */
+    private insertPrivilegeTableHeader(report: TReaderDocument): void {
+        const containerId = `block-${crypto.randomUUID()}`;
+        const privilegeHeaderId = `block-${crypto.randomUUID()}`;
+        const expiresHeaderId = `block-${crypto.randomUUID()}`;
+
+        report[privilegeHeaderId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'color': '#767676',
+                    'fontSize': 14,
+                    'fontWeight': 'bold',
+                    'padding': {
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'text': 'Privilege'
+                }
+            }
+        };
+
+        report[expiresHeaderId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'color': '#767676',
+                    'backgroundColor': null,
+                    'fontSize': 14,
+                    'fontWeight': 'bold',
+                    'padding': {
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'text': 'Expires'
+                }
+            }
+        };
+
+        report[containerId] = {
+            'type': 'ColumnsContainer',
+            'data': {
+                'style': {
+                    'backgroundColor': '#F4F6F8',
+                    'padding': {
+                        'top': 20,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'fixedWidths': [190, 100, null],
+                    'columnsCount': 2,
+                    'columnsGap': 8,
+                    'contentAlignment': 'top',
+                    'columns': [
+                        { 'childrenIds': [privilegeHeaderId]},
+                        { 'childrenIds': [expiresHeaderId]},
+                        { 'childrenIds': []}
+                    ]
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(containerId);
+    }
+
+    /**
+     * Inserts a divider within the privilege expiration table
+     */
+    private insertPrivilegeTableDivider(report: TReaderDocument): void {
+        const dividerId = `block-${crypto.randomUUID()}`;
+
+        report[dividerId] = {
+            'type': 'Divider',
+            'data': {
+                'style': {
+                    'backgroundColor': '#F4F6F8',
+                    'padding': {
+                        'top': 8,
+                        'bottom': 0,
+                        'right': 0,
+                        'left': 0
+                    }
+                },
+                'props': {
+                    'lineColor': '#CCCCCC'
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(dividerId);
+    }
+
+    /**
+     * Inserts a single privilege row in the expiration table
+     */
+    private insertPrivilegeTableRow(
+        report: TReaderDocument,
+        title: string,
+        privilegeId: string,
+        expirationDate: string
+    ): void {
+        const containerId = `block-${crypto.randomUUID()}`;
+        const titleId = `block-${crypto.randomUUID()}`;
+        const privilegeIdTextId = `block-${crypto.randomUUID()}`;
+        const dateId = `block-${crypto.randomUUID()}`;
+
+        // Privilege title (jurisdiction + license type)
+        report[titleId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'color': '#09122B',
+                    'fontWeight': 'bold',
+                    'padding': {
+                        'top': 12,
+                        'bottom': 4,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'text': title
+                }
+            }
+        };
+
+        // Privilege ID (gray subtitle)
+        report[privilegeIdTextId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'color': '#767676',
+                    'fontWeight': 'normal',
+                    'padding': {
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'text': privilegeId
+                }
+            }
+        };
+
+        // Expiration date
+        report[dateId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'color': '#09122B',
+                    'fontWeight': 'bold',
+                    'padding': {
+                        'top': 12,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'text': expirationDate
+                }
+            }
+        };
+
+        // Two-column container
+        report[containerId] = {
+            'type': 'ColumnsContainer',
+            'data': {
+                'style': {
+                    'backgroundColor': '#F4F6F8',
+                    'padding': {
+                        'top': 4,
+                        'bottom': 4,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'fixedWidths': [190, 100, null],
+                    'columnsCount': 2,
+                    'columnsGap': 8,
+                    'contentAlignment': 'top',
+                    'columns': [
+                        { 'childrenIds': [titleId, privilegeIdTextId]},
+                        { 'childrenIds': [dateId]},
+                        { 'childrenIds': []}
+                    ]
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(containerId);
+    }
+
+    /**
+     * Inserts bottom spacing for the privilege expiration table
+     */
+    private insertPrivilegeTableBottomSpacer(report: TReaderDocument): void {
+        const containerId = `block-${crypto.randomUUID()}`;
+        const spacerId = `block-${crypto.randomUUID()}`;
+
+        report[spacerId] = {
+            'type': 'Spacer',
+            'data': {
+                'props': {
+                    'height': 4
+                }
+            }
+        };
+
+        report[containerId] = {
+            'type': 'Container',
+            'data': {
+                'style': {
+                    'backgroundColor': '#F4F6F8',
+                    'padding': {
+                        'top': 12,
+                        'bottom': 12,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'childrenIds': [spacerId]
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(containerId);
     }
 }

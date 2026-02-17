@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock
 
 from cc_common.config import logger
@@ -218,6 +218,59 @@ class TestEmailServiceClient(TstLambdas):
                     'templateVariables': {
                         'providerId': '123',
                         'recoveryToken': '456',
+                    },
+                }
+            ),
+        )
+
+    def test_privilege_expiration_reminder_should_invoke_lambda_client_with_expected_parameters(self):
+        from cc_common.email_service_client import PrivilegeExpirationReminderTemplateVariables
+
+        mock_lambda_client = MagicMock()
+        test_model = self._generate_test_model(mock_lambda_client)
+
+        privileges = [
+            {
+                'jurisdiction': 'Ohio',
+                'licenseType': 'aud',
+                'privilegeId': 'AUD-OH-001',
+                'dateOfExpiration': '2026-02-16',
+            },
+            {
+                'jurisdiction': 'Kentucky',
+                'licenseType': 'slp',
+                'privilegeId': 'SLP-KY-002',
+                'dateOfExpiration': '2026-03-01',
+            },
+        ]
+
+        template_variables = PrivilegeExpirationReminderTemplateVariables(
+            provider_first_name='John',
+            expiration_date=date(2026, 2, 16),
+            privileges=privileges,
+        )
+
+        test_model.send_privilege_expiration_reminder_email(
+            compact=TEST_COMPACT,
+            provider_email='provider@example.com',
+            template_variables=template_variables,
+        )
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='test-lambda-name',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(
+                {
+                    'compact': TEST_COMPACT,
+                    'template': 'privilegeExpirationReminder',
+                    'recipientType': 'SPECIFIC',
+                    'specificEmails': [
+                        'provider@example.com',
+                    ],
+                    'templateVariables': {
+                        'providerFirstName': 'John',
+                        'expirationDate': '2026-02-16',
+                        'privileges': privileges,
                     },
                 }
             ),
