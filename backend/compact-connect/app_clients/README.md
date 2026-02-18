@@ -52,7 +52,6 @@ The following scopes are available at the jurisdiction level:
 {jurisdiction}/{compact}.admin
 {jurisdiction}/{compact}.write
 {jurisdiction}/{compact}.readPrivate
-{jurisdiction}/{compact}.readSSN
 ```
 
 Currently, the most common scope needed by app clients is `{jurisdiction}/{compact}.write`, which allows uploading

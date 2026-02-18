@@ -178,6 +178,9 @@ class OpenSearchClient:
         """
         Execute a search query against the specified index.
 
+        This method is intended to be used for user-facing search requests that need a response quickly (UI/API).
+        For background/batch operations, use search_with_retry instead.
+
         :param index_name: The name of the index to search
         :param body: The OpenSearch query body
         :return: The search response from OpenSearch
@@ -209,6 +212,66 @@ class OpenSearchClient:
                 raise CCInvalidRequestException(f'Invalid search query: {error_message}') from e
             # Re-raise non-400 RequestErrors
             raise
+
+    def search_with_retry(self, index_name: str, body: dict) -> dict:
+        """
+        Execute a search query with retry logic and exponential backoff.
+
+        Use this method for background/batch operations where retrying on transient
+        failures is preferred over immediately returning an error to a user.
+
+        :param index_name: The name of the index to search
+        :param body: The OpenSearch query body
+        :return: The search response from OpenSearch
+        :raises CCInternalException: If all retry attempts fail due to connection issues
+        :raises CCInvalidRequestException: If the query is invalid (400 error) - not retried
+        """
+        last_exception = None
+        backoff_seconds = INITIAL_BACKOFF_SECONDS
+
+        for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
+            try:
+                return self._client.search(index=index_name, body=body)
+            except RequestError as e:
+                # Don't retry invalid queries (400 errors) - they will fail again
+                # Note: RequestError is a subclass of TransportError, so must be caught first
+                if e.status_code == 400:
+                    error_message = self._extract_opensearch_error_reason(e)
+                    logger.warning(
+                        'OpenSearch search request failed with invalid query',
+                        index_name=index_name,
+                        status_code=e.status_code,
+                        error_message=error_message,
+                    )
+                    raise CCInvalidRequestException(f'Invalid search query: {error_message}') from e
+                # Re-raise non-400 RequestErrors
+                raise
+            except (ConnectionTimeout, TransportError) as e:
+                last_exception = e
+                if attempt < MAX_RETRY_ATTEMPTS:
+                    logger.warning(
+                        'Search request failed, retrying with backoff',
+                        attempt=attempt,
+                        max_attempts=MAX_RETRY_ATTEMPTS,
+                        backoff_seconds=backoff_seconds,
+                        index_name=index_name,
+                        error=str(e),
+                    )
+                    time.sleep(backoff_seconds)
+                    # Exponential backoff with cap
+                    backoff_seconds = min(backoff_seconds * 2, MAX_BACKOFF_SECONDS)
+                else:
+                    logger.error(
+                        'Search request failed after max retry attempts',
+                        attempts=MAX_RETRY_ATTEMPTS,
+                        index_name=index_name,
+                        error=str(e),
+                    )
+
+        # All retry attempts failed
+        raise CCInternalException(
+            f'Search request to {index_name} failed after {MAX_RETRY_ATTEMPTS} attempts. Last error: {last_exception}'
+        )
 
     @staticmethod
     def _extract_opensearch_error_reason(e: RequestError) -> str:

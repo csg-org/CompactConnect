@@ -8,23 +8,23 @@ attrs==25.4.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.242
+aws-cdk-asset-awscli-v1==2.2.263
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
 aws-cdk-cloud-assembly-schema==48.20.0
     # via aws-cdk-lib
-aws-cdk-lib==2.232.2
+aws-cdk-lib==2.237.1
     # via -r log-aggregation/requirements.in
 cattrs==25.3.0
     # via jsii
-constructs==10.4.4
+constructs==10.4.5
     # via
     #   -r log-aggregation/requirements.in
     #   aws-cdk-lib
 importlib-resources==6.5.2
     # via jsii
-jsii==1.121.0
+jsii==1.126.0
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6

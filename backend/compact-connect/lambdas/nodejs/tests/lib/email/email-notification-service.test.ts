@@ -11,7 +11,7 @@ import { CompactConfigurationClient } from '../../../lib/compact-configuration-c
 import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { EmailTemplateCapture } from '../../utils/email-template-capture';
 import { TReaderDocument } from '@csg-org/email-builder';
-import { describe, it, expect, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
 jest.mock('nodemailer');
 
@@ -1065,6 +1065,129 @@ describe('EmailNotificationService', () => {
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('This is to notify you that Bob Johnson has changed their home state from TX to an unlisted jurisdiction.');
             expect(htmlContent).not.toContain('from TX to other');
+        });
+    });
+
+    describe('Privilege Expiration Reminder', () => {
+        it('should send privilege expiration reminder email with expected subject and content', async () => {
+            await emailService.sendPrivilegeExpirationReminderEmail(
+                'aslp',
+                ['provider@example.com'],
+                'John',
+                '2026-02-16',
+                [
+                    {
+                        jurisdiction: 'Ohio',
+                        licenseType: 'audiologist',
+                        privilegeId: 'AUD-OH-001',
+                        dateOfExpiration: '2026-02-16',
+                    },
+                    {
+                        jurisdiction: 'Kentucky',
+                        licenseType: 'speech-language pathologist',
+                        privilegeId: 'SLP-KY-002',
+                        dateOfExpiration: '2026-03-01',
+                    },
+                ]
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['provider@example.com'],
+                    },
+                    Content: {
+                        Simple: {
+                            Body: {
+                                Html: {
+                                    Charset: 'UTF-8',
+                                    Data: expect.stringContaining('Hi John,'),
+                                },
+                            },
+                            Subject: {
+                                Charset: 'UTF-8',
+                                Data: 'Your Compact Connect Privileges Expire on February 16, 2026',
+                            },
+                        },
+                    },
+                    FromEmailAddress: 'Compact Connect <noreply@example.org>',
+                }
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Hi John,');
+            expect(htmlContent).toContain('Your privilege(s) to practice expires on');
+            expect(htmlContent).toContain('02/16/2026');
+            expect(htmlContent).toContain('Ohio, audiologist');
+            expect(htmlContent).toContain('#AUD-OH-001');
+            expect(htmlContent).toContain('Kentucky, speech-language pathologist');
+            expect(htmlContent).toContain('#SLP-KY-002');
+            expect(htmlContent).toContain('03/01/2026');
+            // Verify two-column table headers
+            expect(htmlContent).toContain('Privilege');
+            expect(htmlContent).toContain('Expires');
+        });
+
+        it('should throw error when no recipients provided', async () => {
+            await expect(
+                emailService.sendPrivilegeExpirationReminderEmail(
+                    'aslp',
+                    [],
+                    'John',
+                    '2026-02-16',
+                    [
+                        {
+                            jurisdiction: 'Ohio',
+                            licenseType: 'aud',
+                            privilegeId: 'AUD-OH-001',
+                            dateOfExpiration: '2026-02-16',
+                        },
+                    ]
+                )
+            ).rejects.toThrow('No recipients found for privilege expiration reminder email');
+        });
+
+        it('should throw error when no privileges provided', async () => {
+            await expect(
+                emailService.sendPrivilegeExpirationReminderEmail(
+                    'aslp',
+                    ['provider@example.com'],
+                    'John',
+                    '2026-02-16',
+                    []
+                )
+            ).rejects.toThrow('No privileges provided for privilege expiration reminder email');
+        });
+
+        it('should send email with single privilege', async () => {
+            await emailService.sendPrivilegeExpirationReminderEmail(
+                'aslp',
+                ['provider@example.com'],
+                'Jane',
+                '2026-03-01',
+                [
+                    {
+                        jurisdiction: 'Nebraska',
+                        licenseType: 'speech-language pathologist',
+                        privilegeId: 'SLP-NE-123',
+                        dateOfExpiration: '2026-03-01',
+                    },
+                ]
+            );
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain('Hi Jane,');
+            expect(htmlContent).toContain('Your privilege(s) to practice expires on');
+            expect(htmlContent).toContain('03/01/2026');
+            expect(htmlContent).toContain('Nebraska, speech-language pathologist');
+            expect(htmlContent).toContain('#SLP-NE-123');
         });
     });
 });

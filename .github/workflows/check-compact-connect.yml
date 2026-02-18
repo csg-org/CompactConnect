@@ -24,6 +24,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v5
 
+      - name: Upgrade pip
+        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
+        run: pip install --upgrade 'pip>=26.0'
+
       - name: Install dev dependencies
         run: "pip install -r backend/compact-connect/requirements-dev.txt"
 
@@ -82,6 +86,10 @@ jobs:
         with:
           python-version: '3.14'
 
+      - name: Upgrade pip
+        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
+        run: pip install --upgrade 'pip>=26.0'
+
       # Setup Node
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -101,11 +109,9 @@ jobs:
 
       - name: Install dev dependencies
         run: "pip install -r backend/compact-connect/requirements-dev.txt"
-      # Note we are currently pinning the pip version to deal with compatibility issues released with pip 25.3
-      # see https://stackoverflow.com/a/79802727 If this issues is addressed in a later version, we can remove the
-      # extra pip install command so we stop pinning the pip version
+
       - name: Install all Python dependencies
-        run: "cd backend/compact-connect; pip install -U 'pip<25.3'; bin/sync_deps.sh"
+        run: "cd backend/compact-connect; bin/sync_deps.sh"
 
       - name: Test backend
         run: "cd backend/compact-connect; bin/run_tests.sh -l all -no"
@@ -121,6 +127,10 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+
+      - name: Upgrade pip
+        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
+        run: pip install --upgrade 'pip>=26.0'
 
       - name: Install dependencies
         run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r requirements.txt"

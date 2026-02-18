@@ -5,6 +5,35 @@ import { RecipientType } from '../models/email-notification-service-event';
 
 const environmentVariableService = new EnvironmentVariablesService();
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
+
+/** Format an ISO 8601 date string (YYYY-MM-DD) for display (e.g. "February 16, 2026"). Timezone-neutral. */
+function formatIsoDateForDisplay(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    const monthName = MONTH_NAMES[month - 1];
+
+    return `${monthName} ${day}, ${year}`;
+}
+
+/** Format an ISO 8601 date string (YYYY-MM-DD) for display as MM/DD/YYYY (e.g. "02/16/2026"). Timezone-neutral. */
+function formatIsoDateAsSlashFormat(isoDate: string): string {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    const paddedMonth = String(month).padStart(2, '0');
+    const paddedDay = String(day).padStart(2, '0');
+
+    return `${paddedMonth}/${paddedDay}/${year}`;
+}
+
+/**
+ * Privilege row for expiration reminder: jurisdiction and licenseType are full names; dates are ISO 8601.
+ */
+export interface PrivilegeExpirationReminderRow {
+    jurisdiction: string;
+    licenseType: string;
+    privilegeId: string;
+    dateOfExpiration: string;
+}
+
 /**
  * Email service for handling email notifications
  */
@@ -628,5 +657,88 @@ export class EmailNotificationService extends BaseEmailService {
         const htmlContent = this.renderTemplate(report);
 
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send home jurisdiction change state notification email' });
+    }
+
+    /**
+     * Sends a reminder email to a provider about expiring privileges.
+     * @param compact - The compact name
+     * @param specificEmails - The email address(es) to send the notification to (provider's email)
+     * @param providerFirstName - The provider's first name
+     * @param expirationDate - ISO 8601 date string (YYYY-MM-DD) for the main expiration date
+     * @param privileges - Full list of privileges (jurisdiction and licenseType full names, dateOfExpiration ISO)
+     */
+    public async sendPrivilegeExpirationReminderEmail(
+        compact: string,
+        specificEmails: string[],
+        providerFirstName: string,
+        expirationDate: string,
+        privileges: PrivilegeExpirationReminderRow[]
+    ): Promise<void> {
+        this.logger.info('Sending privilege expiration reminder email', { compact, privilegeCount: privileges.length });
+
+        const recipients = specificEmails;
+
+        if (recipients.length === 0) {
+            throw new Error('No recipients found for privilege expiration reminder email');
+        }
+
+        if (privileges.length === 0) {
+            throw new Error('No privileges provided for privilege expiration reminder email');
+        }
+
+        const expirationDateDisplay = formatIsoDateForDisplay(expirationDate);
+        const expirationDateSlash = formatIsoDateAsSlashFormat(expirationDate);
+
+        const emailContent = this.getNewEmailTemplate();
+        const subject = `Your Compact Connect Privileges Expire on ${expirationDateDisplay}`;
+
+        // Logo at the top
+        this.insertLogo(emailContent);
+
+        // Greeting text
+        this.insertBody(emailContent, `Hi ${providerFirstName},`, 'center', false, {
+            'padding': { 'top': 44, 'bottom': 0, 'right': 76, 'left': 76 }
+        });
+
+        // "This message is to inform you..." text
+        this.insertBody(
+            emailContent,
+            'Your privilege(s) to practice expires on:',
+            'center',
+            false,
+            { 'padding': { 'top': 24, 'bottom': 0, 'right': 32, 'left': 32 }}
+        );
+
+        // Bold expiration date
+        this.insertBody(emailContent, expirationDateSlash, 'center', false, {
+            'fontSize': 19,
+            'fontWeight': 'bold',
+            'padding': { 'top': 4, 'bottom': 0, 'right': 60, 'left': 60 }
+        });
+
+        // Explanation text
+        this.insertBody(
+            emailContent,
+            'Upon expiration, you may not use your Compact privilege to provide patient/client services. You must renew your home state license in order to renew your Compact privilege to practice.',
+            'center',
+            false,
+            { 'padding': { 'top': 24, 'bottom': 24, 'right': 32, 'left': 32 }}
+        );
+
+        // Insert the two-column privilege expiration list table
+        const privilegesForTable = privileges.map((privilege) => ({
+            jurisdiction: privilege.jurisdiction,
+            licenseType: privilege.licenseType,
+            privilegeId: privilege.privilegeId,
+            formattedExpirationDate: formatIsoDateAsSlashFormat(privilege.dateOfExpiration)
+        }));
+
+        this.insertPrivilegeExpirationListSection(emailContent, privilegesForTable);
+
+        this.insertFooter(emailContent);
+
+        const htmlContent = this.renderTemplate(emailContent);
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send privilege expiration reminder email' });
     }
 }

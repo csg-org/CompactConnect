@@ -140,7 +140,7 @@ if __name__ == '__main__':
 
     parser = ArgumentParser(
         description='Create a staff user',
-        epilog='example: bin/create_staff_user.py -e justin@example.org -f williams -g justin -t board-ed -c octp -j oh',  # noqa: E501 line-too-long
+        epilog='example: bin/create_staff_user.py -e justin@example.org -f williams -g justin -t board-ed -c cosm -j oh',  # noqa: E501 line-too-long
     )
     parser.add_argument('-e', '--email', help="The new user's email address", required=True)
     parser.add_argument('-f', '--family-name', help="The new user's family name", required=True)
