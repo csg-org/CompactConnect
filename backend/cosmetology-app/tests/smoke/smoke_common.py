@@ -1,8 +1,6 @@
 import json
 import os
 import sys
-import time
-import uuid
 
 import boto3
 import requests
@@ -39,7 +37,6 @@ from cc_common.data_model.provider_record_util import ProviderUserRecords  # noq
 # importing this here so it can be easily referenced in the rollback upload tests
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData  # noqa: E402 F401
 from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
-from cc_common.data_model.update_tier_enum import UpdateTierEnum  # noqa: E402
 
 _TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
 _TEMP_STAFF_PASSWORD = 'TempPass123!'  # noqa: S105 temporary password for creating test staff users
@@ -430,6 +427,7 @@ def wait_for_provider_creation(
         f'Provider not found after {elapsed_time:.1f} seconds. '
         f'The license ingest processing may be taking longer than expected.'
     )
+
 
 def cleanup_test_provider_records(provider_id: str, compact: str):
     """Clean up all test records for a provider.
