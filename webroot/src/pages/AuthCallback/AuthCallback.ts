@@ -11,6 +11,8 @@ import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
 import {
     authStorage,
+    AppModes,
+    CognitoStateTypes,
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
@@ -59,34 +61,59 @@ export default class AuthCallback extends Vue {
     //
     async getTokens(): Promise<void> {
         this.$store.dispatch('startLoading');
+        const { userType } = this;
 
-        if (this.userType === AuthTypes.STAFF) {
-            await this.getTokensStaff().catch(() => {
+        if (userType === CognitoStateTypes.STAFF_JCC) {
+            this.$store.dispatch('setAppMode', AppModes.JCC);
+            await this.getTokensStaffJcc().catch(() => {
                 this.isError = true;
             });
-        } else if (this.userType === AuthTypes.LICENSEE) {
-            await this.getTokensLicensee().catch(() => {
+        } else if (userType === CognitoStateTypes.LICENSEE_JCC) {
+            this.$store.dispatch('setAppMode', AppModes.JCC);
+            await this.getTokensLicenseeJcc().catch(() => {
+                this.isError = true;
+            });
+        } else if (userType === CognitoStateTypes.STAFF_COSMETOLOGY) {
+            this.$store.dispatch('setAppMode', AppModes.COSMETOLOGY);
+            await this.getTokensStaffCosmo().catch(() => {
                 this.isError = true;
             });
         } else {
             // If the state query param is absent or not matching we will
-            // still try to get tokens, if the user just logged in one of the two
-            // user pools will successfully return tokens. If neither do we enter
-            // the error state
+            // still try to get tokens, if the user just logged in one of the
+            // user pools will successfully return tokens. If none then we enter
+            // the error state.
 
             let errorCount = 0;
 
-            await this.getTokensStaff().catch(() => {
-                errorCount += 1;
-            });
-
-            if (errorCount > 0) {
-                await this.getTokensLicensee().catch(() => {
+            await this.getTokensStaffJcc()
+                .then(() => {
+                    this.$store.dispatch('setAppMode', AppModes.JCC);
+                })
+                .catch(() => {
                     errorCount += 1;
                 });
+
+            if (errorCount > 0) {
+                await this.getTokensStaffCosmo()
+                    .then(() => {
+                        this.$store.dispatch('setAppMode', AppModes.COSMETOLOGY);
+                    })
+                    .catch(() => {
+                        errorCount += 1;
+                    });
             }
 
             if (errorCount > 1) {
+                await this.getTokensLicenseeJcc()
+                    .then(() => {
+                        this.$store.dispatch('setAppMode', AppModes.JCC);
+                    }).catch(() => {
+                        errorCount += 1;
+                    });
+            }
+
+            if (errorCount > 2) {
                 this.isError = true;
             }
         }
@@ -98,7 +125,7 @@ export default class AuthCallback extends Vue {
         }
     }
 
-    async getTokensStaff(): Promise<void> {
+    async getTokensStaffJcc(): Promise<void> {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
         const params = new URLSearchParams();
 
@@ -113,7 +140,22 @@ export default class AuthCallback extends Vue {
         await this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
     }
 
-    async getTokensLicensee(): Promise<void> {
+    async getTokensStaffCosmo(): Promise<void> {
+        const { domain, cognitoAuthDomainStaffCosmo, cognitoClientIdStaffCosmo } = this.$envConfig;
+        const params = new URLSearchParams();
+
+        params.append('grant_type', 'authorization_code');
+        params.append('client_id', cognitoClientIdStaffCosmo || '');
+        params.append('redirect_uri', `${domain}${this.$route.path}`);
+        params.append('code', this.authorizationCode);
+
+        const { data } = await axios.post(`${cognitoAuthDomainStaffCosmo}/oauth2/token`, params);
+
+        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
+        await this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
+    }
+
+    async getTokensLicenseeJcc(): Promise<void> {
         const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
         const params = new URLSearchParams();
 

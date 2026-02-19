@@ -72,7 +72,7 @@ describe('CognitoEmailService', () => {
                 expect(htmlContent).toContain('testuser');
                 expect(htmlContent).toContain('Please immediately');
                 expect(htmlContent).toContain('and change your password when prompted');
-                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff" target="_blank">sign in</a>');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff-cosmo" target="_blank">sign in</a>');
             });
 
             it('should generate AdminCreateUser message for unknown user pool type with immediate login message', () => {
@@ -91,7 +91,7 @@ describe('CognitoEmailService', () => {
                 expect(htmlContent).toContain('testuser');
                 expect(htmlContent).toContain('Please immediately');
                 expect(htmlContent).toContain('and change your password when prompted');
-                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff" target="_blank">sign in</a>');
+                expect(htmlContent).toContain('<a href="https://app.test.compactconnect.org/Dashboard?bypass=login-staff-cosmo" target="_blank">sign in</a>');
             });
         });
 

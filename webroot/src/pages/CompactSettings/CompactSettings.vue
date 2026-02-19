@@ -11,7 +11,7 @@
             {{ $t('compact.settingsTitle') }}
         </h1>
         <CompactSettingsConfig v-if="isCompactAdmin" class="section compact-config" />
-        <PaymentProcessorConfig v-if="isCompactAdmin" class="section payment-config" />
+        <PaymentProcessorConfig v-if="isCompactAdmin && shouldShowPaymentConfig" class="section payment-config" />
         <StateSettingsList v-if="shouldShowStateList" class="section state-list" />
     </Section>
 </template>

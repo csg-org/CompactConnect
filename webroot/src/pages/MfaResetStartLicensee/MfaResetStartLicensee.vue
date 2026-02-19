@@ -230,21 +230,6 @@
             </Transition>
         </Card>
         <div ref="recaptcha"></div>
-        <div class="recaptcha-terms">
-            {{ $t('recaptcha.googleDesc') }}
-            <a
-                href="https://policies.google.com/privacy"
-                rel="noopener noreferrer"
-                class="recaptcha-link"
-            >{{ $t('recaptcha.privacyPolicy') }}</a>
-            {{ $t('recaptcha.and') }}
-            <a
-                href="https://policies.google.com/terms"
-                rel="noopener noreferrer"
-                class="recaptcha-link"
-            >{{ $t('recaptcha.terms') }}</a>
-            {{ $t('recaptcha.apply') }}.
-        </div>
     </Section>
 </template>
 

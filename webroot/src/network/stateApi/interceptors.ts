@@ -4,22 +4,30 @@
 //
 //  Created by InspiringApps on 6/18/24.
 //
-import { authStorage, tokens } from '@/app.config';
+import { AppModes, authStorage, tokens } from '@/app.config';
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
 // ============================================================================
 // =                           REQUEST INTERCEPTORS                           =
 // ============================================================================
 /**
  * Get Axios API request interceptor.
+ * @param  {Store} store
  * @return {AxiosInterceptor} Function that amends the outgoing client API request.
  */
-export const requestSuccess = () => async (requestConfig) => {
+export const requestSuccess = (store) => async (requestConfig) => {
     const authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
     const authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
+    const appMode = store?.state?.appMode;
     const { headers } = requestConfig;
 
     // Add auth token
     headers.Authorization = `${authTokenType} ${authToken}`;
+
+    // Update base url for different compacts / app modes
+    if (appMode === AppModes.COSMETOLOGY) {
+        requestConfig.baseURL = envConfig.apiUrlStateCosmo;
+    }
 
     return requestConfig;
 };

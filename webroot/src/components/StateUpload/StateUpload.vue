@@ -8,7 +8,6 @@
 <template>
     <div class="state-upload-container">
         <h1>{{ $t('stateUpload.formTitle') }}</h1>
-        <div class="sub-title">{{ $t('stateUpload.formSubtext') }}</div>
         <Card class="state-upload">
             <Transition name="fade" :mode="elementTransitionMode">
                 <LoadingSpinner v-if="isInitializing" />

@@ -34,11 +34,18 @@ jobs:
       VUE_APP_API_STATE_ROOT: https://api.test.jcc.iaapi.io
       VUE_APP_API_LICENSE_ROOT: https://api.test.jcc.iaapi.io
       VUE_APP_API_SEARCH_ROOT: https://search.test.jcc.iaapi.io
+      VUE_APP_API_USER_ROOT: https://api.test.jcc.iaapi.io
+      VUE_APP_API_STATE_ROOT_COSMO: https://api.test.cosmetology.jcc.iaapi.io
+      VUE_APP_API_LICENSE_ROOT_COSMO: https://api.test.cosmetology.jcc.iaapi.io
+      VUE_APP_API_SEARCH_ROOT_COSMO: https://search.test.cosmetology.jcc.iaapi.io
+      VUE_APP_API_USER_ROOT_COSMO: https://api.test.cosmetology.jcc.iaapi.io
       VUE_APP_COGNITO_REGION: us-east-1
       VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com
       VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ secrets.DEV_WEBROOT_COGNITO_CLIENT_ID_STAFF }}
       VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com
       VUE_APP_COGNITO_CLIENT_ID_LICENSEE: ${{ secrets.DEV_WEBROOT_COGNITO_CLIENT_ID_LICENSEE }}
+      VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO: https://staff-auth.test.cosmetology.jcc.iaapi.io
+      VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO: ${{ secrets.DEV_WEBROOT_COGNITO_CLIENT_ID_STAFF_COSMO }}
       VUE_APP_RECAPTCHA_KEY: 6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih
 
     steps:
@@ -90,11 +97,18 @@ jobs:
           VUE_APP_API_STATE_ROOT: ${{ env.VUE_APP_API_STATE_ROOT }}
           VUE_APP_API_LICENSE_ROOT: ${{ env.VUE_APP_API_LICENSE_ROOT }}
           VUE_APP_API_SEARCH_ROOT: ${{ env.VUE_APP_API_SEARCH_ROOT }}
+          VUE_APP_API_USER_ROOT: ${{ env.VUE_APP_API_USER_ROOT }}
+          VUE_APP_API_STATE_ROOT_COSMO: ${{ env.VUE_APP_API_STATE_ROOT_COSMO }}
+          VUE_APP_API_LICENSE_ROOT_COSMO: ${{ env.VUE_APP_API_LICENSE_ROOT_COSMO }}
+          VUE_APP_API_SEARCH_ROOT_COSMO: ${{ env.VUE_APP_API_SEARCH_ROOT_COSMO }}
+          VUE_APP_API_USER_ROOT_COSMO: ${{ env.VUE_APP_API_USER_ROOT_COSMO }}
           VUE_APP_COGNITO_REGION: ${{ env.VUE_APP_COGNITO_REGION }}
           VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF }}
           VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ env.VUE_APP_COGNITO_CLIENT_ID_STAFF }}
           VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE }}
           VUE_APP_COGNITO_CLIENT_ID_LICENSEE: ${{ env.VUE_APP_COGNITO_CLIENT_ID_LICENSEE }}
+          VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO }}
+          VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO: ${{ env.VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO }}
           VUE_APP_RECAPTCHA_KEY: ${{ env.VUE_APP_RECAPTCHA_KEY }}
           VUE_APP_MOCK_API: true
         run: yarn build

@@ -8,6 +8,14 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import localStorage from '@store/local.storage';
 import moment from 'moment';
 
+// ===============
+// =  App Modes  =
+// ===============
+export enum AppModes {
+    JCC = 'jcc',
+    COSMETOLOGY = 'cosmo',
+}
+
 // =========================
 // =  Authorization Types  =
 // =========================
@@ -17,6 +25,12 @@ export enum AuthTypes {
     PUBLIC = 'public',
 }
 
+export enum CognitoStateTypes {
+    STAFF_JCC = 'staff',
+    STAFF_COSMETOLOGY = 'staff-cosmo',
+    LICENSEE_JCC = 'licensee',
+}
+
 export const staffLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
 export const licenseeLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
 
@@ -24,26 +38,42 @@ export type CognitoConfig = {
     scopes: string;
     clientId: string;
     authDomain: string;
+    state: string;
 };
-export const getCognitoConfig = (authType: AuthTypes): CognitoConfig => {
+export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): CognitoConfig => {
     const config: CognitoConfig = {
         scopes: '',
         clientId: '',
         authDomain: '',
+        state: '',
     };
 
     switch (authType) {
     case AuthTypes.STAFF:
         config.scopes = staffLoginScopes;
-        if (envConfig.cognitoClientIdStaff) {
-            config.clientId = envConfig.cognitoClientIdStaff;
+
+        if (appMode === AppModes.JCC) {
+            config.state = CognitoStateTypes.STAFF_JCC;
+            if (envConfig.cognitoClientIdStaff) {
+                config.clientId = envConfig.cognitoClientIdStaff;
+            }
+            if (envConfig.cognitoAuthDomainStaff) {
+                config.authDomain = envConfig.cognitoAuthDomainStaff;
+            }
+        } else if (appMode === AppModes.COSMETOLOGY) {
+            config.state = CognitoStateTypes.STAFF_COSMETOLOGY;
+            if (envConfig.cognitoClientIdStaffCosmo) {
+                config.clientId = envConfig.cognitoClientIdStaffCosmo;
+            }
+            if (envConfig.cognitoAuthDomainStaffCosmo) {
+                config.authDomain = envConfig.cognitoAuthDomainStaffCosmo;
+            }
         }
-        if (envConfig.cognitoAuthDomainStaff) {
-            config.authDomain = envConfig.cognitoAuthDomainStaff;
-        }
+
         break;
     case AuthTypes.LICENSEE:
         config.scopes = licenseeLoginScopes;
+        config.state = CognitoStateTypes.LICENSEE_JCC;
         if (envConfig.cognitoClientIdLicensee) {
             config.clientId = envConfig.cognitoClientIdLicensee;
         }
@@ -58,14 +88,19 @@ export const getCognitoConfig = (authType: AuthTypes): CognitoConfig => {
     return config;
 };
 
-export const getHostedLoginUri = (authType: AuthTypes, hostedIdpPath = '/login'): string => {
+export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login'): string => {
     const { domain } = envConfig;
-    const { scopes, clientId, authDomain } = getCognitoConfig(authType);
+    const {
+        scopes,
+        clientId,
+        authDomain,
+        state
+    } = getCognitoConfig(appMode, authType);
     const loginUriQuery = [
         `?client_id=${clientId}`,
         `&response_type=code`,
         `&scope=${encodeURIComponent(scopes)}`,
-        `&state=${authType}`,
+        `&state=${state}`,
         `&redirect_uri=${encodeURIComponent(`${domain}/auth/callback`)}`,
     ].join('');
     const loginUri = `${authDomain}${hostedIdpPath}${loginUriQuery}`;
@@ -308,6 +343,7 @@ export const compacts = {
     aslp: {},
     octp: {},
     coun: {},
+    cosm: {},
 };
 
 // =============================

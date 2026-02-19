@@ -13,6 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import {
     authStorage,
+    AppModes,
     AuthTypes,
     getHostedLoginUri,
     AUTH_LOGIN_GOTO_PATH,
@@ -60,6 +61,10 @@ class MfaResetConfirmLicensee extends Vue {
     //
     // Computed
     //
+    get appMode(): AppModes {
+        return this.$store.state.appMode;
+    }
+
     get compactQuery(): string {
         const compact: string = (this.$route.query?.compact as string) || '';
 
@@ -75,7 +80,7 @@ class MfaResetConfirmLicensee extends Vue {
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(AuthTypes.LICENSEE, '/login');
+        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login');
     }
 
     get isUsingMockApi(): boolean {

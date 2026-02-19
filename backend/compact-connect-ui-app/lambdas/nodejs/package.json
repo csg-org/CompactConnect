@@ -30,5 +30,8 @@
     "@aws-sdk/client-s3": "^3.682.0",
     "@aws-sdk/util-dynamodb": "^3.682.0",
     "zod": "^3.23.8"
+  },
+  "resolutions": {
+    "fast-xml-parser": "5.3.6"
   }
 }

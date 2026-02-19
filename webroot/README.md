@@ -84,6 +84,46 @@
             - Prod: `https://search.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://search.test.jcc.iaapi.io`
+    - **`VUE_APP_API_USER_ROOT`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://api.test.jcc.iaapi.io`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://api.test.jcc.iaapi.io`
+    - **`VUE_APP_API_STATE_ROOT_COSMO`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://api.test.cosmetology.jcc.iaapi.io`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://api.test.cosmetology.jcc.iaapi.io`
+    - **`VUE_APP_API_LICENSE_ROOT_COSMO`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://api.test.cosmetology.jcc.iaapi.io`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://api.test.cosmetology.jcc.iaapi.io`
+    - **`VUE_APP_API_SEARCH_ROOT_COSMO`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://search.test.cosmetology.jcc.iaapi.io`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://search.test.cosmetology.jcc.iaapi.io`
+    - **`VUE_APP_API_USER_ROOT_COSMO`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://api.test.cosmetology.jcc.iaapi.io`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://api.test.cosmetology.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
             - IA Test: `us-east-1`
@@ -124,6 +164,22 @@
             - Prod: `4mnd3u2rp30ssgnm7dk81jcqsc`
         - _Local_ :arrow_heading_down:
             - `15mh24ea4af3of8jcnv8h2ic10`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://staff-auth.test.cosmetology.jcc.iaapi.io`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://staff-auth.test.cosmetology.jcc.iaapi.io`
+    - **`VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `42km9ho786d28dp812j88kvscq`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `42km9ho786d28dp812j88kvscq`
     - **`VUE_APP_RECAPTCHA_KEY`**
         - _Server_ :arrow_heading_up:
             - IA Test: `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
@@ -161,6 +217,10 @@
         - `3018`
 
 ### Adding environment variables
+_For any environment values that are NOT static and DO depend on backend CDK context, coordinate with the backend team to coordinate the updates to the SSM parameter store._
+
+For any environment values that are static and don't depend on backend CDK context, follow the steps below.
+
 In **`/backend/compact-connect-ui-app/`**:
 
 - **Update `cdk.context.*-example.json` files**
