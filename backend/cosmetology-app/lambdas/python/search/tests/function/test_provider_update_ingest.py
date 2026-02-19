@@ -132,14 +132,12 @@ class TestProviderUpdateIngest(TstFunction):
             'licenseJurisdiction': 'oh',
             'licenseStatus': 'inactive',
             'compactEligibility': 'ineligible',
-            'npi': '0608337260',
             'givenName': f'test{compact}GivenName',
             'middleName': 'Gunnar',
             'familyName': f'test{compact}FamilyName',
             'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
             'jurisdictionUploadedLicenseStatus': 'active',
             'jurisdictionUploadedCompactEligibility': 'eligible',
-            'privilegeJurisdictions': ['ne'],
             'birthMonthDay': '06-06',
             'licenses': [
                 {
@@ -154,7 +152,6 @@ class TestProviderUpdateIngest(TstFunction):
                     'jurisdictionUploadedLicenseStatus': 'active',
                     'compactEligibility': 'ineligible',
                     'jurisdictionUploadedCompactEligibility': 'eligible',
-                    'npi': '0608337260',
                     'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',

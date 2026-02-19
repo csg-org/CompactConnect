@@ -87,9 +87,6 @@ class V1Api:
             authorization_scopes=read_ssn_scopes,
         )
 
-        # Store the privilege history handler for use by multiple modules
-        privilege_history_handler = api_lambda_stack.privilege_history_handler
-
         # /v1/flags
         self.flags_resource = self.resource.add_resource('flags')
         self.feature_flags = FeatureFlagsApi(
@@ -115,7 +112,6 @@ class V1Api:
             resource=self.public_compacts_compact_providers_resource,
             api_model=self.api_model,
             api_lambda_stack=api_lambda_stack,
-            privilege_history_function=privilege_history_handler,
         )
 
         # /v1/compacts
@@ -133,7 +129,6 @@ class V1Api:
             ssn_method_options=read_ssn_auth_method_options,
             api_model=self.api_model,
             api_lambda_stack=api_lambda_stack,
-            privilege_history_function=privilege_history_handler,
         )
         # GET  /v1/compacts/{compact}/jurisdictions
         self.jurisdictions_resource = self.compact_resource.add_resource('jurisdictions')

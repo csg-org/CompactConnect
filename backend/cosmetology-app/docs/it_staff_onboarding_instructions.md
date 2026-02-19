@@ -123,7 +123,7 @@ curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/com
     "licenseStatusName":"Active",
     "licenseStatus":"active",
     "compactEligibility":"eligible",
-    "licenseType":"cosmetology",
+    "licenseType":"cosmetologist",
     "givenName":"Jane",
     "middleName":"Marie",
     "familyName":"Smith",
@@ -137,8 +137,7 @@ curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/com
     "homeAddressState":"KY",
     "homeAddressPostalCode":"40202",
     "emailAddress":"jane.smith@example.com",
-    "phoneNumber":"+15555551234",
-    "npi":"1234567890"
+    "phoneNumber":"+15555551234"
   }
 ]'
 ```
@@ -295,162 +294,6 @@ validation errors in the response body.
 
 > **Note**: 200 status code means your request passed synchronous validation and was accepted for processing. Ingest and
 > downstream processing are asynchronous and may take several minutes.
-
-## Retrieving Data from CompactConnect
-
-In addition to uploading license data, state IT departments can retrieve privilege data from CompactConnect to integrate with their own systems. The State API provides two primary endpoints for data retrieval: a query endpoint for bulk retrieval of updated records, and a get endpoint for retrieving details about specific providers.
-
-> **Important**: Data retrieval endpoints require additional security through request signature authentication. Please see the [Client Signature Authentication documentation](./client_signature_auth.md) for detailed information about implementing request signing before attempting to use these endpoints.
-
-### Required OAuth Scope for Data Retrieval
-
-To retrieve data from the CompactConnect API, you must request the `<compact>/readGeneral` OAuth scope when generating your access token. This scope grants read access to provider and privilege data for your jurisdiction.
-
-If your integration needs both to upload license data AND retrieve privilege data within the same access token, you can request multiple OAuth scopes at the same time by separating them with a space in the scope parameter:
-
-```bash
-curl --location --request POST '<authUrl>' \
---header 'Content-Type: application/x-www-form-urlencoded' \
---header 'Accept: application/json' \
---data-urlencode 'grant_type=client_credentials' \
---data-urlencode 'client_id=<clientId>' \
---data-urlencode 'client_secret=<clientSecret>' \
---data-urlencode 'scope=<jurisdiction>/<compact>.write <compact>/readGeneral'
-```
-
-Replace:
-- `<clientId>` with your client ID
-- `<clientSecret>` with your client secret
-- `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky`)
-- `<compact>` with the lower-cased compact abbreviation (`cosm`)
-
-**OAuth Scope Reference**:
-- `<jurisdiction>/<compact>.write` - Required for uploading license data
-- `<compact>/readGeneral` - Required for retrieving provider and privilege data
-
-The access token you receive will be authorized for both operations. If this request fails, your credentials may have not been granted the ability to grant the read scope for the specific compact when they were created. Reach out to your CompactConnect representative to request this permission if needed.
-
-### Query Providers Endpoint
-
-The query endpoint allows you to retrieve a list of providers who have privileges in your jurisdiction, filtered by when their records were last updated. This is useful for identifying which providers have had changes that need to be synchronized to your systems.
-
-**Endpoint**: `POST /v1/compacts/<compact>/jurisdictions/<jurisdiction>/providers/query`
-
-**Request Body**:
-```json
-{
-  "query": {
-    "startDateTime": "2024-10-01T00:00:00Z",
-    "endDateTime": "2024-10-07T23:59:59Z"
-  }
-}
-```
-
-**Example Response**:
-```json
-{
-  "query": {
-    "startDateTime": "2024-10-01T00:00:00Z",
-    "endDateTime": "2024-10-07T23:59:59Z"
-  },
-  "sorting": {
-    "direction": "ascending"
-  },
-  "providers": [
-    {
-      "providerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "type": "provider",
-      "compact": "cosm",
-      "dateOfUpdate": "2024-10-05T14:32:10.123Z",
-      "licenseJurisdiction": "ky",
-      "licenseStatus": "active",
-      "compactEligibility": "eligible",
-      "givenName": "Jane",
-      "middleName": "Marie",
-      "familyName": "Smith",
-      "birthMonthDay": "05-20",
-      "dateOfExpiration": "2025-01-14",
-      "jurisdictionUploadedLicenseStatus": "active",
-      "jurisdictionUploadedCompactEligibility": "eligible",
-      "privilegeJurisdictions": ["oh", "tn", "va"]
-    }
-  ],
-  "pagination": {
-    "lastKey": "eyJwayI6InByb3ZpZGVyI..."
-  }
-}
-```
-
-**Response Fields**:
-- `providerId`: Unique identifier for the provider in CompactConnect
-- `dateOfUpdate`: When the provider record was last updated
-- `privilegeJurisdictions`: Array of jurisdictions where the provider currently has active privileges
-- `pagination.lastKey`: Token to use for retrieving the next page of results (include in next request's `pagination.lastKey` field)
-
-#### Pagination
-
-When querying for providers, results are paginated. To retrieve additional pages:
-
-1. Check the response for the `pagination.lastKey` field
-2. If present, include it in your next request's `pagination.lastKey` to get the next page
-3. Continue until `pagination.lastKey` is not present in the response
-
-**Example of retrieving next page**:
-```json
-{
-  "query": {
-    "startDateTime": "2024-10-01T00:00:00Z",
-    "endDateTime": "2024-10-07T23:59:59Z"
-  },
-  "pagination": {
-    "lastKey": "eyJwayI6InByb3ZpZGVyI..."
-  }
-}
-```
-
-### Get Provider Details Endpoint
-
-The get provider endpoint returns detailed information about a specific provider's privileges in your jurisdiction.
-
-**Endpoint**: `GET /v1/compacts/<compact>/jurisdictions/<jurisdiction>/providers/{providerId}`
-
-**Example Response**:
-```json
-{
-  "privileges": [
-    {
-      "type": "statePrivilege",
-      "providerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "privilegeId": "priv_xyz123",
-      "compact": "cosm",
-      "jurisdiction": "oh",
-      "licenseType": "cosmetology",
-      "status": "active",
-      "compactEligibility": "eligible",
-      "dateOfIssuance": "2023-01-15",
-      "dateOfRenewal": "2023-01-15",
-      "dateOfExpiration": "2025-01-14",
-      "dateOfUpdate": "2024-10-05T14:32:10.123Z",
-      "licenseJurisdiction": "ky",
-      "licenseStatus": "active",
-      "givenName": "Jane",
-      "middleName": "Marie",
-      "familyName": "Smith",
-      "npi": "1234567890",
-      "licenseNumber": "LIC123456",
-      "licenseStatusName": "Active"
-    }
-  ],
-  "providerUIUrl": "https://app.beta.cosmetology.compactconnect.org/cosm/Licensing/a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-}
-```
-
-**Response Fields**:
-- `privileges`: Array of privilege records for this provider in your jurisdiction (typically one per license type)
-- `providerUIUrl`: Direct link to view this provider's details in the CompactConnect web interface
-- Each privilege record combines data from both the privilege and the underlying license record
-
-**Note**: A provider may have multiple privileges in your jurisdiction if they hold multiple license types.
 
 ## Troubleshooting Common Issues
 

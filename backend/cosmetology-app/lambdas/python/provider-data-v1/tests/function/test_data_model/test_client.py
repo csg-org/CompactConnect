@@ -11,20 +11,20 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_family_name(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
-        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9989)
-        self._generate_providers(home='ne', privilege_jurisdiction='co', start_serial=9979)
+        self._generate_providers(home='oh', start_serial=9999)
+        self._generate_providers(home='ne', start_serial=9989)
+        self._generate_providers(home='ne', start_serial=9979)
         client = DataClient(self.config)
 
-        # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
+        # We expect to see 10 providers with licenses in oh
         resp = client.get_providers_sorted_by_family_name(
             compact='cosm',
             jurisdiction='oh',
-            pagination={'pageSize': 10},
+            pagination={'pageSize': 5},
         )
         first_provider_ids = {item['providerId'] for item in resp['items']}
         first_items = resp['items']
-        self.assertEqual(10, len(resp['items']))
+        self.assertEqual(5, len(resp['items']))
         self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         last_key = resp['pagination']['lastKey']
@@ -33,7 +33,7 @@ class TestClient(TstFunction):
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 100},
         )
-        self.assertEqual(10, len(resp['items']))
+        self.assertEqual(5, len(resp['items']))
         self.assertIsNone(resp['pagination']['lastKey'])
 
         second_provider_ids = {item['providerId'] for item in resp['items']}
@@ -48,7 +48,7 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_family_name_descending(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
+        self._generate_providers(home='oh', start_serial=9999)
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_family_name(
@@ -68,7 +68,6 @@ class TestClient(TstFunction):
         # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(
                 ('Testerly', 'Tess'),
@@ -95,7 +94,6 @@ class TestClient(TstFunction):
         # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(
                 ('Testerly', 'Tess'),
@@ -120,20 +118,20 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_date_updated(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
-        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9989)
-        self._generate_providers(home='ne', privilege_jurisdiction='ky', start_serial=9979)
+        self._generate_providers(home='oh', start_serial=9999)
+        self._generate_providers(home='ne', start_serial=9989)
+        self._generate_providers(home='ne', start_serial=9979)
         client = DataClient(self.config)
 
-        # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
+        # We expect to see 10 providers with licenses in oh
         resp = client.get_providers_sorted_by_updated(
             compact='cosm',
             jurisdiction='oh',
-            pagination={'pageSize': 10},
+            pagination={'pageSize': 5},
         )
         first_provider_ids = {item['providerId'] for item in resp['items']}
         first_provider_items = resp['items']
-        self.assertEqual(10, len(resp['items']))
+        self.assertEqual(5, len(resp['items']))
         self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         last_key = resp['pagination']['lastKey']
@@ -142,7 +140,7 @@ class TestClient(TstFunction):
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 10},
         )
-        self.assertEqual(10, len(resp['items']))
+        self.assertEqual(5, len(resp['items']))
         self.assertIsNone(resp['pagination']['lastKey'])
 
         second_provider_ids = {item['providerId'] for item in resp['items']}
@@ -157,7 +155,7 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_date_of_update_descending(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
+        self._generate_providers(home='oh', start_serial=9999)
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_updated(
@@ -171,52 +169,10 @@ class TestClient(TstFunction):
         dates_of_update = [item['dateOfUpdate'] for item in resp['items']]
         self.assertListEqual(sorted(dates_of_update, reverse=True), dates_of_update)
 
-    def test_get_providers_sorted_by_updated_privileges_in_jurisdiction_requires_jurisdiction(self):
-        from cc_common.data_model.data_client import DataClient
-
-        client = DataClient(self.config)
-
-        # Verify that an exception is raised when jurisdiction is None and
-        # only_providers_with_privileges_in_jurisdiction is True
-        with self.assertRaises(RuntimeError) as context:
-            client.get_providers_sorted_by_updated(
-                compact='cosm',
-                jurisdiction=None,
-                only_providers_with_privileges_in_jurisdiction=True,
-            )
-
-        self.assertEqual(
-            'jurisdiction is required when only_providers_with_privileges_in_jurisdiction is True',
-            str(context.exception),
-        )
-
-    def test_get_providers_sorted_by_updated_with_jurisdiction_and_only_providers_with_privileges_in_jurisdiction(self):
-        from cc_common.data_model.data_client import DataClient
-
-        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
-        client = DataClient(self.config)
-
-        # Verify that the method works correctly when jurisdiction is provided and
-        # only_providers_with_privileges_in_jurisdiction is True
-        resp = client.get_providers_sorted_by_updated(
-            compact='cosm',
-            jurisdiction='ne',
-            only_providers_with_privileges_in_jurisdiction=True,
-        )
-
-        # Should return providers that have privileges in the specified jurisdiction
-        self.assertIsInstance(resp['items'], list)
-        # All 10 created providers should be returned
-        self.assertEqual(10, len(resp['items']))
-        # All returned providers should have privileges in 'ne' jurisdiction
-        for provider in resp['items']:
-            self.assertIn('ne', provider['privilegeJurisdictions'])
-
     def _load_provider_data(self) -> str:
         with open('../common/tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)
         provider_id = provider_record['providerId']
-        provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
         self._provider_table.put_item(Item=provider_record)
 
         with open('../common/tests/resources/dynamo/privilege.json') as f:

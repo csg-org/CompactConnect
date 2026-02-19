@@ -7,7 +7,7 @@ be rendered consistently across email clients.
 The lambda is intended to be invoked directly, rather than through an API endpoint. It uses the following payload structure:
 ```
 {
-  template: string;           // Name of the template to use (ie transactionBatchSettlementFailure)
+  template: string;           // Name of the template to use (e.g. licenseEncumbranceProviderNotification)
   recipientType: // must be one of the following
     | 'COMPACT_OPERATIONS_TEAM'              // compactOperationsTeamEmails
     | 'COMPACT_ADVERSE_ACTIONS'              // compactAdverseActionsNotificationEmails

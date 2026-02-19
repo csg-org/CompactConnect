@@ -7,10 +7,17 @@ import { EmailNotificationEvent } from '../lib/models/email-notification-service
 import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 
 const SAMPLE_EVENT: EmailNotificationEvent = {
-    template: 'transactionBatchSettlementFailure',
-    recipientType: 'COMPACT_OPERATIONS_TEAM',
+    template: 'licenseEncumbranceProviderNotification',
+    recipientType: 'SPECIFIC',
     compact: 'cosm',
-    templateVariables: {}
+    specificEmails: ['provider@example.com'],
+    templateVariables: {
+        providerFirstName: 'John',
+        providerLastName: 'Doe',
+        encumberedJurisdiction: 'OH',
+        licenseType: 'Audiologist',
+        effectiveStartDate: 'January 15, 2024'
+    }
 };
 
 const SAMPLE_COMPACT_CONFIGURATION = {
@@ -111,103 +118,6 @@ describe('EmailNotificationServiceLambda', () => {
         expect(mockSESClient).not.toHaveReceivedAnyCommand();
     });
 
-    it('should successfully send transaction batch settlement failure email', async () => {
-        const response = await lambda.handler(SAMPLE_EVENT, {} as any);
-
-        expect(response).toEqual({
-            message: 'Email message sent'
-        });
-
-        // Verify DynamoDB was queried for compact configuration
-        expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
-            TableName: 'compact-table',
-            Key: {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#CONFIGURATION' }
-            }
-        });
-
-        // Verify email was sent with correct parameters
-        expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-            Destination: {
-                ToAddresses: ['operations@example.com']
-            },
-            Content: {
-                Simple: {
-                    Body: {
-                        Html: {
-                            Charset: 'UTF-8',
-                            Data: expect.stringContaining('A transaction settlement error was detected')
-                        }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'Transactions Failed to Settle for Audiology and Speech Language Pathology Payment Processor'
-                    }
-                }
-            },
-            FromEmailAddress: 'Compact Connect <noreply@example.org>'
-        });
-    });
-
-    it('should include detailed error information for failed transactions', async () => {
-        const eventWithFailedTransactions: EmailNotificationEvent = {
-            ...SAMPLE_EVENT,
-            templateVariables: {
-                batchFailureErrorMessage: JSON.stringify({
-                    message: 'Settlement errors detected in one or more transactions.',
-                    failedTransactionIds: ['tx-123', 'tx-456', 'tx-789']
-                })
-            }
-        };
-
-        const response = await lambda.handler(eventWithFailedTransactions, {} as any);
-
-        expect(response).toEqual({
-            message: 'Email message sent'
-        });
-
-        // Get the actual HTML content for detailed validation
-        const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
-        const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
-
-        expect(htmlContent).toBeDefined();
-        expect(htmlContent).toContain('A transaction settlement error was detected within the payment processing account for the compact.');
-        expect(htmlContent).toContain('Please reach out to your payment processing representative if needed to determine the cause.');
-        expect(htmlContent).toContain('Detailed Error Information:');
-        expect(htmlContent).toContain('Error Message: Settlement errors detected in one or more transactions.');
-        expect(htmlContent).toContain('Failed Transaction IDs: tx-123, tx-456, tx-789');
-    });
-
-    it('should include detailed error information for unsettled transactions', async () => {
-        const eventWithUnsettledTransactions: EmailNotificationEvent = {
-            ...SAMPLE_EVENT,
-            templateVariables: {
-                batchFailureErrorMessage: JSON.stringify({
-                    message: 'One or more transactions have not settled in over 48 hours.',
-                    unsettledTransactionIds: ['unsettled-tx-001', 'unsettled-tx-002']
-                })
-            }
-        };
-
-        const response = await lambda.handler(eventWithUnsettledTransactions, {} as any);
-
-        expect(response).toEqual({
-            message: 'Email message sent'
-        });
-
-        // Get the actual HTML content for detailed validation
-        const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
-        const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
-
-        expect(htmlContent).toBeDefined();
-        expect(htmlContent).toContain('A transaction settlement error was detected within the payment processing account for the compact.');
-        expect(htmlContent).toContain('Please reach out to your payment processing representative if needed to determine the cause.');
-        expect(htmlContent).toContain('Detailed Error Information:');
-        expect(htmlContent).toContain('Error Message: One or more transactions have not settled in over 48 hours.');
-        expect(htmlContent).toContain('Unsettled Transaction IDs (older than 48 hours): unsettled-tx-001, unsettled-tx-002');
-    });
-
     it('should throw error for unsupported template', async () => {
         const event: EmailNotificationEvent = {
             ...SAMPLE_EVENT,
@@ -221,61 +131,6 @@ describe('EmailNotificationServiceLambda', () => {
         // Verify no AWS calls were made
         expect(mockDynamoDBClient).not.toHaveReceivedAnyCommand();
         expect(mockSESClient).not.toHaveReceivedAnyCommand();
-    });
-
-    describe('Privilege Deactivation Jurisdiction Notification', () => {
-        const SAMPLE_PRIVILEGE_DEACTIVATION_JURISDICTION_NOTIFICATION_EVENT: EmailNotificationEvent = {
-            template: 'privilegeDeactivationJurisdictionNotification',
-            recipientType: 'JURISDICTION_SUMMARY_REPORT',
-            compact: 'cosm',
-            jurisdiction: 'oh',
-            templateVariables: {
-                privilegeId: '123',
-                providerFirstName: 'John',
-                providerLastName: 'Doe'
-            }
-        };
-
-        it('should successfully send privilege deactivation jurisdiction notification email', async () => {
-            const response = await lambda.handler(
-                SAMPLE_PRIVILEGE_DEACTIVATION_JURISDICTION_NOTIFICATION_EVENT, {} as any);
-
-            expect(response).toEqual({
-                message: 'Email message sent'
-            });
-
-            // Verify DynamoDB was queried for jurisdiction configuration
-            expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
-                TableName: 'compact-table',
-                Key: {
-                    'pk': { S: 'cosm#CONFIGURATION' },
-                    'sk': { S: 'cosm#JURISDICTION#oh' }
-                }
-            });
-
-            // Verify email was sent with correct parameters
-            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
-                Destination: {
-                    ToAddresses: ['ohio@example.com']
-                },
-                Content: {
-                    Simple: {
-                        Body: {
-                            Html: {
-                                Charset: 'UTF-8',
-                                Data: expect.stringContaining('<!DOCTYPE html>')
-                            }
-                        },
-                        Subject: {
-                            Charset: 'UTF-8',
-                            Data: 'A Privilege was Deactivated in the Audiology and Speech Language Pathology Compact'
-                        }
-                    }
-                },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
-            }
-            );
-        });
     });
 
     describe('License Encumbrance Provider Notification', () => {

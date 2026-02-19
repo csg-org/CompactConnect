@@ -12,9 +12,8 @@ from .. import TstFunction
 class TestIngest(TstFunction):
     @staticmethod
     def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
-        # The canned response resource assumes that the provider will be given a privilege,
-        # home state selection, and one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
+        # The canned response resource assumes that the provider will be given
+        # one license renewal. We didn't do any of that here, so we'll reset that data
         expected_provider['privileges'] = []
 
         return expected_provider
@@ -168,8 +167,6 @@ class TestIngest(TstFunction):
         expected_provider['licenses'][0]['licenseStatus'] = 'inactive'
         expected_provider['compactEligibility'] = 'ineligible'
         expected_provider['licenses'][0]['compactEligibility'] = 'ineligible'
-        # ensure the privilege record is also set to inactive
-        expected_provider['privileges'][0]['status'] = 'inactive'
 
         provider_data = self._get_provider_via_api(provider_id)
 
@@ -505,56 +502,6 @@ class TestIngest(TstFunction):
 
         resp = preprocess_license_ingest(event, self.mock_context)
         self.assertEqual({'batchItemFailures': [{'itemIdentifier': '123'}]}, resp)
-
-    def test_inactive_privileges_included_in_privilege_jurisdictions(self):
-        """
-        Test that inactive privileges are included in the privilegeJurisdictions list.
-        This test verifies that we include all jurisdictions a user has privileges in,
-        regardless of whether they are active or not.
-        """
-        from handlers.ingest import ingest_license_message
-
-        # The test resource provider has a license in oh and active privilege in ne
-        self._load_provider_data()
-        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
-            provider_id = json.load(f)['providerId']
-
-        # Add an inactive privilege record for this provider in a different jurisdiction (ky)
-        inactive_privilege = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': 'cosm#PROVIDER#privilege/ky#',
-            'type': 'privilege',
-            'providerId': provider_id,
-            'compact': 'cosm',
-            'jurisdiction': 'ky',
-            'licenseType': 'cosmetologist',
-            'licenseJurisdiction': 'oh',
-            'dateOfIssuance': '2023-01-01',
-            'dateOfRenewal': '2023-01-01',
-            'dateOfExpiration': '2025-01-01',
-            'dateOfUpdate': '2025-01-01T12:59:59+00:00',
-            'privilegeId': 'test-privilege-id',
-            'administratorSetStatus': 'inactive',  # This privilege is inactive
-        }
-        self.config.provider_table.put_item(Item=inactive_privilege)
-
-        # Now ingest a new license to trigger the provider record update
-        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
-            message = json.load(f)
-
-        # Make a small change to trigger an update
-        message['detail']['phoneNumber'] = '+19876543210'
-
-        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
-        resp = ingest_license_message(event, self.mock_context)
-        self.assertEqual({'batchItemFailures': []}, resp)
-
-        # Get the provider data and verify that the inactive privilege jurisdiction is included
-        provider_data = self._get_provider_via_api(provider_id)
-
-        # The privilegeJurisdictions should include both the active privilege from the test setup
-        # and the inactive privilege we just added
-        self.assertEqual({'ky', 'ne'}, set(provider_data['privilegeJurisdictions']))
 
     def test_multiple_license_types_same_jurisdiction(self):
         """

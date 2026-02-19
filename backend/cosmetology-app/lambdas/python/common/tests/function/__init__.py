@@ -245,14 +245,9 @@ class TstFunction(TstLambdas):
         """Use the canned test resources to load a basic provider to the DB"""
         test_resources = glob('../common/tests/resources/dynamo/provider.json')
 
-        def privilege_jurisdictions_to_set(obj: dict):
-            if obj.get('type') == 'provider' and 'privilegeJurisdictions' in obj:
-                obj['privilegeJurisdictions'] = set(obj['privilegeJurisdictions'])
-            return obj
-
         for resource in test_resources:
             with open(resource) as f:
-                record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
+                record = json.load(f, parse_float=Decimal)
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)

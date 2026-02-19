@@ -72,7 +72,6 @@ def upload_licenses_record():
     # Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/ne/licenses' endpoint.
     post_body = [
         {
-            'npi': '1111111111',
             'licenseNumber': 'A0608337260',
             'homeAddressPostalCode': '68001',
             'givenName': TEST_PROVIDER_GIVEN_NAME,

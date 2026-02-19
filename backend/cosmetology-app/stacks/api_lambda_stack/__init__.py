@@ -1,16 +1,9 @@
 from __future__ import annotations
 
-import os
-
-from aws_cdk.aws_dynamodb import ITable
-from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import QueryDefinition, QueryString
-from aws_cdk.aws_sns import ITopic
-from cdk_nag import NagSuppressions
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.python_function import PythonFunction
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 
@@ -58,13 +51,6 @@ class ApiLambdaStack(AppStack):
             persistent_stack=persistent_stack,
         )
 
-        self.privilege_history_handler = self._privilege_history_handler(
-            data_encryption_key=persistent_stack.shared_encryption_key,
-            provider_table=persistent_stack.provider_table,
-            alarm_topic=persistent_stack.alarm_topic,
-        )
-        self.log_groups.append(self.privilege_history_handler.log_group)
-
         # Bulk upload url lambdas
         self.bulk_upload_url_lambdas = BulkUploadUrlLambdas(
             scope=self,
@@ -110,41 +96,6 @@ class ApiLambdaStack(AppStack):
 
         # Create the QueryDefinition after all lambda modules have been initialized and added their log groups
         self._create_runtime_query_definition()
-
-    def _privilege_history_handler(
-        self,
-        data_encryption_key: IKey,
-        provider_table: ITable,
-        alarm_topic: ITopic,
-    ):
-        handler = PythonFunction(
-            self,
-            'GetPrivilegeHistory',
-            description='Get privilege history handler',
-            lambda_dir='provider-data-v1',
-            environment={
-                'PROVIDER_TABLE_NAME': provider_table.table_name,
-                **self.common_env_vars,
-            },
-            index=os.path.join('handlers', 'privilege_history.py'),
-            handler='privilege_history_handler',
-            alarm_topic=alarm_topic,
-        )
-        data_encryption_key.grant_decrypt(handler)
-        provider_table.grant_read_data(handler)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to one table and encryption key.',
-                },
-            ],
-        )
-        return handler
 
     def _create_runtime_query_definition(self):
         """Create the QueryDefinition for runtime logs after all lambda modules have been initialized."""

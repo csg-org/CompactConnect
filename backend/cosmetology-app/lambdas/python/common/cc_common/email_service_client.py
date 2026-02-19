@@ -91,39 +91,6 @@ class EmailServiceClient:
             self._logger.error(error_message, payload=payload, exception=str(e))
             raise CCInternalException(error_message) from e
 
-    def send_jurisdiction_privilege_deactivation_email(
-        self,
-        compact: str,
-        jurisdiction: str,
-        privilege_id: str,
-        provider_first_name: str,
-        provider_last_name: str,
-    ) -> dict[str, str]:
-        """
-        Send a privilege deactivation notification email to jurisdiction.
-
-        :param compact: Compact name
-        :param jurisdiction: Jurisdiction name
-        :param privilege_id: ID of the privilege being deactivated
-        :param provider_first_name: First name of the provider whose privilege was deactivated
-        :param provider_last_name: Last name of the provider whose privilege was deactivated
-        :return: Response from the email notification service
-        """
-        payload = {
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            'template': 'privilegeDeactivationJurisdictionNotification',
-            # for now, we send this notification to the same contacts as the summary report recipients
-            'recipientType': 'JURISDICTION_SUMMARY_REPORT',
-            'templateVariables': {
-                'privilegeId': privilege_id,
-                'providerFirstName': provider_first_name,
-                'providerLastName': provider_last_name,
-            },
-        }
-
-        return self._invoke_lambda(payload)
-
     def send_license_encumbrance_provider_notification_email(
         self,
         *,

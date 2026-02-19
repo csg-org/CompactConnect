@@ -97,6 +97,14 @@ class AppStack(Stack):
 
         self.environment_context = environment_context
         self.environment_name = environment_name
+
+        # Guard: all pipeline environments (test, beta, prod) MUST have a domain_name configured
+        if environment_name in ('test', 'beta', 'prod') and not environment_context.get('domain_name'):
+            raise ValueError(
+                f"Pipeline environments (test, beta, prod) require 'domain_name' to be configured. "
+                f"Environment '{environment_name}' is missing this required configuration."
+            )
+
         # We only set the API_BASE_URL common env var if the API_DOMAIN_NAME is set
         # The API_BASE_URL is used by the feature flag client to call the flag check endpoint
         if self.api_domain_name:
@@ -130,6 +138,12 @@ class AppStack(Stack):
 
     @property
     def ui_domain_name(self) -> str | None:
+        # Allow explicit override via environment context for cases where the UI is hosted
+        # on a different domain than the backend's hosted zone (e.g. cosmetology backend uses
+        # cosmetology.compactconnect.org but the UI is at app.compactconnect.org)
+        override = self.environment_context.get('ui_domain_name_override')
+        if override is not None:
+            return override
         if self.hosted_zone is not None:
             return f'app.{self.hosted_zone.zone_name}'
         return None
@@ -137,7 +151,7 @@ class AppStack(Stack):
     @property
     def allowed_origins(self) -> list[str]:
         allowed_origins = []
-        if self.hosted_zone is not None:
+        if self.ui_domain_name is not None:
             allowed_origins.append(f'https://{self.ui_domain_name}')
 
         if self.environment_context.get('allow_local_ui', False):
