@@ -12,7 +12,8 @@ import {
     AuthTypes,
     getHostedLoginUri,
     AUTH_LOGIN_GOTO_PATH,
-    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
+    AUTH_LOGIN_GOTO_COMPACT
 } from '@/app.config';
 import Card from '@components/Card/Card.vue';
 import SearchIcon from '@components/Icons/Search/Search.vue';
@@ -108,8 +109,11 @@ export default class DashboardPublic extends Vue {
         }
     }
 
-    bypassToStaffLogin(): void {
+    bypassToStaffLogin(compactType?: CompactType): void {
         if (this.isUsingMockApi) {
+            if (compactType) {
+                this.setGotoCompact(compactType);
+            }
             this.mockStaffLogin(AppModes.JCC);
         } else {
             this.$store.dispatch('startLoading');
@@ -117,8 +121,11 @@ export default class DashboardPublic extends Vue {
         }
     }
 
-    bypassToStaffLoginCosmo(): void {
+    bypassToStaffLoginCosmo(compactType?: CompactType): void {
         if (this.isUsingMockApi) {
+            if (compactType) {
+                this.setGotoCompact(compactType);
+            }
             this.mockStaffLogin(AppModes.COSMETOLOGY);
         } else {
             this.$store.dispatch('startLoading');
@@ -166,6 +173,12 @@ export default class DashboardPublic extends Vue {
         }
 
         return compactDisplay.trim();
+    }
+
+    setGotoCompact(compactType: CompactType): void {
+        if (compactType) {
+            authStorage.setItem(AUTH_LOGIN_GOTO_COMPACT, compactType);
+        }
     }
 
     async mockStaffLogin(appMode: AppModes): Promise<void> {

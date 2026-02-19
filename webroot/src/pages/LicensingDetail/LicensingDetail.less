@@ -158,17 +158,25 @@
                 flex-wrap: wrap;
 
                 .info-item-container {
+                    max-width: 100%;
                     padding: 2rem;
+                    overflow: hidden;
+
+                    @media @tabletWidth {
+                        max-width: 30rem;
+                    }
 
                     .info-item-title {
                         font-weight: @fontWeightBold;
                         font-size: 1.4rem;
                         line-height: 2.1rem;
+                        word-break: break-word;
                     }
 
                     .info-item {
                         font-size: 1.4rem;
                         line-height: 2.1rem;
+                        word-break: break-word;
                     }
 
                     .info-item-error {

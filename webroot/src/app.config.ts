@@ -150,15 +150,16 @@ export const tokens = {
 export const AUTH_TYPE = 'auth_type';
 export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
+export const AUTH_LOGIN_GOTO_COMPACT = 'login_goto_compact';
 
 // ====================
 // =    Auto logout   =
 // ====================
 export const autoLogoutConfig = {
     INACTIVITY_TIMER_DEFAULT_MS: moment.duration(10, 'minutes').asMilliseconds(),
-    INACTIVITY_TIMER_STAFF_MS: moment.duration(10, 'minutes').asMilliseconds(),
+    INACTIVITY_TIMER_STAFF_MS: moment.duration(1, 'minutes').asMilliseconds(),
     INACTIVITY_TIMER_LICENSEE_MS: moment.duration(10, 'minutes').asMilliseconds(),
-    GRACE_PERIOD_MS: moment.duration(30, 'seconds').asMilliseconds(),
+    GRACE_PERIOD_MS: moment.duration(3, 'seconds').asMilliseconds(),
     LOG: (message = '') => {
         const isEnabled = false; // Helper logging for auto-logout testing
 
@@ -357,6 +358,7 @@ export default {
     authStorage,
     tokens,
     AUTH_LOGIN_GOTO_PATH,
+    AUTH_LOGIN_GOTO_COMPACT,
     languagesEnabled,
     defaultLanguage,
     serverDateFormat,

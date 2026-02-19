@@ -606,7 +606,6 @@ export class DataApi {
         const account = JSON.parse(JSON.stringify(staffAccount));
 
         if (mockStore?.state?.appMode === AppModes.COSMETOLOGY) {
-            console.log(`deleting non-cosm staff user compacts`);
             delete account.permissions.octp;
             delete account.permissions.aslp;
             delete account.permissions.coun;

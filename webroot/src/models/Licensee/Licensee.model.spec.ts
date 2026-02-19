@@ -51,6 +51,7 @@ describe('Licensee model', () => {
         expect(licensee.firstName).to.equal(null);
         expect(licensee.middleName).to.equal(null);
         expect(licensee.lastName).to.equal(null);
+        expect(licensee.compactConnectEmail).to.equal(null);
         expect(licensee.dob).to.equal(null);
         expect(licensee.birthMonthDay).to.equal(null);
         expect(licensee.licenseType).to.equal(null);
@@ -110,6 +111,7 @@ describe('Licensee model', () => {
             address: new Address(),
             phoneNumber: '+13234558990',
             homeJurisdiction: new State({ abbrev: 'ma' }),
+            compactConnectEmail: 'test@example.com',
             dob: '2020-01-01',
             birthMonthDay: '01-16',
             ssnLastFour: '0000',
@@ -165,6 +167,7 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
         expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
+        expect(licensee.compactConnectEmail).to.equal(data.compactConnectEmail);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
@@ -311,6 +314,7 @@ describe('Licensee model', () => {
             dateOfBirth: moment().format(serverDateFormat),
             phoneNumber: '+13234558990',
             currentHomeJurisdiction: 'co',
+            compactConnectRegisteredEmailAddress: 'test@example.com',
             ssnLastFour: '0000',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
@@ -430,6 +434,7 @@ describe('Licensee model', () => {
         expect(licensee.firstName).to.equal(data.givenName);
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.familyName);
+        expect(licensee.compactConnectEmail).to.equal(data.compactConnectRegisteredEmailAddress);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
