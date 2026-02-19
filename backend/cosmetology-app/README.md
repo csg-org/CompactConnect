@@ -44,6 +44,23 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app, including con
 deployment. You can add local configuration that will be merged into the `cdk.json['context']` values with a
 `cdk.context.json` file that you will not check in.
 
+### `ui_domain_name_override`
+
+**Important:** Because the cosmetology backend is hosted on a different domain than the shared frontend UI application (e.g. the
+backend hosted zone is `cosmetology.compactconnect.org` but the UI lives at `app.compactconnect.org`), each
+environment's context must include a `ui_domain_name_override` field that specifies the correct UI domain name. Without
+this override, the UI domain would be incorrectly derived from the backend's hosted zone (e.g.
+`app.cosmetology.compactconnect.org` instead of `app.compactconnect.org`). This value is used for CORS allowed origins,
+Cognito callback/logout URLs, and email template links.
+
+Example:
+```json
+{
+  "domain_name": "cosmetology.compactconnect.org",
+  "ui_domain_name_override": "app.compactconnect.org"
+}
+```
+
 This project is set up like a standard Python project. To use it, create and activate a python virtual environment
 using the tools of your choice (`pyenv` and `venv` are common).
 

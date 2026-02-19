@@ -20,7 +20,6 @@ from cc_common.data_model.schema.fields import (
     InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
-    NationalProviderIdentifier,
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
@@ -71,8 +70,7 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
     """
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     # Note that the two fields below, `licenseStatus` and `compactEligibility`, are stored
     # in the database as `jurisdictionUploadedLicenseStatus` and `jurisdictionUploadedCompactEligibility`.
@@ -138,8 +136,7 @@ class LicenseReportResponseSchema(ForgivingSchema):
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -168,8 +165,7 @@ class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -209,8 +205,7 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))

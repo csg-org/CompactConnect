@@ -1,0 +1,544 @@
+{
+    "auth": {
+        "bearer": [
+            {
+                "key": "token",
+                "type": "string",
+                "value": "{{accessToken}}"
+            }
+        ],
+        "type": "bearer"
+    },
+    "info": {
+        "_postman_id": "346a56fb-ef7b-4c96-9658-4199f9e1c223",
+        "description": {
+            "content": "",
+            "type": "text/plain"
+        },
+        "name": "CompactConnect API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "item": [
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "client-credentials-grant",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "POST",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "token"
+                            ],
+                            "query": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "client_credentials"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "client_secret",
+                                    "value": "{{clientSecret}}"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "{{jurisdiction}}/{{compact}}.write"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope={{jurisdiction}}/{{compact}}.write"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});",
+                                    "",
+                                    "pm.test('Identity token returned', () => {",
+                                    "    var id_token = pm.response.json().id_token;",
+                                    "    pm.expect(id_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"idToken\", id_token);",
+                                    "    console.log('id token: ' + id_token);",
+                                    "});",
+                                    "",
+                                    "pm.test('Refresh token returned', () => {",
+                                    "    var refresh_token = pm.response.json().refresh_token;",
+                                    "    pm.expect(refresh_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"refreshToken\", refresh_token);",
+                                    "    console.log('refresh token: ' + refresh_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "authorization-code-grant-token",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "POST",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "token"
+                            ],
+                            "query": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "authorization_code"
+                                },
+                                {
+                                    "key": "code",
+                                    "value": "f23723c3-1d21-40e1-89ec-64807d2d658d"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "openid"
+                                },
+                                {
+                                    "key": "redirect_uri",
+                                    "value": "http://localhost:3018/auth/callback"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=f23723c3-1d21-40e1-89ec-64807d2d658d&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:3018/auth/callback"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    ""
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "authorization-code-authorize",
+                    "protocolProfileBehavior": {
+                        "followRedirects": false
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "disabled": true,
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "disabled": true,
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "GET",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "authorize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "response_type",
+                                    "value": "code"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "redirect_uri",
+                                    "value": "http://localhost:3018/auth/callback"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "openid"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback&scope=openid"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "authorization-code-login",
+                    "protocolProfileBehavior": {
+                        "followRedirects": false
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "GET",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "authorize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "scope",
+                                    "value": "openid"
+                                },
+                                {
+                                    "key": "response_type",
+                                    "value": "code"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "redirect_uri",
+                                    "value": "http://localhost:3018/auth/callback"
+                                },
+                                {
+                                    "key": "identity_provider",
+                                    "value": "COGNITO"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?scope=openid&response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback&identity_provider=COGNITO"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});",
+                                    "",
+                                    "pm.test('Identity token returned', () => {",
+                                    "    var id_token = pm.response.json().id_token;",
+                                    "    pm.environment.set(\"idToken\", id_token);",
+                                    "    console.log('id token: ' + id_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "refresh-token",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "POST",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "token"
+                            ],
+                            "query": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "refresh_token"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "refresh_token",
+                                    "value": "{{refreshToken}}"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}"
+                        }
+                    },
+                    "response": []
+                }
+            ],
+            "name": "Staff-Auth"
+        },
+        {
+            "description": "",
+            "item": [
+                {
+                    "description": "",
+                    "item": [
+                        {
+                            "description": "",
+                            "item": [
+                                {
+                                    "description": "",
+                                    "item": [
+                                        {
+                                            "description": "",
+                                            "item": [
+                                                {
+                                                    "event": [],
+                                                    "id": "4fe4ff32-f855-41db-8e6e-43494234f517",
+                                                    "name": "/v1/compacts/:compact/providers/search",
+                                                    "protocolProfileBehavior": {
+                                                        "disableBodyPruning": true
+                                                    },
+                                                    "request": {
+                                                        "body": {
+                                                            "mode": "raw",
+                                                            "options": {
+                                                                "raw": {
+                                                                    "headerFamily": "json",
+                                                                    "language": "json"
+                                                                }
+                                                            },
+                                                            "raw": "{\n  \"query\": {},\n  \"search_after\": \"<array>\",\n  \"size\": \"<integer>\",\n  \"from\": \"<integer>\"\n}"
+                                                        },
+                                                        "description": {},
+                                                        "header": [
+                                                            {
+                                                                "key": "Content-Type",
+                                                                "value": "application/json"
+                                                            },
+                                                            {
+                                                                "key": "Accept",
+                                                                "value": "application/json"
+                                                            }
+                                                        ],
+                                                        "method": "POST",
+                                                        "name": "/v1/compacts/:compact/providers/search",
+                                                        "url": {
+                                                            "host": [
+                                                                "{{baseUrl}}"
+                                                            ],
+                                                            "path": [
+                                                                "v1",
+                                                                "compacts",
+                                                                ":compact",
+                                                                "providers",
+                                                                "search"
+                                                            ],
+                                                            "query": [],
+                                                            "variable": [
+                                                                {
+                                                                    "description": {
+                                                                        "content": "(Required) ",
+                                                                        "type": "text/plain"
+                                                                    },
+                                                                    "disabled": false,
+                                                                    "key": "compact",
+                                                                    "type": "any",
+                                                                    "value": "<string>"
+                                                                }
+                                                            ]
+                                                        }
+                                                    },
+                                                    "response": [
+                                                        {
+                                                            "_postman_previewlanguage": "json",
+                                                            "body": "{\n  \"providers\": [\n    {\n      \"birthMonthDay\": \"17-26\",\n      \"compact\": \"cosm\",\n      \"compactEligibility\": \"ineligible\",\n      \"dateOfExpiration\": \"<date>\",\n      \"dateOfUpdate\": \"<dateTime>\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"inactive\",\n      \"licenseJurisdiction\": \"tn\",\n      \"licenseStatus\": \"active\",\n      \"providerId\": \"bc58ac41-eb79-44a8-bced-8e1dcb7ca810\",\n      \"type\": \"provider\",\n      \"privileges\": [\n        {\n          \"administratorSetStatus\": \"active\",\n          \"compact\": \"cosm\",\n          \"dateOfExpiration\": \"1725-11-29\",\n          \"dateOfIssuance\": \"1703-12-06\",\n          \"dateOfRenewal\": \"2449-10-30\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"jurisdiction\": \"al\",\n          \"licenseJurisdiction\": \"md\",\n          \"licenseType\": \"<string>\",\n          \"privilegeId\": \"<string>\",\n          \"providerId\": \"5cff14d7-9fee-437d-aed2-8eb70f9afbeb\",\n          \"status\": \"active\",\n          \"type\": \"privilege\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"tn\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"9be12268-9c73-41e4-9076-d0fb0533d3ae\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"oh\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"38047ace-f2b2-4a2b-b3f1-6c6281d377ff\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"compactTransactionId\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"license\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2928-06-30\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2907-11-30\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"tn\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"d499b24c-f5d3-4467-85ad-3e99a4f2542a\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1734-11-31\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"license\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2970-10-31\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"1080-11-26\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"va\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"d83fb980-d3d4-409a-96cf-14a0b5fc4f36\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2471-12-07\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        },\n        {\n          \"administratorSetStatus\": \"inactive\",\n          \"compact\": \"cosm\",\n          \"dateOfExpiration\": \"1877-09-16\",\n          \"dateOfIssuance\": \"2521-08-31\",\n          \"dateOfRenewal\": \"1486-12-12\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"jurisdiction\": \"al\",\n          \"licenseJurisdiction\": \"ks\",\n          \"licenseType\": \"<string>\",\n          \"privilegeId\": \"<string>\",\n          \"providerId\": \"1332ee6f-68da-4291-8a9a-dc8a30ef56c7\",\n          \"status\": \"active\",\n          \"type\": \"privilege\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"md\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"2dada957-ff02-4420-9a10-0aed5cc8a931\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"oh\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"850af4c9-ad40-4677-bb53-319102069aaf\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"compactTransactionId\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2385-10-01\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2716-10-05\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"al\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"acbfbdf9-d14c-418d-87ba-51d64aa286f5\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1552-10-31\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2877-01-06\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2986-10-31\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"al\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"fccb5d14-b4c3-4dfb-87aa-89782cf8eab1\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1974-12-02\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        }\n      ],\n      \"suffix\": \"<string>\",\n      \"currentHomeJurisdiction\": \"al\",\n      \"licenses\": [\n        {\n          \"compact\": \"cosm\",\n          \"compactEligibility\": \"ineligible\",\n          \"dateOfExpiration\": \"2333-12-10\",\n          \"dateOfIssuance\": \"1222-04-31\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"familyName\": \"<string>\",\n          \"givenName\": \"<string>\",\n          \"homeAddressCity\": \"<string>\",\n          \"homeAddressPostalCode\": \"<string>\",\n          \"homeAddressState\": \"<string>\",\n          \"homeAddressStreet1\": \"<string>\",\n          \"jurisdiction\": \"az\",\n          \"jurisdictionUploadedCompactEligibility\": \"eligible\",\n          \"jurisdictionUploadedLicenseStatus\": \"active\",\n          \"licenseNumber\": \"<string>\",\n          \"licenseStatus\": \"inactive\",\n          \"licenseType\": \"<string>\",\n          \"providerId\": \"e32f14d1-aba0-4e8d-882b-295a1d26e6de\",\n          \"type\": \"license-home\",\n          \"homeAddressStreet2\": \"<string>\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"tn\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"aa88e4f2-27d7-4ac2-9d5d-a1b6b9f2d295\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"ky\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"47e0cfc1-48a5-4e78-b33f-c82802d936cb\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"suffix\": \"<string>\",\n          \"emailAddress\": \"<email>\",\n          \"dateOfRenewal\": \"1083-10-24\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"phoneNumber\": \"+622561379015809\",\n          \"licenseStatusName\": \"<string>\",\n          \"middleName\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"1122-12-09\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2695-12-09\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"wa\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"fc221325-4aac-4d8e-913e-907eec254968\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1094-07-25\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2292-05-03\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"1955-10-01\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"md\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"37ee95e6-31f4-429d-8acf-e1c9cb649145\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1018-07-05\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        },\n        {\n          \"compact\": \"cosm\",\n          \"compactEligibility\": \"ineligible\",\n          \"dateOfExpiration\": \"2306-10-21\",\n          \"dateOfIssuance\": \"1903-11-31\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"familyName\": \"<string>\",\n          \"givenName\": \"<string>\",\n          \"homeAddressCity\": \"<string>\",\n          \"homeAddressPostalCode\": \"<string>\",\n          \"homeAddressState\": \"<string>\",\n          \"homeAddressStreet1\": \"<string>\",\n          \"jurisdiction\": \"az\",\n          \"jurisdictionUploadedCompactEligibility\": \"eligible\",\n          \"jurisdictionUploadedLicenseStatus\": \"inactive\",\n          \"licenseNumber\": \"<string>\",\n          \"licenseStatus\": \"active\",\n          \"licenseType\": \"<string>\",\n          \"providerId\": \"06909a66-68d7-4d39-98fb-9476c7d4a31c\",\n          \"type\": \"license-home\",\n          \"homeAddressStreet2\": \"<string>\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"al\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"fe3b2a7d-cdac-46ae-91b8-a92c87c96bf7\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"ky\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"28f51c83-259b-4acb-99b9-46f95678e030\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"suffix\": \"<string>\",\n          \"emailAddress\": \"<email>\",\n          \"dateOfRenewal\": \"1919-01-31\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"phoneNumber\": \"+1142031333\",\n          \"licenseStatusName\": \"<string>\",\n          \"middleName\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2599-12-31\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2910-08-18\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"co\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"e0a23cc2-17c3-4e1a-aef0-5ff8dec9a6c1\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2718-04-14\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2075-12-31\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2302-12-19\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"md\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"572ac763-0960-4427-a1e8-dcec3bd3de0b\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2859-06-31\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        }\n      ],\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    },\n    {\n      \"birthMonthDay\": \"11-30\",\n      \"compact\": \"cosm\",\n      \"compactEligibility\": \"eligible\",\n      \"dateOfExpiration\": \"<date>\",\n      \"dateOfUpdate\": \"<dateTime>\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n      \"jurisdictionUploadedLicenseStatus\": \"active\",\n      \"licenseJurisdiction\": \"ky\",\n      \"licenseStatus\": \"inactive\",\n      \"providerId\": \"5aec06cd-f100-4b7e-8da4-59ec35a4e385\",\n      \"type\": \"provider\",\n      \"privileges\": [\n        {\n          \"administratorSetStatus\": \"inactive\",\n          \"compact\": \"cosm\",\n          \"dateOfExpiration\": \"2137-11-18\",\n          \"dateOfIssuance\": \"1279-05-13\",\n          \"dateOfRenewal\": \"1969-07-09\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"jurisdiction\": \"wa\",\n          \"licenseJurisdiction\": \"al\",\n          \"licenseType\": \"<string>\",\n          \"privilegeId\": \"<string>\",\n          \"providerId\": \"f336b4dc-3bb1-4414-830e-144294445ed3\",\n          \"status\": \"inactive\",\n          \"type\": \"privilege\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"al\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"38dca002-3b97-4697-abfe-f7d046634319\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"tn\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"4d971f7a-6048-4536-8433-35a758d9e8ae\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"compactTransactionId\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2643-02-21\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2556-12-30\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"ks\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"60b4f7b1-4ecc-4609-898b-b5ca42a76512\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1893-12-27\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"1236-07-13\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2930-11-03\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"co\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"5e944eca-31ed-4445-ad5c-2f7439d6f9ae\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1433-10-09\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        },\n        {\n          \"administratorSetStatus\": \"inactive\",\n          \"compact\": \"cosm\",\n          \"dateOfExpiration\": \"2719-05-23\",\n          \"dateOfIssuance\": \"2898-10-23\",\n          \"dateOfRenewal\": \"2441-07-19\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"jurisdiction\": \"va\",\n          \"licenseJurisdiction\": \"va\",\n          \"licenseType\": \"<string>\",\n          \"privilegeId\": \"<string>\",\n          \"providerId\": \"e7605b3b-410c-4b74-a05e-4b32f89b773d\",\n          \"status\": \"inactive\",\n          \"type\": \"privilege\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"va\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"734a4639-ef4e-4cd5-8bf4-50aa958c7338\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"wa\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"0722dc79-0997-41a0-afee-3dce591601bf\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"compactTransactionId\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"license\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2598-06-01\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2542-03-30\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"oh\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"16bb01b1-1135-4787-85ac-cec7d4f3ec88\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"1558-05-04\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2289-07-23\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2815-01-07\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"ky\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"d0d763d5-ab26-41bd-b86d-eca4148feccc\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2738-11-12\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        }\n      ],\n      \"suffix\": \"<string>\",\n      \"currentHomeJurisdiction\": \"tn\",\n      \"licenses\": [\n        {\n          \"compact\": \"cosm\",\n          \"compactEligibility\": \"eligible\",\n          \"dateOfExpiration\": \"2422-01-07\",\n          \"dateOfIssuance\": \"1581-12-30\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"familyName\": \"<string>\",\n          \"givenName\": \"<string>\",\n          \"homeAddressCity\": \"<string>\",\n          \"homeAddressPostalCode\": \"<string>\",\n          \"homeAddressState\": \"<string>\",\n          \"homeAddressStreet1\": \"<string>\",\n          \"jurisdiction\": \"az\",\n          \"jurisdictionUploadedCompactEligibility\": \"ineligible\",\n          \"jurisdictionUploadedLicenseStatus\": \"active\",\n          \"licenseNumber\": \"<string>\",\n          \"licenseStatus\": \"inactive\",\n          \"licenseType\": \"<string>\",\n          \"providerId\": \"2ac7ccc8-9102-44dc-9027-38e1eb04c3cb\",\n          \"type\": \"license-home\",\n          \"homeAddressStreet2\": \"<string>\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"tn\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"bec77ef3-0012-41eb-9141-b978f16ac58d\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"al\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"3a298fbc-0949-44db-be13-90c1e5755864\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"suffix\": \"<string>\",\n          \"emailAddress\": \"<email>\",\n          \"dateOfRenewal\": \"2357-11-12\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"phoneNumber\": \"+7090227913770\",\n          \"licenseStatusName\": \"<string>\",\n          \"middleName\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"license\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2214-10-07\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"1136-12-07\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"az\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"055ce9ff-55b5-42c3-bac3-df3c6b7f61e9\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2477-09-31\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"license\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"2842-12-18\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"2236-11-30\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"wa\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"d6fabc0e-127a-4833-b8f2-3a0e6caadec1\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2290-08-31\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        },\n        {\n          \"compact\": \"cosm\",\n          \"compactEligibility\": \"ineligible\",\n          \"dateOfExpiration\": \"2792-02-04\",\n          \"dateOfIssuance\": \"1075-01-13\",\n          \"dateOfUpdate\": \"<dateTime>\",\n          \"familyName\": \"<string>\",\n          \"givenName\": \"<string>\",\n          \"homeAddressCity\": \"<string>\",\n          \"homeAddressPostalCode\": \"<string>\",\n          \"homeAddressState\": \"<string>\",\n          \"homeAddressStreet1\": \"<string>\",\n          \"jurisdiction\": \"ks\",\n          \"jurisdictionUploadedCompactEligibility\": \"eligible\",\n          \"jurisdictionUploadedLicenseStatus\": \"active\",\n          \"licenseNumber\": \"<string>\",\n          \"licenseStatus\": \"inactive\",\n          \"licenseType\": \"<string>\",\n          \"providerId\": \"4cf96a94-b48d-47ee-806f-cc68af1fbbea\",\n          \"type\": \"license-home\",\n          \"homeAddressStreet2\": \"<string>\",\n          \"investigations\": [\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"oh\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"272fbeef-4ce8-4801-97a5-40058ab0f7ea\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            },\n            {\n              \"compact\": \"cosm\",\n              \"creationDate\": \"<dateTime>\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"investigationId\": \"<string>\",\n              \"jurisdiction\": \"va\",\n              \"licenseType\": \"<string>\",\n              \"providerId\": \"402956de-0f77-481b-9b14-80b761e26f21\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"investigation\"\n            }\n          ],\n          \"suffix\": \"<string>\",\n          \"emailAddress\": \"<email>\",\n          \"dateOfRenewal\": \"2932-03-25\",\n          \"investigationStatus\": \"underInvestigation\",\n          \"phoneNumber\": \"+08318847\",\n          \"licenseStatusName\": \"<string>\",\n          \"middleName\": \"<string>\",\n          \"adverseActions\": [\n            {\n              \"actionAgainst\": \"privilege\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"1424-03-05\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"1695-10-18\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"co\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"ac30bbc5-e621-478a-b485-feaa5519bd3e\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2850-09-06\",\n              \"liftingUser\": \"<string>\"\n            },\n            {\n              \"actionAgainst\": \"license\",\n              \"adverseActionId\": \"<string>\",\n              \"compact\": \"cosm\",\n              \"creationDate\": \"1352-12-06\",\n              \"dateOfUpdate\": \"<dateTime>\",\n              \"effectiveStartDate\": \"1631-01-03\",\n              \"encumbranceType\": \"<string>\",\n              \"jurisdiction\": \"az\",\n              \"licenseType\": \"<string>\",\n              \"licenseTypeAbbreviation\": \"<string>\",\n              \"providerId\": \"adf02bbe-77c0-4065-9d80-1972d2a4aa0e\",\n              \"submittingUser\": \"<string>\",\n              \"type\": \"adverseAction\",\n              \"clinicalPrivilegeActionCategories\": [\n                \"<string>\",\n                \"<string>\"\n              ],\n              \"effectiveLiftDate\": \"2189-12-31\",\n              \"liftingUser\": \"<string>\"\n            }\n          ]\n        }\n      ],\n      \"middleName\": \"<string>\",\n      \"compactConnectRegisteredEmailAddress\": \"<email>\"\n    }\n  ],\n  \"total\": {\n    \"value\": \"<integer>\",\n    \"relation\": \"gte\"\n  },\n  \"lastSort\": \"<array>\"\n}",
+                                                            "code": 200,
+                                                            "cookie": [],
+                                                            "header": [
+                                                                {
+                                                                    "key": "Content-Type",
+                                                                    "value": "application/json"
+                                                                }
+                                                            ],
+                                                            "id": "a7409fb2-8304-49f7-b2fd-381e62c32d05",
+                                                            "name": "200 response",
+                                                            "originalRequest": {
+                                                                "body": {
+                                                                    "mode": "raw",
+                                                                    "options": {
+                                                                        "raw": {
+                                                                            "headerFamily": "json",
+                                                                            "language": "json"
+                                                                        }
+                                                                    },
+                                                                    "raw": "{\n  \"query\": {},\n  \"search_after\": \"<array>\",\n  \"size\": \"<integer>\",\n  \"from\": \"<integer>\"\n}"
+                                                                },
+                                                                "header": [
+                                                                    {
+                                                                        "key": "Content-Type",
+                                                                        "value": "application/json"
+                                                                    },
+                                                                    {
+                                                                        "key": "Accept",
+                                                                        "value": "application/json"
+                                                                    },
+                                                                    {
+                                                                        "description": {
+                                                                            "content": "Added as a part of security scheme: apikey",
+                                                                            "type": "text/plain"
+                                                                        },
+                                                                        "key": "Authorization",
+                                                                        "value": "<API Key>"
+                                                                    }
+                                                                ],
+                                                                "method": "POST",
+                                                                "url": {
+                                                                    "host": [
+                                                                        "{{baseUrl}}"
+                                                                    ],
+                                                                    "path": [
+                                                                        "v1",
+                                                                        "compacts",
+                                                                        ":compact",
+                                                                        "providers",
+                                                                        "search"
+                                                                    ],
+                                                                    "query": [],
+                                                                    "variable": []
+                                                                }
+                                                            },
+                                                            "status": "OK"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "name": "search"
+                                        }
+                                    ],
+                                    "name": "providers"
+                                }
+                            ],
+                            "name": "{compact}"
+                        }
+                    ],
+                    "name": "compacts"
+                }
+            ],
+            "name": "v1"
+        }
+    ]
+}

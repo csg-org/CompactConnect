@@ -233,6 +233,7 @@ class TestLicenses(TstFunction):
                         'homeAddressPostalCode': ['Missing data for required field.'],
                         'homeAddressState': ['Missing data for required field.'],
                         'homeAddressStreet1': ['Missing data for required field.'],
+                        'licenseNumber': ['Missing data for required field.'],
                         'licenseStatus': ['Missing data for required field.'],
                         'licenseType': ['Missing data for required field.'],
                         'ssn': ['Missing data for required field.'],

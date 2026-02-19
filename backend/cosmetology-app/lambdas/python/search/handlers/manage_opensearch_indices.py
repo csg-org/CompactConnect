@@ -237,7 +237,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
             'compactEligibility': {'type': 'keyword'},
             'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
-            'npi': {'type': 'keyword'},
             'licenseNumber': {'type': 'keyword'},
             'givenName': {
                 'type': 'text',
@@ -292,7 +291,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'compactTransactionId': {'type': 'keyword'},
             'privilegeId': {'type': 'keyword'},
             'status': {'type': 'keyword'},
-            'activeSince': {'type': 'date'},
             'investigationStatus': {'type': 'keyword'},
         }
 
@@ -326,7 +324,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'licenseJurisdiction': {'type': 'keyword'},
                     'licenseStatus': {'type': 'keyword'},
                     'compactEligibility': {'type': 'keyword'},
-                    'npi': {'type': 'keyword'},
                     'givenName': {
                         'type': 'text',
                         'analyzer': 'custom_ascii_analyzer',
@@ -346,7 +343,6 @@ class OpenSearchIndexManager(CustomResourceHandler):
                     'dateOfExpiration': {'type': 'date'},
                     'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
                     'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
-                    'privilegeJurisdictions': {'type': 'keyword'},
                     'providerFamGivMid': {'type': 'keyword'},
                     'providerDateOfUpdate': {'type': 'date'},
                     'birthMonthDay': {'type': 'keyword'},

@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from glob import glob
 from random import randint
@@ -230,17 +230,12 @@ class TstFunction(TstLambdas):
         """Use the canned test resources to load a basic provider to the DB"""
         test_resources = glob('../common/tests/resources/dynamo/*.json')
 
-        def privilege_jurisdictions_to_set(obj: dict):
-            if obj.get('type') == 'provider' and 'privilegeJurisdictions' in obj:
-                obj['privilegeJurisdictions'] = set(obj['privilegeJurisdictions'])
-            return obj
-
         for resource in test_resources:
             with open(resource) as f:
                 if resource.endswith('user.json'):
                     # skip the staff user test data, as it is not stored in the provider table
                     continue
-                record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
+                record = json.load(f, parse_float=Decimal)
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             if record['type'] == 'provider-ssn':
@@ -252,19 +247,16 @@ class TstFunction(TstLambdas):
         self,
         *,
         home: str,
-        privilege_jurisdiction: str | None,
         start_serial: int,
         names: tuple[tuple[str, str]] = (),
         date_of_update: datetime | None = None,
     ):
-        """Generate 10 providers with one license and one privilege
+        """Generate 10 providers with one license.
         :param home: The jurisdiction for the license
-        :param privilege_jurisdiction: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         :param names: A list of tuples, each containing a family name and given name
         :param date_of_update: Fixed date to use for provider updates, if None uses random dates
         """
-        from cc_common.data_model.data_client import DataClient
         from handlers.ingest import ingest_license_message, preprocess_license_ingest
 
         with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
@@ -274,9 +266,7 @@ class TstFunction(TstLambdas):
             ingest_message = json.load(f)
 
         name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])
-        data_client = DataClient(self.config)
-
-        # Generate 10 providers, each with a license and a privilege
+        # Generate 10 providers, each with a license
         for name_idx, ssn_serial in enumerate(range(start_serial, start_serial - 10, -1)):
             # So we can mutate top-level fields without messing up subsequent iterations
             preprocessing_sqs_message_copy = json.loads(json.dumps(preprocessing_sqs_message))
@@ -369,20 +359,4 @@ class TstFunction(TstLambdas):
                 ingest_license_message(
                     {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
                     self.mock_context,
-                )
-
-            # Add a privilege
-            provider_user_records = data_client.get_provider_user_records(
-                compact='cosm',
-                provider_id=provider_id,
-            )
-            if privilege_jurisdiction:
-                data_client.create_provider_privileges(
-                    compact='cosm',
-                    provider_id=provider_id,
-                    provider_record=provider_user_records.get_provider_record(),
-                    jurisdiction_postal_abbreviations=[privilege_jurisdiction],
-                    license_expiration_date=date(2050, 6, 6),
-                    existing_privileges_for_license=[],
-                    license_type='cosmetologist',
                 )

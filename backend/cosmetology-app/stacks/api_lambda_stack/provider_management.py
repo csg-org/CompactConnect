@@ -52,8 +52,6 @@ class ProviderManagementLambdas:
         api_lambda_stack.log_groups.append(self.query_providers_handler.log_group)
         self.get_provider_ssn_handler = self._get_provider_ssn_handler(lambda_environment)
         api_lambda_stack.log_groups.append(self.get_provider_ssn_handler.log_group)
-        self.deactivate_privilege_handler = self._deactivate_privilege_handler(lambda_environment)
-        api_lambda_stack.log_groups.append(self.deactivate_privilege_handler.log_group)
         self.provider_encumbrance_handler = self._add_provider_encumbrance_handler(lambda_environment)
         api_lambda_stack.log_groups.append(self.provider_encumbrance_handler.log_group)
 
@@ -300,39 +298,6 @@ class ProviderManagementLambdas:
         )
         self.ssn_endpoint_disabled_alarm.add_alarm_action(SnsAction(self.persistent_stack.alarm_topic))
 
-        return handler
-
-    def _deactivate_privilege_handler(
-        self,
-        lambda_environment: dict,
-    ) -> PythonFunction:
-        """Create and configure the Lambda handler for deactivating a provider's privilege."""
-        handler = PythonFunction(
-            self.scope,
-            'DeactivatePrivilegeHandler',
-            description='Deactivate provider privilege handler',
-            lambda_dir='provider-data-v1',
-            index=os.path.join('handlers', 'privileges.py'),
-            handler='deactivate_privilege',
-            environment=lambda_environment,
-            alarm_topic=self.persistent_stack.alarm_topic,
-        )
-        self.persistent_stack.provider_table.grant_read_write_data(handler)
-        self.persistent_stack.staff_users.user_table.grant_read_data(handler)
-        self.data_event_bus.grant_put_events_to(handler)
-        self.persistent_stack.email_notification_service_lambda.grant_invoke(handler)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            Stack.of(handler.role),
-            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read/write '
-                    'and is scoped to one table and event bus.',
-                },
-            ],
-        )
         return handler
 
     def _add_provider_encumbrance_handler(

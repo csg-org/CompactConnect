@@ -10,7 +10,6 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     Jurisdiction,
-    NationalProviderIdentifier,
 )
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
 
@@ -25,8 +24,7 @@ class LicenseIngestSchema(LicenseCommonSchema):
 
     ssnLastFour = String(required=True, allow_none=False, validate=Length(equal=4))
     providerId = UUID(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     # This is used to calculate the actual 'licenseStatus' used by the system in addition
     # to the expiration date of the license.
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)

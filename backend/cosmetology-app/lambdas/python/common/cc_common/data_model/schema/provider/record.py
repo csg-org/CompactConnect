@@ -20,8 +20,6 @@ from cc_common.data_model.schema.fields import (
     CompactEligibility,
     Jurisdiction,
     LicenseEncumberedStatusField,
-    NationalProviderIdentifier,
-    Set,
     UpdateType,
 )
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
@@ -55,7 +53,6 @@ class ProviderRecordSchema(BaseRecordSchema):
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
 
     ssnLastFour = String(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -67,7 +64,6 @@ class ProviderRecordSchema(BaseRecordSchema):
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
 
@@ -149,13 +145,6 @@ class ProviderRecordSchema(BaseRecordSchema):
         )
         return in_data
 
-    @pre_dump
-    def remove_empty_privilege_jurisdictions(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        # DynamoDB doesn't accept empty sets, so remove privilegeJurisdictions if empty
-        if 'privilegeJurisdictions' in in_data and not in_data['privilegeJurisdictions']:
-            del in_data['privilegeJurisdictions']
-        return in_data
-
     @post_load
     def drop_fam_giv_mid(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['providerFamGivMid']
@@ -177,7 +166,6 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     jurisdictionUploadedCompactEligibility = CompactEligibility(required=True, allow_none=False)
     encumberedStatus = LicenseEncumberedStatusField(required=False, allow_none=False)
     ssnLastFour = String(required=True, allow_none=False)
-    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))

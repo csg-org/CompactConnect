@@ -1,14 +1,9 @@
 from collections.abc import Callable, Iterable
-from datetime import (
-    UTC,
-    date,
-    datetime,
-    timedelta,
-)
+from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
-from cc_common.config import config, logger
+from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
@@ -19,7 +14,6 @@ from cc_common.data_model.schema.common import (
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
-from cc_common.data_model.schema.privilege.api import PrivilegeHistoryResponseSchema
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
@@ -141,63 +135,20 @@ class ProviderRecordUtility:
         return latest_licenses[0]
 
     @staticmethod
-    def calculate_privilege_active_since_date(
-        privilege_record: PrivilegeData, privilege_updates: list[PrivilegeUpdateData]
-    ) -> datetime | None:
+    def populate_provider_record(current_provider_record: ProviderData | None, license_record: dict) -> ProviderData:
         """
-        Determine how long a privilege has been continuously active.
-
-        :param privilege_record: The privilege record.
-        :param privilege_updates: The list of updates for this privilege record.
-        :return: The oldest datetime this privilege has been continuously active if still active, else None
-        """
-
-        if privilege_record.status == ActiveInactiveStatus.INACTIVE:
-            # privilege is inactive, no date to calculate
-            return None
-
-        # start with dateOfIssuance as active date
-        active_since = privilege_record.dateOfIssuance
-        # sort privilege updates by their effective dates
-        sorted_updates = sorted(privilege_updates, key=lambda x: x.effectiveDate)
-        # iterate through privilege updates
-        for update in sorted_updates:
-            # We check for the following cases:
-            # 1. If the updateType is found in the list of deactivation update types, we set active_since to None,
-            # since the privilege is no longer active as a result of this update.
-            # 2. If the updateType is a home jurisdiction change, we need to check the updatedValues to see if the
-            # privilege was deactivated as a result of this update (if there is either a encumberedStatus
-            # or homeJurisdictionChangeStatus)
-            # 3. If the updateType is a renewal, and the `active_since` field is None, we set active_since to the
-            # effective date of the renewal.
-            if update.updateType in DEACTIVATION_EVENT_TYPES:
-                active_since = None
-            elif update.updateType == UpdateCategory.RENEWAL and active_since is None:
-                active_since = update.updatedValues['dateOfRenewal']
-
-        return active_since
-
-    @staticmethod
-    def populate_provider_record(
-        current_provider_record: ProviderData | None, license_record: dict, privilege_records: list[dict]
-    ) -> ProviderData:
-        """
-        Create a provider record from a license record and privilege records.
+        Create a provider record from a license record.
 
         :param current_provider_record: The current provider record to update if it currently exists.
         :param license_record: The license record to use as a basis for the provider record
-        :param privilege_records: List of privilege records
         :return: A provider record ready to be persisted
         """
-        privilege_jurisdictions = {record['jurisdiction'] for record in privilege_records}
         if current_provider_record is None:
             return ProviderData.create_new(
                 {
                     'providerId': license_record['providerId'],
                     'compact': license_record['compact'],
                     'licenseJurisdiction': license_record['jurisdiction'],
-                    # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
-                    **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
                     **license_record,
                 }
             )
@@ -209,183 +160,10 @@ class ProviderRecordUtility:
                 **current_provider_record.to_dict(),
                 # update the license jurisdiction to match the new license
                 'licenseJurisdiction': license_record['jurisdiction'],
-                # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
-                **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
                 # now override the key values on the current provider record with the new license record
                 **license_record,
             }
         )
-
-    @staticmethod
-    def get_enriched_history_with_synthetic_updates_from_privilege(
-        privilege: dict,
-        history: list[dict],
-    ) -> list[dict]:
-        """
-        Enrich the privilege history with 'synthetic updates'.
-        Synthetic updates are pieces of history that are not explicitly recorded in the data
-        system, because they occur passively, such as when a privilege expires or because they are redundant.
-        These 'synthetic updates' do not have a corresponding record in the database, but we can deduce their
-        existence based on the privilege's other data. Because these events are
-        'synthetic', they have no actual changes in record values associated with them.
-        Example issuance event:
-        {
-            'type': 'privilegeUpdate',
-            'updateType': 'issuance',
-            'providerId': <provider_id>,
-            'compact': <compact>,
-            'jurisdiction': <jurisdiction>,
-            'licenseType': <license_type>,
-            'effectiveDate': <date_effective>,
-            'createDate': <create_date>
-            'dateOfUpdate': <date_of_update>,
-            'previous': {},
-            'updatedValues': {},
-        }
-        :param privilege: The privilege record whose history we intend to construct
-        :param history: The raw history records we intend to extrapolate from
-        :return: The enriched privilege history
-        """
-
-        # We don't ever serve investigation updates via the API - they're only for internal change history tracking
-        history_without_investigations = [
-            update
-            for update in history
-            if update['updateType'] not in (UpdateCategory.INVESTIGATION, UpdateCategory.CLOSING_INVESTIGATION)
-        ]
-        create_date_sorted_original_history = sorted(history_without_investigations, key=lambda x: x['createDate'])
-
-        # Inject issuance event
-        enriched_history = [
-            {
-                'type': 'privilegeUpdate',
-                'updateType': UpdateCategory.ISSUANCE,
-                'providerId': privilege['providerId'],
-                'compact': privilege['compact'],
-                'jurisdiction': privilege['jurisdiction'],
-                'licenseType': privilege['licenseType'],
-                'effectiveDate': privilege['dateOfIssuance'],
-                'createDate': privilege['dateOfIssuance'],
-                'previous': {},
-                'updatedValues': {},
-                'dateOfUpdate': privilege['dateOfIssuance'],
-            }
-        ] + create_date_sorted_original_history
-
-        renewal_updates = list(filter(lambda x: x['updateType'] == UpdateCategory.RENEWAL, enriched_history))
-
-        now = config.current_standard_datetime
-
-        # Inject expiration events that occurred between events
-        for update in renewal_updates:
-            date_of_expiration = update['previous']['dateOfExpiration']
-            day_after_expiration = date_of_expiration + timedelta(days=1)
-            datetime_of_expiration_trigger = datetime.combine(
-                day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
-            )
-            effective_date_time = datetime.combine(
-                update['effectiveDate'], datetime.min.time(), tzinfo=config.expiration_resolution_timezone
-            )
-            if datetime_of_expiration_trigger <= effective_date_time:
-                # We have assigned the maximum time in the day at UTC-4:00 because the expiration event happens at the
-                # first second of the date of expiration's passing. However, we want the expiration events to display as
-                # occurring on their expiration date and also have any events that occurred during that day come before
-                # the expiration chronologically. Putting the datetime of expiration as the max time in the day on the
-                # date of expiration best achieves those goals
-                effective_datetime_of_expiration = datetime.combine(
-                    date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
-                )
-                enriched_history.append(
-                    {
-                        'type': 'privilegeUpdate',
-                        'updateType': UpdateCategory.EXPIRATION,
-                        'providerId': privilege['providerId'],
-                        'compact': privilege['compact'],
-                        'jurisdiction': privilege['jurisdiction'],
-                        'licenseType': privilege['licenseType'],
-                        'effectiveDate': effective_datetime_of_expiration.astimezone(UTC),
-                        'createDate': datetime_of_expiration_trigger.astimezone(UTC),
-                        'previous': {},
-                        'updatedValues': {},
-                        'dateOfUpdate': datetime_of_expiration_trigger.astimezone(UTC),
-                    }
-                )
-        # Inject expiration event if currently expired
-        privilege_date_of_expiration = privilege['dateOfExpiration']
-
-        privilege_day_after_expiration = privilege_date_of_expiration + timedelta(days=1)
-        privilege_datetime_of_expiration_trigger = datetime.combine(
-            privilege_day_after_expiration, datetime.min.time(), tzinfo=config.expiration_resolution_timezone
-        )
-
-        if privilege_datetime_of_expiration_trigger <= now.astimezone(config.expiration_resolution_timezone):
-            # We have assigned the maximum time in the day at UTC-4:00 because the expiration event happens at the
-            # first second of the date of expiration's passing. However, we want the expiration events to display as
-            # occurring on their expiration date and also have any events that occurred during that day come before
-            # the expiration chronologically. Putting the datetime of expiration as the max time in the day on the
-            # date of expiration best achieves those goals
-            effective_datetime_of_expiration = datetime.combine(
-                privilege_date_of_expiration, datetime.max.time(), tzinfo=config.expiration_resolution_timezone
-            )
-            enriched_history.append(
-                {
-                    'type': 'privilegeUpdate',
-                    'updateType': UpdateCategory.EXPIRATION,
-                    'providerId': privilege['providerId'],
-                    'compact': privilege['compact'],
-                    'jurisdiction': privilege['jurisdiction'],
-                    'licenseType': privilege['licenseType'],
-                    'effectiveDate': effective_datetime_of_expiration.astimezone(UTC),
-                    'createDate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
-                    'previous': {},
-                    'updatedValues': {},
-                    'dateOfUpdate': privilege_datetime_of_expiration_trigger.astimezone(UTC),
-                }
-            )
-
-        return sorted(enriched_history, key=lambda x: x['effectiveDate'])
-
-    @staticmethod
-    def construct_simplified_privilege_history_object(
-        privilege_data: list[dict], should_include_encumbrance_details: bool = True
-    ) -> dict:
-        """
-        Construct a simplified list of history events to be easily consumed by the front end
-        :param privilege_data: All of the records associated with the privilege:
-        the privilege, updates, and adverse actions
-        :param should_include_encumbrance_details: Whether the response should include verbose information on privilege
-        encumbrances
-        :return: The simplified and enriched privilege history
-        """
-        privilege = list(filter(lambda x: x['type'] == 'privilege', privilege_data))[0]
-        history = list(filter(lambda x: x['type'] == 'privilegeUpdate', privilege_data))
-
-        enriched_history = ProviderRecordUtility.get_enriched_history_with_synthetic_updates_from_privilege(
-            privilege, history
-        )
-
-        # Collect notes on event types that have notes if user should see those notes
-        for event in enriched_history:
-            if (
-                event['updateType'] == UpdateCategory.ENCUMBRANCE
-                and event.get('encumbranceDetails')
-                and should_include_encumbrance_details
-            ):
-                # In the case of encumbrances, we return the list of npdb categories associated with it
-                event['npdbCategories'] = event['encumbranceDetails']['clinicalPrivilegeActionCategories']
-            elif event['updateType'] == UpdateCategory.DEACTIVATION and event.get('deactivationDetails'):
-                event['note'] = event['deactivationDetails']['note']
-
-        unsanitized_history = {
-            'providerId': privilege['providerId'],
-            'compact': privilege['compact'],
-            'jurisdiction': privilege['jurisdiction'],
-            'licenseType': privilege['licenseType'],
-            'privilegeId': privilege['privilegeId'],
-            'events': enriched_history,
-        }
-        history_schema = PrivilegeHistoryResponseSchema()
-        return history_schema.load(unsanitized_history)
 
 
 class ProviderUserRecords:
@@ -850,9 +628,6 @@ class ProviderUserRecords:
         # Build privileges dict with investigations and adverseActions
         for privilege_record in self._privilege_records:
             privilege_dict = privilege_record.to_dict()
-            privilege_updates = self.get_update_records_for_privilege(
-                privilege_record.jurisdiction, privilege_record.licenseType
-            )
 
             privilege_dict['adverseActions'] = [
                 rec.to_dict()
@@ -866,12 +641,6 @@ class ProviderUserRecords:
                     privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
                 )
             ]
-            active_since = ProviderRecordUtility.calculate_privilege_active_since_date(
-                privilege_record, privilege_updates
-            )
-            # we only include this value if the privilege is currently active
-            if active_since:
-                privilege_dict['activeSince'] = active_since
             privileges.append(privilege_dict)
 
         provider['licenses'] = licenses

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "commonjs",
   "description": "NodeJS lambdas for Compact Connect",
+  "resolutions": {
+    "fast-xml-parser": "5.3.6"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
