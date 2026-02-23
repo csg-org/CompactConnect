@@ -3,12 +3,13 @@ from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
-from cc_common.config import logger
+from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
+    InvestigationStatusEnum,
     UpdateCategory,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
@@ -507,6 +508,89 @@ class ProviderUserRecords:
             raise CCNotFoundException('No licenses found')
 
         return latest_licenses[0]
+
+    def generate_privileges_for_provider(self) -> list[dict]:
+        """
+        Generate privilege dicts at runtime for all eligible license types this provider holds.
+
+        For each license type, the most recently issued license is considered the home license. If that
+        license is not compact-eligible, no privileges are generated for that type. For each
+        eligible type, one privilege is generated per active compact jurisdiction (excluding
+        the home jurisdiction).
+        """
+        if not self._license_records:
+            return []
+        provider = self.get_provider_record()
+        compact = provider.compact
+        active_jurisdiction_dicts = config.active_compact_jurisdictions.get(compact, [])
+        jurisdiction_codes = [
+            j.get('postalAbbreviation').lower() for j in active_jurisdiction_dicts if j.get('postalAbbreviation')
+        ]
+        if not jurisdiction_codes:
+            logger.debug('no active jurisdictions found in environment.')
+            return []
+
+        # Group licenses by licenseType; for each type pick most recently issued as home license
+        by_type: dict[str, list[LicenseData]] = {}
+        for lic in self._license_records:
+            by_type.setdefault(lic.licenseType, []).append(lic)
+
+        latest_issued_licenses_for_each_type: list[LicenseData] = []
+        for _lt, licenses in by_type.items():
+            # Last issued compact-eligible license, if there are any compact-eligible licenses
+            latest_compact_eligible_licenses = sorted(
+                [
+                    license_record
+                    for license_record in licenses
+                    if license_record.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+                ],
+                key=lambda x: x.dateOfIssuance.isoformat(),
+                reverse=True,
+            )
+            if not latest_compact_eligible_licenses:
+                continue
+            latest_issued_license = latest_compact_eligible_licenses[0]
+            latest_issued_licenses_for_each_type.append(latest_issued_license)
+
+        result: list[dict] = []
+        for latest_issued_license in latest_issued_licenses_for_each_type:
+            home_jurisdiction = latest_issued_license.jurisdiction.lower()
+            license_type_abbr = latest_issued_license.licenseTypeAbbreviation
+
+            for jurisdiction in jurisdiction_codes:
+                if jurisdiction == home_jurisdiction:
+                    continue
+                privilege_aa = self.get_adverse_action_records_for_privilege(jurisdiction, license_type_abbr)
+                privilege_unlifted = any(aa.effectiveLiftDate is None for aa in privilege_aa)
+                inv_records = self.get_investigation_records_for_privilege(
+                    jurisdiction, license_type_abbr, include_closed=False
+                )
+                privilege_dict = {
+                    'type': 'privilege',
+                    'administratorSetStatus': ActiveInactiveStatus.ACTIVE.value,
+                    'providerId': str(provider.providerId),
+                    'compact': compact,
+                    'jurisdiction': jurisdiction,
+                    'licenseJurisdiction': home_jurisdiction,
+                    'licenseType': latest_issued_license.licenseType,
+                    'dateOfExpiration': latest_issued_license.dateOfExpiration,
+                    # the only way a privilege under this model shows inactive is if
+                    # there has been an encumbrance set by a state admin that has not been
+                    # lifted. If the license itself is inactive or ineligible for whatever reason, we don't
+                    # return any associated privilege objects
+                    'status': ActiveInactiveStatus.ACTIVE.value
+                    if not privilege_unlifted
+                    else ActiveInactiveStatus.INACTIVE.value,
+                    'adverseActions': [aa.to_dict() for aa in privilege_aa],
+                    'investigations': [inv.to_dict() for inv in inv_records],
+                }
+                # We only include open investigations here, so the privilege will only be under investigation if there
+                # are any investigation records.
+                if privilege_dict.get('investigations'):
+                    privilege_dict.update({'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION.value})
+
+                result.append(privilege_dict)
+        return result
 
     def get_all_license_update_records(
         self,

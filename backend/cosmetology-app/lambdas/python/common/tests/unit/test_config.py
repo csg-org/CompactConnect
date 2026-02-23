@@ -34,7 +34,7 @@ class TestConfigActiveCompactJurisdictions(TestCase):
             self.assertEqual(result['cosm'], mock_jurisdictions)
 
     def test_calls_get_active_compact_jurisdictions_for_each_compact(self):
-        """For each compact in compacts, calls compact_configuration_client.get_active_compact_jurisdictions(compact)."""
+        """For each compact in compacts, calls get_active_compact_jurisdictions(compact)."""
         with patch.dict(os.environ, {'COMPACTS': '["cosm", "other"]'}, clear=False):
             from cc_common.config import _Config
 
