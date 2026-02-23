@@ -105,6 +105,26 @@ class CompactConfigurationClient:
         # Return the active_member_jurisdictions list from the item
         return item['active_member_jurisdictions']
 
+    def get_live_compact_jurisdictions(self, compact: str) -> list[str]:
+        """
+        Get the list of live jurisdiction postal abbreviations for a specific compact.
+
+        :param compact: The compact abbreviation
+        :return: List of live jurisdiction postal abbreviations for the compact
+        """
+        try:
+            compact_config = self.get_compact_configuration(compact)
+        except CCNotFoundException:
+            logger.info('Compact configuration not found', compact=compact)
+            return False
+
+        # return the list of jurisdictions that are live in the compact
+        return [
+            configured_state['postalAbbreviation']
+                for configured_state in compact_config.configuredStates
+                if configured_state.get('isLive', False)
+        ]
+
     def is_jurisdiction_live_in_compact(self, compact: str, jurisdiction: str) -> bool:
         """
         Check if a jurisdiction is live (enabled for operations) in a compact.
@@ -115,29 +135,8 @@ class CompactConfigurationClient:
         """
         logger.info('Checking if jurisdiction is live in compact', compact=compact, jurisdiction=jurisdiction)
 
-        try:
-            compact_config = self.get_compact_configuration(compact)
-        except CCNotFoundException:
-            logger.info('Compact configuration not found', compact=compact)
-            return False
-
-        # Check if the jurisdiction is configured and live in the compact's configuredStates
-        configured_state = next(
-            (
-                configured_state
-                for configured_state in compact_config.configuredStates
-                if configured_state['postalAbbreviation'].lower() == jurisdiction.lower()
-            ),
-            None,
-        )
-
-        if not configured_state:
-            logger.info(
-                'Jurisdiction not found in compact configured states', compact=compact, jurisdiction=jurisdiction
-            )
-            return False
-
-        is_live = configured_state.get('isLive', False)
+        live_jurisdictions = self.get_live_compact_jurisdictions(compact)
+        is_live = jurisdiction in live_jurisdictions
         logger.info(
             'Jurisdiction live status checked',
             compact=compact,

@@ -360,6 +360,10 @@ class TestPublicQueryProviders(TstFunction):
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPublicGetProvider(TstFunction):
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+
     @staticmethod
     def _get_sensitive_hash():
         with open('../common/tests/resources/dynamo/license-update.json') as f:

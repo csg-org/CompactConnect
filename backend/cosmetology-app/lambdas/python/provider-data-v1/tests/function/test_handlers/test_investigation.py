@@ -52,11 +52,16 @@ def _generate_test_investigation_close_with_encumbrance_body():
 class TestPostPrivilegeInvestigation(TstFunction):
     """Test suite for privilege investigation endpoints."""
 
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+
     def _load_privilege_data(self):
         """Load privilege test data from JSON file"""
-
         # Load provider record first (needed for encumbrance creation)
         self.test_data_generator.put_default_provider_record_in_provider_table()
+        # License needed so runtime privilege generation returns a privilege for get_provider
+        self.test_data_generator.put_default_license_record_in_provider_table()
         privilege = self.test_data_generator.generate_default_privilege()
         self.test_data_generator.store_record_in_provider_table(privilege.serialize_to_database_record())
         return privilege
@@ -408,10 +413,16 @@ class TestPostLicenseInvestigation(TstFunction):
 class TestPatchPrivilegeInvestigationClose(TstFunction):
     """Test suite for privilege investigation close endpoints."""
 
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+
     def _load_privilege_data(self):
         """Load privilege test data using test data generator"""
         # Load provider record first (needed for encumbrance creation)
         self.test_data_generator.put_default_provider_record_in_provider_table()
+        # License needed so runtime privilege generation returns a privilege for get_provider
+        self.test_data_generator.put_default_license_record_in_provider_table()
         privilege = self.test_data_generator.generate_default_privilege()
         self.test_data_generator.store_record_in_provider_table(privilege.serialize_to_database_record())
         return privilege
@@ -816,10 +827,16 @@ class TestPatchLicenseInvestigationClose(TstFunction):
 class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
     """Test suite for multiple simultaneous privilege investigations."""
 
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+
     def _load_privilege_data(self):
         """Load privilege test data using test data generator"""
         # Load provider record first
         self.test_data_generator.put_default_provider_record_in_provider_table()
+        # License needed so runtime privilege generation returns a privilege for get_provider
+        self.test_data_generator.put_default_license_record_in_provider_table()
         privilege = self.test_data_generator.generate_default_privilege()
         self.test_data_generator.store_record_in_provider_table(privilege.serialize_to_database_record())
         return privilege

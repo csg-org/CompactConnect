@@ -3,7 +3,8 @@ from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
-from cc_common.config import config, logger
+import cc_common.config as config_module
+from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
@@ -522,11 +523,10 @@ class ProviderUserRecords:
             return []
         provider = self.get_provider_record()
         compact = provider.compact
-        active_jurisdiction_dicts = config.active_compact_jurisdictions.get(compact, [])
-        jurisdiction_codes = [
-            j.get('postalAbbreviation').lower() for j in active_jurisdiction_dicts if j.get('postalAbbreviation')
-        ]
-        if not jurisdiction_codes:
+        # TODO: find a better way to get the live jurisdictions for a compact without breaking tests
+        live_jurisdictions_for_compact = config_module.config.live_compact_jurisdictions.get(compact, [])
+
+        if not live_jurisdictions_for_compact:
             logger.debug('no active jurisdictions found in environment.')
             return []
 
@@ -557,7 +557,7 @@ class ProviderUserRecords:
             home_jurisdiction = latest_issued_license.jurisdiction.lower()
             license_type_abbr = latest_issued_license.licenseTypeAbbreviation
 
-            for jurisdiction in jurisdiction_codes:
+            for jurisdiction in live_jurisdictions_for_compact:
                 if jurisdiction == home_jurisdiction:
                     continue
                 privilege_aa = self.get_adverse_action_records_for_privilege(jurisdiction, license_type_abbr)
@@ -709,23 +709,8 @@ class ProviderUserRecords:
             ]
             licenses.append(license_dict)
 
-        # Build privileges dict with investigations and adverseActions
-        for privilege_record in self._privilege_records:
-            privilege_dict = privilege_record.to_dict()
-
-            privilege_dict['adverseActions'] = [
-                rec.to_dict()
-                for rec in self.get_adverse_action_records_for_privilege(
-                    privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
-                )
-            ]
-            privilege_dict['investigations'] = [
-                rec.to_dict()
-                for rec in self.get_investigation_records_for_privilege(
-                    privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
-                )
-            ]
-            privileges.append(privilege_dict)
+        # Build privileges at runtime from eligible licenses (one privilege per license type per compact jurisdiction)
+        privileges = self.generate_privileges_for_provider()
 
         provider['licenses'] = licenses
         provider['privileges'] = privileges

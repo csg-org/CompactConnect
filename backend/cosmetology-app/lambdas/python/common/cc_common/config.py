@@ -65,20 +65,20 @@ class _Config:
         return CompactConfigurationClient(self)
 
     @cached_property
-    def active_compact_jurisdictions(self) -> dict[str, list[dict]]:
+    def live_compact_jurisdictions(self) -> dict[str, list]:
         """
         Cached mapping of compact -> list of active member jurisdiction dicts.
 
         Fetched once per Lambda cold start; subsequent accesses return the cached value.
         Used when generating privileges at runtime to avoid repeated DynamoDB reads.
         """
-        result: dict[str, list[dict]] = {}
+        result: dict[str, list] = {}
         for compact in self.compacts:
             try:
-                result[compact] = self.compact_configuration_client.get_active_compact_jurisdictions(compact)
+                result[compact] = self.compact_configuration_client.get_live_compact_jurisdictions(compact)
             except Exception:  # noqa: BLE001
-                logger.warning('Failed to load active jurisdictions', compact=compact)
-                result[compact] = []
+                logger.error('Failed to load live jurisdictions', compact=compact)
+                raise
         return result
 
     @cached_property

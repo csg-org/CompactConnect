@@ -1,5 +1,5 @@
 """
-Unit tests for _Config, including active_compact_jurisdictions cache.
+Unit tests for _Config, including live_compact_jurisdictions cache.
 
 Tests mock the compact configuration client (DynamoDB/table) responses.
 """
@@ -9,53 +9,50 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 
-class TestConfigActiveCompactJurisdictions(TestCase):
-    """Tests for _Config.active_compact_jurisdictions cached_property."""
+class TestConfigLiveCompactJurisdictions(TestCase):
+    """Tests for _Config.live_compact_jurisdictions cached_property."""
 
-    def test_returns_dict_of_compact_to_list_of_jurisdiction_dicts(self):
-        """active_compact_jurisdictions returns dict[str, list[dict]]."""
-        mock_jurisdictions = [
-            {'postalAbbreviation': 'al', 'jurisdictionName': 'Alabama', 'compact': 'cosm'},
-            {'postalAbbreviation': 'ky', 'jurisdictionName': 'Kentucky', 'compact': 'cosm'},
-        ]
+    def test_returns_dict_of_compact_to_list_of_jurisdiction_codes(self):
+        """live_compact_jurisdictions returns dict[str, list[str]] (postal abbreviations)."""
+        mock_jurisdictions = ['al', 'ky']
         with patch.dict(os.environ, {'COMPACTS': '["cosm"]'}, clear=False):
             from cc_common.config import _Config
 
             config = _Config()
             mock_client = MagicMock()
-            mock_client.get_active_compact_jurisdictions.return_value = mock_jurisdictions
+            mock_client.get_live_compact_jurisdictions.return_value = mock_jurisdictions
             config.compact_configuration_client = mock_client
 
-            result = config.active_compact_jurisdictions
+            result = config.live_compact_jurisdictions
 
             self.assertIsInstance(result, dict)
             self.assertIn('cosm', result)
             self.assertIsInstance(result['cosm'], list)
             self.assertEqual(result['cosm'], mock_jurisdictions)
 
-    def test_calls_get_active_compact_jurisdictions_for_each_compact(self):
-        """For each compact in compacts, calls get_active_compact_jurisdictions(compact)."""
+    def test_calls_get_live_compact_jurisdictions_for_each_compact(self):
+        """For each compact in compacts, calls get_live_compact_jurisdictions(compact)."""
         with patch.dict(os.environ, {'COMPACTS': '["cosm", "other"]'}, clear=False):
             from cc_common.config import _Config
 
             config = _Config()
             mock_client = MagicMock()
-            mock_client.get_active_compact_jurisdictions.side_effect = [
-                [{'postalAbbreviation': 'al', 'compact': 'cosm'}],
-                [{'postalAbbreviation': 'tx', 'compact': 'other'}],
+            mock_client.get_live_compact_jurisdictions.side_effect = [
+                ['al', 'oh'],
+                ['tx'],
             ]
             config.compact_configuration_client = mock_client
 
-            result = config.active_compact_jurisdictions
+            result = config.live_compact_jurisdictions
 
-            self.assertEqual(mock_client.get_active_compact_jurisdictions.call_count, 2)
-            mock_client.get_active_compact_jurisdictions.assert_any_call('cosm')
-            mock_client.get_active_compact_jurisdictions.assert_any_call('other')
-            self.assertEqual(result['cosm'], [{'postalAbbreviation': 'al', 'compact': 'cosm'}])
-            self.assertEqual(result['other'], [{'postalAbbreviation': 'tx', 'compact': 'other'}])
+            self.assertEqual(mock_client.get_live_compact_jurisdictions.call_count, 2)
+            mock_client.get_live_compact_jurisdictions.assert_any_call('cosm')
+            mock_client.get_live_compact_jurisdictions.assert_any_call('other')
+            self.assertEqual(result['cosm'], ['al', 'oh'])
+            self.assertEqual(result['other'], ['tx'])
 
-    def test_on_exception_logs_warning_and_uses_empty_list_for_that_compact(self):
-        """On exception from get_active_compact_jurisdictions, log warning and use empty list for that compact."""
+    def test_on_exception_logs_error_and_reraises(self):
+        """On exception from get_live_compact_jurisdictions, log error and re-raise."""
         with patch.dict(os.environ, {'COMPACTS': '["cosm", "failing"]'}, clear=False):
             with patch('cc_common.config.logger') as mock_logger:
                 from cc_common.config import _Config
@@ -63,32 +60,30 @@ class TestConfigActiveCompactJurisdictions(TestCase):
                 config = _Config()
                 mock_client = MagicMock()
                 config.compact_configuration_client = mock_client
-                mock_client.get_active_compact_jurisdictions.side_effect = [
-                    [{'postalAbbreviation': 'al', 'compact': 'cosm'}],
+                mock_client.get_live_compact_jurisdictions.side_effect = [
+                    ['al', 'oh'],
                     Exception('Table not found'),
                 ]
 
-                result = config.active_compact_jurisdictions
+                with self.assertRaises(Exception) as ctx:
+                    _ = config.live_compact_jurisdictions
 
-                self.assertEqual(result['cosm'], [{'postalAbbreviation': 'al', 'compact': 'cosm'}])
-                self.assertEqual(result['failing'], [])
-                mock_logger.warning.assert_called_once()
-                self.assertIn('failing', str(mock_logger.warning.call_args) or 'failing')
+                self.assertEqual(str(ctx.exception), 'Table not found')
+                mock_logger.error.assert_called_once()
+                self.assertIn('live jurisdictions', str(mock_logger.error.call_args).lower())
 
     def test_value_is_cached_after_first_access(self):
-        """active_compact_jurisdictions is cached; second access does not call client again."""
+        """live_compact_jurisdictions is cached; second access does not call client again."""
         with patch.dict(os.environ, {'COMPACTS': '["cosm"]'}, clear=False):
             from cc_common.config import _Config
 
             config = _Config()
             mock_client = MagicMock()
-            mock_client.get_active_compact_jurisdictions.return_value = [
-                {'postalAbbreviation': 'al', 'compact': 'cosm'},
-            ]
+            mock_client.get_live_compact_jurisdictions.return_value = ['al', 'oh']
             config.compact_configuration_client = mock_client
 
-            first = config.active_compact_jurisdictions
-            second = config.active_compact_jurisdictions
+            first = config.live_compact_jurisdictions
+            second = config.live_compact_jurisdictions
 
             self.assertEqual(first, second)
-            mock_client.get_active_compact_jurisdictions.assert_called_once_with('cosm')
+            mock_client.get_live_compact_jurisdictions.assert_called_once_with('cosm')

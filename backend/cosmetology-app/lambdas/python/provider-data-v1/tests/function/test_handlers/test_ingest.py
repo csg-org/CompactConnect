@@ -96,6 +96,9 @@ class TestIngest(TstFunction):
     def test_old_inactive_license(self):
         from handlers.ingest import ingest_license_message
 
+        # So get_provider returns one privilege (ne) to match expected fixture
+        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+
         # The test resource provider has a license in oh
         self._load_provider_data()
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
@@ -105,7 +108,7 @@ class TestIngest(TstFunction):
             message = json.load(f)
         # Imagine that this provider used to be licensed in ky.
         # What happens if ky uploads that inactive license?
-        message['detail']['dateOfIssuance'] = '2023-01-01'
+        message['detail']['dateOfIssuance'] = '2006-01-01'
         message['detail']['familyName'] = 'Oldname'
         message['detail']['jurisdiction'] = 'ky'
         message['detail']['licenseStatus'] = 'inactive'
