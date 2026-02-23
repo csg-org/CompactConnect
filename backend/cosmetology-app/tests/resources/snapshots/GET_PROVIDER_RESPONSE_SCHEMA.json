@@ -777,29 +777,12 @@
                       ],
                       "type": "string"
                     },
-                    "dateOfIssuance": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                      "type": "string"
-                    },
-                    "dateOfRenewal": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                      "type": "string"
-                    },
                     "dateOfExpiration": {
                       "format": "date",
                       "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                       "type": "string"
                     },
-                    "dateOfUpdate": {
-                      "format": "date-time",
-                      "type": "string"
-                    },
                     "compactTransactionId": {
-                      "type": "string"
-                    },
-                    "privilegeId": {
                       "type": "string"
                     },
                     "licenseJurisdiction": {
@@ -833,12 +816,8 @@
                     }
                   },
                   "required": [
-                    "dateOfIssuance",
-                    "dateOfRenewal",
                     "dateOfExpiration",
-                    "dateOfUpdate",
                     "compactTransactionId",
-                    "privilegeId",
                     "licenseJurisdiction",
                     "administratorSetStatus"
                   ],
@@ -877,29 +856,12 @@
                       ],
                       "type": "string"
                     },
-                    "dateOfIssuance": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                      "type": "string"
-                    },
-                    "dateOfRenewal": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                      "type": "string"
-                    },
                     "dateOfExpiration": {
                       "format": "date",
                       "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
                       "type": "string"
                     },
-                    "dateOfUpdate": {
-                      "format": "date-time",
-                      "type": "string"
-                    },
                     "compactTransactionId": {
-                      "type": "string"
-                    },
-                    "privilegeId": {
                       "type": "string"
                     },
                     "licenseJurisdiction": {
@@ -1163,29 +1125,12 @@
             ],
             "type": "string"
           },
-          "dateOfIssuance": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string"
-          },
-          "dateOfRenewal": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string"
-          },
           "dateOfExpiration": {
             "format": "date",
             "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string"
           },
-          "dateOfUpdate": {
-            "format": "date-time",
-            "type": "string"
-          },
           "compactTransactionId": {
-            "type": "string"
-          },
-          "privilegeId": {
             "type": "string"
           },
           "licenseJurisdiction": {
@@ -1223,12 +1168,8 @@
           "providerId",
           "compact",
           "jurisdiction",
-          "dateOfIssuance",
-          "dateOfRenewal",
           "dateOfExpiration",
-          "dateOfUpdate",
           "compactTransactionId",
-          "privilegeId",
           "licenseType",
           "licenseJurisdiction",
           "administratorSetStatus",
