@@ -869,8 +869,8 @@ class DataClient:
         """
         Creates an investigation record for a provider in a jurisdiction.
 
-        This will also update the record to have an investigationStatus of 'underInvestigation',
-        add an update record to show the investigation event.
+        If the investigation is against a license, this will also update the license record to have
+        an investigationStatus of 'underInvestigation', and add an update record to show the investigation event.
 
         :param InvestigationData investigation: The details of the investigation to be added to the records
         :raises CCNotFoundException: If the record is not found
@@ -889,7 +889,9 @@ class DataClient:
                 compact=investigation.compact, provider_id=investigation.providerId, consistent_read=True
             )
 
-            # Separate the main record from investigation records
+            # Privilege investigations: only store the investigation record (no privilege/privilege-update records).
+            # License investigations: require license record
+            # put investigation + license update record + update license.
             if investigation.investigationAgainst == InvestigationAgainstEnum.LICENSE:
                 record = provider_records.get_specific_license_record(
                     investigation.jurisdiction, investigation.licenseTypeAbbreviation
@@ -903,66 +905,51 @@ class DataClient:
 
                 update_data_type = LicenseUpdateData
                 update_type = ProviderRecordType.LICENSE_UPDATE
-            else:
-                record = provider_records.get_specific_privilege_record(
-                    investigation.jurisdiction, investigation.licenseTypeAbbreviation
-                )
-                if not record:
-                    message = f'{record_type.title()} not found for jurisdiction'
-                    logger.info(message)
-                    raise CCNotFoundException(
-                        f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
-                    )
-
-                update_data_type = PrivilegeUpdateData
-                update_type = ProviderRecordType.PRIVILEGE_UPDATE
-
-            investigation_details = {
-                'investigationId': investigation.investigationId,
-            }
-
-            # Create the update record
-            update_record = update_data_type.create_new(
-                {
-                    'type': update_type,
-                    'updateType': UpdateCategory.INVESTIGATION,
-                    'providerId': investigation.providerId,
-                    'compact': investigation.compact,
-                    'jurisdiction': investigation.jurisdiction,
-                    'createDate': investigation.creationDate,
-                    'effectiveDate': investigation.creationDate,
-                    'licenseType': investigation.licenseType,
-                    'previous': record.to_dict(),
-                    'updatedValues': {
-                        'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
-                    },
-                    'investigationDetails': investigation_details,
-                }
-            )
-
-            # Prepare the transaction items
-            serialized_record = record.serialize_to_database_record()
-            transaction_items = [
-                self._generate_put_transaction_item(investigation.serialize_to_database_record()),
-                self._generate_put_transaction_item(update_record.serialize_to_database_record()),
-                {
-                    'Update': {
-                        'TableName': self.config.provider_table.table_name,
-                        'Key': {
-                            'pk': {'S': serialized_record['pk']},
-                            'sk': {'S': serialized_record['sk']},
+                investigation_details = {'investigationId': investigation.investigationId}
+                update_record = update_data_type.create_new(
+                    {
+                        'type': update_type,
+                        'updateType': UpdateCategory.INVESTIGATION,
+                        'providerId': investigation.providerId,
+                        'compact': investigation.compact,
+                        'jurisdiction': investigation.jurisdiction,
+                        'createDate': investigation.creationDate,
+                        'effectiveDate': investigation.creationDate,
+                        'licenseType': investigation.licenseType,
+                        'previous': record.to_dict(),
+                        'updatedValues': {
+                            'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
                         },
-                        'UpdateExpression': (
-                            'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
-                        ),
-                        'ConditionExpression': 'attribute_exists(pk)',
-                        'ExpressionAttributeValues': {
-                            ':investigationStatus': {'S': InvestigationStatusEnum.UNDER_INVESTIGATION},
-                            ':dateOfUpdate': {'S': investigation.creationDate.isoformat()},
-                        },
+                        'investigationDetails': investigation_details,
                     }
-                },
-            ]
+                )
+                serialized_record = record.serialize_to_database_record()
+                transaction_items = [
+                    self._generate_put_transaction_item(investigation.serialize_to_database_record()),
+                    self._generate_put_transaction_item(update_record.serialize_to_database_record()),
+                    {
+                        'Update': {
+                            'TableName': self.config.provider_table.table_name,
+                            'Key': {
+                                'pk': {'S': serialized_record['pk']},
+                                'sk': {'S': serialized_record['sk']},
+                            },
+                            'UpdateExpression': (
+                                'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
+                            ),
+                            'ConditionExpression': 'attribute_exists(pk)',
+                            'ExpressionAttributeValues': {
+                                ':investigationStatus': {'S': InvestigationStatusEnum.UNDER_INVESTIGATION},
+                                ':dateOfUpdate': {'S': investigation.creationDate.isoformat()},
+                            },
+                        }
+                    },
+                ]
+            else:
+                # Privilege: store only the investigation record.
+                transaction_items = [
+                    self._generate_put_transaction_item(investigation.serialize_to_database_record()),
+                ]
 
             # Execute the transaction
             self.config.dynamodb_client.transact_write_items(TransactItems=transaction_items)
@@ -996,13 +983,13 @@ class DataClient:
         :param investigation_against: Whether investigating a privilege or license
         :param resulting_encumbrance_id: Optional encumbrance ID to reference in the investigation closure
         """
-        with logger.append_context_keys(
+        with (logger.append_context_keys(
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
             investigation_id=investigation_id,
-        ):
+        )):
             record_type = investigation_against.value
 
             # Query for the record (privilege or license) and all its investigations in a single query
@@ -1010,7 +997,7 @@ class DataClient:
                 compact=compact, provider_id=provider_id, consistent_read=True
             )
 
-            # Separate the main record from investigation records
+            # Find the investigation to close and count other open investigations
             if investigation_against == InvestigationAgainstEnum.LICENSE:
                 record = provider_records.get_specific_license_record(jurisdiction, license_type_abbreviation)
                 if not record:
@@ -1018,9 +1005,6 @@ class DataClient:
                     logger.info(message)
                     raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
 
-                update_data_type = LicenseUpdateData
-                update_type = ProviderRecordType.LICENSE_UPDATE
-                # Count open investigations (those without closeDate), excluding the one we're closing
                 open_investigations = provider_records.get_investigation_records_for_license(
                     jurisdiction,
                     license_type_abbreviation,
@@ -1038,15 +1022,7 @@ class DataClient:
                     None,
                 )
             else:
-                record = provider_records.get_specific_privilege_record(jurisdiction, license_type_abbreviation)
-                if not record:
-                    message = f'{record_type.title()} not found for jurisdiction'
-                    logger.info(message)
-                    raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
-
-                update_data_type = PrivilegeUpdateData
-                update_type = ProviderRecordType.PRIVILEGE_UPDATE
-                # Count open investigations (those without closeDate), excluding the one we're closing
+                # Privilege: no stored privilege record; find investigation by jurisdiction/license type only.
                 open_investigations = provider_records.get_investigation_records_for_privilege(
                     jurisdiction,
                     license_type_abbreviation,
@@ -1067,10 +1043,9 @@ class DataClient:
             if investigation is None:
                 raise CCNotFoundException('Investigation not found')
 
-            # Determine if this is the last open investigation
-            is_last_open_investigation = len(open_investigations) == 0
+            is_last_open_investigation_against_license = (investigation_against == InvestigationAgainstEnum.LICENSE
+            and len(open_investigations) == 0)
 
-            # Prepare the transaction items
             # Build the investigation update expression and values
             investigation_update_expression = (
                 'SET closeDate = :closeDate, closingUser = :closingUser, dateOfUpdate = :dateOfUpdate'
@@ -1102,12 +1077,11 @@ class DataClient:
                 },
             ]
 
-            # Only create update record and remove status if this is the last open investigation
-            if is_last_open_investigation:
-                # Create the update record for investigation closure
-                update_record = update_data_type.create_new(
+            # License only: when last open investigation, create license update record and remove status from license
+            if is_last_open_investigation_against_license:
+                update_record = LicenseUpdateData.create_new(
                     {
-                        'type': update_type,
+                        'type': ProviderRecordType.LICENSE_UPDATE,
                         'updateType': UpdateCategory.CLOSING_INVESTIGATION,
                         'providerId': provider_id,
                         'compact': compact,
@@ -1120,12 +1094,10 @@ class DataClient:
                         'removedValues': ['investigationStatus'],
                     }
                 )
-
                 serialized_record = record.serialize_to_database_record()
                 transaction_items.extend(
                     [
                         self._generate_put_transaction_item(update_record.serialize_to_database_record()),
-                        # Remove investigationStatus from the license/privilege record
                         {
                             'Update': {
                                 'TableName': self.config.provider_table.table_name,
