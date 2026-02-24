@@ -186,6 +186,46 @@ export const staffAccount = {
                 },
                 ky: {
                     actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                ne: {
+                    actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                oh: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                nv: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                ma: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSsn: true,
+                    },
+                },
+                wy: {
+                    actions: {
                         admin: true,
                         write: true,
                         readPrivate: true,

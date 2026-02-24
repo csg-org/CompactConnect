@@ -621,6 +621,7 @@
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseNumber": "Número de licencia",
+        "stateLicenseNumber": "Número de licencia estatal",
         "npi": "NPI",
         "searchPlaceholderNpi": "Introducir NPI",
         "licenseExpirationDate": "Fecha de vencimiento de la licencia",

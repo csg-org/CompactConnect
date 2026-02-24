@@ -85,6 +85,14 @@ class LicenseeList extends Vue {
         return this.$store.state.license;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get licenseStoreRecordCount(): number {
         return this.licenseStore.model?.length || 0;
     }
@@ -168,9 +176,15 @@ class LicenseeList extends Vue {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
-            ssnMaskedPartial: () => this.$t('licensing.ssn'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
-            privilegeStatesDisplay: () => this.$t('licensing.privileges'),
+            ...(this.isAppModeCosmetology
+                ? {
+                    licenseNumber: this.$t('licensing.stateLicenseNumber'),
+                }
+                : {
+                    privilegeStatesDisplay: () => this.$t('licensing.privileges'),
+                }
+            ),
         };
 
         return record;
