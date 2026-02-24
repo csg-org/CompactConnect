@@ -490,7 +490,8 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
             }
         )
         if include_license_adverse_action:
-            # add adverse action for license encumbrance (distinct ID so provider stays encumbered when lifting privilege)
+            # add adverse action for license encumbrance
+            # (distinct ID so provider stays encumbered when lifting privilege)
             self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
                     'actionAgainst': 'license',
                     'adverseActionId': uuid4(),
