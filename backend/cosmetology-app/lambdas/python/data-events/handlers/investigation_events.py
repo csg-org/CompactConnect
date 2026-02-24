@@ -6,6 +6,7 @@ from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.data_event.api import InvestigationEventDetailSchema
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.email_service_client import InvestigationNotificationTemplateVariables
+from cc_common.exceptions import CCInternalException
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler
 
@@ -86,7 +87,8 @@ def _send_additional_state_notifications(
     **notification_kwargs,
 ) -> None:
     """
-    Send notifications to all other states where the provider has licenses or privileges.
+    Send notifications to all other states that are live in the compact. 
+    Uses config live compact jurisdictions.
 
     :param provider_records: The provider records collection
     :param notification_method: The email service method to call
@@ -97,20 +99,18 @@ def _send_additional_state_notifications(
     :param compact: The compact identifier
     :param notification_kwargs: Additional arguments for the notification method
     """
-    # Query provider's records to find all states where they hold or have held licenses or privileges
-    all_licenses = provider_records.get_license_records()
-    all_privileges = provider_records.get_privilege_records()
-
-    # Get unique jurisdictions (excluding the one already notified)
     notification_jurisdictions = set()
-    for license_record in all_licenses:
-        if license_record.jurisdiction != excluded_jurisdiction:
-            notification_jurisdictions.add(license_record.jurisdiction)
-    for privilege_record in all_privileges:
-        if privilege_record.jurisdiction != excluded_jurisdiction:
-            notification_jurisdictions.add(privilege_record.jurisdiction)
+    live_jurisdictions = config.live_compact_jurisdictions.get(compact)
+    if not live_jurisdictions:
+        message = 'No live jurisdictions found for compact'
+        logger.error(message, compact=compact)
+        raise CCInternalException(message)
 
-    # Send notifications to all other states with provider licenses or privileges
+    for live_jurisdiction in config.live_compact_jurisdictions.get(compact, []):
+        if live_jurisdiction.lower() != excluded_jurisdiction.lower():
+            notification_jurisdictions.add(live_jurisdiction)
+
+    # Send notifications to all other live states
     template_variables = InvestigationNotificationTemplateVariables(
         provider_first_name=provider_record.givenName,
         provider_last_name=provider_record.familyName,

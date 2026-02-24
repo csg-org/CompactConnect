@@ -1,9 +1,12 @@
+import json
 import logging
 import os
+from decimal import Decimal
 
 import boto3
 from moto import mock_aws
 
+from common_test.test_constants import DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION
 from tests import TstLambdas
 
 logger = logging.getLogger(__name__)
@@ -26,6 +29,11 @@ class TstFunction(TstLambdas):
 
         self.build_resources()
 
+        # Clear live_compact_jurisdictions cache so handlers read from the compact config table
+        from cc_common import config as cc_config
+
+        cc_config.config.__dict__.pop('live_compact_jurisdictions', None)
+
         self.addCleanup(self.delete_resources)
 
     def build_resources(self):
@@ -33,6 +41,15 @@ class TstFunction(TstLambdas):
         self.create_rate_limit_table()
         self.create_event_state_table()
         self.create_provider_table()
+        self.create_compact_configuration_table()
+        self._load_compact_configuration(
+            {
+                'configuredStates': [
+                    {'postalAbbreviation': DEFAULT_LICENSE_JURISDICTION, 'isLive': True},
+                    {'postalAbbreviation': DEFAULT_PRIVILEGE_JURISDICTION, 'isLive': True},
+                ],
+            }
+        )
 
     def create_data_event_table(self):
         self._data_event_table = boto3.resource('dynamodb').create_table(
@@ -120,8 +137,31 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_compact_configuration_table(self):
+        """Create the compact configuration table for testing."""
+        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
+    def _load_compact_configuration(self, overrides: dict):
+        """Load compact config so get_live_compact_jurisdictions returns the given live states (default: license + privilege jurisdictions)."""
+        with open('../common/tests/resources/dynamo/compact.json') as f:
+            compact_data = json.load(f, parse_float=Decimal)
+            compact_data.update(overrides)
+            self._compact_configuration_table.put_item(Item=compact_data)
+
     def delete_resources(self):
         self._data_event_table.delete()
         self._rate_limit_table.delete()
         self._event_state_table.delete()
         self._provider_table.delete()
+        self._compact_configuration_table.delete()

@@ -107,20 +107,6 @@ class TestInvestigationEvents(TstFunction):
         # Add the license that is under investigation
         self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         message = self._generate_license_investigation_message()
         event = self._create_sqs_event(message)
 
@@ -130,8 +116,8 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications (investigation state + other states with active licenses/privileges)
-        # Note: We do NOT send provider notifications for investigations
+        # Verify state notifications: investigation jurisdiction + other live compact jurisdictions (from compact config)
+        # Default test setup has live = [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION] = [oh, ne]
         expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -139,14 +125,7 @@ class TestInvestigationEvents(TstFunction):
             license_type='cosmetologist',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
-        expected_template_variables_co = InvestigationNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-            license_type='cosmetologist',
-            provider_id=UUID(DEFAULT_PROVIDER_ID),
-        )
-        expected_template_variables_ky = InvestigationNotificationTemplateVariables(
+        expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
@@ -154,28 +133,12 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            # State 'oh' (investigation jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'template_variables': expected_template_variables_oh,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'template_variables': expected_template_variables_co,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'template_variables': expected_template_variables_ky,
-            },
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
         ]
 
-        # Verify all state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify all state notifications were sent (investigation state + other live states)
+        self.assertEqual(2, mock_state_email.call_count)
         actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
         # Sort both lists for comparison
@@ -200,20 +163,6 @@ class TestInvestigationEvents(TstFunction):
         # Add the license that was under investigation
         self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         message = self._generate_license_investigation_closed_message()
         event = self._create_sqs_event(message)
 
@@ -223,8 +172,7 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications (investigation state + other states with active licenses/privileges)
-        # Note: We do NOT send provider notifications for investigations
+        # Verify state notifications: investigation jurisdiction + other live compact jurisdictions
         expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -232,14 +180,7 @@ class TestInvestigationEvents(TstFunction):
             license_type='cosmetologist',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
-        expected_template_variables_co = InvestigationNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-            license_type='cosmetologist',
-            provider_id=UUID(DEFAULT_PROVIDER_ID),
-        )
-        expected_template_variables_ky = InvestigationNotificationTemplateVariables(
+        expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
@@ -247,28 +188,12 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            # State 'oh' (investigation jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'template_variables': expected_template_variables_oh,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'template_variables': expected_template_variables_co,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'template_variables': expected_template_variables_ky,
-            },
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
         ]
 
-        # Verify all state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify all state notifications were sent (investigation state + other live states)
+        self.assertEqual(2, mock_state_email.call_count)
         actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
         # Sort both lists for comparison
@@ -291,20 +216,6 @@ class TestInvestigationEvents(TstFunction):
         # Add the privilege that is under investigation
         self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         message = self._generate_privilege_investigation_message()
         event = self._create_sqs_event(message)
 
@@ -314,8 +225,7 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications (investigation state + other states with active licenses/privileges)
-        # Note: We do NOT send provider notifications for investigations
+        # Verify state notifications: investigation jurisdiction + other live compact jurisdictions
         expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -323,14 +233,7 @@ class TestInvestigationEvents(TstFunction):
             license_type='cosmetologist',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
-        expected_template_variables_co = InvestigationNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-            license_type='cosmetologist',
-            provider_id=UUID(DEFAULT_PROVIDER_ID),
-        )
-        expected_template_variables_ky = InvestigationNotificationTemplateVariables(
+        expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
@@ -338,28 +241,12 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            # State 'ne' (investigation jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-                'template_variables': expected_template_variables_ne,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'template_variables': expected_template_variables_co,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'template_variables': expected_template_variables_ky,
-            },
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
         ]
 
-        # Verify all state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify all state notifications were sent (investigation state + other live states)
+        self.assertEqual(2, mock_state_email.call_count)
         actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
         # Sort both lists for comparison
@@ -384,20 +271,6 @@ class TestInvestigationEvents(TstFunction):
         # Add the privilege that was under investigation
         self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         message = self._generate_privilege_investigation_closed_message()
         event = self._create_sqs_event(message)
 
@@ -407,8 +280,7 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications (investigation state + other states with active licenses/privileges)
-        # Note: We do NOT send provider notifications for investigations
+        # Verify state notifications: investigation jurisdiction + other live compact jurisdictions
         expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -416,14 +288,7 @@ class TestInvestigationEvents(TstFunction):
             license_type='cosmetologist',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
-        expected_template_variables_co = InvestigationNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-            license_type='cosmetologist',
-            provider_id=UUID(DEFAULT_PROVIDER_ID),
-        )
-        expected_template_variables_ky = InvestigationNotificationTemplateVariables(
+        expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
@@ -431,28 +296,12 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            # State 'ne' (investigation jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-                'template_variables': expected_template_variables_ne,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'template_variables': expected_template_variables_co,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'template_variables': expected_template_variables_ky,
-            },
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
         ]
 
-        # Verify all state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify all state notifications were sent (investigation state + other live states)
+        self.assertEqual(2, mock_state_email.call_count)
         actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
         # Sort both lists for comparison

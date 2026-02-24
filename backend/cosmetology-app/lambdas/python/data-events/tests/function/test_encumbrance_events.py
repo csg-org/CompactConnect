@@ -52,42 +52,6 @@ class TestEncumbranceEvents(TstFunction):
         """Create a proper SQS event structure with the message in the body."""
         return {'Records': [{'messageId': str(uuid.uuid4()), 'body': json.dumps(message)}]}
 
-    @patch('cc_common.event_bus_client.EventBusClient._publish_event')
-    def test_license_encumbrance_listener_handles_no_matching_privileges(self, mock_publish_event):
-        """Test that license encumbrance event handles case where no matching privileges exist."""
-        from handlers.encumbrance_events import license_encumbrance_listener
-
-        # Set up test data with no matching privileges
-        self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Create privilege with different license jurisdiction/type
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'licenseJurisdiction': 'ky',  # Different jurisdiction
-                'licenseTypeAbbreviation': 'cos',  # Different license type
-                # note there is no encumberedStatus present
-            }
-        )
-
-        message = self._generate_license_encumbrance_message()
-        event = self._create_sqs_event(message)
-
-        # Execute the handler - should not raise any exceptions
-        license_encumbrance_listener(event, self.mock_context)
-
-        # Verify no privileges were modified
-        provider_records = self.config.data_client.get_provider_user_records(
-            compact=DEFAULT_COMPACT,
-            provider_id=DEFAULT_PROVIDER_ID,
-        )
-
-        privileges = provider_records.get_privilege_records()
-        self.assertEqual(1, len(privileges))
-        self.assertIsNone(privileges[0].encumberedStatus)
-
-        # Verify no privilege encumbrance events were published since no privileges were affected
-        mock_publish_event.assert_not_called()
-
     def _when_testing_live_jurisdictions(self):
         from cc_common.config import config
         from handlers.encumbrance_events import license_encumbrance_listener
@@ -245,20 +209,6 @@ class TestEncumbranceEvents(TstFunction):
         # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
         self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         message = self._generate_privilege_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -268,7 +218,7 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications (encumbered state + other states with active licenses/privileges)
+        # Verify state notifications: encumbered state + other live compact jurisdictions (default: oh, ne)
         expected_template_variables_ne = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
@@ -277,15 +227,7 @@ class TestEncumbranceEvents(TstFunction):
             effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
-        expected_template_variables_co = EncumbranceNotificationTemplateVariables(
-            provider_first_name='Björk',
-            provider_last_name='Guðmundsdóttir',
-            encumbered_jurisdiction='ne',
-            license_type='cosmetologist',
-            effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-            provider_id=UUID(DEFAULT_PROVIDER_ID),
-        )
-        expected_template_variables_ky = EncumbranceNotificationTemplateVariables(
+        expected_template_variables_oh = EncumbranceNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
@@ -294,28 +236,12 @@ class TestEncumbranceEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            # State 'ne' (encumbered jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ne',
-                'template_variables': expected_template_variables_ne,
-            },
-            # State 'co' (active license jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'co',
-                'template_variables': expected_template_variables_co,
-            },
-            # State 'ky' (active privilege jurisdiction)
-            {
-                'compact': DEFAULT_COMPACT,
-                'jurisdiction': 'ky',
-                'template_variables': expected_template_variables_ky,
-            },
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
+            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
         ]
 
-        # Verify all state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify all state notifications were sent (encumbered + other live states)
+        self.assertEqual(2, mock_state_email.call_count)
         actual_state_calls = [call.kwargs for call in mock_state_email.call_args_list]
 
         # Sort both lists for comparison
@@ -336,29 +262,7 @@ class TestEncumbranceEvents(TstFunction):
         # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
         self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        # Create active licenses in multiple jurisdictions (excluding the encumbrance jurisdiction 'ne')
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
-        # Create active privileges in multiple jurisdictions (excluding the encumbrance jurisdiction 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'administratorSetStatus': 'active',
-            }
-        )
-
-        # The encumbrance occurs in DEFAULT_PRIVILEGE_JURISDICTION ('ne')
+        # The encumbrance occurs in DEFAULT_PRIVILEGE_JURISDICTION ('ne'); live = [oh, ne]
         message = self._generate_privilege_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -368,13 +272,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent to all relevant jurisdictions
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify state notifications: encumbered + other live compact jurisdictions
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -418,29 +321,6 @@ class TestEncumbranceEvents(TstFunction):
         # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
         self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        # Create license and privilege in different jurisdictions from the encumbrance
-        # The encumbrance occurs in 'ne', so create records in other jurisdictions
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',  # Different from encumbrance jurisdiction
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',  # Different from encumbrance jurisdiction
-                'administratorSetStatus': 'active',
-            }
-        )
-
-        # Also create a license in the same jurisdiction as the encumbrance to test exclusion
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,  # Same as encumbrance jurisdiction ('ne')
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
         message = self._generate_privilege_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -450,13 +330,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify exactly 3 notifications (ne appears only once, not duplicated)
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify exactly 2 notifications (encumbered state + other live state; ne appears only once)
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -485,30 +364,6 @@ class TestEncumbranceEvents(TstFunction):
         # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
         self.test_data_generator.put_default_privilege_record_in_provider_table()
 
-        # Create inactive license (should be notified)
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'inactive',
-            }
-        )
-
-        # Create inactive privilege (should be notified)
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'inactive',
-            }
-        )
-
-        # Create active license (should be notified)
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
         message = self._generate_privilege_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -518,13 +373,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify 4 notifications (to inactive 'co', 'ky', and active 'tx', 'ne')
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify 2 notifications (encumbered state + other live state)
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -554,21 +408,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
         self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={'licenseJurisdiction': 'co', 'encumberedStatus': 'unencumbered'}
-        )
-
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
+            value_overrides={'licenseJurisdiction': 'oh', 'encumberedStatus': 'unencumbered'}
         )
 
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
@@ -590,13 +430,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify state notifications: lifting jurisdiction + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -619,7 +458,7 @@ class TestEncumbranceEvents(TstFunction):
     def test_privilege_encumbrance_lifting_notification_listener_identifies_notification_jurisdictions(
         self, mock_state_email
     ):
-        """Test that privilege encumbrance lifting listener correctly identifies states to notify."""
+        """Test that privilege encumbrance lifting listener correctly identifies states to notify (live compact jurisdictions)."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
 
@@ -628,7 +467,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
         self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
+            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'oh'}
         )
 
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
@@ -641,30 +480,7 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        # Create active licenses in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
-        # Create active privileges in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'administratorSetStatus': 'active',
-                'encumberedStatus': 'unencumbered',
-            }
-        )
-
-        # The encumbrance lifting occurs in DEFAULT_PRIVILEGE_JURISDICTION ('ne')
+        # The encumbrance lifting occurs in DEFAULT_PRIVILEGE_JURISDICTION ('ne'); live = [oh, ne]
         message = self._generate_privilege_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
 
@@ -674,13 +490,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent to all relevant jurisdictions
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify state notifications: lifting jurisdiction + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -775,13 +590,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent to all relevant jurisdictions
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify state notifications: lifting jurisdiction + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different jurisdiction values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -864,13 +678,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent to all relevant jurisdictions
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify state notifications: lifting jurisdiction + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different jurisdiction values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['co', 'ky', 'ne', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -914,20 +727,6 @@ class TestEncumbranceEvents(TstFunction):
         # Add the license that is being encumbered (in DEFAULT_LICENSE_JURISDICTION = 'oh')
         self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ne',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -937,13 +736,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify state notifications: encumbered + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -972,29 +770,7 @@ class TestEncumbranceEvents(TstFunction):
         # Add the license that is being encumbered (in DEFAULT_LICENSE_JURISDICTION = 'oh')
         self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Create active licenses in multiple jurisdictions (excluding the encumbrance jurisdiction 'oh')
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ne',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
-        # Create active privileges in multiple jurisdictions (excluding the encumbrance jurisdiction 'oh')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'administratorSetStatus': 'active',
-            }
-        )
-
-        # The encumbrance occurs in DEFAULT_LICENSE_JURISDICTION ('oh')
+        # The encumbrance occurs in DEFAULT_LICENSE_JURISDICTION ('oh'); live = [oh, ne]
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -1004,13 +780,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent to all relevant jurisdictions
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify state notifications: encumbered + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -1056,29 +831,6 @@ class TestEncumbranceEvents(TstFunction):
         # Add the license that is being encumbered (in DEFAULT_LICENSE_JURISDICTION = 'oh')
         self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Create license and privilege in different jurisdictions from the encumbrance
-        # The encumbrance occurs in 'oh', so create records in other jurisdictions
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ne',  # Different from encumbrance jurisdiction
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',  # Different from encumbrance jurisdiction
-                'administratorSetStatus': 'active',
-            }
-        )
-
-        # Also create a privilege in the same jurisdiction as the encumbrance to test exclusion
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,  # Same as encumbrance jurisdiction ('oh')
-                'administratorSetStatus': 'active',
-            }
-        )
-
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -1088,13 +840,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify exactly 3 notifications (oh appears only once, not duplicated)
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify exactly 2 notifications (encumbered state + other live state; oh appears only once)
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -1125,30 +876,6 @@ class TestEncumbranceEvents(TstFunction):
         # Add the license that is being encumbered (in DEFAULT_LICENSE_JURISDICTION = 'oh')
         self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Create inactive license (should be notified)
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ne',
-                'jurisdictionUploadedLicenseStatus': 'inactive',
-            }
-        )
-
-        # Create inactive privilege (should be notified)
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'inactive',
-            }
-        )
-
-        # Create active license (should be notified)
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
@@ -1158,13 +885,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify 4 notifications (including to inactive 'ne' and 'ky')
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify 2 notifications (encumbered + other live state)
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -1195,20 +921,6 @@ class TestEncumbranceEvents(TstFunction):
         # Add the license where encumbrance is being lifted (in DEFAULT_LICENSE_JURISDICTION = 'oh')
         self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Create additional licenses and privileges for notification testing
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ne',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'ky',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
                 'actionAgainst': 'license',
@@ -1228,13 +940,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent
-        self.assertEqual(3, mock_state_email.call_count)
+        # Verify state notifications: lifting jurisdiction + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -1299,7 +1010,7 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        # The encumbrance lifting occurs in DEFAULT_LICENSE_JURISDICTION ('oh')
+        # The encumbrance lifting occurs in DEFAULT_LICENSE_JURISDICTION ('oh'); live = [oh, ne]
         message = self._generate_license_encumbrance_lifting_message()
         event = self._create_sqs_event(message)
 
@@ -1309,13 +1020,12 @@ class TestEncumbranceEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications were sent to all relevant jurisdictions
-        self.assertEqual(4, mock_state_email.call_count)
+        # Verify state notifications: lifting jurisdiction + other live states
+        self.assertEqual(2, mock_state_email.call_count)
 
-        # Check each call individually since they have different provider_id values
         calls = mock_state_email.call_args_list
         call_jurisdictions = [call.kwargs['jurisdiction'] for call in calls]
-        self.assertEqual(sorted(call_jurisdictions), ['ky', 'ne', 'oh', 'tx'])
+        self.assertEqual(sorted(call_jurisdictions), ['ne', 'oh'])
 
         # Verify all calls have the correct template_variables structure
         for call in calls:
@@ -1355,29 +1065,32 @@ class TestEncumbranceEvents(TstFunction):
         self, mock_enc_state, mock_lift_state
     ):
         """
-        Test that license encumbrance notification listeners handle case where provider has no other active
-        licenses/privileges.
+        Test that license encumbrance notification listeners handle case where compact has only one live
+        jurisdiction (no additional states to notify).
         """
+        from cc_common.config import config
         from handlers.encumbrance_events import (
             license_encumbrance_lifting_notification_listener,
             license_encumbrance_notification_listener,
         )
 
-        # Set up test data with only provider record
-        self.test_data_generator.put_default_provider_record_in_provider_table()
+        # Only one live jurisdiction so no "additional" state notifications
+        config.__dict__['live_compact_jurisdictions'] = {DEFAULT_COMPACT: [DEFAULT_LICENSE_JURISDICTION]}
+        try:
+            # Set up test data
+            self.test_data_generator.put_default_provider_record_in_provider_table()
 
-        # Add the license that is being encumbered/lifted (in DEFAULT_LICENSE_JURISDICTION = 'oh')
-        self.test_data_generator.put_default_license_record_in_provider_table()
+            # Add the license that is being encumbered/lifted (in DEFAULT_LICENSE_JURISDICTION = 'oh')
+            self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Only create records in the same jurisdiction as the encumbrance (no other jurisdictions)
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'administratorSetStatus': 'active',
-            }
-        )
+            self.test_data_generator.put_default_privilege_record_in_provider_table(
+                value_overrides={
+                    'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                    'administratorSetStatus': 'active',
+                }
+            )
 
-        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
                 'actionAgainst': 'license',
                 'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
@@ -1385,55 +1098,55 @@ class TestEncumbranceEvents(TstFunction):
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
-        )
+            )
 
-        # Test license encumbrance notification
-        message = self._generate_license_encumbrance_message()
-        event = self._create_sqs_event(message)
-        result = license_encumbrance_notification_listener(event, self.mock_context)
+            # Test license encumbrance notification
+            message = self._generate_license_encumbrance_message()
+            event = self._create_sqs_event(message)
+            result = license_encumbrance_notification_listener(event, self.mock_context)
 
-        # Should succeed with no batch failures
-        self.assertEqual({'batchItemFailures': []}, result)
+            # Should succeed with no batch failures
+            self.assertEqual({'batchItemFailures': []}, result)
 
-        # Test license encumbrance lifting notification
-        message = self._generate_license_encumbrance_lifting_message()
-        event = self._create_sqs_event(message)
-        result = license_encumbrance_lifting_notification_listener(event, self.mock_context)
+            # Test license encumbrance lifting notification
+            message = self._generate_license_encumbrance_lifting_message()
+            event = self._create_sqs_event(message)
+            result = license_encumbrance_lifting_notification_listener(event, self.mock_context)
 
-        # Should succeed with no batch failures
-        self.assertEqual({'batchItemFailures': []}, result)
+            # Should succeed with no batch failures
+            self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify license encumbrance notifications
-        from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
+            # Verify license encumbrance notifications: only state 'oh' (no additional live jurisdictions)
+            from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
 
-        # Only state 'oh' should be notified (no other jurisdictions)
-        mock_enc_state.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            jurisdiction='oh',
-            template_variables=EncumbranceNotificationTemplateVariables(
-                provider_first_name='Björk',
-                provider_last_name='Guðmundsdóttir',
-                encumbered_jurisdiction='oh',
-                license_type='cosmetologist',
-                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-                provider_id=UUID(DEFAULT_PROVIDER_ID),
-            ),
-        )
+            mock_enc_state.assert_called_once_with(
+                compact=DEFAULT_COMPACT,
+                jurisdiction='oh',
+                template_variables=EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='cosmetologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
 
-        # Verify license lifting notifications
-        # Only state 'oh' should be notified (no other jurisdictions)
-        mock_lift_state.assert_called_once_with(
-            compact=DEFAULT_COMPACT,
-            jurisdiction='oh',
-            template_variables=EncumbranceNotificationTemplateVariables(
-                provider_first_name='Björk',
-                provider_last_name='Guðmundsdóttir',
-                encumbered_jurisdiction='oh',
-                license_type='cosmetologist',
-                effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-                provider_id=UUID(DEFAULT_PROVIDER_ID),
-            ),
-        )
+            # Verify license lifting notifications: only state 'oh'
+            mock_lift_state.assert_called_once_with(
+                compact=DEFAULT_COMPACT,
+                jurisdiction='oh',
+                template_variables=EncumbranceNotificationTemplateVariables(
+                    provider_first_name='Björk',
+                    provider_last_name='Guðmundsdóttir',
+                    encumbered_jurisdiction='oh',
+                    license_type='cosmetologist',
+                    effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    provider_id=UUID(DEFAULT_PROVIDER_ID),
+                ),
+            )
+        finally:
+            config.__dict__.pop('live_compact_jurisdictions', None)
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_lifted_listener_uses_effective_date_from_message(self, mock_publish_event):
@@ -1563,16 +1276,14 @@ class TestEncumbranceEvents(TstFunction):
         from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
         from handlers.encumbrance_events import license_encumbrance_notification_listener
 
-        # Set up test data
+        # Set up test data (live = [oh, ne]; primary is oh, additional is ne)
         self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table()
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ne'})
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ky'})
 
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
 
-        # mock previous attempt where the notification to ky failed
+        # Mock previous attempt where the notification to oh succeeded and to ne failed
         tracker = NotificationTracker(compact=DEFAULT_COMPACT, message_id=event['Records'][0]['messageId'])
         tracker.record_success(
             recipient_type=RecipientType.STATE,
@@ -1581,23 +1292,16 @@ class TestEncumbranceEvents(TstFunction):
             event_time=DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
             jurisdiction=DEFAULT_LICENSE_JURISDICTION,
         )
-        tracker.record_success(
-            recipient_type=RecipientType.STATE,
-            provider_id=DEFAULT_PROVIDER_ID,
-            event_type=EventType.LICENSE_ENCUMBRANCE,
-            event_time=DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-            jurisdiction='ne',
-        )
         tracker.record_failure(
             recipient_type=RecipientType.STATE,
             provider_id=DEFAULT_PROVIDER_ID,
             event_type=EventType.LICENSE_ENCUMBRANCE,
             event_time=DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
             error_message='something failed',
-            jurisdiction='ky',
+            jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
         )
 
-        # Execute listener, which should only attempt to send notification to ky
+        # Execute listener, which should only retry notification to ne
         license_encumbrance_notification_listener(event, self.mock_context)
 
         # Re-instantiate tracker to get latest notification attempts
@@ -1605,13 +1309,13 @@ class TestEncumbranceEvents(TstFunction):
 
         notification_records = updated_tracker._attempts  # noqa: SLF001
 
-        # ky should now be SUCCESS
-        self.assertEqual('SUCCESS', notification_records['NOTIFICATION#state#ky']['status'])
+        # ne should now be SUCCESS
+        self.assertEqual('SUCCESS', notification_records['NOTIFICATION#state#ne']['status'])
 
-        # verify only the email to ky was sent
+        # Verify only the email to ne was sent (retry)
         mock_state_email.assert_called_once_with(
             compact=DEFAULT_COMPACT,
-            jurisdiction='ky',
+            jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
             template_variables=ANY,
         )
 
@@ -1627,11 +1331,9 @@ class TestEncumbranceEvents(TstFunction):
         from cc_common.event_state_client import NotificationStatus, NotificationTracker
         from handlers.encumbrance_events import license_encumbrance_notification_listener
 
-        # Set up test data
+        # Set up test data (live = [oh, ne])
         self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table()
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ne'})
-        self.test_data_generator.put_default_privilege_record_in_provider_table(value_overrides={'jurisdiction': 'ky'})
 
         message = self._generate_license_encumbrance_message()
         event = self._create_sqs_event(message)
@@ -1645,11 +1347,10 @@ class TestEncumbranceEvents(TstFunction):
         notification_records = updated_tracker._attempts  # noqa: SLF001
 
         expected_sks = [
-            'NOTIFICATION#state#ky',
             'NOTIFICATION#state#ne',
             'NOTIFICATION#state#oh',
         ]
 
-        self.assertEqual(expected_sks, list(notification_records.keys()))
+        self.assertEqual(expected_sks, sorted(notification_records.keys()))
         for sk in expected_sks:
             self.assertEqual(NotificationStatus.SUCCESS, notification_records.get(sk).get('status'))
