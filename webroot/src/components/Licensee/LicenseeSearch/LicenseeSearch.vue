@@ -34,7 +34,7 @@
                     @input="updateCurrentCompact"
                 />
             </div>
-            <div class="search-form-row">
+            <div v-if="isAppModeJcc" class="search-form-row">
                 <InputRadioGroup
                     :formInput="formData.searchType"
                     class="search-input search-type-input"
@@ -60,18 +60,24 @@
                     :title="(formData.homeState.isDisabled) ? $t('licensing.searchStateDisabled') : ''"
                 />
             </div>
-            <div class="search-form-row">
+            <div v-if="isAppModeCosmetology" class="search-form-row">
+                <InputText
+                    :formInput="formData.licenseNumber"
+                    class="search-input license-number-input"
+                />
+            </div>
+            <div v-if="isAppModeJcc" class="search-form-row">
                 <InputSelect
                     :formInput="formData.privilegeState"
                     class="search-input privilege-state-select"
                 />
             </div>
-            <div class="search-form-row">
+            <div v-if="isAppModeJcc" class="search-form-row">
                 <div id="privilege-purchase-dates-label" class="date-section-label search-input">
                     {{ $t('licensing.privilegePurchased') }}
                 </div>
             </div>
-            <div class="search-form-row date-range">
+            <div v-if="isAppModeJcc" class="search-form-row date-range">
                 <InputDate
                     class="search-input date-range-input"
                     :formInput="formData.privilegePurchaseStartDate"
@@ -94,7 +100,7 @@
                     aria-labelledby="privilege-purchase-dates-label"
                 />
             </div>
-            <div class="search-form-row">
+            <div v-if="isAppModeJcc" class="search-form-row">
                 <InputSelect
                     :formInput="formData.militaryStatus"
                     class="search-input military-status-select"
@@ -134,7 +140,7 @@
                     aria-labelledby="encumber-dates-label"
                 />
             </div>
-            <div class="search-form-row">
+            <div v-if="isAppModeJcc" class="search-form-row">
                 <InputText
                     :formInput="formData.npi"
                     class="search-input npi-input"

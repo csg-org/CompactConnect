@@ -157,6 +157,7 @@ describe('License Store Mutations', () => {
                 firstName: 'test',
                 lastName: 'test',
                 state: 'test',
+                licenseNumber: 'test',
             },
         };
 
@@ -167,6 +168,7 @@ describe('License Store Mutations', () => {
             firstName: '',
             lastName: '',
             state: '',
+            licenseNumber: '',
         });
     });
     it('should successfully reset license store', () => {
@@ -180,6 +182,7 @@ describe('License Store Mutations', () => {
                 firstName: 'test',
                 lastName: 'test',
                 state: 'test',
+                licenseNumber: 'test',
             },
         };
 
@@ -195,6 +198,7 @@ describe('License Store Mutations', () => {
                 firstName: '',
                 lastName: '',
                 state: '',
+                licenseNumber: '',
             },
         });
     });

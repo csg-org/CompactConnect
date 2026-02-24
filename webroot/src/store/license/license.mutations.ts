@@ -110,6 +110,7 @@ export default {
             firstName: '',
             lastName: '',
             state: '',
+            licenseNumber: '',
         };
     },
     [MutationTypes.STORE_RESET_LICENSE]: (state: any) => {
@@ -122,6 +123,7 @@ export default {
             firstName: '',
             lastName: '',
             state: '',
+            licenseNumber: '',
         };
     },
     [MutationTypes.GET_PRIVILEGE_HISTORY_REQUEST]: (state: any) => {

@@ -25,6 +25,7 @@ export interface RequestParamsInterfaceLocal {
     licenseeId?: string;
     licenseeFirstName?: string;
     licenseeLastName?: string;
+    licenseNumber?: string;
     pageSize?: number;
     pageNumber?: number;
     lastKey?: string;
@@ -50,6 +51,7 @@ export interface RequestParamsInterfaceRemote {
         providerId?: string,
         givenName?: string,
         familyName?: string,
+        licenseNumber?: string,
     },
 }
 
@@ -116,6 +118,7 @@ export class LicenseDataApi implements DataApiInterface {
             licenseeId,
             licenseeFirstName,
             licenseeLastName,
+            licenseNumber,
             pageSize,
             lastKey,
             sortBy,
@@ -137,6 +140,9 @@ export class LicenseDataApi implements DataApiInterface {
             }
             if (licenseeLastName) {
                 requestParams.query.familyName = licenseeLastName;
+            }
+            if (licenseNumber) {
+                requestParams.query.licenseNumber = licenseNumber;
             }
         }
 

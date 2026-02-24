@@ -41,6 +41,12 @@
                     @blur="customValidateLastName(true)"
                 />
             </div>
+            <div v-if="isAppModeCosmetology" class="search-form-row">
+                <InputText
+                    :formInput="formData.licenseNumber"
+                    class="search-input license-number-input"
+                />
+            </div>
             <div class="search-form-row">
                 <InputSubmit
                     :formInput="formData.submit"

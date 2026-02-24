@@ -18,6 +18,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
+import { AppModes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -52,6 +53,7 @@ export interface LicenseSearch {
     encumberStartDate?: string;
     encumberEndDate?: string;
     npi?: string;
+    licenseNumber?: string;
 }
 
 @Component({
@@ -87,12 +89,28 @@ class LicenseeSearch extends mixins(MixinForm) {
     //
     // Computed
     //
+    get globalStore() {
+        return this.$store.state;
+    }
+
     get licenseStore(): any {
         return this.$store.state.license;
     }
 
     get userStore() {
         return this.$store.state.user;
+    }
+
+    get appMode(): AppModes {
+        return this.globalStore.appMode;
+    }
+
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
     }
 
     get compactType(): CompactType | null {
@@ -236,6 +254,15 @@ class LicenseeSearch extends mixins(MixinForm) {
                 value: this.searchParams.homeState || '',
                 isDisabled: computed(() => this.enableCompactSelect && !this.compactType),
             }),
+            licenseNumber: new FormInput({
+                id: 'license-number',
+                name: 'license-number',
+                label: computed(() => this.$t('licensing.licenseNumber')),
+                placeholder: '',
+                validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
+                value: this.searchParams.licenseNumber || '',
+                enforceMax: true,
+            }),
             privilegeState: new FormInput({
                 id: 'privilege-state',
                 name: 'privilege-state',
@@ -331,24 +358,35 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            const allowedSearchProps = [
-                'compact',
-                'firstName',
-                'lastName',
-                'homeState',
-                'privilegeState',
-                'privilegePurchaseStartDate',
-                'privilegePurchaseEndDate',
-                'militaryStatus',
-                'investigationStatus',
-                'encumberStartDate',
-                'encumberEndDate',
-                'npi',
-            ];
             const searchProps: LicenseSearch = {
                 searchType: this.selectedSearchType || SearchTypes.PROVIDER,
                 isDirectExport: this.isSearchByPrivileges,
             };
+            const allowedSearchProps = [ // Common search props
+                'compact',
+                'firstName',
+                'lastName',
+                'homeState',
+                'investigationStatus',
+                'encumberStartDate',
+                'encumberEndDate',
+            ];
+
+            // Per compact search props
+            switch (this.appMode) {
+            case AppModes.JCC:
+                allowedSearchProps.push('privilegeState');
+                allowedSearchProps.push('privilegePurchaseStartDate');
+                allowedSearchProps.push('privilegePurchaseEndDate');
+                allowedSearchProps.push('militaryStatus');
+                allowedSearchProps.push('npi');
+                break;
+            case AppModes.COSMETOLOGY:
+                allowedSearchProps.push('licenseNumber');
+                break;
+            default:
+                break;
+            }
 
             allowedSearchProps.forEach((searchProp) => { searchProps[searchProp] = this.formValues[searchProp]; });
             this.$emit('searchParams', searchProps);
@@ -369,6 +407,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.encumberStartDate.value = '';
         this.formData.encumberEndDate.value = '';
         this.formData.npi.value = '';
+        this.formData.licenseNumber.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
         this.isFormError = false;
@@ -380,14 +419,19 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.firstName.value = 'Test';
         this.formData.lastName.value = 'User';
         this.formData.homeState.value = 'co';
-        this.formData.privilegeState.value = 'co';
-        this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
-        this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
-        this.formData.militaryStatus.value = 'approved';
         this.formData.investigationStatus.value = 'underInvestigation';
         this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
-        this.formData.npi.value = 'ABC123';
+
+        if (this.isAppModeJcc) {
+            this.formData.privilegeState.value = 'co';
+            this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
+            this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
+            this.formData.militaryStatus.value = 'approved';
+            this.formData.npi.value = 'ABC123';
+        } else if (this.isAppModeCosmetology) {
+            this.formData.licenseNumber.value = 'ABC123';
+        }
 
         this.validateAll({ asTouched: true });
         await nextTick();

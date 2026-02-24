@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 10/2/2024.
 //
 
-import { AppModes, compacts as compactsConfig } from '@/app.config';
+import { compacts as compactsConfig } from '@/app.config';
 import {
     Component,
     mixins,
@@ -146,11 +146,6 @@ class CompactSelector extends mixins(MixinForm) {
         } else {
             // Refresh the compact type on the store
             await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType }));
-            if (selectedCompactType === CompactType.COSMETOLOGY) {
-                this.$store.dispatch('setAppMode', AppModes.COSMETOLOGY);
-            } else {
-                this.$store.dispatch('setAppMode', AppModes.JCC);
-            }
         }
     }
 

@@ -370,6 +370,9 @@ class LicenseeList extends Vue {
         if (searchParams?.npi) {
             requestConfig.npi = searchParams.npi;
         }
+        if (searchParams?.licenseNumber) {
+            requestConfig.licenseNumber = searchParams.licenseNumber;
+        }
 
         // Paging params
         if (!isDirectExport) {

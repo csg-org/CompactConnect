@@ -307,6 +307,9 @@ class LicenseeList extends Vue {
         if (searchParams?.state) {
             requestConfig.jurisdiction = searchParams.state.toLowerCase();
         }
+        if (searchParams?.licenseNumber) {
+            requestConfig.licenseNumber = searchParams.licenseNumber;
+        }
 
         // Make fetch request
         await this.$store.dispatch('license/getLicenseesRequest', {

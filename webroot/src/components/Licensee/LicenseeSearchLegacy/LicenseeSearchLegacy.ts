@@ -13,6 +13,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
+import { AppModes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -28,6 +29,7 @@ export interface LicenseSearchLegacy {
     firstName?: string;
     lastName?: string;
     state?: string;
+    licenseNumber?: string;
 }
 
 @Component({
@@ -54,8 +56,28 @@ class LicenseeSearch extends mixins(MixinForm) {
     //
     // Computed
     //
+    get globalStore() {
+        return this.$store.state;
+    }
+
     get userStore() {
         return this.$store.state.user;
+    }
+
+    get appMode(): AppModes {
+        return this.globalStore.appMode;
+    }
+
+    get AppModes(): typeof AppModes {
+        return AppModes;
+    }
+
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
     }
 
     get compactType(): CompactType | null {
@@ -132,6 +154,15 @@ class LicenseeSearch extends mixins(MixinForm) {
                 value: this.searchParams.state || '',
                 isDisabled: computed(() => this.enableCompactSelect && !this.compactType),
             }),
+            licenseNumber: new FormInput({
+                id: 'license-number',
+                name: 'license-number',
+                label: computed(() => this.$t('licensing.licenseNumber')),
+                placeholder: '',
+                validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
+                value: this.searchParams.licenseNumber || '',
+                enforceMax: true,
+            }),
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -168,13 +199,17 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
+            const searchProps: LicenseSearchLegacy = {};
             const allowedSearchProps = [
                 'compact',
                 'firstName',
                 'lastName',
                 'state'
             ];
-            const searchProps: LicenseSearchLegacy = {};
+
+            if (this.appMode === AppModes.COSMETOLOGY) {
+                allowedSearchProps.push('licenseNumber');
+            }
 
             allowedSearchProps.forEach((searchProp) => { searchProps[searchProp] = this.formValues[searchProp]; });
             this.$emit('searchParams', searchProps);
