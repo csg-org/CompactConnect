@@ -20,23 +20,20 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 records.append(lic.serialize_to_database_record())
         return records
 
-    def _patch_config_for_privilege_generation(self, active_jurisdictions=None, resolution_date=None):
-        """Patch config.active_compact_jurisdictions and expiration_resolution_date for privilege generation."""
-        if active_jurisdictions is None:
-            active_jurisdictions = {
-                'cosm': [
-                    {'postalAbbreviation': 'al'},
-                    {'postalAbbreviation': 'ky'},
-                    {'postalAbbreviation': 'oh'},
-                ]
-            }
+    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None, resolution_date=None):
+        """Patch config used by provider_record_util (config_module.config) for privilege generation.
+
+        live_compact_jurisdictions: dict[compact, list[jurisdiction_str]], e.g. {'cosm': ['al', 'ky', 'oh']}.
+        """
+        if live_compact_jurisdictions is None:
+            live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
         if resolution_date is None:
             resolution_date = date(2025, 6, 1)  # so default expiration 2025-04-04 is before = inactive if we used it
         mock_config = MagicMock()
-        mock_config.active_compact_jurisdictions = active_jurisdictions
+        mock_config.live_compact_jurisdictions = live_compact_jurisdictions
         mock_config.expiration_resolution_date = resolution_date
         mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
-        return patch('cc_common.data_model.provider_record_util.config', mock_config)
+        return patch('cc_common.data_model.provider_record_util.config_module.config', mock_config)
 
     def test_returns_empty_list_when_no_licenses(self):
         """If provider has no license records, generate_privileges_for_provider returns empty list."""

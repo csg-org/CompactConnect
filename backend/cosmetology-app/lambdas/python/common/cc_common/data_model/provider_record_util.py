@@ -3,6 +3,10 @@ from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
+# Import the config module (not the config object) so we resolve config at access time via
+# config_module.config. That lets tests replace cc_common.config.config in setUp and have this
+# code reference the test's instance. Caching of live_compact_jurisdictions is unchanged—it lives on
+# the config instance, so production still gets one fetch per Lambda lifecycle.
 import cc_common.config as config_module
 from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -523,7 +527,6 @@ class ProviderUserRecords:
             return []
         provider = self.get_provider_record()
         compact = provider.compact
-        # TODO: find a better way to get the live jurisdictions for a compact without breaking tests
         live_jurisdictions_for_compact = config_module.config.live_compact_jurisdictions.get(compact, [])
 
         if not live_jurisdictions_for_compact:
