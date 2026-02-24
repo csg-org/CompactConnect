@@ -5,8 +5,7 @@ from uuid import UUID
 
 # Import the config module (not the config object) so we resolve config at access time via
 # config_module.config. That lets tests replace cc_common.config.config in setUp and have this
-# code reference the test's instance. Caching of live_compact_jurisdictions is unchanged—it lives on
-# the config instance, so production still gets one fetch per Lambda lifecycle.
+# code reference the test's instance.
 import cc_common.config as config_module
 from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -527,10 +526,11 @@ class ProviderUserRecords:
             return []
         provider = self.get_provider_record()
         compact = provider.compact
+        # live_compact_jurisdictions is a cached property, so it will only be fetched once per Lambda lifecycle.
         live_jurisdictions_for_compact = config_module.config.live_compact_jurisdictions.get(compact, [])
 
         if not live_jurisdictions_for_compact:
-            logger.debug('no active jurisdictions found in environment.')
+            logger.debug('no active jurisdictions found in environment.', compact=compact)
             return []
 
         # Group licenses by licenseType; for each type pick most recently issued as home license
