@@ -307,16 +307,15 @@ def license_encumbrance_lifted_listener(message: dict):
         )
         # Verify the license itself is unencumbered before lifting privilege encumbrances
         # A license may still be encumbered by another adverse action that has not been lifted yet.
-        license_record = provider_user_records.get_specific_license_record(license_jurisdiction,
-                                                                           license_type_abbreviation)
+        license_record = provider_user_records.get_specific_license_record(
+            license_jurisdiction, license_type_abbreviation
+        )
         if not license_record:
             logger.warning('No license record found for the specified jurisdiction and license type')
             raise CCInternalException('No license record found for the specified jurisdiction and license type')
 
         if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
-            logger.info(
-                'License is still encumbered. Not sending privilege encumbrance lift notifications.'
-            )
+            logger.info('License is still encumbered. Not sending privilege encumbrance lift notifications.')
             return
 
         # When a home state license encumbrance is lifted, we notify all the other live states in the compact
@@ -341,9 +340,7 @@ def license_encumbrance_lifted_listener(message: dict):
                     event_batch_writer=event_batch_writer,
                 )
 
-        logger.info(
-            'Successfully processed license encumbrance lifting event'
-        )
+        logger.info('Successfully processed license encumbrance lifting event')
 
 
 @sqs_handler_with_notification_tracking

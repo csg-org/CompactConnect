@@ -29,7 +29,6 @@ from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdate
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
-    CCAwsServiceException,
     CCInternalException,
     CCInvalidRequestException,
     CCNotFoundException,
@@ -740,7 +739,6 @@ class DataClient:
             jurisdiction=adverse_action.jurisdiction,
             license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         ):
-
             # Update the privilege record and create history record
             logger.info('Adding encumbrance for jurisdiction')
             # we add the adverse action record for the privilege,
@@ -1211,11 +1209,13 @@ class DataClient:
 
             # Build transaction items
             # Always update the adverse action record with lift information
-            transact_items = [self._generate_adverse_action_lift_update_item(
-                target_adverse_action=target_adverse_action,
-                effective_lift_date=effective_lift_date,
-                lifting_user=lifting_user,
-            )]
+            transact_items = [
+                self._generate_adverse_action_lift_update_item(
+                    target_adverse_action=target_adverse_action,
+                    effective_lift_date=effective_lift_date,
+                    lifting_user=lifting_user,
+                )
+            ]
 
             # Check if provider should be set to unencumbered
             provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(

@@ -134,7 +134,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             loaded_adverse_action.to_dict(),
         )
 
-
     def test_privilege_encumbrance_handler_sets_provider_record_to_encumbered_in_provider_data_table(self):
         from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
         from cc_common.data_model.schema.provider import ProviderData
@@ -492,13 +491,15 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         if include_license_adverse_action:
             # add adverse action for license encumbrance
             # (distinct ID so provider stays encumbered when lifting privilege)
-            self.test_data_generator.put_default_adverse_action_record_in_provider_table(value_overrides={
+            self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+                value_overrides={
                     'actionAgainst': 'license',
                     'adverseActionId': uuid4(),
                     'jurisdiction': test_privilege_record.licenseJurisdiction,
                     'licenseType': test_privilege_record.licenseType,
                     **(adverse_action_overrides or {}),
-                })
+                }
+            )
 
         return test_privilege_record, test_adverse_action
 

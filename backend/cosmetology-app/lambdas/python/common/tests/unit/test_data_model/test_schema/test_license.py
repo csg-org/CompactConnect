@@ -332,7 +332,7 @@ class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
             'homeAddressCity': 'Columbus',
             'homeAddressState': 'OH',
             'homeAddressPostalCode': '43215',
-            'licenseNumber': 'LIC12345'
+            'licenseNumber': 'LIC12345',
         }
 
     def test_expired_license_status_corrected_to_inactive(self):

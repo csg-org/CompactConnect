@@ -52,7 +52,6 @@ class TestEncumbranceEvents(TstFunction):
         """Create a proper SQS event structure with the message in the body."""
         return {'Records': [{'messageId': str(uuid.uuid4()), 'body': json.dumps(message)}]}
 
-
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_license_encumbrance_listener_handles_no_matching_privileges(self, mock_publish_event):
         """Test that license encumbrance event handles case where no matching privileges exist."""
@@ -89,10 +88,10 @@ class TestEncumbranceEvents(TstFunction):
         # Verify no privilege encumbrance events were published since no privileges were affected
         mock_publish_event.assert_not_called()
 
-
     def _when_testing_live_jurisdictions(self):
         from cc_common.config import config
         from handlers.encumbrance_events import license_encumbrance_listener
+
         # Mock live jurisdictions to home state + one other so we can assert the non-home one is notified
         config.__dict__['live_compact_jurisdictions'] = {
             DEFAULT_COMPACT: [DEFAULT_LICENSE_JURISDICTION, 'ky'],
@@ -119,16 +118,19 @@ class TestEncumbranceEvents(TstFunction):
 
         # Should have published for each live jurisdiction that isn't the home state license jurisdiction (ky)
         self.assertEqual(1, mock_publish_event.call_count)
-        mock_publish_event.assert_called_once_with(source='org.compactconnect.data-events',
-                                                   detail_type='privilege.encumbrance',
-                                                   detail={'compact': 'cosm',
-                                                           'jurisdiction': 'ky',
-                                                           'eventTime': '2024-11-08T23:59:59+00:00',
-                                                           'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                                                           'licenseTypeAbbreviation': 'cos',
-                                                           'effectiveDate': '2024-11-08'},
-                                                   event_batch_writer=ANY
-                                                   )
+        mock_publish_event.assert_called_once_with(
+            source='org.compactconnect.data-events',
+            detail_type='privilege.encumbrance',
+            detail={
+                'compact': 'cosm',
+                'jurisdiction': 'ky',
+                'eventTime': '2024-11-08T23:59:59+00:00',
+                'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'licenseTypeAbbreviation': 'cos',
+                'effectiveDate': '2024-11-08',
+            },
+            event_batch_writer=ANY,
+        )
 
     def _run_license_encumbrance_lifted_listener_with_live_jurisdictions(
         self, live_jurisdictions, message_overrides=None
@@ -1549,7 +1551,6 @@ class TestEncumbranceEvents(TstFunction):
 
         # Verify NO notifications were sent because license is still encumbered
         mock_state_email.assert_not_called()
-
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
     def test_license_encumbrance_notification_listener_skips_already_sent_notifications_and_retries_failed(
