@@ -249,6 +249,7 @@ def license_encumbrance_listener(message: dict):
         # We publish privilege encumbrance events for each live jurisdiction so they are notified
         live_jurisdictions = config.live_compact_jurisdictions.get(compact, [])
         event_bus_client = EventBusClient()
+        published_count = 0
         with EventBatchWriter(config.events_client) as event_batch_writer:
             for live_jurisdiction in live_jurisdictions:
                 if live_jurisdiction == license_jurisdiction:
@@ -266,10 +267,11 @@ def license_encumbrance_listener(message: dict):
                     effective_date=effective_date,
                     event_batch_writer=event_batch_writer,
                 )
+                published_count += 1
 
         logger.info(
             'Successfully processed license encumbrance event',
-            privilege_encumbrance_events_published=len(live_jurisdictions),
+            privilege_encumbrance_events_published=published_count,
         )
 
 

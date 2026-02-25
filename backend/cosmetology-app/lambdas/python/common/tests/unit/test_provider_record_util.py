@@ -213,7 +213,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             result = pur.generate_privileges_for_provider()
         self.assertEqual(len(result), 2)
         for p in result:
-            self.assertEqual(p['licenseJurisdiction'], 'al', 'Home should be OH (most recently issued when no renewal)')
+            self.assertEqual(p['licenseJurisdiction'], 'al', 'Home should be AL (most recently issued when no renewal)')
 
     def test_multiple_license_types_generate_privileges_for_both(self):
         """Cosmetologist in al and esthetician in oh: privileges for both types across active jurisdictions."""
@@ -252,8 +252,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         self.assertEqual(cos_jurisdictions, {'ky', 'oh'})
         self.assertEqual(est_jurisdictions, {'al', 'ky'})
 
-    def test_status_inactive_when_license_expired(self):
-        """When home license is expired (before resolution date), privilege status is inactive."""
+    def test_privileges_not_generated_when_license_expired(self):
+        """When home license is expired (before resolution date), no privileges are generated."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus
 
@@ -269,8 +269,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         with self._patch_config_for_privilege_generation(resolution_date=date(2025, 1, 1)):
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
-        for p in result:
-            self.assertEqual(p['status'], 'inactive')
+        self.assertEqual(result, [])
 
     def test_status_active_when_privilege_not_encumbered(self):
         """When privilege is not encumbered, its status should be active."""
@@ -289,6 +288,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         with self._patch_config_for_privilege_generation(resolution_date=date(2025, 1, 1)):
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
+        self.assertEqual(2, len(result))
         for p in result:
             self.assertEqual(p['status'], 'active')
 
@@ -315,6 +315,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         with self._patch_config_for_privilege_generation(resolution_date=date(2025, 1, 1)):
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
+        self.assertEqual(2, len(result))
         for p in result:
             if p.get('jurisdiction') == 'al':
                 self.assertEqual(p['status'], 'inactive')

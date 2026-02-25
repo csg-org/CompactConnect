@@ -7,7 +7,7 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[License Ingest](#license-ingest)**
 - **[User Architecture](#user-architecture)**
 - **[Data Model](#data-model)**
-- **[Privileges](#privileges)**
+- **[Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)**
 - **[Advanced Data Search](#advanced-data-search)**
 - **[CI/CD Pipelines](#cicd-pipelines)**
 - **[Audit Logging](#audit-logging)**
@@ -239,7 +239,7 @@ pattern. This approach optimizes for:
 ### Record Types in Detail
 
 The data model comprises the following stored record types (note: Privileges are not stored in the DB; they are generated at API
-runtime from licenses, adverse actions, and investigations, see [Privileges](#privileges)).
+runtime from licenses, adverse actions, and investigations, see [Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)).
 
 1. **Provider Record** (`provider`): The core record containing a provider's foundational information:
    - Personal details (name, DOB, contact information)
@@ -342,8 +342,6 @@ When a practitioner has licenses uploaded by multiple states, the system must ch
 
 ([PDF version](./practitioner-home-state-license-assignment.pdf))
 
-
-Implementation details (see `ProviderRecordUtility.find_best_license` and `ProviderUserRecords.generate_privileges_for_provider` in the codebase):
 
 Licenses are **grouped by license type**. For each type, the system picks the **most recently renewed license** as the effective “home” license for that type. If date of renewal cannot be determined for either license, it falls back to use the most recent date of issuance.
 
