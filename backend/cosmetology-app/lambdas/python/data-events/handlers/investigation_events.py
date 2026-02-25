@@ -185,7 +185,6 @@ def license_investigation_notification_listener(message: dict):
         _send_additional_state_notifications(
             config.email_service_client.send_license_investigation_state_notification_email,
             'license investigation',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -253,7 +252,6 @@ def license_investigation_closed_notification_listener(message: dict):
         _send_additional_state_notifications(
             config.email_service_client.send_license_investigation_closed_state_notification_email,
             'license investigation closed',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -315,7 +313,6 @@ def privilege_investigation_notification_listener(message: dict):
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_investigation_state_notification_email,
             'privilege investigation',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -383,7 +380,6 @@ def privilege_investigation_closed_notification_listener(message: dict):
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_investigation_closed_state_notification_email,
             'privilege investigation closed',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,

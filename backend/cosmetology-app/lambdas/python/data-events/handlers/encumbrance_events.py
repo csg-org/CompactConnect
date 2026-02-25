@@ -397,7 +397,6 @@ def privilege_encumbrance_notification_listener(message: dict, tracker: Notifica
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_encumbrance_state_notification_email,
             'privilege encumbrance',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -518,7 +517,6 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_encumbrance_lifting_state_notification_email,
             'privilege encumbrance lifting',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -589,7 +587,6 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
         _send_additional_state_notifications(
             config.email_service_client.send_license_encumbrance_state_notification_email,
             'license encumbrance',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -685,7 +682,6 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         _send_additional_state_notifications(
             config.email_service_client.send_license_encumbrance_lifting_state_notification_email,
             'license encumbrance lifting',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
