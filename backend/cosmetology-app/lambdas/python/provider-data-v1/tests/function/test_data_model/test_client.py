@@ -168,19 +168,3 @@ class TestClient(TstFunction):
         # Verify sorting by dateOfUpdate
         dates_of_update = [item['dateOfUpdate'] for item in resp['items']]
         self.assertListEqual(sorted(dates_of_update, reverse=True), dates_of_update)
-
-    def _load_provider_data(self) -> str:
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            provider_record = json.load(f)
-        provider_id = provider_record['providerId']
-        self._provider_table.put_item(Item=provider_record)
-
-        with open('../common/tests/resources/dynamo/privilege.json') as f:
-            privilege_record = json.load(f)
-        self._provider_table.put_item(Item=privilege_record)
-
-        with open('../common/tests/resources/dynamo/license.json') as f:
-            license_record = json.load(f)
-        self._provider_table.put_item(Item=license_record)
-
-        return provider_id

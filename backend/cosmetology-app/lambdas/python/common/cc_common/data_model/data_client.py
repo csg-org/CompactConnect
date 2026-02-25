@@ -25,7 +25,6 @@ from cc_common.data_model.schema.common import (
 )
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
@@ -170,7 +169,7 @@ class DataClient:
         logger.info('Getting provider')
 
         # Determine SK condition based on include_update_tier parameter
-        # When include_update_tier=None, use begins_with to get only main records (provider, licenses, privileges)
+        # When include_update_tier=None, use begins_with to get only main records (provider, licenses)
         # When include_update_tier is set, use lt (less than) to get main records plus updates up to that tier
         if include_update_tier is None:
             # Get only main records: {compact}#PROVIDER prefix
@@ -364,143 +363,6 @@ class DataClient:
             raise CCNotFoundException(f'Provider not found for compact {compact} and provider id {provider_id}')
 
         return ProviderData.from_database_record(provider)
-
-    def _get_privilege_record_directly(
-        self,
-        *,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbr: str,
-        consistent_read: bool = False,
-    ) -> PrivilegeData:
-        """
-        Query for a single privilege record directly from DynamoDB.
-
-        This should be used when it is undesirable to get all provider records and
-        filter for the specific privilege record.
-
-        :param str compact: The compact of the privilege
-        :param str provider_id: The provider of the privilege
-        :param str jurisdiction: The jurisdiction of the privilege
-        :param str license_type_abbr: The license type abbreviation of the privilege
-        :param bool consistent_read: If true, performs a consistent read of the record
-        :raises CCNotFoundException: If the privilege record is not found
-        :return: The privilege record as PrivilegeData
-        """
-        pk = f'{compact}#PROVIDER#{provider_id}'
-        sk = f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#'
-
-        try:
-            response = self.config.provider_table.get_item(
-                Key={'pk': pk, 'sk': sk},
-                ConsistentRead=consistent_read,
-            )
-            if 'Item' not in response:
-                raise CCNotFoundException('Privilege not found')
-
-            return PrivilegeData.from_database_record(response['Item'])
-        except KeyError as e:
-            raise CCNotFoundException('Privilege not found') from e
-
-    def _get_privilege_update_records_directly(
-        self,
-        *,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbr: str,
-        consistent_read: bool = False,
-    ) -> list[PrivilegeUpdateData]:
-        """
-        Query for all privilege update records for a specific privilege directly from DynamoDB.
-
-        This should be used when it is undesirable to get all provider update records and
-        filter for the specific privilege update records.
-
-        :param str compact: The compact of the privilege
-        :param str provider_id: The provider of the privilege
-        :param str jurisdiction: The jurisdiction of the privilege
-        :param str license_type_abbr: The license type abbreviation of the privilege
-        :param bool consistent_read: If true, performs a consistent read of the records
-        :return: List of privilege update records
-        """
-        pk = f'{compact}#PROVIDER#{provider_id}'
-        sk_prefix = f'{compact}#UPDATE#{UpdateTierEnum.TIER_ONE}#privilege/{jurisdiction}/{license_type_abbr}/'
-
-        response_items = []
-
-        # Query for records using the SK prefix pattern
-        last_evaluated_key = None
-        while True:
-            pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
-
-            query_resp = self.config.provider_table.query(
-                Select='ALL_ATTRIBUTES',
-                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
-                ConsistentRead=consistent_read,
-                **pagination,
-            )
-
-            response_items.extend(query_resp.get('Items', []))
-
-            last_evaluated_key = query_resp.get('LastEvaluatedKey')
-            if not last_evaluated_key:
-                break
-
-        return [PrivilegeUpdateData.from_database_record(item) for item in response_items]
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type_abbr')
-    def get_privilege_data(
-        self,
-        *,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbr: str,
-        consistent_read: bool = False,
-        detail: bool = False,
-    ) -> list[dict]:
-        """
-        Get a privilege for a provider in a jurisdiction of the license type.
-
-        This should be used when it is undesirable to pull all provider records and
-        filter for the specific privilege record and associated update records.
-
-        :param str compact: The compact of the privilege
-        :param str provider_id: The provider of the privilege
-        :param str jurisdiction: The jurisdiction of the privilege
-        :param str license_type_abbr: The license type abbreviation of the privilege
-        :param bool consistent_read: If true, performs a consistent read of the records
-        :param bool detail: Boolean determining whether we include associated records or just privilege record itself
-        :raises CCNotFoundException: If the privilege record is not found
-        :return If detail = False list of length one containing privilege item, if detail = True list containing,
-        privilege record and privilege update records
-        """
-        # Query directly for the privilege record
-        privilege = self._get_privilege_record_directly(
-            compact=compact,
-            provider_id=provider_id,
-            jurisdiction=jurisdiction,
-            license_type_abbr=license_type_abbr,
-            consistent_read=consistent_read,
-        )
-
-        # Build return list in the same format as before
-        result = [privilege.to_dict()]
-
-        if detail:
-            # Query directly for privilege update records
-            privilege_updates = self._get_privilege_update_records_directly(
-                compact=compact,
-                provider_id=provider_id,
-                jurisdiction=jurisdiction,
-                license_type_abbr=license_type_abbr,
-                consistent_read=consistent_read,
-            )
-            result.extend([update.to_dict() for update in privilege_updates])
-
-        return result
 
     def _generate_encumbered_status_update_item(
         self,
@@ -725,13 +587,12 @@ class DataClient:
 
     def encumber_privilege(self, adverse_action: AdverseActionData) -> None:
         """
-        Adds an adverse action record for a privilege for a provider in a jurisdiction.
+        Adds an adverse action record for a privilege (jurisdiction) for a provider.
 
-        Unlike the JCC implementation, this model does not have privilege records stored in the db, so we only store the
-        adverse action object itself. We still update the provider record to have a encumberedStatus of 'encumbered'.
+        We only store the adverse action and update the provider encumbered status.
+        No privilege or privilege-update records are written.
 
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
-        :raises CCNotFoundException: If the privilege record is not found
         """
         with logger.append_context_keys(
             compact=adverse_action.compact,
@@ -739,12 +600,8 @@ class DataClient:
             jurisdiction=adverse_action.jurisdiction,
             license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         ):
-            # Update the privilege record and create history record
             logger.info('Adding encumbrance for jurisdiction')
-            # we add the adverse action record for the privilege,
-            # the privilege update record, and update the privilege record to inactive if it is not already inactive
             transact_items = [
-                # Add the adverse action record for the privilege
                 self._generate_put_transaction_item(adverse_action.serialize_to_database_record()),
             ]
 
@@ -1141,8 +998,8 @@ class DataClient:
         lifting_user: str,
     ) -> None:
         """
-        Lift an encumbrance from a privilege record by updating the adverse action record
-        and potentially updating the privilege record's encumbered status.
+        Lift an encumbrance for a privilege (jurisdiction) by updating the adverse action record
+        and, if applicable, the provider's encumbered status.
 
         :param str compact: The compact name
         :param str provider_id: The provider ID

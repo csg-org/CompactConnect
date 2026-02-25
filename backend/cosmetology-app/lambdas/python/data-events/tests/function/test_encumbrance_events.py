@@ -405,11 +405,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={'licenseJurisdiction': 'oh', 'encumberedStatus': 'unencumbered'}
-        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
@@ -464,11 +460,8 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
-        # Add the privilege where encumbrance is being lifted (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'oh'}
-        )
 
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
@@ -1172,26 +1165,39 @@ class TestEncumbranceEvents(TstFunction):
         self.assertEqual('ky', call_args['detail']['jurisdiction'])
 
     def _when_testing_privilege_lift_handler_with_encumbered_privilege(self, encumbered_status, mock_state_email):
+        from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
         from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
 
-        # Set up test data
+        # Set up test data: provider and a license so find_best_license_in_current_known_licenses succeeds
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
-        # Create a privilege that is still ENCUMBERED (has its own adverse action)
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-                'encumberedStatus': encumbered_status,  # Still encumbered due to another adverse action
-            }
-        )
-
-        # Create additional active records that would normally trigger notifications
-        self.test_data_generator.put_default_license_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'co',
-                'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
+        if encumbered_status == PrivilegeEncumberedStatusEnum.ENCUMBERED:
+            # Privilege still encumbered: privilege adverse action with no effectiveLiftDate
+            # (handler returns early and sends no notifications)
+            self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+                value_overrides={
+                    'actionAgainst': 'privilege',
+                    'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                    'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                    'licenseType': DEFAULT_LICENSE_TYPE,
+                }
+            )
+            self.test_data_generator.put_default_license_record_in_provider_table()
+        else:
+            # License still encumbered: privilege adverse action lifted, but license encumbered
+            # (handler passes privilege check then skips due to license encumberedStatus)
+            self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+                value_overrides={
+                    'actionAgainst': 'privilege',
+                    'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                    'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                    'licenseType': DEFAULT_LICENSE_TYPE,
+                }
+            )
+            self.test_data_generator.put_default_license_record_in_provider_table(
+                value_overrides={'encumberedStatus': 'encumbered'}
+            )
 
         # Generate privilege encumbrance lifting event
         message = self._generate_privilege_encumbrance_lifting_message()
