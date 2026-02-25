@@ -205,9 +205,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         message = self._generate_privilege_encumbrance_message()
         event = self._create_sqs_event(message)
@@ -258,9 +256,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         # The encumbrance occurs in DEFAULT_PRIVILEGE_JURISDICTION ('ne'); live = [oh, ne]
         message = self._generate_privilege_encumbrance_message()
@@ -317,9 +313,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         message = self._generate_privilege_encumbrance_message()
         event = self._create_sqs_event(message)
@@ -360,9 +354,7 @@ class TestEncumbranceEvents(TstFunction):
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
-
-        # Add the privilege that is being encumbered (in DEFAULT_PRIVILEGE_JURISDICTION = 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         message = self._generate_privilege_encumbrance_message()
         event = self._create_sqs_event(message)
@@ -525,11 +517,6 @@ class TestEncumbranceEvents(TstFunction):
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
-        # Add the privilege where encumbrance is being lifted
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
-        )
-
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
                 'actionAgainst': 'privilege',
@@ -561,15 +548,6 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={
                 'jurisdiction': 'ky',
                 'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
-        # Create active privileges in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'administratorSetStatus': 'active',
-                'encumberedStatus': 'unencumbered',
             }
         )
 
@@ -623,11 +601,6 @@ class TestEncumbranceEvents(TstFunction):
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
-        # Add the privilege where encumbrance is being lifted
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={'encumberedStatus': 'unencumbered', 'licenseJurisdiction': 'co'}
-        )
-
         # Create active licenses in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
@@ -649,15 +622,6 @@ class TestEncumbranceEvents(TstFunction):
             value_overrides={
                 'jurisdiction': 'ky',
                 'jurisdictionUploadedLicenseStatus': 'active',
-            }
-        )
-
-        # Create active privileges in multiple jurisdictions (excluding the lifting jurisdiction 'ne')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'administratorSetStatus': 'active',
-                'encumberedStatus': 'unencumbered',
             }
         )
 
@@ -985,14 +949,6 @@ class TestEncumbranceEvents(TstFunction):
             }
         )
 
-        # Create active privileges in multiple jurisdictions (excluding the lifting jurisdiction 'oh')
-        self.test_data_generator.put_default_privilege_record_in_provider_table(
-            value_overrides={
-                'jurisdiction': 'tx',
-                'administratorSetStatus': 'active',
-            }
-        )
-
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
                 'actionAgainst': 'license',
@@ -1075,13 +1031,6 @@ class TestEncumbranceEvents(TstFunction):
 
             # Add the license that is being encumbered/lifted (in DEFAULT_LICENSE_JURISDICTION = 'oh')
             self.test_data_generator.put_default_license_record_in_provider_table()
-
-            self.test_data_generator.put_default_privilege_record_in_provider_table(
-                value_overrides={
-                    'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                    'administratorSetStatus': 'active',
-                }
-            )
 
             self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={

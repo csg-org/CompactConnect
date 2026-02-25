@@ -212,9 +212,7 @@ class TestInvestigationEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
         )
-
-        # Add the privilege that is under investigation
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         message = self._generate_privilege_investigation_message()
         event = self._create_sqs_event(message)
@@ -267,9 +265,7 @@ class TestInvestigationEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
         )
-
-        # Add the privilege that was under investigation
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         message = self._generate_privilege_investigation_closed_message()
         event = self._create_sqs_event(message)
@@ -370,7 +366,7 @@ class TestInvestigationEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
         )
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         # Make the email service raise an exception
         mock_state_email.side_effect = Exception('Email service failure')
@@ -430,7 +426,7 @@ class TestInvestigationEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={'compactConnectRegisteredEmailAddress': 'provider@example.com'}
         )
-        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table()
 
         # Create message with adverseActionId (indicating an encumbrance was created)
         message = self._generate_privilege_investigation_closed_message()
