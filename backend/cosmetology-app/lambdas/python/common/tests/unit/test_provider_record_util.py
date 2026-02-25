@@ -5,7 +5,7 @@ from tests import TstLambdas
 
 
 class TestGeneratePrivilegesForProvider(TstLambdas):
-    """TDD tests for ProviderUserRecords.generate_privileges_for_provider() (RP-002)."""
+    """Tests for ProviderUserRecords.generate_privileges_for_provider()."""
 
     def _make_provider_records(self, provider_overrides=None, license_overrides_list=None):
         """Build list of provider + license (and optional other) records as dicts for ProviderUserRecords."""
@@ -145,6 +145,75 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         self.assertEqual(len(result), 2)
         for p in result:
             self.assertEqual(p['licenseJurisdiction'], 'oh')
+
+    def test_privileges_are_associated_with_license_most_recently_renewed_when_multiple_licenses_present(self):
+        """When multiple licenses of same type have different renewal dates, most recently renewed is home."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        oh_expiration = date(2026, 4, 4)
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': 'cosmetologist',
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'dateOfIssuance': date(2020, 1, 1),
+                    'dateOfRenewal': date(2023, 6, 1),
+                },
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfExpiration': oh_expiration,
+                    'dateOfIssuance': date(2020, 1, 1),
+                    'dateOfRenewal': date(2024, 6, 1),
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation(resolution_date=date(2025, 1, 1)):
+            pur = ProviderUserRecords(records)
+            result = pur.generate_privileges_for_provider()
+        self.assertEqual(len(result), 2)
+        for p in result:
+            self.assertEqual(p['licenseJurisdiction'], 'oh', 'Home should be OH (most recently renewed)')
+            self.assertEqual(p['dateOfExpiration'], oh_expiration)
+
+    def test_privileges_are_associated_with_license_most_recently_issued_when_multiple_licenses_present_no_renewal(
+        self,
+    ):
+        """When multiple licenses of same type have no renewal date, most recently issued is home."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': 'cosmetologist',
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'dateOfIssuance': date(2025, 1, 1),
+                },
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'dateOfIssuance': date(2024, 6, 1),
+                },
+            ]
+        )
+        # Remove dateOfRenewal so both licenses use only issuance for selection (schema allows omitted field)
+        for rec in records[1:]:
+            rec.pop('dateOfRenewal', None)
+        with self._patch_config_for_privilege_generation(resolution_date=date(2025, 1, 1)):
+            pur = ProviderUserRecords(records)
+            result = pur.generate_privileges_for_provider()
+        self.assertEqual(len(result), 2)
+        for p in result:
+            self.assertEqual(p['licenseJurisdiction'], 'al', 'Home should be OH (most recently issued when no renewal)')
 
     def test_multiple_license_types_generate_privileges_for_both(self):
         """Cosmetologist in al and esthetician in oh: privileges for both types across active jurisdictions."""

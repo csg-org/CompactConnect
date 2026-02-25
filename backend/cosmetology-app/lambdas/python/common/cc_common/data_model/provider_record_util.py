@@ -471,10 +471,10 @@ class ProviderUserRecords:
         """
         Generate privilege dicts at runtime for all eligible license types this provider holds.
 
-        For each license type, the most recently issued license is considered the home license. If that
-        license is not compact-eligible, no privileges are generated for that type. For each
-        eligible type, one privilege is generated per active compact jurisdiction (excluding
-        the home jurisdiction).
+        For each license type, the home license is chosen from all licenses of that type: the license renewed most recently
+        (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
+        Privileges are generated for that type only if the chosen home license is compact-eligible.
+        For each such type, one privilege is generated per active compact jurisdiction (excluding the home jurisdiction).
         """
         if not self._license_records:
             return []
@@ -487,32 +487,32 @@ class ProviderUserRecords:
             logger.debug('no active jurisdictions found in environment.', compact=compact)
             return []
 
-        # Group licenses by licenseType; for each type pick most recently issued as home license
+        # Group licenses by licenseType; for each type pick home license by most recent renewal, then issuance
         by_type: dict[str, list[LicenseData]] = {}
         for lic in self._license_records:
             by_type.setdefault(lic.licenseType, []).append(lic)
 
-        latest_issued_licenses_for_each_type: list[LicenseData] = []
+        most_recent_licenses_for_each_type: list[LicenseData] = []
         for _lt, licenses in by_type.items():
-            # Last issued compact-eligible license, if there are any compact-eligible licenses
-            latest_compact_eligible_licenses = sorted(
-                [
-                    license_record
-                    for license_record in licenses
-                    if license_record.compactEligibility == CompactEligibilityStatus.ELIGIBLE
-                ],
-                key=lambda x: x.dateOfIssuance.isoformat(),
+            # Sort all licenses of this type: effective_date = dateOfRenewal or dateOfIssuance
+            def _effective_date(lic: LicenseData):
+                return lic.dateOfRenewal if lic.dateOfRenewal is not None else lic.dateOfIssuance
+
+            sorted_licenses = sorted(
+                licenses,
+                key=lambda x: (_effective_date(x), x.dateOfIssuance),
                 reverse=True,
             )
-            if not latest_compact_eligible_licenses:
+            most_recent_license = sorted_licenses[0]
+            # If the most recently renewed/issued license is not compact eligible, we will not generate privileges for it
+            if most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE:
                 continue
-            latest_issued_license = latest_compact_eligible_licenses[0]
-            latest_issued_licenses_for_each_type.append(latest_issued_license)
+            most_recent_licenses_for_each_type.append(most_recent_license)
 
         result: list[dict] = []
-        for latest_issued_license in latest_issued_licenses_for_each_type:
-            home_jurisdiction = latest_issued_license.jurisdiction.lower()
-            license_type_abbr = latest_issued_license.licenseTypeAbbreviation
+        for most_recent_license in most_recent_licenses_for_each_type:
+            home_jurisdiction = most_recent_license.jurisdiction.lower()
+            license_type_abbr = most_recent_license.licenseTypeAbbreviation
 
             for jurisdiction in live_jurisdictions_for_compact:
                 if jurisdiction == home_jurisdiction:
@@ -529,8 +529,8 @@ class ProviderUserRecords:
                     'compact': compact,
                     'jurisdiction': jurisdiction,
                     'licenseJurisdiction': home_jurisdiction,
-                    'licenseType': latest_issued_license.licenseType,
-                    'dateOfExpiration': latest_issued_license.dateOfExpiration,
+                    'licenseType': most_recent_license.licenseType,
+                    'dateOfExpiration': most_recent_license.dateOfExpiration,
                     # the only way a privilege under this model shows inactive is if
                     # there has been an encumbrance set by a state admin that has not been
                     # lifted. If the license itself is inactive or ineligible for whatever reason, we don't
