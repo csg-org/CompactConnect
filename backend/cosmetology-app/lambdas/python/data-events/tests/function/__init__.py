@@ -4,9 +4,9 @@ import os
 from decimal import Decimal
 
 import boto3
+from common_test.test_constants import DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION
 from moto import mock_aws
 
-from common_test.test_constants import DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION
 from tests import TstLambdas
 
 logger = logging.getLogger(__name__)
@@ -153,7 +153,8 @@ class TstFunction(TstLambdas):
         )
 
     def _load_compact_configuration(self, overrides: dict):
-        """Load compact config so get_live_compact_jurisdictions returns the given live states (default: license + privilege jurisdictions)."""
+        """Load compact config so get_live_compact_jurisdictions returns the given live states
+        (default: license + privilege jurisdictions)."""
         with open('../common/tests/resources/dynamo/compact.json') as f:
             compact_data = json.load(f, parse_float=Decimal)
             compact_data.update(overrides)

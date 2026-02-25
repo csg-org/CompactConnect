@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, date, datetime
+from datetime import datetime
 from unittest.mock import ANY, patch
 from uuid import UUID, uuid4
 
@@ -242,7 +242,6 @@ class TestDataClient(TstFunction):
         # Pop dynamic fields that we don't want to assert on
         self.assertEqual(expected_investigation, investigation_record.serialize_to_database_record())
 
-
     def test_create_license_investigation_success(self):
         """Test successful creation of license investigation"""
         from cc_common.data_model.data_client import DataClient
@@ -362,7 +361,6 @@ class TestDataClient(TstFunction):
 
         self.assertEqual(expected_update, update_record.serialize_to_database_record())
 
-
     def test_create_license_investigation_license_not_found(self):
         """Test creation of license investigation when license doesn't exist"""
         from cc_common.data_model.data_client import DataClient
@@ -465,7 +463,6 @@ class TestDataClient(TstFunction):
             'dateOfUpdate': ANY,
         }
         self.assertEqual(expected_investigation_close, investigation_record.serialize_to_database_record())
-
 
     def test_close_license_investigation_success(self):
         """Test successful closing of license investigation"""

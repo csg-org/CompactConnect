@@ -1,4 +1,3 @@
-import json
 from urllib.parse import quote
 
 from moto import mock_aws

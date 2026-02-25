@@ -190,9 +190,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         from handlers.encumbrance import encumbrance_handler
 
         future_date = (datetime.now(tz=UTC) + timedelta(days=2)).strftime('%Y-%m-%d')
-        event, _ = self._when_testing_privilege_encumbrance(
-            body_overrides={'encumbranceEffectiveDate': future_date}
-        )
+        event, _ = self._when_testing_privilege_encumbrance(body_overrides={'encumbranceEffectiveDate': future_date})
 
         response = encumbrance_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))

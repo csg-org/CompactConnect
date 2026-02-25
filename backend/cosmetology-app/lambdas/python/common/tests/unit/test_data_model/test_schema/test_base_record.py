@@ -8,7 +8,6 @@ class TestRegistration(TstLambdas):
         from cc_common.data_model.schema import LicenseRecordSchema, ProviderRecordSchema
         from cc_common.data_model.schema.base_record import BaseRecordSchema
 
-
         with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
 

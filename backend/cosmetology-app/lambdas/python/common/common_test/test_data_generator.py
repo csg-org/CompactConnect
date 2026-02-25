@@ -4,7 +4,6 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
-from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.compact import CompactConfigurationData

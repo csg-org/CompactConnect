@@ -79,7 +79,6 @@ def _send_additional_state_notifications(
     notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
-    provider_records: ProviderUserRecords,
     provider_record: ProviderData,
     provider_id: UUID,
     excluded_jurisdiction: str,
@@ -87,10 +86,9 @@ def _send_additional_state_notifications(
     **notification_kwargs,
 ) -> None:
     """
-    Send notifications to all other states that are live in the compact. 
+    Send notifications to all other states that are live in the compact.
     Uses config live compact jurisdictions.
 
-    :param provider_records: The provider records collection
     :param notification_method: The email service method to call
     :param notification_type: Type of notification for logging
     :param provider_record: The provider record

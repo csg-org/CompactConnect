@@ -6,7 +6,8 @@ from uuid import UUID
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
-    DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_PRIVILEGE_JURISDICTION,
+    DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
+    DEFAULT_PRIVILEGE_JURISDICTION,
 )
 from moto import mock_aws
 

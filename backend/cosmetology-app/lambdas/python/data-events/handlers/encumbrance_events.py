@@ -124,7 +124,6 @@ def _send_additional_state_notifications(
     notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
-    provider_records: ProviderUserRecords,
     provider_record: ProviderData,
     excluded_jurisdiction: str,
     compact: str,
@@ -138,7 +137,6 @@ def _send_additional_state_notifications(
     Send notifications to all other states that are live in the compact, if not already sent.
     Uses config live compact jurisdictions.
 
-    :param provider_records: The provider records collection
     :param notification_method: The email service method to call
     :param notification_type: Type of notification for logging
     :param provider_record: The provider record
@@ -456,7 +454,8 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
         )
         if any(aa.effectiveLiftDate is None for aa in privilege_adverse_actions):
             logger.info(
-                'Privilege is still encumbered (one or more adverse actions not lifted). Not sending lift notifications',
+                'Privilege is still encumbered (one or more adverse actions not lifted). '
+                'Not sending lift notifications',
                 jurisdiction=jurisdiction,
                 license_type_abbreviation=license_type_abbreviation,
             )
@@ -465,7 +464,8 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
         # Get latest effective lift date for all adverse actions related to privilege/license
         # and determine the actual effective date when privilege was effectively unencumbered.
         license_associated_with_privilege = provider_records.find_best_license_in_current_known_licenses(
-            license_type_abbreviation=license_type_abbreviation)
+            license_type_abbreviation=license_type_abbreviation
+        )
         if license_associated_with_privilege.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
             logger.info(
                 'License is still encumbered. Not sending privilege encumbrance lift notifications.',

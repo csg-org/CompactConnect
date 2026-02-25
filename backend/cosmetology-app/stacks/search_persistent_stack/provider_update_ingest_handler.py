@@ -15,7 +15,7 @@ from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
-from stacks.persistent_stack import ProviderTable, CompactConfigurationTable
+from stacks.persistent_stack import CompactConfigurationTable, ProviderTable
 from stacks.vpc_stack import VpcStack
 
 

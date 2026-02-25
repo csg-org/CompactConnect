@@ -234,8 +234,16 @@ class TestEncumbranceEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'template_variables': expected_template_variables_ne,
+            },
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'template_variables': expected_template_variables_oh,
+            },
         ]
 
         # Verify all state notifications were sent (encumbered + other live states)
@@ -446,14 +454,14 @@ class TestEncumbranceEvents(TstFunction):
     def test_privilege_encumbrance_lifting_notification_listener_identifies_notification_jurisdictions(
         self, mock_state_email
     ):
-        """Test that privilege encumbrance lifting listener correctly identifies states to notify (live compact jurisdictions)."""
+        """Test that privilege encumbrance lifting listener correctly identifies states to notify
+        (live compact jurisdictions)."""
         from cc_common.email_service_client import EncumbranceNotificationTemplateVariables
         from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
 
         # Set up test data
         self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table()
-
 
         self.test_data_generator.put_default_adverse_action_record_in_provider_table(
             value_overrides={
@@ -1033,13 +1041,13 @@ class TestEncumbranceEvents(TstFunction):
             self.test_data_generator.put_default_license_record_in_provider_table()
 
             self.test_data_generator.put_default_adverse_action_record_in_provider_table(
-            value_overrides={
-                'actionAgainst': 'license',
-                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
-                'licenseType': DEFAULT_LICENSE_TYPE,
-            }
+                value_overrides={
+                    'actionAgainst': 'license',
+                    'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                    'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                    'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                    'licenseType': DEFAULT_LICENSE_TYPE,
+                }
             )
 
             # Test license encumbrance notification

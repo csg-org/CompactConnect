@@ -840,13 +840,13 @@ class DataClient:
         :param investigation_against: Whether investigating a privilege or license
         :param resulting_encumbrance_id: Optional encumbrance ID to reference in the investigation closure
         """
-        with (logger.append_context_keys(
+        with logger.append_context_keys(
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
             investigation_id=investigation_id,
-        )):
+        ):
             record_type = investigation_against.value
 
             # Query for the record (privilege or license) and all its investigations in a single query
@@ -900,8 +900,9 @@ class DataClient:
             if investigation is None:
                 raise CCNotFoundException('Investigation not found')
 
-            is_last_open_investigation_against_license = (investigation_against == InvestigationAgainstEnum.LICENSE
-            and len(open_investigations) == 0)
+            is_last_open_investigation_against_license = (
+                investigation_against == InvestigationAgainstEnum.LICENSE and len(open_investigations) == 0
+            )
 
             # Build the investigation update expression and values
             investigation_update_expression = (

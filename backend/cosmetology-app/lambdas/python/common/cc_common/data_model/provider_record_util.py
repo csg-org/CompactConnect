@@ -471,10 +471,11 @@ class ProviderUserRecords:
         """
         Generate privilege dicts at runtime for all eligible license types this provider holds.
 
-        For each license type, the home license is chosen from all licenses of that type: the license renewed most recently
-        (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
+        For each license type, the home license is chosen from all licenses of that type: the license renewed
+        most recently (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
         Privileges are generated for that type only if the chosen home license is compact-eligible.
-        For each such type, one privilege is generated per active compact jurisdiction (excluding the home jurisdiction).
+        For each such type, one privilege is generated per active compact jurisdiction
+        (excluding the home jurisdiction).
         """
         if not self._license_records:
             return []
@@ -504,7 +505,8 @@ class ProviderUserRecords:
                 reverse=True,
             )
             most_recent_license = sorted_licenses[0]
-            # If the most recently renewed/issued license is not compact eligible, we will not generate privileges for it
+            # If the most recently renewed/issued license is not compact eligible,
+            # we will not generate privileges for it
             if most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE:
                 continue
             most_recent_licenses_for_each_type.append(most_recent_license)

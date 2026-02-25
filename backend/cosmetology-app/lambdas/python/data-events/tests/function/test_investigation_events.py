@@ -116,7 +116,7 @@ class TestInvestigationEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        # Verify state notifications: investigation jurisdiction + other live compact jurisdictions (from compact config)
+        # Verify state notifications: investigation jurisdiction + other live compact jurisdictions from compact config
         # Default test setup has live = [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION] = [oh, ne]
         expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
@@ -133,8 +133,16 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'template_variables': expected_template_variables_oh,
+            },
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'template_variables': expected_template_variables_ne,
+            },
         ]
 
         # Verify all state notifications were sent (investigation state + other live states)
@@ -188,8 +196,16 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'template_variables': expected_template_variables_oh,
+            },
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'template_variables': expected_template_variables_ne,
+            },
         ]
 
         # Verify all state notifications were sent (investigation state + other live states)
@@ -239,8 +255,16 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'template_variables': expected_template_variables_ne,
+            },
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'template_variables': expected_template_variables_oh,
+            },
         ]
 
         # Verify all state notifications were sent (investigation state + other live states)
@@ -292,8 +316,16 @@ class TestInvestigationEvents(TstFunction):
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION, 'template_variables': expected_template_variables_ne},
-            {'compact': DEFAULT_COMPACT, 'jurisdiction': DEFAULT_LICENSE_JURISDICTION, 'template_variables': expected_template_variables_oh},
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'template_variables': expected_template_variables_ne,
+            },
+            {
+                'compact': DEFAULT_COMPACT,
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'template_variables': expected_template_variables_oh,
+            },
         ]
 
         # Verify all state notifications were sent (investigation state + other live states)
