@@ -457,10 +457,13 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         self,
         adverse_action_overrides=None,
         license_overrides=None,
+        license_adverse_action_overrides=None,
         include_license_adverse_action=True,
     ):
         """Helper method to set up provider + license + privilege adverse action for testing.
 
+        :param license_adverse_action_overrides: Optional overrides for the license adverse action record only
+            (not shared with the privilege adverse action).
         :param include_license_adverse_action: When True (default), also add a license adverse action
             so the provider has another active encumbrance. Set False when testing "last encumbrance
             lifted" so only the privilege adverse action exists and the provider can become unencumbered.
@@ -500,7 +503,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
                     'adverseActionId': uuid4(),
                     'jurisdiction': context['licenseJurisdiction'],
                     'licenseType': context['licenseType'],
-                    **(adverse_action_overrides or {}),
+                    **(license_adverse_action_overrides or {}),
                 }
             )
 

@@ -393,7 +393,7 @@ def privilege_encumbrance_notification_listener(message: dict, tracker: Notifica
             effective_date=effective_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_encumbrance_state_notification_email,
             'privilege encumbrance',
@@ -513,7 +513,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
             effective_date=latest_effective_lift_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_encumbrance_lifting_state_notification_email,
             'privilege encumbrance lifting',
@@ -583,7 +583,7 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
             effective_date=effective_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_license_encumbrance_state_notification_email,
             'license encumbrance',
@@ -678,7 +678,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
             effective_date=latest_effective_lift_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_license_encumbrance_lifting_state_notification_email,
             'license encumbrance lifting',

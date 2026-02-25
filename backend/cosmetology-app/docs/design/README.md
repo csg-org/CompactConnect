@@ -338,9 +338,7 @@ Because the list of privilege records for practitioners is dynamically determine
 
 When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Privileges are then generated from that home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. The following flow describes how the home state license is assigned.
 
-![Cosmetology Practitioner License Assignment Flow](./practitioner-license-assignment-flow.png)
-
-([PDF version](./practitioner-home-state-license-assignment.pdf))
+([Cosmetology Practitioner License Assignment Flow](./practitioner-home-state-license-assignment.pdf))
 
 
 Licenses are **grouped by license type**. For each type, the system picks the **most recently renewed license** as the effective “home” license for that type. If date of renewal cannot be determined for either license, it falls back to use the most recent date of issuance.
