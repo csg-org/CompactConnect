@@ -150,6 +150,7 @@ export const tokens = {
 export const AUTH_TYPE = 'auth_type';
 export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
+export const AUTH_LOGIN_GOTO_COMPACT = 'login_goto_compact';
 
 // ====================
 // =    Auto logout   =
@@ -357,6 +358,7 @@ export default {
     authStorage,
     tokens,
     AUTH_LOGIN_GOTO_PATH,
+    AUTH_LOGIN_GOTO_COMPACT,
     languagesEnabled,
     defaultLanguage,
     serverDateFormat,

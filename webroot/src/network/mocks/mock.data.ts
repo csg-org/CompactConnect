@@ -26,7 +26,7 @@ export const staffAccount = {
             actions: {
                 admin: true,
                 readPrivate: true,
-                readSsn: true,
+                readSSN: true,
             },
             jurisdictions: {
                 al: {
@@ -34,7 +34,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 co: {
@@ -42,7 +42,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ky: {
@@ -50,7 +50,7 @@ export const staffAccount = {
                         admin: false,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ne: {
@@ -58,7 +58,7 @@ export const staffAccount = {
                         admin: false,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 oh: {
@@ -66,7 +66,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 nv: {
@@ -74,7 +74,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ma: {
@@ -82,7 +82,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 wy: {
@@ -90,7 +90,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
             },
@@ -99,7 +99,7 @@ export const staffAccount = {
             actions: {
                 admin: true,
                 readPrivate: true,
-                readSsn: true,
+                readSSN: true,
             },
             jurisdictions: {
                 ak: {
@@ -107,7 +107,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ar: {
@@ -115,7 +115,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 co: {
@@ -123,7 +123,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
             },
@@ -132,7 +132,7 @@ export const staffAccount = {
             actions: {
                 admin: true,
                 readPrivate: true,
-                readSsn: true,
+                readSSN: true,
             },
             jurisdictions: {
                 al: {
@@ -140,7 +140,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 co: {
@@ -148,7 +148,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ky: {
@@ -156,7 +156,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
             },
@@ -165,7 +165,7 @@ export const staffAccount = {
             actions: {
                 admin: true,
                 readPrivate: true,
-                readSsn: true,
+                readSSN: true,
             },
             jurisdictions: {
                 al: {
@@ -173,7 +173,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 co: {
@@ -181,7 +181,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ky: {
@@ -229,7 +229,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
             },
@@ -519,7 +519,7 @@ export const licensees = {
             compact: 'octp',
             type: 'provider',
             emailAddress: 'test@example.com',
-            compactConnectRegisteredEmailAddress: 'test@example.com',
+            compactConnectRegisteredEmailAddress: 'registration@example.com',
             dateOfBirth: '1967-08-22',
             birthMonthDay: '1967-08-22',
             ssnLastFour: '7777',
@@ -554,6 +554,7 @@ export const licensees = {
                     givenName: 'Jeff',
                     middleName: '',
                     familyName: 'Cornell',
+                    emailAddress: 'state.license@example.com',
                     compact: 'octp',
                     dateOfBirth: '1967-08-22',
                     ssnLastFour: '7777',
@@ -580,6 +581,7 @@ export const licensees = {
                     givenName: 'Layne',
                     middleName: '',
                     familyName: 'Cornell',
+                    emailAddress: 'state.license@example.com',
                     compact: 'octp',
                     dateOfBirth: '1967-08-22',
                     ssnLastFour: '7777',
@@ -1367,7 +1369,7 @@ export const users = {
                     actions: {
                         admin: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                     jurisdictions: {
                         al: {
@@ -1375,7 +1377,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         co: {
@@ -1383,7 +1385,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         ky: {
@@ -1391,7 +1393,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                     },
@@ -1400,7 +1402,7 @@ export const users = {
                     actions: {
                         admin: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                     jurisdictions: {
                         ak: {
@@ -1408,7 +1410,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         ar: {
@@ -1416,7 +1418,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         co: {
@@ -1424,7 +1426,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                     },
@@ -1433,7 +1435,7 @@ export const users = {
                     actions: {
                         admin: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                     jurisdictions: {
                         al: {
@@ -1441,7 +1443,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         co: {
@@ -1449,7 +1451,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         ky: {
@@ -1457,7 +1459,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                     },
@@ -1466,7 +1468,7 @@ export const users = {
                     actions: {
                         admin: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                     jurisdictions: {
                         al: {
@@ -1474,7 +1476,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         co: {
@@ -1482,7 +1484,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         ky: {
@@ -1490,7 +1492,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                     },
@@ -1509,7 +1511,7 @@ export const users = {
                     actions: {
                         admin: false,
                         readPrivate: false,
-                        readSsn: false,
+                        readSSN: false,
                     },
                     jurisdictions: {
                         al: {
@@ -1517,7 +1519,7 @@ export const users = {
                                 admin: false,
                                 write: false,
                                 readPrivate: false,
-                                readSsn: false,
+                                readSSN: false,
                             },
                         },
                         co: {
@@ -1525,7 +1527,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                         ky: {
@@ -1533,7 +1535,7 @@ export const users = {
                                 admin: false,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                     },
@@ -1552,7 +1554,7 @@ export const users = {
                     actions: {
                         admin: false,
                         readPrivate: false,
-                        readSsn: false,
+                        readSSN: false,
                     },
                     jurisdictions: {
                         ky: {
@@ -1560,7 +1562,7 @@ export const users = {
                                 admin: true,
                                 write: true,
                                 readPrivate: true,
-                                readSsn: true,
+                                readSSN: true,
                             },
                         },
                     },

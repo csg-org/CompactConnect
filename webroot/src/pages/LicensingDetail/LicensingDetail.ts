@@ -199,6 +199,14 @@ export default class LicensingDetail extends Vue {
         return `${city}${delim}${stateAbbrev} ${zip}`.trim();
     }
 
+    get registrationEmail(): string {
+        return this.licensee?.compactConnectEmail || '';
+    }
+
+    get stateEmail(): string {
+        return this.licensee?.bestLicense().email || '';
+    }
+
     get privilegesTitle(): string {
         return this.$t('licensing.privileges');
     }

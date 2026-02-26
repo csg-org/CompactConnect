@@ -54,6 +54,7 @@ export interface InterfaceLicense {
     renewalDate?: string | null;
     activeFromDate?: string | null;
     mailingAddress?: Address;
+    email?: string | null;
     expireDate?: string | null;
     npi?: string | null;
     licenseNumber?: string | null;
@@ -82,6 +83,7 @@ export class License implements InterfaceLicense {
     public issueDate? = null;
     public activeFromDate? = null;
     public mailingAddress? = new Address();
+    public email? = null;
     public renewalDate? = null;
     public npi? = null;
     public licenseNumber? = null;
@@ -209,6 +211,7 @@ export class LicenseSerializer {
                 state: json.homeAddressState,
                 zip: json.homeAddressPostalCode,
             }),
+            email: json.emailAddress,
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             issueDate: json.dateOfIssuance,
             activeFromDate: json.activeSince,
