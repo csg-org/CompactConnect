@@ -1120,7 +1120,7 @@ describe('EmailNotificationService', () => {
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('Hi John,');
-            expect(htmlContent).toContain('Your privilege(s) to practice expires on');
+            expect(htmlContent).toContain('Your compact privilege(s) to practice expires on');
             expect(htmlContent).toContain('02/16/2026');
             expect(htmlContent).toContain('Ohio, audiologist');
             expect(htmlContent).toContain('#AUD-OH-001');
@@ -1130,6 +1130,9 @@ describe('EmailNotificationService', () => {
             // Verify two-column table headers
             expect(htmlContent).toContain('Privilege');
             expect(htmlContent).toContain('Expires');
+            // Verify dashboard link is present so user can navigate to Compact Connect
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
+            expect(htmlContent).toMatch(/<a[^>]+href=["']https:\/\/app\.test\.compactconnect\.org\/Dashboard["'][^>]*>/);
         });
 
         it('should throw error when no recipients provided', async () => {
@@ -1184,10 +1187,11 @@ describe('EmailNotificationService', () => {
 
             expect(htmlContent).toBeDefined();
             expect(htmlContent).toContain('Hi Jane,');
-            expect(htmlContent).toContain('Your privilege(s) to practice expires on');
+            expect(htmlContent).toContain('Your compact privilege(s) to practice expires on');
             expect(htmlContent).toContain('03/01/2026');
             expect(htmlContent).toContain('Nebraska, speech-language pathologist');
             expect(htmlContent).toContain('#SLP-NE-123');
+            expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
         });
     });
 });
