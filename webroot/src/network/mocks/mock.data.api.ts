@@ -6,7 +6,7 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { AppModes, FeatureGates } from '@/app.config';
+import { FeatureGates } from '@/app.config';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@/models/LicenseHistoryItem/LicenseHistoryItem.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
@@ -603,16 +603,7 @@ export class DataApi {
 
     // Get Authenticated Staff User
     public getAuthenticatedStaffUser() {
-        const account = JSON.parse(JSON.stringify(staffAccount));
-
-        if (mockStore?.state?.appMode === AppModes.COSMETOLOGY) {
-            console.log(`deleting non-cosm staff user compacts`);
-            delete account.permissions.octp;
-            delete account.permissions.aslp;
-            delete account.permissions.coun;
-        }
-
-        return wait(500).then(() => StaffUserSerializer.fromServer(account));
+        return wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
     }
 
     // Update Authenticated Staff User

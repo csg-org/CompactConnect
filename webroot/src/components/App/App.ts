@@ -17,7 +17,8 @@ import {
     AppModes,
     AuthTypes,
     relativeTimeFormats,
-    AUTH_TYPE
+    AUTH_TYPE,
+    AUTH_LOGIN_GOTO_COMPACT
 } from '@/app.config';
 import { CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
@@ -187,19 +188,26 @@ class App extends Vue {
     async setCurrentCompact(): Promise<void> {
         const { authType } = this.globalStore;
         const { currentCompact, model: user } = this.userStore;
+        const preLoginCompactType = authStorage.getItem(AUTH_LOGIN_GOTO_COMPACT);
         let userDefaultCompact;
         let isCompactPartOfUserPermissions;
 
+        authStorage.removeItem(AUTH_LOGIN_GOTO_COMPACT);
+
         if (authType === AuthTypes.STAFF) {
             const { permissions = [] } = user || {};
+            const preLoginCompact = permissions?.find((permission) =>
+                permission.compact.type === preLoginCompactType)?.compact || null;
+            const firstCompactFromServer = permissions?.[0]?.compact || null;
 
-            userDefaultCompact = permissions?.[0]?.compact || null;
+            userDefaultCompact = preLoginCompact || firstCompactFromServer;
             isCompactPartOfUserPermissions = permissions.some((permission) =>
                 permission.compact.type === currentCompact?.type);
         } else if (authType === AuthTypes.LICENSEE) {
             const { licenses = [] } = user?.licensee || {};
+            const firstCompactFromServer = licenses?.[0]?.compact || null;
 
-            userDefaultCompact = licenses?.[0]?.compact || null;
+            userDefaultCompact = firstCompactFromServer;
             isCompactPartOfUserPermissions = licenses.some((license) => license.compact.type === currentCompact?.type);
         }
 

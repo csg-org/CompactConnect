@@ -59,6 +59,7 @@ describe('License model', () => {
         expect(license.licenseNumber).to.equal(null);
         expect(license.privilegeId).to.equal(null);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
+        expect(license.email).to.equal(null);
         expect(license.licenseType).to.equal(null);
         expect(license.history).to.matchPattern([]);
         expect(license.status).to.equal(LicenseStatus.INACTIVE);
@@ -95,6 +96,7 @@ describe('License model', () => {
             licenseNumber: 'test-license-number',
             privilegeId: 'privilegeId',
             mailingAddress: new Address(),
+            email: 'test@example.com',
             npi: 'test-npi',
             licenseType: LicenseType.AUDIOLOGIST,
             history: [new LicenseHistoryItem()],
@@ -118,6 +120,7 @@ describe('License model', () => {
         expect(license.renewalDate).to.equal(data.renewalDate);
         expect(license.expireDate).to.equal(data.expireDate);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
+        expect(license.email).to.equal(data.email);
         expect(license.npi).to.equal(data.npi);
         expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.privilegeId).to.equal(data.privilegeId);
@@ -175,6 +178,7 @@ describe('License model', () => {
             homeAddressCity: 'test-city',
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
+            emailAddress: 'test@example.com',
             licenseType: LicenseType.AUDIOLOGIST,
             history: [],
             licenseStatus: LicenseStatus.ACTIVE,
@@ -209,6 +213,7 @@ describe('License model', () => {
         expect(license.licenseeId).to.equal(data.providerId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
+        expect(license.email).to.equal(data.emailAddress);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);

@@ -96,14 +96,15 @@
                             :href="hostedLoginUriStaff"
                             class="login-link small"
                             rel="noopener noreferrer"
+                            @click="setGotoCompact(compactTypes.ASLP)"
                         >
                             {{ getCompactDisplay(compactTypes.ASLP) }}
                         </a>
                         <div
                             v-else
                             class="login-link small"
-                            @click="bypassToStaffLogin"
-                            @keyup.enter="bypassToStaffLogin"
+                            @click="bypassToStaffLogin(compactTypes.ASLP)"
+                            @keyup.enter="bypassToStaffLogin(compactTypes.ASLP)"
                             tabindex="0"
                             role="button"
                             :aria-label="getCompactDisplay(compactTypes.ASLP)"
@@ -115,14 +116,15 @@
                             :href="hostedLoginUriStaff"
                             class="login-link small"
                             rel="noopener noreferrer"
+                            @click="setGotoCompact(compactTypes.OT)"
                         >
                             {{ getCompactDisplay(compactTypes.OT) }}
                         </a>
                         <div
                             v-else
                             class="login-link small"
-                            @click="bypassToStaffLogin"
-                            @keyup.enter="bypassToStaffLogin"
+                            @click="bypassToStaffLogin(compactTypes.OT)"
+                            @keyup.enter="bypassToStaffLogin(compactTypes.OT)"
                             tabindex="0"
                             role="button"
                             :aria-label="getCompactDisplay(compactTypes.OT)"
@@ -134,14 +136,15 @@
                             :href="hostedLoginUriStaff"
                             class="login-link small"
                             rel="noopener noreferrer"
+                            @click="setGotoCompact(compactTypes.COUNSELING)"
                         >
                             {{ getCompactDisplay(compactTypes.COUNSELING) }}
                         </a>
                         <div
                             v-else
                             class="login-link small"
-                            @click="bypassToStaffLogin"
-                            @keyup.enter="bypassToStaffLogin"
+                            @click="bypassToStaffLogin(compactTypes.COUNSELING)"
+                            @keyup.enter="bypassToStaffLogin(compactTypes.COUNSELING)"
                             tabindex="0"
                             role="button"
                             :aria-label="getCompactDisplay(compactTypes.COUNSELING)"
@@ -153,14 +156,15 @@
                             :href="hostedLoginUriStaffCosmo"
                             class="login-link small"
                             rel="noopener noreferrer"
+                            @click="setGotoCompact(compactTypes.COSMETOLOGY)"
                         >
                             {{ getCompactDisplay(compactTypes.COSMETOLOGY) }}
                         </a>
                         <div
                             v-else
                             class="login-link small"
-                            @click="bypassToStaffLoginCosmo"
-                            @keyup.enter="bypassToStaffLoginCosmo"
+                            @click="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
+                            @keyup.enter="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
                             tabindex="0"
                             role="button"
                             :aria-label="getCompactDisplay(compactTypes.COSMETOLOGY)"

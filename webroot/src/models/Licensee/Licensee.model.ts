@@ -44,6 +44,7 @@ export interface InterfaceLicensee {
     middleName?: string | null;
     lastName?: string | null;
     homeJurisdiction?: State;
+    compactConnectEmail?: string | null;
     dob?: string | null;
     birthMonthDay?: string | null;
     ssnLastFour?: string | null;
@@ -74,6 +75,7 @@ export class Licensee implements InterfaceLicensee {
     public middleName? = null;
     public lastName? = null;
     public homeJurisdiction? = new State();
+    public compactConnectEmail? = null;
     public dob? = null;
     public birthMonthDay? = null;
     public ssnLastFour? = null;
@@ -424,6 +426,7 @@ export class LicenseeSerializer {
             homeJurisdiction: (json.currentHomeJurisdiction && json.currentHomeJurisdiction.trim().toLowerCase() !== 'unknown')
                 ? new State({ abbrev: json.currentHomeJurisdiction })
                 : new State({ abbrev: json.licenseJurisdiction }),
+            compactConnectEmail: json.compactConnectRegisteredEmailAddress,
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssnLastFour: json.ssnLastFour,
