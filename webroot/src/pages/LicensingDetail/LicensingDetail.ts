@@ -144,7 +144,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get licenseeLicenses(): Array<License> {
-        return this.licensee?.licenses || [];
+        return (this.licensee?.licenses || []).slice().sort(this.sortLicenses);
     }
 
     get isLoading(): boolean {
@@ -156,7 +156,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get licenseePrivileges(): Array<License> {
-        return this.licensee?.privileges || [];
+        return (this.licensee?.privileges || []).slice().sort(this.sortPrivileges);
     }
 
     get licenseeStates(): Array<string> {
@@ -268,6 +268,54 @@ export default class LicensingDetail extends Vue {
     paginationChange(): boolean {
         // Pagination not API supported
         return false;
+    }
+
+    sortLicenses(license1: License, license2: License): number {
+        let sort = this.sortByIssueState(license1, license2);
+
+        if (sort === 0) {
+            sort = this.sortByLicenseType(license1, license2);
+        }
+
+        return sort;
+    }
+
+    sortPrivileges(privilege1: License, privilege2: License): number {
+        let sort = this.sortByLicenseType(privilege1, privilege2);
+
+        if (sort === 0) {
+            sort = this.sortByIssueState(privilege1, privilege2);
+        }
+
+        return sort;
+    }
+
+    sortByLicenseType(license1: License, license2: License): number {
+        const licenseType1 = license1.licenseTypeAbbreviation();
+        const licenseType2 = license2.licenseTypeAbbreviation();
+        let sort = 0;
+
+        if (licenseType1 < licenseType2) {
+            sort = -1;
+        } else if (licenseType1 > licenseType2) {
+            sort = 1;
+        }
+
+        return sort;
+    }
+
+    sortByIssueState(license1: License, license2: License): number {
+        const state1 = license1.issueState?.name().toLowerCase() || '';
+        const state2 = license2.issueState?.name().toLowerCase() || '';
+        let sort = 0;
+
+        if (state1 < state2) {
+            sort = -1;
+        } else if (state1 > state2) {
+            sort = 1;
+        }
+
+        return sort;
     }
 
     async revealFullSsn(): Promise<void> {

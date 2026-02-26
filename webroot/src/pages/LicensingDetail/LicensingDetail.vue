@@ -189,13 +189,18 @@
                     />
                 </div>
                 <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
-                    <PrivilegeCard
-                        v-for="(privilege, index) in licenseePrivileges"
-                        :key="index"
-                        :privilege="privilege"
-                        :licensee="licensee"
-                        class="no-touch-item"
-                    />
+                    <template v-for="(privilege, index) in licenseePrivileges" :key="index">
+                        <div v-if="index > 0
+                            && privilege.licenseTypeAbbreviation() !==
+                            licenseePrivileges[index - 1].licenseTypeAbbreviation()"
+                            class="break-wrap"
+                        ></div>
+                        <PrivilegeCard
+                            :privilege="privilege"
+                            :licensee="licensee"
+                            class="no-touch-item"
+                        />
+                    </template>
                 </div>
             </div>
         </div>
