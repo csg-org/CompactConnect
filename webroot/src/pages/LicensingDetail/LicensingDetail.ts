@@ -60,6 +60,14 @@ export default class LicensingDetail extends Vue {
     //
     // Computed
     //
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get compact(): string {
         const defaultCompactType = this.$store.state.user.currentCompact?.type;
 

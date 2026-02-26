@@ -127,7 +127,7 @@
                             </div>
                         </div>
                     </div>
-                    <MilitaryAffiliationInfoBlock :licensee="licensee" />
+                    <MilitaryAffiliationInfoBlock v-if="isAppModeJcc" :licensee="licensee" />
                 </div>
             </div>
             <div class="license-section">
