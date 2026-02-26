@@ -79,15 +79,31 @@ class ProviderRecordUtility:
         return provider_records[0] if provider_records else None
 
     @classmethod
+    def _license_sort_key(cls, license_record: dict | LicenseData) -> tuple:
+        """
+        Sort key for license records: by date of renewal if present, else date of issuance;
+        use date of issuance as tiebreaker. Works with both dict and LicenseData so the same
+        ordering is used in find_best_license (dicts) and find_best_license_in_current_known_licenses (LicenseData).
+        """
+        if isinstance(license_record, dict):
+            effective_date = license_record.get('dateOfRenewal') or license_record['dateOfIssuance']
+            date_of_issuance = license_record['dateOfIssuance']
+        else:
+            effective_date = license_record.dateOfRenewal or license_record.dateOfIssuance
+            date_of_issuance = license_record.dateOfIssuance
+        return (effective_date, date_of_issuance)
+
+    @classmethod
     def find_best_license(cls, license_records: Iterable[dict], home_jurisdiction: str | None = None) -> dict:
         """
         Find the best license from a collection of licenses.
 
-        Strategy:
+        This selects the license renewed or issued most recently. Sort by date of renewal
+        if present, otherwise date of issuance; use date of issuance as tiebreaker. Compact
+        eligibility and active status are not considered.
+
         1. If home jurisdiction is selected, only consider licenses from that jurisdiction
-        2. Select the most recently issued compact-eligible license if any exist
-        3. Otherwise, select the most recently issued active license if any exist
-        4. Otherwise, select the most recently issued license regardless of status
+        2. Return the single license with the latest (renewal date or issuance date)
 
         :param license_records: An iterable of license records
         :param home_jurisdiction: The home jurisdiction selection
@@ -103,34 +119,7 @@ class ProviderRecordUtility:
             if license_records_in_jurisdiction:
                 license_records = license_records_in_jurisdiction
 
-        # Last issued compact-eligible license, if there are any compact-eligible licenses
-        latest_compact_eligible_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record['compactEligibility'] == CompactEligibilityStatus.ELIGIBLE
-            ],
-            key=lambda x: x['dateOfIssuance'],
-            reverse=True,
-        )
-        if latest_compact_eligible_licenses:
-            return latest_compact_eligible_licenses[0]
-
-        # Last issued active license, if there are any active licenses
-        latest_active_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record['licenseStatus'] == ActiveInactiveStatus.ACTIVE
-            ],
-            key=lambda x: x['dateOfIssuance'],
-            reverse=True,
-        )
-        if latest_active_licenses:
-            return latest_active_licenses[0]
-
-        # Last issued inactive license, otherwise
-        latest_licenses = sorted(license_records, key=lambda x: x['dateOfIssuance'], reverse=True)
+        latest_licenses = sorted(license_records, key=cls._license_sort_key, reverse=True)
         if not latest_licenses:
             raise CCInternalException('No licenses found')
 
@@ -410,14 +399,9 @@ class ProviderUserRecords:
         license_type_abbreviation: str | None = None,
     ) -> LicenseData:
         """
-        Find the best license from this provider's known licenses.
-        Strategy:
-        1. If jurisdiction is selected, only consider licenses from that jurisdiction. Else check licenses in current
-        home jurisdiction.
-        2. If license_type_abbreviation is selected, only consider licenses of that type.
-        3. Select the most recently issued compact-eligible license if any exist
-        4. Otherwise, select the most recently issued active license if any exist
-        5. Otherwise, select the most recently issued license regardless of status
+        Find the best license from this provider's known licenses. Uses the same ordering as
+        ProviderRecordUtility.find_best_license (most recently renewed/issued; status and eligibility not considered).
+        Sorts LicenseData directly using the shared sort key—no conversion to or from dicts.
         :param jurisdiction: Optional jurisdiction filter
         :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'cos', 'est')
         :return: The best license record
@@ -434,38 +418,15 @@ class ProviderUserRecords:
                 lic for lic in license_records if lic.licenseTypeAbbreviation == license_type_abbreviation
             ]
 
-        # Last issued compact-eligible license, if there are any compact-eligible licenses
-        latest_compact_eligible_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record.compactEligibility == CompactEligibilityStatus.ELIGIBLE
-            ],
-            key=lambda x: x.dateOfIssuance.isoformat(),
-            reverse=True,
-        )
-        if latest_compact_eligible_licenses:
-            return latest_compact_eligible_licenses[0]
-
-        # Last issued active license, if there are any active licenses
-        latest_active_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record.licenseStatus == ActiveInactiveStatus.ACTIVE
-            ],
-            key=lambda x: x.dateOfIssuance.isoformat(),
-            reverse=True,
-        )
-        if latest_active_licenses:
-            return latest_active_licenses[0]
-
-        # Last issued inactive license, otherwise
-        latest_licenses = sorted(license_records, key=lambda x: x.dateOfIssuance.isoformat(), reverse=True)
-        if not latest_licenses:
+        if not license_records:
             raise CCNotFoundException('No licenses found')
 
-        return latest_licenses[0]
+        sorted_licenses = sorted(
+            license_records,
+            key=ProviderRecordUtility._license_sort_key,
+            reverse=True,
+        )
+        return sorted_licenses[0]
 
     def generate_privileges_for_provider(self) -> list[dict]:
         """

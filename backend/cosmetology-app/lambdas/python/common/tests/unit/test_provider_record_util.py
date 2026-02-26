@@ -408,8 +408,8 @@ class TestProviderRecordUtility(TstLambdas):
         best_license = ProviderRecordUtility.find_best_license(licenses, home_jurisdiction='ky')
         self.assertEqual(best_license['jurisdiction'], 'ky')
 
-    def test_find_best_license_compact_eligible_preferred(self):
-        """Test that find_best_license prefers compact-eligible licenses over others."""
+    def test_find_best_license_date_of_issuance_preferred_when_no_renewal(self):
+        """Test that find_best_license selects by most recent issuance."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
         from cc_common.data_model.schema.common import CompactEligibilityStatus
 
@@ -427,55 +427,38 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         best_license = ProviderRecordUtility.find_best_license(licenses)
-        self.assertEqual(best_license['dateOfIssuance'], '2024-01-01')
-        self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.ELIGIBLE)
-
-    def test_find_best_license_active_preferred_when_no_compact_eligible_licenses(self):
-        """Test that find_best_license prefers active licenses when no compact-eligible licenses exist."""
-        from cc_common.data_model.provider_record_util import ProviderRecordUtility
-        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
-
-        licenses = [
-            {
-                **self.base_license,
-                'dateOfIssuance': '2024-01-01',
-                'licenseStatus': ActiveInactiveStatus.ACTIVE,
-                'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
-            },
-            {
-                **self.base_license,
-                'dateOfIssuance': '2024-02-01',
-                'licenseStatus': ActiveInactiveStatus.INACTIVE,
-                'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
-            },
-        ]
-
-        best_license = ProviderRecordUtility.find_best_license(licenses)
-        self.assertEqual(best_license['dateOfIssuance'], '2024-01-01')
-        self.assertEqual(best_license['licenseStatus'], ActiveInactiveStatus.ACTIVE)
-
-    def test_find_best_license_most_recent_when_no_active_or_compact_eligible_licenses(self):
-        """Test that find_best_license selects most recent license when no active or compact-eligible licenses exist."""
-        from cc_common.data_model.provider_record_util import ProviderRecordUtility
-        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
-
-        licenses = [
-            {
-                **self.base_license,
-                'dateOfIssuance': '2024-01-01',
-                'licenseStatus': ActiveInactiveStatus.INACTIVE,
-                'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
-            },
-            {
-                **self.base_license,
-                'dateOfIssuance': '2024-02-01',
-                'licenseStatus': ActiveInactiveStatus.INACTIVE,
-                'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
-            },
-        ]
-
-        best_license = ProviderRecordUtility.find_best_license(licenses)
         self.assertEqual(best_license['dateOfIssuance'], '2024-02-01')
+        self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
+
+
+
+    def test_latest_renewed_license_selected_even_when_inactive(self):
+        """Best license is the one renewed/issued most recently; status and eligibility are not considered."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+
+        # Active, compact-eligible but older renewal; inactive, ineligible but renewed most recently
+        licenses = [
+            {
+                **self.base_license,
+                'dateOfIssuance': '2023-01-01',
+                'dateOfRenewal': '2024-01-01',
+                'licenseStatus': ActiveInactiveStatus.ACTIVE,
+                'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+            },
+            {
+                **self.base_license,
+                'dateOfIssuance': '2022-01-01',
+                'dateOfRenewal': '2024-06-01',
+                'licenseStatus': ActiveInactiveStatus.INACTIVE,
+                'compactEligibility': CompactEligibilityStatus.INELIGIBLE,
+            },
+        ]
+
+        best_license = ProviderRecordUtility.find_best_license(licenses)
+        self.assertEqual(best_license['dateOfRenewal'], '2024-06-01')
+        self.assertEqual(best_license['licenseStatus'], ActiveInactiveStatus.INACTIVE)
+        self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
 
     def test_find_best_license_raises_exception_when_no_licenses(self):
         """Test that find_best_license raises an exception when no licenses are provided."""
@@ -486,7 +469,7 @@ class TestProviderRecordUtility(TstLambdas):
             ProviderRecordUtility.find_best_license([])
 
     def test_find_best_license_complex_scenario(self):
-        """Test a complex scenario with multiple licenses of different statuses."""
+        """With multiple licenses, the one with the most recent issuance is selected regardless of status."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
         from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 
@@ -494,6 +477,7 @@ class TestProviderRecordUtility(TstLambdas):
             {
                 **self.base_license,
                 'dateOfIssuance': '2024-01-01',
+                'dateOfRenewal': '2024-02-25',
                 'licenseStatus': ActiveInactiveStatus.ACTIVE,
                 'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
             },
@@ -512,5 +496,5 @@ class TestProviderRecordUtility(TstLambdas):
         ]
 
         best_license = ProviderRecordUtility.find_best_license(licenses)
-        self.assertEqual(best_license['dateOfIssuance'], '2024-01-01')
-        self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.ELIGIBLE)
+        self.assertEqual(best_license['dateOfIssuance'], '2024-03-01')
+        self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
