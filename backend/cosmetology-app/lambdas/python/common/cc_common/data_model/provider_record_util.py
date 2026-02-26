@@ -423,7 +423,7 @@ class ProviderUserRecords:
 
         sorted_licenses = sorted(
             license_records,
-            key=ProviderRecordUtility._license_sort_key,
+            key=ProviderRecordUtility._license_sort_key,  # noqa: SLF001
             reverse=True,
         )
         return sorted_licenses[0]

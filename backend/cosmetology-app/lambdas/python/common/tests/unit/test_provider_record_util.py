@@ -430,8 +430,6 @@ class TestProviderRecordUtility(TstLambdas):
         self.assertEqual(best_license['dateOfIssuance'], '2024-02-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
 
-
-
     def test_latest_renewed_license_selected_even_when_inactive(self):
         """Best license is the one renewed/issued most recently; status and eligibility are not considered."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
