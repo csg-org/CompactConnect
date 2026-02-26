@@ -12,11 +12,11 @@ aws-lambda-powertools==3.24.0
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.42.46
+boto3==1.42.58
     # via
     #   -r requirements-dev.in
     #   moto
-botocore==1.42.46
+botocore==1.42.58
     # via
     #   boto3
     #   moto
@@ -27,7 +27,7 @@ cachecontrol[filecache]==0.14.4
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2026.1.4
+certifi==2026.2.25
     # via requests
 cffi==2.0.0
     # via
@@ -53,7 +53,7 @@ docker==7.1.0
     # via moto
 faker==37.12.0
     # via -r requirements-dev.in
-filelock==3.20.3
+filelock==3.24.3
     # via cachecontrol
 idna==3.11
     # via requests
@@ -100,7 +100,7 @@ pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.5.3
     # via -r requirements-dev.in
-platformdirs==4.5.1
+platformdirs==4.9.2
     # via pip-audit
 pluggy==1.6.0
     # via
@@ -144,11 +144,11 @@ requests==2.32.5
     #   moto
     #   pip-audit
     #   responses
-responses==0.25.8
+responses==0.26.0
     # via moto
-rich==14.3.2
+rich==14.3.3
     # via pip-audit
-ruff==0.15.0
+ruff==0.15.4
     # via -r requirements-dev.in
 s3transfer==0.16.0
     # via boto3
@@ -173,11 +173,11 @@ urllib3==2.6.3
     #   docker
     #   requests
     #   responses
-werkzeug==3.1.5
+werkzeug==3.1.6
     # via moto
 wheel==0.46.3
     # via pip-tools
-xmltodict==1.0.2
+xmltodict==1.0.4
     # via moto
 
 # The following packages are considered to be unsafe in a requirements file:
