@@ -136,15 +136,11 @@ def test_compact_configuration():
         # Create test compact configuration data
         notification_email = config.smoke_test_notification_email
         compact_config = {
-            'compactCommissionFee': {'feeAmount': 15.00, 'feeType': 'FLAT_RATE'},
             'licenseeRegistrationEnabled': False,
             'compactOperationsTeamEmails': [notification_email],
             'compactAdverseActionsNotificationEmails': [notification_email],
             'compactSummaryReportNotificationEmails': [notification_email],
             'configuredStates': [],
-            'transactionFeeConfiguration': {
-                'licenseeCharges': {'chargeAmount': 10.00, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'active': True}
-            },
         }
 
         # PUT the compact configuration
@@ -158,10 +154,6 @@ def test_compact_configuration():
             )
 
         print(f'Successfully PUT compact configuration for {compact}')
-
-        # Test uploading payment processor credentials for existing compact configuration
-        # These must be set before the compact can enable itself for registration.
-        _test_upload_payment_processor_credentials(compact, headers)
 
         # now set the compact configuration licenseeRegistrationEnabled to true
         # and verify that the compact configuration is updated
@@ -269,10 +261,6 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
             'jurisdictionAdverseActionsNotificationEmails': [notification_email],
             'jurisdictionSummaryReportNotificationEmails': [notification_email],
             'licenseeRegistrationEnabled': True,
-            'jurisprudenceRequirements': {
-                'required': True,
-                'linkToDocumentation': 'https://example.com/jurisprudence-docs',
-            },
         }
 
         # PUT the jurisdiction configuration
@@ -445,44 +433,6 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
         # Clean up the test user
         if user_sub:
             delete_test_staff_user(test_email, user_sub, compact)
-
-
-def _test_upload_payment_processor_credentials(compact: str, staff_user_headers: dict):
-    """
-    Test that a compact admin can upload payment processor credentials.
-
-    :raises SmokeTestFailureException: If the test fails
-    """
-    print('Testing upload payment processor credentials...')
-
-    credentials = {
-        'processor': 'authorize.net',
-        'apiLoginId': config.sandbox_authorize_net_api_login_id,
-        'transactionKey': config.sandbox_authorize_net_transaction_key,
-    }
-
-    # POST the payment processor credentials
-    response = requests.post(
-        url=f'{get_api_base_url()}/v1/compacts/{compact}/credentials/payment-processor',
-        headers=staff_user_headers,
-        json=credentials,
-        timeout=30,  # Give this more time as it makes external API calls to authorize.net
-    )
-
-    if response.status_code != 200:
-        raise SmokeTestFailureException(
-            f'Failed to POST payment processor credentials for compact {compact}. '
-            f'Status: {response.status_code}, Response: {response.text}'
-        )
-
-    # Verify the response contains a success message
-    response_data = response.json()
-    if 'message' not in response_data or 'Successfully verified credentials' not in response_data['message']:
-        raise SmokeTestFailureException(
-            f'Unexpected response when uploading payment processor credentials: {response_data}'
-        )
-
-    print(f'Successfully uploaded and verified payment processor credentials for {compact}')
 
 
 if __name__ == '__main__':

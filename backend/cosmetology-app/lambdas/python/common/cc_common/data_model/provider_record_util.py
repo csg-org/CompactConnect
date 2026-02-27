@@ -3,17 +3,21 @@ from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
+# Import the config module (not the config object) so we resolve config at access time via
+# config_module.config. That lets tests replace cc_common.config.config in setUp and have this
+# code reference the test's instance.
+import cc_common.config as config_module
 from cc_common.config import logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
+    InvestigationStatusEnum,
     UpdateCategory,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
@@ -27,8 +31,6 @@ class ProviderRecordType(StrEnum):
     PROVIDER_UPDATE = 'providerUpdate'
     LICENSE = 'license'
     LICENSE_UPDATE = 'licenseUpdate'
-    PRIVILEGE = 'privilege'
-    PRIVILEGE_UPDATE = 'privilegeUpdate'
     ADVERSE_ACTION = 'adverseAction'
     INVESTIGATION = 'investigation'
 
@@ -77,15 +79,31 @@ class ProviderRecordUtility:
         return provider_records[0] if provider_records else None
 
     @classmethod
+    def _license_sort_key(cls, license_record: dict | LicenseData) -> tuple:
+        """
+        Sort key for license records: by date of renewal if present, else date of issuance;
+        use date of issuance as tiebreaker. Works with both dict and LicenseData so the same
+        ordering is used in find_best_license (dicts) and find_best_license_in_current_known_licenses (LicenseData).
+        """
+        if isinstance(license_record, dict):
+            effective_date = license_record.get('dateOfRenewal') or license_record['dateOfIssuance']
+            date_of_issuance = license_record['dateOfIssuance']
+        else:
+            effective_date = license_record.dateOfRenewal or license_record.dateOfIssuance
+            date_of_issuance = license_record.dateOfIssuance
+        return (effective_date, date_of_issuance)
+
+    @classmethod
     def find_best_license(cls, license_records: Iterable[dict], home_jurisdiction: str | None = None) -> dict:
         """
         Find the best license from a collection of licenses.
 
-        Strategy:
+        This selects the license renewed or issued most recently. Sort by date of renewal
+        if present, otherwise date of issuance; use date of issuance as tiebreaker. Compact
+        eligibility and active status are not considered.
+
         1. If home jurisdiction is selected, only consider licenses from that jurisdiction
-        2. Select the most recently issued compact-eligible license if any exist
-        3. Otherwise, select the most recently issued active license if any exist
-        4. Otherwise, select the most recently issued license regardless of status
+        2. Return the single license with the latest (renewal date or issuance date)
 
         :param license_records: An iterable of license records
         :param home_jurisdiction: The home jurisdiction selection
@@ -101,34 +119,7 @@ class ProviderRecordUtility:
             if license_records_in_jurisdiction:
                 license_records = license_records_in_jurisdiction
 
-        # Last issued compact-eligible license, if there are any compact-eligible licenses
-        latest_compact_eligible_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record['compactEligibility'] == CompactEligibilityStatus.ELIGIBLE
-            ],
-            key=lambda x: x['dateOfIssuance'],
-            reverse=True,
-        )
-        if latest_compact_eligible_licenses:
-            return latest_compact_eligible_licenses[0]
-
-        # Last issued active license, if there are any active licenses
-        latest_active_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record['licenseStatus'] == ActiveInactiveStatus.ACTIVE
-            ],
-            key=lambda x: x['dateOfIssuance'],
-            reverse=True,
-        )
-        if latest_active_licenses:
-            return latest_active_licenses[0]
-
-        # Last issued inactive license, otherwise
-        latest_licenses = sorted(license_records, key=lambda x: x['dateOfIssuance'], reverse=True)
+        latest_licenses = sorted(license_records, key=cls._license_sort_key, reverse=True)
         if not latest_licenses:
             raise CCInternalException('No licenses found')
 
@@ -178,21 +169,17 @@ class ProviderUserRecords:
         self.provider_records = provider_records
 
         # Pre-convert and categorize records by type for efficiency
-        self._privilege_records: list[PrivilegeData] = []
         self._license_records: list[LicenseData] = []
         self._adverse_action_records: list[AdverseActionData] = []
         self._investigation_records: list[InvestigationData] = []
         self._provider_records: list[ProviderData] = []
         self._provider_update_records: list[ProviderUpdateData] = []
         self._license_update_records: list[LicenseUpdateData] = []
-        self._privilege_update_records: list[PrivilegeUpdateData] = []
 
-        # Convert records once during initialization
+        # Convert records once during initialization (skip privilege/privilegeUpdate; no longer stored)
         for record in provider_records:
             record_type = record.get('type')
-            if record_type == ProviderRecordType.PRIVILEGE:
-                self._privilege_records.append(PrivilegeData.from_database_record(record))
-            elif record_type == ProviderRecordType.LICENSE:
+            if record_type == ProviderRecordType.LICENSE:
                 self._license_records.append(LicenseData.from_database_record(record))
             elif record_type == ProviderRecordType.ADVERSE_ACTION:
                 self._adverse_action_records.append(AdverseActionData.from_database_record(record))
@@ -204,8 +191,6 @@ class ProviderUserRecords:
                 self._provider_update_records.append(ProviderUpdateData.from_database_record(record))
             elif record_type == ProviderRecordType.LICENSE_UPDATE:
                 self._license_update_records.append(LicenseUpdateData.from_database_record(record))
-            elif record_type == ProviderRecordType.PRIVILEGE_UPDATE:
-                self._privilege_update_records.append(PrivilegeUpdateData.from_database_record(record))
             else:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
@@ -226,54 +211,6 @@ class ProviderUserRecords:
             ),
             None,
         )
-
-    def get_specific_privilege_record(self, jurisdiction: str, license_abbreviation: str) -> PrivilegeData | None:
-        """
-        Get a specific privilege record from a list of provider records.
-
-        :param jurisdiction: The jurisdiction of the license.
-        :param license_abbreviation: The abbreviation of the license type.
-        :return: The license record if found, else None.
-        """
-        return next(
-            (
-                record
-                for record in self._privilege_records
-                if record.jurisdiction == jurisdiction and record.licenseTypeAbbreviation == license_abbreviation
-            ),
-            None,
-        )
-
-    def get_privilege_records(
-        self,
-        filter_condition: Callable[[PrivilegeData], bool] | None = None,
-    ) -> list[PrivilegeData]:
-        """
-        Get all privilege records from a list of provider records.
-        :param filter_condition: An optional filter to apply to the privilege records
-        """
-        return [record for record in self._privilege_records if filter_condition is None or filter_condition(record)]
-
-    def get_privileges_associated_with_license(
-        self,
-        license_jurisdiction: str,
-        license_type_abbreviation: str,
-        filter_condition: Callable[[PrivilegeData], bool] | None = None,
-    ) -> list[PrivilegeData]:
-        """
-        Get all privileges associated with a given license.
-        :param license_jurisdiction: The jurisdiction of the license.
-        :param license_type_abbreviation: The abbreviation of the license type.
-        :param filter_condition: An optional filter to apply to the privilege records
-        :return: A list of privilege records associated with the license
-        """
-        return [
-            record
-            for record in self._privilege_records
-            if record.licenseJurisdiction == license_jurisdiction
-            and record.licenseTypeAbbreviation == license_type_abbreviation
-            and (filter_condition is None or filter_condition(record))
-        ]
 
     def get_license_records(
         self,
@@ -456,16 +393,17 @@ class ProviderUserRecords:
             raise CCInternalException('No provider record found for user.')
         return self._provider_records[0]
 
-    def find_best_license_in_current_known_licenses(self, jurisdiction: str | None = None) -> LicenseData:
+    def find_best_license_in_current_known_licenses(
+        self,
+        jurisdiction: str | None = None,
+        license_type_abbreviation: str | None = None,
+    ) -> LicenseData:
         """
-        Find the best license from this provider's known licenses.
-        Strategy:
-        1. If jurisdiction is selected, only consider licenses from that jurisdiction. Else check licenses in current
-        home jurisdiction.
-        2. Select the most recently issued compact-eligible license if any exist
-        3. Otherwise, select the most recently issued active license if any exist
-        4. Otherwise, select the most recently issued license regardless of status
+        Find the best license from this provider's known licenses. Uses the same ordering as
+        ProviderRecordUtility.find_best_license (most recently renewed/issued; status and eligibility not considered).
+        Sorts LicenseData directly using the shared sort key—no conversion to or from dicts.
         :param jurisdiction: Optional jurisdiction filter
+        :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'cos', 'est')
         :return: The best license record
         """
         if jurisdiction:
@@ -475,38 +413,104 @@ class ProviderUserRecords:
         else:
             license_records = self.get_license_records()
 
-        # Last issued compact-eligible license, if there are any compact-eligible licenses
-        latest_compact_eligible_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record.compactEligibility == CompactEligibilityStatus.ELIGIBLE
-            ],
-            key=lambda x: x.dateOfIssuance.isoformat(),
-            reverse=True,
-        )
-        if latest_compact_eligible_licenses:
-            return latest_compact_eligible_licenses[0]
+        if license_type_abbreviation:
+            license_records = [
+                lic for lic in license_records if lic.licenseTypeAbbreviation == license_type_abbreviation
+            ]
 
-        # Last issued active license, if there are any active licenses
-        latest_active_licenses = sorted(
-            [
-                license_record
-                for license_record in license_records
-                if license_record.licenseStatus == ActiveInactiveStatus.ACTIVE
-            ],
-            key=lambda x: x.dateOfIssuance.isoformat(),
-            reverse=True,
-        )
-        if latest_active_licenses:
-            return latest_active_licenses[0]
-
-        # Last issued inactive license, otherwise
-        latest_licenses = sorted(license_records, key=lambda x: x.dateOfIssuance.isoformat(), reverse=True)
-        if not latest_licenses:
+        if not license_records:
             raise CCNotFoundException('No licenses found')
 
-        return latest_licenses[0]
+        sorted_licenses = sorted(
+            license_records,
+            key=ProviderRecordUtility._license_sort_key,  # noqa: SLF001
+            reverse=True,
+        )
+        return sorted_licenses[0]
+
+    def generate_privileges_for_provider(self) -> list[dict]:
+        """
+        Generate privilege dicts at runtime for all eligible license types this provider holds.
+
+        For each license type, the home license is chosen from all licenses of that type: the license renewed
+        most recently (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
+        Privileges are generated for that type only if the chosen home license is compact-eligible.
+        For each such type, one privilege is generated per active compact jurisdiction
+        (excluding the home jurisdiction).
+        """
+        if not self._license_records:
+            return []
+        provider = self.get_provider_record()
+        compact = provider.compact
+        # live_compact_jurisdictions is a cached property, so it will only be fetched once per Lambda lifecycle.
+        live_jurisdictions_for_compact = config_module.config.live_compact_jurisdictions.get(compact, [])
+
+        if not live_jurisdictions_for_compact:
+            logger.debug('no active jurisdictions found in environment.', compact=compact)
+            return []
+
+        # Group licenses by licenseType; for each type pick home license by most recent renewal, then issuance
+        by_type: dict[str, list[LicenseData]] = {}
+        for lic in self._license_records:
+            by_type.setdefault(lic.licenseType, []).append(lic)
+
+        most_recent_licenses_for_each_type: list[LicenseData] = []
+        for _lt, licenses in by_type.items():
+            # Sort all licenses of this type: effective_date = dateOfRenewal or dateOfIssuance
+            def _effective_date(lic: LicenseData):
+                return lic.dateOfRenewal if lic.dateOfRenewal is not None else lic.dateOfIssuance
+
+            sorted_licenses = sorted(
+                licenses,
+                key=lambda x: (_effective_date(x), x.dateOfIssuance),
+                reverse=True,
+            )
+            most_recent_license = sorted_licenses[0]
+            # If the most recently renewed/issued license is not compact eligible,
+            # we will not generate privileges for it
+            if most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE:
+                continue
+            most_recent_licenses_for_each_type.append(most_recent_license)
+
+        result: list[dict] = []
+        for most_recent_license in most_recent_licenses_for_each_type:
+            home_jurisdiction = most_recent_license.jurisdiction.lower()
+            license_type_abbr = most_recent_license.licenseTypeAbbreviation
+
+            for jurisdiction in live_jurisdictions_for_compact:
+                if jurisdiction == home_jurisdiction:
+                    continue
+                privilege_aa = self.get_adverse_action_records_for_privilege(jurisdiction, license_type_abbr)
+                privilege_unlifted = any(aa.effectiveLiftDate is None for aa in privilege_aa)
+                inv_records = self.get_investigation_records_for_privilege(
+                    jurisdiction, license_type_abbr, include_closed=False
+                )
+                privilege_dict = {
+                    'type': 'privilege',
+                    'administratorSetStatus': ActiveInactiveStatus.ACTIVE.value,
+                    'providerId': str(provider.providerId),
+                    'compact': compact,
+                    'jurisdiction': jurisdiction,
+                    'licenseJurisdiction': home_jurisdiction,
+                    'licenseType': most_recent_license.licenseType,
+                    'dateOfExpiration': most_recent_license.dateOfExpiration,
+                    # the only way a privilege under this model shows inactive is if
+                    # there has been an encumbrance set by a state admin that has not been
+                    # lifted. If the license itself is inactive or ineligible for whatever reason, we don't
+                    # return any associated privilege objects
+                    'status': ActiveInactiveStatus.ACTIVE.value
+                    if not privilege_unlifted
+                    else ActiveInactiveStatus.INACTIVE.value,
+                    'adverseActions': [aa.to_dict() for aa in privilege_aa],
+                    'investigations': [inv.to_dict() for inv in inv_records],
+                }
+                # We only include open investigations here, so the privilege will only be under investigation if there
+                # are any investigation records.
+                if privilege_dict.get('investigations'):
+                    privilege_dict.update({'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION.value})
+
+                result.append(privilege_dict)
+        return result
 
     def get_all_license_update_records(
         self,
@@ -519,19 +523,6 @@ class ProviderUserRecords:
         """
         return [
             record for record in self._license_update_records if filter_condition is None or filter_condition(record)
-        ]
-
-    def get_all_privilege_update_records(
-        self,
-        filter_condition: Callable[[PrivilegeUpdateData], bool] | None = None,
-    ) -> list[PrivilegeUpdateData]:
-        """
-        Get all privilege update records for this provider.
-        :param filter_condition: An optional filter to apply to the update records
-        :return: List of PrivilegeUpdateData records
-        """
-        return [
-            record for record in self._privilege_update_records if filter_condition is None or filter_condition(record)
         ]
 
     def get_all_provider_update_records(
@@ -563,27 +554,6 @@ class ProviderUserRecords:
         return [
             record
             for record in self._license_update_records
-            if record.jurisdiction == jurisdiction
-            and record.licenseType == license_type
-            and (filter_condition is None or filter_condition(record))
-        ]
-
-    def get_update_records_for_privilege(
-        self,
-        jurisdiction: str,
-        license_type: str,
-        filter_condition: Callable[[PrivilegeUpdateData], bool] | None = None,
-    ) -> list[PrivilegeUpdateData]:
-        """
-        Get all privilege update records for a specific privilege.
-        :param jurisdiction: The jurisdiction of the privilege.
-        :param license_type: The license type.
-        :param filter_condition: An optional filter to apply to the update records
-        :return: List of PrivilegeUpdateData records
-        """
-        return [
-            record
-            for record in self._privilege_update_records
             if record.jurisdiction == jurisdiction
             and record.licenseType == license_type
             and (filter_condition is None or filter_condition(record))
@@ -625,23 +595,8 @@ class ProviderUserRecords:
             ]
             licenses.append(license_dict)
 
-        # Build privileges dict with investigations and adverseActions
-        for privilege_record in self._privilege_records:
-            privilege_dict = privilege_record.to_dict()
-
-            privilege_dict['adverseActions'] = [
-                rec.to_dict()
-                for rec in self.get_adverse_action_records_for_privilege(
-                    privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
-                )
-            ]
-            privilege_dict['investigations'] = [
-                rec.to_dict()
-                for rec in self.get_investigation_records_for_privilege(
-                    privilege_record.jurisdiction, privilege_record.licenseTypeAbbreviation
-                )
-            ]
-            privileges.append(privilege_dict)
+        # Build privileges at runtime from eligible licenses (one privilege per license type per compact jurisdiction)
+        privileges = self.generate_privileges_for_provider()
 
         provider['licenses'] = licenses
         provider['privileges'] = privileges

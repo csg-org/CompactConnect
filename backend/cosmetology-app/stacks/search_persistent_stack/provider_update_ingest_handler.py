@@ -15,7 +15,7 @@ from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
-from stacks.persistent_stack import ProviderTable
+from stacks.persistent_stack import CompactConfigurationTable, ProviderTable
 from stacks.vpc_stack import VpcStack
 
 
@@ -41,6 +41,7 @@ class ProviderUpdateIngestHandler(Construct):
         vpc_subnets: SubnetSelection,
         lambda_role: IRole,
         provider_table: ProviderTable,
+        compact_configuration_table: CompactConfigurationTable,
         encryption_key: IKey,
         alarm_topic: ITopic,
     ):
@@ -54,6 +55,7 @@ class ProviderUpdateIngestHandler(Construct):
         :param vpc_subnets: The VPC subnets for Lambda deployment
         :param lambda_role: The IAM role for the Lambda function (should have OpenSearch write access)
         :param provider_table: The DynamoDB provider table (used for fetching full provider records)
+        :param compact_configuration_table: The DynamoDB compact configuration table (for live jurisdictions)
         :param encryption_key: The KMS encryption key for the SQS queue
         :param alarm_topic: The SNS topic for alarms
         """
@@ -74,6 +76,7 @@ class ProviderUpdateIngestHandler(Construct):
             environment={
                 'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
                 'PROVIDER_TABLE_NAME': provider_table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
                 **stack.common_env_vars,
             },
             # Allow enough time for processing large batches
@@ -135,8 +138,9 @@ class ProviderUpdateIngestHandler(Construct):
         # Grant the handler write access to the OpenSearch domain
         opensearch_domain.grant_write(self.handler)
 
-        # Grant the handler read access to the provider table for fetching full provider records
+        # Grant the handler read access to the provider table and compact configuration table
         provider_table.grant_read_data(self.handler)
+        compact_configuration_table.grant_read_data(self.handler)
 
         # Grant the handler permission to use the encryption key for SQS operations
         encryption_key.grant_encrypt_decrypt(self.handler)

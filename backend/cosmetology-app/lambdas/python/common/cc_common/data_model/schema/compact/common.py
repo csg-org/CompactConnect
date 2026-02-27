@@ -4,13 +4,8 @@ from marshmallow.fields import Boolean, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import CCEnum
 
 COMPACT_TYPE = 'compact'
-
-
-class PaymentProcessorType(CCEnum):
-    AUTHORIZE_DOT_NET_TYPE = 'authorize.net'
 
 
 class ConfiguredStateSchema(Schema):

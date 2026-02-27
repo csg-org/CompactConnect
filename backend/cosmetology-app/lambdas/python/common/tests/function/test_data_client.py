@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, date, datetime
+from datetime import datetime
 from unittest.mock import ANY, patch
 from uuid import UUID, uuid4
 
@@ -28,9 +28,9 @@ class TestDataClient(TstFunction):
             compact='cosm',
             provider_id=provider_id,
         )
-        self.assertEqual(3, len(resp['items']))
-        # Should be one each of provider, license, privilege
-        self.assertEqual({'provider', 'license', 'privilege'}, {record['type'] for record in resp['items']})
+        self.assertEqual(2, len(resp['items']))
+        # Should be one each of provider and license
+        self.assertEqual({'provider', 'license'}, {record['type'] for record in resp['items']})
 
     def test_get_provider_garbage_in_db(self):
         """Because of the risk of exposing sensitive data to the public if we manage to get corrupted
@@ -67,10 +67,6 @@ class TestDataClient(TstFunction):
             provider_record = json.load(f)
         provider_id = UUID(provider_record['providerId'])
         self._provider_table.put_item(Item=provider_record)
-
-        with open('tests/resources/dynamo/privilege.json') as f:
-            privilege_record = json.load(f)
-        self._provider_table.put_item(Item=privilege_record)
 
         with open('tests/resources/dynamo/license.json') as f:
             license_record = json.load(f)
@@ -148,25 +144,9 @@ class TestDataClient(TstFunction):
             }
         )
 
-        # Creating 30 records, to test pagination with 10 records at a time.
+        # Creating 30 license records, to test pagination with 10 records at a time.
         jurisdictions = self.config.jurisdictions[:30]
-        for jurisdiction in jurisdictions:
-            self.test_data_generator.put_default_privilege_record_in_provider_table(
-                value_overrides={
-                    'providerId': provider_uuid,
-                    'compact': 'cosm',
-                    'jurisdiction': jurisdiction,
-                    'licenseType': 'esthetician',
-                    'privilegeId': f'EST-{jurisdiction.upper()}-1',
-                    'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'dateOfExpiration': date(2024, 10, 31),
-                    'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
-                    'administratorSetStatus': 'active',
-                }
-            )
-
-        # Create license records for each jurisdiction as well
+        # Create license records for each jurisdiction
         for jurisdiction in jurisdictions:
             self.test_data_generator.put_default_license_record_in_provider_table(
                 value_overrides={
@@ -192,16 +172,12 @@ class TestDataClient(TstFunction):
             provider_records = client.get_provider_user_records(compact='cosm', provider_id=provider_uuid)
 
             # Verify that we got all the records
-            # We expect 1 provider record + 30 privilege records + 30 license records = 61 total
-            self.assertEqual(61, len(provider_records.provider_records))
+            # We expect 1 provider record + 30 license records = 31 total
+            self.assertEqual(31, len(provider_records.provider_records))
 
             # Check that we have all the different record types
             record_types = {record['type'] for record in provider_records.provider_records}
-            self.assertEqual({'provider', 'privilege', 'license'}, record_types)
-
-            # Verify we have all privileges from all jurisdictions
-            privilege_records = provider_records.get_privilege_records()
-            self.assertEqual(30, len(privilege_records))
+            self.assertEqual({'provider', 'license'}, record_types)
 
             # Verify we have all license records
             license_records = provider_records.get_license_records()
@@ -265,54 +241,6 @@ class TestDataClient(TstFunction):
         }
         # Pop dynamic fields that we don't want to assert on
         self.assertEqual(expected_investigation, investigation_record.serialize_to_database_record())
-
-        # Verify privilege record was updated with investigation status
-        privilege_records = provider_user_records.get_privilege_records()
-
-        self.assertEqual(1, len(privilege_records))
-        privilege_record = privilege_records[0]
-        self.assertEqual('underInvestigation', privilege_record.investigationStatus)
-
-        # Verify update record was created
-        update_records = provider_user_records.get_update_records_for_privilege(
-            jurisdiction=privilege_record.jurisdiction,
-            license_type=privilege_record.licenseType,
-        )
-
-        self.assertEqual(1, len(update_records))
-        update_record = update_records[0]
-
-        # Verify the complete update record structure
-        expected_update = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': ANY,
-            'type': 'privilegeUpdate',
-            'updateType': 'investigation',
-            'compact': 'cosm',
-            'providerId': str(provider_id),
-            'jurisdiction': 'ne',
-            'licenseType': 'cosmetologist',
-            'createDate': investigation.creationDate.isoformat(),
-            'effectiveDate': investigation.creationDate.isoformat(),
-            'previous': {
-                'administratorSetStatus': 'active',
-                'dateOfExpiration': '2025-04-04',
-                'dateOfIssuance': '2016-05-05T12:59:59+00:00',
-                'dateOfRenewal': '2020-05-05T12:59:59+00:00',
-                'dateOfUpdate': '2020-05-05T12:59:59+00:00',
-                'licenseJurisdiction': 'oh',
-                'privilegeId': 'COS-NE-1',
-            },
-            'updatedValues': {
-                'investigationStatus': 'underInvestigation',
-            },
-            'investigationDetails': {
-                'investigationId': str(investigation.investigationId),
-            },
-            'dateOfUpdate': ANY,
-        }
-
-        self.assertEqual(expected_update, update_record.serialize_to_database_record())
 
     def test_create_license_investigation_success(self):
         """Test successful creation of license investigation"""
@@ -433,38 +361,6 @@ class TestDataClient(TstFunction):
 
         self.assertEqual(expected_update, update_record.serialize_to_database_record())
 
-    def test_create_privilege_investigation_privilege_not_found(self):
-        """Test creation of privilege investigation when privilege doesn't exist"""
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.schema.investigation import InvestigationData
-        from cc_common.exceptions import CCNotFoundException
-
-        # Load test data, privilege in Nebraska, license in Ohio
-        provider_id = self._load_provider_data()
-
-        client = DataClient(self.config)
-
-        # Create investigation data for non-existent privilege (no privilege in Ohio)
-        investigation = InvestigationData.create_new(
-            {
-                'providerId': str(provider_id),
-                'compact': 'cosm',
-                'jurisdiction': 'oh',
-                'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'cosmetologist',
-                'investigationAgainst': 'privilege',
-                'submittingUser': str(uuid4()),
-                'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
-                'investigationId': str(uuid4()),
-            }
-        )
-
-        # Call the method and expect exception
-        with self.assertRaises(CCNotFoundException) as context:
-            client.create_investigation(investigation)
-
-        self.assertIn('Privilege not found', str(context.exception))
-
     def test_create_license_investigation_license_not_found(self):
         """Test creation of license investigation when license doesn't exist"""
         from cc_common.data_model.data_client import DataClient
@@ -567,59 +463,6 @@ class TestDataClient(TstFunction):
             'dateOfUpdate': ANY,
         }
         self.assertEqual(expected_investigation_close, investigation_record.serialize_to_database_record())
-
-        # Verify privilege record no longer has investigation status
-        privilege_records = provider_user_records.get_privilege_records()
-        self.assertEqual(1, len(privilege_records))
-        privilege_record = privilege_records[0]
-        self.assertIsNone(privilege_record.investigationStatus)
-
-        # Verify update record was created for closure
-        update_records = provider_user_records.get_update_records_for_privilege(
-            jurisdiction='ne',
-            license_type=privilege_record.licenseType,
-        )
-
-        # Should have 2 update records: one for creation, one for closure
-        self.assertEqual(2, len(update_records))
-
-        # Find the closure update record
-        closure_update = None
-        for update_record in update_records:
-            if update_record.updateType == 'closingInvestigation':
-                closure_update = update_record
-                break
-
-        self.assertIsNotNone(closure_update, 'Closure update record not found!')
-
-        # Verify the complete closure update record structure
-        expected_closure_update = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': ANY,
-            'type': 'privilegeUpdate',
-            'updateType': 'closingInvestigation',
-            'compact': 'cosm',
-            'providerId': str(provider_id),
-            'jurisdiction': 'ne',
-            'licenseType': 'cosmetologist',
-            'createDate': investigation.creationDate.isoformat(),
-            'effectiveDate': investigation.creationDate.isoformat(),
-            'previous': {
-                'administratorSetStatus': 'active',
-                'dateOfExpiration': '2025-04-04',
-                'dateOfIssuance': '2016-05-05T12:59:59+00:00',
-                'dateOfRenewal': '2020-05-05T12:59:59+00:00',
-                'dateOfUpdate': '2024-11-08T23:59:59+00:00',
-                'licenseJurisdiction': 'oh',
-                'privilegeId': 'COS-NE-1',
-                'investigationStatus': 'underInvestigation',
-            },
-            'updatedValues': {},
-            'removedValues': ['investigationStatus'],
-            'dateOfUpdate': ANY,
-        }
-
-        self.assertEqual(expected_closure_update, closure_update.serialize_to_database_record())
 
     def test_close_license_investigation_success(self):
         """Test successful closing of license investigation"""

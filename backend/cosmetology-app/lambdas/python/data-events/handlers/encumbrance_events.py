@@ -2,7 +2,7 @@ from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
-from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum, PrivilegeEncumberedStatusEnum
+from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
@@ -124,7 +124,6 @@ def _send_additional_state_notifications(
     notification_method: JurisdictionNotificationMethod,
     notification_type: str,
     *,
-    provider_records: ProviderUserRecords,
     provider_record: ProviderData,
     excluded_jurisdiction: str,
     compact: str,
@@ -135,9 +134,9 @@ def _send_additional_state_notifications(
     **notification_kwargs,
 ) -> None:
     """
-    Send notifications to all other states where the provider has licenses or privileges, if not already sent.
+    Send notifications to all other states that are live in the compact, if not already sent.
+    Uses config live compact jurisdictions.
 
-    :param provider_records: The provider records collection
     :param notification_method: The email service method to call
     :param notification_type: Type of notification for logging
     :param provider_record: The provider record
@@ -149,20 +148,18 @@ def _send_additional_state_notifications(
     :param tracker: NotificationTracker instance for idempotency
     :param notification_kwargs: Additional arguments for the notification method
     """
-    # Query provider's records to find all states where they hold or have held licenses or privileges
-    all_licenses = provider_records.get_license_records()
-    all_privileges = provider_records.get_privilege_records()
-
-    # Get unique jurisdictions (excluding the one already notified)
     notification_jurisdictions = set()
-    for license_record in all_licenses:
-        if license_record.jurisdiction != excluded_jurisdiction:
-            notification_jurisdictions.add(license_record.jurisdiction)
-    for privilege_record in all_privileges:
-        if privilege_record.jurisdiction != excluded_jurisdiction:
-            notification_jurisdictions.add(privilege_record.jurisdiction)
+    live_jurisdictions = config.live_compact_jurisdictions.get(compact)
+    if not live_jurisdictions:
+        message = 'No live jurisdictions found for compact'
+        logger.error(message, compact=compact)
+        raise CCInternalException(message)
 
-    # Send notifications to all other states with provider licenses or privileges
+    for live_jurisdiction in config.live_compact_jurisdictions.get(compact, []):
+        if live_jurisdiction.lower() != excluded_jurisdiction.lower():
+            notification_jurisdictions.add(live_jurisdiction)
+
+    # Send notifications to all other live states
     template_variables = EncumbranceNotificationTemplateVariables(
         provider_first_name=provider_record.givenName,
         provider_last_name=provider_record.familyName,
@@ -230,7 +227,7 @@ def license_encumbrance_listener(message: dict):
 
     compact = detail['compact']
     provider_id = detail['providerId']
-    jurisdiction = detail['jurisdiction']
+    license_jurisdiction = detail['jurisdiction']
     adverse_action_id = detail['adverseActionId']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
     effective_date = detail['effectiveDate']
@@ -238,107 +235,111 @@ def license_encumbrance_listener(message: dict):
     with logger.append_context_keys(
         compact=compact,
         provider_id=provider_id,
-        jurisdiction=jurisdiction,
+        jurisdiction=license_jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         effective_date=effective_date,
         adverse_action_id=adverse_action_id,
     ):
         logger.info('Processing license encumbrance event')
 
-        # Encumber the privileges using the data client method
-        affected_privileges = config.data_client.encumber_home_jurisdiction_license_privileges(
-            compact=compact,
-            provider_id=provider_id,
-            jurisdiction=jurisdiction,
-            license_type_abbreviation=license_type_abbreviation,
-            adverse_action_id=adverse_action_id,
-            effective_date=effective_date,
+        # When a home state license is encumbered, we notify all the other live states in the compact
+        # Since privileges in those states are automatically granted as an extension of the home state license
+        # We publish privilege encumbrance events for each live jurisdiction so they are notified
+        live_jurisdictions = config.live_compact_jurisdictions.get(compact, [])
+        event_bus_client = EventBusClient()
+        published_count = 0
+        with EventBatchWriter(config.events_client) as event_batch_writer:
+            for live_jurisdiction in live_jurisdictions:
+                if live_jurisdiction == license_jurisdiction:
+                    continue
+                logger.info(
+                    'Publishing privilege encumbrance event for affected jurisdiction',
+                    privilege_jurisdiction=live_jurisdiction,
+                )
+                event_bus_client.publish_privilege_encumbrance_event(
+                    source='org.compactconnect.data-events',
+                    compact=compact,
+                    provider_id=provider_id,
+                    jurisdiction=live_jurisdiction,  # The privilege jurisdiction, not the license jurisdiction
+                    license_type_abbreviation=license_type_abbreviation,
+                    effective_date=effective_date,
+                    event_batch_writer=event_batch_writer,
+                )
+                published_count += 1
+
+        logger.info(
+            'Successfully processed license encumbrance event',
+            privilege_encumbrance_events_published=published_count,
         )
-
-        # Publish privilege encumbrance events for each privilege that was encumbered
-        if affected_privileges:
-            event_bus_client = EventBusClient()
-            with EventBatchWriter(config.events_client) as event_batch_writer:
-                for privilege in affected_privileges:
-                    logger.info(
-                        'Publishing privilege encumbrance event for affected privilege',
-                        privilege_jurisdiction=privilege.jurisdiction,
-                    )
-                    event_bus_client.publish_privilege_encumbrance_event(
-                        source='org.compactconnect.data-events',
-                        compact=compact,
-                        provider_id=provider_id,
-                        jurisdiction=privilege.jurisdiction,  # The privilege jurisdiction, not the license jurisdiction
-                        license_type_abbreviation=license_type_abbreviation,
-                        effective_date=effective_date,
-                        event_batch_writer=event_batch_writer,
-                    )
-
-        logger.info('Successfully processed license encumbrance event', privileges_encumbered=len(affected_privileges))
 
 
 @sqs_handler
 def license_encumbrance_lifted_listener(message: dict):
     """
-    Handle license encumbrance lifting events by unencumbering associated privileges.
+    Handle license encumbrance lifting events by publishing privilege encumbrance lifting events.
 
-    This handler processes 'license.encumbranceLifted' events and automatically unencumbers
-    privileges that were encumbered due to the license encumbrance (but not those with
-    their own separate encumbrances), then publishes privilege encumbrance lifting events
-    for each affected privilege.
+    This handler processes 'license.encumbranceLifted' events and publishes privilege encumbrance
+    lifting events for each live jurisdiction in the compact (excluding the home state license
+    jurisdiction) so those states can be notified.
     """
     detail_schema = EncumbranceEventDetailSchema()
     detail = detail_schema.load(message['detail'])
 
     compact = detail['compact']
     provider_id = detail['providerId']
-    jurisdiction = detail['jurisdiction']
+    license_jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
     effective_date = detail['effectiveDate']
 
     with logger.append_context_keys(
         compact=compact,
         provider_id=provider_id,
-        jurisdiction=jurisdiction,
+        jurisdiction=license_jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
         effective_date=effective_date,
     ):
         logger.info('Processing license encumbrance lifting event')
 
-        # lift encumbrances from the privileges associated with this license using the data client method
-        affected_privileges, latest_effective_lift_date = (
-            config.data_client.lift_home_jurisdiction_license_privilege_encumbrances(
-                compact=compact,
-                provider_id=provider_id,
-                jurisdiction=jurisdiction,
-                license_type_abbreviation=license_type_abbreviation,
-            )
+        # Get all provider records
+        provider_user_records = config.data_client.get_provider_user_records(
+            compact=compact, provider_id=provider_id, consistent_read=True
         )
-
-        # Publish privilege encumbrance lifting events for each privilege that was unencumbered
-        if affected_privileges:
-            event_bus_client = EventBusClient()
-            with EventBatchWriter(config.events_client) as event_batch_writer:
-                for privilege in affected_privileges:
-                    logger.info(
-                        'Publishing privilege encumbrance lifting event for affected privilege',
-                        privilege_jurisdiction=privilege.jurisdiction,
-                        latest_effective_lift_date=latest_effective_lift_date,
-                    )
-                    event_bus_client.publish_privilege_encumbrance_lifting_event(
-                        source='org.compactconnect.data-events',
-                        compact=compact,
-                        provider_id=provider_id,
-                        jurisdiction=privilege.jurisdiction,  # The privilege jurisdiction, not the license jurisdiction
-                        license_type_abbreviation=license_type_abbreviation,
-                        # Use the latest effective lift date of all encumbrances, not the event date
-                        effective_date=latest_effective_lift_date,
-                        event_batch_writer=event_batch_writer,
-                    )
-
-        logger.info(
-            'Successfully processed license encumbrance lifting event', privileges_unencumbered=len(affected_privileges)
+        # Verify the license itself is unencumbered before lifting privilege encumbrances
+        # A license may still be encumbered by another adverse action that has not been lifted yet.
+        license_record = provider_user_records.get_specific_license_record(
+            license_jurisdiction, license_type_abbreviation
         )
+        if not license_record:
+            logger.warning('No license record found for the specified jurisdiction and license type')
+            raise CCInternalException('No license record found for the specified jurisdiction and license type')
+
+        if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+            logger.info('License is still encumbered. Not sending privilege encumbrance lift notifications.')
+            return
+
+        # When a home state license encumbrance is lifted, we notify all the other live states in the compact
+        # We publish privilege encumbrance lifting events for each live jurisdiction (excluding home state)
+        live_jurisdictions = config.live_compact_jurisdictions.get(compact, [])
+        event_bus_client = EventBusClient()
+        with EventBatchWriter(config.events_client) as event_batch_writer:
+            for live_jurisdiction in live_jurisdictions:
+                if live_jurisdiction == license_jurisdiction:
+                    continue
+                logger.info(
+                    'Publishing privilege encumbrance lifting event for affected jurisdiction',
+                    privilege_jurisdiction=live_jurisdiction,
+                )
+                event_bus_client.publish_privilege_encumbrance_lifting_event(
+                    source='org.compactconnect.data-events',
+                    compact=compact,
+                    provider_id=provider_id,
+                    jurisdiction=live_jurisdiction,
+                    license_type_abbreviation=license_type_abbreviation,
+                    effective_date=effective_date,
+                    event_batch_writer=event_batch_writer,
+                )
+
+        logger.info('Successfully processed license encumbrance lifting event')
 
 
 @sqs_handler_with_notification_tracking
@@ -392,11 +393,10 @@ def privilege_encumbrance_notification_listener(message: dict, tracker: Notifica
             effective_date=effective_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_encumbrance_state_notification_email,
             'privilege encumbrance',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -445,36 +445,41 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
         # Get provider records to gather notification targets and provider information
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
-        # ensure that all encumbrances have been lifted from this privilege before sending out notifications
-        target_privilege = provider_records.get_specific_privilege_record(
-            jurisdiction=jurisdiction, license_abbreviation=license_type_abbreviation
+        # Ensure that all encumbrances have been lifted from this privilege before sending out notifications.
+        # Derive "still encumbered" from adverse actions: any privilege adverse action without effectiveLiftDate.
+        privilege_adverse_actions = provider_records.get_adverse_action_records_for_privilege(
+            privilege_jurisdiction=jurisdiction,
+            privilege_license_type_abbreviation=license_type_abbreviation,
         )
-        if target_privilege is None:
-            error_message = 'Privilege record not found for lifting event'
-            logger.error(error_message)
-            raise CCInternalException(error_message)
-
-        if (
-            target_privilege.encumberedStatus is not None
-            and target_privilege.encumberedStatus != PrivilegeEncumberedStatusEnum.UNENCUMBERED
-        ):
+        if any(aa.effectiveLiftDate is None for aa in privilege_adverse_actions):
             logger.info(
-                'Privilege record is still encumbered, likely due to a license encumbrance or another adverse '
-                'action. Not sending lift notifications',
-                privilege_encumbered_status=target_privilege.encumberedStatus,
+                'Privilege is still encumbered (one or more adverse actions not lifted). '
+                'Not sending lift notifications',
+                jurisdiction=jurisdiction,
+                license_type_abbreviation=license_type_abbreviation,
             )
             return
 
-        # get latest effective lift date for all adverse actions related to privilege/license
-        # and determine the actual effective date when privilege was effectively unencumbered
+        # Get latest effective lift date for all adverse actions related to privilege/license
+        # and determine the actual effective date when privilege was effectively unencumbered.
+        license_associated_with_privilege = provider_records.find_best_license_in_current_known_licenses(
+            license_type_abbreviation=license_type_abbreviation
+        )
+        if license_associated_with_privilege.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+            logger.info(
+                'License is still encumbered. Not sending privilege encumbrance lift notifications.',
+                jurisdiction=license_associated_with_privilege.jurisdiction,
+            )
+            return
+
         latest_license_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
-            license_jurisdiction=target_privilege.licenseJurisdiction,
-            license_type_abbreviation=target_privilege.licenseTypeAbbreviation,
+            license_jurisdiction=license_associated_with_privilege.jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
         )
 
         latest_privilege_lift_date = provider_records.get_latest_effective_lift_date_for_privilege_adverse_actions(
-            privilege_jurisdiction=target_privilege.jurisdiction,
-            license_type_abbreviation=target_privilege.licenseTypeAbbreviation,
+            privilege_jurisdiction=jurisdiction,
+            license_type_abbreviation=license_type_abbreviation,
         )
 
         if latest_license_lift_date is None and latest_privilege_lift_date is None:
@@ -508,11 +513,10 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
             effective_date=latest_effective_lift_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_privilege_encumbrance_lifting_state_notification_email,
             'privilege encumbrance lifting',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -579,11 +583,10 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
             effective_date=effective_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_license_encumbrance_state_notification_email,
             'license encumbrance',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
@@ -675,11 +678,10 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
             effective_date=latest_effective_lift_date,
         )
 
-        # Send notifications to all other states with provider licenses or privileges
+        # Send notifications to all other states live in the system for the compact
         _send_additional_state_notifications(
             config.email_service_client.send_license_encumbrance_lifting_state_notification_email,
             'license encumbrance lifting',
-            provider_records=provider_records,
             provider_record=provider_record,
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,

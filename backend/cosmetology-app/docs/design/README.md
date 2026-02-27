@@ -7,7 +7,7 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[License Ingest](#license-ingest)**
 - **[User Architecture](#user-architecture)**
 - **[Data Model](#data-model)**
-- **[Privileges](#privileges)**
+- **[Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)**
 - **[Advanced Data Search](#advanced-data-search)**
 - **[CI/CD Pipelines](#cicd-pipelines)**
 - **[Audit Logging](#audit-logging)**
@@ -221,12 +221,6 @@ jurisdiction-level permissions, ensuring consistent access control at token issu
 See README under the [app_clients](../../app_clients/README.md) directory for more information about how
 machine-to-machine app clients are configured and used in the system.
 
-### Licensee Users
-
-Licensee users permissions are much simpler as compared to Compact Users. Their access is entirely based on identity.
-Once their identity has been verified and associated with a licensee in the license data system, they will only have
-permission to view system data that is specific to them. They will be able to apply for and renew privileges to practice
-across jurisdictions, subject to their eligibility.
 
 ## Data Model
 [Back to top](#backend-design)
@@ -244,7 +238,8 @@ pattern. This approach optimizes for:
 
 ### Record Types in Detail
 
-The data model comprises five distinct record types, each with a specific purpose:
+The data model comprises the following stored record types (note: Privileges are not stored in the DB; they are generated at API
+runtime from licenses, adverse actions, and investigations, see [Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)).
 
 1. **Provider Record** (`provider`): The core record containing a provider's foundational information:
    - Personal details (name, DOB, contact information)
@@ -262,14 +257,7 @@ The data model comprises five distinct record types, each with a specific purpos
    - License status (active/inactive, calculated at load time, based on current time, expiry, and other factors)
    - Provider's name and contact details at time of issuance
 
-3. **Privilege Record** (`privilege`): Represents authorizations to practice in other jurisdictions:
-   - Jurisdiction where privilege is granted
-   - Dates of issuance, renewal, and expiration
-   - Status (active/inactive, calculated at load time, based on current time, expiry, and other factors)
-   - Unique privilege identifier
-   - License jurisdiction and type on which the privilege is based
-
-4. **License Update Record** (`licenseUpdate`): Tracks historical changes to licenses:
+3. **License Update Record** (`licenseUpdate`): Tracks historical changes to licenses:
    - Update type (renewal, deactivation, or other)
    - Previous values before the update
    - Updated values that changed
@@ -277,15 +265,18 @@ The data model comprises five distinct record types, each with a specific purpos
    - Timestamp of the update
    - Change hash for uniqueness
 
-5. **Privilege Update Record** (`privilegeUpdate`): Similar to license updates, tracks changes to privileges:
-   - Previous privilege state
-   - Updated values
-   - Timestamp of the update
-   - Change hash for uniqueness
+4. **Provider Update Record** (`providerUpdate`): Tracks historical changes to the provider record (e.g. demographics,
+   home address).
 
-A single query for a provider's partition with a sort key starting with `{compact}#PROVIDER` retrieves all records
-needed to construct a complete view of the provider, including licenses, privileges, and their entire history in the
-system.
+5. **Adverse Action Record** (`adverseAction`): Encumbrances and related actions against a license or privilege
+   (jurisdiction + license type). Used when generating privilege status at runtime.
+
+6. **Investigation Record** (`investigation`): Open or closed investigations against a license or privilege. Used when
+   generating privilege status at runtime.
+
+A single query for a provider's partition with a sort key starting with `{compact}#PROVIDER` retrieves all stored
+records needed to construct a complete view of the provider. Privileges are then derived at read time from licenses,
+adverse actions, and investigations.
 
 ### Historical Tracking
 
@@ -298,8 +289,6 @@ contains:
 - "UPDATE" indicator
 - POSIX timestamp of the change
 - A hash of the previous and updated values for uniqueness
-
-Similarly, privilege changes use sort keys like `aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
 
 This historical tracking allows authorized users to determine a provider's practice eligibility status in any member
 state for any point in time since they entered the system.
@@ -338,50 +327,36 @@ The model incorporates several security and operational features:
 This comprehensive data model enables efficient queries while maintaining complete historical data, supporting both
 operational needs and audit requirements for healthcare provider licensing across jurisdictions.
 
-## Privileges
+## Multi-State License Model / Privilege Generation
 [Back to top](#backend-design)
 
-Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The CompactConnect system manages the privilege lifecycle, including renewals and encumbrance handling. This section provides a comprehensive walkthrough of how privileges work within the system.
+Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The Cosmetology Compact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for the Cosmetology Compact.
+
+Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, the Cosmetology backend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
+
+### Privilege Runtime Generation for Multi-State Licenses
+
+When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Privileges are then generated from that home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. The following flow describes how the home state license is assigned.
+
+([Cosmetology Practitioner License Assignment Flow](./practitioner-home-state-license-assignment.pdf))
+
+
+Licenses are **grouped by license type**. For each type, the system picks the **most recently renewed license** as the effective “home” license for that type. If date of renewal cannot be determined for either license, it falls back to use the most recent date of issuance.
+
+For each such home license (per type), the system generates **one privilege per live compact jurisdiction** except the home jurisdiction. Each privilege’s status (active/inactive, under investigation) is derived from adverse actions for that jurisdiction and license type.
 
 ### Overview of Privilege System
 
 The privilege system is built around several core concepts:
 
-1. **Home Jurisdiction**: The state where a provider holds their primary license
-2. **Privilege Jurisdictions**: Other compact member states where the provider wants to practice
-3. **License-Based Eligibility**: Privileges are tied to specific license types and depend on having a valid, unencumbered license in the home jurisdiction
+1. **Home Jurisdiction (per license type)**: The state of the license that is chosen as the “home” license for that type (see flow above).
+2. **Privilege Jurisdictions**: Other compact member states where the provider can practice under the compact; one generated privilege per (jurisdiction, license type).
+3. **License-Based Eligibility**: Privileges are derived from stored licenses and are only generated when the chosen home license for that type is valid and compact-eligible. Status is then modified by adverse actions and investigations.
 
 #### Adverse Actions and Encumbrance
-The system supports encumbering privileges due to adverse actions:
-- **Privilege-Specific Encumbrance**: Targets individual privileges
-- **License-Based Encumbrance**: If the encumbered license is in the home state, all privileges tied to that license are also encumbered
-
-
-### Privilege History Timeline
-The system presents a timeline of events and updates that happen to a privilege. This will allow users to see the events that impacted the privilege in a chronological order to help make sense of the changes over time.
-
-#### We store the following privilege events / changes in our database:
-- `deactivation`
-- `renewal`
-- `encumbrance`
-- `liftingEncumbrance`
-- `licenseDeactivation`
-
-#### We dynamically calculate the following events for display despite them not explicitly being in the database:
-- `issuance`
-- `expiration`
-
-
-In the timeline, the events are ordered chronologically by their effective datetime. We opted to use a datetime so that events occurring on the same day can be correctly ordered.  For most events their effective datetime is simply when it occurs in the system. However, for the following events there is more complexity:
-- **Encumbrances**
-  - Encumbrances are ordered and shown as having occurred at the effective date uploaded to the system by staff users
-  - The staff users do not upload a time explicitly, but we assign the time to be noon UTC-4:00 so that users across the US will see that same date uploaded by the staff user regardless of timezone
-- **Encumbrances Lifted**
-  - Lifted encumbrances follow the same pattern as encumbrances mentioned above
-- **Expirations**
-  - Expirations are assigned the time of 23:59 UTC-4:00 because a privilege does not expire until the first second of the day after the listed date of expiration
-  - All actions that occurred on that privilege during that day would therefor be correctly placed chronologically before the expiration while retaining the expiration's display date to be the privilege's date of expiration
-
+The system supports encumbering privileges via **stored adverse action records**:
+- **Privilege-specific encumbrance**: An adverse action specifies a jurisdiction and license type; the generated privilege for that jurisdiction/type shows as encumbered until the action is lifted.
+- **License-based encumbrance**: If the home-state license is encumbered, it is ineligible for privileges so none are generated at runtime.
 
 ## Advanced Data Search
 [Back to top](#backend-design)

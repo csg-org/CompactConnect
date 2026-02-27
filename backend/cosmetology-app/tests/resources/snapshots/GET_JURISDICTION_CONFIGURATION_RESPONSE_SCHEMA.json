@@ -39,29 +39,6 @@
       },
       "type": "array"
     },
-    "jurisprudenceRequirements": {
-      "properties": {
-        "required": {
-          "description": "Whether jurisprudence requirements exist",
-          "type": "boolean"
-        },
-        "linkToDocumentation": {
-          "description": "Optional link to jurisprudence documentation",
-          "oneOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      },
-      "required": [
-        "required"
-      ],
-      "type": "object"
-    },
     "licenseeRegistrationEnabled": {
       "description": "Denotes whether licensee registration is enabled",
       "type": "boolean"
@@ -74,7 +51,6 @@
     "jurisdictionOperationsTeamEmails",
     "jurisdictionAdverseActionsNotificationEmails",
     "jurisdictionSummaryReportNotificationEmails",
-    "jurisprudenceRequirements",
     "licenseeRegistrationEnabled"
   ],
   "type": "object",
