@@ -1,7 +1,6 @@
 # ruff: noqa: F403, F405 star import of test constants file
 import json
 from datetime import date, datetime
-from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
 from cc_common.data_model.schema.adverse_action import AdverseActionData
@@ -348,22 +347,11 @@ class TestDataGenerator:
         default_compact_config = {
             'compactAbbr': DEFAULT_COMPACT,
             'compactName': 'Cosmetology',
-            'compactCommissionFee': {
-                'feeAmount': Decimal('10.00'),
-                'feeType': 'FLAT_RATE',
-            },
             'compactOperationsTeamEmails': ['ops@example.com'],
             'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
             'compactSummaryReportNotificationEmails': ['summary@example.com'],
             'licenseeRegistrationEnabled': True,
             'configuredStates': [],
-            'transactionFeeConfiguration': {
-                'licenseeCharges': {
-                    'active': True,
-                    'chargeAmount': Decimal('10.00'),
-                    'chargeType': 'FLAT_FEE_PER_PRIVILEGE',
-                },
-            },
         }
         if value_overrides:
             default_compact_config.update(value_overrides)
@@ -398,10 +386,6 @@ class TestDataGenerator:
             'compact': 'cosm',
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
-            'jurisprudenceRequirements': {
-                'required': True,
-                'linkToDocumentation': 'https://example.com/jurisprudence',
-            },
             'jurisdictionOperationsTeamEmails': ['state-ops@example.com'],
             'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
             'jurisdictionSummaryReportNotificationEmails': ['state-summary@example.com'],
