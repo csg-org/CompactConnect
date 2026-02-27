@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "SearchApi",
-    "version": "2026-02-16T17:23:42Z"
+    "version": "2026-02-25T22:40:54Z"
   },
   "servers": [
     {
@@ -153,13 +153,9 @@
                       "administratorSetStatus",
                       "compact",
                       "dateOfExpiration",
-                      "dateOfIssuance",
-                      "dateOfRenewal",
-                      "dateOfUpdate",
                       "jurisdiction",
                       "licenseJurisdiction",
                       "licenseType",
-                      "privilegeId",
                       "providerId",
                       "status",
                       "type"
@@ -284,11 +280,6 @@
                       "compactTransactionId": {
                         "type": "string"
                       },
-                      "dateOfIssuance": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
-                      },
                       "licenseType": {
                         "type": "string"
                       },
@@ -304,17 +295,9 @@
                         "type": "string",
                         "format": "date"
                       },
-                      "privilegeId": {
-                        "type": "string"
-                      },
                       "providerId": {
                         "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                         "type": "string"
-                      },
-                      "dateOfRenewal": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
                       },
                       "adverseActions": {
                         "type": "array",
@@ -419,10 +402,6 @@
                             }
                           }
                         }
-                      },
-                      "dateOfUpdate": {
-                        "type": "string",
-                        "format": "date-time"
                       },
                       "status": {
                         "type": "string",
