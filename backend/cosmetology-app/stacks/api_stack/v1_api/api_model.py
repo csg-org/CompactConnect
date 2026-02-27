@@ -1208,7 +1208,6 @@ class ApiModel:
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
                     'jurisdictionSummaryReportNotificationEmails',
-                    'jurisprudenceRequirements',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1240,20 +1239,6 @@ class ApiModel:
                         description='List of email addresses for summary report notifications',
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
-                    'jurisprudenceRequirements': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=['required'],
-                        properties={
-                            'required': JsonSchema(
-                                type=JsonSchemaType.BOOLEAN,
-                                description='Whether jurisprudence requirements exist',
-                            ),
-                            'linkToDocumentation': JsonSchema(
-                                one_of=[JsonSchema(type=JsonSchemaType.STRING), JsonSchema(type=JsonSchemaType.NULL)],
-                                description='Optional link to jurisprudence documentation',
-                            ),
-                        },
-                    ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
                         description='Denotes whether licensee registration is enabled',
@@ -1281,7 +1266,6 @@ class ApiModel:
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
                     'jurisdictionSummaryReportNotificationEmails',
-                    'jurisprudenceRequirements',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1308,21 +1292,6 @@ class ApiModel:
                         max_items=10,
                         unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'jurisprudenceRequirements': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        additional_properties=False,
-                        required=['required'],
-                        properties={
-                            'required': JsonSchema(
-                                type=JsonSchemaType.BOOLEAN,
-                                description='Whether jurisprudence requirements exist',
-                            ),
-                            'linkToDocumentation': JsonSchema(
-                                one_of=[JsonSchema(type=JsonSchemaType.STRING), JsonSchema(type=JsonSchemaType.NULL)],
-                                description='Optional link to jurisprudence documentation',
-                            ),
-                        },
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,

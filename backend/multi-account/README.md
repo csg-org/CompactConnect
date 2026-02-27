@@ -183,7 +183,6 @@ We do not want users updating runtime code or deleting critical resources outsid
 				"ec2:DeleteNetworkAclEntry",
 				"ec2:DeleteVpnConnection",
 				"ec2:DeleteVpnGateway",
-				"ec2:DeleteVpcEndpoint",
 				"ec2:DeleteVpcEndpointServiceConfigurations",
 				"ec2:DeleteVpcPeeringConnection",
 				"ec2:DeleteFlowLogs",
