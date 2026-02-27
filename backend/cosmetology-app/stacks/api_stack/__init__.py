@@ -5,6 +5,7 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks import search_persistent_stack as sps
 from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api import LicenseApi
@@ -20,6 +21,7 @@ class ApiStack(AppStack):
         environment_context: dict,
         persistent_stack: ps.PersistentStack,
         api_lambda_stack: ApiLambdaStack,
+        search_persistent_stack: sps.SearchPersistentStack,
         **kwargs,
     ):
         super().__init__(
@@ -35,5 +37,6 @@ class ApiStack(AppStack):
             security_profile=security_profile,
             persistent_stack=persistent_stack,
             api_lambda_stack=api_lambda_stack,
+            search_persistent_stack=search_persistent_stack,
             domain_name=self.api_domain_name,
         )
