@@ -1,16 +1,11 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from marshmallow import Schema, pre_dump
-from marshmallow.fields import Boolean, Email, List, Nested, String
+from marshmallow import pre_dump
+from marshmallow.fields import Boolean, Email, List, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
-
-
-class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
-    required = Boolean(required=True, allow_none=False)
-    linkToDocumentation = String(required=False, allow_none=True)
 
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
@@ -35,9 +30,6 @@ class JurisdictionRecordSchema(BaseRecordSchema):
         allow_none=False,
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
-    jurisprudenceRequirements = Nested(
-        JurisdictionJurisprudenceRequirementsRecordSchema(), required=True, allow_none=False
-    )
 
     # Generated fields
     pk = String(required=True, allow_none=False)

@@ -1,62 +1,7 @@
 # ruff: noqa: N801, N802, N815, ARG002 invalid-name unused-kwargs
 
-from collections import UserDict
-
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
-
-
-class JurisdictionJurisprudenceRequirements(UserDict):
-    """
-    Jurisdiction jurisprudence requirements data model. Used to access variables without needing to know
-    the underlying key structure.
-    """
-
-    @property
-    def required(self) -> bool:
-        return self['required']
-
-
-class Jurisdiction(UserDict):
-    """
-    Jurisdiction configuration data model. Used to access variables without needing to know
-    the underlying key structure.
-
-    Deprecated: This is a legacy class maintained for backward compatibility. For new code, prefer using
-    JurisdictionConfigurationData instead.
-    """
-
-    @property
-    def jurisdiction_name(self) -> str:
-        return self['jurisdictionName']
-
-    @property
-    def postal_abbreviation(self) -> str:
-        return self['postalAbbreviation']
-
-    @property
-    def compact(self) -> str:
-        return self['compact']
-
-    @property
-    def jurisprudence_requirements(self) -> JurisdictionJurisprudenceRequirements:
-        return JurisdictionJurisprudenceRequirements(self.data['jurisprudenceRequirements'])
-
-    @property
-    def jurisdiction_operations_team_emails(self) -> list[str] | None:
-        return self.get('jurisdictionOperationsTeamEmails')
-
-    @property
-    def jurisdiction_adverse_actions_notification_emails(self) -> list[str] | None:
-        return self.get('jurisdictionAdverseActionsNotificationEmails')
-
-    @property
-    def jurisdiction_summary_report_notification_emails(self) -> list[str] | None:
-        return self.get('jurisdictionSummaryReportNotificationEmails')
-
-    @property
-    def licensee_registration_enabled(self):
-        return self.get('licenseeRegistrationEnabled', False)
 
 
 # data class-based implementation
@@ -83,10 +28,6 @@ class JurisdictionConfigurationData(CCDataClass):
     @property
     def compact(self) -> str:
         return self._data['compact']
-
-    @property
-    def jurisprudenceRequirements(self) -> dict:
-        return self._data['jurisprudenceRequirements']
 
     @property
     def jurisdictionOperationsTeamEmails(self) -> list[str]:
