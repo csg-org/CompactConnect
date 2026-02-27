@@ -49,7 +49,6 @@ class ProviderTable(Table):
         self.provider_fam_giv_mid_index_name = 'providerFamGivMid'
         self.provider_date_of_update_index_name = 'providerDateOfUpdate'
         self.license_gsi_name = 'licenseGSI'
-        self.compact_transaction_gsi_name = 'compactTransactionIdGSI'
         self.license_upload_date_gsi_name = 'licenseUploadDateGSI'
 
         self.add_global_secondary_index(
@@ -69,22 +68,6 @@ class ProviderTable(Table):
             partition_key=Attribute(name='licenseGSIPK', type=AttributeType.STRING),
             sort_key=Attribute(name='licenseGSISK', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
-        )
-        self.add_global_secondary_index(
-            index_name=self.compact_transaction_gsi_name,
-            partition_key=Attribute(name='compactTransactionIdGSIPK', type=AttributeType.STRING),
-            # in this case, we only need to include a subset of the total object
-            # since this GSI is used to map compactTransactionIds to privileges
-            projection_type=ProjectionType.INCLUDE,
-            non_key_attributes=[
-                'privilegeId',
-                'updatedValues',
-                'previous',
-                'jurisdiction',
-                'type',
-                'compactTransactionId',
-                'providerId',
-            ],
         )
         # in this case, we only need to include the provider id since this GSI is used to
         # determine which providers were associated with a particular license upload time
