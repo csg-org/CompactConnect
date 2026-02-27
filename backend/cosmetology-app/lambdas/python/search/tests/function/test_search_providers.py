@@ -467,3 +467,274 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual(error_reason, body['message'])
+
+
+@mock_aws
+class TestPublicSearchProviders(TstFunction):
+    """Test suite for public_search_api_handler - public license search via OpenSearch."""
+
+    def setUp(self):
+        super().setUp()
+
+    def _create_public_api_event(self, compact: str, body: dict = None) -> dict:
+        """Create API Gateway event for public query providers (no auth)."""
+        return {
+            'resource': '/v1/public/compacts/{compact}/providers/query',
+            'path': f'/v1/public/compacts/{compact}/providers/query',
+            'httpMethod': 'POST',
+            'headers': {'accept': 'application/json', 'content-type': 'application/json'},
+            'multiValueHeaders': {},
+            'queryStringParameters': None,
+            'pathParameters': {'compact': compact},
+            'requestContext': {
+                'httpMethod': 'POST',
+                'resourcePath': '/v1/public/compacts/{compact}/providers/query',
+            },
+            'body': json.dumps(body) if body else None,
+            'isBase64Encoded': False,
+        }
+
+    def _create_mock_hit_with_inner_hits(
+        self,
+        provider_id: str = '00000000-0000-0000-0000-000000000001',
+        compact: str = 'cosm',
+        jurisdiction: str = 'oh',
+        license_number: str = 'LN123',
+        family_name: str = 'Doe',
+        given_name: str = 'John',
+        sort_values: list = None,
+    ) -> dict:
+        """Create a mock OpenSearch hit with inner_hits for nested licenses."""
+        hit = {
+            '_index': f'compact_{compact}_providers',
+            '_id': provider_id,
+            '_source': {
+                'providerId': provider_id,
+                'compact': compact,
+                'givenName': given_name,
+                'familyName': family_name,
+            },
+            'inner_hits': {
+                'licenses': {
+                    'hits': {
+                        'hits': [
+                            {
+                                '_source': {
+                                    'providerId': provider_id,
+                                    'givenName': given_name,
+                                    'familyName': family_name,
+                                    'jurisdiction': jurisdiction,
+                                    'compact': compact,
+                                    'licenseNumber': license_number,
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+        }
+        if sort_values is not None:
+            hit['sort'] = sort_values
+        return hit
+
+    @patch('handlers.search.opensearch_client')
+    def test_license_number_search_builds_nested_query(self, mock_opensearch_client):
+        """Test that licenseNumber in query builds nested term query on licenses.licenseNumber."""
+        from handlers.search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN999'}, 'pagination': {'pageSize': 10}},
+        )
+        public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertIn('query', call_body)
+        must = call_body['query']['bool']['must']
+        nested = next(m for m in must if 'nested' in m)
+        self.assertEqual('licenses', nested['nested']['path'])
+        inner_must = nested['nested']['query']['bool']['must']
+        self.assertIn({'term': {'licenses.licenseNumber': 'LN999'}}, inner_must)
+
+    @patch('handlers.search.opensearch_client')
+    def test_jurisdiction_and_name_search_builds_nested_query(self, mock_opensearch_client):
+        """Test that jurisdiction and familyName build correct nested query."""
+        from handlers.search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'jurisdiction': 'oh', 'familyName': 'Smith'},
+                'pagination': {'pageSize': 10},
+            },
+        )
+        public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        must = call_body['query']['bool']['must']
+        nested = next(m for m in must if 'nested' in m)
+        inner_must = nested['nested']['query']['bool']['must']
+        self.assertIn({'term': {'licenses.jurisdiction': 'oh'}}, inner_must)
+        self.assertTrue(any('licenses.familyName' in str(m) for m in inner_must))
+
+    @patch('handlers.search.opensearch_client')
+    def test_name_only_search_builds_nested_query(self, mock_opensearch_client):
+        """Test that familyName only builds nested match on licenses.familyName."""
+        from handlers.search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'familyName': 'Jones'}, 'pagination': {'pageSize': 10}},
+        )
+        public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        must = call_body['query']['bool']['must']
+        nested = next(m for m in must if 'nested' in m)
+        inner_must = nested['nested']['query']['bool']['must']
+        self.assertTrue(any('familyName' in str(m) for m in inner_must))
+
+    def test_given_name_without_family_name_returns_400(self):
+        """Test that givenName without familyName returns 400."""
+        from handlers.search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'givenName': 'John'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('familyName is required if givenName is provided', body['message'])
+
+    def test_no_search_criteria_returns_400(self):
+        """Test that at least one of licenseNumber, jurisdiction, or familyName is required."""
+        from handlers.search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('At least one of licenseNumber, jurisdiction, or familyName', body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_pagination_page_size_maps_to_size_and_search_after_from_last_key(self, mock_opensearch_client):
+        """Test that pageSize maps to size and lastKey decodes to search_after."""
+        from base64 import b64encode
+
+        from handlers.search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        last_key_str = b64encode(b'{"search_after": ["doe", "jane", "uuid-123"]}').decode('utf-8')
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'familyName': 'Doe'},
+                'pagination': {'pageSize': 25, 'lastKey': last_key_str},
+            },
+        )
+        public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(25, call_body['size'])
+        self.assertEqual(['doe', 'jane', 'uuid-123'], call_body['search_after'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_response_includes_last_key_when_more_results_and_null_when_done(self, mock_opensearch_client):
+        """Test that lastKey is set when full page returned, null when fewer results than pageSize."""
+        from base64 import b64decode
+
+        from handlers.search import public_search_api_handler
+
+        mock_hit = self._create_mock_hit_with_inner_hits(sort_values=['doe', 'john', '00000000-0000-0000-0000-000000000001'])
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 1}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertIn('lastKey', body['pagination'])
+        self.assertIsNotNone(body['pagination']['lastKey'])
+        decoded = json.loads(b64decode(body['pagination']['lastKey']).decode('utf-8'))
+        self.assertEqual(decoded['search_after'], ['doe', 'john', '00000000-0000-0000-0000-000000000001'])
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event['body'] = json.dumps({'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 100}})
+        response2 = public_search_api_handler(event, self.mock_context)
+        body2 = json.loads(response2['body'])
+        self.assertIsNone(body2['pagination']['lastKey'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_response_contains_only_allowed_license_fields(self, mock_opensearch_client):
+        """Test that each item in providers has only providerId, givenName, familyName, licenseJurisdiction, compact, licenseNumber."""
+        from handlers.search import public_search_api_handler
+
+        mock_hit = self._create_mock_hit_with_inner_hits()
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN123'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual(len(body['providers']), 1)
+        provider = body['providers'][0]
+        allowed = {'providerId', 'givenName', 'familyName', 'licenseJurisdiction', 'compact', 'licenseNumber'}
+        self.assertEqual(set(provider.keys()), allowed)
+        self.assertEqual(provider['licenseJurisdiction'], 'oh')
+        self.assertEqual(provider['licenseNumber'], 'LN123')
+
+    @patch('handlers.search.opensearch_client')
+    def test_compact_mismatch_filtered_out(self, mock_opensearch_client):
+        """Test that hits with compact != path compact are not included in results."""
+        from handlers.search import public_search_api_handler
+
+        mock_hit = self._create_mock_hit_with_inner_hits(compact='other')
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual(body['providers'], [])
+
+    def test_invalid_request_body_returns_400(self):
+        """Test that invalid or missing body returns 400."""
+        from handlers.search import public_search_api_handler
+
+        event = self._create_public_api_event('cosm', body=None)
+        event['body'] = 'not valid json'
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Invalid request', body['message'])
+
+    def test_unsupported_route_returns_400(self):
+        """Test that wrong method/path returns 400."""
+        from handlers.search import public_search_api_handler
+
+        event = self._create_public_api_event('cosm', body={'query': {'familyName': 'x'}})
+        event['resource'] = '/v1/public/compacts/{compact}/providers/other'
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertIn('Unsupported method or resource', json.loads(response['body'])['message'])

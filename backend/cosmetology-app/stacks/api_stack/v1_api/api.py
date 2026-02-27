@@ -4,6 +4,7 @@ from aws_cdk import Stack
 from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 
 from stacks import persistent_stack as ps
+from stacks import search_persistent_stack as sps
 from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
@@ -23,6 +24,7 @@ class V1Api:
         root: IResource,
         persistent_stack: ps.PersistentStack,
         api_lambda_stack: ApiLambdaStack,
+        search_persistent_stack: sps.SearchPersistentStack,
     ):
         super().__init__()
         from stacks.api_stack.api import LicenseApi
@@ -112,6 +114,7 @@ class V1Api:
             resource=self.public_compacts_compact_providers_resource,
             api_model=self.api_model,
             api_lambda_stack=api_lambda_stack,
+            search_persistent_stack=search_persistent_stack,
         )
 
         # /v1/compacts

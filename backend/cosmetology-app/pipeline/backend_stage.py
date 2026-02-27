@@ -114,6 +114,18 @@ class BackendStage(Stage):
             persistent_stack=self.persistent_stack,
         )
 
+        # Search Persistent Stack - OpenSearch Domain (created before ApiStack for public search wiring)
+        self.search_persistent_stack = SearchPersistentStack(
+            self,
+            'SearchPersistentStack',
+            env=environment,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            environment_name=environment_name,
+            vpc_stack=self.vpc_stack,
+            persistent_stack=self.persistent_stack,
+        )
+
         self.api_stack = ApiStack(
             self,
             'APIStack',
@@ -123,6 +135,7 @@ class BackendStage(Stage):
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
             api_lambda_stack=self.api_lambda_stack,
+            search_persistent_stack=self.search_persistent_stack,
         )
 
         self.state_api_stack = StateApiStack(
@@ -189,18 +202,6 @@ class BackendStage(Stage):
             environment_name=environment_name,
             environment_context=environment_context,
             standard_tags=standard_tags,
-        )
-
-        # Search Persistent Stack - OpenSearch Domain for advanced provider search
-        self.search_persistent_stack = SearchPersistentStack(
-            self,
-            'SearchPersistentStack',
-            env=environment,
-            environment_context=environment_context,
-            standard_tags=standard_tags,
-            environment_name=environment_name,
-            vpc_stack=self.vpc_stack,
-            persistent_stack=self.persistent_stack,
         )
 
         self.search_api_stack = SearchApiStack(

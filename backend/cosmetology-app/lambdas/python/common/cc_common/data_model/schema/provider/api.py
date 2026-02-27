@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import ValidationError, validates_schema
+from marshmallow import ValidationError, post_load, validates_schema
 from marshmallow.fields import Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, Range, Regexp
 
@@ -192,6 +192,26 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # Note the lack of `licenses` here: we do not return license data for public endpoints
 
 
+class PublicLicenseSearchResponseSchema(ForgivingSchema):
+    """
+    License object fields returned by the public query providers endpoint (OpenSearch-backed).
+    Used to sanitize license records extracted from inner_hits; jurisdiction is renamed to licenseJurisdiction.
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    jurisdiction = String(required=False, allow_none=False, load_only=True)  # OpenSearch uses jurisdiction
+    licenseJurisdiction = String(required=False, allow_none=False, load_default=None)
+    compact = Compact(required=True, allow_none=False)
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+
+    @post_load
+    def rename_jurisdiction_to_license_jurisdiction(self, data, **kwargs):
+        if 'jurisdiction' in data:
+            data['licenseJurisdiction'] = data.pop('jurisdiction')
+        return data
+
 class QueryProvidersRequestSchema(CCRequestSchema):
     """
     Schema for query providers requests.
@@ -212,6 +232,7 @@ class QueryProvidersRequestSchema(CCRequestSchema):
         jurisdiction = Jurisdiction(required=False, allow_none=False)
         givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
         familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        licenseNumber = String(required=False, allow_none=False, validate=Length(min=1, max=100))
 
     class PaginationSchema(ForgivingSchema):
         """

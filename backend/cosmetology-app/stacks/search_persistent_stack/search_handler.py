@@ -76,6 +76,53 @@ class SearchHandler(Construct):
             alarm_topic=alarm_topic,
         )
 
+        # Create Lambda function for public query providers
+        self.public_handler = PythonFunction(
+            self,
+            'PublicSearchProvidersFunction',
+            description='Public search handler for OpenSearch license queries',
+            index=os.path.join('handlers', 'search.py'),
+            lambda_dir='search',
+            handler='public_search_api_handler',
+            role=lambda_role,
+            log_retention=RetentionDays.ONE_MONTH,
+            environment={
+                'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
+                **stack.common_env_vars,
+            },
+            timeout=Duration.seconds(29),
+            memory_size=2048,
+            vpc=vpc_stack.vpc,
+            vpc_subnets=vpc_subnets,
+            security_groups=[vpc_stack.lambda_security_group],
+            alarm_topic=alarm_topic,
+        )
+        opensearch_domain.grant_read(self.public_handler)
+
+        # Create metric filter and alarm for public handler errors
+        public_error_log_metric = MetricFilter(
+            self,
+            'PublicSearchHandlerErrorLogMetric',
+            log_group=self.public_handler.log_group,
+            metric_namespace='CompactConnect/Search',
+            metric_name='PublicSearchHandlerErrors',
+            filter_pattern=FilterPattern.string_value(json_field='$.level', comparison='=', value='ERROR'),
+            metric_value='1',
+            default_value=0,
+        )
+        public_error_log_alarm = Alarm(
+            self,
+            'PublicSearchHandlerErrorLogAlarm',
+            metric=public_error_log_metric.metric(statistic='Sum'),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description='The Public Search Handler Lambda logged an ERROR level message.',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        )
+        public_error_log_alarm.add_alarm_action(SnsAction(alarm_topic))
+
         # Grant the handler read access to the OpenSearch domain
         opensearch_domain.grant_read(self.handler)
 
