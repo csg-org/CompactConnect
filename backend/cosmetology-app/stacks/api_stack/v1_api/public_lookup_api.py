@@ -5,6 +5,7 @@ from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from cdk_nag import NagSuppressions
 
 from common_constructs.cc_api import CCApi
+from stacks import search_persistent_stack as sps
 from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
@@ -17,6 +18,7 @@ class PublicLookupApi:
         resource: Resource,
         api_model: ApiModel,
         api_lambda_stack: ApiLambdaStack,
+        search_persistent_stack: sps.SearchPersistentStack,
     ):
         super().__init__()
 
@@ -32,9 +34,7 @@ class PublicLookupApi:
             'licenseType'
         ).add_resource('{licenseType}')
 
-        self._add_public_query_providers(
-            api_lambda_stack=api_lambda_stack,
-        )
+        self._add_public_query_providers(search_persistent_stack=search_persistent_stack)
         self._add_public_get_provider(
             api_lambda_stack=api_lambda_stack,
         )
@@ -73,13 +73,10 @@ class PublicLookupApi:
             ],
         )
 
-    def _add_public_query_providers(
-        self,
-        api_lambda_stack: ApiLambdaStack,
-    ):
+    def _add_public_query_providers(self, search_persistent_stack: sps.SearchPersistentStack):
         query_resource = self.resource.add_resource('query')
 
-        handler = api_lambda_stack.public_lookup_lambdas.query_providers_handler
+        handler = search_persistent_stack.search_handler.public_handler
 
         public_query_provider_method = query_resource.add_method(
             'POST',
