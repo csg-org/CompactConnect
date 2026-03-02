@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from tests import TstLambdas
 
 
+@patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
 class TestGeneratePrivilegesForProvider(TstLambdas):
     """Tests for ProviderUserRecords.generate_privileges_for_provider()."""
 
@@ -22,7 +23,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             records.append(lic.serialize_to_database_record())
         return records
 
-    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None, mock_current_date=None):
+    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
         """Patch config used by provider_record_util for privilege generation.
 
         By default, we set the list of live compact jurisdictions to ['al', 'ky', 'oh'].
@@ -34,11 +35,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         """
         if live_compact_jurisdictions is None:
             live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
-        if mock_current_date is None:
-            mock_current_date = date(2025, 6, 1)
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.expiration_resolution_date = mock_current_date
         mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
@@ -66,7 +64,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 }
             ]
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         self.assertEqual(result, [])
@@ -82,11 +80,11 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                     'jurisdiction': 'oh',
                     'licenseType': 'cosmetologist',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
-                    'dateOfExpiration': date(2026, 4, 4),
+                    'dateOfExpiration': date(2026, 2, 28),
                 }
             ]
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         self.assertEqual(len(result), 2)  # al and ky, not oh
@@ -96,7 +94,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                     'administratorSetStatus': 'active',
                     'adverseActions': [],
                     'compact': 'cosm',
-                    'dateOfExpiration': date(2026, 4, 4),
+                    'dateOfExpiration': date(2026, 2, 28),
                     'investigations': [],
                     'jurisdiction': 'al',
                     'licenseJurisdiction': 'oh',
@@ -109,7 +107,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                     'administratorSetStatus': 'active',
                     'adverseActions': [],
                     'compact': 'cosm',
-                    'dateOfExpiration': date(2026, 4, 4),
+                    'dateOfExpiration': date(2026, 2, 28),
                     'investigations': [],
                     'jurisdiction': 'ky',
                     'licenseJurisdiction': 'oh',
@@ -145,7 +143,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 },
             ]
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         # oh is more recent -> home is oh; we get privileges for al and ky only
@@ -179,7 +177,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 },
             ]
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         self.assertEqual(len(result), 2)
@@ -215,7 +213,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         # Remove dateOfRenewal so both licenses use only issuance for selection (schema allows omitted field)
         for rec in records[1:]:
             rec.pop('dateOfRenewal', None)
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         self.assertEqual(len(result), 2)
@@ -243,7 +241,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 },
             ]
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         # cosmetologist: al is home -> privileges for ky, oh (2).
@@ -273,7 +271,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 }
             ]
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         self.assertEqual(result, [])
@@ -292,7 +290,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 }
             ]
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         self.assertEqual(2, len(result))
@@ -319,7 +317,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 value_overrides={'jurisdiction': 'al'}
             ).serialize_to_database_record()
         )
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         self.assertEqual(2, len(result))
@@ -354,7 +352,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             }
         )
         records.append(open_investigation.serialize_to_database_record())
-        with self._patch_config_for_privilege_generation(mock_current_date=date(2025, 1, 1)):
+        with self._patch_config_for_privilege_generation():
             pur = ProviderUserRecords(records)
             result = pur.generate_privileges_for_provider()
         privilege_al = next((p for p in result if p['jurisdiction'] == 'al'), None)

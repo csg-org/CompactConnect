@@ -347,7 +347,7 @@ The following flow describes how the home state license is assigned.
 
 Licenses are **grouped by license type**. For each type, the system picks the **most recently renewed license** as the effective “home” license for that type. If date of renewal cannot be determined for either license, it falls back to use the most recent date of issuance.
 
-For each such home license (per type), the system generates **one privilege per live compact jurisdiction** except the home jurisdiction. Each privilege’s status (active/inactive, under investigation) is derived from adverse actions for that jurisdiction and license type.
+For each such home license (per type), the system generates **one privilege per live compact jurisdiction** except the home jurisdiction. Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for that jurisdiction and license type.
 
 ### Overview of Privilege System
 
