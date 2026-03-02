@@ -15,6 +15,7 @@ from cc_common.data_model.schema.fields import (
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
+
 class PrivilegeGeneralResponseSchema(ForgivingSchema):
     """
     Schema defining fields available to all staff users with only the 'readGeneral' permission.

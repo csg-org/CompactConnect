@@ -7,7 +7,8 @@ from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-    DEFAULT_PRIVILEGE_JURISDICTION, DEFAULT_LICENSE_JURISDICTION,
+    DEFAULT_LICENSE_JURISDICTION,
+    DEFAULT_PRIVILEGE_JURISDICTION,
 )
 from moto import mock_aws
 
@@ -589,6 +590,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
 
         self.assertIsNotNone(investigation.resultingEncumbranceId)
 
+
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
@@ -596,21 +598,20 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
 
     def setUp(self):
         super().setUp()
-        self.set_live_compact_jurisdictions_for_test({'cosm': [
-            DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]})
+        self.set_live_compact_jurisdictions_for_test(
+            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+        )
 
     def _load_license_data(self):
         """Load privilege test data using test data generator"""
         # Load provider record first
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        test_license = self.test_data_generator.put_default_license_record_in_provider_table()
-
-        return test_license
+        return self.test_data_generator.put_default_license_record_in_provider_table()
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_closing_one_of_multiple_investigations_maintains_investigation_status(self, mock_publish_event):
         """Test that closing one investigation while another is open maintains investigation status."""
-        from cc_common.data_model.schema.common import InvestigationStatusEnum, UpdateCategory
+        from cc_common.data_model.schema.common import InvestigationStatusEnum
         from handlers.investigation import investigation_handler
         from handlers.providers import get_provider
 

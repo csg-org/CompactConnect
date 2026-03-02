@@ -25,8 +25,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
     def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None, mock_current_date=None):
         """Patch config used by provider_record_util for privilege generation.
 
-        By default, we set the list of live compact jurisdictions to ['al', 'ky', 'oh']. 
-        
+        By default, we set the list of live compact jurisdictions to ['al', 'ky', 'oh'].
+
         We also set the mock current date to 2025-06-01. The license expiration date is set to 2025-04-04, so
         if the test does not override this the license will be expired and therefore inactive.
 

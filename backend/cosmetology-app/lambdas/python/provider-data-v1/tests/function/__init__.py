@@ -49,6 +49,7 @@ class TstFunction(TstLambdas):
         # Keep provider_record_util's module-level config binding in sync with the
         # new singleton so that generate_privileges_for_provider sees test overrides.
         import cc_common.data_model.provider_record_util
+
         cc_common.data_model.provider_record_util.config = self.config
 
         # Clear the live_compact_jurisdictions cached property so class-level patches or per-test overrides
