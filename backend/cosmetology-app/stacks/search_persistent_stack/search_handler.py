@@ -81,7 +81,7 @@ class SearchHandler(Construct):
             self,
             'PublicSearchProvidersFunction',
             description='Public search handler for OpenSearch license queries',
-            index=os.path.join('handlers', 'search.py'),
+            index=os.path.join('handlers', 'public_search.py'),
             lambda_dir='search',
             handler='public_search_api_handler',
             role=lambda_role,
