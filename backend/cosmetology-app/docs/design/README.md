@@ -336,7 +336,11 @@ Because the list of privilege records for practitioners is dynamically determine
 
 ### Privilege Runtime Generation for Multi-State Licenses
 
-When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Privileges are then generated from that home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. The following flow describes how the home state license is assigned.
+When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Unlike the JCC model, where practitioners register under a specific home state, this Cosmetology system does not currently allow the user to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which license was issued or renewed most recently. Privileges are then generated from that home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. 
+
+This means that if a practitioner has two licenses from two different states, if one is eligible for privileges and the other is not, the system will only generate privileges for that practitioner if the most recently issued/renewed license is eligible for privileges.
+
+The following flow describes how the home state license is assigned.
 
 ([Cosmetology Practitioner License Assignment Flow](./practitioner-home-state-license-assignment.pdf))
 

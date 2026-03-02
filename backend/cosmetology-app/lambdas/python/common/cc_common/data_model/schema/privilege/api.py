@@ -15,23 +15,6 @@ from cc_common.data_model.schema.fields import (
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
-
-class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
-    """
-    A snapshot of a previous state of a privilege object
-
-    Note that none of these fields are required, as there are issuance events returned which do not have a
-    previous state since the record was created for the first time.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
-    dateOfExpiration = Raw(required=False, allow_none=False)
-    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
-
-
 class PrivilegeGeneralResponseSchema(ForgivingSchema):
     """
     Schema defining fields available to all staff users with only the 'readGeneral' permission.

@@ -46,8 +46,13 @@ class TstFunction(TstLambdas):
         self.config = cc_common.config.config
         self.test_data_generator = TestDataGenerator
 
-        # Clear live_compact_jurisdictions cache so class-level patches or per-test overrides
-        # are used on first access instead of a value cached from the table.
+        # Keep provider_record_util's module-level config binding in sync with the
+        # new singleton so that generate_privileges_for_provider sees test overrides.
+        import cc_common.data_model.provider_record_util
+        cc_common.data_model.provider_record_util.config = self.config
+
+        # Clear the live_compact_jurisdictions cached property so class-level patches or per-test overrides
+        # are used on first access instead of a value cached from the compact config table.
         self.config.__dict__.pop('live_compact_jurisdictions', None)
 
         self.addCleanup(self.delete_resources)

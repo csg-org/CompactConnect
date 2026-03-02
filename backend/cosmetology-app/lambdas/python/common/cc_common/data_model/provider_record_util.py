@@ -3,11 +3,7 @@ from datetime import date
 from enum import StrEnum
 from uuid import UUID
 
-# Import the config module (not the config object) so we resolve config at access time via
-# config_module.config. That lets tests replace cc_common.config.config in setUp and have this
-# code reference the test's instance.
-import cc_common.config as config_module
-from cc_common.config import logger
+from cc_common.config import config, logger
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
@@ -443,7 +439,7 @@ class ProviderUserRecords:
         provider = self.get_provider_record()
         compact = provider.compact
         # live_compact_jurisdictions is a cached property, so it will only be fetched once per Lambda lifecycle.
-        live_jurisdictions_for_compact = config_module.config.live_compact_jurisdictions.get(compact, [])
+        live_jurisdictions_for_compact = config.live_compact_jurisdictions.get(compact, [])
 
         if not live_jurisdictions_for_compact:
             logger.debug('no active jurisdictions found in environment.', compact=compact)
@@ -456,13 +452,9 @@ class ProviderUserRecords:
 
         most_recent_licenses_for_each_type: list[LicenseData] = []
         for _lt, licenses in by_type.items():
-            # Sort all licenses of this type: effective_date = dateOfRenewal or dateOfIssuance
-            def _effective_date(lic: LicenseData):
-                return lic.dateOfRenewal if lic.dateOfRenewal is not None else lic.dateOfIssuance
-
             sorted_licenses = sorted(
                 licenses,
-                key=lambda x: (_effective_date(x), x.dateOfIssuance),
+                key=ProviderRecordUtility._license_sort_key,  # noqa: SLF001
                 reverse=True,
             )
             most_recent_license = sorted_licenses[0]
