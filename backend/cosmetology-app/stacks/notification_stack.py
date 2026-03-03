@@ -91,6 +91,7 @@ class NotificationStack(AppStack):
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
                 'EVENT_STATE_TABLE_NAME': event_state_stack.event_state_table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -98,6 +99,7 @@ class NotificationStack(AppStack):
 
         # Grant necessary permissions
         persistent_stack.provider_table.grant_read_data(emailer_event_listener_handler)
+        persistent_stack.compact_configuration_table.grant_read_data(emailer_event_listener_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(emailer_event_listener_handler)
         event_state_stack.event_state_table.grant_read_write_data(emailer_event_listener_handler)
 

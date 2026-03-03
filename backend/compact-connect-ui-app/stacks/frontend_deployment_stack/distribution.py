@@ -132,7 +132,7 @@ class UIDistribution(Distribution):
         csp_function_code = generate_csp_lambda_code(
             persistent_stack_frontend_app_config_values,
             persistent_stack_frontend_app_config_values_cosmetology,
-            provider_users_stack_frontend_app_config_values
+            provider_users_stack_frontend_app_config_values,
         )
 
         self.csp_function = Function(

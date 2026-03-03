@@ -1,24 +1,13 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from marshmallow import Schema, validates_schema
 from marshmallow.fields import Boolean, Email, List, Nested, String
-from marshmallow.validate import Length, OneOf
+from marshmallow.validate import Length
 
-from cc_common.config import config
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.compact.common import (
-    COMPACT_TYPE,
     ConfiguredStateSchema,
     validate_no_duplicates_in_configured_states,
 )
-
-
-class CompactOptionsResponseSchema(ForgivingSchema):
-    """Used to enforce which fields are returned in compact objects for the GET /purchase/privileges/options endpoint"""
-
-    compactAbbr = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    compactName = String(required=True, allow_none=False)
-    type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))
-    isSandbox = Boolean(required=True, allow_none=False)
 
 
 class CompactConfigurationResponseSchema(ForgivingSchema):
