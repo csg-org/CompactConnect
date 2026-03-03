@@ -30,7 +30,7 @@ export enum LicenseType { // Temp server definition until server returns via end
     MENTAL_HEALTH_COUNSELOR = 'licensed mental health counselor',
     CLINICAL_MENTAL_HEALTH_COUNSELOR = 'licensed clinical mental health counselor',
     PROFESSIONAL_CLINICAL_COUNSELOR = 'licensed professional clinical counselor',
-    COSMOTOLOGIST = 'cosmetologist',
+    COSMETOLOGIST = 'cosmetologist',
     ESTHETICIAN = 'esthetician',
 }
 

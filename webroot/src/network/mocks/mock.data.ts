@@ -189,7 +189,7 @@ export const staffAccount = {
                         admin: false,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ne: {
@@ -197,7 +197,7 @@ export const staffAccount = {
                         admin: false,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 oh: {
@@ -205,7 +205,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 nv: {
@@ -213,7 +213,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 ma: {
@@ -221,7 +221,7 @@ export const staffAccount = {
                         admin: true,
                         write: true,
                         readPrivate: true,
-                        readSsn: true,
+                        readSSN: true,
                     },
                 },
                 wy: {
