@@ -189,6 +189,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (this.enableCompactSelect) {
             await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType.value }));
             state.value = '';
+            this.validateAll({ asTouched: false });
         }
     }
 
@@ -220,15 +221,18 @@ class LicenseeSearch extends mixins(MixinForm) {
 
     // Last name is currently optional overall, but required if first name is included; therefore needs this non-trivial validation logic
     customValidateLastName(asTouched = true): void {
+        const { isAppModeJcc } = this;
         const { firstName, lastName } = this.formData;
         const shouldSkip = (asTouched) ? false : !lastName.isTouched;
 
-        if (!shouldSkip && firstName.value && !lastName.value) {
-            lastName.isValid = false;
-            lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
-        } else if (!lastName.isValid) {
-            lastName.isValid = true;
-            lastName.errorMessage = '';
+        if (isAppModeJcc) { // Currently only JCC requires this check
+            if (!shouldSkip && firstName.value && !lastName.value) {
+                lastName.isValid = false;
+                lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
+            } else if (!lastName.isValid) {
+                lastName.isValid = true;
+                lastName.errorMessage = '';
+            }
         }
 
         this.checkValidForAll();
