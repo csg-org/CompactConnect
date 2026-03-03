@@ -22,7 +22,6 @@ const SAMPLE_COMPACT_CONFIG: Compact = {
     compactAbbr: 'cosm',
     compactName: 'Audiology and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
-    compactSummaryReportNotificationEmails: ['summary@example.com'],
     dateOfUpdate: '2024-12-10T19:27:28+00:00',
     type: 'compact'
 };
@@ -34,8 +33,7 @@ const SAMPLE_JURISDICTION_CONFIG = {
     postalAbbreviation: 'oh',
     compact: 'cosm',
     jurisdictionOperationsTeamEmails: ['oh-ops@example.com'],
-    jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com'],
-    jurisdictionSummaryReportNotificationEmails: ['oh-summary@example.com']
+    jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com']
 };
 
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>

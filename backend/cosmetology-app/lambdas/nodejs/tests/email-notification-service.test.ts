@@ -33,7 +33,6 @@ const SAMPLE_COMPACT_CONFIGURATION = {
     'compactAbbr': { S: 'cosm' },
     'compactName': { S: 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
-    'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
     'type': { S: 'compact' }
 };
@@ -42,7 +41,6 @@ const SAMPLE_JURISDICTION_CONFIGURATION = {
     'pk': { S: 'cosm#CONFIGURATION' },
     'sk': { S: 'cosm#JURISDICTION#oh' },
     'jurisdictionName': { S: 'Ohio' },
-    'jurisdictionSummaryReportNotificationEmails': { L: [{ S: 'ohio@example.com' }]},
     'type': { S: 'jurisdiction' }
 };
 

@@ -444,7 +444,7 @@
                                     "response": [
                                         {
                                             "_postman_previewlanguage": "json",
-                                            "body": "{\n  \"compactAbbr\": \"<string>\",\n  \"compactAdverseActionsNotificationEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"compactName\": \"<string>\",\n  \"compactOperationsTeamEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"compactSummaryReportNotificationEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"configuredStates\": [\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"wa\"\n    },\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"va\"\n    }\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}",
+                                            "body": "{\n  \"compactAbbr\": \"<string>\",\n  \"compactAdverseActionsNotificationEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"compactName\": \"<string>\",\n  \"compactOperationsTeamEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"configuredStates\": [\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"wa\"\n    },\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"va\"\n    }\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}",
                                             "code": 200,
                                             "cookie": [],
                                             "header": [
@@ -505,7 +505,7 @@
                                                     "language": "json"
                                                 }
                                             },
-                                            "raw": "{\n  \"compactAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"compactOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"compactSummaryReportNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"configuredStates\": [\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"wa\"\n    },\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"ks\"\n    }\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
+                                            "raw": "{\n  \"compactAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"compactOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"configuredStates\": [\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"wa\"\n    },\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"ks\"\n    }\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
                                         },
                                         "description": {},
                                         "header": [
@@ -567,7 +567,7 @@
                                                             "language": "json"
                                                         }
                                                     },
-                                                    "raw": "{\n  \"compactAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"compactOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"compactSummaryReportNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"configuredStates\": [\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"wa\"\n    },\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"ks\"\n    }\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
+                                                    "raw": "{\n  \"compactAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"compactOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"configuredStates\": [\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"wa\"\n    },\n    {\n      \"isLive\": \"<boolean>\",\n      \"postalAbbreviation\": \"ks\"\n    }\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
                                                 },
                                                 "header": [
                                                     {
@@ -760,7 +760,7 @@
                                                     "response": [
                                                         {
                                                             "_postman_previewlanguage": "json",
-                                                            "body": "{\n  \"compact\": \"cosm\",\n  \"jurisdictionAdverseActionsNotificationEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"jurisdictionName\": \"<string>\",\n  \"jurisdictionOperationsTeamEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"jurisdictionSummaryReportNotificationEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\",\n  \"postalAbbreviation\": \"<string>\"\n}",
+                                                            "body": "{\n  \"compact\": \"cosm\",\n  \"jurisdictionAdverseActionsNotificationEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"jurisdictionName\": \"<string>\",\n  \"jurisdictionOperationsTeamEmails\": [\n    \"<email>\",\n    \"<email>\"\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\",\n  \"postalAbbreviation\": \"<string>\"\n}",
                                                             "code": 200,
                                                             "cookie": [],
                                                             "header": [
@@ -823,7 +823,7 @@
                                                                     "language": "json"
                                                                 }
                                                             },
-                                                            "raw": "{\n  \"jurisdictionAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"jurisdictionOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"jurisdictionSummaryReportNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
+                                                            "raw": "{\n  \"jurisdictionAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"jurisdictionOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
                                                         },
                                                         "description": {},
                                                         "header": [
@@ -897,7 +897,7 @@
                                                                             "language": "json"
                                                                         }
                                                                     },
-                                                                    "raw": "{\n  \"jurisdictionAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"jurisdictionOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"jurisdictionSummaryReportNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
+                                                                    "raw": "{\n  \"jurisdictionAdverseActionsNotificationEmails\": [\n    \"<email>\"\n  ],\n  \"jurisdictionOperationsTeamEmails\": [\n    \"<email>\"\n  ],\n  \"licenseeRegistrationEnabled\": \"<boolean>\"\n}"
                                                                 },
                                                                 "header": [
                                                                     {
