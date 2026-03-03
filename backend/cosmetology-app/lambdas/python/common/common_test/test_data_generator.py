@@ -349,7 +349,6 @@ class TestDataGenerator:
             'compactName': 'Cosmetology',
             'compactOperationsTeamEmails': ['ops@example.com'],
             'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
-            'compactSummaryReportNotificationEmails': ['summary@example.com'],
             'licenseeRegistrationEnabled': True,
             'configuredStates': [],
         }
@@ -388,7 +387,6 @@ class TestDataGenerator:
             'jurisdictionName': 'Kentucky',
             'jurisdictionOperationsTeamEmails': ['state-ops@example.com'],
             'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
-            'jurisdictionSummaryReportNotificationEmails': ['state-summary@example.com'],
             'licenseeRegistrationEnabled': True,
         }
         if value_overrides:

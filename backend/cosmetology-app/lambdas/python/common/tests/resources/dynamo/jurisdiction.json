@@ -7,7 +7,6 @@
   "postalAbbreviation": "oh",
   "jurisdictionOperationsTeamEmails": ["some-operations-team@test.com"],
   "jurisdictionAdverseActionsNotificationEmails": ["some-adverse-actions-notification-team@test.com"],
-  "jurisdictionSummaryReportNotificationEmails": ["some-summary-report-notification-team@test.com"],
   "licenseeRegistrationEnabled": true,
   "dateOfUpdate": "2024-10-04T12:34:56+00:00"
 }

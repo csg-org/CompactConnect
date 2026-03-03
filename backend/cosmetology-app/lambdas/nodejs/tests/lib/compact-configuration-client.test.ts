@@ -17,7 +17,6 @@ const SAMPLE_COMPACT_CONFIGURATION = {
     'compactAbbr': { S: 'cosm' },
     'compactName': { S: 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
-    'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
     'type': { S: 'compact' }
 };
@@ -77,7 +76,6 @@ describe('CompactConfigurationClient', () => {
             compactAbbr: 'cosm',
             compactName: 'Audiology and Speech Language Pathology',
             compactOperationsTeamEmails: ['operations@example.com'],
-            compactSummaryReportNotificationEmails: ['summary@example.com'],
             dateOfUpdate: '2024-12-10T19:27:28+00:00',
             type: 'compact'
         });

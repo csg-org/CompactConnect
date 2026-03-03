@@ -110,6 +110,12 @@ class ApiModel:
                                 max_length=100,
                                 description='Filter for providers with a family name',
                             ),
+                            'licenseNumber': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                min_length=1,
+                                max_length=500,
+                                description='Filter for licenses with a specific license number',
+                            ),
                         },
                     ),
                     'pagination': self._pagination_request_schema,
@@ -1063,7 +1069,6 @@ class ApiModel:
                     'compactName',
                     'compactOperationsTeamEmails',
                     'compactAdverseActionsNotificationEmails',
-                    'compactSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                     'configuredStates',
                 ],
@@ -1080,11 +1085,6 @@ class ApiModel:
                     'compactAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'compactSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
@@ -1130,7 +1130,6 @@ class ApiModel:
                 required=[
                     'compactOperationsTeamEmails',
                     'compactAdverseActionsNotificationEmails',
-                    'compactSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                     'configuredStates',
                 ],
@@ -1146,14 +1145,6 @@ class ApiModel:
                     'compactAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        min_items=1,
-                        max_items=10,
-                        unique_items=True,
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'compactSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         min_items=1,
                         max_items=10,
                         unique_items=True,
@@ -1207,7 +1198,6 @@ class ApiModel:
                     'postalAbbreviation',
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
-                    'jurisdictionSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1232,11 +1222,6 @@ class ApiModel:
                     'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'jurisdictionSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
@@ -1265,7 +1250,6 @@ class ApiModel:
                 required=[
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
-                    'jurisdictionSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1280,14 +1264,6 @@ class ApiModel:
                     'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        min_items=1,
-                        max_items=10,
-                        unique_items=True,
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'jurisdictionSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         min_items=1,
                         max_items=10,
                         unique_items=True,
@@ -1341,7 +1317,7 @@ class ApiModel:
                     'providers': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         max_length=100,
-                        items=self._public_providers_response_schema,
+                        items=self._public_license_search_response_schema,
                     ),
                     'pagination': self._pagination_response_schema,
                     'query': JsonSchema(
@@ -1366,6 +1342,12 @@ class ApiModel:
                                 type=JsonSchemaType.STRING,
                                 max_length=100,
                                 description='Filter for providers with a family name',
+                            ),
+                            'licenseNumber': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                min_length=1,
+                                max_length=100,
+                                description='Filter for licenses with a specific license number',
                             ),
                         },
                     ),
@@ -1656,6 +1638,32 @@ class ApiModel:
             ),
         )
         return self.api._v1_provider_registration_request_model
+
+    @property
+    def _public_license_search_response_schema(self):
+        """Schema for public query providers response."""
+        stack: AppStack = AppStack.of(self.api)
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'providerId',
+                'givenName',
+                'familyName',
+                'licenseJurisdiction',
+                'compact',
+                'licenseNumber',
+            ],
+            properties={
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'licenseJurisdiction': JsonSchema(
+                    type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                ),
+                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            },
+        )
 
     @property
     def _public_providers_response_schema(self):
