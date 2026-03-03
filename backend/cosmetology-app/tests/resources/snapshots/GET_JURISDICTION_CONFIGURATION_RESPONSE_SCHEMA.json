@@ -31,14 +31,6 @@
       },
       "type": "array"
     },
-    "jurisdictionSummaryReportNotificationEmails": {
-      "description": "List of email addresses for summary report notifications",
-      "items": {
-        "format": "email",
-        "type": "string"
-      },
-      "type": "array"
-    },
     "licenseeRegistrationEnabled": {
       "description": "Denotes whether licensee registration is enabled",
       "type": "boolean"
@@ -50,7 +42,6 @@
     "postalAbbreviation",
     "jurisdictionOperationsTeamEmails",
     "jurisdictionAdverseActionsNotificationEmails",
-    "jurisdictionSummaryReportNotificationEmails",
     "licenseeRegistrationEnabled"
   ],
   "type": "object",

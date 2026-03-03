@@ -2533,7 +2533,6 @@
           "jurisdictionAdverseActionsNotificationEmails",
           "jurisdictionName",
           "jurisdictionOperationsTeamEmails",
-          "jurisdictionSummaryReportNotificationEmails",
           "licenseeRegistrationEnabled",
           "postalAbbreviation"
         ],
@@ -2573,14 +2572,6 @@
           "jurisdictionName": {
             "type": "string",
             "description": "The name of the jurisdiction"
-          },
-          "jurisdictionSummaryReportNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
           }
         }
       },
@@ -2745,7 +2736,6 @@
         "required": [
           "jurisdictionAdverseActionsNotificationEmails",
           "jurisdictionOperationsTeamEmails",
-          "jurisdictionSummaryReportNotificationEmails",
           "licenseeRegistrationEnabled"
         ],
         "type": "object",
@@ -2775,17 +2765,6 @@
           "licenseeRegistrationEnabled": {
             "type": "boolean",
             "description": "Denotes whether licensee registration is enabled"
-          },
-          "jurisdictionSummaryReportNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
           }
         },
         "additionalProperties": false
@@ -4443,7 +4422,6 @@
           "compactAdverseActionsNotificationEmails",
           "compactName",
           "compactOperationsTeamEmails",
-          "compactSummaryReportNotificationEmails",
           "configuredStates",
           "licenseeRegistrationEnabled"
         ],
@@ -4482,14 +4460,6 @@
               }
             }
           },
-          "compactSummaryReportNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
           "compactAdverseActionsNotificationEmails": {
             "type": "array",
             "description": "List of email addresses for adverse actions notifications",
@@ -4524,7 +4494,6 @@
         "required": [
           "compactAdverseActionsNotificationEmails",
           "compactOperationsTeamEmails",
-          "compactSummaryReportNotificationEmails",
           "configuredStates",
           "licenseeRegistrationEnabled"
         ],
@@ -4562,17 +4531,6 @@
                 }
               },
               "additionalProperties": false
-            }
-          },
-          "compactSummaryReportNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for summary report notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
             }
           },
           "compactAdverseActionsNotificationEmails": {

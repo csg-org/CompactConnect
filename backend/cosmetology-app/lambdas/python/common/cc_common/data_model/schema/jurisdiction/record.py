@@ -24,11 +24,6 @@ class JurisdictionRecordSchema(BaseRecordSchema):
         required=True,
         allow_none=False,
     )
-    jurisdictionSummaryReportNotificationEmails = List(
-        Email(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
-    )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
     # Generated fields
