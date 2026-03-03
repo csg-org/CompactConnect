@@ -212,9 +212,9 @@ def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict 
             'name': 'licenses',
             'size': MAX_PROVIDER_PAGE_SIZE,
             'sort': [
-                {'licenses.jurisdiction.keyword': 'asc'},
-                {'licenses.licenseType.keyword': 'asc'},
-                {'licenses.licenseNumber.keyword': 'asc'},
+                {'licenses.jurisdiction': 'asc'},
+                {'licenses.licenseType': 'asc'},
+                {'licenses.licenseNumber': 'asc'},
             ],
         }
 

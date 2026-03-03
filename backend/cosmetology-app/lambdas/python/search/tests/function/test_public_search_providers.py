@@ -284,7 +284,7 @@ class TestPublicSearchProviders(TstFunction):
     # --- Custom cursor (license-level page size) tests ---
 
     @patch('handlers.public_search.opensearch_client')
-    def test_providers_array_length_never_exceeds_page_size(self, mock_opensearch_client):
+    def test_providers_array_length_never_exceeds_page_size_large_license_matches(self, mock_opensearch_client):
         """License-level paging: returned providers (license records) must be <= pageSize."""
         from handlers.public_search import public_search_api_handler
 
@@ -309,6 +309,31 @@ class TestPublicSearchProviders(TstFunction):
             'providers array must not exceed pageSize',
         )
         self.assertEqual(len(body['providers']), 10, 'first page should return exactly pageSize when available')
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_providers_array_length_never_exceeds_page_size_when_many_providers_match(self, mock_opensearch_client):
+        """License-level paging: returned providers (license records) must be <= pageSize."""
+        from handlers.public_search import public_search_api_handler
+
+        # One provider with 20 matching licenses; pageSize 10 -> must return exactly 10
+        mock_hits = []
+
+        for i in range(30):
+            mock_hits.append(self._create_mock_hit_with_inner_hits(
+                provider_id=f'pid-{i}',
+                sort_values=['doe', 'john', f'pid-{i}'],
+                inner_license_count=1,
+            ))
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 30, 'relation': 'eq'}, 'hits': mock_hits},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 25}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual(len(body['providers']), 25, 'first page should return exactly pageSize when available')
 
     @patch('handlers.public_search.opensearch_client')
     def test_last_key_uses_cursor_format_with_resume_fields_when_mid_provider(self, mock_opensearch_client):
@@ -363,8 +388,6 @@ class TestPublicSearchProviders(TstFunction):
     @patch('handlers.public_search.opensearch_client')
     def test_resume_from_cursor_skips_license_offset_and_returns_next_page(self, mock_opensearch_client):
         """Using lastKey with license_offset resumes from that provider at offset; next page has no duplicates."""
-        from base64 import b64decode, b64encode
-
         from handlers.public_search import public_search_api_handler
 
         mock_hit = self._create_mock_hit_with_inner_hits(
@@ -399,6 +422,55 @@ class TestPublicSearchProviders(TstFunction):
         first_license_page2 = body2['providers'][0].get('licenseNumber')
         last_license_page1 = body1['providers'][-1].get('licenseNumber')
         self.assertNotEqual(first_license_page2, last_license_page1, 'no duplicate at boundary')
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_resume_from_cursor_skips_license_offset_and_returns_next_page_multi_provider(self, mock_opensearch_client):
+        """Using lastKey with license_offset resumes from that provider at offset; next page has no duplicates."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_hits = []
+        # this sets up five providers that match, each with two licenses (10 total)
+        for i in range(5):
+            mock_hits.append(self._create_mock_hit_with_inner_hits(
+                provider_id=f'pid-{i}',
+                license_number=f'LIC-{i}',
+                sort_values=['doe', 'john', f'pid-{i}'],
+                inner_license_count=2,
+            ))
+        # This mock simulates the first request returning all matching providers, then the second request returning the
+        # remaining 3 after the search_after cursor is applied.
+        mock_opensearch_client.search.side_effect = [
+            {
+                'hits': {'total': {'value': 5, 'relation': 'eq'}, 'hits': mock_hits},
+            },
+            {
+                'hits': {'total': {'value': 3, 'relation': 'eq'}, 'hits': mock_hits[2:]},
+            }
+        ]
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 5}},
+        )
+        response1 = public_search_api_handler(event, self.mock_context)
+        body1 = json.loads(response1['body'])
+        self.assertEqual(len(body1['providers']), 5)
+        last_key = body1['pagination']['lastKey']
+        self.assertIsNotNone(last_key)
+
+        # Second request with lastKey: same single provider hit returned by OpenSearch; we resume at offset 25
+        event2 = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'familyName': 'Doe'},
+                'pagination': {'pageSize': 5, 'lastKey': last_key},
+            },
+        )
+        response2 = public_search_api_handler(event2, self.mock_context)
+        body2 = json.loads(response2['body'])
+        self.assertEqual(len(body2['providers']), 5, 'remaining 5 licenses')
+        first_license_page2 = body2['providers'][0].get('licenseNumber')
+        last_license_page1 = body1['providers'][-1].get('licenseNumber')
+        self.assertNotEqual(first_license_page2, last_license_page1, 'duplicate license numbers detected when paging')
 
     @patch('handlers.public_search.opensearch_client')
     def test_invalid_last_key_format_returns_400(self, mock_opensearch_client):
