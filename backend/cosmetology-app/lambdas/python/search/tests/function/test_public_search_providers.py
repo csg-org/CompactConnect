@@ -5,6 +5,7 @@ from moto import mock_aws
 
 from . import TstFunction
 
+
 @mock_aws
 class TestPublicSearchProviders(TstFunction):
     """Test suite for public_search_api_handler - public license search via OpenSearch."""
@@ -42,21 +43,24 @@ class TestPublicSearchProviders(TstFunction):
         inner_license_count: int = 1,
     ) -> dict:
         """Create a mock OpenSearch hit with inner_hits for nested licenses.
-        inner_license_count: number of license inner hits (deterministic order: jurisdiction, licenseType, licenseNumber).
+        inner_license_count: number of license inner hits
+        (deterministic order: jurisdiction, licenseType, licenseNumber).
         """
         inner_sources = []
         for i in range(inner_license_count):
-            inner_sources.append({
-                '_source': {
-                    'providerId': provider_id,
-                    'givenName': given_name,
-                    'familyName': family_name,
-                    'jurisdiction': jurisdiction,
-                    'compact': compact,
-                    'licenseNumber': f'{license_number}-{i}' if inner_license_count > 1 else license_number,
-                    'licenseType': f'type{i}',
+            inner_sources.append(
+                {
+                    '_source': {
+                        'providerId': provider_id,
+                        'givenName': given_name,
+                        'familyName': family_name,
+                        'jurisdiction': jurisdiction,
+                        'compact': compact,
+                        'licenseNumber': f'{license_number}-{i}' if inner_license_count > 1 else license_number,
+                        'licenseType': f'type{i}',
+                    }
                 }
-            })
+            )
         hit = {
             '_index': f'compact_{compact}_providers',
             '_id': provider_id,
@@ -198,7 +202,9 @@ class TestPublicSearchProviders(TstFunction):
 
         from handlers.public_search import public_search_api_handler
 
-        mock_hit = self._create_mock_hit_with_inner_hits(sort_values=['doe', 'john', '00000000-0000-0000-0000-000000000001'])
+        mock_hit = self._create_mock_hit_with_inner_hits(
+            sort_values=['doe', 'john', '00000000-0000-0000-0000-000000000001']
+        )
         mock_opensearch_client.search.return_value = {
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
@@ -223,7 +229,7 @@ class TestPublicSearchProviders(TstFunction):
 
     @patch('handlers.public_search.opensearch_client')
     def test_response_contains_only_allowed_license_fields(self, mock_opensearch_client):
-        """Test that each item in providers has only providerId, givenName, familyName, licenseJurisdiction, compact, licenseNumber."""
+        """Test that each item in providers has only expected fields."""
         from handlers.public_search import public_search_api_handler
 
         mock_hit = self._create_mock_hit_with_inner_hits()
@@ -319,11 +325,13 @@ class TestPublicSearchProviders(TstFunction):
         mock_hits = []
 
         for i in range(30):
-            mock_hits.append(self._create_mock_hit_with_inner_hits(
-                provider_id=f'pid-{i}',
-                sort_values=['doe', 'john', f'pid-{i}'],
-                inner_license_count=1,
-            ))
+            mock_hits.append(
+                self._create_mock_hit_with_inner_hits(
+                    provider_id=f'pid-{i}',
+                    sort_values=['doe', 'john', f'pid-{i}'],
+                    inner_license_count=1,
+                )
+            )
         mock_opensearch_client.search.return_value = {
             'hits': {'total': {'value': 30, 'relation': 'eq'}, 'hits': mock_hits},
         }
@@ -337,7 +345,7 @@ class TestPublicSearchProviders(TstFunction):
 
     @patch('handlers.public_search.opensearch_client')
     def test_last_key_uses_cursor_format_with_resume_fields_when_mid_provider(self, mock_opensearch_client):
-        """lastKey when mid-provider includes resume_provider_sort, resume_provider_id, license_offset; search_after optional."""
+        """lastKey when mid-provider includes expected pagination fields."""
         from base64 import b64decode
 
         from handlers.public_search import public_search_api_handler
@@ -431,12 +439,14 @@ class TestPublicSearchProviders(TstFunction):
         mock_hits = []
         # this sets up five providers that match, each with two licenses (10 total)
         for i in range(5):
-            mock_hits.append(self._create_mock_hit_with_inner_hits(
-                provider_id=f'pid-{i}',
-                license_number=f'LIC-{i}',
-                sort_values=['doe', 'john', f'pid-{i}'],
-                inner_license_count=2,
-            ))
+            mock_hits.append(
+                self._create_mock_hit_with_inner_hits(
+                    provider_id=f'pid-{i}',
+                    license_number=f'LIC-{i}',
+                    sort_values=['doe', 'john', f'pid-{i}'],
+                    inner_license_count=2,
+                )
+            )
         # This mock simulates the first request returning all matching providers, then the second request returning the
         # remaining 3 after the search_after cursor is applied.
         mock_opensearch_client.search.side_effect = [
@@ -445,7 +455,7 @@ class TestPublicSearchProviders(TstFunction):
             },
             {
                 'hits': {'total': {'value': 3, 'relation': 'eq'}, 'hits': mock_hits[2:]},
-            }
+            },
         ]
         event = self._create_public_api_event(
             'cosm',

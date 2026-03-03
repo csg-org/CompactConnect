@@ -212,6 +212,7 @@ class PublicLicenseSearchResponseSchema(ForgivingSchema):
             data['licenseJurisdiction'] = data.pop('jurisdiction')
         return data
 
+
 class QueryProvidersRequestSchema(CCRequestSchema):
     """
     Schema for query providers requests.
