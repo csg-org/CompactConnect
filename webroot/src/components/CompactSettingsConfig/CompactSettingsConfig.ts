@@ -77,6 +77,14 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
     }

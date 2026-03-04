@@ -15,25 +15,35 @@
         <form v-else class="state-config-form" @submit.prevent="handleSubmit(false)">
             <div class="state-config-form-container">
                 <!-- Privilege fees -->
-                <h2 class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
+                <h2 v-if="isAppModeJcc" class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                <InputText
-                    v-for="(formInput) in feeInputs"
-                    :key="formInput.id"
-                    :formInput="formInput"
-                    class="form-row currency"
-                    @input="formatInput(formInput)"
-                    @blur="formatBlur(formInput, formInput.id.endsWith('military'))"
-                />
+                <template v-if="isAppModeJcc">
+                    <InputText
+                        v-for="(formInput) in feeInputs"
+                        :key="formInput.id"
+                        :formInput="formInput"
+                        class="form-row currency"
+                        @input="formatInput(formInput)"
+                        @blur="formatBlur(formInput, formInput.id.endsWith('military'))"
+                    />
+                </template>
                 <!-- Jurisprudence -->
-                <h2 class="form-section-title jurisprudence">{{ $t('compact.jurisprudence') }}</h2>
-                <InputRadioGroup :formInput="formData.isJurisprudenceExamRequired" class="form-row" />
-                <InputText :formInput="formData.jurisprudenceInfoLink" class="form-row jurisprudence-info-link" />
+                <h2 v-if="isAppModeJcc" class="form-section-title jurisprudence">{{ $t('compact.jurisprudence') }}</h2>
+                <InputRadioGroup
+                    v-if="isAppModeJcc"
+                    :formInput="formData.isJurisprudenceExamRequired"
+                    class="form-row"
+                />
+                <InputText
+                    v-if="isAppModeJcc"
+                    :formInput="formData.jurisprudenceInfoLink"
+                    class="form-row jurisprudence-info-link"
+                />
                 <!-- Notifications -->
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
-                <InputEmailList :formInput="formData.summaryReportNotificationEmails" />
+                <InputEmailList v-if="isAppModeJcc" :formInput="formData.summaryReportNotificationEmails" />
                 <button
                     class="btn-catch-email-lists"
                     @click.stop.prevent="() => null"
