@@ -246,9 +246,10 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.checkValidForAll();
     }
 
-    resetForm(): void {
+    async resetForm(): Promise<void> {
         if (this.enableCompactSelect) {
             this.formData.compact.value = '';
+            await this.$store.dispatch('user/setCurrentCompact', null);
         }
 
         this.formData.firstName.value = '';

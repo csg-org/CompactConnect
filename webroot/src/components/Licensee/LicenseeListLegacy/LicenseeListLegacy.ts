@@ -124,14 +124,14 @@ class LicenseeList extends Vue {
     }
 
     get searchDisplayAll(): string {
-        const joined = [
+        return [
             this.searchDisplayCompact,
             this.searchDisplayFullName,
             this.searchDisplayState,
             this.searchDisplayLicenseNumber
-        ].join(', ').trim();
-
-        return joined.replace(/(^[,\s]+)|([,\s]+$)/g, '').replace(/(,\s)\1+/g, ', '); // Replace repeated commas with single comma
+        ]
+            .filter((displayPart) => !!displayPart?.trim())
+            .join(', ').trim();
     }
 
     get sortOptions(): Array<any> {
@@ -296,7 +296,7 @@ class LicenseeList extends Vue {
         if (searchParams?.state) {
             requestConfig.jurisdiction = searchParams.state.toLowerCase();
         }
-        if (searchParams?.licenseNumber) {
+        if (this.isAppModeCosmetology && searchParams?.licenseNumber) {
             requestConfig.licenseNumber = searchParams.licenseNumber;
         }
 
