@@ -105,58 +105,33 @@ class LicenseeList extends Vue {
         return (this.isPublicSearch) ? this.userStore.currentCompact?.abbrev() || '' : '';
     }
 
-    get searchDisplayFirstName(): string {
-        const delimiter = (this.searchDisplayCompact) ? ', ' : '';
-        let displayFirstName = '';
+    get searchDisplayFullName(): string {
+        const { firstName = '', lastName = '' } = this.searchParams;
 
-        if (this.searchParams.firstName) {
-            displayFirstName = `${delimiter}${this.searchParams.firstName}` || '';
-        }
-
-        return displayFirstName;
-    }
-
-    get searchDisplayLastName(): string {
-        const delimiter = (this.searchDisplayCompact && !this.searchDisplayFirstName) ? ', ' : '';
-        const subDelimiter = (this.searchDisplayFirstName) ? ' ' : '';
-        let displayLastName = '';
-
-        if (this.searchParams.lastName) {
-            displayLastName = `${delimiter}${subDelimiter}${this.searchParams.lastName}` || '';
-        }
-
-        return displayLastName;
+        return `${firstName} ${lastName}`.trim();
     }
 
     get searchDisplayState(): string {
         const { state } = this.searchParams;
-        const { searchDisplayCompact, searchDisplayFirstName, searchDisplayLastName } = this;
-        const delimiter = (searchDisplayCompact || searchDisplayFirstName || searchDisplayLastName) ? ', ' : '';
-        let displayState = '';
 
-        if (state) {
-            const stateModel = new State({ abbrev: state });
+        return (state) ? `${new State({ abbrev: state }).name()}` : '';
+    }
 
-            displayState = `${delimiter}${stateModel.name()}`;
-        }
+    get searchDisplayLicenseNumber(): string {
+        const { licenseNumber = '' } = this.searchParams;
 
-        return displayState;
+        return (licenseNumber) ? `${this.$t('licensing.licenseNumSymbol')}: ${licenseNumber}`.trim() : '';
     }
 
     get searchDisplayAll(): string {
-        const {
-            searchDisplayCompact,
-            searchDisplayFirstName,
-            searchDisplayLastName,
-            searchDisplayState
-        } = this;
-
         return [
-            searchDisplayCompact,
-            searchDisplayFirstName,
-            searchDisplayLastName,
-            searchDisplayState
-        ].join('').trim();
+            this.searchDisplayCompact,
+            this.searchDisplayFullName,
+            this.searchDisplayState,
+            this.searchDisplayLicenseNumber
+        ]
+            .filter((displayPart) => !!displayPart?.trim())
+            .join(', ').trim();
     }
 
     get sortOptions(): Array<any> {
@@ -321,7 +296,7 @@ class LicenseeList extends Vue {
         if (searchParams?.state) {
             requestConfig.jurisdiction = searchParams.state.toLowerCase();
         }
-        if (searchParams?.licenseNumber) {
+        if (this.isAppModeCosmetology && searchParams?.licenseNumber) {
             requestConfig.licenseNumber = searchParams.licenseNumber;
         }
 

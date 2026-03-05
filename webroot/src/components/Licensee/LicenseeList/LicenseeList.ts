@@ -197,6 +197,12 @@ class LicenseeList extends Vue {
         return (npi) ? `${this.$t('licensing.npi')}: ${npi}`.trim() : '';
     }
 
+    get searchDisplayLicenseNumber(): string {
+        const { licenseNumber = '' } = this.searchParams;
+
+        return (licenseNumber) ? `${this.$t('licensing.licenseNumSymbol')}: ${licenseNumber}`.trim() : '';
+    }
+
     get searchDisplayAll(): string {
         const joined = [
             this.searchDisplayCompact,
@@ -207,7 +213,8 @@ class LicenseeList extends Vue {
             this.searchDisplayMilitaryStatus,
             this.searchDisplayInvestigationStatus,
             this.searchDisplayEncumberDates,
-            this.searchDisplayNpi
+            this.searchDisplayNpi,
+            this.searchDisplayLicenseNumber
         ].join(', ').trim();
 
         return joined.replace(/(^[,\s]+)|([,\s]+$)/g, '').replace(/(,\s)\1+/g, ', '); // Replace repeated commas with single comma
