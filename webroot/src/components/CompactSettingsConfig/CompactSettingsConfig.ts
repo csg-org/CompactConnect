@@ -139,12 +139,16 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     }
 
     initFormInputs(): void {
+        const { isAppModeJcc } = this;
+
         this.formData = reactive({
             compactFee: new FormInput({
                 id: 'compact-fee',
                 name: 'compact-fee',
                 label: computed(() => this.$t('compact.compactFee')),
-                validation: Joi.number().required().min(0).messages(this.joiMessages.currency),
+                validation: (isAppModeJcc)
+                    ? Joi.number().required().min(0).messages(this.joiMessages.currency)
+                    : Joi.any(),
                 value: this.initialCompactConfig?.compactCommissionFee?.feeAmount,
             }),
             creditCardTransactionFee: new FormInput({
@@ -178,7 +182,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 label: computed(() => this.$t('compact.summaryReportEmails')),
                 labelSubtext: computed(() => this.$t('compact.summaryReportEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
-                validation: Joi.array().min(1).messages(this.joiMessages.array),
+                validation: Joi.array().min(isAppModeJcc ? 1 : 0).messages(this.joiMessages.array),
                 value: this.initialCompactConfig?.compactSummaryReportNotificationEmails || [],
             }),
             isRegistrationEnabled: new FormInput({
@@ -249,23 +253,28 @@ class CompactSettingsConfig extends mixins(MixinForm) {
             isRegistrationEnabled,
         } = this.formValues;
         const payload: CompactConfig = {
-            compactCommissionFee: {
-                feeType: FeeType.FLAT_RATE,
-                feeAmount: Number(compactFee),
-            },
+            // Common config fields
             compactOperationsTeamEmails: opsNotificationEmails,
             compactAdverseActionsNotificationEmails: adverseActionNotificationEmails,
-            compactSummaryReportNotificationEmails: summaryReportNotificationEmails,
-            transactionFeeConfiguration: {
+            licenseeRegistrationEnabled: isRegistrationEnabled,
+            configuredStates: this.initialCompactConfig?.configuredStates || [],
+        };
+
+        // Per compact config fields
+        if (this.isAppModeJcc) {
+            payload.compactCommissionFee = {
+                feeType: FeeType.FLAT_RATE,
+                feeAmount: Number(compactFee),
+            };
+            payload.transactionFeeConfiguration = {
                 licenseeCharges: {
                     active: true,
                     chargeType: FeeType.FLAT_FEE_PER_PRIVILEGE,
                     chargeAmount: Number(creditCardTransactionFee),
                 },
-            },
-            licenseeRegistrationEnabled: isRegistrationEnabled,
-            configuredStates: this.initialCompactConfig?.configuredStates || [],
-        };
+            };
+            payload.compactSummaryReportNotificationEmails = summaryReportNotificationEmails;
+        }
 
         // Call the server API to update
         await dataApi.updateCompactConfig(compact, payload).catch((err) => {
@@ -335,12 +344,17 @@ class CompactSettingsConfig extends mixins(MixinForm) {
     }
 
     async mockPopulate(): Promise<void> {
-        this.populateFormInput(this.formData.compactFee, 5.55);
-        this.populateFormInput(this.formData.creditCardTransactionFee, 5);
+        // Common compact configs
         this.populateFormInput(this.formData.opsNotificationEmails, ['ops@example.com']);
         this.populateFormInput(this.formData.adverseActionNotificationEmails, ['adverse@example.com']);
-        this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);
         this.populateFormInput(this.formData.isRegistrationEnabled, true);
+
+        // Per compact configs
+        if (this.isAppModeJcc) {
+            this.populateFormInput(this.formData.compactFee, 5.55);
+            this.populateFormInput(this.formData.creditCardTransactionFee, 5);
+            this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);
+        }
     }
 
     //
