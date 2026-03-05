@@ -124,7 +124,7 @@ export class LicenseDataApi implements DataApiInterface {
             sortBy,
             sortDirection,
         } = params;
-        const hasSearchTerms = Boolean(licenseeId || licenseeFirstName || licenseeLastName);
+        const hasSearchTerms = Boolean(licenseeId || licenseeFirstName || licenseeLastName || licenseNumber);
         const requestParams: RequestParamsInterfaceRemote = { query: {}};
 
         if (jurisdiction) {
