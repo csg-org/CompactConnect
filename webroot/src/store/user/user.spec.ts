@@ -1074,7 +1074,7 @@ describe('User Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_CURRENT_COMPACT, null]);
         expect(dispatch.callCount, 'dispatch').to.equal(0);
     });
-    it('should successfully set current compact (with compact)', async () => {
+    it('should successfully set current compact (with compact - jcc)', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const compact = new Compact({ type: CompactType.ASLP });
@@ -1083,8 +1083,24 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce, 'commit').to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact]);
-        expect(dispatch.callCount, 'dispatch').to.equal(1);
-        expect([dispatch.firstCall.args[0]]).to.matchPattern(['getCompactStatesRequest']);
+        expect(dispatch.callCount, 'dispatch').to.equal(2);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['setAppMode']);
+        expect([dispatch.firstCall.args[1]]).to.matchPattern([AppModes.JCC]);
+        expect([dispatch.secondCall.args[0]]).to.matchPattern(['getCompactStatesRequest']);
+    });
+    it('should successfully set current compact (with compact - cosmetology)', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = new Compact({ type: CompactType.COSMETOLOGY });
+
+        await actions.setCurrentCompact({ commit, dispatch }, compact);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact]);
+        expect(dispatch.callCount, 'dispatch').to.equal(2);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['setAppMode']);
+        expect([dispatch.firstCall.args[1]]).to.matchPattern([AppModes.COSMETOLOGY]);
+        expect([dispatch.secondCall.args[0]]).to.matchPattern(['getCompactStatesRequest']);
     });
     it('should successfully start updateHomeJurisdictionRequest', async () => {
         const commit = sinon.spy();

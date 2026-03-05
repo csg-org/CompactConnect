@@ -15,15 +15,17 @@
         <form v-else class="compact-config-form" @submit.prevent="handleSubmit(false)">
             <div class="compact-config-form-container">
                 <!-- Privilege fees -->
-                <h2 class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
+                <h2 v-if="isAppModeJcc" class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                 <InputText
+                    v-if="isAppModeJcc"
                     :formInput="formData.compactFee"
                     class="form-row currency"
                     @input="formatInput(formData.compactFee)"
                     @blur="formatBlur(formData.compactFee)"
                 />
                 <InputText
+                    v-if="isAppModeJcc"
                     :formInput="formData.creditCardTransactionFee"
                     class="form-row currency"
                     @input="formatInput(formData.creditCardTransactionFee)"
@@ -33,7 +35,7 @@
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
-                <InputEmailList :formInput="formData.summaryReportNotificationEmails" />
+                <InputEmailList v-if="isAppModeJcc" :formInput="formData.summaryReportNotificationEmails" />
                 <button
                     class="btn-catch-email-lists"
                     @click.stop.prevent="() => null"

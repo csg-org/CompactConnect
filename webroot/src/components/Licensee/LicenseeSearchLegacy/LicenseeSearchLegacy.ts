@@ -12,12 +12,14 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { reactive, computed, nextTick } from 'vue';
+import { AppModes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import SearchIcon from '@components/Icons/LicenseSearchAlt/LicenseSearchAlt.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
@@ -28,6 +30,7 @@ export interface LicenseSearchLegacy {
     firstName?: string;
     lastName?: string;
     state?: string;
+    licenseNumber?: string;
 }
 
 @Component({
@@ -37,6 +40,7 @@ export interface LicenseSearchLegacy {
         InputSelect,
         InputSubmit,
         SearchIcon,
+        MockPopulate,
     },
     emits: [ 'searchParams' ],
 })
@@ -54,8 +58,28 @@ class LicenseeSearch extends mixins(MixinForm) {
     //
     // Computed
     //
+    get globalStore() {
+        return this.$store.state;
+    }
+
     get userStore() {
         return this.$store.state.user;
+    }
+
+    get appMode(): AppModes {
+        return this.globalStore.appMode;
+    }
+
+    get AppModes(): typeof AppModes {
+        return AppModes;
+    }
+
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
     }
 
     get compactType(): CompactType | null {
@@ -101,6 +125,10 @@ class LicenseeSearch extends mixins(MixinForm) {
         return compactMemberStates;
     }
 
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
+    }
+
     //
     // Methods
     //
@@ -132,6 +160,15 @@ class LicenseeSearch extends mixins(MixinForm) {
                 value: this.searchParams.state || '',
                 isDisabled: computed(() => this.enableCompactSelect && !this.compactType),
             }),
+            licenseNumber: new FormInput({
+                id: 'license-number',
+                name: 'license-number',
+                label: computed(() => this.$t('licensing.licenseNumber')),
+                placeholder: '',
+                validation: Joi.string().min(0).max(100).messages(this.joiMessages.string),
+                value: this.searchParams.licenseNumber || '',
+                enforceMax: true,
+            }),
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -158,6 +195,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (this.enableCompactSelect) {
             await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType.value }));
             state.value = '';
+            this.validateAll({ asTouched: false });
         }
     }
 
@@ -168,13 +206,19 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
+            const searchProps: LicenseSearchLegacy = {};
             const allowedSearchProps = [
+                // Common search props
                 'compact',
                 'firstName',
                 'lastName',
                 'state'
             ];
-            const searchProps: LicenseSearchLegacy = {};
+
+            // Per compact search props
+            if (this.appMode === AppModes.COSMETOLOGY) {
+                allowedSearchProps.push('licenseNumber');
+            }
 
             allowedSearchProps.forEach((searchProp) => { searchProps[searchProp] = this.formValues[searchProp]; });
             this.$emit('searchParams', searchProps);
@@ -185,18 +229,62 @@ class LicenseeSearch extends mixins(MixinForm) {
 
     // Last name is currently optional overall, but required if first name is included; therefore needs this non-trivial validation logic
     customValidateLastName(asTouched = true): void {
+        const { isAppModeJcc } = this;
         const { firstName, lastName } = this.formData;
         const shouldSkip = (asTouched) ? false : !lastName.isTouched;
 
-        if (!shouldSkip && firstName.value && !lastName.value) {
-            lastName.isValid = false;
-            lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
-        } else if (!lastName.isValid) {
-            lastName.isValid = true;
-            lastName.errorMessage = '';
+        if (isAppModeJcc) { // Currently only JCC requires this check
+            if (!shouldSkip && firstName.value && !lastName.value) {
+                lastName.isValid = false;
+                lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
+            } else if (!lastName.isValid) {
+                lastName.isValid = true;
+                lastName.errorMessage = '';
+            }
         }
 
         this.checkValidForAll();
+    }
+
+    async resetForm(): Promise<void> {
+        if (this.enableCompactSelect) {
+            this.formData.compact.value = '';
+            await this.$store.dispatch('user/setCurrentCompact', null);
+        }
+
+        this.formData.firstName.value = '';
+        this.formData.lastName.value = '';
+        this.formData.state.value = '';
+        this.formData.licenseNumber.value = '';
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
+    }
+
+    async mockPopulate(): Promise<void> {
+        if (this.enableCompactSelect) {
+            this.formData.compact.value = (this.isAppModeCosmetology)
+                ? CompactType.COSMETOLOGY
+                : CompactType.OT;
+
+            await this.updateCurrentCompact();
+        }
+
+        this.formData.firstName.value = 'Test';
+        this.formData.lastName.value = 'User';
+        this.formData.state.value = 'co';
+
+        if (this.isAppModeCosmetology) {
+            this.formData.licenseNumber.value = 'ABC123';
+        }
+
+        this.validateAll({ asTouched: true });
+        await nextTick();
+        const submitButton = document.getElementById('submit');
+
+        submitButton?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     //

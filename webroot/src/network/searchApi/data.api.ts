@@ -31,6 +31,7 @@ export interface SearchParamsInterfaceLocal {
     encumberStartDate?: string;
     encumberEndDate?: string;
     npi?: string;
+    licenseNumber?: string;
     pageSize?: number;
     pageNumber?: number;
     sortBy?: string;
@@ -138,6 +139,7 @@ export class SearchDataApi implements DataApiInterface {
             encumberStartDate,
             encumberEndDate,
             npi,
+            licenseNumber,
             pageSize,
             pageNumber,
             sortBy,
@@ -156,6 +158,7 @@ export class SearchDataApi implements DataApiInterface {
             || encumberStartDate
             || encumberEndDate
             || npi
+            || licenseNumber
         );
         const requestParams: SearchParamsInterfaceRemote = {};
 
@@ -186,6 +189,9 @@ export class SearchDataApi implements DataApiInterface {
             }
             if (npi) {
                 conditions.push({ match: { npi }});
+            }
+            if (licenseNumber) {
+                conditions.push({ match: { licenseNumber }});
             }
             //
             // Privilege search props
