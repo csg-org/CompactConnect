@@ -12,13 +12,14 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { reactive, computed, nextTick } from 'vue';
 import { AppModes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import SearchIcon from '@components/Icons/LicenseSearchAlt/LicenseSearchAlt.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
@@ -39,6 +40,7 @@ export interface LicenseSearchLegacy {
         InputSelect,
         InputSubmit,
         SearchIcon,
+        MockPopulate,
     },
     emits: [ 'searchParams' ],
 })
@@ -123,6 +125,10 @@ class LicenseeSearch extends mixins(MixinForm) {
         return compactMemberStates;
     }
 
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
+    }
+
     //
     // Methods
     //
@@ -202,12 +208,14 @@ class LicenseeSearch extends mixins(MixinForm) {
 
             const searchProps: LicenseSearchLegacy = {};
             const allowedSearchProps = [
+                // Common search props
                 'compact',
                 'firstName',
                 'lastName',
                 'state'
             ];
 
+            // Per compact search props
             if (this.appMode === AppModes.COSMETOLOGY) {
                 allowedSearchProps.push('licenseNumber');
             }
@@ -236,6 +244,46 @@ class LicenseeSearch extends mixins(MixinForm) {
         }
 
         this.checkValidForAll();
+    }
+
+    resetForm(): void {
+        if (this.enableCompactSelect) {
+            this.formData.compact.value = '';
+        }
+
+        this.formData.firstName.value = '';
+        this.formData.lastName.value = '';
+        this.formData.state.value = '';
+        this.formData.licenseNumber.value = '';
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
+    }
+
+    async mockPopulate(): Promise<void> {
+        if (this.enableCompactSelect) {
+            this.formData.compact.value = (this.isAppModeCosmetology)
+                ? CompactType.COSMETOLOGY
+                : CompactType.OT;
+
+            await this.updateCurrentCompact();
+        }
+
+        this.formData.firstName.value = 'Test';
+        this.formData.lastName.value = 'User';
+        this.formData.state.value = 'co';
+
+        if (this.isAppModeCosmetology) {
+            this.formData.licenseNumber.value = 'ABC123';
+        }
+
+        this.validateAll({ asTouched: true });
+        await nextTick();
+        const submitButton = document.getElementById('submit');
+
+        submitButton?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     //
