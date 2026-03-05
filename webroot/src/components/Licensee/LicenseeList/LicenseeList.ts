@@ -85,6 +85,14 @@ class LicenseeList extends Vue {
         return this.$store.state.license;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get licenseStoreRecordCount(): number {
         return this.licenseStore.model?.length || 0;
     }
@@ -189,6 +197,12 @@ class LicenseeList extends Vue {
         return (npi) ? `${this.$t('licensing.npi')}: ${npi}`.trim() : '';
     }
 
+    get searchDisplayLicenseNumber(): string {
+        const { licenseNumber = '' } = this.searchParams;
+
+        return (licenseNumber) ? `${this.$t('licensing.licenseNumSymbol')}: ${licenseNumber}`.trim() : '';
+    }
+
     get searchDisplayAll(): string {
         const joined = [
             this.searchDisplayCompact,
@@ -199,7 +213,8 @@ class LicenseeList extends Vue {
             this.searchDisplayMilitaryStatus,
             this.searchDisplayInvestigationStatus,
             this.searchDisplayEncumberDates,
-            this.searchDisplayNpi
+            this.searchDisplayNpi,
+            this.searchDisplayLicenseNumber
         ].join(', ').trim();
 
         return joined.replace(/(^[,\s]+)|([,\s]+$)/g, '').replace(/(,\s)\1+/g, ', '); // Replace repeated commas with single comma
@@ -218,7 +233,14 @@ class LicenseeList extends Vue {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
-            privilegeStatesDisplay: () => this.$t('licensing.privileges'),
+            ...(this.isAppModeCosmetology
+                ? {
+                    licenseNumber: this.$t('licensing.stateLicenseNumber'),
+                }
+                : {
+                    privilegeStatesDisplay: () => this.$t('licensing.privileges'),
+                }
+            ),
         };
 
         return record;
@@ -369,6 +391,9 @@ class LicenseeList extends Vue {
         }
         if (searchParams?.npi) {
             requestConfig.npi = searchParams.npi;
+        }
+        if (searchParams?.licenseNumber) {
+            requestConfig.licenseNumber = searchParams.licenseNumber;
         }
 
         // Paging params
