@@ -40,7 +40,7 @@ from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import generate_provider_opensearch_document
+from utils import generate_provider_opensearch_documents
 
 # Batch size for DynamoDB pagination
 DYNAMODB_PAGE_SIZE = 1000
@@ -214,9 +214,8 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                     continue
 
                 try:
-                    # Use the shared utility to process the provider
-                    serializable_document = generate_provider_opensearch_document(compact, provider_id)
-                    documents_to_index.append(serializable_document)
+                    serializable_documents = generate_provider_opensearch_documents(compact, provider_id)
+                    documents_to_index.extend(serializable_documents)
 
                 except ValidationError as e:
                     logger.warning(
@@ -365,7 +364,7 @@ def _bulk_index_documents(opensearch_client: OpenSearchClient, index_name: str, 
         return set()
 
     # This will raise CCInternalException if all retries fail
-    response = opensearch_client.bulk_index(index_name=index_name, documents=documents)
+    response = opensearch_client.bulk_index(index_name=index_name, documents=documents, id_field='documentId')
 
     # Check for errors in the bulk response (individual document failures, not connection issues)
     if response.get('errors'):

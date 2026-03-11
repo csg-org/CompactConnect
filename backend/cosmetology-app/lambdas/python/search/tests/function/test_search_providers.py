@@ -76,10 +76,11 @@ class TestSearchProviders(TstFunction):
         compact: str = 'cosm',
         sort_values: list = None,
     ) -> dict:
-        """Create a mock OpenSearch hit for a provider document."""
+        """Create a mock OpenSearch hit for a one-doc-per-license provider document."""
+        document_id = f'{provider_id}#oh#cosmetologist'
         hit = {
             '_index': f'compact_{compact}_providers',
-            '_id': provider_id,
+            '_id': document_id,
             '_score': 1.0,
             '_source': {
                 'providerId': provider_id,
@@ -95,14 +96,36 @@ class TestSearchProviders(TstFunction):
                 'jurisdictionUploadedLicenseStatus': 'active',
                 'jurisdictionUploadedCompactEligibility': 'eligible',
                 'birthMonthDay': '06-15',
-                # adding a couple of fields that are not recognized in the
-                # ProviderGeneralResponseSchema. Although these are not currently
-                # stored in OpenSearch, this mock data ensures we are sanitizing
-                # these private fields by the search serialization logic
+                'documentId': document_id,
+                'licenses': [
+                    {
+                        'providerId': provider_id,
+                        'type': 'license',
+                        'compact': compact,
+                        'jurisdiction': 'oh',
+                        'licenseType': 'cosmetologist',
+                        'licenseNumber': 'A0608337260',
+                        'givenName': 'John',
+                        'familyName': 'Doe',
+                        'dateOfIssuance': '2024-01-01',
+                        'dateOfExpiration': '2025-12-31',
+                        'licenseStatus': 'active',
+                        'compactEligibility': 'eligible',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'dateOfBirth': '1984-12-11',
+                        'homeAddressStreet1': '123 Main St',
+                        'homeAddressCity': 'Columbus',
+                        'homeAddressState': 'oh',
+                        'homeAddressPostalCode': '43004',
+                    }
+                ],
+                'privileges': [],
+                # Fields that should be stripped by ForgivingSchema
                 'someNewField': 'somePrivateValue',
                 'ssnLastFour': '1234',
                 'emailAddress': 'someemail@address.com',
-                'dateOfBirth': '1984-12-11',
             },
         }
         if sort_values:
@@ -269,29 +292,30 @@ class TestSearchProviders(TstFunction):
 
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertEqual(
-            {
-                'providers': [
-                    {
-                        'birthMonthDay': '06-15',
-                        'compact': 'cosm',
-                        'compactEligibility': 'eligible',
-                        'dateOfExpiration': '2025-12-31',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'familyName': 'Doe',
-                        'givenName': 'John',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseJurisdiction': 'oh',
-                        'licenseStatus': 'active',
-                        'providerId': '00000000-0000-0000-0000-000000000001',
-                        'type': 'provider',
-                    }
-                ],
-                'total': {'relation': 'eq', 'value': 1},
-            },
-            body,
-        )
+        providers = body['providers']
+        self.assertEqual(1, len(providers))
+        provider = providers[0]
+        # Verify provider-level fields are present and sanitized
+        self.assertEqual('cosm', provider['compact'])
+        self.assertEqual('John', provider['givenName'])
+        self.assertEqual('Doe', provider['familyName'])
+        self.assertEqual('oh', provider['licenseJurisdiction'])
+        self.assertEqual('active', provider['licenseStatus'])
+        self.assertEqual('eligible', provider['compactEligibility'])
+        self.assertEqual('06-15', provider['birthMonthDay'])
+        self.assertEqual('00000000-0000-0000-0000-000000000001', provider['providerId'])
+        # Verify licenses array with one license is present
+        self.assertEqual(1, len(provider['licenses']))
+        self.assertEqual('oh', provider['licenses'][0]['jurisdiction'])
+        self.assertEqual('cosmetologist', provider['licenses'][0]['licenseType'])
+        # Verify private fields were stripped
+        self.assertNotIn('ssnLastFour', provider)
+        self.assertNotIn('someNewField', provider)
+        self.assertNotIn('emailAddress', provider)
+        # Verify documentId was stripped by ForgivingSchema
+        self.assertNotIn('documentId', provider)
+        # Verify total
+        self.assertEqual({'relation': 'eq', 'value': 1}, body['total'])
 
     @patch('handlers.search.opensearch_client')
     def test_search_response_includes_last_sort_for_pagination(self, mock_opensearch_client):

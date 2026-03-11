@@ -7,6 +7,11 @@ the provider table. It processes events in batches, deduplicates provider IDs by
 compact, and bulk indexes the sanitized provider documents into the appropriate
 OpenSearch indices.
 
+The handler classifies events by their DynamoDB eventName:
+- INSERT/MODIFY: Generate one document per license and upsert via composite documentId
+- REMOVE: Delete all documents for the provider, then re-check DynamoDB and re-index
+  any remaining license documents
+
 The handler uses the @sqs_batch_handler decorator which passes all SQS messages
 to the handler at once, enabling batch processing and deduplication. The handler
 returns batchItemFailures directly for partial success handling.
@@ -18,7 +23,7 @@ from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import sqs_batch_handler
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import generate_provider_opensearch_document
+from utils import generate_provider_opensearch_documents
 
 # Instantiate the OpenSearch client outside of the handler to cache connection between invocations
 opensearch_client = OpenSearchClient(timeout=30)
@@ -30,10 +35,10 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
     Process DynamoDB stream events from SQS and index provider documents into OpenSearch.
 
     This function:
-    1. Creates a set for each compact to deduplicate provider IDs
-    2. Extracts compact and providerId from each stream record (old or new image)
-    3. Processes each unique provider by compact using the shared utility
-    4. Bulk indexes the documents into the appropriate OpenSearch index
+    1. Classifies events by eventName (REMOVE vs INSERT/MODIFY)
+    2. Deduplicates provider IDs per compact
+    3. For INSERT/MODIFY: generates one document per license and bulk upserts
+    4. For REMOVE: deletes all docs for the provider, re-checks DynamoDB, re-indexes remaining
 
     :param records: List of SQS records, each containing 'messageId' and 'body' (DynamoDB stream record)
     :return: Response with batch item failures for partial success handling
@@ -44,13 +49,13 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
 
     logger.info('Processing SQS batch with DynamoDB stream records', record_count=len(records))
 
-    # Create a set for each compact to deduplicate provider IDs
-    providers_by_compact: dict[str, set[str]] = {compact: set() for compact in config.compacts}
+    # Track providers to update and delete separately per compact
+    providers_to_update: dict[str, set[str]] = {compact: set() for compact in config.compacts}
+    providers_to_delete: dict[str, set[str]] = {compact: set() for compact in config.compacts}
 
     # Track which message IDs correspond to which compact/provider for failure reporting
     record_mapping: dict[str, tuple[str, str]] = {}  # message_id -> (compact, provider_id)
 
-    # Extract compact and providerId from each record
     for record in records:
         message_id = record['messageId']
         # The body contains the DynamoDB stream record sent via EventBridge Pipe
@@ -64,7 +69,6 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
             continue
 
         # Extract compact and providerId from the DynamoDB image
-        # The format is {'S': 'value'} for string attributes
         deserialized_image = TypeDeserializer().deserialize(value={'M': image})
         compact = deserialized_image.get('compact')
         provider_id = deserialized_image.get('providerId')
@@ -78,30 +82,39 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
             )
             continue
 
-        # Add to the appropriate compact's set to dedup provider ids
-        if compact in providers_by_compact:
-            providers_by_compact[compact].add(provider_id)
-            record_mapping[message_id] = (compact, provider_id)
-        else:
+        if compact not in providers_to_update:
             logger.warning('Unknown compact in record', compact=compact, provider_id=provider_id)
+            continue
 
-    # Process providers and bulk index by compact
+        record_mapping[message_id] = (compact, provider_id)
+
+        is_remove_event = stream_record.get('eventName') == 'REMOVE'
+        if is_remove_event:
+            providers_to_delete[compact].add(provider_id)
+        else:
+            providers_to_update[compact].add(provider_id)
+
     batch_item_failures = []
     failed_providers: dict[str, set] = {compact: set() for compact in config.compacts}
 
-    for compact, provider_ids in providers_by_compact.items():
+    # --- Process INSERT/MODIFY events ---
+    for compact, provider_ids in providers_to_update.items():
+        # Exclude providers that are also in the delete set (REMOVE takes precedence)
+        provider_ids = provider_ids - providers_to_delete[compact]
+
+        if not provider_ids:
+            continue
+
         index_name = f'compact_{compact}_providers'
-        logger.info('Processing providers for compact', compact=compact, provider_count=len(provider_ids))
+        logger.info('Processing providers for update', compact=compact, provider_count=len(provider_ids))
 
         documents_to_index = []
-        providers_to_delete = []  # Provider IDs that no longer exist and need to be deleted from the index
 
         for provider_id in provider_ids:
             try:
-                document = generate_provider_opensearch_document(compact, provider_id)
-                documents_to_index.append(document)
+                docs = generate_provider_opensearch_documents(compact, provider_id)
+                documents_to_index.extend(docs)
             except CCNotFoundException as e:
-                # if no provider records are found, the provider needs to be deleted from the index
                 logger.warning(
                     'No provider records found. This may occur if a license upload rollback was performed or if records'
                     ' were manually deleted. Will delete provider document from index.',
@@ -109,7 +122,7 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
                     compact=compact,
                     error=str(e),
                 )
-                providers_to_delete.append(provider_id)
+                providers_to_delete[compact].add(provider_id)
             except ValidationError as e:
                 logger.warning(
                     'Failed to process provider for indexing',
@@ -119,31 +132,25 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
                 )
                 failed_providers[compact].add(provider_id)
 
-        if failed_providers[compact]:
-            logger.warning(
-                'Some providers failed serialization',
-                compact=compact,
-                failed_provider_ids=failed_providers[compact],
-                successful_count=len(documents_to_index),
-            )
-
-        # Bulk index the documents
         if documents_to_index:
             try:
-                response = opensearch_client.bulk_index(index_name=index_name, documents=documents_to_index)
+                response = opensearch_client.bulk_index(
+                    index_name=index_name, documents=documents_to_index, id_field='documentId'
+                )
 
-                # Check for individual document failures
                 if response.get('errors'):
                     for item in response.get('items', []):
                         index_result = item.get('index', {})
                         if index_result.get('error'):
-                            doc_id = index_result.get('_id')
+                            doc_id = index_result.get('_id', '')
+                            provider_id = doc_id.split('#')[0] if '#' in doc_id else doc_id
                             logger.error(
                                 'Document indexing failed',
-                                provider_id=doc_id,
+                                document_id=doc_id,
+                                provider_id=provider_id,
                                 error=index_result.get('error'),
                             )
-                            failed_providers[compact].add(doc_id)
+                            failed_providers[compact].add(provider_id)
 
                 logger.info(
                     'Bulk indexed documents',
@@ -159,39 +166,79 @@ def provider_update_ingest_handler(records: list[dict]) -> dict:
                     document_count=len(documents_to_index),
                     error=str(e),
                 )
-                # Mark all providers in this compact as failed
-                document_provider_ids = [document['providerId'] for document in documents_to_index]
-                for provider_id in document_provider_ids:
-                    failed_providers[compact].add(provider_id)
+                for doc in documents_to_index:
+                    failed_providers[compact].add(doc['providerId'])
 
-        # Bulk delete providers that no longer exist
-        if providers_to_delete:
+    # --- Process REMOVE events ---
+    for compact, provider_ids in providers_to_delete.items():
+        if not provider_ids:
+            continue
+
+        index_name = f'compact_{compact}_providers'
+        logger.info('Processing providers for delete', compact=compact, provider_count=len(provider_ids))
+
+        for provider_id in provider_ids:
             try:
-                failed_provider_ids = opensearch_client.bulk_delete(
-                    index_name=index_name, document_ids=providers_to_delete
-                )
-                failed_providers[compact].update(failed_provider_ids)
-
-                logger.info(
-                    'Bulk deleted documents',
+                result = opensearch_client.delete_provider_documents(
                     index_name=index_name,
-                    document_count=len(providers_to_delete),
-                    failed_provider_ids=list(failed_provider_ids),
+                    provider_id=provider_id,
+                )
+                logger.info(
+                    'Deleted provider documents from index',
+                    index_name=index_name,
+                    provider_id=provider_id,
+                    deleted_count=result.get('deleted', 0),
                 )
             except CCInternalException as e:
-                # All deletes for this compact failed
                 logger.error(
-                    'Failed to bulk delete documents after retries',
+                    'Failed to delete provider documents from index',
                     index_name=index_name,
-                    document_count=len(providers_to_delete),
+                    provider_id=provider_id,
                     error=str(e),
                 )
-                # Mark all providers to delete as failed
-                for provider_id in providers_to_delete:
-                    failed_providers[compact].add(provider_id)
+                failed_providers[compact].add(provider_id)
+                continue
 
-    # Build batch item failures response for failed providers
-    # Map back from failed providers to their SQS message IDs
+            # Re-check DynamoDB -- the REMOVE may have been for a single record while
+            # the provider still has other records remaining.
+            try:
+                docs = generate_provider_opensearch_documents(compact, provider_id)
+                if docs:
+                    response = opensearch_client.bulk_index(
+                        index_name=index_name, documents=docs, id_field='documentId'
+                    )
+                    logger.info(
+                        'Re-indexed remaining documents after delete',
+                        index_name=index_name,
+                        provider_id=provider_id,
+                        document_count=len(docs),
+                    )
+                    if response.get('errors'):
+                        for item in response.get('items', []):
+                            index_result = item.get('index', {})
+                            if index_result.get('error'):
+                                logger.error(
+                                    'Document re-indexing failed after delete',
+                                    document_id=index_result.get('_id'),
+                                    error=index_result.get('error'),
+                                )
+                                failed_providers[compact].add(provider_id)
+            except CCNotFoundException:
+                logger.info(
+                    'Provider no longer exists after REMOVE event, delete is complete',
+                    provider_id=provider_id,
+                    compact=compact,
+                )
+            except CCInternalException as e:
+                logger.error(
+                    'Failed to re-index remaining documents after delete',
+                    index_name=index_name,
+                    provider_id=provider_id,
+                    error=str(e),
+                )
+                failed_providers[compact].add(provider_id)
+
+    # Build batch item failures response
     for message_id, (compact, provider_id) in record_mapping.items():
         if provider_id in failed_providers[compact]:
             logger.info(
