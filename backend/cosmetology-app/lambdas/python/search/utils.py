@@ -9,7 +9,7 @@ and provider_update_ingest handlers.
 import json
 
 from cc_common.config import config
-from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
+from cc_common.data_model.schema.provider.api import ProviderOpenSearchDocumentSchema
 from cc_common.utils import ResponseEncoder
 
 
@@ -33,8 +33,7 @@ def generate_provider_opensearch_document(compact: str, provider_id: str) -> dic
     # Generate API response object with all nested records
     api_response = provider_user_records.generate_api_response_object()
 
-    # Sanitize using ProviderGeneralResponseSchema
-    schema = ProviderGeneralResponseSchema()
+    schema = ProviderOpenSearchDocumentSchema()
     sanitized_document = schema.load(api_response)
 
     # Serialize using ResponseEncoder to convert sets to lists and datetime objects to strings

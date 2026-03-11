@@ -2,6 +2,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 from common_test.test_constants import (
+    DEFAULT_DATE_OF_BIRTH,
     DEFAULT_LICENSE_EXPIRATION_DATE,
     DEFAULT_LICENSE_ISSUANCE_DATE,
     DEFAULT_LICENSE_RENEWAL_DATE,
@@ -159,6 +160,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
                     'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
+                    'dateOfBirth': DEFAULT_DATE_OF_BIRTH,
                     'homeAddressStreet1': '123 A St.',
                     'homeAddressStreet2': 'Apt 321',
                     'homeAddressCity': 'Columbus',

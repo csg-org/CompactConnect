@@ -467,3 +467,105 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual(error_reason, body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_date_of_birth_query_allowed_for_compact_level_read_private_scope(
+        self, mock_opensearch_client
+    ):
+        """Test that a query containing dateOfBirth succeeds when the caller has compact-level readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        query = {
+            'nested': {
+                'path': 'licenses',
+                'query': {'term': {'licenses.dateOfBirth': '1985-06-06'}},
+            }
+        }
+        event = self._create_api_event(
+            'cosm',
+            body={'query': query},
+            scopes_override='openid email cosm/readGeneral cosm/readPrivate',
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_date_of_birth_query_allowed_for_jurisdiction_level_read_private_scope(
+        self, mock_opensearch_client
+    ):
+        """Test that a query containing dateOfBirth succeeds when the caller has a jurisdiction-level readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        query = {
+            'nested': {
+                'path': 'licenses',
+                'query': {'term': {'licenses.dateOfBirth': '1985-06-06'}},
+            }
+        }
+        event = self._create_api_event(
+            'cosm',
+            body={'query': query},
+            scopes_override='openid email cosm/readGeneral oh/cosm.readPrivate',
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
+
+    def test_search_with_date_of_birth_query_rejected_without_read_private_scope(self):
+        """Test that a query containing dateOfBirth returns 400 when the caller only has readGeneral scope."""
+        from handlers.search import search_api_handler
+
+        query = {
+            'nested': {
+                'path': 'licenses',
+                'query': {'term': {'licenses.dateOfBirth': '1985-06-06'}},
+            }
+        }
+        event = self._create_api_event('cosm', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+
+    def test_search_with_nested_date_of_birth_query_rejected_without_read_private_scope(self):
+        """Test that deeply nested dateOfBirth references are caught and rejected."""
+        from handlers.search import search_api_handler
+
+        query = {
+            'bool': {
+                'must': [
+                    {'match': {'givenName': 'John'}},
+                    {
+                        'nested': {
+                            'path': 'licenses',
+                            'query': {
+                                'bool': {
+                                    'must': [
+                                        {'term': {'licenses.jurisdiction': 'oh'}},
+                                        {'range': {'licenses.dateOfBirth': {'gte': '1985-01-01'}}},
+                                    ]
+                                }
+                            },
+                        }
+                    },
+                ]
+            }
+        }
+        event = self._create_api_event('cosm', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])

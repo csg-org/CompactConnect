@@ -14,6 +14,7 @@ from cc_common.data_model.schema.fields import (
 )
 from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
+    LicenseOpenSearchDocumentSchema,
     LicenseReadPrivateResponseSchema,
 )
 from cc_common.data_model.schema.privilege.api import (
@@ -157,6 +158,21 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
+
+
+class ProviderOpenSearchDocumentSchema(ProviderGeneralResponseSchema):
+    """
+    Provider object fields for OpenSearch document indexing.
+
+    Extends ProviderGeneralResponseSchema with license objects that include dateOfBirth,
+    enabling authorized staff users to search providers by date of birth. This schema
+    is used only for indexing into OpenSearch, not for API responses.
+
+    Serialization direction:
+    Python -> load() -> OpenSearch document
+    """
+
+    licenses = List(Nested(LicenseOpenSearchDocumentSchema(), required=False, allow_none=False))
 
 
 class ProviderPublicResponseSchema(ForgivingSchema):

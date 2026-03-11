@@ -7,6 +7,99 @@ from marshmallow import ValidationError
 from tests import TstLambdas
 
 
+class TestProviderOpenSearchDocumentSchema(TstLambdas):
+    """Tests for ProviderOpenSearchDocumentSchema which extends ProviderGeneralResponseSchema
+    with dateOfBirth on nested license objects."""
+
+    def _make_provider_data_with_license(self):
+        """Create valid provider data with a nested license that includes dateOfBirth."""
+        return {
+            'providerId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+            'type': 'provider',
+            'dateOfUpdate': '2024-07-08T23:59:59+00:00',
+            'compact': 'cosm',
+            'licenseJurisdiction': 'oh',
+            'licenseStatus': 'active',
+            'compactEligibility': 'eligible',
+            'givenName': 'John',
+            'familyName': 'Doe',
+            'dateOfExpiration': '2100-01-01',
+            'jurisdictionUploadedLicenseStatus': 'active',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'birthMonthDay': '06-06',
+            'licenses': [
+                {
+                    'providerId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+                    'type': 'license',
+                    'dateOfUpdate': '2024-06-06T12:59:59+00:00',
+                    'compact': 'cosm',
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'licenseStatus': 'active',
+                    'jurisdictionUploadedLicenseStatus': 'active',
+                    'compactEligibility': 'eligible',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'licenseNumber': 'LIC12345',
+                    'givenName': 'John',
+                    'familyName': 'Doe',
+                    'dateOfIssuance': '2024-01-01',
+                    'dateOfExpiration': '2100-01-01',
+                    'homeAddressStreet1': '123 Main St',
+                    'homeAddressCity': 'Columbus',
+                    'homeAddressState': 'OH',
+                    'homeAddressPostalCode': '43215',
+                    'dateOfBirth': '1985-06-06',
+                }
+            ],
+            'privileges': [],
+        }
+
+    def test_license_includes_date_of_birth(self):
+        """ProviderOpenSearchDocumentSchema should include dateOfBirth in nested license objects."""
+        from cc_common.data_model.schema.provider.api import ProviderOpenSearchDocumentSchema
+
+        data = self._make_provider_data_with_license()
+        result = ProviderOpenSearchDocumentSchema().load(data)
+
+        self.assertEqual(1, len(result['licenses']))
+        self.assertEqual('1985-06-06', result['licenses'][0]['dateOfBirth'])
+
+    def test_top_level_fields_match_general_response(self):
+        """ProviderOpenSearchDocumentSchema should retain all top-level fields from ProviderGeneralResponseSchema."""
+        from cc_common.data_model.schema.provider.api import ProviderOpenSearchDocumentSchema
+
+        data = self._make_provider_data_with_license()
+        result = ProviderOpenSearchDocumentSchema().load(data)
+
+        for field in [
+            'providerId', 'type', 'dateOfUpdate', 'compact', 'licenseJurisdiction',
+            'licenseStatus', 'compactEligibility', 'givenName', 'familyName',
+            'dateOfExpiration', 'birthMonthDay',
+        ]:
+            self.assertIn(field, result, f'Expected field {field} to be in loaded result')
+
+    def test_does_not_include_private_fields_at_top_level(self):
+        """ProviderOpenSearchDocumentSchema should NOT include top-level private fields like dateOfBirth or ssnLastFour."""
+        from cc_common.data_model.schema.provider.api import ProviderOpenSearchDocumentSchema
+
+        data = self._make_provider_data_with_license()
+        data['dateOfBirth'] = '1985-06-06'
+        data['ssnLastFour'] = '1234'
+        result = ProviderOpenSearchDocumentSchema().load(data)
+
+        self.assertNotIn('dateOfBirth', result)
+        self.assertNotIn('ssnLastFour', result)
+
+    def test_general_response_schema_does_not_include_date_of_birth_in_licenses(self):
+        """ProviderGeneralResponseSchema should NOT include dateOfBirth in license objects (baseline comparison)."""
+        from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
+
+        data = self._make_provider_data_with_license()
+        result = ProviderGeneralResponseSchema().load(data)
+
+        self.assertNotIn('dateOfBirth', result['licenses'][0])
+
+
 class TestProviderRecordSchema(TstLambdas):
     def test_serde(self):
         """Test round-trip deserialization/serialization"""
