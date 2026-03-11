@@ -1,3 +1,5 @@
+from re import match
+
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import logger
 from cc_common.data_model.schema.common import CCPermissionsAction
@@ -6,7 +8,7 @@ from cc_common.data_model.schema.provider.api import (
     SearchProvidersRequestSchema,
 )
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact_level_only_action
+from cc_common.utils import api_handler, authorize_compact_level_only_action, get_event_scopes
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
 
@@ -60,6 +62,9 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     # Parse and validate the request body using the schema
     body = _parse_and_validate_request_body(event)
+
+    # If the query references dateOfBirth, verify the caller has readPrivate permission
+    _validate_date_of_birth_permission(body.get('query', {}), compact, get_event_scopes(event))
 
     # Build the OpenSearch search body
     search_body = _build_opensearch_search_body(body, size_override=MAX_PROVIDER_PAGE_SIZE)
@@ -194,3 +199,56 @@ def _build_opensearch_search_body(body: dict, size_override: int) -> dict:
             raise CCInvalidRequestException('sort is required when using search_after pagination')
 
     return search_body
+
+
+def _query_references_field(obj, field_name: str) -> bool:
+    """
+    Recursively check if any key in the query DSL references the given field name.
+
+    :param obj: The object to check (dict, list, or scalar)
+    :param field_name: The field name to search for in dict keys
+    :return: True if the field name is found in any key
+    """
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if field_name in key:
+                return True
+            if _query_references_field(value, field_name):
+                return True
+    elif isinstance(obj, list):
+        for item in obj:
+            if _query_references_field(item, field_name):
+                return True
+    return False
+
+
+def _caller_has_read_private_scope(compact: str, scopes: set[str]) -> bool:
+    """
+    Check if the caller has readPrivate permission at either compact or jurisdiction level.
+
+    :param compact: The compact abbreviation
+    :param scopes: The caller's scopes
+    :return: True if the caller has readPrivate permission
+    """
+    action = CCPermissionsAction.READ_PRIVATE
+
+    if f'{compact}/{action}' in scopes:
+        return True
+
+    jurisdiction_scope_pattern = rf'.+/{compact}\.{action}$'
+    return any(match(jurisdiction_scope_pattern, scope) for scope in scopes)
+
+
+def _validate_date_of_birth_permission(query: dict, compact: str, scopes: set[str]) -> None:
+    """
+    Validate that the caller has readPrivate permission if the query references dateOfBirth.
+
+    :param query: The OpenSearch query body
+    :param compact: The compact abbreviation
+    :param scopes: The caller's scopes
+    :raises CCInvalidRequestException: If dateOfBirth is in the query and the caller lacks readPrivate permission
+    """
+    if _query_references_field(query, 'dateOfBirth') and not _caller_has_read_private_scope(compact, scopes):
+        raise CCInvalidRequestException(
+            'Searching by dateOfBirth requires readPrivate permission'
+        )
