@@ -77,7 +77,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     # Track statistics
     stats = {
         'total_providers_processed': 0,
-        'total_providers_indexed': 0,
+        'total_licenses_indexed': 0,
         'total_providers_failed': 0,
         'compacts_processed': [],
         'errors': [],
@@ -110,7 +110,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
         documents_to_index = []
         compact_stats = {
             'providers_processed': 0,
-            'providers_indexed': 0,
+            'licenses_indexed': 0,
             'providers_failed': 0,
         }
 
@@ -151,7 +151,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
                 # Update stats for current compact
                 stats['total_providers_processed'] += compact_stats['providers_processed']
-                stats['total_providers_indexed'] += compact_stats['providers_indexed']
+                stats['total_licenses_indexed'] += compact_stats['licenses_indexed']
                 stats['total_providers_failed'] += compact_stats['providers_failed']
                 if compact_stats['providers_processed'] > 0:
                     stats['compacts_processed'].append(
@@ -171,7 +171,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                 logger.info(
                     'Returning for pagination',
                     total_providers_processed=stats['total_providers_processed'],
-                    total_providers_indexed=stats['total_providers_indexed'],
+                    total_licenses_indexed=stats['total_licenses_indexed'],
                     resume_from=stats['resumeFrom'],
                 )
 
@@ -258,7 +258,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
         # Update overall stats
         stats['total_providers_processed'] += compact_stats['providers_processed']
-        stats['total_providers_indexed'] += compact_stats['providers_indexed']
+        stats['total_licenses_indexed'] += compact_stats['licenses_indexed']
         stats['total_providers_failed'] += compact_stats['providers_failed']
         stats['compacts_processed'].append(
             {
@@ -271,14 +271,14 @@ def populate_provider_documents(event: dict, context: LambdaContext):
             'Completed processing compact',
             compact=compact,
             providers_processed=compact_stats['providers_processed'],
-            providers_indexed=compact_stats['providers_indexed'],
+            licenses_indexed=compact_stats['licenses_indexed'],
             providers_failed=compact_stats['providers_failed'],
         )
 
     logger.info(
         'Completed populating provider documents',
         total_providers_processed=stats['total_providers_processed'],
-        total_providers_indexed=stats['total_providers_indexed'],
+        total_licenses_indexed=stats['total_licenses_indexed'],
         total_providers_failed=stats['total_providers_failed'],
     )
 
@@ -291,7 +291,7 @@ def _index_records_and_track_stats(
     index_name = f'compact_{compact}_providers'
     if documents_to_index:
         failed_ids = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
-        compact_stats['providers_indexed'] += len(documents_to_index) - len(failed_ids)
+        compact_stats['licenses_indexed'] += len(documents_to_index) - len(failed_ids)
         if failed_ids:
             compact_stats['providers_failed'] += len(failed_ids)
             logger.warning(
@@ -324,7 +324,7 @@ def _build_error_response(
 
     # Update stats for current compact
     stats['total_providers_processed'] += compact_stats['providers_processed']
-    stats['total_providers_indexed'] += compact_stats['providers_indexed']
+    stats['total_licenses_indexed'] += compact_stats['licenses_indexed']
     stats['total_providers_failed'] += compact_stats['providers_failed']
     if compact_stats['providers_processed'] > 0:
         stats['compacts_processed'].append(
