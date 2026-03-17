@@ -72,14 +72,22 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
         result = ProviderOpenSearchDocumentSchema().load(data)
 
         for field in [
-            'providerId', 'type', 'dateOfUpdate', 'compact', 'licenseJurisdiction',
-            'licenseStatus', 'compactEligibility', 'givenName', 'familyName',
-            'dateOfExpiration', 'birthMonthDay',
+            'providerId',
+            'type',
+            'dateOfUpdate',
+            'compact',
+            'licenseJurisdiction',
+            'licenseStatus',
+            'compactEligibility',
+            'givenName',
+            'familyName',
+            'dateOfExpiration',
+            'birthMonthDay',
         ]:
             self.assertIn(field, result, f'Expected field {field} to be in loaded result')
 
     def test_does_not_include_private_fields_at_top_level(self):
-        """ProviderOpenSearchDocumentSchema should NOT include top-level private fields like dateOfBirth or ssnLastFour."""
+        """ProviderOpenSearchDocumentSchema should NOT include top-level private fields."""
         from cc_common.data_model.schema.provider.api import ProviderOpenSearchDocumentSchema
 
         data = self._make_provider_data_with_license()

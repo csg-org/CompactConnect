@@ -563,9 +563,7 @@ class TestOpenSearchClientDeleteProviderDocuments(TestCase):
 
         client, mock_internal_client = self._create_client_with_mock()
 
-        mock_internal_client.delete_by_query.side_effect = ConnectionTimeout(
-            'Connection timed out', 503, 'some error'
-        )
+        mock_internal_client.delete_by_query.side_effect = ConnectionTimeout('Connection timed out', 503, 'some error')
 
         with self.assertRaises(CCInternalException) as context:
             client.delete_provider_documents(

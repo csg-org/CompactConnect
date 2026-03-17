@@ -249,6 +249,4 @@ def _validate_date_of_birth_permission(query: dict, compact: str, scopes: set[st
     :raises CCInvalidRequestException: If dateOfBirth is in the query and the caller lacks readPrivate permission
     """
     if _query_references_field(query, 'dateOfBirth') and not _caller_has_read_private_scope(compact, scopes):
-        raise CCInvalidRequestException(
-            'Searching by dateOfBirth requires readPrivate permission'
-        )
+        raise CCInvalidRequestException('Searching by dateOfBirth requires readPrivate permission')

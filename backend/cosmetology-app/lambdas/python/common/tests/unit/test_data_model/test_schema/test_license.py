@@ -348,15 +348,27 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
         result = LicenseOpenSearchDocumentSchema().load(license_data)
 
         for field in [
-            'providerId', 'type', 'dateOfUpdate', 'compact', 'jurisdiction',
-            'licenseType', 'licenseStatus', 'licenseNumber', 'givenName', 'familyName',
-            'dateOfIssuance', 'dateOfExpiration', 'homeAddressStreet1', 'homeAddressCity',
-            'homeAddressState', 'homeAddressPostalCode',
+            'providerId',
+            'type',
+            'dateOfUpdate',
+            'compact',
+            'jurisdiction',
+            'licenseType',
+            'licenseStatus',
+            'licenseNumber',
+            'givenName',
+            'familyName',
+            'dateOfIssuance',
+            'dateOfExpiration',
+            'homeAddressStreet1',
+            'homeAddressCity',
+            'homeAddressState',
+            'homeAddressPostalCode',
         ]:
             self.assertIn(field, result, f'Expected field {field} to be in loaded result')
 
     def test_expired_license_status_corrected_to_inactive(self):
-        """LicenseOpenSearchDocumentSchema should inherit expiration status correction from LicenseExpirationStatusMixin."""
+        """LicenseOpenSearchDocumentSchema should inherit expiration status logic from LicenseExpirationStatusMixin."""
         from cc_common.data_model.schema.license.api import LicenseOpenSearchDocumentSchema
 
         license_data = self._make_license_data(license_status='active', date_of_expiration='2020-01-01')

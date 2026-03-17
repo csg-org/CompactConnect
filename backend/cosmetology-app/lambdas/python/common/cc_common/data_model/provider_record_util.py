@@ -470,8 +470,11 @@ class ProviderUserRecords:
                 not include_inactive_privileges
                 and most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE
             ):
-                logger.debug('skipping inactive license', 
-                license_jurisdiction=most_recent_license.jurisdiction, license_type=most_recent_license.licenseType)
+                logger.debug(
+                    'skipping inactive license',
+                    license_jurisdiction=most_recent_license.jurisdiction,
+                    license_type=most_recent_license.licenseType,
+                )
                 continue
             most_recent_licenses_for_each_type.append(most_recent_license)
 

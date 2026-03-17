@@ -493,9 +493,7 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(error_reason, body['message'])
 
     @patch('handlers.search.opensearch_client')
-    def test_search_with_date_of_birth_query_allowed_for_compact_level_read_private_scope(
-        self, mock_opensearch_client
-    ):
+    def test_search_with_date_of_birth_query_allowed_for_compact_level_read_private_scope(self, mock_opensearch_client):
         """Test that a query containing dateOfBirth succeeds when the caller has compact-level readPrivate scope."""
         from handlers.search import search_api_handler
 
@@ -522,7 +520,7 @@ class TestSearchProviders(TstFunction):
     def test_search_with_date_of_birth_query_allowed_for_jurisdiction_level_read_private_scope(
         self, mock_opensearch_client
     ):
-        """Test that a query containing dateOfBirth succeeds when the caller has a jurisdiction-level readPrivate scope."""
+        """Test that a query containing dateOfBirth succeeds if the caller has jurisdiction-level readPrivate scope."""
         from handlers.search import search_api_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)

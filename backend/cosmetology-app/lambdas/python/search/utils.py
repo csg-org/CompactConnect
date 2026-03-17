@@ -19,9 +19,9 @@ def generate_provider_opensearch_documents(compact: str, provider_id: str) -> li
 
     Each document corresponds to one license. This is because the Cosmetology compact search returns results by license,
     so we need to index one document per license to support native pagination.
-    
-    Becuase of this, rather than just using the provider_id as the documentId, 
-    we add a composite documentId that includes the jurisdiction and license type. 
+
+    Because of this, rather than just using the provider_id as the documentId,
+    we add a composite documentId that includes the jurisdiction and license type.
     This composite documentId is added after sanitization so that bulk_index can use it as the OpenSearch _id.
 
     :param compact: The compact abbreviation
