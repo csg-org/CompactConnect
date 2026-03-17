@@ -591,3 +591,48 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertIn('dateOfBirth', body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_sort_by_date_of_birth_rejected_without_read_private_scope(self, mock_opensearch_client):
+        """Test that sort clause referencing dateOfBirth is rejected when caller lacks readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        # Query does not reference dateOfBirth; only sort does
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'match_all': {}},
+                'sort': [{'providerId': 'asc'}, {'licenses.dateOfBirth': 'desc'}],
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+        self.assertIn('readPrivate', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_sort_by_date_of_birth_allowed_with_read_private_scope(self, mock_opensearch_client):
+        """Test that sort by dateOfBirth succeeds when caller has readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'match_all': {}},
+                'sort': [{'licenses.dateOfBirth': 'desc'}, {'providerId': 'asc'}],
+            },
+            scopes_override='openid email cosm/readGeneral cosm/readPrivate',
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()

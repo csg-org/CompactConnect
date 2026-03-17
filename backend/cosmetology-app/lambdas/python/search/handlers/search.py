@@ -63,8 +63,8 @@ def _search_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     # Parse and validate the request body using the schema
     body = _parse_and_validate_request_body(event)
 
-    # If the query references dateOfBirth, verify the caller has readPrivate permission
-    _validate_date_of_birth_permission(body.get('query', {}), compact, get_event_scopes(event))
+    # If the request body references dateOfBirth (e.g. in query or sort), verify readPrivate permission
+    _validate_date_of_birth_permission(body, compact, get_event_scopes(event))
 
     # Build the OpenSearch search body
     search_body = _build_opensearch_search_body(body, size_override=MAX_PROVIDER_PAGE_SIZE)
@@ -239,14 +239,14 @@ def _caller_has_read_private_scope(compact: str, scopes: set[str]) -> bool:
     return any(match(jurisdiction_scope_pattern, scope) for scope in scopes)
 
 
-def _validate_date_of_birth_permission(query: dict, compact: str, scopes: set[str]) -> None:
+def _validate_date_of_birth_permission(request_body: dict, compact: str, scopes: set[str]) -> None:
     """
-    Validate that the caller has readPrivate permission if the query references dateOfBirth.
+    Validate that the caller has readPrivate permission if the request body references dateOfBirth.
 
-    :param query: The OpenSearch query body
+    :param request_body: Full search request body (query, sort, etc.)
     :param compact: The compact abbreviation
     :param scopes: The caller's scopes
-    :raises CCInvalidRequestException: If dateOfBirth is in the query and the caller lacks readPrivate permission
+    :raises CCInvalidRequestException: If dateOfBirth is referenced and the caller lacks readPrivate permission
     """
-    if _query_references_field(query, 'dateOfBirth') and not _caller_has_read_private_scope(compact, scopes):
+    if _query_references_field(request_body, 'dateOfBirth') and not _caller_has_read_private_scope(compact, scopes):
         raise CCInvalidRequestException('Searching by dateOfBirth requires readPrivate permission')
