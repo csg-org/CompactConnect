@@ -593,6 +593,29 @@ class TestSearchProviders(TstFunction):
         self.assertIn('dateOfBirth', body['message'])
 
     @patch('handlers.search.opensearch_client')
+    def test_search_with_exists_field_date_of_birth_rejected_without_read_private_scope(self, mock_opensearch_client):
+        """Test that query with dateOfBirth as field value (e.g. exists) is rejected without readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        # OpenSearch "exists" query references field by value: {"exists": {"field": "dateOfBirth"}}
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'exists': {'field': 'dateOfBirth'}},
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+        self.assertIn('readPrivate', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
     def test_search_with_sort_by_date_of_birth_rejected_without_read_private_scope(self, mock_opensearch_client):
         """Test that sort clause referencing dateOfBirth is rejected when caller lacks readPrivate scope."""
         from handlers.search import search_api_handler

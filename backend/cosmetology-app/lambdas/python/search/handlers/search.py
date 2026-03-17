@@ -203,15 +203,20 @@ def _build_opensearch_search_body(body: dict, size_override: int) -> dict:
 
 def _query_references_field(obj, field_name: str) -> bool:
     """
-    Recursively check if any key in the query DSL references the given field name.
+    Recursively check if the query DSL references the given field name.
+
+    Checks whether any key equals the field name (or is a qualified name like "licenses.dateOfBirth"),
+    or any string value equals the field name.
 
     :param obj: The object to check (dict, list, or scalar)
-    :param field_name: The field name to search for in dict keys
-    :return: True if the field name is found in any key
+    :param field_name: The field name to search for
+    :return: True if the field name is found as a key or string value
     """
     if isinstance(obj, dict):
         for key, value in obj.items():
-            if field_name in key:
+            if key == field_name or key.endswith('.' + field_name):
+                return True
+            if isinstance(value, str) and value == field_name:
                 return True
             if _query_references_field(value, field_name):
                 return True
