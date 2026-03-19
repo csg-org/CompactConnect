@@ -45,6 +45,7 @@ export interface LicenseSearch {
     firstName?: string;
     lastName?: string;
     homeState?: string;
+    dob?: string;
     privilegeState?: string;
     privilegePurchaseStartDate?: string;
     privilegePurchaseEndDate?: string;
@@ -263,6 +264,13 @@ class LicenseeSearch extends mixins(MixinForm) {
                 value: this.searchParams.licenseNumber || '',
                 enforceMax: true,
             }),
+            dob: new FormInput({
+                id: 'dob',
+                name: 'dob',
+                label: computed(() => this.$t('common.dateOfBirth')),
+                placeholder: computed(() => 'MM/DD/YYYY'),
+                value: this.searchParams.dob || '',
+            }),
             privilegeState: new FormInput({
                 id: 'privilege-state',
                 name: 'privilege-state',
@@ -383,6 +391,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 break;
             case AppModes.COSMETOLOGY:
                 allowedSearchProps.push('licenseNumber');
+                allowedSearchProps.push('dob');
                 break;
             default:
                 break;
@@ -408,6 +417,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.encumberEndDate.value = '';
         this.formData.npi.value = '';
         this.formData.licenseNumber.value = '';
+        this.formData.dob.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
         this.isFormError = false;
@@ -431,6 +441,7 @@ class LicenseeSearch extends mixins(MixinForm) {
             this.formData.npi.value = 'ABC123';
         } else if (this.isAppModeCosmetology) {
             this.formData.licenseNumber.value = 'ABC123';
+            this.formData.dob.value = moment('1970-01-01').format('YYYY-MM-DD');
         }
 
         this.validateAll({ asTouched: true });

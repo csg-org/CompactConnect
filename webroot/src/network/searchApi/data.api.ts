@@ -23,6 +23,7 @@ export interface SearchParamsInterfaceLocal {
     licenseeFirstName?: string;
     licenseeLastName?: string;
     homeState?: string;
+    dob?: string;
     privilegeState?: string;
     privilegePurchaseStartDate?: string;
     privilegePurchaseEndDate?: string;
@@ -130,6 +131,7 @@ export class SearchDataApi implements DataApiInterface {
         const {
             licenseeFirstName,
             licenseeLastName,
+            dob,
             homeState,
             privilegeState,
             privilegePurchaseStartDate,
@@ -149,6 +151,7 @@ export class SearchDataApi implements DataApiInterface {
         const hasSearchTerms = Boolean(
             licenseeFirstName
             || licenseeLastName
+            || dob
             || homeState
             || privilegeState
             || privilegePurchaseStartDate
@@ -192,6 +195,21 @@ export class SearchDataApi implements DataApiInterface {
             }
             if (licenseNumber) {
                 conditions.push({ match: { licenseNumber }});
+            }
+            //
+            // License search props
+            //
+            if (dob) {
+                conditions.push({
+                    nested: {
+                        path: 'licenses',
+                        query: {
+                            term: {
+                                'licenses.dateOfBirth': dob,
+                            },
+                        },
+                    },
+                });
             }
             //
             // Privilege search props
