@@ -113,7 +113,7 @@ def handle_privilege_investigation(event: dict) -> dict:
         investigation_against_record_type=InvestigationAgainstEnum.PRIVILEGE,
         cognito_sub=cognito_sub,
     )
-    logger.info('Processing investigation updates for privilege record')
+    logger.info('Processing privilege investigation')
     config.data_client.create_investigation(investigation)
 
     # Publish privilege investigation event
@@ -167,7 +167,7 @@ def handle_license_investigation(event: dict) -> dict:
 
 
 def handle_privilege_investigation_close(event: dict) -> dict:
-    """Handle closing investigation for a privilege record"""
+    """Handle closing a privilege investigation."""
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']

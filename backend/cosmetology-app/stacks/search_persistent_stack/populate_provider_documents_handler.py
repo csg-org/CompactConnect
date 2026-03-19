@@ -36,6 +36,7 @@ class PopulateProviderDocumentsHandler(Construct):
         vpc_subnets: SubnetSelection,
         lambda_role: IRole,
         provider_table: ITable,
+        compact_configuration_table: ITable,
         alarm_topic: ITopic,
     ):
         """
@@ -48,6 +49,7 @@ class PopulateProviderDocumentsHandler(Construct):
         :param vpc_subnets: The VPC subnets for Lambda deployment
         :param lambda_role: The IAM role for the Lambda function (should have OpenSearch write access)
         :param provider_table: The DynamoDB provider table
+        :param compact_configuration_table: The DynamoDB compact configuration table (for live jurisdictions)
         :param alarm_topic: The SNS topic for alarms
         """
         super().__init__(scope, construct_id)
@@ -67,6 +69,7 @@ class PopulateProviderDocumentsHandler(Construct):
                 'OPENSEARCH_HOST_ENDPOINT': opensearch_domain.domain_endpoint,
                 'PROVIDER_TABLE_NAME': provider_table.table_name,
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': provider_table.provider_date_of_update_index_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
                 **stack.common_env_vars,
             },
             # Longer timeout for processing large datasets
@@ -81,8 +84,9 @@ class PopulateProviderDocumentsHandler(Construct):
         # Grant the handler write access to the OpenSearch domain
         opensearch_domain.grant_write(self.handler)
 
-        # Grant the handler read access to the provider table
+        # Grant the handler read access to the provider table and compact configuration table
         provider_table.grant_read_data(self.handler)
+        compact_configuration_table.grant_read_data(self.handler)
 
         # Add CDK Nag suppressions for the Lambda function's IAM role
         NagSuppressions.add_resource_suppressions_by_path(

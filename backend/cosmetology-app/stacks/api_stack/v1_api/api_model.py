@@ -673,12 +673,8 @@ class ApiModel:
                             'providerId',
                             'compact',
                             'jurisdiction',
-                            'dateOfIssuance',
-                            'dateOfRenewal',
                             'dateOfExpiration',
-                            'dateOfUpdate',
                             'compactTransactionId',
-                            'privilegeId',
                             'licenseType',
                             'licenseJurisdiction',
                             'administratorSetStatus',
@@ -715,12 +711,8 @@ class ApiModel:
                                         'previous': JsonSchema(
                                             type=JsonSchemaType.OBJECT,
                                             required=[
-                                                'dateOfIssuance',
-                                                'dateOfRenewal',
                                                 'dateOfExpiration',
-                                                'dateOfUpdate',
                                                 'compactTransactionId',
-                                                'privilegeId',
                                                 'licenseJurisdiction',
                                                 'administratorSetStatus',
                                             ],
@@ -965,12 +957,8 @@ class ApiModel:
             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
             'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
-            'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
             'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
-            'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
             'licenseJurisdiction': JsonSchema(
                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
             ),
@@ -1220,7 +1208,6 @@ class ApiModel:
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
                     'jurisdictionSummaryReportNotificationEmails',
-                    'jurisprudenceRequirements',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1252,20 +1239,6 @@ class ApiModel:
                         description='List of email addresses for summary report notifications',
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
-                    'jurisprudenceRequirements': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=['required'],
-                        properties={
-                            'required': JsonSchema(
-                                type=JsonSchemaType.BOOLEAN,
-                                description='Whether jurisprudence requirements exist',
-                            ),
-                            'linkToDocumentation': JsonSchema(
-                                one_of=[JsonSchema(type=JsonSchemaType.STRING), JsonSchema(type=JsonSchemaType.NULL)],
-                                description='Optional link to jurisprudence documentation',
-                            ),
-                        },
-                    ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
                         description='Denotes whether licensee registration is enabled',
@@ -1293,7 +1266,6 @@ class ApiModel:
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
                     'jurisdictionSummaryReportNotificationEmails',
-                    'jurisprudenceRequirements',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1320,21 +1292,6 @@ class ApiModel:
                         max_items=10,
                         unique_items=True,
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'jurisprudenceRequirements': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        additional_properties=False,
-                        required=['required'],
-                        properties={
-                            'required': JsonSchema(
-                                type=JsonSchemaType.BOOLEAN,
-                                description='Whether jurisprudence requirements exist',
-                            ),
-                            'linkToDocumentation': JsonSchema(
-                                one_of=[JsonSchema(type=JsonSchemaType.STRING), JsonSchema(type=JsonSchemaType.NULL)],
-                                description='Optional link to jurisprudence documentation',
-                            ),
-                        },
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
                         type=JsonSchemaType.BOOLEAN,
@@ -1491,12 +1448,8 @@ class ApiModel:
                 'jurisdiction',
                 'licenseJurisdiction',
                 'licenseType',
-                'dateOfIssuance',
-                'dateOfRenewal',
                 'dateOfExpiration',
-                'dateOfUpdate',
                 'administratorSetStatus',
-                'privilegeId',
                 'status',
             ],
             properties={
@@ -1512,11 +1465,7 @@ class ApiModel:
                     enum=stack.node.get_context('jurisdictions'),
                 ),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
-                'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'history': JsonSchema(
@@ -1550,11 +1499,7 @@ class ApiModel:
                                 required=[
                                     'administratorSetStatus',
                                     'dateOfExpiration',
-                                    'dateOfIssuance',
-                                    'dateOfRenewal',
-                                    'dateOfUpdate',
                                     'licenseJurisdiction',
-                                    'privilegeId',
                                 ],
                                 properties={
                                     'administratorSetStatus': JsonSchema(
@@ -1563,18 +1508,10 @@ class ApiModel:
                                     'dateOfExpiration': JsonSchema(
                                         type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                     ),
-                                    'dateOfIssuance': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
-                                    'dateOfRenewal': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
-                                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                     'licenseJurisdiction': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         enum=stack.node.get_context('jurisdictions'),
                                     ),
-                                    'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                                 },
                             ),
                             'updatedValues': JsonSchema(
@@ -1586,18 +1523,10 @@ class ApiModel:
                                     'dateOfExpiration': JsonSchema(
                                         type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                     ),
-                                    'dateOfIssuance': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
-                                    'dateOfRenewal': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
-                                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                     'licenseJurisdiction': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         enum=stack.node.get_context('jurisdictions'),
                                     ),
-                                    'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
                                 },
                             ),
                         },

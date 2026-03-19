@@ -16,26 +16,6 @@ from cc_common.data_model.schema.fields import (
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
 
 
-class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
-    """
-    A snapshot of a previous state of a privilege object
-
-    Note that none of these fields are required, as there are issuance events returned which do not have a
-    previous state since the record was created for the first time.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    administratorSetStatus = ActiveInactive(required=False, allow_none=False)
-    dateOfExpiration = Raw(required=False, allow_none=False)
-    dateOfIssuance = Raw(required=False, allow_none=False)
-    dateOfRenewal = Raw(required=False, allow_none=False)
-    dateOfUpdate = Raw(required=False, allow_none=False)
-    licenseJurisdiction = Jurisdiction(required=False, allow_none=False)
-    privilegeId = String(required=False, allow_none=False)
-
-
 class PrivilegeGeneralResponseSchema(ForgivingSchema):
     """
     Schema defining fields available to all staff users with only the 'readGeneral' permission.
@@ -50,15 +30,10 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    # the human-friendly identifier for this privilege
-    privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     # This field is only set if the privilege is under investigation
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
@@ -78,15 +53,10 @@ class PrivilegeReadPrivateResponseSchema(ForgivingSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
     investigations = List(Nested(InvestigationGeneralResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    # the human-friendly identifier for this privilege
-    privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     # This field is only set if the privilege is under investigation
     investigationStatus = InvestigationStatusField(required=False, allow_none=False)
@@ -111,11 +81,6 @@ class PrivilegePublicResponseSchema(ForgivingSchema):
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
     adverseActions = List(Nested(AdverseActionPublicResponseSchema, required=False, allow_none=False))
     administratorSetStatus = ActiveInactive(required=True, allow_none=False)
-    # the human-friendly identifier for this privilege
-    privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)

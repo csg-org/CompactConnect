@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2026-02-16T17:28:47Z"
+    "version": "2026-02-27T15:29:27Z"
   },
   "servers": [
     {
@@ -95,7 +95,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -243,7 +252,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -293,7 +311,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/write",
-              "az/cosm.write"
+              "al/cosm.write",
+              "az/cosm.write",
+              "co/cosm.write",
+              "ks/cosm.write",
+              "ky/cosm.write",
+              "md/cosm.write",
+              "oh/cosm.write",
+              "tn/cosm.write",
+              "va/cosm.write",
+              "wa/cosm.write"
             ]
           }
         ]
@@ -469,7 +496,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -553,7 +589,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -629,7 +674,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -713,7 +767,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -789,7 +852,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -873,7 +945,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -949,7 +1030,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1033,7 +1123,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1083,7 +1182,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/readSSN",
-              "az/cosm.readSSN"
+              "al/cosm.readSSN",
+              "az/cosm.readSSN",
+              "co/cosm.readSSN",
+              "ks/cosm.readSSN",
+              "ky/cosm.readSSN",
+              "md/cosm.readSSN",
+              "oh/cosm.readSSN",
+              "tn/cosm.readSSN",
+              "va/cosm.readSSN",
+              "wa/cosm.readSSN"
             ]
           }
         ]
@@ -1124,7 +1232,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1173,7 +1290,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1232,7 +1358,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1282,7 +1417,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1349,7 +1493,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1401,7 +1554,16 @@
           {
             "SandboxAPIStackLicenseApiStaffUsersPoolAuthorizer14A84A9B": [
               "cosm/admin",
-              "az/cosm.admin"
+              "al/cosm.admin",
+              "az/cosm.admin",
+              "co/cosm.admin",
+              "ks/cosm.admin",
+              "ky/cosm.admin",
+              "md/cosm.admin",
+              "oh/cosm.admin",
+              "tn/cosm.admin",
+              "va/cosm.admin",
+              "wa/cosm.admin"
             ]
           }
         ]
@@ -1678,19 +1840,29 @@
                 "administratorSetStatus",
                 "compact",
                 "dateOfExpiration",
-                "dateOfIssuance",
-                "dateOfRenewal",
-                "dateOfUpdate",
                 "jurisdiction",
                 "licenseJurisdiction",
                 "licenseType",
-                "privilegeId",
                 "providerId",
                 "status",
                 "type"
               ],
               "type": "object",
               "properties": {
+                "licenseType": {
+                  "type": "string",
+                  "enum": [
+                    "cosmetologist",
+                    "esthetician"
+                  ]
+                },
+                "administratorSetStatus": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                },
                 "licenseJurisdiction": {
                   "type": "string",
                   "enum": [
@@ -1706,11 +1878,20 @@
                     "wa"
                   ]
                 },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
                 "compact": {
                   "type": "string",
                   "enum": [
                     "cosm"
                   ]
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
                 },
                 "jurisdiction": {
                   "type": "string",
@@ -1760,11 +1941,7 @@
                         "required": [
                           "administratorSetStatus",
                           "dateOfExpiration",
-                          "dateOfIssuance",
-                          "dateOfRenewal",
-                          "dateOfUpdate",
-                          "licenseJurisdiction",
-                          "privilegeId"
+                          "licenseJurisdiction"
                         ],
                         "type": "object",
                         "properties": {
@@ -1794,23 +1971,6 @@
                               "va",
                               "wa"
                             ]
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "dateOfUpdate": {
-                            "type": "string",
-                            "format": "date-time"
                           }
                         }
                       },
@@ -1862,23 +2022,6 @@
                               "va",
                               "wa"
                             ]
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "dateOfUpdate": {
-                            "type": "string",
-                            "format": "date-time"
                           }
                         }
                       },
@@ -1913,42 +2056,6 @@
                   "enum": [
                     "privilege"
                   ]
-                },
-                "dateOfIssuance": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "licenseType": {
-                  "type": "string",
-                  "enum": [
-                    "cosmetologist",
-                    "esthetician"
-                  ]
-                },
-                "administratorSetStatus": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
-                },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "privilegeId": {
-                  "type": "string"
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
-                },
-                "dateOfRenewal": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
                 },
                 "adverseActions": {
                   "type": "array",
@@ -2032,10 +2139,6 @@
                       }
                     }
                   }
-                },
-                "dateOfUpdate": {
-                  "type": "string",
-                  "format": "date-time"
                 },
                 "status": {
                   "type": "string",
@@ -2431,7 +2534,6 @@
           "jurisdictionName",
           "jurisdictionOperationsTeamEmails",
           "jurisdictionSummaryReportNotificationEmails",
-          "jurisprudenceRequirements",
           "licenseeRegistrationEnabled",
           "postalAbbreviation"
         ],
@@ -2463,27 +2565,6 @@
             "enum": [
               "cosm"
             ]
-          },
-          "jurisprudenceRequirements": {
-            "required": [
-              "required"
-            ],
-            "type": "object",
-            "properties": {
-              "linkToDocumentation": {
-                "description": "Optional link to jurisprudence documentation",
-                "oneOf": [
-                  {
-                    "type": "string"
-                  },
-                  null
-                ]
-              },
-              "required": {
-                "type": "boolean",
-                "description": "Whether jurisprudence requirements exist"
-              }
-            }
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
@@ -2665,7 +2746,6 @@
           "jurisdictionAdverseActionsNotificationEmails",
           "jurisdictionOperationsTeamEmails",
           "jurisdictionSummaryReportNotificationEmails",
-          "jurisprudenceRequirements",
           "licenseeRegistrationEnabled"
         ],
         "type": "object",
@@ -2691,28 +2771,6 @@
               "type": "string",
               "format": "email"
             }
-          },
-          "jurisprudenceRequirements": {
-            "required": [
-              "required"
-            ],
-            "type": "object",
-            "properties": {
-              "linkToDocumentation": {
-                "description": "Optional link to jurisprudence documentation",
-                "oneOf": [
-                  {
-                    "type": "string"
-                  },
-                  null
-                ]
-              },
-              "required": {
-                "type": "boolean",
-                "description": "Whether jurisprudence requirements exist"
-              }
-            },
-            "additionalProperties": false
           },
           "licenseeRegistrationEnabled": {
             "type": "boolean",
@@ -3038,14 +3096,10 @@
                 "compact",
                 "compactTransactionId",
                 "dateOfExpiration",
-                "dateOfIssuance",
-                "dateOfRenewal",
-                "dateOfUpdate",
                 "history",
                 "jurisdiction",
                 "licenseJurisdiction",
                 "licenseType",
-                "privilegeId",
                 "providerId",
                 "status",
                 "type"
@@ -3200,14 +3254,22 @@
                           "administratorSetStatus",
                           "compactTransactionId",
                           "dateOfExpiration",
-                          "dateOfIssuance",
-                          "dateOfRenewal",
-                          "dateOfUpdate",
-                          "licenseJurisdiction",
-                          "privilegeId"
+                          "licenseJurisdiction"
                         ],
                         "type": "object",
                         "properties": {
+                          "administratorSetStatus": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "inactive"
+                            ]
+                          },
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                            "type": "string",
+                            "format": "date"
+                          },
                           "licenseJurisdiction": {
                             "type": "string",
                             "enum": [
@@ -3228,6 +3290,10 @@
                             "enum": [
                               "cosm"
                             ]
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
                           },
                           "jurisdiction": {
                             "type": "string",
@@ -3252,39 +3318,6 @@
                           },
                           "compactTransactionId": {
                             "type": "string"
-                          },
-                          "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "administratorSetStatus": {
-                            "type": "string",
-                            "enum": [
-                              "active",
-                              "inactive"
-                            ]
-                          },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "dateOfUpdate": {
-                            "type": "string",
-                            "format": "date-time"
                           },
                           "status": {
                             "type": "string",
@@ -3313,6 +3346,18 @@
                       "updatedValues": {
                         "type": "object",
                         "properties": {
+                          "administratorSetStatus": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "inactive"
+                            ]
+                          },
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                            "type": "string",
+                            "format": "date"
+                          },
                           "licenseJurisdiction": {
                             "type": "string",
                             "enum": [
@@ -3333,6 +3378,10 @@
                             "enum": [
                               "cosm"
                             ]
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
                           },
                           "jurisdiction": {
                             "type": "string",
@@ -3357,39 +3406,6 @@
                           },
                           "compactTransactionId": {
                             "type": "string"
-                          },
-                          "dateOfIssuance": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "administratorSetStatus": {
-                            "type": "string",
-                            "enum": [
-                              "active",
-                              "inactive"
-                            ]
-                          },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "dateOfUpdate": {
-                            "type": "string",
-                            "format": "date-time"
                           },
                           "status": {
                             "type": "string",
@@ -3435,11 +3451,6 @@
                 "compactTransactionId": {
                   "type": "string"
                 },
-                "dateOfIssuance": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                },
                 "licenseType": {
                   "type": "string",
                   "enum": [
@@ -3459,17 +3470,9 @@
                   "type": "string",
                   "format": "date"
                 },
-                "privilegeId": {
-                  "type": "string"
-                },
                 "providerId": {
                   "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
                   "type": "string"
-                },
-                "dateOfRenewal": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
                 },
                 "adverseActions": {
                   "type": "array",
@@ -3567,10 +3570,6 @@
                       }
                     }
                   }
-                },
-                "dateOfUpdate": {
-                  "type": "string",
-                  "format": "date-time"
                 },
                 "status": {
                   "type": "string",
