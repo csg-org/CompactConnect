@@ -66,6 +66,17 @@
                     class="search-input license-number-input"
                 />
             </div>
+            <div v-if="isAppModeCosmetology" class="search-form-row">
+                <InputDate
+                    class="search-input dob-input"
+                    :formInput="formData.dob"
+                    :yearRange="[1920, new Date().getFullYear()]"
+                    :maxDate="new Date()"
+                    :preventMinMaxNavigation="true"
+                    :textInput="{ format: 'MM/dd/yyyy', openMenu: false }"
+                    :startDate="new Date(1975, 0, 1)"
+                />
+            </div>
             <div v-if="isAppModeJcc" class="search-form-row">
                 <InputSelect
                     :formInput="formData.privilegeState"

@@ -20,18 +20,14 @@ from cc_common.data_model.schema.common import (
     CCDataClass,
     InvestigationAgainstEnum,
     InvestigationStatusEnum,
-    LicenseDeactivatedStatusEnum,
     LicenseEncumberedStatusEnum,
-    PrivilegeEncumberedStatusEnum,
     UpdateCategory,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import (
-    CCAwsServiceException,
     CCInternalException,
     CCInvalidRequestException,
     CCNotFoundException,
@@ -173,7 +169,7 @@ class DataClient:
         logger.info('Getting provider')
 
         # Determine SK condition based on include_update_tier parameter
-        # When include_update_tier=None, use begins_with to get only main records (provider, licenses, privileges)
+        # When include_update_tier=None, use begins_with to get only main records (provider, licenses)
         # When include_update_tier is set, use lt (less than) to get main records plus updates up to that tier
         if include_update_tier is None:
             # Get only main records: {compact}#PROVIDER prefix
@@ -368,147 +364,10 @@ class DataClient:
 
         return ProviderData.from_database_record(provider)
 
-    def _get_privilege_record_directly(
-        self,
-        *,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbr: str,
-        consistent_read: bool = False,
-    ) -> PrivilegeData:
-        """
-        Query for a single privilege record directly from DynamoDB.
-
-        This should be used when it is undesirable to get all provider records and
-        filter for the specific privilege record.
-
-        :param str compact: The compact of the privilege
-        :param str provider_id: The provider of the privilege
-        :param str jurisdiction: The jurisdiction of the privilege
-        :param str license_type_abbr: The license type abbreviation of the privilege
-        :param bool consistent_read: If true, performs a consistent read of the record
-        :raises CCNotFoundException: If the privilege record is not found
-        :return: The privilege record as PrivilegeData
-        """
-        pk = f'{compact}#PROVIDER#{provider_id}'
-        sk = f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#'
-
-        try:
-            response = self.config.provider_table.get_item(
-                Key={'pk': pk, 'sk': sk},
-                ConsistentRead=consistent_read,
-            )
-            if 'Item' not in response:
-                raise CCNotFoundException('Privilege not found')
-
-            return PrivilegeData.from_database_record(response['Item'])
-        except KeyError as e:
-            raise CCNotFoundException('Privilege not found') from e
-
-    def _get_privilege_update_records_directly(
-        self,
-        *,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbr: str,
-        consistent_read: bool = False,
-    ) -> list[PrivilegeUpdateData]:
-        """
-        Query for all privilege update records for a specific privilege directly from DynamoDB.
-
-        This should be used when it is undesirable to get all provider update records and
-        filter for the specific privilege update records.
-
-        :param str compact: The compact of the privilege
-        :param str provider_id: The provider of the privilege
-        :param str jurisdiction: The jurisdiction of the privilege
-        :param str license_type_abbr: The license type abbreviation of the privilege
-        :param bool consistent_read: If true, performs a consistent read of the records
-        :return: List of privilege update records
-        """
-        pk = f'{compact}#PROVIDER#{provider_id}'
-        sk_prefix = f'{compact}#UPDATE#{UpdateTierEnum.TIER_ONE}#privilege/{jurisdiction}/{license_type_abbr}/'
-
-        response_items = []
-
-        # Query for records using the SK prefix pattern
-        last_evaluated_key = None
-        while True:
-            pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
-
-            query_resp = self.config.provider_table.query(
-                Select='ALL_ATTRIBUTES',
-                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
-                ConsistentRead=consistent_read,
-                **pagination,
-            )
-
-            response_items.extend(query_resp.get('Items', []))
-
-            last_evaluated_key = query_resp.get('LastEvaluatedKey')
-            if not last_evaluated_key:
-                break
-
-        return [PrivilegeUpdateData.from_database_record(item) for item in response_items]
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'detail', 'jurisdiction', 'license_type_abbr')
-    def get_privilege_data(
-        self,
-        *,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbr: str,
-        consistent_read: bool = False,
-        detail: bool = False,
-    ) -> list[dict]:
-        """
-        Get a privilege for a provider in a jurisdiction of the license type.
-
-        This should be used when it is undesirable to pull all provider records and
-        filter for the specific privilege record and associated update records.
-
-        :param str compact: The compact of the privilege
-        :param str provider_id: The provider of the privilege
-        :param str jurisdiction: The jurisdiction of the privilege
-        :param str license_type_abbr: The license type abbreviation of the privilege
-        :param bool consistent_read: If true, performs a consistent read of the records
-        :param bool detail: Boolean determining whether we include associated records or just privilege record itself
-        :raises CCNotFoundException: If the privilege record is not found
-        :return If detail = False list of length one containing privilege item, if detail = True list containing,
-        privilege record and privilege update records
-        """
-        # Query directly for the privilege record
-        privilege = self._get_privilege_record_directly(
-            compact=compact,
-            provider_id=provider_id,
-            jurisdiction=jurisdiction,
-            license_type_abbr=license_type_abbr,
-            consistent_read=consistent_read,
-        )
-
-        # Build return list in the same format as before
-        result = [privilege.to_dict()]
-
-        if detail:
-            # Query directly for privilege update records
-            privilege_updates = self._get_privilege_update_records_directly(
-                compact=compact,
-                provider_id=provider_id,
-                jurisdiction=jurisdiction,
-                license_type_abbr=license_type_abbr,
-                consistent_read=consistent_read,
-            )
-            result.extend([update.to_dict() for update in privilege_updates])
-
-        return result
-
     def _generate_encumbered_status_update_item(
         self,
         data: CCDataClass,
-        encumbered_status: LicenseEncumberedStatusEnum | PrivilegeEncumberedStatusEnum,
+        encumbered_status: LicenseEncumberedStatusEnum,
     ):
         data_record = data.serialize_to_database_record()
 
@@ -519,42 +378,6 @@ class DataClient:
                 'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate',
                 'ExpressionAttributeValues': {
                     ':status': {'S': encumbered_status},
-                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                },
-            },
-        }
-
-    def _generate_set_privilege_encumbered_status_item(
-        self,
-        privilege_data: PrivilegeData,
-        privilege_encumbered_status: PrivilegeEncumberedStatusEnum,
-    ):
-        return self._generate_encumbered_status_update_item(
-            data=privilege_data,
-            encumbered_status=privilege_encumbered_status,
-        )
-
-    def _generate_set_privilege_license_deactivated_status_item(
-        self,
-        privilege_data: PrivilegeData,
-        license_deactivated_status: LicenseDeactivatedStatusEnum,
-    ):
-        """
-        Generate a transaction item to update a privilege record with license deactivated status.
-
-        :param PrivilegeData privilege_data: The privilege data to update
-        :param LicenseDeactivatedStatusEnum license_deactivated_status: The license deactivated status to set
-        :return: DynamoDB transaction item for updating the privilege
-        """
-        privilege_record = privilege_data.serialize_to_database_record()
-
-        return {
-            'Update': {
-                'TableName': self.config.provider_table.name,
-                'Key': {'pk': {'S': privilege_record['pk']}, 'sk': {'S': privilege_record['sk']}},
-                'UpdateExpression': 'SET licenseDeactivatedStatus = :status, dateOfUpdate = :dateOfUpdate',
-                'ExpressionAttributeValues': {
-                    ':status': {'S': license_deactivated_status},
                     ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                 },
             },
@@ -721,65 +544,40 @@ class DataClient:
         return transaction_items
 
     def _generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
-        self, provider_user_records: ProviderUserRecords, lifted_record: PrivilegeData | LicenseData
+        self,
+        provider_user_records: ProviderUserRecords,
+        excluded_adverse_action_id: UUID | None = None,
     ) -> list[dict]:
         """
-        Check if any licenses or privileges (excluding the lifted record) still have encumbered status.
-        If none are encumbered, return transaction items to set the provider record to unencumbered.
+        Check if any adverse action records are still active (no effectiveLiftDate).
+        If none are active (optionally excluding one being lifted), return transaction items
+        to set the provider record to unencumbered.
 
         :param ProviderUserRecords provider_user_records: All provider records
-        :param lifted_record: The privilege or license record that is having its encumbrance lifted
-        :return: List of transaction items (empty if other records are still encumbered)
+        :param excluded_adverse_action_id: When lifting an encumbrance, the adverse action ID being
+            lifted so it is excluded from the "still active" check
+        :return: List of transaction items (empty if other encumbrances are still active)
         """
-        # Get the provider record
+        # Get adverse action records that are still active (no effectiveLiftDate set)
+        active_adverse_actions = provider_user_records.get_adverse_action_records(
+            filter_condition=lambda aa: aa.effectiveLiftDate is None
+        )
+        # Exclude the one we're lifting from the count, if provided
+        if excluded_adverse_action_id is not None:
+            active_adverse_actions = [
+                aa for aa in active_adverse_actions if aa.adverseActionId != excluded_adverse_action_id
+            ]
+        if active_adverse_actions:
+            logger.info(
+                'Adverse action(s) still active (no effectiveLiftDate), provider record will not be updated',
+                active_count=len(active_adverse_actions),
+            )
+            return []
+
+        # No other encumbrances are active, so we can set the provider to unencumbered
+        logger.info('No other adverse actions are active, setting provider to unencumbered')
+
         provider_record = provider_user_records.get_provider_record()
-
-        # Get all license records
-        license_records = provider_user_records.get_license_records()
-
-        # Get all privilege records
-        privilege_records = provider_user_records.get_privilege_records()
-
-        # Check if the lifted record is a license or privilege based on its type
-        lifted_record_type = getattr(lifted_record, 'type', None)
-
-        # Check license records for encumbered status (excluding the lifted record if it's a license)
-        for license_record in license_records:
-            if (
-                lifted_record_type == 'license'
-                and license_record.jurisdiction == lifted_record.jurisdiction
-                and license_record.licenseType == lifted_record.licenseType
-            ):
-                # Skip the record being lifted
-                continue
-            if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
-                logger.info(
-                    'License record still encumbered, provider record will not be updated',
-                    encumbered_license_jurisdiction=license_record.jurisdiction,
-                    encumbered_license_type=license_record.licenseType,
-                )
-                return []
-
-        # Check privilege records for encumbered status (excluding the lifted record if it's a privilege)
-        for privilege_record in privilege_records:
-            if (
-                lifted_record_type == 'privilege'
-                and privilege_record.jurisdiction == lifted_record.jurisdiction
-                and privilege_record.licenseType == lifted_record.licenseType
-            ):
-                # Skip the record being lifted
-                continue
-            if privilege_record.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
-                logger.info(
-                    'Privilege record still encumbered, provider record will not be updated',
-                    encumbered_privilege_jurisdiction=privilege_record.jurisdiction,
-                    encumbered_privilege_type=privilege_record.licenseType,
-                )
-                return []
-
-        # No other records are encumbered, so we can set the provider to unencumbered
-        logger.info('No other licenses or privileges are encumbered, setting provider to unencumbered')
-
         provider_update_item = self._generate_set_provider_encumbered_status_item(
             provider_data=provider_record,
             provider_encumbered_status=LicenseEncumberedStatusEnum.UNENCUMBERED,
@@ -789,13 +587,12 @@ class DataClient:
 
     def encumber_privilege(self, adverse_action: AdverseActionData) -> None:
         """
-        Adds an adverse action record for a privilege for a provider in a jurisdiction.
+        Adds an adverse action record for a privilege (jurisdiction) for a provider.
 
-        This will also update the privilege record to have a encumberedStatus of 'encumbered', add a privilege update
-        record to show the encumbrance event, and update the provider record to have a encumberedStatus of 'encumbered'.
+        We only store the adverse action and update the provider encumbered status.
+        No privilege or privilege-update records are written.
 
         :param AdverseActionData adverse_action: The details of the adverse action to be added to the records
-        :raises CCNotFoundException: If the privilege record is not found
         """
         with logger.append_context_keys(
             compact=adverse_action.compact,
@@ -803,89 +600,10 @@ class DataClient:
             jurisdiction=adverse_action.jurisdiction,
             license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
         ):
-            # Get the privilege record
-            try:
-                privilege_record = self.config.provider_table.get_item(
-                    Key={
-                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
-                        'sk': f'{adverse_action.compact}#PROVIDER#privilege/'
-                        f'{adverse_action.jurisdiction}/{adverse_action.licenseTypeAbbreviation}#',
-                    },
-                )['Item']
-            except KeyError as e:
-                message = 'Privilege not found for jurisdiction'
-                logger.info(message)
-                raise CCNotFoundException(f'Privilege not found for jurisdiction {adverse_action.jurisdiction}') from e
-
-            privilege_data = PrivilegeData.from_database_record(privilege_record)
-
-            need_to_set_privilege_to_encumbered = True
-            # If already encumbered, do nothing
-            if privilege_data.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED:
-                logger.info('Privilege already encumbered. Not updating "encumberedStatus" field')
-                need_to_set_privilege_to_encumbered = False
-            else:
-                logger.info(
-                    'Privilege is currently active. Setting privilege into an encumbered state as part of update.'
-                )
-
-            now = config.current_standard_datetime
-            encumbrance_details = {
-                'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
-                'adverseActionId': adverse_action.adverseActionId,
-            }
-
-            # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
-            # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
-            # users across the entire US will see the same date
-            effective_date_time = datetime.combine(
-                adverse_action.effectiveStartDate, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
-            )
-
-            # Create the update record
-            # Use the schema to generate the update record with proper pk/sk
-            privilege_update_record = PrivilegeUpdateData.create_new(
-                {
-                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                    'updateType': UpdateCategory.ENCUMBRANCE,
-                    'providerId': adverse_action.providerId,
-                    'compact': adverse_action.compact,
-                    'jurisdiction': adverse_action.jurisdiction,
-                    'licenseType': privilege_data.licenseType,
-                    'createDate': now,
-                    'encumbranceDetails': encumbrance_details,
-                    'effectiveDate': effective_date_time,
-                    'previous': {
-                        # We're relying on the schema to trim out unneeded fields
-                        **privilege_data.to_dict(),
-                    },
-                    'updatedValues': {
-                        'encumberedStatus': PrivilegeEncumberedStatusEnum.ENCUMBERED,
-                    }
-                    if need_to_set_privilege_to_encumbered
-                    else {},
-                }
-            ).serialize_to_database_record()
-
-            # Update the privilege record and create history record
-            logger.info('Encumbering privilege')
-            # we add the adverse action record for the privilege,
-            # the privilege update record, and update the privilege record to inactive if it is not already inactive
+            logger.info('Adding encumbrance for jurisdiction')
             transact_items = [
-                # Create a history record, reflecting this change
-                self._generate_put_transaction_item(privilege_update_record),
-                # Add the adverse action record for the privilege
                 self._generate_put_transaction_item(adverse_action.serialize_to_database_record()),
             ]
-
-            if need_to_set_privilege_to_encumbered:
-                # Set the privilege record's encumberedStatus to encumbered and update the dateOfUpdate
-                transact_items.append(
-                    self._generate_set_privilege_encumbered_status_item(
-                        privilege_data=privilege_data,
-                        privilege_encumbered_status=PrivilegeEncumberedStatusEnum.ENCUMBERED,
-                    )
-                )
 
             # If the provider is not already encumbered, we need to update the provider record to encumbered
             transact_items = self._generate_provider_encumbered_status_update_item_if_not_already_encumbered(
@@ -897,7 +615,7 @@ class DataClient:
                 TransactItems=transact_items,
             )
 
-            logger.info('Set encumbrance for privilege record')
+            logger.info('Set encumbrance for privilege jurisdiction')
 
     def encumber_license(self, adverse_action: AdverseActionData) -> None:
         """
@@ -1008,8 +726,8 @@ class DataClient:
         """
         Creates an investigation record for a provider in a jurisdiction.
 
-        This will also update the record to have an investigationStatus of 'underInvestigation',
-        add an update record to show the investigation event.
+        If the investigation is against a license, this will also update the license record to have
+        an investigationStatus of 'underInvestigation', and add an update record to show the investigation event.
 
         :param InvestigationData investigation: The details of the investigation to be added to the records
         :raises CCNotFoundException: If the record is not found
@@ -1028,7 +746,9 @@ class DataClient:
                 compact=investigation.compact, provider_id=investigation.providerId, consistent_read=True
             )
 
-            # Separate the main record from investigation records
+            # Privilege investigations: only store the investigation record (no privilege/privilege-update records).
+            # License investigations: require license record
+            # put investigation + license update record + update license.
             if investigation.investigationAgainst == InvestigationAgainstEnum.LICENSE:
                 record = provider_records.get_specific_license_record(
                     investigation.jurisdiction, investigation.licenseTypeAbbreviation
@@ -1042,66 +762,51 @@ class DataClient:
 
                 update_data_type = LicenseUpdateData
                 update_type = ProviderRecordType.LICENSE_UPDATE
-            else:
-                record = provider_records.get_specific_privilege_record(
-                    investigation.jurisdiction, investigation.licenseTypeAbbreviation
-                )
-                if not record:
-                    message = f'{record_type.title()} not found for jurisdiction'
-                    logger.info(message)
-                    raise CCNotFoundException(
-                        f'{record_type.title()} not found for jurisdiction {investigation.jurisdiction}'
-                    )
-
-                update_data_type = PrivilegeUpdateData
-                update_type = ProviderRecordType.PRIVILEGE_UPDATE
-
-            investigation_details = {
-                'investigationId': investigation.investigationId,
-            }
-
-            # Create the update record
-            update_record = update_data_type.create_new(
-                {
-                    'type': update_type,
-                    'updateType': UpdateCategory.INVESTIGATION,
-                    'providerId': investigation.providerId,
-                    'compact': investigation.compact,
-                    'jurisdiction': investigation.jurisdiction,
-                    'createDate': investigation.creationDate,
-                    'effectiveDate': investigation.creationDate,
-                    'licenseType': investigation.licenseType,
-                    'previous': record.to_dict(),
-                    'updatedValues': {
-                        'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
-                    },
-                    'investigationDetails': investigation_details,
-                }
-            )
-
-            # Prepare the transaction items
-            serialized_record = record.serialize_to_database_record()
-            transaction_items = [
-                self._generate_put_transaction_item(investigation.serialize_to_database_record()),
-                self._generate_put_transaction_item(update_record.serialize_to_database_record()),
-                {
-                    'Update': {
-                        'TableName': self.config.provider_table.table_name,
-                        'Key': {
-                            'pk': {'S': serialized_record['pk']},
-                            'sk': {'S': serialized_record['sk']},
+                investigation_details = {'investigationId': investigation.investigationId}
+                update_record = update_data_type.create_new(
+                    {
+                        'type': update_type,
+                        'updateType': UpdateCategory.INVESTIGATION,
+                        'providerId': investigation.providerId,
+                        'compact': investigation.compact,
+                        'jurisdiction': investigation.jurisdiction,
+                        'createDate': investigation.creationDate,
+                        'effectiveDate': investigation.creationDate,
+                        'licenseType': investigation.licenseType,
+                        'previous': record.to_dict(),
+                        'updatedValues': {
+                            'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
                         },
-                        'UpdateExpression': (
-                            'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
-                        ),
-                        'ConditionExpression': 'attribute_exists(pk)',
-                        'ExpressionAttributeValues': {
-                            ':investigationStatus': {'S': InvestigationStatusEnum.UNDER_INVESTIGATION},
-                            ':dateOfUpdate': {'S': investigation.creationDate.isoformat()},
-                        },
+                        'investigationDetails': investigation_details,
                     }
-                },
-            ]
+                )
+                serialized_record = record.serialize_to_database_record()
+                transaction_items = [
+                    self._generate_put_transaction_item(investigation.serialize_to_database_record()),
+                    self._generate_put_transaction_item(update_record.serialize_to_database_record()),
+                    {
+                        'Update': {
+                            'TableName': self.config.provider_table.table_name,
+                            'Key': {
+                                'pk': {'S': serialized_record['pk']},
+                                'sk': {'S': serialized_record['sk']},
+                            },
+                            'UpdateExpression': (
+                                'SET investigationStatus = :investigationStatus, dateOfUpdate = :dateOfUpdate'
+                            ),
+                            'ConditionExpression': 'attribute_exists(pk)',
+                            'ExpressionAttributeValues': {
+                                ':investigationStatus': {'S': InvestigationStatusEnum.UNDER_INVESTIGATION},
+                                ':dateOfUpdate': {'S': investigation.creationDate.isoformat()},
+                            },
+                        }
+                    },
+                ]
+            else:
+                # Privilege: store only the investigation record.
+                transaction_items = [
+                    self._generate_put_transaction_item(investigation.serialize_to_database_record()),
+                ]
 
             # Execute the transaction
             self.config.dynamodb_client.transact_write_items(TransactItems=transaction_items)
@@ -1149,7 +854,7 @@ class DataClient:
                 compact=compact, provider_id=provider_id, consistent_read=True
             )
 
-            # Separate the main record from investigation records
+            # Find the investigation to close and count other open investigations
             if investigation_against == InvestigationAgainstEnum.LICENSE:
                 record = provider_records.get_specific_license_record(jurisdiction, license_type_abbreviation)
                 if not record:
@@ -1157,9 +862,6 @@ class DataClient:
                     logger.info(message)
                     raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
 
-                update_data_type = LicenseUpdateData
-                update_type = ProviderRecordType.LICENSE_UPDATE
-                # Count open investigations (those without closeDate), excluding the one we're closing
                 open_investigations = provider_records.get_investigation_records_for_license(
                     jurisdiction,
                     license_type_abbreviation,
@@ -1177,15 +879,7 @@ class DataClient:
                     None,
                 )
             else:
-                record = provider_records.get_specific_privilege_record(jurisdiction, license_type_abbreviation)
-                if not record:
-                    message = f'{record_type.title()} not found for jurisdiction'
-                    logger.info(message)
-                    raise CCNotFoundException(f'{record_type.title()} not found for jurisdiction {jurisdiction}')
-
-                update_data_type = PrivilegeUpdateData
-                update_type = ProviderRecordType.PRIVILEGE_UPDATE
-                # Count open investigations (those without closeDate), excluding the one we're closing
+                # Privilege: no stored privilege record; find investigation by jurisdiction/license type only.
                 open_investigations = provider_records.get_investigation_records_for_privilege(
                     jurisdiction,
                     license_type_abbreviation,
@@ -1206,10 +900,10 @@ class DataClient:
             if investigation is None:
                 raise CCNotFoundException('Investigation not found')
 
-            # Determine if this is the last open investigation
-            is_last_open_investigation = len(open_investigations) == 0
+            is_last_open_investigation_against_license = (
+                investigation_against == InvestigationAgainstEnum.LICENSE and len(open_investigations) == 0
+            )
 
-            # Prepare the transaction items
             # Build the investigation update expression and values
             investigation_update_expression = (
                 'SET closeDate = :closeDate, closingUser = :closingUser, dateOfUpdate = :dateOfUpdate'
@@ -1241,12 +935,11 @@ class DataClient:
                 },
             ]
 
-            # Only create update record and remove status if this is the last open investigation
-            if is_last_open_investigation:
-                # Create the update record for investigation closure
-                update_record = update_data_type.create_new(
+            # License only: when last open investigation, create license update record and remove status from license
+            if is_last_open_investigation_against_license:
+                update_record = LicenseUpdateData.create_new(
                     {
-                        'type': update_type,
+                        'type': ProviderRecordType.LICENSE_UPDATE,
                         'updateType': UpdateCategory.CLOSING_INVESTIGATION,
                         'providerId': provider_id,
                         'compact': compact,
@@ -1259,12 +952,10 @@ class DataClient:
                         'removedValues': ['investigationStatus'],
                     }
                 )
-
                 serialized_record = record.serialize_to_database_record()
                 transaction_items.extend(
                     [
                         self._generate_put_transaction_item(update_record.serialize_to_database_record()),
-                        # Remove investigationStatus from the license/privilege record
                         {
                             'Update': {
                                 'TableName': self.config.provider_table.table_name,
@@ -1308,8 +999,8 @@ class DataClient:
         lifting_user: str,
     ) -> None:
         """
-        Lift an encumbrance from a privilege record by updating the adverse action record
-        and potentially updating the privilege record's encumbered status.
+        Lift an encumbrance for a privilege (jurisdiction) by updating the adverse action record
+        and, if applicable, the provider's encumbered status.
 
         :param str compact: The compact name
         :param str provider_id: The provider ID
@@ -1328,8 +1019,6 @@ class DataClient:
             license_type_abbreviation=license_type_abbreviation,
             adverse_action_id=adverse_action_id,
         ):
-            license_type_name = self._validate_license_type_abbreviation(compact, license_type_abbreviation)
-
             logger.info('Lifting privilege encumbrance')
 
             # Get all provider records
@@ -1348,94 +1037,22 @@ class DataClient:
             # Find the specific adverse action record to lift
             target_adverse_action = self._find_and_validate_adverse_action(adverse_action_records, adverse_action_id)
 
-            # Get the privilege record
-            privilege_records = provider_user_records.get_privilege_records(
-                filter_condition=lambda p: p.jurisdiction == jurisdiction and p.licenseType == license_type_name
-            )
-
-            if not privilege_records:
-                message = 'Privilege record not found for adverse action record.'
-                logger.error(message, license_type_name=license_type_name)
-                raise CCInternalException(message)
-
-            privilege_data = privilege_records[0]
-
             # Build transaction items
-            transact_items = []
-
             # Always update the adverse action record with lift information
-            transact_items.append(
+            transact_items = [
                 self._generate_adverse_action_lift_update_item(
                     target_adverse_action=target_adverse_action,
                     effective_lift_date=effective_lift_date,
                     lifting_user=lifting_user,
                 )
+            ]
+
+            # Check if provider should be set to unencumbered
+            provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
+                provider_user_records=provider_user_records,
+                excluded_adverse_action_id=adverse_action_id,
             )
-
-            # If this was the last un-lifted adverse action, update privilege status and create update record
-            unlifted_adverse_actions = self._get_unlifted_adverse_actions(adverse_action_records, adverse_action_id)
-            # we also need to check if the license record the privilege is associated with is also unencumbered
-            license_record = provider_user_records.get_specific_license_record(
-                jurisdiction=privilege_data.licenseJurisdiction, license_abbreviation=license_type_abbreviation
-            )
-            if not license_record:
-                message = 'License record not found for adverse action record.'
-                logger.error(
-                    message,
-                    license_jurisdiction=privilege_data.licenseJurisdiction,
-                    license_type_name=license_type_name,
-                )
-                raise CCInternalException(message)
-
-            if not unlifted_adverse_actions:
-                encumbered_status = PrivilegeEncumberedStatusEnum.UNENCUMBERED
-                # If the license is encumbered, we need to update the privilege record to the license encumbered status
-                # otherwise, we update the privilege record to unencumbered
-                if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
-                    encumbered_status = PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
-                # Update privilege record to new status
-                privilege_update_item = self._generate_set_privilege_encumbered_status_item(
-                    privilege_data=privilege_data,
-                    privilege_encumbered_status=encumbered_status,
-                )
-                transact_items.append(privilege_update_item)
-
-                now = config.current_standard_datetime
-
-                # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
-                # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
-                # users across the entire US will see the same date
-                effective_date_time = datetime.combine(
-                    effective_lift_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
-                )
-
-                # Create privilege update record
-                privilege_update_record = PrivilegeUpdateData.create_new(
-                    {
-                        'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                        'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': jurisdiction,
-                        'licenseType': privilege_data.licenseType,
-                        'createDate': now,
-                        'effectiveDate': effective_date_time,
-                        'previous': privilege_data.to_dict(),
-                        'updatedValues': {
-                            # this may be unencumbered or license encumbered
-                            'encumberedStatus': encumbered_status,
-                        },
-                    }
-                ).serialize_to_database_record()
-
-                transact_items.append(self._generate_put_transaction_item(privilege_update_record))
-
-                # Check if provider should be set to unencumbered
-                provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
-                    provider_user_records=provider_user_records,
-                    lifted_record=privilege_data,
-                )
-                transact_items.extend(provider_status_items)
+            transact_items.extend(provider_status_items)
 
             # Execute the transaction
             self.config.dynamodb_client.transact_write_items(TransactItems=transact_items)
@@ -1561,7 +1178,7 @@ class DataClient:
                 # Check if provider should be set to unencumbered
                 provider_status_items = self._generate_provider_encumbered_status_transaction_items_if_no_encumbrances(
                     provider_user_records=provider_user_records,
-                    lifted_record=license_data,
+                    excluded_adverse_action_id=adverse_action_id,
                 )
                 transact_items.extend(provider_status_items)
 
@@ -1569,422 +1186,3 @@ class DataClient:
             self.config.dynamodb_client.transact_write_items(TransactItems=transact_items)
 
             logger.info('Successfully lifted license encumbrance')
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbreviation')
-    def encumber_home_jurisdiction_license_privileges(
-        self,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        adverse_action_id: UUID,
-        license_type_abbreviation: str,
-        effective_date: date,
-    ) -> list[PrivilegeData]:
-        """
-        Encumber all unencumbered privileges associated with a home jurisdiction license.
-
-        This method finds all unencumbered privileges for the given license and sets their
-        encumberedStatus to LICENSE_ENCUMBERED, along with creating privilege update records.
-
-        :param str compact: The compact name.
-        :param str provider_id: The provider ID.
-        :param str jurisdiction: The jurisdiction of the license.
-        :param UUID adverse_action_id: The ID of the adverse action.
-        :param str license_type_abbreviation: The license type abbreviation.
-        :param date effective_date: effective date of the encumbrance on the license and therefore privilege.
-        :return: List of privileges that were encumbered
-        """
-        # Get all provider records
-        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
-            compact=compact, provider_id=provider_id, consistent_read=True
-        )
-
-        # Validate the license type abbreviation
-        self._validate_license_type_abbreviation(compact, license_type_abbreviation)
-
-        # get the adverse_action record based on the id
-        adverse_action = provider_user_records.get_adverse_action_by_id(adverse_action_id)
-
-        if not adverse_action:
-            logger.error(
-                'Adverse Action not found by id',
-                provider_id=provider_id,
-                encumbered_license_jurisdiction=jurisdiction,
-                encumbered_license_type=license_type_abbreviation,
-                adverse_action_id=adverse_action_id,
-            )
-            raise CCInternalException('Adverse Action not found by id')
-
-        # Find privileges associated with the license that which was encumbered, which themselves are not currently
-        # encumbered
-        unencumbered_privileges_associated_with_license = provider_user_records.get_privilege_records(
-            filter_condition=lambda p: (
-                p.licenseJurisdiction == jurisdiction
-                and p.licenseTypeAbbreviation == license_type_abbreviation
-                and (p.encumberedStatus is None or p.encumberedStatus == PrivilegeEncumberedStatusEnum.UNENCUMBERED)
-            )
-        )
-
-        previously_encumbered_privileges_associated_with_license = provider_user_records.get_privilege_records(
-            filter_condition=lambda p: (
-                p.licenseJurisdiction == jurisdiction
-                and p.licenseTypeAbbreviation == license_type_abbreviation
-                and (p.encumberedStatus == PrivilegeEncumberedStatusEnum.ENCUMBERED)
-            )
-        )
-
-        logger.info(
-            'Found privileges to encumber', privilege_count=len(unencumbered_privileges_associated_with_license)
-        )
-        encumbrance_details = {
-            'clinicalPrivilegeActionCategories': adverse_action.clinicalPrivilegeActionCategories,
-            # In the case of privileges being encumbered due to the home state license being encumbered,
-            # this 'licenseJurisdiction' field is added to denote which license was responsible for this update.
-            'licenseJurisdiction': jurisdiction,
-            'adverseActionId': adverse_action_id,
-        }
-
-        # Build transaction items for all privileges
-        transaction_items = []
-
-        # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
-        # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
-        # users across the entire US will see the same date
-        effective_date_time = datetime.combine(
-            effective_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
-        )
-
-        for privilege_data in unencumbered_privileges_associated_with_license:
-            # Check if an update record already exists for this adverse action
-            # to avoid creating duplicate update records if the event flow is re-run
-            existing_updates = provider_user_records.get_update_records_for_privilege(
-                jurisdiction=privilege_data.jurisdiction,
-                license_type=privilege_data.licenseType,
-                filter_condition=lambda update: (
-                    update.updateType == UpdateCategory.ENCUMBRANCE
-                    and update.encumbranceDetails is not None
-                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
-                ),
-            )
-
-            if existing_updates:
-                logger.info(
-                    'Update record already exists for this adverse action. Skipping duplicate creation.',
-                    privilege_jurisdiction=privilege_data.jurisdiction,
-                    privilege_license_type=privilege_data.licenseType,
-                    adverse_action_id=adverse_action_id,
-                )
-                continue
-
-            now = config.current_standard_datetime
-
-            # Create privilege update record
-            privilege_update_record = PrivilegeUpdateData.create_new(
-                {
-                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                    'updateType': UpdateCategory.ENCUMBRANCE,
-                    'providerId': provider_id,
-                    'compact': compact,
-                    'jurisdiction': privilege_data.jurisdiction,
-                    'licenseType': privilege_data.licenseType,
-                    'createDate': now,
-                    'encumbranceDetails': encumbrance_details,
-                    'effectiveDate': effective_date_time,
-                    'previous': privilege_data.to_dict(),
-                    'updatedValues': {
-                        'encumberedStatus': PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
-                    },
-                }
-            ).serialize_to_database_record()
-
-            # Add PUT transaction for privilege update record
-            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
-
-            # Add UPDATE transaction for privilege encumbered status
-            transaction_items.append(
-                self._generate_set_privilege_encumbered_status_item(
-                    privilege_data=privilege_data,
-                    privilege_encumbered_status=PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED,
-                )
-            )
-
-        for encumbered_privilege in previously_encumbered_privileges_associated_with_license:
-            # Check if an update record already exists for this adverse action
-            # to avoid creating duplicate update records if the event flow is re-run
-            existing_updates = provider_user_records.get_update_records_for_privilege(
-                jurisdiction=encumbered_privilege.jurisdiction,
-                license_type=encumbered_privilege.licenseType,
-                filter_condition=lambda update: (
-                    update.updateType == UpdateCategory.ENCUMBRANCE
-                    and update.encumbranceDetails is not None
-                    and update.encumbranceDetails.get('adverseActionId') == adverse_action_id
-                ),
-            )
-
-            if existing_updates:
-                logger.info(
-                    'Update record already exists for this adverse action. Skipping duplicate creation.',
-                    privilege_jurisdiction=encumbered_privilege.jurisdiction,
-                    privilege_license_type=encumbered_privilege.licenseType,
-                    adverse_action_id=adverse_action_id,
-                )
-                continue
-
-            now = config.current_standard_datetime
-
-            # Create privilege update record
-            privilege_update_record = PrivilegeUpdateData.create_new(
-                {
-                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                    'updateType': UpdateCategory.ENCUMBRANCE,
-                    'providerId': provider_id,
-                    'compact': compact,
-                    'jurisdiction': encumbered_privilege.jurisdiction,
-                    'licenseType': encumbered_privilege.licenseType,
-                    'createDate': now,
-                    'effectiveDate': effective_date_time,
-                    'encumbranceDetails': encumbrance_details,
-                    'previous': encumbered_privilege.to_dict(),
-                    'updatedValues': {},
-                }
-            ).serialize_to_database_record()
-
-            # Add PUT transaction for privilege update record
-            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
-
-        # Execute transactions in batches of 100 (DynamoDB limit)
-        batch_size = 100
-        while transaction_items:
-            batch = transaction_items[:batch_size]
-            transaction_items = transaction_items[batch_size:]
-
-            try:
-                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
-                logger.info('Successfully processed privilege encumbrance batch', batch_size=len(batch))
-            except ClientError as e:
-                logger.error('Failed to process privilege encumbrance batch', error=str(e))
-                raise CCAwsServiceException('Failed to encumber privileges for license') from e
-
-        logger.info('Successfully encumbered associated privileges for license')
-
-        return (
-            unencumbered_privileges_associated_with_license + previously_encumbered_privileges_associated_with_license
-        )
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type_abbreviation')
-    def lift_home_jurisdiction_license_privilege_encumbrances(
-        self,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type_abbreviation: str,
-    ) -> tuple[list[PrivilegeData], date | None]:
-        """
-        Lift encumbrances from privileges that were encumbered due to a home jurisdiction license encumbrance.
-
-        This method  first verifies that the license is completely unencumbered, then finds all privileges
-        for the given license with a 'LICENSE_ENCUMBERED' status and sets their encumberedStatus to 'UNENCUMBERED'.
-
-        :param str compact: The compact name.
-        :param str provider_id: The provider ID.
-        :param str jurisdiction: The jurisdiction of the license.
-        :param str license_type_abbreviation: The license type abbreviation
-        :return: Tuple containing (list of privileges that were unencumbered, latest effective lift date)
-        """
-        # Get all provider records
-        provider_user_records = self.get_provider_user_records(
-            compact=compact, provider_id=provider_id, consistent_read=True
-        )
-
-        # Get the license type name from abbreviation
-        license_type_name = self._validate_license_type_abbreviation(compact, license_type_abbreviation)
-
-        # Verify the license itself is unencumbered before lifting privilege encumbrances
-        # A license may still be encumbered by another adverse action that has not been lifted yet.
-        license_record = provider_user_records.get_specific_license_record(jurisdiction, license_type_abbreviation)
-        if not license_record:
-            logger.warning('No license record found for the specified jurisdiction and license type')
-            raise CCInternalException('No license record found for the specified jurisdiction and license type')
-
-        if license_record.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
-            logger.info(
-                'License is still encumbered. Not lifting privilege encumbrances. '
-                'Privileges will remain LICENSE_ENCUMBERED until all license encumbrances are lifted.'
-            )
-            return [], None
-
-        logger.info('License is unencumbered. Proceeding to lift privilege encumbrances.')
-
-        # Find privileges that match the license jurisdiction and type and are currently LICENSE_ENCUMBERED
-        # (meaning they were encumbered due to the license, not due to their own adverse actions)
-        matching_privileges = provider_user_records.get_privilege_records(
-            filter_condition=lambda p: (
-                p.licenseJurisdiction == jurisdiction
-                and p.licenseType == license_type_name
-                and p.encumberedStatus == PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED
-            )
-        )
-
-        if not matching_privileges:
-            logger.info('No license-encumbered privileges found for this license')
-            return [], None
-
-        logger.info('Found license-encumbered privileges to unencumber', privilege_count=len(matching_privileges))
-
-        latest_effective_lift_date = provider_user_records.get_latest_effective_lift_date_for_license_adverse_actions(
-            license_jurisdiction=license_record.jurisdiction,
-            license_type_abbreviation=license_record.licenseTypeAbbreviation,
-        )
-
-        if latest_effective_lift_date is None:
-            message = 'Unable to determine latest effective lift date for license encumbrance lift'
-            logger.error(message)
-            raise CCInternalException(message)
-
-        # Build transaction items for all privileges
-        transaction_items = []
-
-        # The time selected here is somewhat arbitrary; however, we want this selection to not alter the date
-        # displayed for a user when it is transformed back to their timezone. We selected noon UTC-4:00 so that
-        # users across the entire US will see the same date
-        latest_effective_date_time = datetime.combine(
-            latest_effective_lift_date, dtime(12, 0, 0), tzinfo=config.expiration_resolution_timezone
-        )
-
-        for privilege_data in matching_privileges:
-            now = config.current_standard_datetime
-
-            # Create privilege update record using the latest effective lift date
-            privilege_update_record = PrivilegeUpdateData.create_new(
-                {
-                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                    'updateType': UpdateCategory.LIFTING_ENCUMBRANCE,
-                    'providerId': provider_id,
-                    'compact': compact,
-                    'jurisdiction': privilege_data.jurisdiction,
-                    'licenseType': privilege_data.licenseType,
-                    'createDate': now,
-                    'effectiveDate': latest_effective_date_time,
-                    'previous': privilege_data.to_dict(),
-                    'updatedValues': {
-                        'encumberedStatus': PrivilegeEncumberedStatusEnum.UNENCUMBERED,
-                    },
-                }
-            ).serialize_to_database_record()
-
-            # Add PUT transaction for privilege update record
-            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
-
-            # Add UPDATE transaction for privilege encumbered status
-            transaction_items.append(
-                self._generate_set_privilege_encumbered_status_item(
-                    privilege_data=privilege_data,
-                    privilege_encumbered_status=PrivilegeEncumberedStatusEnum.UNENCUMBERED,
-                )
-            )
-
-        # Execute transactions in batches of 100 (DynamoDB limit)
-        batch_size = 100
-        while transaction_items:
-            batch = transaction_items[:batch_size]
-            transaction_items = transaction_items[batch_size:]
-
-            try:
-                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
-                logger.info('Successfully processed privilege unencumbrance batch', batch_size=len(batch))
-            except ClientError as e:
-                logger.error('Failed to process privilege unencumbrance batch', error=str(e))
-                raise CCAwsServiceException('Failed to unencumber privileges for license') from e
-
-        logger.info('Successfully unencumbered all license-encumbered privileges for license')
-        return matching_privileges, latest_effective_lift_date
-
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
-    def deactivate_license_privileges(
-        self,
-        compact: str,
-        provider_id: str,
-        jurisdiction: str,
-        license_type: str,
-    ) -> None:
-        """
-        Deactivate all privileges associated with a license due to license deactivation.
-
-        This method finds all privileges for the given license that are not already license-deactivated
-        and sets their licenseDeactivatedStatus to LICENSE_DEACTIVATED, along with creating privilege update records.
-
-        :param str compact: The compact name.
-        :param str provider_id: The provider ID.
-        :param str jurisdiction: The jurisdiction of the license.
-        :param str license_type: The license type
-        """
-        # Get all provider records
-        provider_user_records: ProviderUserRecords = self.get_provider_user_records(
-            compact=compact, provider_id=provider_id, consistent_read=True
-        )
-
-        # Find privileges associated with the license that was deactivated, which themselves are not currently
-        # license-deactivated
-        active_privileges_associated_with_license = provider_user_records.get_privilege_records(
-            filter_condition=lambda p: (
-                p.licenseJurisdiction == jurisdiction
-                and p.licenseType == license_type
-                and p.licenseDeactivatedStatus is None
-            )
-        )
-
-        if not active_privileges_associated_with_license:
-            logger.info('No active privileges found for this license to deactivate.')
-            return
-
-        logger.info('Found privileges to deactivate', privilege_count=len(active_privileges_associated_with_license))
-
-        # Build transaction items for all privileges
-        transaction_items = []
-
-        for privilege_data in active_privileges_associated_with_license:
-            now = config.current_standard_datetime
-
-            # Create privilege update record
-            privilege_update_record = PrivilegeUpdateData.create_new(
-                {
-                    'type': ProviderRecordType.PRIVILEGE_UPDATE,
-                    'updateType': UpdateCategory.LICENSE_DEACTIVATION,
-                    'providerId': provider_id,
-                    'compact': compact,
-                    'jurisdiction': privilege_data.jurisdiction,
-                    'licenseType': privilege_data.licenseType,
-                    'previous': privilege_data.to_dict(),
-                    'effectiveDate': now,
-                    'createDate': now,
-                    'updatedValues': {
-                        'licenseDeactivatedStatus': LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
-                    },
-                }
-            ).serialize_to_database_record()
-
-            # Add PUT transaction for privilege update record
-            transaction_items.append(self._generate_put_transaction_item(privilege_update_record))
-
-            # Add UPDATE transaction for privilege license deactivated status
-            transaction_items.append(
-                self._generate_set_privilege_license_deactivated_status_item(
-                    privilege_data=privilege_data,
-                    license_deactivated_status=LicenseDeactivatedStatusEnum.LICENSE_DEACTIVATED,
-                )
-            )
-
-        # Execute transactions in batches of 100 (DynamoDB limit)
-        batch_size = 100
-        while transaction_items:
-            batch = transaction_items[:batch_size]
-            transaction_items = transaction_items[batch_size:]
-
-            try:
-                self.config.dynamodb_client.transact_write_items(TransactItems=batch)
-                logger.info('Successfully processed privilege deactivation batch', batch_size=len(batch))
-            except ClientError as e:
-                logger.error('Failed to process privilege deactivation batch', error=str(e))
-                raise CCAwsServiceException('Failed to deactivate privileges for license') from e
-
-        logger.info('Successfully deactivated associated privileges for license')

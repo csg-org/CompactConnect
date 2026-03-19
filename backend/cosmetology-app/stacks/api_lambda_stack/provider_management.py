@@ -40,6 +40,7 @@ class ProviderManagementLambdas:
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
             'USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
+            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
             **self.stack.common_env_vars,
         }
 
@@ -103,6 +104,7 @@ class ProviderManagementLambdas:
         )
         self.persistent_stack.shared_encryption_key.grant_decrypt(handler)
         self.persistent_stack.provider_table.grant_read_data(handler)
+        self.persistent_stack.compact_configuration_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
@@ -172,9 +174,10 @@ class ProviderManagementLambdas:
         # Though, ssn table access is granted via resource policies on the table and key so `.grant()`
         # calls are not needed here.
 
-        # Grant permissions for rate limiting, provider table access, and staff user pool access
+        # Grant permissions for rate limiting, provider table access, compact config, and staff user pool access
         self.persistent_stack.rate_limiting_table.grant_read_write_data(handler)
         self.persistent_stack.provider_table.grant_read_data(handler)
+        self.persistent_stack.compact_configuration_table.grant_read_data(handler)
         self.persistent_stack.staff_users.grant(handler, 'cognito-idp:AdminDisableUser')
 
         # Add permission for the lambda to update its own concurrency setting

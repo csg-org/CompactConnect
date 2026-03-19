@@ -111,6 +111,12 @@ class LicenseeList extends Vue {
         return `${firstName} ${lastName}`.trim();
     }
 
+    get searchDisplayDob(): string {
+        const { dob = '' } = this.searchParams;
+
+        return (dob) ? `${this.$t('common.dateOfBirthShort')}: ${moment(dob, serverDateFormat).format(displayDateFormat)}`.trim() : '';
+    }
+
     get searchDisplayHomeState(): string {
         const { homeState } = this.searchParams;
 
@@ -207,6 +213,7 @@ class LicenseeList extends Vue {
         const joined = [
             this.searchDisplayCompact,
             this.searchDisplayFullName,
+            this.searchDisplayDob,
             this.searchDisplayHomeState,
             this.searchDisplayPrivilegeState,
             this.searchDisplayPrivilegePurchaseDates,
@@ -364,6 +371,9 @@ class LicenseeList extends Vue {
         }
         if (searchParams?.lastName) {
             requestConfig.licenseeLastName = searchParams.lastName;
+        }
+        if (searchParams?.dob) {
+            requestConfig.dob = searchParams.dob;
         }
         if (searchParams?.homeState) {
             requestConfig.homeState = searchParams.homeState.toLowerCase();

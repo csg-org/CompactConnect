@@ -703,7 +703,7 @@ export class EmailNotificationService extends BaseEmailService {
         // "This message is to inform you..." text
         this.insertBody(
             emailContent,
-            'Your privilege(s) to practice expires on:',
+            'Your compact privilege(s) to practice expires on:',
             'center',
             false,
             { 'padding': { 'top': 24, 'bottom': 0, 'right': 32, 'left': 32 }}
@@ -723,6 +723,17 @@ export class EmailNotificationService extends BaseEmailService {
             'center',
             false,
             { 'padding': { 'top': 24, 'bottom': 24, 'right': 32, 'left': 32 }}
+        );
+
+        // Dashboard link so the user can navigate to Compact Connect
+        const dashboardUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard`;
+
+        this.insertBody(
+            emailContent,
+            `${dashboardUrl}`,
+            'center',
+            true,
+            { 'padding': { 'top': 0, 'bottom': 24, 'right': 32, 'left': 32 }}
         );
 
         // Insert the two-column privilege expiration list table

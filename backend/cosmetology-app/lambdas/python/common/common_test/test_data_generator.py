@@ -1,17 +1,14 @@
 # ruff: noqa: F403, F405 star import of test constants file
 import json
 from datetime import date, datetime
-from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
-from cc_common.data_model.provider_record_util import ProviderUserRecords
 from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import CCDataClass
 from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.privilege import PrivilegeData, PrivilegeUpdateData
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.utils import ResponseEncoder
 
@@ -92,25 +89,6 @@ class TestDataGenerator:
             )['Items']
         except KeyError as e:
             raise Exception('Error querying update records from database') from e
-
-    @staticmethod
-    def query_privilege_update_records_for_given_record_from_database(
-        privilege_data: PrivilegeData,
-    ) -> list[PrivilegeUpdateData]:
-        """
-        Helper method to query update records from the database using the provider data class instance.
-        """
-        serialized_record = privilege_data.serialize_to_database_record()
-        from cc_common.config import config
-
-        license_type_abbr = config.license_type_abbreviations[privilege_data.compact][privilege_data.licenseType]
-        sk_prefix = f'{privilege_data.compact}#UPDATE#1#privilege/{privilege_data.jurisdiction}/{license_type_abbr}/'
-
-        privilege_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
-            serialized_record['pk'], sk_prefix
-        )
-
-        return [PrivilegeUpdateData.from_database_record(update_record) for update_record in privilege_update_records]
 
     @staticmethod
     def query_provider_update_records_for_given_record_from_database(provider_record: ProviderData) -> list[dict]:
@@ -302,97 +280,16 @@ class TestDataGenerator:
         return update_data
 
     @staticmethod
-    def generate_default_privilege(value_overrides: dict | None = None) -> PrivilegeData:
-        """Generate a default privilege"""
-        default_privilege = {
-            'providerId': DEFAULT_PROVIDER_ID,
-            'compact': DEFAULT_COMPACT,
-            'type': PRIVILEGE_RECORD_TYPE,
-            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-            'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-            'dateOfIssuance': datetime.fromisoformat(DEFAULT_PRIVILEGE_ISSUANCE_DATETIME),
-            'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
-            'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),
-            'privilegeId': DEFAULT_PRIVILEGE_ID,
-            'administratorSetStatus': DEFAULT_ADMINISTRATOR_SET_STATUS,
-            'dateOfUpdate': DEFAULT_PRIVILEGE_UPDATE_DATETIME,
-        }
-        if value_overrides:
-            default_privilege.update(value_overrides)
-
-        return PrivilegeData.create_new(default_privilege)
-
-    @staticmethod
     def store_record_in_provider_table(record: dict) -> None:
         from cc_common.config import config
 
         config.provider_table.put_item(Item=record)
 
     @staticmethod
-    def put_default_privilege_record_in_provider_table(
-        value_overrides: dict | None = None, date_of_update_override: str = None
-    ) -> PrivilegeData:
-        privilege = TestDataGenerator.generate_default_privilege(value_overrides)
-        privilege_record = privilege.serialize_to_database_record()
-        if date_of_update_override:
-            privilege_record['dateOfUpdate'] = date_of_update_override
-
-        TestDataGenerator.store_record_in_provider_table(privilege_record)
-
-        return privilege
-
-    @staticmethod
     def get_license_type_abbr_for_license_type(compact: str, license_type: str) -> str:
         from cc_common.config import config
 
         return config.license_type_abbreviations[compact][license_type]
-
-    @staticmethod
-    def generate_default_privilege_update(
-        value_overrides: dict | None = None, previous_privilege: PrivilegeData | None = None
-    ) -> PrivilegeUpdateData:
-        """Generate a default privilege update"""
-        if previous_privilege is None:
-            previous_privilege = TestDataGenerator.generate_default_privilege()
-
-        privilege_update = {
-            'updateType': DEFAULT_PRIVILEGE_UPDATE_TYPE,
-            'providerId': DEFAULT_PROVIDER_ID,
-            'compact': DEFAULT_COMPACT,
-            'type': PRIVILEGE_UPDATE_RECORD_TYPE,
-            'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
-            'licenseType': DEFAULT_LICENSE_TYPE,
-            'previous': previous_privilege.to_dict(),
-            'createDate': datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE),
-            'effectiveDate': datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE),
-            'updatedValues': {
-                'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_RENEWAL_DATETIME),
-                'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_EXPIRATION_DATE),
-            },
-            'dateOfUpdate': datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE),
-        }
-        if value_overrides:
-            privilege_update.update(value_overrides)
-
-        return PrivilegeUpdateData.create_new(privilege_update)
-
-    @staticmethod
-    def put_default_privilege_update_record_in_provider_table(
-        value_overrides: dict | None = None,
-    ) -> PrivilegeUpdateData:
-        """
-        Creates a default privilege update and stores it in the provider table.
-
-        :param value_overrides: Optional dictionary to override default values
-        :return: The ProviderData instance that was stored
-        """
-        update_data = TestDataGenerator.generate_default_privilege_update(value_overrides)
-        update_record = update_data.serialize_to_database_record()
-
-        TestDataGenerator.store_record_in_provider_table(update_record)
-
-        return update_data
 
     @staticmethod
     def generate_default_provider(value_overrides: dict | None = None) -> ProviderData:
@@ -445,109 +342,16 @@ class TestDataGenerator:
         data_class._data['dateOfUpdate'] = date_of_update  # noqa: SLF001
 
     @staticmethod
-    def generate_default_provider_detail_response(provider_record_items: list[CCDataClass] | None = None) -> dict:
-        """Generate a default provider detail response with all nested objects
-
-        This allows you to specify an optional list of provider record items associated with the test.
-        If none are provided, the default objects are used.
-        """
-        if provider_record_items is None:
-            # The following setup reaches parity with the original tests, which were using static file data,
-            # we explicitly set values to match what was in the JSON records
-
-            default_license_record = TestDataGenerator.generate_default_license()
-            TestDataGenerator._override_date_of_update_for_record(
-                default_license_record, datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_DATETIME)
-            )
-            previous_license_record = TestDataGenerator.generate_default_license(
-                value_overrides={
-                    'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_UPDATE_PREVIOUS_DATE_OF_EXPIRATION),
-                    'dateOfRenewal': date.fromisoformat(DEFAULT_LICENSE_UPDATE_PREVIOUS_DATE_OF_RENEWAL),
-                }
-            )
-
-            TestDataGenerator._override_date_of_update_for_record(
-                previous_license_record, datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_PREVIOUS_DATE_OF_UPDATE)
-            )
-            default_license_update_record = TestDataGenerator.generate_default_license_update(
-                previous_license=previous_license_record
-            )
-            TestDataGenerator._override_date_of_update_for_record(
-                default_license_update_record, datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE)
-            )
-
-            default_privilege_record = TestDataGenerator.generate_default_privilege()
-            TestDataGenerator._override_date_of_update_for_record(
-                default_privilege_record, datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATETIME)
-            )
-
-            previous_privilege_record = TestDataGenerator.generate_default_privilege(
-                value_overrides={
-                    'dateOfExpiration': date.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_PREVIOUS_DATE_OF_EXPIRATION),
-                    'dateOfRenewal': datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_PREVIOUS_DATE_OF_RENEWAL),
-                }
-            )
-            TestDataGenerator._override_date_of_update_for_record(
-                previous_privilege_record, datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_PREVIOUS_DATE_OF_UPDATE)
-            )
-
-            default_privilege_update_record = TestDataGenerator.generate_default_privilege_update(
-                previous_privilege=previous_privilege_record
-            )
-            TestDataGenerator._override_date_of_update_for_record(
-                default_privilege_update_record, datetime.fromisoformat(DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE)
-            )
-
-            provider_record = TestDataGenerator.generate_default_provider().serialize_to_database_record()
-            provider_record['dateOfUpdate'] = DEFAULT_PROVIDER_UPDATE_DATETIME
-            license_record = default_license_record.serialize_to_database_record()
-            license_record['dateOfUpdate'] = DEFAULT_LICENSE_UPDATE_DATETIME
-            license_update_record = default_license_update_record.serialize_to_database_record()
-            license_update_record['dateOfUpdate'] = DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE
-            privilege_record = default_privilege_record.serialize_to_database_record()
-            privilege_record['dateOfUpdate'] = DEFAULT_PRIVILEGE_UPDATE_DATETIME
-            privilege_update_record = default_privilege_update_record.serialize_to_database_record()
-            privilege_update_record['dateOfUpdate'] = DEFAULT_PRIVILEGE_UPDATE_DATE_OF_UPDATE
-
-            items = [
-                provider_record,
-                license_record,
-                license_update_record,
-                privilege_record,
-                privilege_update_record,
-            ]
-        else:
-            # convert each item into a dictionary
-            items = [record.serialize_to_database_record() for record in provider_record_items]
-
-        # Now we put all the data together in a dict
-        provider_detail_response = ProviderUserRecords(items).generate_api_response_object()
-
-        # cast to json, to match what the API is doing
-        return json.loads(json.dumps(provider_detail_response, cls=ResponseEncoder))
-
-    @staticmethod
     def generate_default_compact_configuration(value_overrides: dict | None = None) -> CompactConfigurationData:
         """Generate a default compact configuration"""
         default_compact_config = {
             'compactAbbr': DEFAULT_COMPACT,
             'compactName': 'Cosmetology',
-            'compactCommissionFee': {
-                'feeAmount': Decimal('10.00'),
-                'feeType': 'FLAT_RATE',
-            },
             'compactOperationsTeamEmails': ['ops@example.com'],
             'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
             'compactSummaryReportNotificationEmails': ['summary@example.com'],
             'licenseeRegistrationEnabled': True,
             'configuredStates': [],
-            'transactionFeeConfiguration': {
-                'licenseeCharges': {
-                    'active': True,
-                    'chargeAmount': Decimal('10.00'),
-                    'chargeType': 'FLAT_FEE_PER_PRIVILEGE',
-                },
-            },
         }
         if value_overrides:
             default_compact_config.update(value_overrides)
@@ -582,10 +386,6 @@ class TestDataGenerator:
             'compact': 'cosm',
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
-            'jurisprudenceRequirements': {
-                'required': True,
-                'linkToDocumentation': 'https://example.com/jurisprudence',
-            },
             'jurisdictionOperationsTeamEmails': ['state-ops@example.com'],
             'jurisdictionAdverseActionsNotificationEmails': ['state-adverse@example.com'],
             'jurisdictionSummaryReportNotificationEmails': ['state-summary@example.com'],

@@ -115,29 +115,8 @@ class CompactConfigurationClient:
         """
         logger.info('Checking if jurisdiction is live in compact', compact=compact, jurisdiction=jurisdiction)
 
-        try:
-            compact_config = self.get_compact_configuration(compact)
-        except CCNotFoundException:
-            logger.info('Compact configuration not found', compact=compact)
-            return False
-
-        # Check if the jurisdiction is configured and live in the compact's configuredStates
-        configured_state = next(
-            (
-                configured_state
-                for configured_state in compact_config.configuredStates
-                if configured_state['postalAbbreviation'].lower() == jurisdiction.lower()
-            ),
-            None,
-        )
-
-        if not configured_state:
-            logger.info(
-                'Jurisdiction not found in compact configured states', compact=compact, jurisdiction=jurisdiction
-            )
-            return False
-
-        is_live = configured_state.get('isLive', False)
+        live_jurisdictions = self.get_live_compact_jurisdictions(compact)
+        is_live = jurisdiction in live_jurisdictions
         logger.info(
             'Jurisdiction live status checked',
             compact=compact,

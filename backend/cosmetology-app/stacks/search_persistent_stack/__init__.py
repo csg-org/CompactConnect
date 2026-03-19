@@ -123,6 +123,7 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
 
@@ -136,6 +137,7 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.opensearch_ingest_lambda_role,
             provider_table=persistent_stack.provider_table,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             encryption_key=self.opensearch_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
         )
