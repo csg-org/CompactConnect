@@ -1247,14 +1247,14 @@ class DataClient:
             )
 
     @logger_inject_kwargs(logger, 'compact', 'transaction_id')
-    def get_privilege_for_transaction_id(self, *, compact: str, transaction_id: str) -> dict:
+    def get_privilege_for_transaction_id(self, *, compact: str, transaction_id: str) -> PrivilegeData:
         """
-        Return a privilege provider record for a payment transaction id using the compact transaction id GSI.
+        Return a privilege record for a payment transaction id using the compact transaction id GSI.
 
         :param compact: Compact abbreviation
         :param transaction_id: Payment processor transaction id
-        :raises CCNotFoundException: When no privilege or privilegeUpdate record exists for this transaction id
-        :return: Raw DynamoDB item for a matching privilege or privilegeUpdate record
+        :raises CCNotFoundException: When no item with type ``privilege`` exists for this transaction id
+        :return: The privilege as :class:`PrivilegeData`
         """
         gsi_pk = f'COMPACT#{compact}#TX#{transaction_id}#'
         response = self.config.provider_table.query(
