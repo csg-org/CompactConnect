@@ -638,7 +638,7 @@ class TestProcessSettledTransactions(TstFunction):
     def test_general_error_filter_exception_still_returns_batch_failure(
         self, mock_purchase_client_constructor, mock_get_privilege_for_transaction_id, mock_handler_logger
     ):
-        """If privilege lookup fails while filtering generalError ids, keep failed ids and BATCH_FAILURE + error logs."""
+        """If privilege lookup fails while filtering generalError ids, skip filtering and return batch failure"""
         from handlers.transaction_history import process_settled_transactions
 
         mock_get_privilege_for_transaction_id.side_effect = RuntimeError('simulated privilege lookup failure')

@@ -26,6 +26,14 @@ def _transaction_associated_with_privilege(compact: str, transaction_id: str) ->
 def _filter_general_errors_without_privilege_records(
     compact: str, failed_transaction_ids: list[str], transactions: list[TransactionData]
 ) -> list[str]:
+    """
+    There have been multiple occurrences where Authorize.net fails to process a transaction
+    with a 'generalError' status. This generalError is a catch-all status that could be the result
+    of various issues on Authorize.net's side. We just need to verify that there is no privilege record
+    associated with that failed transaction id. If there is, then we will fire an alert and send an email notification
+    to the compact operations point of contact. If there is no privilege record, we will not log an error message
+    as there is no action for support staff to take.
+    """
     try:
         if not failed_transaction_ids:
             logger.info('No failed transaction ids to filter', compact=compact)
