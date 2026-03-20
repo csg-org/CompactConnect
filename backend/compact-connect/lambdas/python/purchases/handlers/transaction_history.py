@@ -6,11 +6,52 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
-from purchase_client import PurchaseClient
+from cc_common.exceptions import CCNotFoundException
+from purchase_client import AuthorizeNetTransactionErrorStates, PurchaseClient
 
 
 def _all_transactions_processed(transaction_response: dict) -> bool:
     return 'lastProcessedTransactionId' not in transaction_response
+
+
+def _transaction_associated_with_privilege(compact: str, transaction_id: str) -> bool:
+    try:
+        config.data_client.get_privilege_for_transaction_id(compact=compact, transaction_id=transaction_id)
+        return True
+    except CCNotFoundException:
+        return False
+
+
+def _filter_general_errors_without_privilege_records(
+    compact: str, failed_transaction_ids: list[str], transactions: list[dict]
+) -> list[str]:
+    try:
+        if not failed_transaction_ids:
+            logger.info('No failed transaction ids to filter', compact=compact)
+            return failed_transaction_ids
+        status_by_id = {t.transactionId: t.transactionStatus for t in transactions}
+        remaining_failed_transaction_ids: list[str] = []
+        for failed_transaction_id in failed_transaction_ids:
+            if status_by_id.get(failed_transaction_id) != AuthorizeNetTransactionErrorStates.GeneralError.value:
+                remaining_failed_transaction_ids.append(failed_transaction_id)
+                continue
+            if _transaction_associated_with_privilege(compact, failed_transaction_id):
+                remaining_failed_transaction_ids.append(failed_transaction_id)
+                continue
+            logger.warning(
+                'Authorize.Net reported generalError for transaction with no privilege record; '
+                'omitting from settlement failure alert',
+                transaction_id=failed_transaction_id,
+                compact=compact,
+            )
+        return remaining_failed_transaction_ids
+    except Exception as e:
+        # This filter is a best effort check to avoid sending alerts to the compact operations team for 
+        # general errors that are not associated with a privilege record. If this filter fails, just 
+        # return the original list of failed transaction ids to ensure that we don't prevent this 
+        # critical financial reporting workflow from completing.
+        logger.error('Failed to filter general errors without privilege records', exc_info=e)
+        return failed_transaction_ids
 
 
 def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001 unused-argument
@@ -120,7 +161,11 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
 
         # here we check if there were any settlement errors in the batch or if there was a settlement failure
         # in a previous iteration, and we need to send an alert to the compact operations team
-        failed_transactions_ids = transaction_response.get('settlementErrorTransactionIds', [])
+        failed_transactions_ids = _filter_general_errors_without_privilege_records(
+            compact=compact,
+            failed_transaction_ids=transaction_response.get('settlementErrorTransactionIds', []),
+            transactions=transaction_response['transactions']
+        )
         if failed_transactions_ids or event.get('batchFailureErrorMessage'):
             # error message should be a json object we can load
             if event.get('batchFailureErrorMessage'):
