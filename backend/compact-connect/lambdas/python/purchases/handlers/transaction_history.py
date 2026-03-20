@@ -30,9 +30,9 @@ def _filter_general_errors_without_privilege_records(
     There have been multiple occurrences where Authorize.net fails to process a transaction
     with a 'generalError' status. This generalError is a catch-all status that could be the result
     of various issues on Authorize.net's side. We just need to verify that there is no privilege record
-    associated with that failed transaction id. If there is, then we will fire an alert and send an email notification
-    to the compact operations point of contact. If there is no privilege record, we will not log an error message
-    as there is no action for support staff to take.
+    associated with that failed transaction id. If there is, then we will log an error message which will fire
+    an alert and send an email notification to the compact operations point of contact. If there is no
+    privilege record, we will not log an error message as there is no action for support staff to take.
     """
     try:
         if not failed_transaction_ids:
