@@ -1264,7 +1264,7 @@ class DataClient:
         items = response.get('Items', [])
         for item in items:
             if item.get('type') == 'privilege':
-                return item
+                return PrivilegeData.from_database_record(item)
         raise CCNotFoundException('No privilege record found for transaction id')
 
     def _get_privilege_record_directly(
