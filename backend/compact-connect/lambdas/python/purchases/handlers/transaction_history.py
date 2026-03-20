@@ -6,6 +6,7 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact
 from cc_common.data_model.schema.compact.common import COMPACT_TYPE
 from cc_common.data_model.schema.jurisdiction.common import JURISDICTION_TYPE
+from cc_common.data_model.schema.transaction import TransactionData
 from cc_common.exceptions import CCNotFoundException
 from purchase_client import AuthorizeNetTransactionErrorStates, PurchaseClient
 
@@ -23,7 +24,7 @@ def _transaction_associated_with_privilege(compact: str, transaction_id: str) ->
 
 
 def _filter_general_errors_without_privilege_records(
-    compact: str, failed_transaction_ids: list[str], transactions: list[dict]
+    compact: str, failed_transaction_ids: list[str], transactions: list[TransactionData]
 ) -> list[str]:
     try:
         if not failed_transaction_ids:
