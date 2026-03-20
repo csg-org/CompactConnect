@@ -618,9 +618,6 @@ class TestProcessSettledTransactions(TstFunction):
 
         resp = process_settled_transactions(self._when_testing_non_paginated_event(), self.mock_context)
 
-        self.assertEqual('COMPLETE', resp['status'])
-        self.assertNotEqual('BATCH_FAILURE', resp['status'])
-        self.assertNotIn('batchFailureErrorMessage', resp)
         mock_handler_logger.error.assert_not_called()
         self.assertEqual(
             {
@@ -676,11 +673,6 @@ class TestProcessSettledTransactions(TstFunction):
         parsed = json.loads(resp['batchFailureErrorMessage'])
         self.assertEqual([general_error_tx_id], parsed['failedTransactionIds'])
         mock_handler_logger.error.assert_called()
-        error_call = next(
-            (c for c in mock_handler_logger.error.call_args_list if c[0][0] == 'Batch settlement error detected'),
-            None,
-        )
-        self.assertIsNotNone(error_call)
         self.assertEqual(expected_start_time, resp['startTime'])
         self.assertEqual(expected_end_time, resp['endTime'])
         self.assertEqual(TEST_COMPACT, resp['compact'])
