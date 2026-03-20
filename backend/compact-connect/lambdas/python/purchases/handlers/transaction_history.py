@@ -45,10 +45,10 @@ def _filter_general_errors_without_privilege_records(
                 compact=compact,
             )
         return remaining_failed_transaction_ids
-    except Exception as e:
-        # This filter is a best effort check to avoid sending alerts to the compact operations team for 
-        # general errors that are not associated with a privilege record. If this filter fails, just 
-        # return the original list of failed transaction ids to ensure that we don't prevent this 
+    except Exception as e:  # noqa: BLE001
+        # This filter is a best effort check to avoid sending alerts to the compact operations team for
+        # general errors that are not associated with a privilege record. If this filter fails, just
+        # return the original list of failed transaction ids to ensure that we don't prevent this
         # critical financial reporting workflow from completing.
         logger.error('Failed to filter general errors without privilege records', exc_info=e)
         return failed_transaction_ids
@@ -164,7 +164,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
         failed_transactions_ids = _filter_general_errors_without_privilege_records(
             compact=compact,
             failed_transaction_ids=transaction_response.get('settlementErrorTransactionIds', []),
-            transactions=transaction_response['transactions']
+            transactions=transaction_response['transactions'],
         )
         if failed_transactions_ids or event.get('batchFailureErrorMessage'):
             # error message should be a json object we can load
