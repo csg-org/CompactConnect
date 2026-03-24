@@ -308,7 +308,9 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(1, len(provider['licenses']))
         self.assertEqual('oh', provider['licenses'][0]['jurisdiction'])
         self.assertEqual('cosmetologist', provider['licenses'][0]['licenseType'])
-        # Verify private fields were stripped
+        # Verify private fields were stripped (list/general view must not expose full DOB)
+        self.assertNotIn('dateOfBirth', provider)
+        self.assertNotIn('dateOfBirth', provider['licenses'][0])
         self.assertNotIn('ssnLastFour', provider)
         self.assertNotIn('someNewField', provider)
         self.assertNotIn('emailAddress', provider)
@@ -604,6 +606,35 @@ class TestSearchProviders(TstFunction):
             'cosm',
             body={
                 'query': {'exists': {'field': 'dateOfBirth'}},
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+        self.assertIn('readPrivate', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_date_of_birth_string_in_list_rejected_without_read_private_scope(
+        self, mock_opensearch_client
+    ):
+        """dateOfBirth as a list element (e.g. multi_match fields) must not bypass readPrivate checks."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {
+                    'multi_match': {
+                        'query': '1985',
+                        'fields': ['givenName', 'dateOfBirth'],
+                    },
+                },
             },
         )
 

@@ -206,17 +206,18 @@ def _query_references_field(obj, field_name: str) -> bool:
     Recursively check if the query DSL references the given field name.
 
     Checks whether any key equals the field name (or is a qualified name like "licenses.dateOfBirth"),
-    or any string value equals the field name.
+    or any string value equals the field name or ends with ".{field_name}" (including standalone list
+    items like ["dateOfBirth"]).
 
     :param obj: The object to check (dict, list, or scalar)
     :param field_name: The field name to search for
     :return: True if the field name is found as a key or string value
     """
+    if isinstance(obj, str):
+        return obj == field_name or obj.endswith('.' + field_name)
     if isinstance(obj, dict):
         for key, value in obj.items():
             if key == field_name or key.endswith('.' + field_name):
-                return True
-            if isinstance(value, str) and value == field_name:
                 return True
             if _query_references_field(value, field_name):
                 return True
