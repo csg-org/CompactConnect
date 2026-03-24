@@ -85,7 +85,7 @@
     "eslint-plugin-vue-a11y": "^0.0.31",
     "eslint-plugin-vuejs-accessibility": "^1.1.0",
     "favicons": "^7.2.0",
-    "favicons-webpack-plugin": "6.0.1",
+    "favicons-webpack-plugin": "^6.0.1",
     "flush-promises": "^1.0.2",
     "inquirer": "7.1.0",
     "less": "^3.0.4",

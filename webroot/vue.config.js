@@ -10,16 +10,15 @@
 //
 
 const path = require('path');
-const fs = require('fs');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
+const express = require('express'); // eslint-disable-line import/no-extraneous-dependencies
 
 const env = process.env.NODE_ENV;
 const ENV_PRODUCTION = 'production';
 const ENV_TEST = 'test';
 const baseUrl = process.env.BASE_URL;
 const localDevPort = process.env.LOCAL_DEV_PORT;
-const localDevProxy = {};
 const shouldMockApi = (process.env.VUE_APP_MOCK_API === 'true');
 
 const appName = 'TODO';
@@ -27,36 +26,6 @@ const appDescription = 'TODO';
 const developerName = 'TODO';
 const themeColor = '#1C7CB0'; // @TODO
 const backgroundColor = '#FFFFFF'; // @TODO
-
-// ============================================================================
-// =                          LOCAL PROXY CONFIG                              =
-// ============================================================================
-// Configure the local dev server proxy rules
-// https://webpack.js.org/configuration/dev-server/#devserverproxy
-// localDevProxy[process.env.VUE_APP_API_EXAMPLE_ROOT] = { target: process.env.LOCAL_DEV_PROXY_EXAMPLE };
-localDevProxy['/img'] = {
-    // Proxy images that are created during build that we'd still like to see in the local `yarn serve` app
-    // Requires that `yarn build` has been run at least once for the built images to exist in /dist
-    target: `http://localhost:${localDevPort}`,
-    selfHandleResponse: true,
-    bypass: (req, res) => {
-        if (req.url.includes('/img')) {
-            const proxyImage = `${__dirname}/dist${req.url}`;
-            const fileStream = fs.createReadStream(proxyImage);
-
-            fileStream.on('open', () => {
-                fileStream.pipe(res);
-            });
-
-            fileStream.on('error', (err) => {
-                res.status((err.code === 'ENOENT') ? 404 : 500);
-                res.send(err);
-            });
-        }
-
-        return null; // Ignores bypass
-    },
-};
 
 // ============================================================================
 // =                     WEBPACK PLUGIN CUSTOMIZATION                         =
@@ -189,6 +158,20 @@ module.exports = {
         allowedHosts: 'all', // allows local development with proxy domain
         client: {
             overlay: true,
+        },
+        setupMiddlewares(middlewares, devServer) { // During local yarn serve, proxy image requests: /img/... → <project>/dist/img/...
+            const { app } = devServer;
+            const distImgDir = path.join(__dirname, 'dist', 'img');
+
+            app.use(
+                '/img',
+                express.static(distImgDir, {
+                    fallthrough: false,
+                    index: false,
+                })
+            );
+
+            return middlewares;
         },
     },
     pwa: {
@@ -335,9 +318,6 @@ module.exports = {
                 '@styles.common': path.join(__dirname, '/src/styles.common/'),
                 '@tests': path.join(__dirname, '/tests'),
             },
-        },
-        devServer: {
-            proxy: localDevProxy,
         },
         devtool: (env === ENV_PRODUCTION) ? false : 'eval-cheap-source-map',
     },

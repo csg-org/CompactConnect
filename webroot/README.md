@@ -17,7 +17,7 @@
 
 ---
 ## Prerequisites
-- **[Node](https://nodejs.org/) `22.1.0`**
+- **[Node](https://nodejs.org/) `24.14.0`**
     * Use **[NVM](https://github.com/creationix/nvm#installation)** to manage Node versions
     * The `curl`-based install script is typically all that's required
     * A brief overview of the [NVM Usage commands](https://github.com/nvm-sh/nvm#usage) is typically helpful
