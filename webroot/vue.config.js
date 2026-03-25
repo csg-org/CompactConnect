@@ -12,7 +12,7 @@
 const path = require('path');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
-const express = require('express'); // eslint-disable-line import/no-extraneous-dependencies
+const express = require('express');
 
 const env = process.env.NODE_ENV;
 const ENV_PRODUCTION = 'production';

@@ -84,6 +84,7 @@
     "eslint-plugin-vue": "^8.0.3",
     "eslint-plugin-vue-a11y": "^0.0.31",
     "eslint-plugin-vuejs-accessibility": "^1.1.0",
+    "express": "^4.22.1",
     "favicons": "^7.2.0",
     "favicons-webpack-plugin": "^6.0.1",
     "flush-promises": "^1.0.2",
