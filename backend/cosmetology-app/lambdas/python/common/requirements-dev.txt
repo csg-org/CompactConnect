@@ -8,8 +8,9 @@ annotated-types==0.7.0
     # via pydantic
 antlr4-python3-runtime==4.13.2
     # via moto
-attrs==26.1.0
+attrs==25.4.0
     # via
+    #   -r lambdas/python/common/requirements-dev.in
     #   jsonschema
     #   referencing
 aws-sam-translator==1.103.0
