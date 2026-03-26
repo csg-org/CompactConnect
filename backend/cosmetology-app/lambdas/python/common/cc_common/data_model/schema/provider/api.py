@@ -256,7 +256,7 @@ class QueryProvidersRequestSchema(CCRequestSchema):
         """
 
         lastKey = String(required=False, allow_none=False, validate=Length(min=1, max=1024))
-        pageSize = Integer(required=False, allow_none=False)
+        pageSize = Integer(required=False, allow_none=False, validate=Range(min=5, max=100))
 
     class SortingSchema(ForgivingSchema):
         """
