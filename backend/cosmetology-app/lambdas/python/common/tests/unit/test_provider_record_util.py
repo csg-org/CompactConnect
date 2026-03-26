@@ -849,7 +849,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'licenseType': 'cosmetologist',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
-                    # this license was issues more recently, so it should have the privileges associated with it.
+                    # this license was issued more recently, so it should have the privileges associated with it.
                     'dateOfIssuance': date(2024, 6, 1),
                 },
             ]
