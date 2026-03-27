@@ -1641,7 +1641,7 @@ class ApiModel:
 
     @property
     def _public_license_search_response_schema(self):
-        """Schema for public query providers response (license-level items: providerId, givenName, familyName, licenseJurisdiction, compact, licenseNumber)."""
+        """Schema for public query providers response"""
         stack: AppStack = AppStack.of(self.api)
         return JsonSchema(
             type=JsonSchemaType.OBJECT,

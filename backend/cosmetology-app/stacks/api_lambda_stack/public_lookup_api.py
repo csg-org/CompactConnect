@@ -54,7 +54,7 @@ class PublicLookupApiLambdas:
 
         # Dummy export to avoid CDK deadly embrace: public query providers now uses
         # SearchPersistentStack.public_handler; this lambda is no longer wired to the API.
-        # TODO: remove this export (and the lambda above) after the stack is deployed and the export can be retired  # noqa: FIX002
+        # TODO: remove this export (and the lambda above) after the stack is deployed to all envs  # noqa: FIX002
         stack.export_value(self.query_providers_handler.function_arn)
 
     def _get_provider_handler(

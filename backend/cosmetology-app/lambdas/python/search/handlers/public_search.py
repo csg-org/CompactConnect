@@ -16,6 +16,7 @@ from opensearch_client import OpenSearchClient
 # Set timeout to 20 seconds to give API gateway time to respond with response
 opensearch_client = OpenSearchClient(timeout=25)
 
+
 @api_handler
 def public_search_api_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
@@ -121,9 +122,7 @@ def _parse_and_validate_public_query_body(event: dict) -> dict:
         raise CCInvalidRequestException('familyName is required if givenName is provided')
 
     if not any((query.get('licenseNumber'), query.get('jurisdiction'), query.get('familyName'))):
-        raise CCInvalidRequestException(
-            'At least one of licenseNumber, jurisdiction, or familyName must be provided'
-        )
+        raise CCInvalidRequestException('At least one of licenseNumber, jurisdiction, or familyName must be provided')
 
     return body
 

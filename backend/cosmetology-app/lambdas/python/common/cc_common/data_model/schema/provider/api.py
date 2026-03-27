@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import ValidationError, post_load, validates_schema
+from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, Range, Regexp
 
@@ -221,6 +221,7 @@ class PublicLicenseSearchResponseSchema(ForgivingSchema):
     licenseJurisdiction = String(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+
 
 class QueryProvidersRequestSchema(CCRequestSchema):
     """

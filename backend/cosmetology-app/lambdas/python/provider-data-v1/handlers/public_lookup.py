@@ -1,9 +1,8 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import config, logger
-from cc_common.data_model.schema.provider.api import ProviderPublicResponseSchema, QueryProvidersRequestSchema
+from cc_common.config import logger
+from cc_common.data_model.schema.provider.api import ProviderPublicResponseSchema
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler
-from marshmallow import ValidationError
 
 from . import get_provider_information
 

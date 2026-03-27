@@ -4,7 +4,6 @@ from marshmallow.validate import Length
 
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionGeneralResponseSchema,
-    AdverseActionPublicResponseSchema,
 )
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
