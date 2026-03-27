@@ -241,7 +241,7 @@ class QueryProvidersRequestSchema(CCRequestSchema):
         jurisdiction = Jurisdiction(required=False, allow_none=False)
         givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
         familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
-        licenseNumber = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        licenseNumber = String(required=False, allow_none=False, validate=Length(min=1, max=500))
 
     class PaginationSchema(ForgivingSchema):
         """
