@@ -496,3 +496,80 @@ class TestOpenSearchClientIndexManagementRetry(TestCase):
         # Verify health was called MAX_RETRY_ATTEMPTS times
         self.assertEqual(MAX_RETRY_ATTEMPTS, mock_internal_client.cluster.health.call_count)
         self.assertIn('cluster_health', str(context.exception))
+
+
+class TestOpenSearchClientDeleteProviderDocuments(TestCase):
+    """Test suite for OpenSearchClient.delete_provider_documents()."""
+
+    def _create_client_with_mock(self):
+        """Create an OpenSearchClient with a mocked internal client."""
+        with (
+            patch('opensearch_client.boto3'),
+            patch('opensearch_client.config'),
+            patch('opensearch_client.OpenSearch') as mock_opensearch_class,
+        ):
+            mock_internal_client = MagicMock()
+            mock_opensearch_class.return_value = mock_internal_client
+
+            from opensearch_client import OpenSearchClient
+
+            client = OpenSearchClient()
+            return client, mock_internal_client
+
+    def test_delete_provider_documents_calls_internal_client_with_expected_arguments(self):
+        """Test that delete_provider_documents builds the provider query and calls the internal client."""
+        client, mock_internal_client = self._create_client_with_mock()
+
+        index_name = 'compact_cosm_providers'
+        provider_id = 'provider-1'
+        expected_response = {'deleted': 3, 'failures': []}
+        mock_internal_client.delete_by_query.return_value = expected_response
+
+        result = client.delete_provider_documents(index_name=index_name, provider_id=provider_id)
+
+        mock_internal_client.delete_by_query.assert_called_once_with(
+            index=index_name,
+            body={'query': {'term': {'providerId': provider_id}}},
+        )
+        self.assertEqual(expected_response, result)
+
+    @patch('opensearch_client.time.sleep')
+    def test_delete_provider_documents_retries_on_connection_timeout(self, mock_sleep):
+        """Test that delete_provider_documents retries on ConnectionTimeout."""
+        from opensearch_client import INITIAL_BACKOFF_SECONDS
+
+        client, mock_internal_client = self._create_client_with_mock()
+
+        expected_response = {'deleted': 1, 'failures': []}
+        mock_internal_client.delete_by_query.side_effect = [
+            ConnectionTimeout('Connection timed out', 503, 'some error'),
+            expected_response,
+        ]
+
+        result = client.delete_provider_documents(
+            index_name='compact_cosm_providers',
+            provider_id='provider-1',
+        )
+
+        self.assertEqual(2, mock_internal_client.delete_by_query.call_count)
+        self.assertEqual(1, mock_sleep.call_count)
+        mock_sleep.assert_called_with(INITIAL_BACKOFF_SECONDS)
+        self.assertEqual(expected_response, result)
+
+    @patch('opensearch_client.time.sleep')
+    def test_delete_provider_documents_raises_after_max_retries(self, mock_sleep):
+        """Test that delete_provider_documents raises CCInternalException after max retries."""
+        from opensearch_client import MAX_RETRY_ATTEMPTS
+
+        client, mock_internal_client = self._create_client_with_mock()
+
+        mock_internal_client.delete_by_query.side_effect = ConnectionTimeout('Connection timed out', 503, 'some error')
+
+        with self.assertRaises(CCInternalException) as context:
+            client.delete_provider_documents(
+                index_name='compact_cosm_providers',
+                provider_id='provider-1',
+            )
+
+        self.assertEqual(MAX_RETRY_ATTEMPTS, mock_internal_client.delete_by_query.call_count)
+        self.assertIn('delete_provider_documents', str(context.exception))

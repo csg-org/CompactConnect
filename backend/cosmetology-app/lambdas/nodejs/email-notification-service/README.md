@@ -11,10 +11,8 @@ The lambda is intended to be invoked directly, rather than through an API endpoi
   recipientType: // must be one of the following
     | 'COMPACT_OPERATIONS_TEAM'              // compactOperationsTeamEmails
     | 'COMPACT_ADVERSE_ACTIONS'              // compactAdverseActionsNotificationEmails
-    | 'COMPACT_SUMMARY_REPORT'               // compactSummaryReportNotificationEmails
     | 'JURISDICTION_OPERATIONS_TEAM'         // jurisdictionOperationsTeamEmails
     | 'JURISDICTION_ADVERSE_ACTIONS'         // jurisdictionAdverseActionsNotificationEmails
-    | 'JURISDICTION_SUMMARY_REPORT'          // jurisdictionSummaryReportNotificationEmails
     | 'SPECIFIC';                           // specificEmails provided in payload
   compact: string;           // Compact identifier
   jurisdiction?: string;     // Optional jurisdiction identifier, must be specified if sending to a Jurisdiction based email list

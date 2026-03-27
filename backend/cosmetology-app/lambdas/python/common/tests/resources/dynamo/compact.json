@@ -6,7 +6,6 @@
   "compactName": "Cosmetology",
   "compactOperationsTeamEmails": ["<email address>"],
   "compactAdverseActionsNotificationEmails": ["<email address>"],
-  "compactSummaryReportNotificationEmails": ["<email address>"],
   "licenseeRegistrationEnabled": true,
   "configuredStates": [
     {

@@ -30,10 +30,6 @@ class Compact(UserDict):
         return self.get('compactAdverseActionsNotificationEmails')
 
     @property
-    def compact_summary_report_notification_emails(self) -> list[str] | None:
-        return self.get('compactSummaryReportNotificationEmails')
-
-    @property
     def licensee_registration_enabled(self):
         return self.get('licenseeRegistrationEnabled', False)
 
@@ -66,10 +62,6 @@ class CompactConfigurationData(CCDataClass):
     @property
     def compactAdverseActionsNotificationEmails(self) -> list[str]:
         return self._data.get('compactAdverseActionsNotificationEmails', [])
-
-    @property
-    def compactSummaryReportNotificationEmails(self) -> list[str]:
-        return self._data.get('compactSummaryReportNotificationEmails', [])
 
     @property
     def licenseeRegistrationEnabled(self) -> bool:

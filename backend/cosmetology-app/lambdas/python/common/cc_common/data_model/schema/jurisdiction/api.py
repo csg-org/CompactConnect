@@ -44,11 +44,6 @@ class CompactJurisdictionConfigurationResponseSchema(ForgivingSchema):
         required=True,
         allow_none=False,
     )
-    jurisdictionSummaryReportNotificationEmails = List(
-        Email(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
-    )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
 
 
@@ -63,8 +58,5 @@ class PutCompactJurisdictionConfigurationRequestSchema(Schema):
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     jurisdictionAdverseActionsNotificationEmails = List(
-        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
-    )
-    jurisdictionSummaryReportNotificationEmails = List(
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )

@@ -23,17 +23,6 @@
       "type": "array",
       "uniqueItems": true
     },
-    "jurisdictionSummaryReportNotificationEmails": {
-      "description": "List of email addresses for summary report notifications",
-      "items": {
-        "format": "email",
-        "type": "string"
-      },
-      "maxItems": 10,
-      "minItems": 1,
-      "type": "array",
-      "uniqueItems": true
-    },
     "licenseeRegistrationEnabled": {
       "description": "Denotes whether licensee registration is enabled",
       "type": "boolean"
@@ -42,7 +31,6 @@
   "required": [
     "jurisdictionOperationsTeamEmails",
     "jurisdictionAdverseActionsNotificationEmails",
-    "jurisdictionSummaryReportNotificationEmails",
     "licenseeRegistrationEnabled"
   ],
   "type": "object",

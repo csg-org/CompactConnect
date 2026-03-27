@@ -303,6 +303,91 @@ class TestLicenseIngestSchema(TstLambdas):
             LicenseIngestSchema().load({'compact': 'cosm', 'jurisdiction': 'oh', **license_record})
 
 
+class TestLicenseOpenSearchDocumentSchema(TstLambdas):
+    """Tests for LicenseOpenSearchDocumentSchema which extends LicenseGeneralResponseSchema with dateOfBirth."""
+
+    def _make_license_data(self, *, license_status='active', date_of_expiration='2100-01-01'):
+        """Create valid license data including dateOfBirth for testing."""
+        return {
+            'providerId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+            'type': 'license',
+            'dateOfUpdate': '2024-01-01T00:00:00+00:00',
+            'compact': 'cosm',
+            'jurisdiction': 'oh',
+            'licenseType': 'cosmetologist',
+            'licenseStatus': license_status,
+            'jurisdictionUploadedLicenseStatus': 'active',
+            'compactEligibility': 'eligible',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'givenName': 'John',
+            'familyName': 'Doe',
+            'dateOfIssuance': '2024-01-01',
+            'dateOfExpiration': date_of_expiration,
+            'homeAddressStreet1': '123 Main St',
+            'homeAddressCity': 'Columbus',
+            'homeAddressState': 'OH',
+            'homeAddressPostalCode': '43215',
+            'licenseNumber': 'LIC12345',
+            'dateOfBirth': '1985-06-06',
+        }
+
+    def test_includes_date_of_birth(self):
+        """LicenseOpenSearchDocumentSchema should include dateOfBirth in the loaded output."""
+        from cc_common.data_model.schema.license.api import LicenseOpenSearchDocumentSchema
+
+        license_data = self._make_license_data()
+        result = LicenseOpenSearchDocumentSchema().load(license_data)
+
+        self.assertEqual('1985-06-06', result['dateOfBirth'])
+
+    def test_retains_all_general_response_fields(self):
+        """LicenseOpenSearchDocumentSchema should retain all fields from LicenseGeneralResponseSchema."""
+        from cc_common.data_model.schema.license.api import LicenseOpenSearchDocumentSchema
+
+        license_data = self._make_license_data()
+        result = LicenseOpenSearchDocumentSchema().load(license_data)
+
+        for field in [
+            'providerId',
+            'type',
+            'dateOfUpdate',
+            'compact',
+            'jurisdiction',
+            'licenseType',
+            'licenseStatus',
+            'licenseNumber',
+            'givenName',
+            'familyName',
+            'dateOfIssuance',
+            'dateOfExpiration',
+            'homeAddressStreet1',
+            'homeAddressCity',
+            'homeAddressState',
+            'homeAddressPostalCode',
+        ]:
+            self.assertIn(field, result, f'Expected field {field} to be in loaded result')
+
+    def test_expired_license_status_corrected_to_inactive(self):
+        """LicenseOpenSearchDocumentSchema should inherit expiration status logic from LicenseExpirationStatusMixin."""
+        from cc_common.data_model.schema.license.api import LicenseOpenSearchDocumentSchema
+
+        license_data = self._make_license_data(license_status='active', date_of_expiration='2020-01-01')
+        result = LicenseOpenSearchDocumentSchema().load(license_data)
+
+        self.assertEqual('inactive', result['licenseStatus'])
+
+    def test_strips_fields_not_in_schema(self):
+        """LicenseOpenSearchDocumentSchema should strip fields not defined in the schema (ForgivingSchema behavior)."""
+        from cc_common.data_model.schema.license.api import LicenseOpenSearchDocumentSchema
+
+        license_data = self._make_license_data()
+        license_data['ssnLastFour'] = '1234'
+
+        result = LicenseOpenSearchDocumentSchema().load(license_data)
+
+        self.assertNotIn('ssnLastFour', result)
+
+
 class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
     """
     Tests for the LicenseExpirationStatusMixin applied to LicenseGeneralResponseSchema.

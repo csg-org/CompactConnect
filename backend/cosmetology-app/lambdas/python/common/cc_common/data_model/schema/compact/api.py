@@ -21,11 +21,6 @@ class CompactConfigurationResponseSchema(ForgivingSchema):
         required=True,
         allow_none=False,
     )
-    compactSummaryReportNotificationEmails = List(
-        Email(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
-    )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)
 
@@ -37,9 +32,6 @@ class PutCompactConfigurationRequestSchema(Schema):
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     compactAdverseActionsNotificationEmails = List(
-        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
-    )
-    compactSummaryReportNotificationEmails = List(
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
     )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
