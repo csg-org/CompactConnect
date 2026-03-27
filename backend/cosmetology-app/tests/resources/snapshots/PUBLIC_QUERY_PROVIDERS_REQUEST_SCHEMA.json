@@ -38,7 +38,7 @@
         },
         "licenseNumber": {
           "description": "Filter for licenses with a specific license number",
-          "maxLength": 500,
+          "maxLength": 100,
           "minLength": 1,
           "type": "string"
         }

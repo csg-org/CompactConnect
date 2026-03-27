@@ -113,7 +113,7 @@ class ApiModel:
                             'licenseNumber': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 min_length=1,
-                                max_length=500,
+                                max_length=100,
                                 description='Filter for licenses with a specific license number',
                             ),
                         },
