@@ -15,6 +15,7 @@ from cc_common.data_model.schema.fields import (
 from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
     LicenseOpenSearchDocumentSchema,
+    LicensePublicResponseSchema,
     LicenseReadPrivateResponseSchema,
 )
 from cc_common.data_model.schema.privilege.api import (
@@ -202,10 +203,10 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
 
-    # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
-    # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
+    # Unlike the JCC public provider search, which only returns privilege data for a provider, Cosmetology returns both
+    # licenses and privileges and does not return any adverse action data.
+    licenses = List(Nested(LicensePublicResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
-    # Note the lack of `licenses` here: we do not return license data for public endpoints
 
 
 class PublicLicenseSearchResponseSchema(ForgivingSchema):
