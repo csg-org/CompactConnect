@@ -226,9 +226,8 @@ class PublicLicenseSearchResponseSchema(ForgivingSchema):
 
 class QueryProvidersRequestSchema(CCRequestSchema):
     """
-    Schema for query providers requests.
+    Schema for staff query providers requests.
 
-    This schema is used to validate incoming requests to both the staff and public query providers API endpoints.
     It corresponds to the V1QueryProvidersRequestModel in the API model.
 
     Serialization direction:
@@ -265,6 +264,29 @@ class QueryProvidersRequestSchema(CCRequestSchema):
     query = Nested(QuerySchema, required=True, allow_none=False)
     pagination = Nested(PaginationSchema, required=False, allow_none=False)
     sorting = Nested(SortingSchema, required=False, allow_none=False)
+
+
+class PublicQueryProvidersRequestSchema(CCRequestSchema):
+    """
+    Request body for the public POST .../providers/query endpoint only.
+
+    The query object allows only jurisdiction, givenName, familyName, and licenseNumber.
+    Pagination and sorting match QueryProvidersRequestSchema.
+    """
+
+    class PublicQuerySchema(CCRequestSchema):
+        """
+        Nested schema for the query object within the request.
+        """
+
+        jurisdiction = Jurisdiction(required=False, allow_none=False)
+        givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        licenseNumber = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+
+    query = Nested(PublicQuerySchema, required=True, allow_none=False)
+    pagination = Nested(QueryProvidersRequestSchema.PaginationSchema, required=False, allow_none=False)
+    sorting = Nested(QueryProvidersRequestSchema.SortingSchema, required=False, allow_none=False)
 
 
 class SearchProvidersRequestSchema(CCRequestSchema):

@@ -318,6 +318,25 @@ class TestPublicSearchProviders(TstFunction):
         body = json.loads(response['body'])
         self.assertIn('At least one of licenseNumber, jurisdiction, or familyName', body['message'])
 
+    def test_provider_id_in_query_returns_400(self):
+        """Public query must not accept query.providerId (blocked at schema validation)."""
+        from handlers.public_search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'familyName': 'Doe',
+                },
+                'pagination': {'pageSize': 10},
+            },
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('providerId', body['message'])
+
     @patch('handlers.public_search.opensearch_client')
     def test_pagination_page_size_maps_to_size_and_search_after_from_last_key(self, mock_opensearch_client):
         """Test that pageSize maps to size and lastKey decodes to search_after."""

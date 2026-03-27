@@ -5,7 +5,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import (
     PublicLicenseSearchResponseSchema,
-    QueryProvidersRequestSchema,
+    PublicQueryProvidersRequestSchema,
 )
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler
@@ -110,7 +110,7 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
 
 def _parse_and_validate_public_query_body(event: dict) -> dict:
     try:
-        schema = QueryProvidersRequestSchema()
+        schema = PublicQueryProvidersRequestSchema()
         raw_body = event.get('body') or '{}'
         body = schema.loads(raw_body)
     except ValidationError as e:
