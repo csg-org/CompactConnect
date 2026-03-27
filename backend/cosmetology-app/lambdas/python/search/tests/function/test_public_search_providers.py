@@ -420,9 +420,18 @@ class TestPublicSearchProviders(TstFunction):
         body = json.loads(response['body'])
         self.assertEqual(len(body['providers']), 1)
         provider = body['providers'][0]
-        allowed = {'providerId', 'givenName', 'familyName', 'licenseJurisdiction', 'compact', 'licenseNumber'}
+        allowed = {
+            'providerId',
+            'givenName',
+            'familyName',
+            'licenseJurisdiction',
+            'compact',
+            'licenseType',
+            'licenseNumber',
+        }
         self.assertEqual(set(provider.keys()), allowed)
         self.assertEqual(provider['licenseJurisdiction'], 'oh')
+        self.assertEqual(provider['licenseType'], 'cosmetologist')
         self.assertEqual(provider['licenseNumber'], 'LN123')
 
     @patch('handlers.public_search.opensearch_client')

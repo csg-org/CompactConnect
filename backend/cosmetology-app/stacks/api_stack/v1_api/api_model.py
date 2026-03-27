@@ -1651,6 +1651,7 @@ class ApiModel:
                 'familyName',
                 'licenseJurisdiction',
                 'compact',
+                'licenseType',
                 'licenseNumber',
             ],
             properties={
@@ -1661,6 +1662,10 @@ class ApiModel:
                     type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
                 ),
                 'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                'licenseType': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='License type or profession designation for this license row',
+                ),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             },
         )

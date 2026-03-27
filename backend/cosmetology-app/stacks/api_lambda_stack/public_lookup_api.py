@@ -38,6 +38,7 @@ class PublicLookupApiLambdas:
             env_vars=lambda_environment,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_table=persistent_stack.provider_table,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
         api_lambda_stack.log_groups.append(self.get_provider_handler.log_group)
@@ -63,6 +64,7 @@ class PublicLookupApiLambdas:
         env_vars: dict,
         data_encryption_key: IKey,
         provider_table: ITable,
+        compact_configuration_table: ITable,
         alarm_topic: ITopic,
     ) -> PythonFunction:
         stack = Stack.of(scope)
@@ -79,6 +81,7 @@ class PublicLookupApiLambdas:
         )
         data_encryption_key.grant_decrypt(handler)
         provider_table.grant_read_data(handler)
+        compact_configuration_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,

@@ -38,6 +38,10 @@
             ],
             "type": "string"
           },
+          "licenseType": {
+            "description": "License type or profession designation for this license row",
+            "type": "string"
+          },
           "licenseNumber": {
             "maxLength": 100,
             "minLength": 1,
@@ -50,6 +54,7 @@
           "familyName",
           "licenseJurisdiction",
           "compact",
+          "licenseType",
           "licenseNumber"
         ],
         "type": "object"

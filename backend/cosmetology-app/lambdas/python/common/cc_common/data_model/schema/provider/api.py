@@ -220,6 +220,7 @@ class PublicLicenseSearchResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     licenseJurisdiction = String(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
 
 
