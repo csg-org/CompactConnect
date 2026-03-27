@@ -149,6 +149,148 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(4, len(sort))
         self.assertEqual({'_id': 'asc'}, sort[3])
 
+    @patch('handlers.public_search.opensearch_client')
+    def test_default_sort_is_family_name_ascending(self, mock_opensearch_client):
+        """Without sorting in request, default is familyName ascending; response echoes sorting."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        sort = call_body['sort']
+        self.assertEqual(4, len(sort))
+        self.assertEqual({'familyName.keyword': 'asc'}, sort[0])
+        self.assertEqual({'givenName.keyword': 'asc'}, sort[1])
+        self.assertEqual({'providerId': 'asc'}, sort[2])
+        self.assertEqual({'_id': 'asc'}, sort[3])
+        body = json.loads(response['body'])
+        self.assertEqual(
+            {'key': 'familyName', 'direction': 'ascending'},
+            body['sorting'],
+        )
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_family_name_sort_descending(self, mock_opensearch_client):
+        """sorting key familyName with descending direction maps to OpenSearch desc on name fields."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'familyName': 'Doe'},
+                'pagination': {'pageSize': 10},
+                'sorting': {'key': 'familyName', 'direction': 'descending'},
+            },
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        sort = call_body['sort']
+        self.assertEqual({'familyName.keyword': 'desc'}, sort[0])
+        self.assertEqual({'givenName.keyword': 'desc'}, sort[1])
+        self.assertEqual({'providerId': 'desc'}, sort[2])
+        self.assertEqual({'_id': 'asc'}, sort[3])
+        body = json.loads(response['body'])
+        self.assertEqual(
+            {'key': 'familyName', 'direction': 'descending'},
+            body['sorting'],
+        )
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_date_of_update_sort_ascending(self, mock_opensearch_client):
+        """sorting by dateOfUpdate uses top-level date field and _id tiebreaker."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'licenseNumber': 'LN999'},
+                'pagination': {'pageSize': 10},
+                'sorting': {'key': 'dateOfUpdate', 'direction': 'ascending'},
+            },
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            [{'dateOfUpdate': 'asc'}, {'_id': 'asc'}],
+            call_body['sort'],
+        )
+        body = json.loads(response['body'])
+        self.assertEqual(
+            {'key': 'dateOfUpdate', 'direction': 'ascending'},
+            body['sorting'],
+        )
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_date_of_update_sort_descending(self, mock_opensearch_client):
+        """dateOfUpdate descending keeps _id tiebreaker ascending."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'licenseNumber': 'LN999'},
+                'pagination': {'pageSize': 10},
+                'sorting': {'key': 'dateOfUpdate', 'direction': 'descending'},
+            },
+        )
+        public_search_api_handler(event, self.mock_context)
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            [{'dateOfUpdate': 'desc'}, {'_id': 'asc'}],
+            call_body['sort'],
+        )
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_response_always_contains_sorting_field(self, mock_opensearch_client):
+        """Successful public search responses include sorting with key and direction."""
+        from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('sorting', body)
+        self.assertEqual({'key', 'direction'}, set(body['sorting'].keys()))
+
+    @patch('handlers.public_search.opensearch_client')
+    def test_invalid_sort_key_returns_400(self, mock_opensearch_client):
+        """Unknown sorting.key returns 400."""
+        from handlers.public_search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'cosm',
+            body={
+                'query': {'familyName': 'Doe'},
+                'pagination': {'pageSize': 10},
+                'sorting': {'key': 'invalidKey', 'direction': 'ascending'},
+            },
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('Invalid sort key', body['message'])
+
     def test_given_name_without_family_name_returns_400(self):
         """Test that givenName without familyName returns 400."""
         from handlers.public_search import public_search_api_handler
@@ -381,3 +523,4 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(response['statusCode'], 400)
         body = json.loads(response['body'])
         self.assertIn('lastkey', body['message'].lower())
+        mock_opensearch_client.search.assert_not_called()

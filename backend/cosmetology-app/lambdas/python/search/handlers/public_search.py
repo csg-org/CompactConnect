@@ -87,6 +87,10 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
     if last_sort is not None and len(hits) >= page_size:
         last_key = _encode_public_cursor(last_sort)
 
+    sorting = body.get('sorting') or {}
+    resolved_sort_key = sorting.get('key') or 'familyName'
+    resolved_direction = sorting.get('direction') or 'ascending'
+
     return {
         'providers': providers,
         'pagination': {
@@ -95,6 +99,7 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
             'prevLastKey': pagination.get('lastKey'),
         },
         'query': query_obj,
+        'sorting': {'key': resolved_sort_key, 'direction': resolved_direction},
     }
 
 
@@ -143,6 +148,33 @@ def _encode_public_cursor(search_after: list) -> str:
     return b64encode(json.dumps(payload).encode('utf-8')).decode('utf-8')
 
 
+def _build_public_opensearch_sort(body: dict) -> list:
+    """
+    Map API sorting (familyName | dateOfUpdate, ascending | descending) to OpenSearch sort clauses.
+    Uses top-level dateOfUpdate for date sort; _id ascending is always the final tiebreaker.
+    """
+    sorting = body.get('sorting') or {}
+    sort_key = sorting.get('key') or 'familyName'
+    sort_direction = sorting.get('direction', 'ascending')
+    os_dir = 'asc' if sort_direction == 'ascending' else 'desc'
+
+    match sort_key:
+        case 'familyName':
+            return [
+                {'familyName.keyword': os_dir},
+                {'givenName.keyword': os_dir},
+                {'providerId': os_dir},
+                {'_id': 'asc'},
+            ]
+        case 'dateOfUpdate':
+            return [
+                {'dateOfUpdate': os_dir},
+                {'_id': 'asc'},
+            ]
+        case _:
+            raise CCInvalidRequestException(f"Invalid sort key: '{sort_key}'")
+
+
 def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict | None = None) -> dict:
     query_obj = body.get('query', {})
     pagination = body.get('pagination') or {}
@@ -170,12 +202,7 @@ def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict 
     search_body = {
         'query': {'bool': {'must': must}},
         'size': page_size,
-        'sort': [
-            {'familyName.keyword': 'asc'},
-            {'givenName.keyword': 'asc'},
-            {'providerId': 'asc'},
-            {'_id': 'asc'},
-        ],
+        'sort': _build_public_opensearch_sort(body),
     }
     if search_after is not None:
         search_body['search_after'] = search_after
