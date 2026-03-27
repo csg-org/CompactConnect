@@ -211,22 +211,15 @@ class ProviderPublicResponseSchema(ForgivingSchema):
 class PublicLicenseSearchResponseSchema(ForgivingSchema):
     """
     License object fields returned by the public query providers endpoint (OpenSearch-backed).
-    Used to sanitize license records extracted from inner_hits; jurisdiction is renamed to licenseJurisdiction.
+    Jurisdiction is renamed to licenseJurisdiction for parity with JCC implementation.
     """
 
     providerId = Raw(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
-    jurisdiction = String(required=False, allow_none=False, load_only=True)  # OpenSearch uses jurisdiction
-    licenseJurisdiction = String(required=False, allow_none=False, load_default=None)
+    licenseJurisdiction = String(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
-
-    @post_load
-    def rename_jurisdiction_to_license_jurisdiction(self, data, **kwargs):
-        if 'jurisdiction' in data:
-            data['licenseJurisdiction'] = data.pop('jurisdiction')
-        return data
 
 class QueryProvidersRequestSchema(CCRequestSchema):
     """

@@ -71,6 +71,10 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
         license_fields['givenName'] = source['givenName']
         license_fields['familyName'] = source['familyName']
         try:
+            # home state is stored under the 'jurisdiction' field on the license record, but
+            # the frontend expects this to be labeled 'licenseJurisdiction' for parity with other
+            # public search response schemas.
+            license_fields['licenseJurisdiction'] = license_fields.pop('jurisdiction')
             sanitized = license_schema.load(license_fields)
             sanitized.pop('jurisdiction', None)
             providers.append(sanitized)
