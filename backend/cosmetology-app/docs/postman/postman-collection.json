@@ -10,7 +10,7 @@
         "type": "bearer"
     },
     "info": {
-        "_postman_id": "12e32f13-f30d-4689-a21a-b47cfc6f3da6",
+        "_postman_id": "e444fd71-91b5-46e4-bcac-fe1bb2ddf12a",
         "description": {
             "content": "",
             "type": "text/plain"
@@ -410,7 +410,7 @@
                                                     "item": [
                                                         {
                                                             "event": [],
-                                                            "id": "83c4ba1f-6c1f-45e2-ae04-7757b214ac8e",
+                                                            "id": "ae4dd3d5-9625-4003-b70c-6e0b1e0896d4",
                                                             "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
                                                             "protocolProfileBehavior": {
                                                                 "disableBodyPruning": true
@@ -424,7 +424,7 @@
                                                                             "language": "json"
                                                                         }
                                                                     },
-                                                                    "raw": "[\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1100-01-07\",\n    \"dateOfExpiration\": \"2398-12-03\",\n    \"dateOfIssuance\": \"1414-10-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"cosmetologist\",\n    \"ssn\": \"133-07-7776\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+51485269\",\n    \"dateOfRenewal\": \"2283-10-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2471-10-09\",\n    \"dateOfExpiration\": \"1419-07-30\",\n    \"dateOfIssuance\": \"1716-10-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"533-42-6992\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+877211196331\",\n    \"dateOfRenewal\": \"1977-11-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                    "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2047-09-31\",\n    \"dateOfExpiration\": \"2778-12-30\",\n    \"dateOfIssuance\": \"1961-10-22\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"cosmetologist\",\n    \"ssn\": \"776-14-8717\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+375005223091\",\n    \"dateOfRenewal\": \"1874-11-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1822-04-31\",\n    \"dateOfExpiration\": \"2511-11-31\",\n    \"dateOfIssuance\": \"2096-09-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"551-66-3213\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+2352984283\",\n    \"dateOfRenewal\": \"2319-11-05\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
                                                                 },
                                                                 "description": {},
                                                                 "header": [
@@ -488,7 +488,7 @@
                                                                             "value": "application/json"
                                                                         }
                                                                     ],
-                                                                    "id": "1e07cff3-9b10-48ed-ae1a-a4db185775b4",
+                                                                    "id": "3dc7d85f-73ff-4370-be60-47ab18257e0c",
                                                                     "name": "200 response",
                                                                     "originalRequest": {
                                                                         "body": {
@@ -499,7 +499,7 @@
                                                                                     "language": "json"
                                                                                 }
                                                                             },
-                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1100-01-07\",\n    \"dateOfExpiration\": \"2398-12-03\",\n    \"dateOfIssuance\": \"1414-10-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"cosmetologist\",\n    \"ssn\": \"133-07-7776\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+51485269\",\n    \"dateOfRenewal\": \"2283-10-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2471-10-09\",\n    \"dateOfExpiration\": \"1419-07-30\",\n    \"dateOfIssuance\": \"1716-10-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"533-42-6992\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+877211196331\",\n    \"dateOfRenewal\": \"1977-11-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2047-09-31\",\n    \"dateOfExpiration\": \"2778-12-30\",\n    \"dateOfIssuance\": \"1961-10-22\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"cosmetologist\",\n    \"ssn\": \"776-14-8717\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+375005223091\",\n    \"dateOfRenewal\": \"1874-11-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1822-04-31\",\n    \"dateOfExpiration\": \"2511-11-31\",\n    \"dateOfIssuance\": \"2096-09-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"551-66-3213\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+2352984283\",\n    \"dateOfRenewal\": \"2319-11-05\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
                                                                         },
                                                                         "header": [
                                                                             {
@@ -540,7 +540,7 @@
                                                                 },
                                                                 {
                                                                     "_postman_previewlanguage": "json",
-                                                                    "body": "{\n  \"message\": \"<string>\",\n  \"errors\": {\n    \"aliqua9\": {\n      \"laborumd5\": [\n        \"<string>\",\n        \"<string>\"\n      ],\n      \"Ut_442\": [\n        \"<string>\",\n        \"<string>\"\n      ]\n    },\n    \"ullamco1_\": {\n      \"pariaturdfd\": [\n        \"<string>\",\n        \"<string>\"\n      ]\n    }\n  }\n}",
+                                                                    "body": "{\n  \"message\": \"<string>\",\n  \"errors\": {\n    \"ullamco9\": {\n      \"laboris6fd\": [\n        \"<string>\",\n        \"<string>\"\n      ]\n    }\n  }\n}",
                                                                     "code": 400,
                                                                     "cookie": [],
                                                                     "header": [
@@ -549,7 +549,7 @@
                                                                             "value": "application/json"
                                                                         }
                                                                     ],
-                                                                    "id": "1075166f-2bae-459b-9cf7-fde9a5b34817",
+                                                                    "id": "9209a379-9a94-4192-b60e-141d660e1b6a",
                                                                     "name": "400 response",
                                                                     "originalRequest": {
                                                                         "body": {
@@ -560,7 +560,7 @@
                                                                                     "language": "json"
                                                                                 }
                                                                             },
-                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1100-01-07\",\n    \"dateOfExpiration\": \"2398-12-03\",\n    \"dateOfIssuance\": \"1414-10-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"cosmetologist\",\n    \"ssn\": \"133-07-7776\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+51485269\",\n    \"dateOfRenewal\": \"2283-10-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"2471-10-09\",\n    \"dateOfExpiration\": \"1419-07-30\",\n    \"dateOfIssuance\": \"1716-10-31\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"inactive\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"533-42-6992\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+877211196331\",\n    \"dateOfRenewal\": \"1977-11-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2047-09-31\",\n    \"dateOfExpiration\": \"2778-12-30\",\n    \"dateOfIssuance\": \"1961-10-22\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"cosmetologist\",\n    \"ssn\": \"776-14-8717\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+375005223091\",\n    \"dateOfRenewal\": \"1874-11-30\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"ineligible\",\n    \"dateOfBirth\": \"1822-04-31\",\n    \"dateOfExpiration\": \"2511-11-31\",\n    \"dateOfIssuance\": \"2096-09-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"551-66-3213\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+2352984283\",\n    \"dateOfRenewal\": \"2319-11-05\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
                                                                         },
                                                                         "header": [
                                                                             {
@@ -631,7 +631,7 @@
                                                                             }
                                                                         }
                                                                     ],
-                                                                    "id": "617853ff-a0af-4af9-8588-33a75e5c9f37",
+                                                                    "id": "94302ab8-108f-40dd-a5bb-01d1e6042939",
                                                                     "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
                                                                     "protocolProfileBehavior": {
                                                                         "disableBodyPruning": true
@@ -688,7 +688,7 @@
                                                                     "response": [
                                                                         {
                                                                             "_postman_previewlanguage": "json",
-                                                                            "body": "{\n  \"upload\": {\n    \"fields\": {\n      \"ipsum_477\": \"<string>\",\n      \"minim0e\": \"<string>\",\n      \"consequat_a\": \"<string>\",\n      \"veniam_58\": \"<string>\"\n    },\n    \"url\": \"<string>\"\n  }\n}",
+                                                                            "body": "{\n  \"upload\": {\n    \"fields\": {\n      \"ut_9c\": \"<string>\",\n      \"non_8f\": \"<string>\"\n    },\n    \"url\": \"<string>\"\n  }\n}",
                                                                             "code": 200,
                                                                             "cookie": [],
                                                                             "header": [
@@ -697,7 +697,7 @@
                                                                                     "value": "application/json"
                                                                                 }
                                                                             ],
-                                                                            "id": "9da731e7-e9bf-4c21-9bb7-5caf51949487",
+                                                                            "id": "d149ce75-f3ec-4640-a52e-95c04db4d14e",
                                                                             "name": "200 response",
                                                                             "originalRequest": {
                                                                                 "body": {},

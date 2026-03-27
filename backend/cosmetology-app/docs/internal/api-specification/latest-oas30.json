@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2026-03-27T16:48:03Z"
+    "version": "2026-03-27T18:19:52Z"
   },
   "servers": [
     {
@@ -2463,243 +2463,94 @@
                     "wa"
                   ]
                 },
-                "history": {
-                  "type": "array",
-                  "items": {
-                    "required": [
-                      "compact",
-                      "dateOfUpdate",
-                      "jurisdiction",
-                      "licenseType",
-                      "previous",
-                      "providerId",
-                      "type",
-                      "updateType",
-                      "updatedValues"
-                    ],
-                    "type": "object",
-                    "properties": {
-                      "licenseType": {
-                        "type": "string",
-                        "enum": [
-                          "cosmetologist",
-                          "esthetician"
-                        ]
-                      },
-                      "compact": {
-                        "type": "string",
-                        "enum": [
-                          "cosm"
-                        ]
-                      },
-                      "previous": {
-                        "required": [
-                          "administratorSetStatus",
-                          "dateOfExpiration",
-                          "licenseJurisdiction"
-                        ],
-                        "type": "object",
-                        "properties": {
-                          "administratorSetStatus": {
-                            "type": "string",
-                            "enum": [
-                              "active",
-                              "inactive"
-                            ]
-                          },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "licenseJurisdiction": {
-                            "type": "string",
-                            "enum": [
-                              "al",
-                              "az",
-                              "co",
-                              "ks",
-                              "ky",
-                              "md",
-                              "oh",
-                              "tn",
-                              "va",
-                              "wa"
-                            ]
-                          }
-                        }
-                      },
-                      "providerId": {
-                        "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                        "type": "string"
-                      },
-                      "jurisdiction": {
-                        "type": "string",
-                        "enum": [
-                          "al",
-                          "az",
-                          "co",
-                          "ks",
-                          "ky",
-                          "md",
-                          "oh",
-                          "tn",
-                          "va",
-                          "wa"
-                        ]
-                      },
-                      "updatedValues": {
-                        "type": "object",
-                        "properties": {
-                          "administratorSetStatus": {
-                            "type": "string",
-                            "enum": [
-                              "active",
-                              "inactive"
-                            ]
-                          },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "licenseJurisdiction": {
-                            "type": "string",
-                            "enum": [
-                              "al",
-                              "az",
-                              "co",
-                              "ks",
-                              "ky",
-                              "md",
-                              "oh",
-                              "tn",
-                              "va",
-                              "wa"
-                            ]
-                          }
-                        }
-                      },
-                      "type": {
-                        "type": "string",
-                        "enum": [
-                          "privilegeUpdate"
-                        ]
-                      },
-                      "dateOfUpdate": {
-                        "type": "string",
-                        "format": "date-time"
-                      },
-                      "updateType": {
-                        "type": "string",
-                        "enum": [
-                          "deactivation",
-                          "expiration",
-                          "issuance",
-                          "other",
-                          "renewal",
-                          "encumbrance",
-                          "lifting_encumbrance",
-                          "licenseDeactivation"
-                        ]
-                      }
-                    }
-                  }
-                },
                 "type": {
                   "type": "string",
                   "enum": [
                     "privilege"
                   ]
                 },
-                "adverseActions": {
-                  "type": "array",
-                  "items": {
-                    "required": [
-                      "actionAgainst",
-                      "adverseActionId",
-                      "compact",
-                      "creationDate",
-                      "dateOfUpdate",
-                      "effectiveStartDate",
-                      "jurisdiction",
-                      "licenseType",
-                      "licenseTypeAbbreviation",
-                      "providerId",
-                      "type"
-                    ],
-                    "type": "object",
-                    "properties": {
-                      "licenseType": {
-                        "type": "string"
-                      },
-                      "compact": {
-                        "type": "string",
-                        "enum": [
-                          "cosm"
-                        ]
-                      },
-                      "providerId": {
-                        "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                        "type": "string"
-                      },
-                      "jurisdiction": {
-                        "type": "string",
-                        "enum": [
-                          "al",
-                          "az",
-                          "co",
-                          "ks",
-                          "ky",
-                          "md",
-                          "oh",
-                          "tn",
-                          "va",
-                          "wa"
-                        ]
-                      },
-                      "effectiveStartDate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
-                      },
-                      "licenseTypeAbbreviation": {
-                        "type": "string"
-                      },
-                      "adverseActionId": {
-                        "type": "string"
-                      },
-                      "effectiveLiftDate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
-                      },
-                      "type": {
-                        "type": "string",
-                        "enum": [
-                          "adverseAction"
-                        ]
-                      },
-                      "creationDate": {
-                        "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                        "type": "string",
-                        "format": "date"
-                      },
-                      "actionAgainst": {
-                        "type": "string"
-                      },
-                      "dateOfUpdate": {
-                        "type": "string",
-                        "format": "date-time"
-                      }
-                    }
-                  }
-                },
                 "status": {
                   "type": "string",
                   "enum": [
                     "active",
                     "inactive"
+                  ]
+                }
+              }
+            }
+          },
+          "licenses": {
+            "type": "array",
+            "description": "Sanitized home-state license rows (LicensePublicResponseSchema)",
+            "items": {
+              "required": [
+                "compact",
+                "compactEligibility",
+                "dateOfExpiration",
+                "jurisdiction",
+                "licenseNumber",
+                "licenseStatus",
+                "licenseType",
+                "type"
+              ],
+              "type": "object",
+              "properties": {
+                "licenseType": {
+                  "type": "string",
+                  "enum": [
+                    "cosmetologist",
+                    "esthetician"
+                  ]
+                },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "cosm"
+                  ]
+                },
+                "licenseStatus": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                },
+                "jurisdiction": {
+                  "type": "string",
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ]
+                },
+                "compactEligibility": {
+                  "type": "string",
+                  "enum": [
+                    "eligible",
+                    "ineligible"
+                  ]
+                },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "license"
                   ]
                 }
               }
