@@ -1,5 +1,82 @@
 {
   "properties": {
+    "licenses": {
+      "description": "Sanitized home-state license rows (LicensePublicResponseSchema)",
+      "items": {
+        "properties": {
+          "type": {
+            "enum": [
+              "license"
+            ],
+            "type": "string"
+          },
+          "compact": {
+            "enum": [
+              "cosm"
+            ],
+            "type": "string"
+          },
+          "jurisdiction": {
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ],
+            "type": "string"
+          },
+          "licenseType": {
+            "enum": [
+              "cosmetologist",
+              "esthetician"
+            ],
+            "type": "string"
+          },
+          "licenseStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "compactEligibility": {
+            "enum": [
+              "eligible",
+              "ineligible"
+            ],
+            "type": "string"
+          },
+          "dateOfExpiration": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "licenseNumber": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "compact",
+          "jurisdiction",
+          "licenseType",
+          "licenseStatus",
+          "compactEligibility",
+          "dateOfExpiration",
+          "licenseNumber"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
     "privileges": {
       "items": {
         "properties": {

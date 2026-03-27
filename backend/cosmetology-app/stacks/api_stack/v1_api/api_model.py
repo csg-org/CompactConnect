@@ -1409,11 +1409,47 @@ class ApiModel:
                 'familyName',
             ],
             properties={
+                'licenses': JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    description='Sanitized home-state license rows (LicensePublicResponseSchema)',
+                    items=self._public_license_public_response_schema,
+                ),
                 'privileges': JsonSchema(
                     type=JsonSchemaType.ARRAY,
                     items=self._public_privilege_response_schema,
                 ),
                 **self._common_public_provider_properties,
+            },
+        )
+
+    @property
+    def _public_license_public_response_schema(self):
+        """License items in public GET provider responses; mirrors LicensePublicResponseSchema."""
+        stack: AppStack = AppStack.of(self.api)
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'type',
+                'compact',
+                'jurisdiction',
+                'licenseType',
+                'licenseStatus',
+                'compactEligibility',
+                'dateOfExpiration',
+                'licenseNumber',
+            ],
+            properties={
+                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['license']),
+                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                'jurisdiction': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=stack.node.get_context('jurisdictions'),
+                ),
+                'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
+                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             },
         )
 
