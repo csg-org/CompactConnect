@@ -367,6 +367,68 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         # even with the investigation status, it should still be set to active
         self.assertEqual('active', privilege_al['status'])
 
+    def test_returns_privilege_when_home_ineligible_and_privilege_adverse_action_matches(self):
+        """Ineligible home license still yields a privilege row when a privilege AA matches that jurisdiction."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    'dateOfExpiration': date(2026, 4, 4),
+                }
+            ]
+        )
+        records.append(
+            self.test_data_generator.generate_default_adverse_action(
+                value_overrides={'jurisdiction': 'al'}
+            ).serialize_to_database_record()
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            result = pur.generate_privileges_for_provider()
+        self.assertEqual(1, len(result))
+        self.assertEqual('al', result[0]['jurisdiction'])
+        self.assertGreaterEqual(len(result[0]['adverseActions']), 1)
+        self.assertEqual({'al'}, {p['jurisdiction'] for p in result})
+
+    def test_returns_privilege_when_home_ineligible_and_open_privilege_investigation_matches(self):
+        """Ineligible home license still yields a privilege row when an open privilege investigation matches."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus, InvestigationStatusEnum
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    'dateOfExpiration': date(2026, 4, 4),
+                }
+            ]
+        )
+        open_investigation = self.test_data_generator.generate_default_investigation(
+            value_overrides={
+                'jurisdiction': 'al',
+                'licenseTypeAbbreviation': 'cos',
+                'licenseType': 'cosmetologist',
+                'investigationAgainst': 'privilege',
+            }
+        )
+        records.append(open_investigation.serialize_to_database_record())
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            result = pur.generate_privileges_for_provider()
+        self.assertEqual(1, len(result))
+        self.assertEqual('al', result[0]['jurisdiction'])
+        self.assertEqual(1, len(result[0]['investigations']))
+        self.assertEqual(
+            InvestigationStatusEnum.UNDER_INVESTIGATION.value,
+            result[0]['investigationStatus'],
+        )
+
 
 class TestProviderRecordUtility(TstLambdas):
     def setUp(self):

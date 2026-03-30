@@ -426,18 +426,18 @@ class ProviderUserRecords:
 
     def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
         """
-        Generate privilege dicts at runtime for all eligible license types this provider holds.
+        Generate privilege dicts at runtime for each license type this provider holds.
 
         For each license type, the home license is chosen from all licenses of that type: the license renewed
         most recently (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
-        By default, privileges are generated only when the chosen home license is compact-eligible.
+        When the chosen home license is compact-eligible, one privilege is generated per active compact jurisdiction
+        (excluding the home jurisdiction). When the home license is not compact-eligible, a privilege is still
+        generated for a jurisdiction if there is a matching privilege adverse action or an open privilege
+        investigation for that jurisdiction and license type, so admins can see and resolve those records.
 
-        When include_inactive_privileges is True, privileges are also generated for ineligible home
+        When include_inactive_privileges is True, privileges in all jurisdictions are generated for ineligible home
         licenses and are marked inactive. This is primarily used when indexing to OpenSearch so that adverse
         actions and investigations remain searchable even when a license is ineligible.
-
-        For each qualifying type, one privilege is generated per active compact jurisdiction
-        (excluding the home jurisdiction).
 
         :param include_inactive_privileges: When True, generate privileges for ineligible home licenses
             and mark them inactive instead of omitting them entirely.
@@ -466,16 +466,6 @@ class ProviderUserRecords:
                 reverse=True,
             )
             most_recent_license = sorted_licenses[0]
-            if (
-                not include_inactive_privileges
-                and most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE
-            ):
-                logger.debug(
-                    'skipping inactive license',
-                    license_jurisdiction=most_recent_license.jurisdiction,
-                    license_type=most_recent_license.licenseType,
-                )
-                continue
             most_recent_licenses_for_each_type.append(most_recent_license)
 
         result: list[dict] = []
@@ -492,6 +482,20 @@ class ProviderUserRecords:
                 inv_records = self.get_investigation_records_for_privilege(
                     jurisdiction, license_type_abbr, include_closed=False
                 )
+                if (
+                        most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE
+                    and not include_inactive_privileges
+                    and not privilege_aa
+                    and not inv_records
+                ):
+                    logger.debug('Not returning a privilege for this jurisdiction because the home '
+                    'license is not compact eligible and there are no matching privilege adverse '
+                    'actions or open investigations.',
+                    jurisdiction=jurisdiction,
+                    home_jurisdiction=home_jurisdiction,
+                    license_type_abbr=license_type_abbr,
+                    )
+                    continue
                 privilege_dict = {
                     'type': 'privilege',
                     'administratorSetStatus': ActiveInactiveStatus.ACTIVE.value,
@@ -501,8 +505,10 @@ class ProviderUserRecords:
                     'licenseJurisdiction': home_jurisdiction,
                     'licenseType': most_recent_license.licenseType,
                     'dateOfExpiration': most_recent_license.dateOfExpiration,
-                    # A privilege is inactive if the home license is ineligible, or if a state admin
-                    # has set an encumbrance that has not been lifted.
+                    # the only way a privilege under this model shows inactive is if
+                    # there has been an encumbrance set by a state admin that has not been
+                    # lifted. Ineligible home licenses still get privilege rows when there are matching
+                    # privilege adverse actions or open investigations.
                     'status': ActiveInactiveStatus.ACTIVE.value
                     if is_eligible and not privilege_unlifted
                     else ActiveInactiveStatus.INACTIVE.value,
