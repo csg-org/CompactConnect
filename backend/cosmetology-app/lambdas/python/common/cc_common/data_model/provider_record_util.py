@@ -483,7 +483,7 @@ class ProviderUserRecords:
                     jurisdiction, license_type_abbr, include_closed=False
                 )
                 if (
-                        most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE
+                    not is_eligible
                     and not include_inactive_privileges
                     and not privilege_aa
                     and not inv_records
