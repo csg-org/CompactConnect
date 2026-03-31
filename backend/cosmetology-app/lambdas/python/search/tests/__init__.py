@@ -19,6 +19,7 @@ class TstLambdas(TestCase):
                 'ENVIRONMENT_NAME': 'test',
                 'COMPACTS': '["cosm"]',
                 'PROVIDER_TABLE_NAME': 'provider-table',
+                'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-config-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'LICENSE_GSI_NAME': 'licenseGSI',

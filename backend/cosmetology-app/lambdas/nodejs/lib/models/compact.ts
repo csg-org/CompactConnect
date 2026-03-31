@@ -11,7 +11,6 @@ export interface Compact {
     compactAbbr: string;
     compactName: string;
     compactOperationsTeamEmails: string[];
-    compactSummaryReportNotificationEmails: string[];
     dateOfUpdate: string;
     type: string;
 }

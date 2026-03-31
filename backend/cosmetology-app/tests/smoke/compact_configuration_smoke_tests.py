@@ -139,7 +139,6 @@ def test_compact_configuration():
             'licenseeRegistrationEnabled': False,
             'compactOperationsTeamEmails': [notification_email],
             'compactAdverseActionsNotificationEmails': [notification_email],
-            'compactSummaryReportNotificationEmails': [notification_email],
             'configuredStates': [],
         }
 
@@ -259,7 +258,6 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
         jurisdiction_config = {
             'jurisdictionOperationsTeamEmails': [notification_email],
             'jurisdictionAdverseActionsNotificationEmails': [notification_email],
-            'jurisdictionSummaryReportNotificationEmails': [notification_email],
             'licenseeRegistrationEnabled': True,
         }
 

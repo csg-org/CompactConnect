@@ -40,7 +40,7 @@ from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException
 from marshmallow import ValidationError
 from opensearch_client import OpenSearchClient
-from utils import generate_provider_opensearch_document
+from utils import generate_provider_opensearch_documents
 
 # Batch size for DynamoDB pagination
 DYNAMODB_PAGE_SIZE = 1000
@@ -77,7 +77,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     # Track statistics
     stats = {
         'total_providers_processed': 0,
-        'total_providers_indexed': 0,
+        'total_licenses_indexed': 0,
         'total_providers_failed': 0,
         'compacts_processed': [],
         'errors': [],
@@ -110,7 +110,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
         documents_to_index = []
         compact_stats = {
             'providers_processed': 0,
-            'providers_indexed': 0,
+            'licenses_indexed': 0,
             'providers_failed': 0,
         }
 
@@ -151,7 +151,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
                 # Update stats for current compact
                 stats['total_providers_processed'] += compact_stats['providers_processed']
-                stats['total_providers_indexed'] += compact_stats['providers_indexed']
+                stats['total_licenses_indexed'] += compact_stats['licenses_indexed']
                 stats['total_providers_failed'] += compact_stats['providers_failed']
                 if compact_stats['providers_processed'] > 0:
                     stats['compacts_processed'].append(
@@ -171,7 +171,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                 logger.info(
                     'Returning for pagination',
                     total_providers_processed=stats['total_providers_processed'],
-                    total_providers_indexed=stats['total_providers_indexed'],
+                    total_licenses_indexed=stats['total_licenses_indexed'],
                     resume_from=stats['resumeFrom'],
                 )
 
@@ -214,9 +214,8 @@ def populate_provider_documents(event: dict, context: LambdaContext):
                     continue
 
                 try:
-                    # Use the shared utility to process the provider
-                    serializable_document = generate_provider_opensearch_document(compact, provider_id)
-                    documents_to_index.append(serializable_document)
+                    serializable_documents = generate_provider_opensearch_documents(compact, provider_id)
+                    documents_to_index.extend(serializable_documents)
 
                 except ValidationError as e:
                     logger.warning(
@@ -259,7 +258,7 @@ def populate_provider_documents(event: dict, context: LambdaContext):
 
         # Update overall stats
         stats['total_providers_processed'] += compact_stats['providers_processed']
-        stats['total_providers_indexed'] += compact_stats['providers_indexed']
+        stats['total_licenses_indexed'] += compact_stats['licenses_indexed']
         stats['total_providers_failed'] += compact_stats['providers_failed']
         stats['compacts_processed'].append(
             {
@@ -272,14 +271,14 @@ def populate_provider_documents(event: dict, context: LambdaContext):
             'Completed processing compact',
             compact=compact,
             providers_processed=compact_stats['providers_processed'],
-            providers_indexed=compact_stats['providers_indexed'],
+            licenses_indexed=compact_stats['licenses_indexed'],
             providers_failed=compact_stats['providers_failed'],
         )
 
     logger.info(
         'Completed populating provider documents',
         total_providers_processed=stats['total_providers_processed'],
-        total_providers_indexed=stats['total_providers_indexed'],
+        total_licenses_indexed=stats['total_licenses_indexed'],
         total_providers_failed=stats['total_providers_failed'],
     )
 
@@ -292,7 +291,7 @@ def _index_records_and_track_stats(
     index_name = f'compact_{compact}_providers'
     if documents_to_index:
         failed_ids = _bulk_index_documents(opensearch_client, index_name, documents_to_index)
-        compact_stats['providers_indexed'] += len(documents_to_index) - len(failed_ids)
+        compact_stats['licenses_indexed'] += len(documents_to_index) - len(failed_ids)
         if failed_ids:
             compact_stats['providers_failed'] += len(failed_ids)
             logger.warning(
@@ -325,7 +324,7 @@ def _build_error_response(
 
     # Update stats for current compact
     stats['total_providers_processed'] += compact_stats['providers_processed']
-    stats['total_providers_indexed'] += compact_stats['providers_indexed']
+    stats['total_licenses_indexed'] += compact_stats['licenses_indexed']
     stats['total_providers_failed'] += compact_stats['providers_failed']
     if compact_stats['providers_processed'] > 0:
         stats['compacts_processed'].append(
@@ -365,7 +364,7 @@ def _bulk_index_documents(opensearch_client: OpenSearchClient, index_name: str, 
         return set()
 
     # This will raise CCInternalException if all retries fail
-    response = opensearch_client.bulk_index(index_name=index_name, documents=documents)
+    response = opensearch_client.bulk_index(index_name=index_name, documents=documents, id_field='documentId')
 
     # Check for errors in the bulk response (individual document failures, not connection issues)
     if response.get('errors'):

@@ -24,14 +24,6 @@
       },
       "type": "array"
     },
-    "compactSummaryReportNotificationEmails": {
-      "description": "List of email addresses for summary report notifications",
-      "items": {
-        "format": "email",
-        "type": "string"
-      },
-      "type": "array"
-    },
     "licenseeRegistrationEnabled": {
       "description": "Denotes whether licensee registration is enabled",
       "type": "boolean"
@@ -75,7 +67,6 @@
     "compactName",
     "compactOperationsTeamEmails",
     "compactAdverseActionsNotificationEmails",
-    "compactSummaryReportNotificationEmails",
     "licenseeRegistrationEnabled",
     "configuredStates"
   ],

@@ -7,5 +7,4 @@ export interface IJurisdiction {
     compact: string;
     jurisdictionOperationsTeamEmails: string[];
     jurisdictionAdverseActionsNotificationEmails: string[];
-    jurisdictionSummaryReportNotificationEmails: string[];
 }

@@ -186,7 +186,6 @@ def _get_staff_users_compact_configuration(event: dict, context: LambdaContext):
                 'licenseeRegistrationEnabled': False,
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
-                'compactSummaryReportNotificationEmails': [],
                 'configuredStates': [],
             }
         ).to_dict()
@@ -356,7 +355,6 @@ def _get_staff_users_jurisdiction_configuration(event: dict, context: LambdaCont
                 },
                 'jurisdictionOperationsTeamEmails': [],
                 'jurisdictionAdverseActionsNotificationEmails': [],
-                'jurisdictionSummaryReportNotificationEmails': [],
                 'licenseeRegistrationEnabled': False,
             }
         ).to_dict()

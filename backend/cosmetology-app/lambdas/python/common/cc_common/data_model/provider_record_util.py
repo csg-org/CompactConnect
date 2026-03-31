@@ -424,15 +424,23 @@ class ProviderUserRecords:
         )
         return sorted_licenses[0]
 
-    def generate_privileges_for_provider(self) -> list[dict]:
+    def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
         """
-        Generate privilege dicts at runtime for all eligible license types this provider holds.
+        Generate privilege dicts at runtime for each license type this provider holds.
 
         For each license type, the home license is chosen from all licenses of that type: the license renewed
         most recently (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
-        Privileges are generated for that type only if the chosen home license is compact-eligible.
-        For each such type, one privilege is generated per active compact jurisdiction
-        (excluding the home jurisdiction).
+        When the chosen home license is compact-eligible, one privilege is generated per active compact jurisdiction
+        (excluding the home jurisdiction). When the home license is not compact-eligible, a privilege is still
+        generated for a jurisdiction if there is a matching privilege adverse action or an open privilege
+        investigation for that jurisdiction and license type, so admins can see and resolve those records.
+
+        When include_inactive_privileges is True, privileges in all jurisdictions are generated for ineligible home
+        licenses and are marked inactive. This is primarily used when indexing to OpenSearch so that adverse
+        actions and investigations remain searchable even when a license is ineligible.
+
+        :param include_inactive_privileges: When True, generate privileges for ineligible home licenses
+            and mark them inactive instead of omitting them entirely.
         """
         if not self._license_records:
             return []
@@ -458,14 +466,11 @@ class ProviderUserRecords:
                 reverse=True,
             )
             most_recent_license = sorted_licenses[0]
-            # If the most recently renewed/issued license is not compact eligible,
-            # we will not generate privileges for it
-            if most_recent_license.compactEligibility != CompactEligibilityStatus.ELIGIBLE:
-                continue
             most_recent_licenses_for_each_type.append(most_recent_license)
 
         result: list[dict] = []
         for most_recent_license in most_recent_licenses_for_each_type:
+            is_eligible = most_recent_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
             home_jurisdiction = most_recent_license.jurisdiction.lower()
             license_type_abbr = most_recent_license.licenseTypeAbbreviation
 
@@ -477,6 +482,20 @@ class ProviderUserRecords:
                 inv_records = self.get_investigation_records_for_privilege(
                     jurisdiction, license_type_abbr, include_closed=False
                 )
+                if (
+                    not is_eligible
+                    and not include_inactive_privileges
+                    and not privilege_aa
+                    and not inv_records
+                ):
+                    logger.debug('Not returning a privilege for this jurisdiction because the home '
+                    'license is not compact eligible and there are no matching privilege adverse '
+                    'actions or open investigations.',
+                    jurisdiction=jurisdiction,
+                    home_jurisdiction=home_jurisdiction,
+                    license_type_abbr=license_type_abbr,
+                    )
+                    continue
                 privilege_dict = {
                     'type': 'privilege',
                     'administratorSetStatus': ActiveInactiveStatus.ACTIVE.value,
@@ -488,10 +507,10 @@ class ProviderUserRecords:
                     'dateOfExpiration': most_recent_license.dateOfExpiration,
                     # the only way a privilege under this model shows inactive is if
                     # there has been an encumbrance set by a state admin that has not been
-                    # lifted. If the license itself is inactive or ineligible for whatever reason, we don't
-                    # return any associated privilege objects
+                    # lifted. Ineligible home licenses still get privilege rows when there are matching
+                    # privilege adverse actions or open investigations.
                     'status': ActiveInactiveStatus.ACTIVE.value
-                    if not privilege_unlifted
+                    if is_eligible and not privilege_unlifted
                     else ActiveInactiveStatus.INACTIVE.value,
                     'adverseActions': [aa.to_dict() for aa in privilege_aa],
                     'investigations': [inv.to_dict() for inv in inv_records],
@@ -594,3 +613,68 @@ class ProviderUserRecords:
         provider['privileges'] = privileges
 
         return provider
+
+    def generate_opensearch_documents(self) -> list[dict]:
+        """
+        Generate one OpenSearch document per license for this provider.
+
+        Each document contains the full provider-level fields, a single license in the `licenses`
+        array, and privileges only if that license is the home license for its type. This enables
+        1:1 mapping between OpenSearch documents and license records for native pagination.
+
+        Privileges are always included for home license documents — including when the license is
+        ineligible — so that adverse actions and investigations remain linked to privilege records.
+        Privileges for ineligible home licenses carry status 'inactive'.
+
+        :return: A list of dicts, each representing a single-license OpenSearch document.
+                 Empty list if the provider has no licenses.
+        """
+        if not self._license_records:
+            return []
+
+        provider_dict = self.get_provider_record().to_dict()
+        all_privileges = self.generate_privileges_for_provider(include_inactive_privileges=True)
+
+        # Determine the home license for each license type using the same sort logic
+        # as generate_privileges_for_provider, so privilege assignment is consistent.
+        by_type: dict[str, list] = {}
+        for lic in self._license_records:
+            by_type.setdefault(lic.licenseType, []).append(lic)
+
+        home_licenses: set[tuple[str, str]] = set()
+        for _lt, licenses in by_type.items():
+            sorted_licenses = sorted(
+                licenses,
+                key=ProviderRecordUtility._license_sort_key,  # noqa: SLF001
+                reverse=True,
+            )
+            home = sorted_licenses[0]
+            home_licenses.add((home.jurisdiction.lower(), home.licenseType))
+
+        documents = []
+        for license_record in self._license_records:
+            license_dict = license_record.to_dict()
+            license_dict['adverseActions'] = [
+                rec.to_dict()
+                for rec in self.get_adverse_action_records_for_license(
+                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                )
+            ]
+            license_dict['investigations'] = [
+                rec.to_dict()
+                for rec in self.get_investigation_records_for_license(
+                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                )
+            ]
+
+            is_home = (license_record.jurisdiction.lower(), license_record.licenseType) in home_licenses
+            license_privileges = (
+                [p for p in all_privileges if p['licenseType'] == license_record.licenseType] if is_home else []
+            )
+
+            doc = dict(provider_dict)
+            doc['licenses'] = [license_dict]
+            doc['privileges'] = license_privileges
+            documents.append(doc)
+
+        return documents

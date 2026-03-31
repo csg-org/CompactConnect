@@ -34,9 +34,6 @@ const SAMPLE_JURISDICTION_ITEMS = [
                 }
             ]
         },
-        'jurisdictionSummaryReportNotificationEmails': {
-            'L': []
-        },
         'jurisprudenceRequirements': {
             'M': {
                 'required': {
@@ -76,9 +73,6 @@ const SAMPLE_JURISDICTION_ITEMS = [
                     'S': 'justin@inspiringapps.com'
                 }
             ]
-        },
-        'jurisdictionSummaryReportNotificationEmails': {
-            'L': []
         },
         'jurisprudenceRequirements': {
             'M': {

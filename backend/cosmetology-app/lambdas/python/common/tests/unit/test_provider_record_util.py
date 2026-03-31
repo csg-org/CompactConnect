@@ -1,5 +1,6 @@
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
+from uuid import UUID
 
 from tests import TstLambdas
 
@@ -366,6 +367,68 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         # even with the investigation status, it should still be set to active
         self.assertEqual('active', privilege_al['status'])
 
+    def test_returns_privilege_when_home_ineligible_and_privilege_adverse_action_matches(self):
+        """Ineligible home license still yields a privilege row when a privilege AA matches that jurisdiction."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    'dateOfExpiration': date(2026, 4, 4),
+                }
+            ]
+        )
+        records.append(
+            self.test_data_generator.generate_default_adverse_action(
+                value_overrides={'jurisdiction': 'al'}
+            ).serialize_to_database_record()
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            result = pur.generate_privileges_for_provider()
+        self.assertEqual(1, len(result))
+        self.assertEqual('al', result[0]['jurisdiction'])
+        self.assertGreaterEqual(len(result[0]['adverseActions']), 1)
+        self.assertEqual({'al'}, {p['jurisdiction'] for p in result})
+
+    def test_returns_privilege_when_home_ineligible_and_open_privilege_investigation_matches(self):
+        """Ineligible home license still yields a privilege row when an open privilege investigation matches."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus, InvestigationStatusEnum
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    'dateOfExpiration': date(2026, 4, 4),
+                }
+            ]
+        )
+        open_investigation = self.test_data_generator.generate_default_investigation(
+            value_overrides={
+                'jurisdiction': 'al',
+                'licenseTypeAbbreviation': 'cos',
+                'licenseType': 'cosmetologist',
+                'investigationAgainst': 'privilege',
+            }
+        )
+        records.append(open_investigation.serialize_to_database_record())
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            result = pur.generate_privileges_for_provider()
+        self.assertEqual(1, len(result))
+        self.assertEqual('al', result[0]['jurisdiction'])
+        self.assertEqual(1, len(result[0]['investigations']))
+        self.assertEqual(
+            InvestigationStatusEnum.UNDER_INVESTIGATION.value,
+            result[0]['investigationStatus'],
+        )
+
 
 class TestProviderRecordUtility(TstLambdas):
     def setUp(self):
@@ -503,3 +566,570 @@ class TestProviderRecordUtility(TstLambdas):
         best_license = ProviderRecordUtility.find_best_license(licenses)
         self.assertEqual(best_license['dateOfIssuance'], '2024-03-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
+
+
+@patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
+class TestGenerateOpenSearchDocuments(TstLambdas):
+    """Tests for ProviderUserRecords.generate_opensearch_documents()."""
+
+    def _make_provider_records(self, provider_overrides=None, license_overrides_list=None, extra_records=None):
+        """Build list of provider + license (and optional other) records as dicts for ProviderUserRecords."""
+        from common_test.test_data_generator import TestDataGenerator
+
+        if license_overrides_list is None:
+            license_overrides_list = []
+
+        provider = TestDataGenerator.generate_default_provider(provider_overrides or {})
+        provider_record = provider.serialize_to_database_record()
+        records = [provider_record]
+        for overrides in license_overrides_list:
+            lic = TestDataGenerator.generate_default_license(overrides)
+            records.append(lic.serialize_to_database_record())
+        if extra_records:
+            records.extend(extra_records)
+        return records
+
+    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
+        if live_compact_jurisdictions is None:
+            live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+        mock_config = MagicMock()
+        mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        return patch('cc_common.data_model.provider_record_util.config', mock_config)
+
+    def test_single_license_returns_one_document(self):
+        """Provider with one license produces exactly one OpenSearch document."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                }
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            docs = pur.generate_opensearch_documents()
+
+        self.assertEqual(
+            [
+                {
+                    'birthMonthDay': '06-06',
+                    'compact': 'cosm',
+                    'compactEligibility': 'ineligible',
+                    'dateOfBirth': date(1985, 6, 6),
+                    'dateOfExpiration': date(2025, 4, 4),
+                    'dateOfUpdate': ANY,
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'jurisdictionUploadedLicenseStatus': 'active',
+                    'licenseJurisdiction': 'oh',
+                    'licenseStatus': 'inactive',
+                    'licenses': [
+                        {
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'compactEligibility': 'eligible',
+                            'dateOfBirth': date(1985, 6, 6),
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'dateOfIssuance': date(2010, 6, 6),
+                            'dateOfRenewal': date(2020, 4, 4),
+                            'dateOfUpdate': ANY,
+                            'emailAddress': 'björk@example.com',
+                            'familyName': 'Guðmundsdóttir',
+                            'givenName': 'Björk',
+                            'homeAddressCity': 'Columbus',
+                            'homeAddressPostalCode': '43004',
+                            'homeAddressState': 'oh',
+                            'homeAddressStreet1': '123 A St.',
+                            'homeAddressStreet2': 'Apt 321',
+                            'investigations': [],
+                            'jurisdiction': 'oh',
+                            'jurisdictionUploadedCompactEligibility': 'eligible',
+                            'jurisdictionUploadedLicenseStatus': 'active',
+                            'licenseNumber': 'A0608337260',
+                            'licenseStatus': 'active',
+                            'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                            'licenseType': 'cosmetologist',
+                            'middleName': 'Gunnar',
+                            'phoneNumber': '+13213214321',
+                            'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                            'ssnLastFour': '1234',
+                            'type': 'license',
+                        }
+                    ],
+                    'middleName': 'Gunnar',
+                    'privileges': [
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'al',
+                            'licenseJurisdiction': 'oh',
+                            'licenseType': 'cosmetologist',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'active',
+                            'type': 'privilege',
+                        },
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'ky',
+                            'licenseJurisdiction': 'oh',
+                            'licenseType': 'cosmetologist',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'active',
+                            'type': 'privilege',
+                        },
+                    ],
+                    'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                    'ssnLastFour': '1234',
+                    'type': 'provider',
+                }
+            ],
+            docs,
+        )
+
+    def test_two_licenses_different_types_returns_two_documents(self):
+        """Provider with two licenses of different types produces two documents.
+        The second license is also ineligible, so its associated privileges should be inactive.
+        """
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'esthetician',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    # jurisdictionUploadedCompactEligibility is ineligible, so the privileges should be inactive
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            docs = pur.generate_opensearch_documents()
+
+        self.assertEqual(
+            [
+                {
+                    'birthMonthDay': '06-06',
+                    'compact': 'cosm',
+                    'compactEligibility': 'ineligible',
+                    'dateOfBirth': date(1985, 6, 6),
+                    'dateOfExpiration': date(2025, 4, 4),
+                    'dateOfUpdate': ANY,
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'jurisdictionUploadedLicenseStatus': 'active',
+                    'licenseJurisdiction': 'oh',
+                    'licenseStatus': 'inactive',
+                    'licenses': [
+                        {
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'compactEligibility': 'eligible',
+                            'dateOfBirth': date(1985, 6, 6),
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'dateOfIssuance': date(2010, 6, 6),
+                            'dateOfRenewal': date(2020, 4, 4),
+                            'dateOfUpdate': ANY,
+                            'emailAddress': 'björk@example.com',
+                            'familyName': 'Guðmundsdóttir',
+                            'givenName': 'Björk',
+                            'homeAddressCity': 'Columbus',
+                            'homeAddressPostalCode': '43004',
+                            'homeAddressState': 'oh',
+                            'homeAddressStreet1': '123 A St.',
+                            'homeAddressStreet2': 'Apt 321',
+                            'investigations': [],
+                            'jurisdiction': 'al',
+                            'jurisdictionUploadedCompactEligibility': 'eligible',
+                            'jurisdictionUploadedLicenseStatus': 'active',
+                            'licenseNumber': 'A0608337260',
+                            'licenseStatus': 'active',
+                            'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                            'licenseType': 'cosmetologist',
+                            'middleName': 'Gunnar',
+                            'phoneNumber': '+13213214321',
+                            'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                            'ssnLastFour': '1234',
+                            'type': 'license',
+                        }
+                    ],
+                    'middleName': 'Gunnar',
+                    'privileges': [
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'ky',
+                            'licenseJurisdiction': 'al',
+                            'licenseType': 'cosmetologist',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'active',
+                            'type': 'privilege',
+                        },
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'oh',
+                            'licenseJurisdiction': 'al',
+                            'licenseType': 'cosmetologist',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'active',
+                            'type': 'privilege',
+                        },
+                    ],
+                    'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                    'ssnLastFour': '1234',
+                    'type': 'provider',
+                },
+                {
+                    'birthMonthDay': '06-06',
+                    'compact': 'cosm',
+                    'compactEligibility': 'ineligible',
+                    'dateOfBirth': date(1985, 6, 6),
+                    'dateOfExpiration': date(2025, 4, 4),
+                    'dateOfUpdate': ANY,
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'jurisdictionUploadedLicenseStatus': 'active',
+                    'licenseJurisdiction': 'oh',
+                    'licenseStatus': 'inactive',
+                    'licenses': [
+                        {
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'compactEligibility': 'ineligible',
+                            'dateOfBirth': date(1985, 6, 6),
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'dateOfIssuance': date(2010, 6, 6),
+                            'dateOfRenewal': date(2020, 4, 4),
+                            'dateOfUpdate': ANY,
+                            'emailAddress': 'björk@example.com',
+                            'familyName': 'Guðmundsdóttir',
+                            'givenName': 'Björk',
+                            'homeAddressCity': 'Columbus',
+                            'homeAddressPostalCode': '43004',
+                            'homeAddressState': 'oh',
+                            'homeAddressStreet1': '123 A St.',
+                            'homeAddressStreet2': 'Apt 321',
+                            'investigations': [],
+                            'jurisdiction': 'oh',
+                            'jurisdictionUploadedCompactEligibility': 'ineligible',
+                            'jurisdictionUploadedLicenseStatus': 'active',
+                            'licenseNumber': 'A0608337260',
+                            'licenseStatus': 'active',
+                            'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                            'licenseType': 'esthetician',
+                            'middleName': 'Gunnar',
+                            'phoneNumber': '+13213214321',
+                            'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                            'ssnLastFour': '1234',
+                            'type': 'license',
+                        }
+                    ],
+                    'middleName': 'Gunnar',
+                    # these privileges are inactive due to the home state license being ineligible
+                    'privileges': [
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'al',
+                            'licenseJurisdiction': 'oh',
+                            'licenseType': 'esthetician',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'inactive',
+                            'type': 'privilege',
+                        },
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'ky',
+                            'licenseJurisdiction': 'oh',
+                            'licenseType': 'esthetician',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'inactive',
+                            'type': 'privilege',
+                        },
+                    ],
+                    'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                    'ssnLastFour': '1234',
+                    'type': 'provider',
+                },
+            ],
+            docs,
+        )
+
+    def test_privileges_assigned_only_to_home_license_document(self):
+        """Privileges are only on the document whose license is the home license for its type."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'dateOfIssuance': date(2023, 1, 1),
+                },
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    # this license was issued more recently, so it should have the privileges associated with it.
+                    'dateOfIssuance': date(2024, 6, 1),
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            docs = pur.generate_opensearch_documents()
+
+        self.assertEqual(
+            [
+                {
+                    'birthMonthDay': '06-06',
+                    'compact': 'cosm',
+                    'compactEligibility': 'ineligible',
+                    'dateOfBirth': date(1985, 6, 6),
+                    'dateOfExpiration': date(2025, 4, 4),
+                    'dateOfUpdate': ANY,
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'jurisdictionUploadedLicenseStatus': 'active',
+                    'licenseJurisdiction': 'oh',
+                    'licenseStatus': 'inactive',
+                    'licenses': [
+                        {
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'compactEligibility': 'eligible',
+                            'dateOfBirth': date(1985, 6, 6),
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'dateOfIssuance': date(2023, 1, 1),
+                            'dateOfRenewal': date(2020, 4, 4),
+                            'dateOfUpdate': ANY,
+                            'emailAddress': 'björk@example.com',
+                            'familyName': 'Guðmundsdóttir',
+                            'givenName': 'Björk',
+                            'homeAddressCity': 'Columbus',
+                            'homeAddressPostalCode': '43004',
+                            'homeAddressState': 'oh',
+                            'homeAddressStreet1': '123 A St.',
+                            'homeAddressStreet2': 'Apt 321',
+                            'investigations': [],
+                            'jurisdiction': 'al',
+                            'jurisdictionUploadedCompactEligibility': 'eligible',
+                            'jurisdictionUploadedLicenseStatus': 'active',
+                            'licenseNumber': 'A0608337260',
+                            'licenseStatus': 'active',
+                            'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                            'licenseType': 'cosmetologist',
+                            'middleName': 'Gunnar',
+                            'phoneNumber': '+13213214321',
+                            'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                            'ssnLastFour': '1234',
+                            'type': 'license',
+                        }
+                    ],
+                    'middleName': 'Gunnar',
+                    'privileges': [],
+                    'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                    'ssnLastFour': '1234',
+                    'type': 'provider',
+                },
+                {
+                    'birthMonthDay': '06-06',
+                    'compact': 'cosm',
+                    'compactEligibility': 'ineligible',
+                    'dateOfBirth': date(1985, 6, 6),
+                    'dateOfExpiration': date(2025, 4, 4),
+                    'dateOfUpdate': ANY,
+                    'familyName': 'Guðmundsdóttir',
+                    'givenName': 'Björk',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'jurisdictionUploadedLicenseStatus': 'active',
+                    'licenseJurisdiction': 'oh',
+                    'licenseStatus': 'inactive',
+                    'licenses': [
+                        {
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'compactEligibility': 'eligible',
+                            'dateOfBirth': date(1985, 6, 6),
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'dateOfIssuance': date(2024, 6, 1),
+                            'dateOfRenewal': date(2020, 4, 4),
+                            'dateOfUpdate': ANY,
+                            'emailAddress': 'björk@example.com',
+                            'familyName': 'Guðmundsdóttir',
+                            'givenName': 'Björk',
+                            'homeAddressCity': 'Columbus',
+                            'homeAddressPostalCode': '43004',
+                            'homeAddressState': 'oh',
+                            'homeAddressStreet1': '123 A St.',
+                            'homeAddressStreet2': 'Apt 321',
+                            'investigations': [],
+                            'jurisdiction': 'oh',
+                            'jurisdictionUploadedCompactEligibility': 'eligible',
+                            'jurisdictionUploadedLicenseStatus': 'active',
+                            'licenseNumber': 'A0608337260',
+                            'licenseStatus': 'active',
+                            'licenseStatusName': 'DEFINITELY_A_HUMAN',
+                            'licenseType': 'cosmetologist',
+                            'middleName': 'Gunnar',
+                            'phoneNumber': '+13213214321',
+                            'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                            'ssnLastFour': '1234',
+                            'type': 'license',
+                        }
+                    ],
+                    'middleName': 'Gunnar',
+                    'privileges': [
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'al',
+                            'licenseJurisdiction': 'oh',
+                            'licenseType': 'cosmetologist',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'active',
+                            'type': 'privilege',
+                        },
+                        {
+                            'administratorSetStatus': 'active',
+                            'adverseActions': [],
+                            'compact': 'cosm',
+                            'dateOfExpiration': date(2026, 4, 4),
+                            'investigations': [],
+                            'jurisdiction': 'ky',
+                            'licenseJurisdiction': 'oh',
+                            'licenseType': 'cosmetologist',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                            'status': 'active',
+                            'type': 'privilege',
+                        },
+                    ],
+                    'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
+                    'ssnLastFour': '1234',
+                    'type': 'provider',
+                },
+            ],
+            docs,
+        )
+
+    def test_multiple_types_privileges_on_correct_home_licenses(self):
+        """With two license types, each type's home license gets its own privileges."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'esthetician',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            docs = pur.generate_opensearch_documents()
+
+        self.assertEqual(2, len(docs))
+        al_doc = next(d for d in docs if d['licenses'][0]['jurisdiction'] == 'al')
+        oh_doc = next(d for d in docs if d['licenses'][0]['jurisdiction'] == 'oh')
+        # cosmetologist home is al -> al_doc gets cosmetologist privileges
+        cos_privs = [p for p in al_doc['privileges'] if p['licenseType'] == 'cosmetologist']
+        self.assertGreater(len(cos_privs), 0)
+        # esthetician home is oh -> oh_doc gets esthetician privileges
+        esth_privs = [p for p in oh_doc['privileges'] if p['licenseType'] == 'esthetician']
+        self.assertGreater(len(esth_privs), 0)
+
+    def test_license_adverse_actions_included(self):
+        """Each document includes adverse actions specific to its license."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                }
+            ],
+            extra_records=[
+                self.test_data_generator.generate_default_adverse_action(
+                    value_overrides={
+                        'jurisdiction': 'oh',
+                        'actionAgainst': 'license',
+                        'licenseTypeAbbreviation': 'cos',
+                    }
+                ).serialize_to_database_record()
+            ],
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            docs = pur.generate_opensearch_documents()
+
+        self.assertEqual(1, len(docs))
+        self.assertEqual(1, len(docs[0]['licenses'][0]['adverseActions']))
+
+    def test_no_licenses_returns_empty_list(self):
+        """Provider with no license records produces an empty list."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        records = self._make_provider_records()
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            docs = pur.generate_opensearch_documents()
+
+        self.assertEqual([], docs)

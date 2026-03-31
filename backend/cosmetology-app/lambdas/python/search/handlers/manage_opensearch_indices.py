@@ -257,6 +257,7 @@ class OpenSearchIndexManager(CustomResourceHandler):
             'dateOfIssuance': {'type': 'date'},
             'dateOfRenewal': {'type': 'date'},
             'dateOfExpiration': {'type': 'date'},
+            'dateOfBirth': {'type': 'date'},
             'homeAddressStreet1': {'type': 'text'},
             'homeAddressStreet2': {'type': 'text'},
             'homeAddressCity': {
