@@ -52,7 +52,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: '24.11.1'
+          node-version: '24.14.0'
 
       # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v4
@@ -94,7 +94,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: '24.11.1'
+          node-version: '24.14.0'
 
       # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v4
