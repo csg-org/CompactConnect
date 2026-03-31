@@ -26,6 +26,7 @@ class TstFunction(TstLambdas):
 
     def build_resources(self):
         self.create_provider_table()
+        self.create_compact_configuration_table()
         self.create_export_results_bucket()
 
     def delete_resources(self):
@@ -33,6 +34,7 @@ class TstFunction(TstLambdas):
         # must delete all objects in the bucket before deleting the bucket
         self._bucket.objects.delete()
         self._bucket.delete()
+        self._compact_configuration_table.delete()
 
     def create_export_results_bucket(self):
         """Create the mock S3 bucket for export results"""
@@ -90,4 +92,19 @@ class TstFunction(TstLambdas):
                     },
                 },
             ],
+        )
+
+    def create_compact_configuration_table(self):
+        """Create the compact configuration table for testing."""
+        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
+            BillingMode='PAY_PER_REQUEST',
         )

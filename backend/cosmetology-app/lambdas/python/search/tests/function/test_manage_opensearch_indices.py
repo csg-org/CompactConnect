@@ -169,6 +169,7 @@ class TestOpenSearchIndexManager(TstFunction):
                                     },
                                     'compact': {'type': 'keyword'},
                                     'compactEligibility': {'type': 'keyword'},
+                                    'dateOfBirth': {'type': 'date'},
                                     'dateOfExpiration': {'type': 'date'},
                                     'dateOfIssuance': {'type': 'date'},
                                     'dateOfRenewal': {'type': 'date'},

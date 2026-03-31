@@ -6,29 +6,29 @@
 #
 boolean-py==5.0
     # via license-expression
-build==1.4.0
+build==1.4.2
     # via pip-tools
 cachecontrol[filecache]==0.14.4
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2026.1.4
+certifi==2026.2.25
     # via requests
-charset-normalizer==3.4.4
+charset-normalizer==3.4.6
     # via requests
 click==8.3.1
     # via pip-tools
-coverage[toml]==7.13.2
+coverage[toml]==7.13.5
     # via
     #   -r requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==11.6.0
+cyclonedx-python-lib==11.7.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
 faker==37.12.0
     # via -r requirements-dev.in
-filelock==3.20.3
+filelock==3.25.2
     # via cachecontrol
 idna==3.11
     # via requests
@@ -57,9 +57,9 @@ pip-audit==2.10.0
     # via -r requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
-pip-tools==7.5.2
+pip-tools==7.5.3
     # via -r requirements-dev.in
-platformdirs==4.5.1
+platformdirs==4.9.4
     # via pip-audit
 pluggy==1.6.0
     # via
@@ -81,19 +81,19 @@ pytest==9.0.2
     # via
     #   -r requirements-dev.in
     #   pytest-cov
-pytest-cov==7.0.0
+pytest-cov==7.1.0
     # via -r requirements-dev.in
-requests==2.32.5
+requests==2.33.0
     # via
     #   cachecontrol
     #   pip-audit
-rich==14.3.1
+rich==14.3.3
     # via pip-audit
-ruff==0.14.14
+ruff==0.15.8
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
-tomli==2.4.0
+tomli==2.4.1
     # via pip-audit
 tomli-w==1.2.0
     # via pip-audit

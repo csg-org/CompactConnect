@@ -38,9 +38,5 @@ class JurisdictionConfigurationData(CCDataClass):
         return self._data.get('jurisdictionAdverseActionsNotificationEmails', [])
 
     @property
-    def jurisdictionSummaryReportNotificationEmails(self) -> list[str]:
-        return self._data.get('jurisdictionSummaryReportNotificationEmails', [])
-
-    @property
     def licenseeRegistrationEnabled(self) -> bool:
         return self._data.get('licenseeRegistrationEnabled', False)

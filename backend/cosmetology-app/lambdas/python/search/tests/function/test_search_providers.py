@@ -76,10 +76,11 @@ class TestSearchProviders(TstFunction):
         compact: str = 'cosm',
         sort_values: list = None,
     ) -> dict:
-        """Create a mock OpenSearch hit for a provider document."""
+        """Create a mock OpenSearch hit for a one-doc-per-license provider document."""
+        document_id = f'{provider_id}#oh#cosmetologist'
         hit = {
             '_index': f'compact_{compact}_providers',
-            '_id': provider_id,
+            '_id': document_id,
             '_score': 1.0,
             '_source': {
                 'providerId': provider_id,
@@ -95,14 +96,36 @@ class TestSearchProviders(TstFunction):
                 'jurisdictionUploadedLicenseStatus': 'active',
                 'jurisdictionUploadedCompactEligibility': 'eligible',
                 'birthMonthDay': '06-15',
-                # adding a couple of fields that are not recognized in the
-                # ProviderGeneralResponseSchema. Although these are not currently
-                # stored in OpenSearch, this mock data ensures we are sanitizing
-                # these private fields by the search serialization logic
+                'documentId': document_id,
+                'licenses': [
+                    {
+                        'providerId': provider_id,
+                        'type': 'license',
+                        'compact': compact,
+                        'jurisdiction': 'oh',
+                        'licenseType': 'cosmetologist',
+                        'licenseNumber': 'A0608337260',
+                        'givenName': 'John',
+                        'familyName': 'Doe',
+                        'dateOfIssuance': '2024-01-01',
+                        'dateOfExpiration': '2025-12-31',
+                        'licenseStatus': 'active',
+                        'compactEligibility': 'eligible',
+                        'jurisdictionUploadedLicenseStatus': 'active',
+                        'jurisdictionUploadedCompactEligibility': 'eligible',
+                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
+                        'dateOfBirth': '1984-12-11',
+                        'homeAddressStreet1': '123 Main St',
+                        'homeAddressCity': 'Columbus',
+                        'homeAddressState': 'oh',
+                        'homeAddressPostalCode': '43004',
+                    }
+                ],
+                'privileges': [],
+                # Fields that should be stripped by ForgivingSchema
                 'someNewField': 'somePrivateValue',
                 'ssnLastFour': '1234',
                 'emailAddress': 'someemail@address.com',
-                'dateOfBirth': '1984-12-11',
             },
         }
         if sort_values:
@@ -269,29 +292,32 @@ class TestSearchProviders(TstFunction):
 
         self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertEqual(
-            {
-                'providers': [
-                    {
-                        'birthMonthDay': '06-15',
-                        'compact': 'cosm',
-                        'compactEligibility': 'eligible',
-                        'dateOfExpiration': '2025-12-31',
-                        'dateOfUpdate': '2024-01-15T10:30:00+00:00',
-                        'familyName': 'Doe',
-                        'givenName': 'John',
-                        'jurisdictionUploadedCompactEligibility': 'eligible',
-                        'jurisdictionUploadedLicenseStatus': 'active',
-                        'licenseJurisdiction': 'oh',
-                        'licenseStatus': 'active',
-                        'providerId': '00000000-0000-0000-0000-000000000001',
-                        'type': 'provider',
-                    }
-                ],
-                'total': {'relation': 'eq', 'value': 1},
-            },
-            body,
-        )
+        providers = body['providers']
+        self.assertEqual(1, len(providers))
+        provider = providers[0]
+        # Verify provider-level fields are present and sanitized
+        self.assertEqual('cosm', provider['compact'])
+        self.assertEqual('John', provider['givenName'])
+        self.assertEqual('Doe', provider['familyName'])
+        self.assertEqual('oh', provider['licenseJurisdiction'])
+        self.assertEqual('active', provider['licenseStatus'])
+        self.assertEqual('eligible', provider['compactEligibility'])
+        self.assertEqual('06-15', provider['birthMonthDay'])
+        self.assertEqual('00000000-0000-0000-0000-000000000001', provider['providerId'])
+        # Verify licenses array with one license is present
+        self.assertEqual(1, len(provider['licenses']))
+        self.assertEqual('oh', provider['licenses'][0]['jurisdiction'])
+        self.assertEqual('cosmetologist', provider['licenses'][0]['licenseType'])
+        # Verify private fields were stripped (list/general view must not expose full DOB)
+        self.assertNotIn('dateOfBirth', provider)
+        self.assertNotIn('dateOfBirth', provider['licenses'][0])
+        self.assertNotIn('ssnLastFour', provider)
+        self.assertNotIn('someNewField', provider)
+        self.assertNotIn('emailAddress', provider)
+        # Verify documentId was stripped by ForgivingSchema
+        self.assertNotIn('documentId', provider)
+        # Verify total
+        self.assertEqual({'relation': 'eq', 'value': 1}, body['total'])
 
     @patch('handlers.search.opensearch_client')
     def test_search_response_includes_last_sort_for_pagination(self, mock_opensearch_client):
@@ -467,3 +493,200 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(400, response['statusCode'])
         body = json.loads(response['body'])
         self.assertEqual(error_reason, body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_date_of_birth_query_allowed_for_compact_level_read_private_scope(self, mock_opensearch_client):
+        """Test that a query containing dateOfBirth succeeds when the caller has compact-level readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        query = {
+            'nested': {
+                'path': 'licenses',
+                'query': {'term': {'licenses.dateOfBirth': '1985-06-06'}},
+            }
+        }
+        event = self._create_api_event(
+            'cosm',
+            body={'query': query},
+            scopes_override='openid email cosm/readGeneral cosm/readPrivate',
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_date_of_birth_query_allowed_for_jurisdiction_level_read_private_scope(
+        self, mock_opensearch_client
+    ):
+        """Test that a query containing dateOfBirth succeeds if the caller has jurisdiction-level readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        query = {
+            'nested': {
+                'path': 'licenses',
+                'query': {'term': {'licenses.dateOfBirth': '1985-06-06'}},
+            }
+        }
+        event = self._create_api_event(
+            'cosm',
+            body={'query': query},
+            scopes_override='openid email cosm/readGeneral oh/cosm.readPrivate',
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()
+
+    def test_search_with_date_of_birth_query_rejected_without_read_private_scope(self):
+        """Test that a query containing dateOfBirth returns 400 when the caller only has readGeneral scope."""
+        from handlers.search import search_api_handler
+
+        query = {
+            'nested': {
+                'path': 'licenses',
+                'query': {'term': {'licenses.dateOfBirth': '1985-06-06'}},
+            }
+        }
+        event = self._create_api_event('cosm', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+
+    def test_search_with_nested_date_of_birth_query_rejected_without_read_private_scope(self):
+        """Test that deeply nested dateOfBirth references are caught and rejected."""
+        from handlers.search import search_api_handler
+
+        query = {
+            'bool': {
+                'must': [
+                    {'match': {'givenName': 'John'}},
+                    {
+                        'nested': {
+                            'path': 'licenses',
+                            'query': {
+                                'bool': {
+                                    'must': [
+                                        {'term': {'licenses.jurisdiction': 'oh'}},
+                                        {'range': {'licenses.dateOfBirth': {'gte': '1985-01-01'}}},
+                                    ]
+                                }
+                            },
+                        }
+                    },
+                ]
+            }
+        }
+        event = self._create_api_event('cosm', body={'query': query})
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_exists_field_date_of_birth_rejected_without_read_private_scope(self, mock_opensearch_client):
+        """Test that query with dateOfBirth as field value (e.g. exists) is rejected without readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        # OpenSearch "exists" query references field by value: {"exists": {"field": "dateOfBirth"}}
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'exists': {'field': 'dateOfBirth'}},
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+        self.assertIn('readPrivate', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_date_of_birth_string_in_list_rejected_without_read_private_scope(
+        self, mock_opensearch_client
+    ):
+        """dateOfBirth as a list element (e.g. multi_match fields) must not bypass readPrivate checks."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {
+                    'multi_match': {
+                        'query': '1985',
+                        'fields': ['givenName', 'dateOfBirth'],
+                    },
+                },
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+        self.assertIn('readPrivate', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_sort_by_date_of_birth_rejected_without_read_private_scope(self, mock_opensearch_client):
+        """Test that sort clause referencing dateOfBirth is rejected when caller lacks readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        # Query does not reference dateOfBirth; only sort does
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'match_all': {}},
+                'sort': [{'providerId': 'asc'}, {'licenses.dateOfBirth': 'desc'}],
+            },
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('dateOfBirth', body['message'])
+        self.assertIn('readPrivate', body['message'])
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.search.opensearch_client')
+    def test_search_with_sort_by_date_of_birth_allowed_with_read_private_scope(self, mock_opensearch_client):
+        """Test that sort by dateOfBirth succeeds when caller has readPrivate scope."""
+        from handlers.search import search_api_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+
+        event = self._create_api_event(
+            'cosm',
+            body={
+                'query': {'match_all': {}},
+                'sort': [{'licenses.dateOfBirth': 'desc'}, {'providerId': 'asc'}],
+            },
+            scopes_override='openid email cosm/readGeneral cosm/readPrivate',
+        )
+
+        response = search_api_handler(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        mock_opensearch_client.search.assert_called_once()

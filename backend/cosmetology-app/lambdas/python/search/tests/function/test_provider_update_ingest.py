@@ -2,6 +2,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 from common_test.test_constants import (
+    DEFAULT_DATE_OF_BIRTH,
     DEFAULT_LICENSE_EXPIRATION_DATE,
     DEFAULT_LICENSE_ISSUANCE_DATE,
     DEFAULT_LICENSE_RENEWAL_DATE,
@@ -115,8 +116,8 @@ class TestProviderUpdateIngest(TstFunction):
         if not bulk_index_response:
             bulk_index_response = {'items': [], 'errors': False}
 
-        # mock_opensearch_client is the patched instance, not the class
         mock_opensearch_client.bulk_index.return_value = bulk_index_response
+        mock_opensearch_client.delete_provider_documents.return_value = {'deleted': 0, 'failures': []}
         return mock_opensearch_client
 
     def _generate_expected_document(self, compact: str, provider_id: str = None) -> dict:
@@ -124,6 +125,7 @@ class TestProviderUpdateIngest(TstFunction):
         if provider_id is None:
             provider_id = TEST_PROVIDER_ID_MAPPING[compact]
 
+        license_type = TEST_LICENSE_TYPE_MAPPING[compact]
         return {
             'providerId': provider_id,
             'type': 'provider',
@@ -139,6 +141,7 @@ class TestProviderUpdateIngest(TstFunction):
             'jurisdictionUploadedLicenseStatus': 'active',
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'birthMonthDay': '06-06',
+            'documentId': f'{provider_id}#oh#{license_type}',
             'licenses': [
                 {
                     'providerId': provider_id,
@@ -146,7 +149,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'dateOfUpdate': DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
                     'compact': compact,
                     'jurisdiction': 'oh',
-                    'licenseType': TEST_LICENSE_TYPE_MAPPING[compact],
+                    'licenseType': license_type,
                     'licenseStatusName': 'DEFINITELY_A_HUMAN',
                     'licenseStatus': 'inactive',
                     'jurisdictionUploadedLicenseStatus': 'active',
@@ -159,6 +162,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
                     'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
+                    'dateOfBirth': DEFAULT_DATE_OF_BIRTH,
                     'homeAddressStreet1': '123 A St.',
                     'homeAddressStreet2': 'Apt 321',
                     'homeAddressCity': 'Columbus',
@@ -173,18 +177,50 @@ class TestProviderUpdateIngest(TstFunction):
             'privileges': [],
         }
 
+    def _create_dynamodb_stream_record_with_old_image_only(
+        self, compact: str, provider_id: str, sequence_number: str
+    ) -> dict:
+        """Create a DynamoDB stream record for REMOVE events (only OldImage, no NewImage)."""
+        image_data = {
+            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+            'sk': {'S': f'{compact}#PROVIDER'},
+            'compact': {'S': compact},
+            'providerId': {'S': provider_id},
+            'type': {'S': 'provider'},
+            'givenName': {'S': f'test{compact}GivenName'},
+            'familyName': {'S': f'test{compact}FamilyName'},
+        }
+
+        return {
+            'eventID': f'event-{sequence_number}',
+            'eventName': 'REMOVE',
+            'eventVersion': '1.1',
+            'eventSource': 'aws:dynamodb',
+            'awsRegion': 'us-east-1',
+            'dynamodb': {
+                'ApproximateCreationDateTime': 1234567890,
+                'Keys': {
+                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                    'sk': {'S': f'{compact}#PROVIDER'},
+                },
+                'OldImage': image_data,
+                'SequenceNumber': sequence_number,
+                'SizeBytes': 256,
+                'StreamViewType': 'NEW_AND_OLD_IMAGES',
+            },
+            'eventSourceARN': 'arn:aws:dynamodb:us-east-1:123456789012:table/provider-table/stream/1234',
+        }
+
+    # ---- INSERT/MODIFY path tests ----
+
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_opensearch_client_called_with_expected_parameters(self, mock_opensearch_client):
         """Test that OpenSearch client is called with expected parameters when indexing a record."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
-
-        # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
 
-        # Create an SQS event with DynamoDB stream record in the body
         event = {
             'Records': [
                 {
@@ -200,19 +236,16 @@ class TestProviderUpdateIngest(TstFunction):
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that bulk_index was called once with expected parameters
         self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
 
-        # Verify the call arguments
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
+        self.assertEqual('documentId', call_args.kwargs['id_field'])
 
-        # Verify no batch item failures
         self.assertEqual({'batchItemFailures': []}, result)
 
     @patch('handlers.provider_update_ingest.opensearch_client')
@@ -220,13 +253,9 @@ class TestProviderUpdateIngest(TstFunction):
         """Test that duplicate provider IDs in the batch are deduplicated."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
-
-        # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
 
-        # Create multiple SQS records for the SAME provider (simulating multiple updates)
         event = {
             'Records': [
                 {
@@ -265,19 +294,16 @@ class TestProviderUpdateIngest(TstFunction):
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that bulk_index was called only once despite 3 records
         self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
 
-        # Verify only ONE document was indexed (deduplication worked)
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual(1, len(call_args.kwargs['documents']))
         self.assertEqual(MOCK_COSM_PROVIDER_ID, call_args.kwargs['documents'][0]['providerId'])
+        self.assertEqual('documentId', call_args.kwargs['id_field'])
 
-        # Verify no batch item failures
         self.assertEqual({'batchItemFailures': []}, result)
 
     @patch('handlers.provider_update_ingest.opensearch_client')
@@ -285,7 +311,6 @@ class TestProviderUpdateIngest(TstFunction):
         """Test that a record that fails validation is returned in batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         provider = self.test_data_generator.generate_default_provider(
@@ -297,11 +322,9 @@ class TestProviderUpdateIngest(TstFunction):
             }
         )
         serialized_provider = provider.serialize_to_database_record()
-        # put invalid compact to fail validation
         serialized_provider['compact'] = 'foo'
         self.config.provider_table.put_item(Item=serialized_provider)
 
-        # Create SQS event with DynamoDB stream record in the body
         event = {
             'Records': [
                 {
@@ -317,11 +340,9 @@ class TestProviderUpdateIngest(TstFunction):
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify that the batch item failure is returned with the message ID
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
@@ -330,13 +351,13 @@ class TestProviderUpdateIngest(TstFunction):
         """Test that a record which fails to be indexed by OpenSearch is in batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Simulate OpenSearch returning an error for one document
+        document_id = f'{MOCK_COSM_PROVIDER_ID}#oh#cosmetologist'
         mock_opensearch_client.bulk_index.return_value = {
             'errors': True,
             'items': [
                 {
                     'index': {
-                        '_id': MOCK_COSM_PROVIDER_ID,
+                        '_id': document_id,
                         '_index': 'compact_cosm_providers',
                         'status': 400,
                         'error': {
@@ -348,10 +369,8 @@ class TestProviderUpdateIngest(TstFunction):
             ],
         }
 
-        # Create provider and license records in DynamoDB for both compacts
         self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
 
-        # Create SQS events with DynamoDB stream records in the body for both providers
         event = {
             'Records': [
                 {
@@ -367,11 +386,9 @@ class TestProviderUpdateIngest(TstFunction):
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify that only the failed document's message ID is in batchItemFailures
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
@@ -381,14 +398,10 @@ class TestProviderUpdateIngest(TstFunction):
         from cc_common.exceptions import CCInternalException
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client to raise an exception
         mock_opensearch_client.bulk_index.side_effect = CCInternalException('Connection timeout after 5 retries')
 
-        # Create provider and license records in DynamoDB for both compacts
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
         self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
 
-        # Create SQS events with DynamoDB stream records in the body for both providers
         event = {
             'Records': [
                 {
@@ -414,11 +427,9 @@ class TestProviderUpdateIngest(TstFunction):
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify that both records were returned in batch failures
         self.assertEqual(2, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
         self.assertEqual('12346', result['batchItemFailures'][1]['itemIdentifier'])
@@ -433,29 +444,17 @@ class TestProviderUpdateIngest(TstFunction):
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify empty response
         self.assertEqual({'batchItemFailures': []}, result)
-
-        # Verify OpenSearch client was never called
         mock_opensearch_client.bulk_index.assert_not_called()
 
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_insert_event_without_old_image_indexes_successfully(self, mock_opensearch_client):
-        """Test that INSERT events (newly created records) without OldImage are processed correctly.
-
-        When a new record is created in DynamoDB, the stream event contains only NewImage
-        and no OldImage. The handler should extract the compact and providerId from NewImage
-        and successfully index the document.
-        """
+        """Test that INSERT events (newly created records) without OldImage are processed correctly."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
-
-        # Create provider and license records in DynamoDB
         self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
 
-        # Create an SQS event with DynamoDB stream record in the body for INSERT (no OldImage)
         event = {
             'Records': [
                 {
@@ -466,79 +465,47 @@ class TestProviderUpdateIngest(TstFunction):
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                             event_name='INSERT',
-                            include_old_image=False,  # INSERT events don't have OldImage
+                            include_old_image=False,
                         )
                     ),
                 }
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that bulk_index was called with the correct parameters
         self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
 
-        # Verify the call arguments
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
+        self.assertEqual('documentId', call_args.kwargs['id_field'])
 
-        # Verify no batch item failures for INSERT event
+        # No delete_provider_documents should be called for INSERT events
+        mock_opensearch_client.delete_provider_documents.assert_not_called()
+
         self.assertEqual({'batchItemFailures': []}, result)
 
-    def _create_dynamodb_stream_record_with_old_image_only(
-        self, compact: str, provider_id: str, sequence_number: str
-    ) -> dict:
-        """Create a DynamoDB stream record for REMOVE events (only OldImage, no NewImage)."""
-        image_data = {
-            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-            'sk': {'S': f'{compact}#PROVIDER'},
-            'compact': {'S': compact},
-            'providerId': {'S': provider_id},
-            'type': {'S': 'provider'},
-            'givenName': {'S': f'test{compact}GivenName'},
-            'familyName': {'S': f'test{compact}FamilyName'},
-        }
-
-        return {
-            'eventID': f'event-{sequence_number}',
-            'eventName': 'REMOVE',
-            'eventVersion': '1.1',
-            'eventSource': 'aws:dynamodb',
-            'awsRegion': 'us-east-1',
-            'dynamodb': {
-                'ApproximateCreationDateTime': 1234567890,
-                'Keys': {
-                    'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                    'sk': {'S': f'{compact}#PROVIDER'},
-                },
-                'OldImage': image_data,  # REMOVE events only have OldImage
-                'SequenceNumber': sequence_number,
-                'SizeBytes': 256,
-                'StreamViewType': 'NEW_AND_OLD_IMAGES',
-            },
-            'eventSourceARN': 'arn:aws:dynamodb:us-east-1:123456789012:table/provider-table/stream/1234',
-        }
+    # ---- REMOVE event path tests ----
 
     @patch('handlers.provider_update_ingest.opensearch_client')
-    def test_remove_event_with_only_old_image_indexes_successfully(self, mock_opensearch_client):
-        """Test that REMOVE events (deleted records) with only OldImage are processed correctly.
+    def test_remove_event_with_remaining_records_deletes_then_reindexes(self, mock_opensearch_client):
+        """Test that REMOVE events trigger delete_provider_documents then re-index remaining records.
 
-        When a record is deleted from DynamoDB, the stream event contains only OldImage
-        and no NewImage. The handler should extract the compact and providerId from OldImage
-        and still index/update the document (to reflect the latest state of the provider).
+        When a single record (e.g., a license) is deleted but the provider still has other records
+        in DynamoDB, the handler should:
+        1. Call delete_provider_documents to remove all documents for the provider
+        2. Re-check DynamoDB and find the provider still exists
+        3. Re-index the remaining license documents
         """
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
-        # Create provider and license records in DynamoDB
+        # Provider still exists in DynamoDB with remaining records
         self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
 
-        # Create an SQS event with DynamoDB stream record in the body for REMOVE (only OldImage, no NewImage)
         event = {
             'Records': [
                 {
@@ -554,126 +521,115 @@ class TestProviderUpdateIngest(TstFunction):
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that bulk_index was called with the correct parameters
-        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
+        # delete_provider_documents should be called to remove all existing docs for this provider
+        mock_opensearch_client.delete_provider_documents.assert_called_once_with(
+            index_name='compact_cosm_providers',
+            provider_id=MOCK_COSM_PROVIDER_ID,
+        )
 
-        # Verify the call arguments
+        # bulk_index should be called with the remaining documents
+        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
         self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
+        self.assertEqual('documentId', call_args.kwargs['id_field'])
 
-        # Verify no batch item failures for REMOVE event
         self.assertEqual({'batchItemFailures': []}, result)
 
     @patch('handlers.provider_update_ingest.opensearch_client')
-    def test_provider_deleted_from_index_when_no_records_found(self, mock_opensearch_client):
-        """Test that when no provider records are found (CCNotFoundException), bulk_delete is called.
+    def test_remove_event_provider_fully_deleted_no_reindex(self, mock_opensearch_client):
+        """Test that REMOVE events for a fully deleted provider just delete from OpenSearch.
 
-        This scenario occurs when a provider is completely removed from the system,
-        such as during a license upload rollback. The handler should call bulk_delete
-        to remove the provider document from the OpenSearch index.
+        When a REMOVE event occurs and the provider no longer exists in DynamoDB at all,
+        the handler should:
+        1. Call delete_provider_documents to remove all documents for the provider
+        2. Re-check DynamoDB and find the provider does NOT exist
+        3. NOT attempt to re-index
         """
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client
-        mock_opensearch_client.bulk_index.return_value = {'items': [], 'errors': False}
-        mock_opensearch_client.bulk_delete.return_value = set()  # bulk_delete returns a set of failed IDs
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
-        # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
+        # Do NOT create any provider records in DynamoDB - provider is fully deleted
 
-        # Create an SQS event with DynamoDB stream record in the body for a provider that no longer exists
         event = {
             'Records': [
                 {
                     'messageId': '12345',
                     'body': json.dumps(
-                        self._create_dynamodb_stream_record(
+                        self._create_dynamodb_stream_record_with_old_image_only(
                             compact='cosm',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
-                            event_name='REMOVE',
-                            include_old_image=False,
                         )
                     ),
                 }
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that bulk_index was NOT called (no documents to index)
+        # delete_provider_documents should be called
+        mock_opensearch_client.delete_provider_documents.assert_called_once_with(
+            index_name='compact_cosm_providers',
+            provider_id=MOCK_COSM_PROVIDER_ID,
+        )
+
+        # bulk_index should NOT be called (provider no longer exists)
         mock_opensearch_client.bulk_index.assert_not_called()
 
-        # Assert that bulk_delete WAS called with the correct parameters
-        self.assertEqual(1, mock_opensearch_client.bulk_delete.call_count)
-        call_args = mock_opensearch_client.bulk_delete.call_args
-        self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
-        self.assertEqual([MOCK_COSM_PROVIDER_ID], call_args.kwargs['document_ids'])
-
-        # Verify no batch item failures (deletion is expected behavior, not a failure)
         self.assertEqual({'batchItemFailures': []}, result)
 
     @patch('handlers.provider_update_ingest.opensearch_client')
-    def test_bulk_delete_failure_returns_batch_item_failure(self, mock_opensearch_client):
-        """Test that when bulk_delete fails, the provider is returned in batchItemFailures."""
+    def test_delete_provider_documents_failure_returns_batch_item_failure(self, mock_opensearch_client):
+        """Test that when delete_provider_documents fails, the provider is returned in batchItemFailures."""
         from cc_common.exceptions import CCInternalException
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Set up mock OpenSearch client - bulk_delete raises exception
-        mock_opensearch_client.bulk_delete.side_effect = CCInternalException('Connection timeout after 5 retries')
+        mock_opensearch_client.delete_provider_documents.side_effect = CCInternalException(
+            'Connection timeout after 5 retries'
+        )
 
-        # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
-
-        # Create an SQS event with DynamoDB stream record in the body for a provider that no longer exists
         event = {
             'Records': [
                 {
                     'messageId': '12345',
                     'body': json.dumps(
-                        self._create_dynamodb_stream_record(
+                        self._create_dynamodb_stream_record_with_old_image_only(
                             compact='cosm',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
-                            event_name='REMOVE',
-                            include_old_image=False,
                         )
                     ),
                 }
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Verify that the batch item failure is returned with the message ID
         self.assertEqual(1, len(result['batchItemFailures']))
         self.assertEqual('12345', result['batchItemFailures'][0]['itemIdentifier'])
 
     @patch('handlers.provider_update_ingest.opensearch_client')
-    def test_bulk_delete_404_not_found_does_not_return_batch_item_failure(self, mock_opensearch_client):
-        """Test that when bulk_delete returns 404 (document not found), it is NOT treated as a failure.
+    def test_cc_not_found_on_non_remove_event_logs_warning_no_reindex(self, mock_opensearch_client):
+        """Test that CCNotFoundException on a non-REMOVE event logs a warning without re-indexing.
 
-        This scenario occurs when a provider document has already been deleted from OpenSearch
-        (e.g., a previous delete succeeded, or the document never existed in the index).
-        The 404 response should be ignored since the desired end state (document not in index)
-        has been achieved.
+        This is a safety net for race conditions where a MODIFY/INSERT event arrives but the
+        provider has already been deleted from DynamoDB. The handler should log a warning
+        and NOT attempt to re-index.
         """
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        # Simulate OpenSearch bulk delete response when document doesn't exist
-        # bulk_delete returns a set of failed document IDs, empty set means no failures (404 is ignored)
-        mock_opensearch_client.bulk_delete.return_value = set()
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
-        # Do NOT create any provider records in DynamoDB - this simulates the provider being deleted
+        # Do NOT create any provider records in DynamoDB - simulates race condition
+        # where provider was deleted between event creation and processing
 
-        # Create a DynamoDB stream event for a provider that no longer exists
         event = {
             'Records': [
                 {
@@ -683,20 +639,24 @@ class TestProviderUpdateIngest(TstFunction):
                             compact='cosm',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
-                            event_name='REMOVE',
-                            include_old_image=False,
+                            event_name='MODIFY',
                         )
                     ),
                 }
             ]
         }
 
-        # Run the handler
         mock_context = MagicMock()
         result = provider_update_ingest_handler(event, mock_context)
 
-        # Assert that bulk_delete was called
-        self.assertEqual(1, mock_opensearch_client.bulk_delete.call_count)
+        # delete_provider_documents should be called to remove documents from OpenSearch
+        mock_opensearch_client.delete_provider_documents.assert_called_once_with(
+            index_name='compact_cosm_providers',
+            provider_id=MOCK_COSM_PROVIDER_ID,
+        )
 
-        # Verify NO batch item failures - 404 is not treated as an error
+        # No bulk_index should be called (no documents to index)
+        mock_opensearch_client.bulk_index.assert_not_called()
+
+        # No batch failures - this is expected behavior for a race condition
         self.assertEqual({'batchItemFailures': []}, result)

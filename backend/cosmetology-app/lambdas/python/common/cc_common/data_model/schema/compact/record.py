@@ -27,11 +27,6 @@ class CompactRecordSchema(BaseRecordSchema):
         required=True,
         allow_none=False,
     )
-    compactSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False),
-        required=True,
-        allow_none=False,
-    )
     licenseeRegistrationEnabled = Boolean(required=True, allow_none=False)
     # List of states that have submitted configurations and their live status
     configuredStates = List(Nested(ConfiguredStateSchema()), required=True, allow_none=False)

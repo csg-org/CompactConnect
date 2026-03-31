@@ -382,10 +382,19 @@ The search infrastructure consists of several key components:
 4. **Populate Handler**: A Lambda function for bulk indexing all provider data from DynamoDB
 5. **Provider Update Ingest Handler**: A Lambda function for updating documents in OpenSearch whenever provider records are updated in DynamoDB.
 
+### Document model (Cosmetology vs. JCC)
+
+Unlike the JCC CompactConnect model, which indexes **one OpenSearch document per provider** (with that provider’s licenses nested in a single document), Cosmetology indexes **one document per license**. Each document repeats the same top-level provider fields you would see on a provider detail response, while the `licenses` array contains **only the license represented by that document** (effectively one license entry per document).
+
+Cosmetology needs to support searching and listing **rows of license records** by license number in the search UI. OpenSearch pagination (`from`/`size`, `search_after`, etc.) applies to **documents**, not to entries inside a nested array. Splitting each license into its own document lets the UI paginate natively at license granularity. It also keeps the search API response model consistent across the compacts.
+
+Most practitioners only have one multi-state license, so this model does not significantly increase the size of storage used by the OpenSearch domain.
+
 ### Index Structure
 
-Provider documents are stored in compact-specific indices with the naming convention: `compact_{compact}_providers_{version}`
-(e.g., `compact_aslp_providers_v1`). We use index aliases to provide a stable reference to the current version of each index, allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
+Documents are stored in compact-specific indices with the naming convention: `compact_{compact}
+_providers_{version}`
+(e.g., `compact_cosm_providers_v1`). We use index aliases to provide a stable reference to the current version of each index, allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
 
 #### Index Management
 
@@ -394,7 +403,7 @@ domain is first created. It ensures the indices/aliases exist with the correct m
 
 #### Index Mapping
 
-Each provider document contains all information you would see from the provider detail api endpoint with `readGeneral` permission. See the [application code](../../lambdas/python/search/handlers/manage_opensearch_indices.py) for the current mapping definition.
+Each indexed document corresponds to **one license** and uses the same overall shape as the provider detail API with `readGeneral` permission. See the [application code](../../lambdas/python/search/handlers/manage_opensearch_indices.py) for the current mapping definition. Document construction (one sanitized document per license, including composite `documentId`) is implemented in [search/utils.py](../../lambdas/python/search/utils.py).
 
 The index uses a custom ASCII-folding analyzer for name fields, which allows searching for names with international
 characters using their ASCII equivalents (e.g., searching "Jose" matches "José").
@@ -408,7 +417,7 @@ The Search API provides two endpoints for querying the OpenSearch domain:
 POST /v1/compacts/{compact}/providers/search
 ```
 
-Returns provider records matching the query. Response includes the full provider document with licenses and privileges.
+Returns one result row per indexed document (one per license). Each hit is a full provider-shaped document for that license row (including the single license in `licenses` and generated privileges as applicable).
 
 ### Document Indexing
 
@@ -422,7 +431,7 @@ OpenSearch. This function is invoked manually through the AWS Console for:
 The function:
 1. Scans the provider table using the `providerDateOfUpdate` GSI
 2. Retrieves complete provider records for each provider
-3. Sanitizes data using `ProviderGeneralResponseSchema`
+3. Expands each provider into **one OpenSearch document per license** (sanitized via `ProviderOpenSearchDocumentSchema`)
 4. Bulk indexes documents
 
 **Resumable Processing**: If the function approaches the 15-minute Lambda timeout, it returns pagination information in the 
@@ -442,11 +451,11 @@ The function:
 3. The DynamoDB stream handler queries the data and indexes the change into OpenSearch after the ~30 second delay of sitting in SQS
 4. The `populate_provider_documents` Lambda function finally indexes the stale data into OpenSearch, overwriting the change indexed by the DynamoDB stream handler
 
-For this reason, it is recommended that this process be run during a period of low traffic. Given that it is a one-time process to initially populate the table, the risk is low and if needed, the Lambda function can be run again to synchronize all the provider documents.
+For this reason, it is recommended that this process be run during a period of low traffic. Given that it is a one-time process to initially populate the table, the risk is low and if needed, the Lambda function can be run again to synchronize all indexed documents.
 
 #### Updates via DynamoDB Streams
 
-To keep the OpenSearch index synchronized with changes in the provider DynamoDB table, the system uses DynamoDB Streams to capture all modifications made to provide records (see [AWS documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)). This ensures that provider documents in OpenSearch are updated automatically whenever records are created, modified, or deleted in the provider table.
+To keep the OpenSearch index synchronized with changes in the provider DynamoDB table, the system uses DynamoDB Streams to capture all modifications made to provider records (see [AWS documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html)). This ensures that the corresponding license documents in OpenSearch are updated automatically whenever records are created, modified, or deleted in the provider table.
 
 **Architecture Flow:**
 

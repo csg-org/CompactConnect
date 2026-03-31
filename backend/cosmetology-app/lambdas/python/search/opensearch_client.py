@@ -208,6 +208,21 @@ class OpenSearchClient:
             )
             return str(e.error)
 
+    def delete_provider_documents(self, index_name: str, provider_id: str) -> dict:
+        """
+        Delete all OpenSearch documents for a given provider from the specified index.
+
+        :param index_name: The name of the index to delete from
+        :param provider_id: The provider ID whose documents should be deleted
+        :return: The delete_by_query response from OpenSearch (includes 'deleted' count)
+        :raises CCInternalException: If all retry attempts fail
+        """
+        query = {'term': {'providerId': provider_id}}
+        return self._execute_with_retry(
+            operation=lambda: self._client.delete_by_query(index=index_name, body={'query': query}),
+            operation_name=f'delete_provider_documents({index_name})',
+        )
+
     def bulk_index(self, index_name: str, documents: list[dict], id_field: str = 'providerId') -> dict:
         """
         Bulk index multiple documents into the specified index.
