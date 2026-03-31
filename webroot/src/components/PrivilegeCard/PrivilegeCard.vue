@@ -101,7 +101,7 @@
                 <div class="info-item-title">{{$t('licensing.privilegeNumSymbol')}}</div>
                 <div class="info-item rr-block">{{privilegeId}}</div>
             </div>
-            <div class="info-item-container discipline-item">
+            <div v-if="isAppModeJcc" class="info-item-container discipline-item">
                 <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
