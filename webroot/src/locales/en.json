@@ -602,6 +602,7 @@
         "homeState": "Home state",
         "stateOfHomeLicense": "State of home license",
         "licenseNumber": "License number",
+        "stateLicenseNumber": "State license number",
         "npi": "NPI",
         "searchPlaceholderNpi": "Enter NPI",
         "licenseExpirationDate": "License expiration date",
