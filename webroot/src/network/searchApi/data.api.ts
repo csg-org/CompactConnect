@@ -23,6 +23,7 @@ export interface SearchParamsInterfaceLocal {
     licenseeFirstName?: string;
     licenseeLastName?: string;
     homeState?: string;
+    dob?: string;
     privilegeState?: string;
     privilegePurchaseStartDate?: string;
     privilegePurchaseEndDate?: string;
@@ -31,6 +32,7 @@ export interface SearchParamsInterfaceLocal {
     encumberStartDate?: string;
     encumberEndDate?: string;
     npi?: string;
+    licenseNumber?: string;
     pageSize?: number;
     pageNumber?: number;
     sortBy?: string;
@@ -129,6 +131,7 @@ export class SearchDataApi implements DataApiInterface {
         const {
             licenseeFirstName,
             licenseeLastName,
+            dob,
             homeState,
             privilegeState,
             privilegePurchaseStartDate,
@@ -138,6 +141,7 @@ export class SearchDataApi implements DataApiInterface {
             encumberStartDate,
             encumberEndDate,
             npi,
+            licenseNumber,
             pageSize,
             pageNumber,
             sortBy,
@@ -147,6 +151,7 @@ export class SearchDataApi implements DataApiInterface {
         const hasSearchTerms = Boolean(
             licenseeFirstName
             || licenseeLastName
+            || dob
             || homeState
             || privilegeState
             || privilegePurchaseStartDate
@@ -156,6 +161,7 @@ export class SearchDataApi implements DataApiInterface {
             || encumberStartDate
             || encumberEndDate
             || npi
+            || licenseNumber
         );
         const requestParams: SearchParamsInterfaceRemote = {};
 
@@ -186,6 +192,24 @@ export class SearchDataApi implements DataApiInterface {
             }
             if (npi) {
                 conditions.push({ match: { npi }});
+            }
+            if (licenseNumber) {
+                conditions.push({ match: { licenseNumber }});
+            }
+            //
+            // License search props
+            //
+            if (dob) {
+                conditions.push({
+                    nested: {
+                        path: 'licenses',
+                        query: {
+                            term: {
+                                'licenses.dateOfBirth': dob,
+                            },
+                        },
+                    },
+                });
             }
             //
             // Privilege search props

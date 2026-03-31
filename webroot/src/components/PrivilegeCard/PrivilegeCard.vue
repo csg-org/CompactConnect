@@ -89,7 +89,7 @@
             </div>
         </div>
         <div class="privilege-info-grid">
-            <div class="info-item-container">
+            <div v-if="isAppModeJcc" class="info-item-container">
                 <div class="info-item-title">{{ $t('licensing.activeFrom') }}</div>
                 <div class="info-item">{{ (isActive) ? activeFromContent : $t('licensing.deactivated') }}</div>
             </div>
@@ -97,16 +97,17 @@
                 <div class="info-item-title">{{expiresTitle}}</div>
                 <div class="info-item" :class="{ 'error': isExpired }">{{expiresContent}}</div>
             </div>
-            <div class="info-item-container">
+            <div v-if="isAppModeJcc" class="info-item-container">
                 <div class="info-item-title">{{$t('licensing.privilegeNumSymbol')}}</div>
                 <div class="info-item rr-block">{{privilegeId}}</div>
             </div>
-            <div class="info-item-container discipline-item">
+            <div v-if="isAppModeJcc" class="info-item-container discipline-item">
                 <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
         </div>
         <InputButton
+            v-if="isAppModeJcc"
             :label="$t('common.viewDetails')"
             :aria-label="$t('common.viewDetails')"
             class="view-details-button"
@@ -202,7 +203,7 @@
                                 </div>
                             </div>
                             <div class="form-row static-container">
-                                <div class="static-input">
+                                <div v-if="isAppModeJcc" class="static-input">
                                     <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
                                     <div class="static-value">{{ privilegeId }}</div>
                                 </div>
@@ -437,7 +438,7 @@
                                 </div>
                             </div>
                             <div class="form-row static-container">
-                                <div class="static-input">
+                                <div v-if="isAppModeJcc" class="static-input">
                                     <div class="input-label static-label">{{ $t('licensing.privilegeId') }}</div>
                                     <div class="static-value">{{ privilegeId }}</div>
                                 </div>
