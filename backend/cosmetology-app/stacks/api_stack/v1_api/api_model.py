@@ -1063,7 +1063,6 @@ class ApiModel:
                     'compactName',
                     'compactOperationsTeamEmails',
                     'compactAdverseActionsNotificationEmails',
-                    'compactSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                     'configuredStates',
                 ],
@@ -1080,11 +1079,6 @@ class ApiModel:
                     'compactAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'compactSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
@@ -1130,7 +1124,6 @@ class ApiModel:
                 required=[
                     'compactOperationsTeamEmails',
                     'compactAdverseActionsNotificationEmails',
-                    'compactSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                     'configuredStates',
                 ],
@@ -1146,14 +1139,6 @@ class ApiModel:
                     'compactAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        min_items=1,
-                        max_items=10,
-                        unique_items=True,
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'compactSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         min_items=1,
                         max_items=10,
                         unique_items=True,
@@ -1207,7 +1192,6 @@ class ApiModel:
                     'postalAbbreviation',
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
-                    'jurisdictionSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1232,11 +1216,6 @@ class ApiModel:
                     'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'jurisdictionSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
                     ),
                     'licenseeRegistrationEnabled': JsonSchema(
@@ -1265,7 +1244,6 @@ class ApiModel:
                 required=[
                     'jurisdictionOperationsTeamEmails',
                     'jurisdictionAdverseActionsNotificationEmails',
-                    'jurisdictionSummaryReportNotificationEmails',
                     'licenseeRegistrationEnabled',
                 ],
                 properties={
@@ -1280,14 +1258,6 @@ class ApiModel:
                     'jurisdictionAdverseActionsNotificationEmails': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         description='List of email addresses for adverse actions notifications',
-                        min_items=1,
-                        max_items=10,
-                        unique_items=True,
-                        items=JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                    ),
-                    'jurisdictionSummaryReportNotificationEmails': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        description='List of email addresses for summary report notifications',
                         min_items=1,
                         max_items=10,
                         unique_items=True,

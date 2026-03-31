@@ -1,6 +1,7 @@
-from unittest.mock import Mock, call
+from unittest.mock import Mock, patch
 
 from common_test.test_constants import (
+    DEFAULT_DATE_OF_BIRTH,
     DEFAULT_LICENSE_EXPIRATION_DATE,
     DEFAULT_LICENSE_ISSUANCE_DATE,
     DEFAULT_LICENSE_RENEWAL_DATE,
@@ -75,65 +76,85 @@ class TestPopulateProviderDocuments(TstFunction):
         if not bulk_index_response:
             bulk_index_response = {'items': [], 'errors': False}
 
-        # Create a mock instance that will be returned by the OpenSearchClient constructor
         mock_client_instance = Mock()
         mock_opensearch_client.return_value = mock_client_instance
         mock_client_instance.bulk_index.return_value = bulk_index_response
         return mock_client_instance
 
-    def _generate_expected_call_for_document(self, compact):
-        # Use timezone(timedelta(0), '+0000') to match how the code creates UTC timezone
-        return call(
-            index_name=f'compact_{compact}_providers',
-            documents=[
+    def _generate_expected_document(self, compact):
+        provider_id = test_provider_id_mapping[compact]
+        license_type = test_license_type_mapping[compact]
+        return {
+            'providerId': provider_id,
+            'type': 'provider',
+            'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATETIME,
+            'compact': compact,
+            'licenseJurisdiction': 'oh',
+            'licenseStatus': 'inactive',
+            'compactEligibility': 'ineligible',
+            'givenName': f'test{compact}GivenName',
+            'middleName': 'Gunnar',
+            'familyName': f'test{compact}FamilyName',
+            'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
+            'jurisdictionUploadedLicenseStatus': 'active',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'birthMonthDay': '06-06',
+            'documentId': f'{provider_id}#oh#{license_type}',
+            'licenses': [
                 {
-                    'providerId': test_provider_id_mapping[compact],
-                    'type': 'provider',
-                    'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATETIME,
+                    'providerId': provider_id,
+                    'type': 'license',
+                    'dateOfUpdate': DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
                     'compact': compact,
-                    'licenseJurisdiction': 'oh',
-                    'currentHomeJurisdiction': 'oh',
+                    'jurisdiction': 'oh',
+                    'licenseType': license_type,
+                    'licenseStatusName': 'DEFINITELY_A_HUMAN',
                     'licenseStatus': 'inactive',
+                    'jurisdictionUploadedLicenseStatus': 'active',
                     'compactEligibility': 'ineligible',
+                    'jurisdictionUploadedCompactEligibility': 'eligible',
+                    'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
                     'familyName': f'test{compact}FamilyName',
+                    'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
+                    'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
                     'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
-                    'jurisdictionUploadedLicenseStatus': 'active',
-                    'jurisdictionUploadedCompactEligibility': 'eligible',
-                    'birthMonthDay': '06-06',
-                    'licenses': [
-                        {
-                            'providerId': test_provider_id_mapping[compact],
-                            'type': 'license',
-                            'dateOfUpdate': DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
-                            'compact': compact,
-                            'jurisdiction': 'oh',
-                            'licenseType': test_license_type_mapping[compact],
-                            'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                            'licenseStatus': 'inactive',
-                            'jurisdictionUploadedLicenseStatus': 'active',
-                            'compactEligibility': 'ineligible',
-                            'jurisdictionUploadedCompactEligibility': 'eligible',
-                            'licenseNumber': 'A0608337260',
-                            'givenName': f'test{compact}GivenName',
-                            'middleName': 'Gunnar',
-                            'familyName': f'test{compact}FamilyName',
-                            'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
-                            'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
-                            'dateOfExpiration': DEFAULT_LICENSE_EXPIRATION_DATE,
-                            'homeAddressStreet1': '123 A St.',
-                            'homeAddressStreet2': 'Apt 321',
-                            'homeAddressCity': 'Columbus',
-                            'homeAddressState': 'oh',
-                            'homeAddressPostalCode': '43004',
-                            'emailAddress': 'björk@example.com',
-                            'phoneNumber': '+13213214321',
-                            'adverseActions': [],
-                            'investigations': [],
-                        }
-                    ],
-                    'privileges': [],
+                    'dateOfBirth': DEFAULT_DATE_OF_BIRTH,
+                    'homeAddressStreet1': '123 A St.',
+                    'homeAddressStreet2': 'Apt 321',
+                    'homeAddressCity': 'Columbus',
+                    'homeAddressState': 'oh',
+                    'homeAddressPostalCode': '43004',
+                    'emailAddress': 'björk@example.com',
+                    'phoneNumber': '+13213214321',
+                    'adverseActions': [],
+                    'investigations': [],
                 }
             ],
-        )
+            'privileges': [],
+        }
+
+    @patch('handlers.populate_provider_documents.OpenSearchClient')
+    def test_populate_indexes_document_with_document_id(self, mock_opensearch_client):
+        """Test that populate handler indexes documents with id_field='documentId'."""
+        from handlers.populate_provider_documents import populate_provider_documents
+
+        mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+
+        mock_context = Mock()
+        mock_context.get_remaining_time_in_millis.return_value = 600000
+
+        result = populate_provider_documents({}, mock_context)
+
+        self.assertTrue(result['completed'])
+        self.assertGreaterEqual(mock_client_instance.bulk_index.call_count, 1)
+
+        bulk_index_call = mock_client_instance.bulk_index.call_args
+        self.assertEqual('compact_cosm_providers', bulk_index_call.kwargs['index_name'])
+        self.assertEqual('documentId', bulk_index_call.kwargs['id_field'])
+
+        indexed_documents = bulk_index_call.kwargs['documents']
+        self.assertEqual(1, len(indexed_documents))
+        self.assertEqual(self._generate_expected_document('cosm'), indexed_documents[0])

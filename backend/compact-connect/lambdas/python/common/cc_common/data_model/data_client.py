@@ -1246,6 +1246,27 @@ class DataClient:
                 ]
             )
 
+    @logger_inject_kwargs(logger, 'compact', 'transaction_id')
+    def get_privilege_for_transaction_id(self, *, compact: str, transaction_id: str) -> PrivilegeData:
+        """
+        Return a privilege record for a payment transaction id using the compact transaction id GSI.
+
+        :param compact: Compact abbreviation
+        :param transaction_id: Payment processor transaction id
+        :raises CCNotFoundException: When no item with type ``privilege`` exists for this transaction id
+        :return: The privilege as :class:`PrivilegeData`
+        """
+        gsi_pk = f'COMPACT#{compact}#TX#{transaction_id}#'
+        response = self.config.provider_table.query(
+            IndexName=self.config.compact_transaction_id_gsi_name,
+            KeyConditionExpression=Key('compactTransactionIdGSIPK').eq(gsi_pk),
+        )
+        items = response.get('Items', [])
+        for item in items:
+            if item.get('type') == 'privilege':
+                return PrivilegeData.from_database_record(item)
+        raise CCNotFoundException('No privilege record found for transaction id')
+
     def _get_privilege_record_directly(
         self,
         *,

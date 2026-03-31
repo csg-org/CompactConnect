@@ -256,9 +256,6 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
             }
         ]
     },
-    'jurisdictionSummaryReportNotificationEmails': {
-        'L': []
-    },
     'jurisprudenceRequirements': {
         'M': {
             'required': {
@@ -283,7 +280,6 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
 
     'jurisdictionName': 'Ohio',
     'jurisdictionOperationsTeamEmails': [ 'justin@inspiringapps.com' ],
-    'jurisdictionSummaryReportNotificationEmails': [],
     'jurisprudenceRequirements': {
         'required': true
     },
@@ -304,7 +300,6 @@ export const SAMPLE_COMPACT_CONFIGURATION = {
     'compactAbbr': { 'S': 'cosm' },
     'compactName': { 'S': 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { 'L': [{ 'S': 'compact-ops@example.com' }]},
-    'compactSummaryReportNotificationEmails': { 'L': [{ 'S': 'summary@example.com' }]},
     'dateOfUpdate': { 'S': '2024-12-10T19:27:28+00:00' },
     'type': { 'S': 'compact' }
 };
@@ -320,7 +315,6 @@ export const SAMPLE_UNMARSHALLED_COMPACT_CONFIGURATION = {
     'compactAbbr': 'cosm',
     'compactName': 'Audiology and Speech Language Pathology',
     'compactOperationsTeamEmails': ['compact-ops@example.com'],
-    'compactSummaryReportNotificationEmails': ['summary@example.com'],
     'dateOfUpdate': '2024-12-10T19:27:28+00:00',
     'type': 'compact'
 };

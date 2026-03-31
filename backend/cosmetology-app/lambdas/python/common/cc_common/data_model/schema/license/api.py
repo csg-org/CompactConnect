@@ -228,3 +228,18 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=False, allow_none=False)
     ssnLastFour = String(required=False, allow_none=False, validate=Length(equal=4))
+
+
+class LicenseOpenSearchDocumentSchema(LicenseGeneralResponseSchema):
+    """
+    License object fields for OpenSearch document indexing.
+
+    Extends LicenseGeneralResponseSchema with the dateOfBirth field to enable
+    authorized staff users to search providers by date of birth. This schema
+    is used only for indexing into OpenSearch, not for API responses.
+
+    Serialization direction:
+    Python -> load() -> OpenSearch document
+    """
+
+    dateOfBirth = Raw(required=False, allow_none=False)

@@ -49,6 +49,7 @@ In the DynamoDB console, if you change the partition key (pk) value of a existin
      - `pk` = `ARCHIVED_USER#{staff user email}`
      - **Add a new field**: `archivedDate` = current date (yyyy-mm-dd format)
      - **Add a new field**: `archivedReason` = "MFA recovery - user lost access to MFA device"
+     - **Remove field**: `famGiv`. If this field is not removed from the record, the user will continue to show up in the list of staff users in the UI, since we use this field in the index used to lookup the list of staff users (the first and last name of the staff user are still recorded under the `attributes` field, so no data is lost by removing the `famGiv` index field).
      - A box should appear at the bottom that states the item will be deleted and recreated, click the box.
      - Click the 'Recreate item' button to create the archived record, this will delete the old record and create a new archived record
      - Verify the archived record was created successfully

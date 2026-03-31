@@ -582,6 +582,154 @@ class TestProcessSettledTransactions(TstFunction):
             },
         )
 
+    @patch('handlers.transaction_history.logger')
+    @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
+    def test_general_error_without_privilege_does_not_return_a_batch_failure(
+        self, mock_purchase_client_constructor, mock_handler_logger
+    ):
+        """generalError with no privilege record should complete without BATCH_FAILURE or settlement error log."""
+        from handlers.transaction_history import process_settled_transactions
+
+        general_error_tx_id = 'general-error-tx-no-priv'
+        mock_purchase_client = MagicMock()
+        mock_purchase_client.get_settled_transactions.return_value = {
+            'settlementErrorTransactionIds': [general_error_tx_id],
+            'transactions': [
+                _generate_mock_transaction(
+                    transaction_id=general_error_tx_id,
+                    transaction_status='generalError',
+                    batch_settlement_state='settlementError',
+                )
+            ],
+            'processedBatchIds': [MOCK_BATCH_ID],
+        }
+        mock_purchase_client_constructor.return_value = mock_purchase_client
+
+        self._add_compact_configuration_data()
+        self._add_previous_transaction_to_history()
+
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        previous_settlement_dt = scheduled_dt - timedelta(days=2)
+        expected_start_time = (previous_settlement_dt + timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        expected_end_time = scheduled_dt.replace(hour=1, minute=0, second=0, microsecond=0).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
+        resp = process_settled_transactions(self._when_testing_non_paginated_event(), self.mock_context)
+
+        mock_handler_logger.error.assert_not_called()
+        self.assertEqual(
+            {
+                'compact': TEST_COMPACT,
+                'scheduledTime': MOCK_SCHEDULED_TIME,
+                'startTime': expected_start_time,
+                'endTime': expected_end_time,
+                'status': 'COMPLETE',
+                'processedBatchIds': [MOCK_BATCH_ID],
+            },
+            resp,
+        )
+
+    @patch('handlers.transaction_history.logger')
+    @patch('handlers.transaction_history.config.data_client.get_privilege_for_transaction_id')
+    @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
+    def test_general_error_filter_exception_still_returns_batch_failure(
+        self, mock_purchase_client_constructor, mock_get_privilege_for_transaction_id, mock_handler_logger
+    ):
+        """If privilege lookup fails while filtering generalError ids, skip filtering and return batch failure"""
+        from handlers.transaction_history import process_settled_transactions
+
+        mock_get_privilege_for_transaction_id.side_effect = RuntimeError('simulated privilege lookup failure')
+
+        general_error_tx_id = 'general-error-tx-filter-exception'
+        mock_purchase_client = MagicMock()
+        mock_purchase_client.get_settled_transactions.return_value = {
+            'settlementErrorTransactionIds': [general_error_tx_id],
+            'transactions': [
+                _generate_mock_transaction(
+                    transaction_id=general_error_tx_id,
+                    transaction_status='generalError',
+                    batch_settlement_state='settlementError',
+                )
+            ],
+            'processedBatchIds': [MOCK_BATCH_ID],
+        }
+        mock_purchase_client_constructor.return_value = mock_purchase_client
+
+        self._add_compact_configuration_data()
+        self._add_previous_transaction_to_history()
+
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        previous_settlement_dt = scheduled_dt - timedelta(days=2)
+        expected_start_time = (previous_settlement_dt + timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        expected_end_time = scheduled_dt.replace(hour=1, minute=0, second=0, microsecond=0).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
+        resp = process_settled_transactions(self._when_testing_non_paginated_event(), self.mock_context)
+
+        self.assertEqual('BATCH_FAILURE', resp['status'])
+        self.assertIn('batchFailureErrorMessage', resp)
+        parsed = json.loads(resp['batchFailureErrorMessage'])
+        self.assertEqual([general_error_tx_id], parsed['failedTransactionIds'])
+
+        error_first_args = [call.args[0] for call in mock_handler_logger.error.call_args_list if call.args]
+        self.assertIn('Failed to filter general errors without privilege records', error_first_args)
+        self.assertIn('Batch settlement error detected', error_first_args)
+        self.assertEqual(expected_start_time, resp['startTime'])
+        self.assertEqual(expected_end_time, resp['endTime'])
+        self.assertEqual(TEST_COMPACT, resp['compact'])
+        self.assertEqual([MOCK_BATCH_ID], resp['processedBatchIds'])
+
+    @patch('handlers.transaction_history.logger')
+    @patch('handlers.transaction_history.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-01-01T12:00:00+00:00'))
+    def test_general_error_with_privilege_results_in_batch_failure(
+        self, mock_purchase_client_constructor, mock_handler_logger
+    ):
+        """generalError when a privilege exists for the transaction id must still BATCH_FAILURE and log error."""
+        from handlers.transaction_history import process_settled_transactions
+
+        general_error_tx_id = 'general-error-tx-with-priv'
+        mock_purchase_client = MagicMock()
+        mock_purchase_client.get_settled_transactions.return_value = {
+            'settlementErrorTransactionIds': [general_error_tx_id],
+            'transactions': [
+                _generate_mock_transaction(
+                    transaction_id=general_error_tx_id,
+                    transaction_status='generalError',
+                    batch_settlement_state='settlementError',
+                )
+            ],
+            'processedBatchIds': [MOCK_BATCH_ID],
+        }
+        mock_purchase_client_constructor.return_value = mock_purchase_client
+
+        self._add_compact_configuration_data()
+        self._add_previous_transaction_to_history()
+        self._add_mock_privilege_to_database(transaction_id=general_error_tx_id)
+
+        scheduled_dt = datetime.fromisoformat(MOCK_SCHEDULED_TIME)
+        previous_settlement_dt = scheduled_dt - timedelta(days=2)
+        expected_start_time = (previous_settlement_dt + timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        expected_end_time = scheduled_dt.replace(hour=1, minute=0, second=0, microsecond=0).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
+        resp = process_settled_transactions(self._when_testing_non_paginated_event(), self.mock_context)
+
+        self.assertEqual('BATCH_FAILURE', resp['status'])
+        self.assertIn('batchFailureErrorMessage', resp)
+        parsed = json.loads(resp['batchFailureErrorMessage'])
+        self.assertEqual([general_error_tx_id], parsed['failedTransactionIds'])
+        mock_handler_logger.error.assert_called()
+        self.assertEqual(expected_start_time, resp['startTime'])
+        self.assertEqual(expected_end_time, resp['endTime'])
+        self.assertEqual(TEST_COMPACT, resp['compact'])
+        self.assertEqual([MOCK_BATCH_ID], resp['processedBatchIds'])
+
     @patch('handlers.transaction_history.PurchaseClient')
     def test_transaction_with_unknown_privilege_id_in_dynamodb_if_privilege_not_found(
         self, mock_purchase_client_constructor
