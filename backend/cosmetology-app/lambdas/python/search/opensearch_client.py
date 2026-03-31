@@ -4,10 +4,13 @@ import boto3
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from opensearchpy import AWSV4SignerAuth, OpenSearch, RequestsHttpConnection
-from opensearchpy.exceptions import ConnectionTimeout, RequestError, TransportError
+from opensearchpy.exceptions import ConnectionTimeout, NotFoundError, RequestError, TransportError
 
 # Retry configuration for operations
 MAX_RETRY_ATTEMPTS = 5
+
+# Initial index version for new deployments (must stay in sync with index naming in handlers)
+INITIAL_INDEX_VERSION = 'v1'
 INITIAL_BACKOFF_SECONDS = 2
 MAX_BACKOFF_SECONDS = 32
 
@@ -79,6 +82,282 @@ class OpenSearchClient:
             operation=lambda: self._client.indices.put_alias(index=index_name, name=alias_name),
             operation_name=f'create_alias({alias_name} -> {index_name})',
         )
+
+    def get_indices_for_alias(self, alias_name: str) -> list[str]:
+        """
+        Return index names that the given alias points to.
+
+        :param alias_name: The alias name to resolve
+        :return: List of concrete index names, or empty if the alias does not exist
+        """
+        last_exception = None
+        backoff_seconds = INITIAL_BACKOFF_SECONDS
+
+        for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
+            try:
+                response = self._client.indices.get_alias(name=alias_name)
+                return list(response.keys())
+            except NotFoundError:
+                return []
+            except (ConnectionTimeout, TransportError) as e:
+                last_exception = e
+                if attempt < MAX_RETRY_ATTEMPTS:
+                    logger.warning(
+                        'Operation failed, retrying with backoff',
+                        operation=f'get_indices_for_alias({alias_name})',
+                        attempt=attempt,
+                        max_attempts=MAX_RETRY_ATTEMPTS,
+                        backoff_seconds=backoff_seconds,
+                        error=str(e),
+                    )
+                    time.sleep(backoff_seconds)
+                    backoff_seconds = min(backoff_seconds * 2, MAX_BACKOFF_SECONDS)
+                else:
+                    logger.error(
+                        'Operation failed after max retry attempts',
+                        operation=f'get_indices_for_alias({alias_name})',
+                        attempts=MAX_RETRY_ATTEMPTS,
+                        error=str(e),
+                    )
+
+        raise CCInternalException(
+            f'get_indices_for_alias({alias_name}) failed after {MAX_RETRY_ATTEMPTS} attempts. '
+            f'Last error: {last_exception}'
+        )
+
+    def delete_index(self, index_name: str) -> None:
+        """
+        Delete an index by name. Deleting an index removes any aliases to it.
+
+        :param index_name: The index to delete
+        :raises CCInternalException: If all retry attempts fail
+        """
+        self._execute_with_retry(
+            operation=lambda: self._client.indices.delete(index=index_name),
+            operation_name=f'delete_index({index_name})',
+        )
+
+    def create_provider_index_with_alias(
+        self,
+        index_name: str,
+        alias_name: str,
+        number_of_shards: int,
+        number_of_replicas: int,
+    ) -> None:
+        """
+        Create the provider index and alias in OpenSearch if they don't exist.
+
+        :param index_name: The versioned index name (e.g., compact_cosm_providers_v1)
+        :param alias_name: The alias name (e.g., compact_cosm_providers)
+        :param number_of_shards: Number of primary shards for the index
+        :param number_of_replicas: Number of replica shards for the index
+        """
+        if self.alias_exists(alias_name):
+            logger.info(f"Alias '{alias_name}' already exists. Skipping index and alias creation.")
+            return
+
+        if self.index_exists(index_name):
+            logger.info(f"Index '{index_name}' already exists. Creating alias only.")
+            self.create_alias(index_name, alias_name)
+            logger.info(f"Alias '{alias_name}' -> '{index_name}' created successfully.")
+            return
+
+        logger.info(f"Creating index '{index_name}'...")
+        index_mapping = self._get_provider_index_mapping(number_of_shards, number_of_replicas)
+        self.create_index(index_name, index_mapping)
+        logger.info(f"Index '{index_name}' created successfully.")
+
+        logger.info(f"Creating alias '{alias_name}' -> '{index_name}'...")
+        self.create_alias(index_name, alias_name)
+        logger.info(f"Alias '{alias_name}' -> '{index_name}' created successfully.")
+
+    def delete_provider_index_with_alias(self, alias_name: str) -> None:
+        """
+        Delete the versioned index (and its alias) for a provider index alias.
+
+        Resolves underlying indices via the alias, then deletes them. If no alias
+        exists, attempts to delete the canonical versioned index name
+        ({alias_name}_{INITIAL_INDEX_VERSION}).
+
+        :param alias_name: The alias name (e.g., compact_cosm_providers)
+        """
+        if self.alias_exists(alias_name):
+            indices = self.get_indices_for_alias(alias_name)
+            for idx_name in indices:
+                logger.info(f"Deleting index '{idx_name}' (via alias '{alias_name}')...")
+                self.delete_index(idx_name)
+                logger.info(f"Index '{idx_name}' deleted.")
+            return
+
+        versioned_index_name = f'{alias_name}_{INITIAL_INDEX_VERSION}'
+        if self.index_exists(versioned_index_name):
+            logger.info(f"No alias found; deleting index '{versioned_index_name}' directly...")
+            self.delete_index(versioned_index_name)
+            logger.info(f"Index '{versioned_index_name}' deleted.")
+        else:
+            logger.info(f"No alias or index found for '{alias_name}'. Nothing to delete.")
+
+    def _get_provider_index_mapping(self, number_of_shards: int, number_of_replicas: int) -> dict:
+        """
+        Define the index mapping for provider documents.
+
+        :param number_of_shards: Number of primary shards for the index
+        :param number_of_replicas: Number of replica shards for the index
+        :return: The index mapping dictionary
+        """
+        adverse_action_properties = {
+            'type': {'type': 'keyword'},
+            'adverseActionId': {'type': 'keyword'},
+            'compact': {'type': 'keyword'},
+            'jurisdiction': {'type': 'keyword'},
+            'providerId': {'type': 'keyword'},
+            'licenseType': {'type': 'keyword'},
+            'licenseTypeAbbreviation': {'type': 'keyword'},
+            'actionAgainst': {'type': 'keyword'},
+            'effectiveStartDate': {'type': 'date'},
+            'creationDate': {'type': 'date'},
+            'effectiveLiftDate': {'type': 'date'},
+            'dateOfUpdate': {'type': 'date'},
+            'clinicalPrivilegeActionCategories': {'type': 'keyword'},
+            'clinicalPrivilegeActionCategory': {'type': 'keyword'},
+            'submittingUser': {'type': 'keyword'},
+            'liftingUser': {'type': 'keyword'},
+        }
+
+        investigation_properties = {
+            'type': {'type': 'keyword'},
+            'investigationId': {'type': 'keyword'},
+            'compact': {'type': 'keyword'},
+            'jurisdiction': {'type': 'keyword'},
+            'licenseType': {'type': 'keyword'},
+            'status': {'type': 'keyword'},
+            'dateOfUpdate': {'type': 'date'},
+        }
+
+        license_properties = {
+            'providerId': {'type': 'keyword'},
+            'type': {'type': 'keyword'},
+            'dateOfUpdate': {'type': 'date'},
+            'compact': {'type': 'keyword'},
+            'jurisdiction': {'type': 'keyword'},
+            'licenseType': {'type': 'keyword'},
+            'licenseStatusName': {'type': 'keyword'},
+            'licenseStatus': {'type': 'keyword'},
+            'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
+            'compactEligibility': {'type': 'keyword'},
+            'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
+            'licenseNumber': {'type': 'keyword'},
+            'givenName': {
+                'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
+                'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
+            },
+            'middleName': {
+                'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
+                'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
+            },
+            'familyName': {
+                'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
+                'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
+            },
+            'suffix': {'type': 'keyword'},
+            'dateOfIssuance': {'type': 'date'},
+            'dateOfRenewal': {'type': 'date'},
+            'dateOfExpiration': {'type': 'date'},
+            'dateOfBirth': {'type': 'date'},
+            'homeAddressStreet1': {'type': 'text'},
+            'homeAddressStreet2': {'type': 'text'},
+            'homeAddressCity': {
+                'type': 'text',
+                'analyzer': 'custom_ascii_analyzer',
+                'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
+            },
+            'homeAddressState': {'type': 'keyword'},
+            'homeAddressPostalCode': {'type': 'keyword'},
+            'emailAddress': {'type': 'keyword'},
+            'phoneNumber': {'type': 'keyword'},
+            'adverseActions': {'type': 'nested', 'properties': adverse_action_properties},
+            'investigations': {'type': 'nested', 'properties': investigation_properties},
+            'investigationStatus': {'type': 'keyword'},
+        }
+
+        privilege_properties = {
+            'type': {'type': 'keyword'},
+            'providerId': {'type': 'keyword'},
+            'compact': {'type': 'keyword'},
+            'jurisdiction': {'type': 'keyword'},
+            'licenseJurisdiction': {'type': 'keyword'},
+            'licenseType': {'type': 'keyword'},
+            'dateOfIssuance': {'type': 'date'},
+            'dateOfRenewal': {'type': 'date'},
+            'dateOfExpiration': {'type': 'date'},
+            'dateOfUpdate': {'type': 'date'},
+            'adverseActions': {'type': 'nested', 'properties': adverse_action_properties},
+            'investigations': {'type': 'nested', 'properties': investigation_properties},
+            'administratorSetStatus': {'type': 'keyword'},
+            'compactTransactionId': {'type': 'keyword'},
+            'privilegeId': {'type': 'keyword'},
+            'status': {'type': 'keyword'},
+            'investigationStatus': {'type': 'keyword'},
+        }
+
+        return {
+            'settings': {
+                'index': {
+                    'number_of_shards': number_of_shards,
+                    'number_of_replicas': number_of_replicas,
+                },
+                'analysis': {
+                    # Recommended by OpenSearch for international character sets; supports ASCII equivalents.
+                    # See https://docs.opensearch.org/latest/analyzers/token-filters/asciifolding/
+                    'filter': {'custom_ascii_folding': {'type': 'asciifolding', 'preserve_original': True}},
+                    'analyzer': {
+                        'custom_ascii_analyzer': {
+                            'type': 'custom',
+                            'tokenizer': 'standard',
+                            'filter': ['lowercase', 'custom_ascii_folding'],
+                        }
+                    },
+                },
+            },
+            'mappings': {
+                'properties': {
+                    'providerId': {'type': 'keyword'},
+                    'type': {'type': 'keyword'},
+                    'dateOfUpdate': {'type': 'date'},
+                    'compact': {'type': 'keyword'},
+                    'licenseJurisdiction': {'type': 'keyword'},
+                    'licenseStatus': {'type': 'keyword'},
+                    'compactEligibility': {'type': 'keyword'},
+                    'givenName': {
+                        'type': 'text',
+                        'analyzer': 'custom_ascii_analyzer',
+                        'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
+                    },
+                    'middleName': {
+                        'type': 'text',
+                        'analyzer': 'custom_ascii_analyzer',
+                        'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
+                    },
+                    'familyName': {
+                        'type': 'text',
+                        'analyzer': 'custom_ascii_analyzer',
+                        'fields': {'keyword': {'type': 'keyword', 'ignore_above': 256}},
+                    },
+                    'suffix': {'type': 'keyword'},
+                    'dateOfExpiration': {'type': 'date'},
+                    'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
+                    'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
+                    'providerFamGivMid': {'type': 'keyword'},
+                    'providerDateOfUpdate': {'type': 'date'},
+                    'birthMonthDay': {'type': 'keyword'},
+                    'licenses': {'type': 'nested', 'properties': license_properties},
+                    'privileges': {'type': 'nested', 'properties': privilege_properties},
+                }
+            },
+        }
 
     def cluster_health(self) -> dict:
         """

@@ -19,6 +19,14 @@ Example input for resumption:
     "startingLastKey": {"pk": "...", "sk": "..."}
 }
 
+Optional parameters:
+
+- resetIndexes: If true, deletes and recreates all compact provider indexes before
+  indexing (uses numberOfShards / numberOfReplicas). Run during low traffic; do not
+  combine with resumption (startingCompact / startingLastKey) for the same run.
+- numberOfShards: Primary shard count for recreated indexes (default: 1).
+- numberOfReplicas: Replica shard count for recreated indexes (default: 0).
+
 Race Condition Consideration:
 A potential race condition can occur when running this function while provider
 data is being actively updated:
@@ -39,7 +47,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException
 from marshmallow import ValidationError
-from opensearch_client import OpenSearchClient
+from opensearch_client import INITIAL_INDEX_VERSION, OpenSearchClient
 from utils import generate_provider_opensearch_documents
 
 # Batch size for DynamoDB pagination
@@ -64,11 +72,36 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     :param event: Lambda event with optional parameters:
         - startingCompact: The compact to start/resume processing from
         - startingLastKey: The DynamoDB pagination key to resume from
+        - resetIndexes: If true, delete and recreate all compact indexes first
+        - numberOfShards: Shards for recreated indexes (default 1)
+        - numberOfReplicas: Replicas for recreated indexes (default 0)
     :param context: Lambda context
     :return: Summary of indexing operation, including pagination info if incomplete
     """
     data_client = config.data_client
     opensearch_client = OpenSearchClient()
+
+    reset_indexes = bool(event.get('resetIndexes', False))
+    number_of_shards = int(event.get('numberOfShards', 1))
+    number_of_replicas = int(event.get('numberOfReplicas', 0))
+
+    if reset_indexes:
+        logger.info(
+            'resetIndexes=True: deleting and recreating all compact indexes',
+            number_of_shards=number_of_shards,
+            number_of_replicas=number_of_replicas,
+        )
+        for compact in config.compacts:
+            alias_name = f'compact_{compact}_providers'
+            index_name = f'compact_{compact}_providers_{INITIAL_INDEX_VERSION}'
+            opensearch_client.delete_provider_index_with_alias(alias_name=alias_name)
+            opensearch_client.create_provider_index_with_alias(
+                index_name=index_name,
+                alias_name=alias_name,
+                number_of_shards=number_of_shards,
+                number_of_replicas=number_of_replicas,
+            )
+        logger.info('Index reset complete. Proceeding with population.')
 
     # Get optional pagination parameters from event for resumption (normal mode)
     starting_compact = event.get('startingCompact')
