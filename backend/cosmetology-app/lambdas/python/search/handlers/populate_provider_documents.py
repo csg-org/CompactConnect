@@ -41,6 +41,16 @@ For this reason, it is recommended that this process be run during a period of
 low traffic. Given that it is a one-time process to initially populate the
 table, the risk is low and if needed, this Lambda function can be run again to
 synchronize all the provider documents.
+
+Note that the resetIndexes parameter is intended for development environments
+due to a limitation with how OpenSearch will randomly drop your data nodes if
+you only have 1 in your cluster. If the OpenSearch Domain drops that node due
+to network failures, aliases and indices will be lost and if the ingest pipeline
+inserts records before the aliases are recreated, OpenSearch will automatically
+create those indices under the alias name, but without the proper index mapping 
+which will break our search endpoints. This reset functionality allows devs in 
+test environments to reset those aliases/indices into a clean state before 
+populating all the provider records.
 """
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -86,6 +96,9 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     number_of_replicas = int(event.get('numberOfReplicas', 0))
 
     if reset_indexes:
+        # this reset functionality is only intended for development environments
+        if config.environment_name == 'prod':
+            raise CCInternalException('resetIndexes is not supported in production environments')
         logger.info(
             'resetIndexes=True: deleting and recreating all compact indexes',
             number_of_shards=number_of_shards,
