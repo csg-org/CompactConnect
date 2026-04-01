@@ -47,9 +47,9 @@ due to a limitation with how OpenSearch will randomly drop your data nodes if
 you only have 1 in your cluster. If the OpenSearch Domain drops that node due
 to network failures, aliases and indices will be lost and if the ingest pipeline
 inserts records before the aliases are recreated, OpenSearch will automatically
-create those indices under the alias name, but without the proper index mapping 
-which will break our search endpoints. This reset functionality allows devs in 
-test environments to reset those aliases/indices into a clean state before 
+create those indices under the alias name, but without the proper index mapping
+which will break our search endpoints. This reset functionality allows devs in
+test environments to reset those aliases/indices into a clean state before
 populating all the provider records.
 """
 
