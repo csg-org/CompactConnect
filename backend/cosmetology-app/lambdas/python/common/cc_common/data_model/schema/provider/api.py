@@ -15,6 +15,7 @@ from cc_common.data_model.schema.fields import (
 from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
     LicenseOpenSearchDocumentSchema,
+    LicensePublicResponseSchema,
     LicenseReadPrivateResponseSchema,
 )
 from cc_common.data_model.schema.privilege.api import (
@@ -202,17 +203,31 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
 
-    # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
-    # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
+    # Unlike the JCC public provider search, which only returns privilege data for a provider, Cosmetology returns both
+    # licenses and privileges and does not return any adverse action data.
+    licenses = List(Nested(LicensePublicResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
-    # Note the lack of `licenses` here: we do not return license data for public endpoints
+
+
+class PublicLicenseSearchResponseSchema(ForgivingSchema):
+    """
+    License object fields returned by the public query providers endpoint (OpenSearch-backed).
+    Jurisdiction is renamed to licenseJurisdiction for parity with JCC implementation.
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    licenseJurisdiction = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
 
 
 class QueryProvidersRequestSchema(CCRequestSchema):
     """
-    Schema for query providers requests.
+    Schema for staff query providers requests.
 
-    This schema is used to validate incoming requests to both the staff and public query providers API endpoints.
     It corresponds to the V1QueryProvidersRequestModel in the API model.
 
     Serialization direction:
@@ -228,6 +243,7 @@ class QueryProvidersRequestSchema(CCRequestSchema):
         jurisdiction = Jurisdiction(required=False, allow_none=False)
         givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
         familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        licenseNumber = String(required=False, allow_none=False, validate=Length(min=1, max=100))
 
     class PaginationSchema(ForgivingSchema):
         """
@@ -235,7 +251,7 @@ class QueryProvidersRequestSchema(CCRequestSchema):
         """
 
         lastKey = String(required=False, allow_none=False, validate=Length(min=1, max=1024))
-        pageSize = Integer(required=False, allow_none=False)
+        pageSize = Integer(required=False, allow_none=False, validate=Range(min=5, max=100))
 
     class SortingSchema(ForgivingSchema):
         """
@@ -248,6 +264,29 @@ class QueryProvidersRequestSchema(CCRequestSchema):
     query = Nested(QuerySchema, required=True, allow_none=False)
     pagination = Nested(PaginationSchema, required=False, allow_none=False)
     sorting = Nested(SortingSchema, required=False, allow_none=False)
+
+
+class PublicQueryProvidersRequestSchema(CCRequestSchema):
+    """
+    Request body for the public POST .../providers/query endpoint only.
+
+    The query object allows only jurisdiction, givenName, familyName, and licenseNumber.
+    Pagination and sorting match QueryProvidersRequestSchema.
+    """
+
+    class PublicQuerySchema(CCRequestSchema):
+        """
+        Nested schema for the query object within the request.
+        """
+
+        jurisdiction = Jurisdiction(required=False, allow_none=False)
+        givenName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        familyName = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+        licenseNumber = String(required=False, allow_none=False, validate=Length(min=1, max=100))
+
+    query = Nested(PublicQuerySchema, required=True, allow_none=False)
+    pagination = Nested(QueryProvidersRequestSchema.PaginationSchema, required=False, allow_none=False)
+    sorting = Nested(QueryProvidersRequestSchema.SortingSchema, required=False, allow_none=False)
 
 
 class SearchProvidersRequestSchema(CCRequestSchema):

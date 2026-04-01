@@ -108,6 +108,26 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
         self.assertNotIn('dateOfBirth', result['licenses'][0])
 
 
+class TestQueryProvidersRequestSchema(TstLambdas):
+    """QueryProvidersRequestSchema.QuerySchema licenseNumber length matches API Gateway model (max 100)."""
+
+    def test_query_license_number_accepts_100_chars(self):
+        from cc_common.data_model.schema.provider.api import QueryProvidersRequestSchema
+
+        ln = 'x' * 100
+        body = {'query': {'licenseNumber': ln, 'jurisdiction': 'oh'}}
+        loaded = QueryProvidersRequestSchema().load(body)
+        self.assertEqual(ln, loaded['query']['licenseNumber'])
+
+    def test_query_license_number_rejects_over_100_chars(self):
+        from cc_common.data_model.schema.provider.api import QueryProvidersRequestSchema
+
+        body = {'query': {'licenseNumber': 'x' * 101, 'jurisdiction': 'oh'}}
+        with self.assertRaises(ValidationError) as ctx:
+            QueryProvidersRequestSchema().load(body)
+        self.assertIn('licenseNumber', ctx.exception.messages['query'])
+
+
 class TestProviderRecordSchema(TstLambdas):
     def test_serde(self):
         """Test round-trip deserialization/serialization"""

@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
-from urllib.parse import quote
 
 from moto import mock_aws
 
@@ -10,366 +9,10 @@ from .. import TstFunction
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-class TestPublicQueryProviders(TstFunction):
-    def _when_jurisdiction_is_live_in_compact(self, jurisdiction):
-        self.test_data_generator.put_default_compact_configuration_in_configuration_table(
-            value_overrides={
-                'compactAbbr': 'cosm',
-                'configuredStates': [{'postalAbbreviation': jurisdiction, 'isLive': True}],
-            }
-        )
-
-    def test_public_query_by_provider_id_returns_public_allowed_fields(self):
-        self._load_provider_data()
-
-        from handlers.public_lookup import public_query_providers
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        with open('../common/tests/resources/api/provider-response.json') as f:
-            expected_provider = json.load(f)
-            # we do not return the following fields for the public endpoint
-            expected_provider.pop('birthMonthDay')
-            expected_provider.pop('dateOfExpiration')
-            expected_provider.pop('jurisdictionUploadedLicenseStatus')
-            expected_provider.pop('jurisdictionUploadedCompactEligibility')
-
-        body = json.loads(resp['body'])
-        self.assertEqual(
-            {
-                'providers': [expected_provider],
-                'pagination': {'pageSize': 100, 'lastKey': None, 'prevLastKey': None},
-                'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'},
-            },
-            body,
-        )
-
-    def test_public_query_providers_updated_sorting(self):
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # 20 providers with licenses in oh (two batches)
-        self._generate_providers(home='oh', start_serial=9999)
-        self._generate_providers(home='oh', start_serial=9899)
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps(
-            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
-        )
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        body = json.loads(resp['body'])
-        self.assertEqual(10, len(body['providers']))
-        self.assertEqual({'providers', 'pagination', 'query', 'sorting'}, body.keys())
-        self.assertIsInstance(body['pagination']['lastKey'], str)
-        # Check we're actually sorted
-        dates_of_update = [provider['dateOfUpdate'] for provider in body['providers']]
-        self.assertListEqual(sorted(dates_of_update), dates_of_update)
-
-    def test_public_query_providers_updated_sorting_returns_providers_with_license_in_jurisdiction(self):
-        """Tests that the public endpoint returns providers with a license in the requested jurisdiction."""
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # 20 providers with licenses in oh (two batches)
-        self._generate_providers(home='oh', start_serial=9999)
-        self._generate_providers(home='oh', start_serial=9899)
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps(
-            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 20}},
-        )
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        body = json.loads(resp['body'])
-        self.assertEqual(20, len(body['providers']))
-        # Check we're actually sorted
-        dates_of_update = [provider['dateOfUpdate'] for provider in body['providers']]
-        self.assertListEqual(sorted(dates_of_update), dates_of_update)
-
-    def test_public_query_providers_family_name_sorting(self):
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # 20 providers with licenses in oh (two batches); first 10 have challenging name characters
-        names = [
-            ('山田', '1'),
-            ('後藤', '2'),
-            ('清水', '3'),
-            ('近藤', '4'),
-            ('Anderson', '5'),
-            ('Bañuelos', '6'),
-            ('de la Fuente', '7'),
-            ('Dennis', '8'),
-            ('Figueroa', '9'),
-            ('Frías', '10'),
-        ]
-        self._generate_providers(home='oh', start_serial=9999, names=names)
-        self._generate_providers(home='oh', start_serial=9899)
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps(
-            {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
-        )
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        body = json.loads(resp['body'])
-        self.assertEqual(10, len(body['providers']))
-        self.assertEqual({'providers', 'pagination', 'query', 'sorting'}, body.keys())
-        self.assertEqual({'key': 'familyName', 'direction': 'ascending'}, body['sorting'])
-        self.assertIsInstance(body['pagination']['lastKey'], str)
-        # Check we're actually sorted
-        family_names = [provider['familyName'].lower() for provider in body['providers']]
-        self.assertListEqual(sorted(family_names, key=quote), family_names)
-
-    def test_public_query_providers_by_family_name(self):
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # 10 providers with licenses in oh, including Tess and Ted Testerly
-        self._generate_providers(
-            home='oh',
-            start_serial=9999,
-            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
-        )
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps(
-            {
-                'sorting': {'key': 'familyName'},
-                'query': {'jurisdiction': 'oh', 'familyName': 'Testerly'},
-                'pagination': {'pageSize': 10},
-            },
-        )
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        body = json.loads(resp['body'])
-        self.assertEqual(2, len(body['providers']))
-
-    def test_public_query_returns_empty_results_if_jurisdiction_is_not_live(self):
-        from handlers.public_lookup import public_query_providers
-
-        # 10 providers from ohio, but ohio is not live in the system, so we should return without querying
-        # for providers
-        self._generate_providers(
-            home='oh',
-            start_serial=9999,
-            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
-        )
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps(
-            {
-                'sorting': {'key': 'familyName'},
-                'query': {'jurisdiction': 'oh', 'familyName': 'Testerly'},
-                'pagination': {'pageSize': 10},
-            },
-        )
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        body = json.loads(resp['body'])
-        self.assertEqual(
-            {
-                'pagination': {'pageSize': 10},
-                'providers': [],
-                'query': {'familyName': 'Testerly', 'jurisdiction': 'oh'},
-                'sorting': {'key': 'familyName'},
-            },
-            body,
-        )
-
-    def test_public_query_providers_given_name_only_not_allowed(self):
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # 10 providers with licenses in oh, including Tess and Ted Testerly
-        self._generate_providers(
-            home='oh',
-            start_serial=9999,
-            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
-        )
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps(
-            {
-                'sorting': {'key': 'familyName'},
-                'query': {'jurisdiction': 'oh', 'givenName': 'Tess'},
-                'pagination': {'pageSize': 10},
-            },
-        )
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(400, resp['statusCode'])
-
-    def test_query_providers_default_sorting(self):
-        """If sorting is not specified, familyName is default"""
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # 20 providers with licenses (10 in oh, 10 in ne)
-        self._generate_providers(home='oh', start_serial=9999)
-        self._generate_providers(home='ne', start_serial=9899)
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps({'query': {}})
-
-        resp = public_query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        body = json.loads(resp['body'])
-        self.assertEqual(20, len(body['providers']))
-        self.assertEqual({'providers', 'pagination', 'query', 'sorting'}, body.keys())
-        self.assertEqual({'key': 'familyName', 'direction': 'ascending'}, body['sorting'])
-        self.assertIsNone(body['pagination']['lastKey'])
-        # Check we're actually sorted
-        family_names = [provider['familyName'].lower() for provider in body['providers']]
-        self.assertListEqual(sorted(family_names, key=quote), family_names)
-
-    def test_public_query_providers_invalid_sorting(self):
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # 20 providers with licenses (10 in oh, 10 in ne)
-        self._generate_providers(home='oh', start_serial=9999)
-        self._generate_providers(home='ne', start_serial=9899)
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-        event['body'] = json.dumps({'query': {'jurisdiction': 'oh'}, 'sorting': {'key': 'invalid'}})
-
-        resp = public_query_providers(event, self.mock_context)
-
-        # Should reject the query, with 400
-        self.assertEqual(400, resp['statusCode'])
-
-    def test_public_query_providers_strips_whitespace_from_query_fields(self):
-        """Test that whitespace is stripped from multiple fields simultaneously."""
-        from handlers.public_lookup import public_query_providers
-
-        self._when_jurisdiction_is_live_in_compact(jurisdiction='oh')
-
-        # Create providers with known names for testing
-        self._generate_providers(
-            home='oh',
-            start_serial=9999,
-            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
-        )
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # public endpoint does not have authorizer
-        del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
-
-        # Test multiple fields with whitespace
-        event['body'] = json.dumps(
-            {
-                'query': {
-                    'givenName': '  Ted  ',
-                    'familyName': '  Testerly  ',
-                    'jurisdiction': '  oh  ',
-                },
-                'pagination': {'pageSize': 10},
-            }
-        )
-
-        resp = public_query_providers(event, self.mock_context)
-        self.assertEqual(200, resp['statusCode'])
-
-        body = json.loads(resp['body'])
-        self.assertEqual(1, len(body['providers']))  # Should find Ted Testerly
-        found_provider = body['providers'][0]
-        self.assertEqual('Ted', found_provider['givenName'])
-        self.assertEqual('Testerly', found_provider['familyName'])
-
-
-@mock_aws
-@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPublicGetProvider(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
-
-    @staticmethod
-    def _get_sensitive_hash():
-        with open('../common/tests/resources/dynamo/license-update.json') as f:
-            sk = json.load(f)['sk']
-        # The actual sensitive part is the hash at the end of the key
-        return sk.split('/')[-1]
 
     def test_public_get_provider_response_with_expected_fields_filtered(self):
         self._load_provider_data()
@@ -389,25 +32,46 @@ class TestPublicGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
 
-        with open('../common/tests/resources/api/provider-detail-response.json') as f:
-            expected_provider = json.load(f)
-            # we do not return the following fields from the public endpoint
-            expected_provider.pop('ssnLastFour')
-            expected_provider.pop('dateOfBirth')
-            expected_provider.pop('birthMonthDay')
-            expected_provider.pop('licenses')
-            expected_provider['privileges'][0].pop('investigations')
-            expected_provider.pop('dateOfExpiration')
-            expected_provider.pop('jurisdictionUploadedLicenseStatus')
-            expected_provider.pop('jurisdictionUploadedCompactEligibility')
+        # ProviderPublicResponseSchema + LicensePublicResponseSchema + PrivilegePublicResponseSchema
+        expected_provider = {
+            'type': 'provider',
+            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+            'dateOfUpdate': '2024-07-08T23:59:59+00:00',
+            'compact': 'cosm',
+            'licenseJurisdiction': 'oh',
+            'licenseStatus': 'active',
+            'compactEligibility': 'eligible',
+            'givenName': 'Björk',
+            'middleName': 'Gunnar',
+            'familyName': 'Guðmundsdóttir',
+            'licenses': [
+                {
+                    'type': 'license',
+                    'compact': 'cosm',
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'licenseStatus': 'active',
+                    'compactEligibility': 'eligible',
+                    'dateOfExpiration': '2025-04-04',
+                    'licenseNumber': 'A0608337260',
+                }
+            ],
+            'privileges': [
+                {
+                    'type': 'privilege',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'compact': 'cosm',
+                    'jurisdiction': 'ne',
+                    'licenseJurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': '2025-04-04',
+                    'administratorSetStatus': 'active',
+                    'status': 'active',
+                }
+            ],
+        }
 
         self.assertEqual(expected_provider, provider_data)
-
-        # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure
-        # we guard against future changes that might accidentally send the key out via the API. See discussion on
-        # key generation in the LicenseUpdateRecordSchema for details.
-        sensitive_hash = self._get_sensitive_hash()
-        self.assertNotIn(sensitive_hash, resp['body'])
 
     def test_public_get_provider_missing_provider_id(self):
         from handlers.public_lookup import public_get_provider

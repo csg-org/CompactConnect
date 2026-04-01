@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "SearchApi",
-    "version": "2026-02-25T22:40:54Z"
+    "version": "2026-03-13T19:50:46Z"
   },
   "servers": [
     {
@@ -34,7 +34,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboSearcFlaGc2hNzmIy"
+                "$ref": "#/components/schemas/SandboSearc6bIbGbp1agwX"
               }
             }
           },
@@ -46,7 +46,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboSearcEzLOjtUlVHxz"
+                  "$ref": "#/components/schemas/SandboSearce1qe0F7F8UqP"
                 }
               }
             }
@@ -64,42 +64,7 @@
   },
   "components": {
     "schemas": {
-      "SandboSearcFlaGc2hNzmIy": {
-        "required": [
-          "query"
-        ],
-        "type": "object",
-        "properties": {
-          "search_after": {
-            "type": "array",
-            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
-          },
-          "size": {
-            "maximum": 100,
-            "minimum": 1,
-            "type": "integer",
-            "description": "Number of results to return"
-          },
-          "query": {
-            "type": "object",
-            "description": "The OpenSearch query body"
-          },
-          "from": {
-            "minimum": 0,
-            "type": "integer",
-            "description": "Starting document offset for pagination"
-          },
-          "sort": {
-            "type": "array",
-            "description": "Sort order for results (required for search_after pagination)",
-            "items": {
-              "type": "object"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "SandboSearcEzLOjtUlVHxz": {
+      "SandboSearce1qe0F7F8UqP": {
         "required": [
           "providers",
           "total"
@@ -868,6 +833,41 @@
             }
           }
         }
+      },
+      "SandboSearc6bIbGbp1agwX": {
+        "required": [
+          "query"
+        ],
+        "type": "object",
+        "properties": {
+          "search_after": {
+            "type": "array",
+            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
+          },
+          "size": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "description": "Number of results to return"
+          },
+          "query": {
+            "type": "object",
+            "description": "The OpenSearch query body"
+          },
+          "from": {
+            "minimum": 0,
+            "type": "integer",
+            "description": "Starting document offset for pagination"
+          },
+          "sort": {
+            "type": "array",
+            "description": "Sort order for results (required for search_after pagination)",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": false
       }
     },
     "securitySchemes": {

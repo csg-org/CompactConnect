@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/search/requirements-dev.in
 #
-boto3==1.42.76
+boto3==1.42.80
     # via moto
-botocore==1.42.76
+botocore==1.42.80
     # via
     #   boto3
     #   moto
@@ -45,7 +45,7 @@ python-dateutil==2.9.0.post0
     #   moto
 pyyaml==6.0.3
     # via responses
-requests==2.33.0
+requests==2.33.1
     # via
     #   docker
     #   moto

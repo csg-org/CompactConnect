@@ -67,7 +67,7 @@ pluggy==1.6.0
     #   pytest-cov
 py-serializable==2.1.0
     # via cyclonedx-python-lib
-pygments==2.19.2
+pygments==2.20.0
     # via
     #   pytest
     #   rich
@@ -83,7 +83,7 @@ pytest==9.0.2
     #   pytest-cov
 pytest-cov==7.1.0
     # via -r requirements-dev.in
-requests==2.33.0
+requests==2.33.1
     # via
     #   cachecontrol
     #   pip-audit
