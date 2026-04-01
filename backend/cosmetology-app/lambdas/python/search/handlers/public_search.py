@@ -14,7 +14,7 @@ from opensearch_client import OpenSearchClient
 
 # Instantiate the OpenSearch client outside the handler to cache the connection between invocations
 # Set timeout to 20 seconds to give API gateway time to respond with response
-opensearch_client = OpenSearchClient(timeout=25)
+opensearch_client = OpenSearchClient(timeout=20)
 
 
 @api_handler
