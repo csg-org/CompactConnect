@@ -155,6 +155,14 @@ class OpenSearchClient:
         if self.alias_exists(alias_name):
             logger.info(f"Alias '{alias_name}' already exists. Skipping index and alias creation.")
             return
+        # Check if an index exists with the same name as the alias (this is most likely to happen in our development
+        # environments with only one data node. If the test OpenSearch Domain drops that node due to network failures
+        # aliases and indices will be lost and if the ingest pipeline inserts records before the aliases are recreated,
+        # OpenSearch will automatically create those indices under the alias name).
+        if self.index_exists(alias_name):
+            logger.info(f"Found index with alias name '{alias_name}'; deleting to allow alias creation...")
+            self.delete_index(alias_name)
+            logger.info(f"Index '{alias_name}' deleted.")
 
         if self.index_exists(index_name):
             logger.info(f"Index '{index_name}' already exists. Creating alias only.")
@@ -218,6 +226,7 @@ class OpenSearchClient:
             'creationDate': {'type': 'date'},
             'effectiveLiftDate': {'type': 'date'},
             'dateOfUpdate': {'type': 'date'},
+            'encumbranceType': {'type': 'keyword'},
             'clinicalPrivilegeActionCategories': {'type': 'keyword'},
             'clinicalPrivilegeActionCategory': {'type': 'keyword'},
             'submittingUser': {'type': 'keyword'},

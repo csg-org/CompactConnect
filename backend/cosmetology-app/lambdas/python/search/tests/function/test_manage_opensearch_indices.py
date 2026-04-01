@@ -378,8 +378,9 @@ class TestOpenSearchIndexManager(TstFunction):
         # Assert that alias_exists was called for each compact
         self.assertEqual(1, mock_client_instance.alias_exists.call_count)
 
-        # Assert that index_exists was called for each compact
-        self.assertEqual(1, mock_client_instance.index_exists.call_count)
+        # Assert that index_exists was called for each compact, and to check if an index was misconfigured
+        # under the alias name
+        self.assertEqual(2, mock_client_instance.index_exists.call_count)
 
         # Assert that create_index was NOT called since indices already exist
         mock_client_instance.create_index.assert_not_called()
