@@ -292,31 +292,31 @@ class TestPublicSearchProviders(TstFunction):
         self.assertIn('Invalid sort key', body['message'])
         mock_opensearch_client.search.assert_not_called()
 
-    def test_given_name_without_family_name_returns_400(self):
-        """Test that givenName without familyName returns 400."""
-        from handlers.public_search import public_search_api_handler
-
-        event = self._create_public_api_event(
-            'cosm',
-            body={'query': {'givenName': 'John'}, 'pagination': {'pageSize': 10}},
-        )
-        response = public_search_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'])
-        body = json.loads(response['body'])
-        self.assertIn('familyName is required if givenName is provided', body['message'])
-
-    def test_no_search_criteria_returns_400(self):
+    @patch('handlers.public_search.opensearch_client')
+    def test_no_search_criteria_returns_200(self, mock_opensearch_client):
         """Test that at least one of licenseNumber, jurisdiction, or familyName is required."""
         from handlers.public_search import public_search_api_handler
+
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
+        }
 
         event = self._create_public_api_event(
             'cosm',
             body={'query': {}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
-        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(200, response['statusCode'])
         body = json.loads(response['body'])
-        self.assertIn('At least one of licenseNumber, jurisdiction, or familyName', body['message'])
+        self.assertEqual(
+            {
+                'pagination': {'lastKey': None, 'pageSize': 10, 'prevLastKey': None},
+                'providers': [],
+                'query': {},
+                'sorting': {'direction': 'ascending', 'key': 'familyName'},
+            },
+            body,
+        )
 
     def test_provider_id_in_query_returns_400(self):
         """Public query must not accept query.providerId (blocked at schema validation)."""

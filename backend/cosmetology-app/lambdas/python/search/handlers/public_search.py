@@ -117,13 +117,6 @@ def _parse_and_validate_public_query_body(event: dict) -> dict:
         logger.warning('Invalid public query request body', errors=e.messages)
         raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
 
-    query = body.get('query', {})
-    if query.get('givenName') and not query.get('familyName'):
-        raise CCInvalidRequestException('familyName is required if givenName is provided')
-
-    if not any((query.get('licenseNumber'), query.get('jurisdiction'), query.get('familyName'))):
-        raise CCInvalidRequestException('At least one of licenseNumber, jurisdiction, or familyName must be provided')
-
     return body
 
 
