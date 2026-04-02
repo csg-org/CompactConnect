@@ -1,0 +1,97 @@
+# Dependabot version updates configuration
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+version: 2
+updates:
+  #---------------------------------------------------------------------------
+  # Python dependencies (pip-compile / pip-tools)
+  #
+  # /backend/* captures CDK app requirements.in files at the top level of
+  # each backend directory (compact-connect, cosmetology-app, etc.)
+  #
+  # /backend/*/lambdas/python/* captures requirements.in files in each
+  # individual lambda directory.
+  #
+  # Both are grouped so version alignment is maintained across CDK and
+  # lambda layers in a single PR for minor/patch bumps.
+  #---------------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/*"
+      - "/backend/*/lambdas/python/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    # Require packages to be at least 7 days old before proposing updates.
+    # This does NOT apply to security updates, which are always immediate.
+    cooldown:
+      default-days: 7
+    groups:
+      python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  #---------------------------------------------------------------------------
+  # Node.js dependencies (backend lambdas)
+  #---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directories:
+      - "/backend/compact-connect/lambdas/nodejs"
+      - "/backend/compact-connect-ui-app/lambdas/nodejs"
+      - "/backend/cosmetology-app/lambdas/nodejs"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "node"
+    cooldown:
+      default-days: 7
+    groups:
+      node-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  #---------------------------------------------------------------------------
+  # Frontend dependencies (webroot)
+  #---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directories:
+      - "/webroot"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "frontend"
+    cooldown:
+      default-days: 7
+    groups:
+      frontend-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  #---------------------------------------------------------------------------
+  # GitHub Actions
+  #---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
