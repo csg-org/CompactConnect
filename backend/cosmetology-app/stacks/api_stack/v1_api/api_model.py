@@ -642,11 +642,7 @@ class ApiModel:
                                         ),
                                         'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'clinicalPrivilegeActionCategories': JsonSchema(
-                                            type=JsonSchemaType.ARRAY,
-                                            description='The categories of clinical privilege action',
-                                            items=JsonSchema(type=JsonSchemaType.STRING),
-                                        ),
+                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
@@ -776,11 +772,7 @@ class ApiModel:
                                         ),
                                         'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'clinicalPrivilegeActionCategories': JsonSchema(
-                                            type=JsonSchemaType.ARRAY,
-                                            description='The categories of clinical privilege action',
-                                            items=JsonSchema(type=JsonSchemaType.STRING),
-                                        ),
+                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
@@ -820,6 +812,17 @@ class ApiModel:
         )
 
     @property
+    def _clinical_privilege_action_categories_schema(self) -> JsonSchema:
+        return JsonSchema(
+            type=JsonSchemaType.ARRAY,
+            description='The categories of clinical privilege action',
+            items=JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=['fraud', 'consumer harm', 'other'],
+            ),
+        )
+
+    @property
     def _encumbrance_request_schema(self) -> JsonSchema:
         """Common schema for encumbrance request data used in both POST and PATCH investigation endpoints"""
         return JsonSchema(
@@ -835,11 +838,7 @@ class ApiModel:
                     pattern=cc_api.YMD_FORMAT,
                 ),
                 'encumbranceType': self._encumbrance_type_schema,
-                'clinicalPrivilegeActionCategories': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    description='The categories of clinical privilege action',
-                    items=JsonSchema(type=JsonSchemaType.STRING),
-                ),
+                'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,
             },
         )
 
@@ -850,21 +849,9 @@ class ApiModel:
             type=JsonSchemaType.STRING,
             description='The type of encumbrance',
             enum=[
-                'fine',
-                'reprimand',
-                'required supervision',
-                'completion of continuing education',
-                'public reprimand',
-                'probation',
-                'injunctive action',
                 'suspension',
                 'revocation',
-                'denial',
                 'surrender of license',
-                'modification of previous action-extension',
-                'modification of previous action-reduction',
-                'other monitoring',
-                'other adjudicated action not listed',
             ],
         )
 

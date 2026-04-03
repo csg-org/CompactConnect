@@ -378,37 +378,17 @@ class EncumbranceType(CCEnum):
     Enum for the allowed types of encumbrances
     """
 
-    FINE = 'fine'
-    REPRIMAND = 'reprimand'
-    REQUIRED_SUPERVISION = 'required supervision'
-    COMPLETION_OF_CONTINUING_EDUCATION = 'completion of continuing education'
-    PUBLIC_REPRIMAND = 'public reprimand'
-    PROBATION = 'probation'
-    INJUNCTIVE_ACTION = 'injunctive action'
     SUSPENSION = 'suspension'
     REVOCATION = 'revocation'
-    DENIAL = 'denial'
     SURRENDER_OF_LICENSE = 'surrender of license'
-    MODIFICATION_OF_PREVIOUS_ACTION_EXTENSION = 'modification of previous action-extension'
-    MODIFICATION_OF_PREVIOUS_ACTION_REDUCTION = 'modification of previous action-reduction'
-    OTHER_MONITORING = 'other monitoring'
-    OTHER_ADJUDICATED_ACTION_NOT_LISTED = 'other adjudicated action not listed'
 
 
 class ClinicalPrivilegeActionCategory(CCEnum):
-    """
-    Enum for the category of clinical privileges actions, as defined by NPDB:
-    https://www.npdb.hrsa.gov/software/CodeLists.pdf, Tables 41-45
-    """
+    """Enum for adverse action clinical privilege action categories."""
 
-    NON_COMPLIANCE = 'Non-compliance With Requirements'
-    CRIMINAL_CONVICTION = 'Criminal Conviction or Adjudication'
-    CONFIDENTIALITY_VIOLATION = 'Confidentiality, Consent or Disclosure Violations'
-    MISCONDUCT_ABUSE = 'Misconduct or Abuse'
-    FRAUD = 'Fraud, Deception, or Misrepresentation'
-    UNSAFE_PRACTICE = 'Unsafe Practice or Substandard Care'
-    IMPROPER_SUPERVISION = 'Improper Supervision or Allowing Unlicensed Practice'
-    OTHER = 'Other'
+    FRAUD = 'fraud'
+    CONSUMER_HARM = 'consumer harm'
+    OTHER = 'other'
 
 
 class ChangeHashMixin:
