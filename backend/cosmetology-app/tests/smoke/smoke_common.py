@@ -164,9 +164,6 @@ def get_user_tokens(email, password=_TEST_STAFF_USER_PASSWORD, is_staff=False):
         raise e
 
 
-
-
-
 def get_staff_user_auth_headers(username: str, password: str = _TEST_STAFF_USER_PASSWORD):
     tokens = get_user_tokens(username, password, is_staff=True)
     return {
