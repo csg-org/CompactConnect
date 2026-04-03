@@ -4,20 +4,19 @@ Smoke tests for encumbrance functionality.
 
 This script tests the end-to-end encumbrance workflow for both licenses and privileges,
 including setting encumbrances and lifting them through the API endpoints.
-"""
 
-import os
+This script assumes your test environment has a live jurisdiction for generating at least one privilege
+record. You can set the value of the live jurisdiction in the LIVE_JURISDICTION constant
+"""
 import time
 
 import requests
 from smoke_common import (
     SmokeTestFailureException,
-    call_provider_details_endpoint,
     config,
     create_test_staff_user,
     delete_test_staff_user,
     get_all_provider_database_records,
-    get_license_type_abbreviation,
     get_provider_user_dynamodb_table,
     get_provider_user_records,
     get_staff_user_auth_headers,
@@ -26,6 +25,7 @@ from smoke_common import (
 )
 
 ENCUMBRANCE_SMOKE_COMPACT = 'cosm'
+LIVE_JURISDICTION = 'ne'
 
 def clean_adverse_actions():
     """
@@ -89,29 +89,27 @@ def setup_test_environment():
 class EncumbranceTestHelper:
     """Helper class to manage encumbrance test operations with pre-configured staff users and URLs."""
 
-    def __init__(self, provider_data: dict):
+    def __init__(self):
         """
         Initialize the helper with provider data and set up all necessary resources.
-
-        :param provider_details: JSON body from GET /v1/compacts/{compact}/providers/{providerId}
         """
-        self.provider_data = provider_data
-        self.compact = provider_data['compact']
-        self.provider_id = provider_data['providerId']
+        # Get provider data
+        self.compact = ENCUMBRANCE_SMOKE_COMPACT
+        self.provider_id = config.test_provider_id
 
-        # Get jurisdiction information from Nebraska privilege (smoke tests purchase privilege in NE)
+        # Get jurisdiction information from privilege
         # Query database directly for privilege records
         provider_user_records = get_provider_user_records(self.compact, self.provider_id)
 
         # Find the Nebraska privilege
-        ne_privileges = provider_user_records.get_privilege_records(
-            filter_condition=lambda priv: priv.jurisdiction == 'ne'
+        privileges_in_live_jurisdiction = provider_user_records.get_privilege_records(
+            filter_condition=lambda priv: priv.jurisdiction == LIVE_JURISDICTION
         )
 
-        if not ne_privileges:
+        if not privileges_in_live_jurisdiction:
             raise SmokeTestFailureException('Nebraska privilege not found for provider')
 
-        privilege_record = ne_privileges[0]
+        privilege_record = privileges_in_live_jurisdiction[0]
         self.privilege_jurisdiction = privilege_record.jurisdiction
         self.license_jurisdiction = privilege_record.licenseJurisdiction
         self.license_type = privilege_record.licenseType
@@ -488,9 +486,7 @@ def test_license_encumbrance_workflow():
     logger.info('Starting license encumbrance workflow test...')
     # remove adverse action records from previous tests
     clean_adverse_actions()
-    # Get provider data and create helper
-    provider_data = call_provider_users_me_endpoint()
-    helper = EncumbranceTestHelper(provider_data)
+    helper = EncumbranceTestHelper()
 
     try:
         # Step 1: Encumber the license twice
@@ -700,10 +696,7 @@ def test_privilege_encumbrance_workflow():
     """
     logger.info('Starting privilege encumbrance workflow test...')
     clean_adverse_actions()
-    # Get provider data and create helper
-    read_headers = get_staff_user_auth_headers(config.smoke_read_general_staff_email)
-    provider_data = call_provider_details_endpoint(read_headers, ENCUMBRANCE_SMOKE_COMPACT, config.test_provider_id)
-    helper = EncumbranceTestHelper(provider_data)
+    helper = EncumbranceTestHelper()
 
     try:
         # Step 1: Encumber the privilege twice
@@ -826,10 +819,7 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
     """
     logger.info('Starting complex privilege and license encumbrance workflow test...')
 
-    # Get provider data and create helper
-    read_headers = get_staff_user_auth_headers(config.smoke_read_general_staff_email)
-    provider_data = call_provider_details_endpoint(read_headers, ENCUMBRANCE_SMOKE_COMPACT, config.test_provider_id)
-    helper = EncumbranceTestHelper(provider_data)
+    helper = EncumbranceTestHelper()
 
     try:
         # Step 1: Encumber the privilege directly
