@@ -6,7 +6,6 @@ from config import config, logger
 from deepdiff import DeepDiff
 from smoke_common import (
     SmokeTestFailureException,
-    call_provider_users_me_endpoint,
     create_test_staff_user,
     delete_test_staff_user,
     get_staff_user_auth_headers,
