@@ -502,7 +502,7 @@ def test_license_encumbrance_workflow():
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-11-11',
             'encumbranceType': 'surrender of license',
-            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
+            'clinicalPrivilegeActionCategories': ['fraud'],
         }
 
         # First encumbrance
@@ -563,8 +563,8 @@ def test_license_encumbrance_workflow():
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-01-01',
-            'encumbranceType': 'denial',
-            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['consumer harm'],
         }
         helper.encumber_license(second_encumbrance_body)
         logger.info('Second license encumbrance created successfully')
@@ -588,7 +588,7 @@ def test_license_encumbrance_workflow():
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-05-09',
             'encumbranceType': 'reprimand',
-            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care', 'Misconduct or Abuse'],
+            'clinicalPrivilegeActionCategories': ['other'],
         }
 
         helper.encumber_privilege(privilege_encumbrance_body)
@@ -714,8 +714,8 @@ def test_privilege_encumbrance_workflow():
 
         encumbrance_body = {
             'encumbranceEffectiveDate': '2024-12-12',
-            'encumbranceType': 'fine',
-            'clinicalPrivilegeActionCategories': ['Fraud, Deception, or Misrepresentation'],
+            'encumbranceType': 'revocation',
+            'clinicalPrivilegeActionCategories': ['fraud'],
         }
 
         # First encumbrance
@@ -749,8 +749,8 @@ def test_privilege_encumbrance_workflow():
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-02-02',
-            'encumbranceType': 'completion of continuing education',
-            'clinicalPrivilegeActionCategories': ['Unsafe Practice or Substandard Care'],
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['consumer harm'],
         }
         helper.encumber_privilege(second_encumbrance_body)
         logger.info('Second privilege encumbrance created successfully')
@@ -838,11 +838,9 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
         logger.info('Step 1: Creating privilege encumbrance...')
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2024-01-15',
-            'encumbranceType': 'probation',
+            'encumbranceType': 'revocation',
             'clinicalPrivilegeActionCategories': [
-                'Unsafe Practice or Substandard Care',
-                'Non-compliance With Requirements',
-                'Fraud, Deception, or Misrepresentation',
+                'fraud',
             ],
         }
 
@@ -867,9 +865,7 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
             'encumbranceEffectiveDate': '2024-01-20',
             'encumbranceType': 'suspension',
             'clinicalPrivilegeActionCategories': [
-                'Criminal Conviction or Adjudication',
-                'Improper Supervision or Allowing Unlicensed Practice',
-                'Other',
+                'fraud',
             ],
         }
 
