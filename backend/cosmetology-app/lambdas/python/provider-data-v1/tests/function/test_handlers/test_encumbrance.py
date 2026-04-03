@@ -43,10 +43,12 @@ TEST_ENCUMBRANCE_EFFECTIVE_DATETIME = '2023-01-15T12:00:00-04:00'
 
 
 def _generate_test_body():
-    from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory
+    from cc_common.data_model.schema.common import ClinicalPrivilegeActionCategory, EncumbranceType
 
     return {
         'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
+        # These Enums are expected to be `str` type, so we'll directly access their .value
+        'encumbranceType': EncumbranceType.SUSPENSION.value,
         'clinicalPrivilegeActionCategories': [ClinicalPrivilegeActionCategory.FRAUD.value],
     }
 
