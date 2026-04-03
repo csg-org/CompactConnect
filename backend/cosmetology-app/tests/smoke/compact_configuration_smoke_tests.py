@@ -437,4 +437,6 @@ if __name__ == '__main__':
     load_smoke_test_env()
     test_active_member_jurisdictions()
     test_compact_configuration()
-    test_jurisdiction_configuration()
+    # for the smoke tests, we set two jurisdictions to live for license and privilege smoke tests
+    test_jurisdiction_configuration('az')
+    test_jurisdiction_configuration('al')
