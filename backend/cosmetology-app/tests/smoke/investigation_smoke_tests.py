@@ -28,9 +28,7 @@ INVESTIGATION_SMOKE_COMPACT = 'cosm'
 
 def _fetch_provider_details(auth_headers: dict) -> dict:
     """Staff GET provider details for the smoke-test provider (CC_TEST_PROVIDER_ID)."""
-    return call_provider_details_endpoint(
-        auth_headers, INVESTIGATION_SMOKE_COMPACT, config.test_provider_id
-    )
+    return call_provider_details_endpoint(auth_headers, INVESTIGATION_SMOKE_COMPACT, config.test_provider_id)
 
 
 def clean_investigation_records():
@@ -151,9 +149,7 @@ def _get_privilege_data_from_provider_response(provider_data: dict, jurisdiction
     )
 
 
-def _verify_no_investigation_exists(
-    record_type: str, jurisdiction: str, license_type: str, auth_headers: dict
-):
+def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license_type: str, auth_headers: dict):
     """
     Verify that no open investigation records exist in the database and no investigation status or objects on the
     record.
@@ -193,9 +189,7 @@ def _verify_no_investigation_exists(
         raise SmokeTestFailureException('Investigation objects still exist in API response')
 
 
-def _verify_investigation_exists(
-    record_type: str, jurisdiction: str, license_type: str, auth_headers: dict
-):
+def _verify_investigation_exists(record_type: str, jurisdiction: str, license_type: str, auth_headers: dict):
     """
     Verify that an open investigation exists and the record has investigation status.
 

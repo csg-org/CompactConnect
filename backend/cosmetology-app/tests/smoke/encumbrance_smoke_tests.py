@@ -8,13 +8,14 @@ including setting encumbrances and lifting them through the API endpoints.
 This script assumes your test environment has a live jurisdiction for generating at least one privilege
 record. You can set the value of the live jurisdiction in the LIVE_JURISDICTION constant
 """
+
 import time
 
 import requests
 from smoke_common import (
     SmokeTestFailureException,
-    config,
     call_provider_details_endpoint,
+    config,
     create_test_staff_user,
     delete_test_staff_user,
     get_all_provider_database_records,
@@ -27,6 +28,7 @@ from smoke_common import (
 
 ENCUMBRANCE_SMOKE_COMPACT = 'cosm'
 LIVE_JURISDICTION = 'az'
+
 
 def clean_adverse_actions():
     """
@@ -77,12 +79,10 @@ def setup_test_environment():
     """
     logger.info('Setting up test environment...')
 
-
     clean_adverse_actions()
 
     # remove encumbered status from license and provider if present
     _remove_encumbered_status_from_license_and_provider()
-
 
     logger.info('Test environment setup complete')
 
@@ -371,8 +371,9 @@ class EncumbranceTestHelper:
         matching_adverse_action = self.get_privilege_adverse_action_by_id(adverse_action_id)
         lift_date = matching_adverse_action.get('effectiveLiftDate')
         if lift_date is not None:
-            raise SmokeTestFailureException(f'Adverse action has unexpected lift date for ID: '
-                                            f'{adverse_action_id}. effectiveLiftDate: {lift_date}')
+            raise SmokeTestFailureException(
+                f'Adverse action has unexpected lift date for ID: {adverse_action_id}. effectiveLiftDate: {lift_date}'
+            )
 
     def verify_privilege_adverse_action_lifted(self, adverse_action_id: str) -> None:
         """
@@ -608,9 +609,7 @@ def test_license_encumbrance_workflow():
 
         # Step 7: Verify privilege becomes 'unencumbered'
         logger.info('Step 7: Verifying privilege becomes unencumbered...')
-        helper.verify_privilege_adverse_action_lifted(
-            adverse_action_id=privilege_adverse_action_id
-        )
+        helper.verify_privilege_adverse_action_lifted(adverse_action_id=privilege_adverse_action_id)
         helper.verify_privilege_adverse_action_lifted(privilege_adverse_action_id)
         logger.info('Verified privilege is now unencumbered')
 

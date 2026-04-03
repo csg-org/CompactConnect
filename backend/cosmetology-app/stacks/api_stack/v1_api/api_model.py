@@ -642,7 +642,7 @@ class ApiModel:
                                         ),
                                         'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,
+                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,  # noqa: E501
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),
@@ -772,7 +772,7 @@ class ApiModel:
                                         ),
                                         'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                                         'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,
+                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,  # noqa: E501
                                         'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                                     },
                                 ),

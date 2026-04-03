@@ -618,9 +618,7 @@ class TestSearchProviders(TstFunction):
         mock_opensearch_client.search.assert_not_called()
 
     @patch('handlers.search.opensearch_client')
-    def test_search_with_date_of_birth_string_in_list_rejected_without_read_private_scope(
-        self, mock_opensearch_client
-    ):
+    def test_search_with_date_of_birth_string_in_list_rejected_without_read_private_scope(self, mock_opensearch_client):
         """dateOfBirth as a list element (e.g. multi_match fields) must not bypass readPrivate checks."""
         from handlers.search import search_api_handler
 
