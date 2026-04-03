@@ -6,17 +6,18 @@ This script tests the end-to-end encumbrance workflow for both licenses and priv
 including setting encumbrances and lifting them through the API endpoints.
 """
 
+import os
 import time
 
 import requests
-from purchasing_privileges_smoke_tests import test_purchasing_privilege
 from smoke_common import (
     SmokeTestFailureException,
-    call_provider_users_me_endpoint,
+    call_provider_details_endpoint,
     config,
     create_test_staff_user,
     delete_test_staff_user,
     get_all_provider_database_records,
+    get_license_type_abbreviation,
     get_provider_user_dynamodb_table,
     get_provider_user_records,
     get_staff_user_auth_headers,
@@ -24,6 +25,7 @@ from smoke_common import (
     logger,
 )
 
+ENCUMBRANCE_SMOKE_COMPACT = 'cosm'
 
 def clean_adverse_actions():
     """
@@ -31,8 +33,7 @@ def clean_adverse_actions():
     """
     logger.info('Cleaning up existing adverse action records...')
 
-    # Get all provider database records
-    all_records = get_all_provider_database_records()
+    all_records = get_all_provider_database_records(ENCUMBRANCE_SMOKE_COMPACT, config.test_provider_id)
 
     # Filter for adverse action records
     adverse_action_records = [record for record in all_records if record.get('type') == 'adverseAction']
@@ -53,8 +54,7 @@ def clean_adverse_actions():
 
 
 def _remove_encumbered_status_from_license_and_provider():
-    # Get all provider database records
-    all_records = get_all_provider_database_records()
+    all_records = get_all_provider_database_records(ENCUMBRANCE_SMOKE_COMPACT, config.test_provider_id)
 
     for record in all_records:
         if record.get('type') == 'license' or record.get('type') == 'provider':
@@ -72,19 +72,16 @@ def _remove_encumbered_status_from_license_and_provider():
 
 def setup_test_environment():
     """
-    Set up the test environment by cleaning adverse actions and purchasing a privilege.
+    Set up the test environment by cleaning any previous adverse actions.
     """
     logger.info('Setting up test environment...')
 
-    # Clean up any existing adverse actions
+
     clean_adverse_actions()
 
     # remove encumbered status from license and provider if present
     _remove_encumbered_status_from_license_and_provider()
 
-    # Purchase a privilege to ensure we have one to test with
-    logger.info('Purchasing a privilege for testing...')
-    test_purchasing_privilege()
 
     logger.info('Test environment setup complete')
 
@@ -96,7 +93,7 @@ class EncumbranceTestHelper:
         """
         Initialize the helper with provider data and set up all necessary resources.
 
-        :param provider_data: Result from call_provider_users_me_endpoint()
+        :param provider_details: JSON body from GET /v1/compacts/{compact}/providers/{providerId}
         """
         self.provider_data = provider_data
         self.compact = provider_data['compact']
@@ -702,10 +699,10 @@ def test_privilege_encumbrance_workflow():
     3. Lift the final encumbrance (privilege should become unencumbered)
     """
     logger.info('Starting privilege encumbrance workflow test...')
-    # clean adverse actions from previous test
     clean_adverse_actions()
     # Get provider data and create helper
-    provider_data = call_provider_users_me_endpoint()
+    read_headers = get_staff_user_auth_headers(config.smoke_read_general_staff_email)
+    provider_data = call_provider_details_endpoint(read_headers, ENCUMBRANCE_SMOKE_COMPACT, config.test_provider_id)
     helper = EncumbranceTestHelper(provider_data)
 
     try:
@@ -830,7 +827,8 @@ def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow(
     logger.info('Starting complex privilege and license encumbrance workflow test...')
 
     # Get provider data and create helper
-    provider_data = call_provider_users_me_endpoint()
+    read_headers = get_staff_user_auth_headers(config.smoke_read_general_staff_email)
+    provider_data = call_provider_details_endpoint(read_headers, ENCUMBRANCE_SMOKE_COMPACT, config.test_provider_id)
     helper = EncumbranceTestHelper(provider_data)
 
     try:

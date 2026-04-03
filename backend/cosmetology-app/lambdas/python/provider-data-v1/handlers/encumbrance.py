@@ -36,6 +36,11 @@ LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
 )
 
 
+def _ensure_jurisdiction_live(compact: str, jurisdiction: str) -> None:
+    if not config.compact_configuration_client.is_jurisdiction_live_in_compact(compact, jurisdiction):
+        raise CCInvalidRequestException('Jurisdiction is not live in this compact')
+
+
 @api_handler
 @authorize_state_level_only_action(action=CCPermissionsAction.ADMIN)
 def encumbrance_handler(event: dict, context: LambdaContext) -> dict:
@@ -146,6 +151,7 @@ def handle_privilege_encumbrance(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
+    _ensure_jurisdiction_live(compact, jurisdiction)
     provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     submitting_user = _get_submitting_user_id(event)
@@ -202,6 +208,7 @@ def handle_license_encumbrance(event: dict) -> dict:
     # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
+    _ensure_jurisdiction_live(compact, jurisdiction)
     provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     submitting_user = _get_submitting_user_id(event)
@@ -230,6 +237,7 @@ def handle_privilege_encumbrance_lifting(event: dict) -> dict:
         compact = event['pathParameters']['compact']
         provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
         jurisdiction = event['pathParameters']['jurisdiction']
+        _ensure_jurisdiction_live(compact, jurisdiction)
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
         encumbrance_id = to_uuid(event['pathParameters']['encumbranceId'], 'Invalid encumbranceId provided')
 
@@ -282,6 +290,7 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
         compact = event['pathParameters']['compact']
         provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
         jurisdiction = event['pathParameters']['jurisdiction']
+        _ensure_jurisdiction_live(compact, jurisdiction)
         license_type_abbreviation = event['pathParameters']['licenseType'].lower()
         encumbrance_id = to_uuid(event['pathParameters']['encumbranceId'], 'Invalid encumbranceId provided')
 

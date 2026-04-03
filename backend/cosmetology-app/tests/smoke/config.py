@@ -69,20 +69,15 @@ class _Config:
         return os.environ['CC_TEST_COGNITO_STAFF_USER_POOL_ID']
 
     @property
-    def cognito_provider_user_client_id(self):
-        return os.environ['CC_TEST_COGNITO_PROVIDER_USER_POOL_CLIENT_ID']
+    def test_provider_id(self):
+        return os.environ['CC_TEST_PROVIDER_ID']
 
     @property
-    def cognito_provider_user_pool_id(self):
-        return os.environ['CC_TEST_COGNITO_PROVIDER_USER_POOL_ID']
-
-    @property
-    def test_provider_user_username(self):
-        return os.environ['CC_TEST_PROVIDER_USER_USERNAME']
-
-    @property
-    def test_provider_user_password(self):
-        return os.environ['CC_TEST_PROVIDER_USER_PASSWORD']
+    def smoke_read_general_staff_email(self):
+        return os.environ.get(
+            'CC_TEST_SMOKE_READ_GENERAL_STAFF_EMAIL',
+            'testStaffUserLicenseUploader@smokeTestFakeEmail.com',
+        )
 
     @property
     def sandbox_authorize_net_api_login_id(self):
