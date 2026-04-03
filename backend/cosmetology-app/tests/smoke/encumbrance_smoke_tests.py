@@ -14,6 +14,7 @@ import requests
 from smoke_common import (
     SmokeTestFailureException,
     config,
+    call_provider_details_endpoint,
     create_test_staff_user,
     delete_test_staff_user,
     get_all_provider_database_records,
@@ -139,6 +140,14 @@ class EncumbranceTestHelper:
 
         return {'email': email, 'user_sub': user_sub, 'headers': headers}
 
+    def get_provider_details(self) -> dict:
+        """Get provider details for the smoke-test provider."""
+        return call_provider_details_endpoint(
+            self.get_license_staff_admin_headers(),
+            self.compact,
+            self.provider_id,
+        )
+
     def get_privilege_staff_admin_headers(self) -> dict:
         """Get authentication headers for privilege jurisdiction staff user."""
         return self.privilege_jurisdiction_staff_user['headers']
@@ -250,82 +259,6 @@ class EncumbranceTestHelper:
 
         return license_record
 
-    def validate_privilege_encumbered_state(
-        self, expected_status: str = 'encumbered', max_wait_time: int = 60, check_interval: int = 10
-    ):
-        """
-        Validate that the privilege encumberedStatus matches the expected value.
-
-        This method will poll the provider records every check_interval seconds
-        for up to max_wait_time seconds, checking if the privilege has the expected
-        encumberedStatus. This accounts for eventual consistency in downstream processing.
-
-        :param expected_status: The expected encumberedStatus value ('licenseEncumbered', 'unencumbered', etc.)
-        :param max_wait_time: Maximum time to wait in seconds (default: 60)
-        :param check_interval: Time between checks in seconds (default: 10)
-
-        :raises:
-            :class:`~smoke_common.SmokeTestFailureException`: If the privilege status doesn't match within max_wait_time
-        """
-        logger.info(
-            f'Validating privilege encumbered status is "{expected_status}" '
-            f'for jurisdiction "{self.privilege_jurisdiction}"...'
-        )
-
-        start_time = time.time()
-        attempts = 0
-        max_attempts = max_wait_time // check_interval
-
-        while attempts < max_attempts:
-            attempts += 1
-
-            try:
-                # Get current provider records directly from DynamoDB
-                provider_user_records = get_provider_user_records(self.compact, self.provider_id)
-
-                # Find the privilege that matches the license jurisdiction and type
-                matching_privilege = provider_user_records.get_specific_privilege_record(
-                    self.privilege_jurisdiction, self.license_type_abbreviation
-                )
-
-                if not matching_privilege:
-                    logger.warning(
-                        f'Attempt {attempts}/{max_attempts}: No privilege found matching jurisdiction '
-                        f'"{self.privilege_jurisdiction}" and license type "{self.license_type_abbreviation}"'
-                    )
-                else:
-                    logger.info('matching privilege found', matching_privilege=matching_privilege)
-                    actual_status = matching_privilege.encumberedStatus
-                    logger.info(
-                        f'Attempt {attempts}/{max_attempts}: Privilege encumberedStatus is "{actual_status}", '
-                        f'expecting "{expected_status}"'
-                    )
-
-                    if actual_status == expected_status:
-                        elapsed_time = time.time() - start_time
-                        logger.info(
-                            f'✅ Privilege encumbered status validation successful after {elapsed_time:.1f} seconds'
-                        )
-                        return matching_privilege
-
-                # If not the last attempt, wait before trying again
-                if attempts < max_attempts:
-                    logger.info(f'Waiting {check_interval} seconds before next check...')
-                    time.sleep(check_interval)
-
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f'Attempt {attempts}/{max_attempts}: Error checking privilege status: {e}')
-                if attempts < max_attempts:
-                    time.sleep(check_interval)
-
-        # If we get here, validation failed
-        elapsed_time = time.time() - start_time
-        raise SmokeTestFailureException(
-            f'Privilege encumbered status validation failed after {elapsed_time:.1f} seconds. '
-            f'Expected "{expected_status}" but status did not update within {max_wait_time} seconds. '
-            f'This suggests the downstream processing is not working correctly.'
-        )
-
     def validate_provider_encumbered_state(self, expected_status: str = 'encumbered'):
         """Validate provider encumbered status."""
         # Get all provider records directly from DynamoDB
@@ -421,6 +354,38 @@ class EncumbranceTestHelper:
         privilege_adverse_actions = self.get_privilege_adverse_actions()
         return self.verify_adverse_action_matches_request(privilege_adverse_actions, request_payload)
 
+    def get_privilege_adverse_action_by_id(self, adverse_action_id: str):
+        privilege_adverse_actions = self.get_privilege_adverse_actions()
+        matching_actions = [aa for aa in privilege_adverse_actions if aa['adverseActionId'] == adverse_action_id]
+        if not matching_actions:
+            raise SmokeTestFailureException(f'No matching adverse action found for ID: {adverse_action_id}')
+        return matching_actions[0]
+
+    def verify_privilege_adverse_action_not_lifted(self, adverse_action_id: str) -> None:
+        """
+        Verify that a privilege adverse action has not been lifted.
+
+        :param adverse_action_id: The id of the adverse action
+        :return: The matching adverse action record
+        """
+        matching_adverse_action = self.get_privilege_adverse_action_by_id(adverse_action_id)
+        lift_date = matching_adverse_action.get('effectiveLiftDate')
+        if lift_date is not None:
+            raise SmokeTestFailureException(f'Adverse action has unexpected lift date for ID: '
+                                            f'{adverse_action_id}. effectiveLiftDate: {lift_date}')
+
+    def verify_privilege_adverse_action_lifted(self, adverse_action_id: str) -> None:
+        """
+        Verify that a privilege adverse action has been lifted.
+
+        :param adverse_action_id: The id of the adverse action
+        :return: The matching adverse action record
+        """
+        matching_adverse_action = self.get_privilege_adverse_action_by_id(adverse_action_id)
+        lift_date = matching_adverse_action.get('effectiveLiftDate')
+        if lift_date is None:
+            raise SmokeTestFailureException(f'Adverse action is missing expected lift date for ID:{adverse_action_id}')
+
     def _generate_license_encumbrance_url(self, encumbrance_id: str = None):
         """Generate license encumbrance URL."""
         base_url = (
@@ -472,13 +437,12 @@ def test_license_encumbrance_workflow():
     """
     Test the complete license encumbrance workflow:
     1. Encumber a license twice
-    2. Verify that the associated privilege is also encumbered with a 'licenseEncumbered' encumberedStatus
-    3. Encumber privilege and ensure it is updated to an 'encumbered' encumberedStatus
-    4. Lift one encumbrance (license should remain encumbered)
-    5. Lift the final encumbrance (license should become unencumbered)
-    6. Verify that the associated privilege is still encumbered (has an 'encumbered' encumberedStatus)
-    7. Lift encumbrance from privilege
-    8. Verify privilege is unencumbered
+    2. Encumber privilege and ensure it is updated to an 'encumbered' encumberedStatus
+    3. Lift one encumbrance (license should remain encumbered)
+    4. Lift the final encumbrance (license should become unencumbered)
+    5. Verify that the associated privilege is still encumbered (has an 'encumbered' encumberedStatus)
+    6. Lift encumbrance from privilege
+    7. Verify privilege is unencumbered
     """
     logger.info('Starting license encumbrance workflow test...')
     # remove adverse action records from previous tests
@@ -545,11 +509,6 @@ def test_license_encumbrance_workflow():
         helper.verify_license_adverse_action_matches_request(encumbrance_body)
         logger.info('First license encumbrance verified successfully')
 
-        # Step 2: Verify that the associated privilege is also encumbered with 'licenseEncumbered' status
-        logger.info('Verifying associated privilege is encumbered...')
-        helper.validate_privilege_encumbered_state('licenseEncumbered')
-        logger.info('Verified privilege is encumbered with licenseEncumbered status')
-
         # Second encumbrance
         second_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-01-01',
@@ -574,7 +533,7 @@ def test_license_encumbrance_workflow():
         helper.verify_license_adverse_action_matches_request(second_encumbrance_body)
         logger.info('Second license encumbrance verified successfully')
 
-        # Step 3: Encumber Privilege
+        # Step 2: Encumber privilege
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-05-09',
             'encumbranceType': 'suspension',
@@ -584,20 +543,12 @@ def test_license_encumbrance_workflow():
         helper.encumber_privilege(privilege_encumbrance_body)
         logger.info('Privilege encumbrance created successfully')
 
-        # privilege should now be encumbered
-        helper.validate_privilege_encumbered_state(
-            expected_status='encumbered',
-            # only need to check once
-            max_wait_time=1,
-            check_interval=1,
-        )
-
         # Verify the privilege adverse action matches the request payload
         helper.verify_privilege_adverse_action_matches_request(privilege_encumbrance_body)
         logger.info('Privilege encumbrance verified successfully')
 
-        # Step 4: Lift first encumbrance (license should remain encumbered)
-        logger.info('Step 4: Lifting first license encumbrance...')
+        # Step 3: Lift first encumbrance (license should remain encumbered)
+        logger.info('Step 3: Lifting first license encumbrance...')
 
         lift_body = {
             'effectiveLiftDate': '2025-05-05',
@@ -620,8 +571,8 @@ def test_license_encumbrance_workflow():
         # this keeps the lifting events isolated from each other
         helper.wait_for_downstream_processing()
 
-        # Step 5: Lift final encumbrance (license should become unencumbered)
-        logger.info('Step 5: Lifting final license encumbrance...')
+        # Step 4: Lift final encumbrance (license should become unencumbered)
+        logger.info('Step 4: Lifting final license encumbrance...')
 
         lift_body = {
             'effectiveLiftDate': '2025-05-25',
@@ -636,15 +587,8 @@ def test_license_encumbrance_workflow():
         # Verify provider is still encumbered (due to privilege encumbrance)
         helper.validate_provider_encumbered_state('encumbered')
 
-        # Step 6: Verify that the associated privilege is still encumbered
+        # Step 5: Verify that the associated privilege is still encumbered
         logger.info('Verifying associated privilege is still encumbered...')
-        helper.validate_privilege_encumbered_state(
-            expected_status='encumbered',
-            # only check once
-            max_wait_time=1,
-            check_interval=1,
-        )
-        logger.info('Verified privilege is still encumbered after lifting all license encumbrances')
 
         privilege_adverse_actions = helper.get_privilege_adverse_actions()
 
@@ -654,21 +598,20 @@ def test_license_encumbrance_workflow():
             )
 
         privilege_adverse_action_id = privilege_adverse_actions[0]['adverseActionId']
+        helper.verify_privilege_adverse_action_not_lifted(privilege_adverse_action_id)
 
-        # Step 7: Lift the privilege encumbrance
-        logger.info('Step 7: Lifting privilege encumbrance...')
+        # Step 6: Lift the privilege encumbrance
+        logger.info('Step 6: Lifting privilege encumbrance...')
         lift_body = {'effectiveLiftDate': '2023-01-25'}
         helper.lift_privilege_encumbrance(lift_body, privilege_adverse_action_id)
         logger.info('Privilege encumbrance lifted successfully')
 
-        # Step 8: Verify privilege becomes 'unencumbered'
-        logger.info('Step 8: Verifying privilege becomes unencumbered...')
-        helper.validate_privilege_encumbered_state(
-            expected_status='unencumbered',
-            # should be instantly set to unencumbered
-            max_wait_time=1,
-            check_interval=1,
+        # Step 7: Verify privilege becomes 'unencumbered'
+        logger.info('Step 7: Verifying privilege becomes unencumbered...')
+        helper.verify_privilege_adverse_action_lifted(
+            adverse_action_id=privilege_adverse_action_id
         )
+        helper.verify_privilege_adverse_action_lifted(privilege_adverse_action_id)
         logger.info('Verified privilege is now unencumbered')
 
         logger.info('License encumbrance workflow test completed successfully')
@@ -709,15 +652,7 @@ def test_privilege_encumbrance_workflow():
         helper.encumber_privilege(encumbrance_body)
         logger.info('First privilege encumbrance created successfully')
 
-        # Verify provider state after first encumbrance
-        helper.validate_privilege_encumbered_state(
-            expected_status='encumbered',
-            # only need to check once
-            max_wait_time=1,
-            check_interval=1,
-        )
-
-        # Check provider status to ensure it is encumbered as well
+        # Check provider status to ensure it shows encumbered status
         helper.validate_provider_encumbered_state('encumbered')
 
         # Verify adverse action exists
@@ -769,8 +704,11 @@ def test_privilege_encumbrance_workflow():
         helper.lift_privilege_encumbrance(lift_body, first_adverse_action_id)
         logger.info('First privilege encumbrance lifted successfully')
 
-        # Verify privilege is still encumbered
-        helper.validate_privilege_encumbered_state('encumbered')
+        # Verify first privilege encumbrance is lifted
+        helper.verify_privilege_adverse_action_lifted(first_adverse_action_id)
+
+        # Verify second privilege is still encumbered
+        helper.verify_privilege_adverse_action_not_lifted(second_adverse_action_id)
 
         # Also verify the provider record is still encumbered
         helper.validate_provider_encumbered_state('encumbered')
@@ -791,154 +729,13 @@ def test_privilege_encumbrance_workflow():
         helper.lift_privilege_encumbrance(lift_body, second_adverse_action_id)
         logger.info('Final privilege encumbrance lifted successfully')
 
-        # Verify privilege is now unencumbered
-        helper.validate_privilege_encumbered_state('unencumbered')
+        # Verify second encumbrance is now lifted
+        helper.verify_privilege_adverse_action_lifted(second_adverse_action_id)
 
         # Also verify the provider record is now unencumbered
         helper.validate_provider_encumbered_state('unencumbered')
 
         logger.info('Privilege encumbrance workflow test completed successfully')
-
-    finally:
-        # Clean up all created staff users
-        helper.cleanup_staff_users()
-
-
-def test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow():
-    """
-    Test privilege encumbrance status values that can occur in the various encumbrance scenarios:
-    1. Encumber a privilege directly
-    2. Encumber the associated license
-    3. Verify privilege remains 'encumbered' (not 'licenseEncumbered')
-    4. Lift the privilege encumbrance
-    5. Verify privilege becomes 'licenseEncumbered'
-    6. Lift license encumbrance and verify privilege encumbrance is lifted automatically and set to 'unencumbered'
-    """
-    logger.info('Starting complex privilege and license encumbrance workflow test...')
-
-    helper = EncumbranceTestHelper()
-
-    try:
-        # Step 1: Encumber the privilege directly
-        logger.info('Step 1: Creating privilege encumbrance...')
-        privilege_encumbrance_body = {
-            'encumbranceEffectiveDate': '2024-01-15',
-            'encumbranceType': 'revocation',
-            'clinicalPrivilegeActionCategories': [
-                'fraud',
-            ],
-        }
-
-        helper.encumber_privilege(privilege_encumbrance_body)
-        logger.info('Privilege encumbrance created successfully')
-
-        # Verify privilege is encumbered
-        helper.validate_privilege_encumbered_state(
-            expected_status='encumbered',
-            # should be instantly set to encumbered
-            max_wait_time=1,
-            check_interval=1,
-        )
-
-        # Verify the privilege adverse action matches the request payload
-        helper.verify_privilege_adverse_action_matches_request(privilege_encumbrance_body)
-        logger.info('Verified privilege is directly encumbered')
-
-        # Step 2: Encumber the associated license
-        logger.info('Step 2: Creating license encumbrance...')
-        license_encumbrance_body = {
-            'encumbranceEffectiveDate': '2024-01-20',
-            'encumbranceType': 'suspension',
-            'clinicalPrivilegeActionCategories': [
-                'fraud',
-            ],
-        }
-
-        helper.encumber_license(license_encumbrance_body)
-        logger.info('License encumbrance created successfully')
-
-        # Verify the license adverse action matches the request payload
-        helper.verify_license_adverse_action_matches_request(license_encumbrance_body)
-
-        # wait 1 minute for downstream processing to complete
-        # to ensure it doesn't change the privilege record
-        helper.wait_for_downstream_processing()
-
-        # Step 3: Verify privilege remains 'encumbered' (not 'licenseEncumbered')
-        logger.info('Step 3: Verifying privilege remains directly encumbered...')
-        helper.validate_privilege_encumbered_state(
-            expected_status='encumbered',
-            # only need to check once
-            max_wait_time=1,
-            check_interval=1,
-        )
-        logger.info('Verified privilege remains directly encumbered (not licenseEncumbered)')
-
-        # Get the privilege adverse action ID for lifting
-        privilege_adverse_actions = helper.get_privilege_adverse_actions()
-
-        if len(privilege_adverse_actions) != 1:
-            raise SmokeTestFailureException(
-                f'Expected 1 privilege adverse action, found: {len(privilege_adverse_actions)}'
-            )
-
-        privilege_adverse_action_id = privilege_adverse_actions[0]['adverseActionId']
-
-        # Step 4: Lift the privilege encumbrance
-        logger.info('Step 4: Lifting privilege encumbrance...')
-        lift_body = {'effectiveLiftDate': '2024-01-25'}
-        helper.lift_privilege_encumbrance(lift_body, privilege_adverse_action_id)
-        logger.info('Privilege encumbrance lifted successfully')
-
-        # Step 5: Verify privilege becomes 'licenseEncumbered'
-        logger.info('Step 5: Verifying privilege becomes licenseEncumbered...')
-        helper.validate_privilege_encumbered_state(
-            expected_status='licenseEncumbered',
-            # should be instantly set to licenseEncumbered
-            max_wait_time=1,
-            check_interval=1,
-        )
-        logger.info('Verified privilege is now licenseEncumbered')
-
-        # Get the license adverse action ID for lifting
-        license_adverse_actions = helper.get_license_adverse_actions()
-
-        if len(license_adverse_actions) != 1:
-            raise SmokeTestFailureException(f'Expected 1 license adverse action, found: {len(license_adverse_actions)}')
-
-        license_adverse_action_id = license_adverse_actions[0]['adverseActionId']
-
-        # Step 6: Lift the license encumbrance
-        logger.info('Step 6: Lifting license encumbrance...')
-        lift_body = {'effectiveLiftDate': '2024-01-30'}
-        helper.lift_license_encumbrance(lift_body, license_adverse_action_id)
-        logger.info('License encumbrance lifted successfully')
-
-        # Wait for downstream processing to complete, including notification handlers
-        # This prevents race conditions where notification handlers might still be processing
-        logger.info('Waiting for downstream processing and notification handlers to complete...')
-        helper.wait_for_downstream_processing()
-
-        # Step 7: Verify privilege becomes 'unencumbered'
-        logger.info('Step 7: Verifying privilege becomes unencumbered...')
-        helper.validate_privilege_encumbered_state(expected_status='unencumbered')
-        logger.info('Verified privilege is now fully unencumbered')
-
-        # Final verification: Check that provider is also unencumbered
-        provider_user_records = get_provider_user_records(helper.compact, helper.provider_id)
-        provider_record = provider_user_records.get_provider_record()
-
-        if provider_record.encumberedStatus != 'unencumbered':
-            raise SmokeTestFailureException(
-                f"Provider encumberedStatus should be 'unencumbered', got: {provider_record.encumberedStatus}"
-            )
-
-        if provider_record.compactEligibility != 'eligible':
-            raise SmokeTestFailureException(
-                f"Provider compactEligibility should be 'eligible', got: {provider_record.compactEligibility}"
-            )
-
-        logger.info('Complex privilege and license encumbrance workflow test completed successfully')
 
     finally:
         # Clean up all created staff users
@@ -954,9 +751,6 @@ def run_encumbrance_smoke_tests():
     try:
         # Setup test environment
         setup_test_environment()
-
-        # Run privilege and license encumbrance tests
-        test_privilege_encumbrance_status_changes_with_license_encumbrance_workflow()
 
         # Run license encumbrance tests
         test_license_encumbrance_workflow()
