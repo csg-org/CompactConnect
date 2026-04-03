@@ -452,8 +452,8 @@ def main():
         staff_user_sub = create_test_staff_user(
             email=staff_user_email,
             compact='cosm',
-            jurisdiction='ne',
-            permissions={'actions': {'admin'}, 'jurisdictions': {'ne': {'admin'}, 'co': {'admin'}, 'ky': {'admin'}}},
+            jurisdiction='az',
+            permissions={'actions': {'admin'}, 'jurisdictions': {'az': {'admin'}, 'co': {'admin'}, 'ky': {'admin'}}},
         )
 
         # Get staff user auth headers once for reuse

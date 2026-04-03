@@ -25,7 +25,7 @@ from smoke_common import (
 )
 
 ENCUMBRANCE_SMOKE_COMPACT = 'cosm'
-LIVE_JURISDICTION = 'ne'
+LIVE_JURISDICTION = 'az'
 
 def clean_adverse_actions():
     """
@@ -101,19 +101,16 @@ class EncumbranceTestHelper:
         # Query database directly for privilege records
         provider_user_records = get_provider_user_records(self.compact, self.provider_id)
 
-        # Find the Nebraska privilege
-        privileges_in_live_jurisdiction = provider_user_records.get_privilege_records(
-            filter_condition=lambda priv: priv.jurisdiction == LIVE_JURISDICTION
-        )
+        # Get license record
+        provider_license = provider_user_records.find_best_license_in_current_known_licenses()
 
-        if not privileges_in_live_jurisdiction:
-            raise SmokeTestFailureException('Nebraska privilege not found for provider')
+        if not provider_license:
+            raise SmokeTestFailureException('License not found for provider')
 
-        privilege_record = privileges_in_live_jurisdiction[0]
-        self.privilege_jurisdiction = privilege_record.jurisdiction
-        self.license_jurisdiction = privilege_record.licenseJurisdiction
-        self.license_type = privilege_record.licenseType
-        self.license_type_abbreviation = privilege_record.licenseTypeAbbreviation
+        self.privilege_jurisdiction = LIVE_JURISDICTION
+        self.license_jurisdiction = provider_license.jurisdiction
+        self.license_type = provider_license.licenseType
+        self.license_type_abbreviation = provider_license.licenseTypeAbbreviation
 
         # Track created users for cleanup
         self.created_staff_users = []
