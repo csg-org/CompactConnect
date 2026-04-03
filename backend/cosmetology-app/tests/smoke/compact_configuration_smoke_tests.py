@@ -213,7 +213,7 @@ def test_compact_configuration():
             delete_test_staff_user(test_email, user_sub, compact)
 
 
-def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_config: bool = False):
+def test_jurisdiction_configuration(jurisdiction: str = 'az', recreate_compact_config: bool = False):
     """
     Test that a state admin can update and retrieve jurisdiction configuration.
 

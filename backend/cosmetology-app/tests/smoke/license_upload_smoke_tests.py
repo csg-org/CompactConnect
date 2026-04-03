@@ -18,7 +18,7 @@ from smoke_common import (
 
 MOCK_SSN = '999-99-9999'
 COMPACT = 'cosm'
-JURISDICTION = 'ne'
+JURISDICTION = 'az'
 TEST_PROVIDER_GIVEN_NAME = 'Joe'
 TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 
@@ -62,14 +62,14 @@ def upload_licenses_record():
     Verifies that a license record can be uploaded to the Compact Connect API and the appropriate
     records are created in the provider table as well as the data events table.
 
-    Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/ne/licenses' endpoint.
+    Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/az/licenses' endpoint.
     Step 2: Verify the provider records are added by querying the API.
     Step 3: Verify the license record is recorded in the data events table.
     """
 
     headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
 
-    # Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/ne/licenses' endpoint.
+    # Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/az/licenses' endpoint.
     post_body = [
         {
             'licenseNumber': 'A0608337260',
@@ -179,7 +179,7 @@ def upload_licenses_record():
     license_ingest_record_response = data_events_table.query(
         KeyConditionExpression='pk = :pk AND sk BETWEEN :start_time AND :end_time',
         ExpressionAttributeValues={
-            ':pk': 'COMPACT#cosm#JURISDICTION#ne',
+            ':pk': 'COMPACT#cosm#JURISDICTION#az',
             ':start_time': f'TYPE#license.ingest#TIME#{int(start_time.timestamp())}',
             ':end_time': f'TYPE#license.ingest#TIME#{int(event_time.timestamp())}',
         },

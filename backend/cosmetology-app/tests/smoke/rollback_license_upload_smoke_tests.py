@@ -23,7 +23,7 @@ from smoke_common import (
 )
 
 COMPACT = 'cosm'
-JURISDICTION = 'ne'
+JURISDICTION = 'az'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 
@@ -66,7 +66,7 @@ def upload_test_license_batch(
             'ssn': f'999-50-{i:04d}',  # Incrementing SSN with padded zeros
             'licenseType': LICENSE_TYPE,
             'dateOfExpiration': '2050-12-10',
-            'homeAddressState': 'NE',
+            'homeAddressState': 'AZ',
             'homeAddressCity': 'Omaha',
             'compactEligibility': 'eligible',
             'licenseStatus': 'active',
