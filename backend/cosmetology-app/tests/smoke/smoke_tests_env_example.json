@@ -13,10 +13,7 @@
   "CC_TEST_COGNITO_STAFF_USER_POOL_ID": "us-east-1_12345",
   "CC_TEST_COGNITO_STAFF_USER_POOL_CLIENT_ID": "72612345",
   "CC_TEST_PROVIDER_ID": "exampleProviderId",
-  "CC_TEST_SMOKE_READ_GENERAL_STAFF_EMAIL": "testStaffUserLicenseUploader@smokeTestFakeEmail.com",
   "ENVIRONMENT_NAME": "sandboxEnvironmentNamePlaceholder",
-  "SANDBOX_AUTHORIZE_NET_API_LOGIN_ID": "your_sandbox_api_login_id",
-  "SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY": "your_sandbox_transaction_key",
   "CC_TEST_SMOKE_TEST_NOTIFICATION_EMAIL": "smoke-test-notifications@example.com",
   "CC_TEST_ROLLBACK_STEP_FUNCTION_ARN": "arn:aws:states:us-east-1:123456789012:stateMachine:Sandbox-DisasterRecoveryStack-LicenseUploadRollbackStateMachine"
 }

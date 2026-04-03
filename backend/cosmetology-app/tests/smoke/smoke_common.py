@@ -232,20 +232,14 @@ def call_provider_details_endpoint(headers: dict, compact: str, provider_id: str
     return response.json()
 
 
-def get_all_provider_database_records(compact: str | None = None, provider_id: str | None = None):
-    if compact is not None and provider_id is not None:
-        pk = f'{compact}#PROVIDER#{provider_id}'
-    else:
-        resolved_compact = compact or 'cosm'
-        resolved_provider_id = provider_id or config.test_provider_id
-        pk = f'{resolved_compact}#PROVIDER#{resolved_provider_id}'
+def get_all_provider_database_records(compact: str = 'cosm', provider_id: str = config.test_provider_id):
 
     items: list = []
     last_evaluated_key = None
     while True:
         pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
         query_result = config.provider_user_dynamodb_table.query(
-            KeyConditionExpression=Key('pk').eq(pk),
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}'),
             **pagination,
         )
         items.extend(query_result.get('Items', []))
