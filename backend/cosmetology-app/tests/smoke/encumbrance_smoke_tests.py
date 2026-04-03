@@ -580,7 +580,7 @@ def test_license_encumbrance_workflow():
         # Step 3: Encumber Privilege
         privilege_encumbrance_body = {
             'encumbranceEffectiveDate': '2025-05-09',
-            'encumbranceType': 'reprimand',
+            'encumbranceType': 'suspension',
             'clinicalPrivilegeActionCategories': ['other'],
         }
 
