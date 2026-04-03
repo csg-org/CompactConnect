@@ -11,7 +11,7 @@ import time
 import requests
 from smoke_common import (
     SmokeTestFailureException,
-    call_provider_users_me_endpoint,
+    call_provider_details_endpoint,
     config,
     create_test_staff_user,
     delete_test_staff_user,
@@ -22,6 +22,15 @@ from smoke_common import (
     load_smoke_test_env,
     logger,
 )
+
+INVESTIGATION_SMOKE_COMPACT = 'cosm'
+
+
+def _fetch_provider_details(auth_headers: dict) -> dict:
+    """Staff GET provider details for the smoke-test provider (CC_TEST_PROVIDER_ID)."""
+    return call_provider_details_endpoint(
+        auth_headers, INVESTIGATION_SMOKE_COMPACT, config.test_provider_id
+    )
 
 
 def clean_investigation_records():
@@ -142,7 +151,9 @@ def _get_privilege_data_from_provider_response(provider_data: dict, jurisdiction
     )
 
 
-def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license_type: str):
+def _verify_no_investigation_exists(
+    record_type: str, jurisdiction: str, license_type: str, auth_headers: dict
+):
     """
     Verify that no open investigation records exist in the database and no investigation status or objects on the
     record.
@@ -150,6 +161,7 @@ def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license
     :param record_type: 'privilege' or 'license'
     :param jurisdiction: The jurisdiction of the record
     :param license_type: The license type of the record
+    :param auth_headers: Staff user auth headers
     """
     # Check database for open investigation records
     all_records = get_all_provider_database_records()
@@ -161,7 +173,7 @@ def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license
         raise SmokeTestFailureException('Open investigation already exists before creation test')
 
     # Check API for investigation status
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
 
     if record_type == 'privilege':
         record_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
@@ -181,13 +193,16 @@ def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license
         raise SmokeTestFailureException('Investigation objects still exist in API response')
 
 
-def _verify_investigation_exists(record_type: str, jurisdiction: str, license_type: str):
+def _verify_investigation_exists(
+    record_type: str, jurisdiction: str, license_type: str, auth_headers: dict
+):
     """
     Verify that an open investigation exists and the record has investigation status.
 
     :param record_type: 'privilege' or 'license'
     :param jurisdiction: The jurisdiction of the record
     :param license_type: The license type of the record
+    :param auth_headers: Staff Bearer auth headers
     :return: The investigation ID
     """
     # Check database for investigation records
@@ -206,7 +221,7 @@ def _verify_investigation_exists(record_type: str, jurisdiction: str, license_ty
         raise SmokeTestFailureException(f'No open {record_type} investigation found to close')
 
     # Check API for investigation status
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
 
     if record_type == 'privilege':
         record_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
@@ -232,14 +247,14 @@ def test_create_privilege_investigation(auth_headers):
     """Test creating a privilege investigation."""
     logger.info('Testing privilege investigation creation...')
 
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
     provider_id = provider_data['providerId']
     compact = provider_data['compact']
     jurisdiction = provider_data['privileges'][0]['jurisdiction']
     license_type = provider_data['privileges'][0]['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    _verify_no_investigation_exists('privilege', jurisdiction, license_type)
+    _verify_no_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
 
     # Create investigation (empty body required)
     response = requests.post(
@@ -260,21 +275,21 @@ def test_create_privilege_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_investigation_exists('privilege', jurisdiction, license_type)
+    _verify_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
 
 
 def test_create_license_investigation(auth_headers):
     """Test creating a license investigation."""
     logger.info('Testing license investigation creation...')
 
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
     provider_id = provider_data['providerId']
     compact = provider_data['compact']
     jurisdiction = provider_data['licenseJurisdiction']
     license_type = provider_data['licenses'][0]['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    _verify_no_investigation_exists('license', jurisdiction, license_type)
+    _verify_no_investigation_exists('license', jurisdiction, license_type, auth_headers)
 
     # Create investigation (empty body required)
     response = requests.post(
@@ -295,21 +310,21 @@ def test_create_license_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_investigation_exists('license', jurisdiction, license_type)
+    _verify_investigation_exists('license', jurisdiction, license_type, auth_headers)
 
 
 def test_close_privilege_investigation(auth_headers):
     """Test closing a privilege investigation."""
     logger.info('Testing privilege investigation closing...')
 
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
     provider_id = provider_data['providerId']
     compact = provider_data['compact']
     jurisdiction = provider_data['privileges'][0]['jurisdiction']
     license_type = provider_data['privileges'][0]['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    investigation_id = _verify_investigation_exists('privilege', jurisdiction, license_type)
+    investigation_id = _verify_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
 
     # Close investigation (no encumbrance)
     response = requests.patch(
@@ -330,21 +345,21 @@ def test_close_privilege_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_no_investigation_exists('privilege', jurisdiction, license_type)
+    _verify_no_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
 
 
 def test_close_license_investigation(auth_headers):
     """Test closing a license investigation."""
     logger.info('Testing license investigation closing...')
 
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
     provider_id = provider_data['providerId']
     compact = provider_data['compact']
     jurisdiction = provider_data['licenseJurisdiction']
     license_type = provider_data['licenses'][0]['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    investigation_id = _verify_investigation_exists('license', jurisdiction, license_type)
+    investigation_id = _verify_investigation_exists('license', jurisdiction, license_type, auth_headers)
 
     # Close investigation (no encumbrance)
     response = requests.patch(
@@ -365,14 +380,14 @@ def test_close_license_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_no_investigation_exists('license', jurisdiction, license_type)
+    _verify_no_investigation_exists('license', jurisdiction, license_type, auth_headers)
 
 
 def test_close_privilege_investigation_with_encumbrance(auth_headers):
     """Test closing a privilege investigation with encumbrance creation."""
     logger.info('Testing privilege investigation closing with encumbrance...')
 
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
     provider_id = provider_data['providerId']
     compact = provider_data['compact']
     jurisdiction = provider_data['privileges'][0]['jurisdiction']
@@ -380,7 +395,7 @@ def test_close_privilege_investigation_with_encumbrance(auth_headers):
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
     # Verify initial state: an open investigation should exist
-    investigation_id = _verify_investigation_exists('privilege', jurisdiction, license_type)
+    investigation_id = _verify_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
 
     # Verify privilege is not already encumbered (no adverse actions)
     privilege_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
@@ -418,9 +433,9 @@ def test_close_privilege_investigation_with_encumbrance(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_no_investigation_exists('privilege', jurisdiction, license_type)
+    _verify_no_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
     # Verify encumbrance was created (adverse action exists)
-    provider_data = call_provider_users_me_endpoint()
+    provider_data = _fetch_provider_details(auth_headers)
     privilege_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
 
     if not privilege_data.get('adverseActions'):
@@ -453,7 +468,10 @@ def main():
             email=staff_user_email,
             compact='cosm',
             jurisdiction='az',
-            permissions={'actions': {'admin'}, 'jurisdictions': {'az': {'admin'}, 'co': {'admin'}, 'ky': {'admin'}}},
+            permissions={
+                'actions': {'admin'},
+                'jurisdictions': {'al': {'admin'}, 'az': {'admin'}, 'co': {'admin'}, 'ky': {'admin'}},
+            },
         )
 
         # Get staff user auth headers once for reuse
