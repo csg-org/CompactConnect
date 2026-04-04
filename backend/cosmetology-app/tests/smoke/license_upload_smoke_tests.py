@@ -4,12 +4,15 @@ import time
 from datetime import UTC, datetime, timedelta
 
 import requests
-from config import logger
+from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
+    create_test_app_client,
     create_test_staff_user,
+    delete_test_app_client,
     delete_test_staff_user,
     get_api_base_url,
+    get_client_auth_headers,
     get_data_events_dynamodb_table,
     get_provider_user_dynamodb_table,
     get_staff_user_auth_headers,
@@ -22,16 +25,16 @@ JURISDICTION = 'az'
 TEST_PROVIDER_GIVEN_NAME = 'Joe'
 TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 
-# This script can be run locally to test the license upload/ingest flow against a sandbox environment
-# of the Compact Connect API.
-# Your sandbox account must be deployed with the "security_profile": "VULNERABLE" setting in your cdk.context.json
-# To run this script, create a smoke_tests_env.json file in the same directory as this script using the
-# 'smoke_tests_env_example.json' file as a template.
+# This script can be run locally to test the license upload/ingest flow against a sandbox environment.
+# License POST uses the state API (CC_TEST_STATE_API_BASE_URL) with a short-lived Cognito app client
+# (CC_TEST_STATE_AUTH_URL, CC_TEST_COGNITO_STATE_AUTH_USER_POOL_ID); provider query/GET use the internal API
+# (CC_TEST_API_BASE_URL) with a staff user. Configure smoke_tests_env.json from smoke_tests_env_example.json.
 
 # Note that by design, developers do not have the ability to delete records from the SSN DynamoDB table,
 # so this script does not delete the created SSN records as part of cleanup.
 
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@smokeTestFakeEmail.com'
+TEST_APP_CLIENT_NAME = 'test-license-upload-smoke-client'
 
 
 def _cleanup_test_generated_records(provider_id: str, license_ingest_record_response: dict):
@@ -57,19 +60,18 @@ def _cleanup_test_generated_records(provider_id: str, license_ingest_record_resp
     logger.info('Successfully deleted license ingest record from data events table')
 
 
-def upload_licenses_record():
+def upload_licenses_record(license_upload_auth_headers: dict):
     """
     Verifies that a license record can be uploaded to the Compact Connect API and the appropriate
     records are created in the provider table as well as the data events table.
 
-    Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/az/licenses' endpoint.
-    Step 2: Verify the provider records are added by querying the API.
+    Step 1: Upload a license via the state API (POST .../licenses) using state app client credentials.
+    Step 2: Verify the provider records are added by querying the internal staff API.
     Step 3: Verify the license record is recorded in the data events table.
     """
+    staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
 
-    headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
-
-    # Step 1: Upload a license record through the POST '/v1/compacts/cosm/jurisdictions/az/licenses' endpoint.
+    # Step 1: State-authenticated license upload (see stacks/state_api_stack).
     post_body = [
         {
             'licenseNumber': 'A0608337260',
@@ -90,10 +92,10 @@ def upload_licenses_record():
     ]
 
     post_response = requests.post(
-        url=get_api_base_url() + f'/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses',
-        headers=headers,
+        url=f'{config.state_api_base_url}/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses',
+        headers=license_upload_auth_headers,
         json=post_body,
-        timeout=10,
+        timeout=60,
     )
 
     if post_response.status_code != 200:
@@ -112,7 +114,7 @@ def upload_licenses_record():
 
         query_response = requests.post(
             url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/query',
-            headers=headers,
+            headers=staff_headers,
             json=query_body,
             timeout=10,
         )
@@ -147,7 +149,7 @@ def upload_licenses_record():
     # Now get the provider details to verify the license record
     provider_details_response = requests.get(
         url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/{provider_id}',
-        headers=headers,
+        headers=staff_headers,
         timeout=10,
     )
 
@@ -171,7 +173,7 @@ def upload_licenses_record():
 
     # Step 3: Verify the license record is recorded in the data events table.
     # we don't loop here because the record should be available in the data events table by the time the
-    # provider table record is available
+    # provider table record is available. We use a consistent read to ensure that we get the latest record.
     data_events_table = get_data_events_dynamodb_table()
     event_time = datetime.now(tz=UTC)
     start_time = event_time - timedelta(minutes=15)
@@ -179,10 +181,11 @@ def upload_licenses_record():
     license_ingest_record_response = data_events_table.query(
         KeyConditionExpression='pk = :pk AND sk BETWEEN :start_time AND :end_time',
         ExpressionAttributeValues={
-            ':pk': 'COMPACT#cosm#JURISDICTION#az',
+            ':pk': f'COMPACT#{COMPACT}#JURISDICTION#{JURISDICTION}',
             ':start_time': f'TYPE#license.ingest#TIME#{int(start_time.timestamp())}',
             ':end_time': f'TYPE#license.ingest#TIME#{int(event_time.timestamp())}',
         },
+        ConsistentRead=True,
     )
 
     if not license_ingest_record_response.get('Items'):
@@ -200,18 +203,23 @@ def upload_licenses_record():
 
 if __name__ == '__main__':
     load_smoke_test_env()
-    # Create staff user with permission to upload licenses
+    # Create staff user with permission to query providers (internal API)
     test_user_sub = create_test_staff_user(
         email=TEST_STAFF_USER_EMAIL,
         compact=COMPACT,
         jurisdiction=JURISDICTION,
         permissions={'actions': {'admin'}, 'jurisdictions': {JURISDICTION: {'write', 'admin'}}},
     )
+    client_credentials = create_test_app_client(TEST_APP_CLIENT_NAME, COMPACT, JURISDICTION)
+    client_id = client_credentials['client_id']
+    client_secret = client_credentials['client_secret']
     try:
-        upload_licenses_record()
+        license_upload_headers = get_client_auth_headers(client_id, client_secret, COMPACT, JURISDICTION)
+        upload_licenses_record(license_upload_headers)
         logger.info('License record upload smoke test passed')
     except SmokeTestFailureException as e:
         logger.error(f'License record upload smoke test failed: {str(e)}')
     finally:
+        delete_test_app_client(client_id)
         # Clean up the test staff user
         delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=COMPACT)
