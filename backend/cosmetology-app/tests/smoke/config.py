@@ -73,21 +73,6 @@ class _Config:
         return os.environ['CC_TEST_PROVIDER_ID']
 
     @property
-    def smoke_read_general_staff_email(self):
-        return os.environ.get(
-            'CC_TEST_SMOKE_READ_GENERAL_STAFF_EMAIL',
-            'testStaffUserLicenseUploader@smokeTestFakeEmail.com',
-        )
-
-    @property
-    def sandbox_authorize_net_api_login_id(self):
-        return os.environ['SANDBOX_AUTHORIZE_NET_API_LOGIN_ID']
-
-    @property
-    def sandbox_authorize_net_transaction_key(self):
-        return os.environ['SANDBOX_AUTHORIZE_NET_TRANSACTION_KEY']
-
-    @property
     def smoke_test_notification_email(self):
         return os.environ['CC_TEST_SMOKE_TEST_NOTIFICATION_EMAIL']
 
