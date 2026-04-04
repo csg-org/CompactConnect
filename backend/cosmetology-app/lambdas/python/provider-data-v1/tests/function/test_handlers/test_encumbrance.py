@@ -9,7 +9,6 @@ from common_test.test_constants import (
     DEFAULT_AA_SUBMITTING_USER_ID,
     DEFAULT_COMPACT,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-    DEFAULT_ENCUMBRANCE_TYPE,
     DEFAULT_LICENSE_JURISDICTION,
     DEFAULT_LICENSE_TYPE,
     DEFAULT_LICENSE_TYPE_ABBREVIATION,
@@ -50,7 +49,7 @@ def _generate_test_body():
         'encumbranceEffectiveDate': TEST_ENCUMBRANCE_EFFECTIVE_DATE,
         # These Enums are expected to be `str` type, so we'll directly access their .value
         'encumbranceType': EncumbranceType.SUSPENSION.value,
-        'clinicalPrivilegeActionCategories': [ClinicalPrivilegeActionCategory.UNSAFE_PRACTICE.value],
+        'clinicalPrivilegeActionCategories': [ClinicalPrivilegeActionCategory.FRAUD.value],
     }
 
 
@@ -127,7 +126,6 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         default_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
             value_overrides={
                 'adverseActionId': item['adverseActionId'],
-                'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             }
@@ -308,7 +306,6 @@ class TestPostLicenseEncumbrance(TstFunction):
             value_overrides={
                 'actionAgainst': 'license',
                 'adverseActionId': item['adverseActionId'],
-                'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             }

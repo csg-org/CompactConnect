@@ -24,8 +24,11 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
 
     encumbranceEffectiveDate = Date(required=True, allow_none=False)
     encumbranceType = EncumbranceTypeField(required=True, allow_none=False)
+    # in the case of Cosmetology, we only allow one category, but we are keeping this as a list for compatibility
+    # with the existing code base, and to allow the potential of supporting multiple categories should this be needed
+    # in the future
     clinicalPrivilegeActionCategories = List(
-        ClinicalPrivilegeActionCategoryField(), required=True, allow_none=False, validate=Length(min=1)
+        ClinicalPrivilegeActionCategoryField(), required=True, allow_none=False, validate=Length(equal=1)
     )
 
 

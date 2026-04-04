@@ -164,17 +164,6 @@ def get_user_tokens(email, password=_TEST_STAFF_USER_PASSWORD, is_staff=False):
         raise e
 
 
-def get_provider_user_auth_headers_cached():
-    provider_token = os.environ.get('TEST_PROVIDER_USER_ID_TOKEN')
-    if not provider_token:
-        tokens = get_user_tokens(config.test_provider_user_username, config.test_provider_user_password, is_staff=False)
-        os.environ['TEST_PROVIDER_USER_ID_TOKEN'] = tokens['IdToken']
-
-    return {
-        'Authorization': 'Bearer ' + os.environ['TEST_PROVIDER_USER_ID_TOKEN'],
-    }
-
-
 def get_staff_user_auth_headers(username: str, password: str = _TEST_STAFF_USER_PASSWORD):
     tokens = get_user_tokens(username, password, is_staff=True)
     return {
@@ -226,50 +215,36 @@ def load_smoke_test_env():
         os.environ.update(env_vars)
 
 
-def call_provider_users_me_endpoint():
-    """Get the provider data from the GET '/v1/provider-users/me' endpoint.
+def call_provider_details_endpoint(headers: dict, compact: str, provider_id: str) -> dict:
+    """GET /v1/compacts/{compact}/providers/{provider_id} with staff (or other) auth headers."""
+    url = f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}'
+    response = requests.get(url=url, headers=headers, timeout=10)
 
-    If a 403 response is received, the token will be refreshed and the request retried once.
+    if response.status_code != 200:
+        try:
+            body = response.json()
+        except Exception:  # noqa: BLE001
+            body = response.text
+        raise SmokeTestFailureException(f'Failed to GET provider details. Response: {body}')
+    return response.json()
 
-    :return: The response body JSON
-    :raises SmokeTestFailureException: If the request fails after retry
-    """
-    # Get the provider data from the GET '/v1/provider-users/me' endpoint.
-    get_provider_data_response = requests.get(
-        url=config.api_base_url + '/v1/provider-users/me', headers=get_provider_user_auth_headers_cached(), timeout=10
-    )
 
-    # If we get a 403, the token may have expired - refresh it and retry once
-    if get_provider_data_response.status_code == 403:
-        logger.info('Received 403 response, refreshing provider user token and retrying...')
-        # Clear the cached token to force a refresh
-        if 'TEST_PROVIDER_USER_ID_TOKEN' in os.environ:
-            del os.environ['TEST_PROVIDER_USER_ID_TOKEN']
+def get_all_provider_database_records(compact: str = 'cosm', provider_id: str = config.test_provider_id):
 
-        # Retry with fresh token
-        get_provider_data_response = requests.get(
-            url=config.api_base_url + '/v1/provider-users/me',
-            headers=get_provider_user_auth_headers_cached(),
-            timeout=10,
+    items: list = []
+    last_evaluated_key = None
+    while True:
+        pagination = {'ExclusiveStartKey': last_evaluated_key} if last_evaluated_key else {}
+        query_result = config.provider_user_dynamodb_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}'),
+            **pagination,
         )
+        items.extend(query_result.get('Items', []))
+        last_evaluated_key = query_result.get('LastEvaluatedKey')
+        if not last_evaluated_key:
+            break
 
-    if get_provider_data_response.status_code != 200:
-        raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
-    # return the response body
-    return get_provider_data_response.json()
-
-
-def get_all_provider_database_records():
-    # get the provider id and compact from the response
-    response = call_provider_users_me_endpoint()
-    provider_id = response['providerId']
-    compact = response['compact']
-    # query the provider database for all records
-    query_result = config.provider_user_dynamodb_table.query(
-        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-    )
-
-    return query_result['Items']
+    return items
 
 
 def get_provider_user_records(compact: str, provider_id: str) -> ProviderUserRecords:
@@ -323,7 +298,7 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
         'ssn': '999-99-9999',
         'licenseType': 'cosmetologist',
         'dateOfExpiration': '2050-01-01',
-        'homeAddressState': 'ne',
+        'homeAddressState': 'AZ',
         'homeAddressCity': 'Omaha',
         'licenseStatus': 'active',
         'compactEligibility': 'eligible',

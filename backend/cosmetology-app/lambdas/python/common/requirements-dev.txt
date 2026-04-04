@@ -19,15 +19,15 @@ aws-sam-translator==1.103.0
     #   moto
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.42.76
+boto3==1.42.83
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.42.76
+boto3-stubs[full]==1.42.83
     # via -r lambdas/python/common/requirements-dev.in
-boto3-stubs-full==1.42.76
+boto3-stubs-full==1.42.82
     # via boto3-stubs
-botocore==1.42.76
+botocore==1.42.83
     # via
     #   aws-xray-sdk
     #   boto3
@@ -41,7 +41,7 @@ cffi==2.0.0
     # via cryptography
 cfn-lint==1.41.0
     # via moto
-charset-normalizer==3.4.6
+charset-normalizer==3.4.7
     # via requests
 cryptography==46.0.6
     # via
@@ -139,9 +139,9 @@ referencing==0.37.0
     #   jsonschema-path
     #   jsonschema-specifications
     #   openapi-schema-validator
-regex==2026.2.28
+regex==2026.3.32
     # via cfn-lint
-requests==2.33.0
+requests==2.33.1
     # via
     #   docker
     #   moto
@@ -177,7 +177,7 @@ typing-inspection==0.4.2
     # via
     #   pydantic
     #   pydantic-settings
-tzdata==2025.3
+tzdata==2026.1
     # via faker
 urllib3==2.6.3
     # via
@@ -185,7 +185,7 @@ urllib3==2.6.3
     #   docker
     #   requests
     #   responses
-werkzeug==3.1.7
+werkzeug==3.1.8
     # via moto
 wrapt==2.1.2
     # via aws-xray-sdk

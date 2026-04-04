@@ -8,11 +8,11 @@ certifi==2026.2.25
     # via
     #   opensearch-py
     #   requests
-charset-normalizer==3.4.6
+charset-normalizer==3.4.7
     # via requests
 events==0.5
     # via opensearch-py
-grpcio==1.78.0
+grpcio==1.80.0
     # via opensearch-protobufs
 idna==3.11
     # via requests
@@ -24,7 +24,7 @@ protobuf==7.34.1
     # via opensearch-protobufs
 python-dateutil==2.9.0.post0
     # via opensearch-py
-requests==2.33.0
+requests==2.33.1
     # via opensearch-py
 six==1.17.0
     # via python-dateutil

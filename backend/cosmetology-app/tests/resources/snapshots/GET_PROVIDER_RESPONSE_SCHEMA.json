@@ -473,6 +473,11 @@
                 "clinicalPrivilegeActionCategories": {
                   "description": "The categories of clinical privilege action",
                   "items": {
+                    "enum": [
+                      "fraud",
+                      "consumer harm",
+                      "other"
+                    ],
                     "type": "string"
                   },
                   "type": "array"
@@ -994,6 +999,11 @@
                 "clinicalPrivilegeActionCategories": {
                   "description": "The categories of clinical privilege action",
                   "items": {
+                    "enum": [
+                      "fraud",
+                      "consumer harm",
+                      "other"
+                    ],
                     "type": "string"
                   },
                   "type": "array"
