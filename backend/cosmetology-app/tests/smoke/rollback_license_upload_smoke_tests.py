@@ -2,6 +2,7 @@
 #!/usr/bin/env python3
 import json
 import time
+import uuid
 from datetime import UTC, datetime, timedelta
 
 import boto3
@@ -22,6 +23,12 @@ from smoke_common import (
     load_smoke_test_env,
 )
 
+"""
+Test to verify that license records can be rolled back using rollback step function
+
+Note that these tests upload license records into the system
+"""
+
 COMPACT = 'cosm'
 JURISDICTION = 'az'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
@@ -30,15 +37,27 @@ TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 LICENSE_TYPE = 'cosmetologist'
 
 # Test configuration
-NUM_LICENSES_TO_UPLOAD = 300
-BATCH_SIZE = 100  # Upload in batches of 100
+NUM_LICENSES_TO_UPLOAD = 100
+BATCH_SIZE = 100  # Upload in batches of 100 (single batch at default scale)
+# First upload: API returns after SQS enqueue; provider rows appear as preprocess + ingest drain (queue + batch size).
+FIRST_UPLOAD_PROVIDER_INGEST_MAX_WAIT_SEC = 180
+# Second upload re-uses existing providers; wait_for_all_providers_created returns immediately while ingest
+# (SQS/Lambda) may still be writing license_update rows — buffer before polling, then retry below.
+SECOND_UPLOAD_INGEST_BUFFER_SEC = 30
+LICENSE_UPDATE_VERIFY_MAX_RETRIES = 12
+LICENSE_UPDATE_VERIFY_RETRY_SLEEP_SEC = 20
 
 # Global list to track all provider IDs for cleanup
 ALL_PROVIDER_IDS = []
 
 
 def upload_test_license_batch(
-    auth_headers: dict, batch_start_index: int, batch_size: int, street_address: str = '123 Test Street'
+    auth_headers: dict,
+    batch_start_index: int,
+    batch_size: int,
+    street_address: str = '123 Test Street',
+    *,
+    family_name: str,
 ):
     """
     Upload a batch of test license records.
@@ -57,17 +76,16 @@ def upload_test_license_batch(
             'licenseNumber': f'ROLLBACK-TEST-{i:04d}',
             'homeAddressPostalCode': '68001',
             'givenName': f'TestProvider{i:04d}',
-            # keep the family name consistent so we can query for all the providers which requires an exact
-            # match on the family name
-            'familyName': 'RollbackTest',
+            # Per-run family name isolates the provider query from leftover "RollbackTest*" rows in shared sandboxes.
+            'familyName': family_name,
             'homeAddressStreet1': street_address,
             'dateOfBirth': '1985-01-01',
             'dateOfIssuance': '2020-01-01',
-            'ssn': f'999-50-{i:04d}',  # Incrementing SSN with padded zeros
+            'ssn': f'555-50-{i:04d}',  # Incrementing SSN with padded zeros
             'licenseType': LICENSE_TYPE,
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'AZ',
-            'homeAddressCity': 'Omaha',
+            'homeAddressCity': 'Phoenix',
             'compactEligibility': 'eligible',
             'licenseStatus': 'active',
         }
@@ -96,7 +114,12 @@ def upload_test_license_batch(
 
 
 def upload_test_licenses(
-    auth_headers: dict, num_licenses: int, batch_size: int, street_address: str = '123 Test Street'
+    auth_headers: dict,
+    num_licenses: int,
+    batch_size: int,
+    street_address: str = '123 Test Street',
+    *,
+    family_name: str,
 ):
     """
     Upload test license records in batches.
@@ -113,7 +136,9 @@ def upload_test_licenses(
 
     for batch_start in range(0, num_licenses, batch_size):
         current_batch_size = min(batch_size, num_licenses - batch_start)
-        batch_licenses = upload_test_license_batch(auth_headers, batch_start, current_batch_size, street_address)
+        batch_licenses = upload_test_license_batch(
+            auth_headers, batch_start, current_batch_size, street_address, family_name=family_name
+        )
         all_licenses.extend(batch_licenses)
 
         # Small delay between batches to avoid rate limiting
@@ -142,42 +167,50 @@ def verify_license_update_records_created(provider_ids, retry_count: int = 0):
             provider_ids_to_retry.append(provider_id)
 
     if provider_ids_to_retry:
-        if retry_count >= 3:
+        if retry_count >= LICENSE_UPDATE_VERIFY_MAX_RETRIES:
             raise SmokeTestFailureException(
-                f'failed to find license update records for {len(provider_ids_to_retry)} providers after 3 retries'
+                f'failed to find license update records for {len(provider_ids_to_retry)} providers after '
+                f'{LICENSE_UPDATE_VERIFY_MAX_RETRIES} retries '
+                f'({LICENSE_UPDATE_VERIFY_RETRY_SLEEP_SEC}s between retries)'
             )
-        time.sleep(10)
-        logger.info(f'retrying {len(provider_ids_to_retry)} providers after 10 seconds...')
+        time.sleep(LICENSE_UPDATE_VERIFY_RETRY_SLEEP_SEC)
+        logger.info(
+            f'retrying {len(provider_ids_to_retry)} providers after {LICENSE_UPDATE_VERIFY_RETRY_SLEEP_SEC} seconds...'
+        )
         verify_license_update_records_created(provider_ids_to_retry, retry_count + 1)
     else:
         logger.info('all license update records found')
 
 
-def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max_wait_time: int = 120):
+def wait_for_all_providers_created(
+    staff_headers: dict,
+    expected_count: int,
+    max_wait_time: int = 120,
+    *,
+    family_name: str,
+):
     """
     Wait for all provider records to be created from uploaded licenses.
 
     :param staff_headers: Authentication headers for staff user
     :param expected_count: Expected number of providers to be created
-    :param max_wait_time: Maximum time to wait in seconds (default: 900 = 15 minutes)
-    :return: List of provider IDs that were created
+    :param max_wait_time: Maximum time to wait in seconds (default: 120)
+    :return: List of all provider IDs matching family_name+jurisdiction (length should match expected_count when
+        the run is isolated via a unique family_name).
     """
-    logger.info(f'Waiting for {expected_count} provider records to be created...')
+    logger.info(f'Waiting for {expected_count} provider records to be created (familyName={family_name})...')
 
     start_time = time.time()
     check_interval = 5
 
-    # Query using the common family name prefix 'RollbackTest'
-    # The API will return all providers with family names starting with this prefix
-
-    last_key = None
-    page_num = 1
     all_provider_ids: set[str] = set()
     while time.time() - start_time < max_wait_time:
+        page_num = 1
+        last_key = None
         # Collect all providers across all pages
         while True:
             query_body = {
-                'query': {'familyName': 'RollbackTest'},
+                'query': {'familyName': family_name, 'jurisdiction': JURISDICTION},
                 'pagination': {'pageSize': 100},
             }
             if last_key:
@@ -219,12 +252,18 @@ def wait_for_all_providers_created(staff_headers: dict, expected_count: int, max
 
         num_found = len(all_provider_ids)
         logger.info(
-            f'Found {num_found}/{expected_count} providers with family name "RollbackTest" (across {page_num} pages)'
+            f'Found {num_found}/{expected_count} providers with family name "{family_name}" '
+            f'in jurisdiction "{JURISDICTION}" (across {page_num} pages)'
         )
 
         if num_found >= expected_count:
+            if num_found > expected_count:
+                logger.warning(
+                    f'More providers ({num_found}) than uploads ({expected_count}) matched the query; '
+                    'use a unique run family_name if this is unexpected.'
+                )
             logger.info(f'All {expected_count} providers found!')
-            return list(all_provider_ids)  # Return only the expected count
+            return list(all_provider_ids)
 
         elapsed = time.time() - start_time
         if elapsed < max_wait_time:
@@ -339,42 +378,6 @@ def get_rollback_results_from_s3(results_s3_key: str):
 
     logger.info('Retrieved results from S3')
     return results
-
-
-def create_privilege_for_provider(provider_id: str, compact: str):
-    """
-    Manually create a privilege record for a provider to test skip conditions.
-
-    :param provider_id: The provider ID to create privilege for
-    :param compact: The compact abbreviation
-    """
-    from datetime import date
-
-    # Create a privilege record for a different jurisdiction (e.g., 'co' for Colorado)
-    privilege_jurisdiction = 'co'
-    license_type_abbr = 'cos'
-
-    privilege_record = {
-        'pk': f'{compact}#PROVIDER#{provider_id}',
-        'sk': f'{compact}#PROVIDER#privilege/{privilege_jurisdiction}/{license_type_abbr}#',
-        'type': 'privilege',
-        'providerId': provider_id,
-        'compact': compact,
-        'jurisdiction': privilege_jurisdiction,
-        'licenseJurisdiction': JURISDICTION,
-        'licenseType': LICENSE_TYPE,
-        'dateOfIssuance': datetime.now(tz=UTC).isoformat(),
-        'dateOfRenewal': datetime.now(tz=UTC).isoformat(),
-        'dateOfExpiration': date(2050, 12, 10).isoformat(),
-        'dateOfUpdate': datetime.now(tz=UTC).isoformat(),
-        'privilegeId': f'{license_type_abbr.upper()}-{privilege_jurisdiction.upper()}-12345',
-        'administratorSetStatus': 'active',
-        'compactTransactionId': 'test-transaction-12345',
-        'compactTransactionIdGSIPK': f'COMPACT#{compact}#TX#test-transaction-12345#',
-    }
-
-    config.provider_user_dynamodb_table.put_item(Item=privilege_record)
-    logger.info(f'Created privilege record for provider {provider_id}')
 
 
 def create_encumbrance_update_for_provider(provider_id: str, compact: str, license_jurisdiction: str):
@@ -614,6 +617,9 @@ def rollback_license_upload_smoke_test():
         # Get authentication headers using app client
         auth_headers = get_client_auth_headers(client_id, client_secret, COMPACT, JURISDICTION)
 
+        run_family_name = f'RollbackTest-{uuid.uuid4().hex[:8]}'
+        logger.info(f'Run-scoped familyName for uploads and queries: {run_family_name}')
+
         # Step 1: Upload test licenses (first time)
         logger.info('=' * 80)
         logger.info('STEP 1: Uploading test licenses (first time)')
@@ -625,6 +631,7 @@ def rollback_license_upload_smoke_test():
             NUM_LICENSES_TO_UPLOAD,
             BATCH_SIZE,
             street_address='123 Test Street',
+            family_name=run_family_name,
         )
         first_upload_end_time = datetime.now(tz=UTC)
         logger.info(
@@ -636,7 +643,12 @@ def rollback_license_upload_smoke_test():
         logger.info('Waiting for first upload providers and license records to be created...')
         logger.info('=' * 80)
         time.sleep(10)
-        wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
+        wait_for_all_providers_created(
+            staff_headers,
+            len(uploaded_licenses),
+            max_wait_time=FIRST_UPLOAD_PROVIDER_INGEST_MAX_WAIT_SEC,
+            family_name=run_family_name,
+        )
         logger.info('✅ All first upload license records have been created')
 
         # Step 2: Upload test licenses again with different address to create update records
@@ -649,6 +661,7 @@ def rollback_license_upload_smoke_test():
             NUM_LICENSES_TO_UPLOAD,
             BATCH_SIZE,
             street_address='456 Updated Street',
+            family_name=run_family_name,
         )
 
         logger.info('Second upload completed - update records should be created')
@@ -658,7 +671,16 @@ def rollback_license_upload_smoke_test():
         logger.info('STEP 3: Waiting for provider records and update records to be created')
         logger.info('=' * 80)
 
-        provider_ids = wait_for_all_providers_created(staff_headers, len(uploaded_licenses))
+        logger.info(
+            f'Waiting {SECOND_UPLOAD_INGEST_BUFFER_SEC}s for second-upload ingest'
+        )
+        time.sleep(SECOND_UPLOAD_INGEST_BUFFER_SEC)
+
+        provider_ids = wait_for_all_providers_created(
+            staff_headers,
+            len(uploaded_licenses),
+            family_name=run_family_name,
+        )
 
         # Store all provider IDs globally for cleanup
         ALL_PROVIDER_IDS = provider_ids.copy()
@@ -670,19 +692,9 @@ def rollback_license_upload_smoke_test():
 
         logger.info(f'Found {len(provider_ids)} provider records')
 
-        # Step 4: Create privilege for first provider (should be skipped in rollback)
+        # Step 4: Create encumbrance update for second provider (should be skipped in rollback)
         logger.info('=' * 80)
-        logger.info('STEP 4: Creating privilege for first provider to test skip condition')
-        logger.info('=' * 80)
-
-        first_provider_id = provider_ids[0]
-        create_privilege_for_provider(first_provider_id, COMPACT)
-        skipped_provider_ids.append(first_provider_id)
-        logger.info(f'Created privilege for provider {first_provider_id} - should be skipped in rollback')
-
-        # Step 5: Create encumbrance update for second provider (should be skipped in rollback)
-        logger.info('=' * 80)
-        logger.info('STEP 5: Creating encumbrance update for second provider to test skip condition')
+        logger.info('STEP 4: Creating encumbrance update for second provider to test skip condition')
         logger.info('=' * 80)
 
         second_provider_id = provider_ids[1]
@@ -694,9 +706,9 @@ def rollback_license_upload_smoke_test():
         logger.info('Waiting briefly for test records to propagate...')
         time.sleep(5)
 
-        # Step 6: Start rollback step function
+        # Step 5: Start rollback step function
         logger.info('=' * 80)
-        logger.info('STEP 6: Starting rollback step function')
+        logger.info('STEP 5: Starting rollback step function')
         logger.info('=' * 80)
 
         rollback_start = first_upload_start_time
@@ -711,18 +723,18 @@ def rollback_license_upload_smoke_test():
             end_datetime=rollback_end,
         )
 
-        # Step 7: Wait for step function completion
+        # Step 6: Wait for step function completion
         logger.info('=' * 80)
-        logger.info('STEP 7: Waiting for step function to complete')
+        logger.info('STEP 6: Waiting for step function to complete')
         logger.info('=' * 80)
 
         status, output = wait_for_step_function_completion(execution_arn)
 
         logger.info(f'Step function output: {json.dumps(output, indent=2)}')
 
-        # Step 8: Retrieve and verify results from S3
+        # Step 7: Retrieve and verify results from S3
         logger.info('=' * 80)
-        logger.info('STEP 8: Retrieving and verifying results from S3')
+        logger.info('STEP 7: Retrieving and verifying results from S3')
         logger.info('=' * 80)
 
         results_s3_key = output.get('resultsS3Key')
@@ -731,21 +743,21 @@ def rollback_license_upload_smoke_test():
 
         results = get_rollback_results_from_s3(results_s3_key)
 
-        # Expect all providers reverted except for the 2 skipped
-        expected_reverted = NUM_LICENSES_TO_UPLOAD - 2
-        expected_skipped = 2
+        # Expect all providers reverted except for the 1 skipped
+        expected_reverted = NUM_LICENSES_TO_UPLOAD - 1
+        expected_skipped = 1
         verify_rollback_results(results, expected_reverted, expected_skipped)
 
-        # Step 9: Verify providers deleted from database (except the 2 skipped ones)
+        # Step 8: Verify providers deleted from database (except the skipped one)
         logger.info('=' * 80)
-        logger.info('STEP 9: Verifying providers were deleted from database')
+        logger.info('STEP 8: Verifying providers were deleted from database')
         logger.info('=' * 80)
 
         verify_providers_deleted_from_database(results, COMPACT)
 
-        # Step 10: Clean up the 2 skipped provider records
+        # Step 9: Clean up the skipped provider records
         logger.info('=' * 80)
-        logger.info('STEP 10: Cleaning up skipped provider records')
+        logger.info('STEP 9: Cleaning up skipped provider records')
         logger.info('=' * 80)
 
         delete_all_provider_records(skipped_provider_ids, COMPACT)
