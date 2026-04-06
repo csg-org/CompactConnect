@@ -513,7 +513,9 @@ def verify_rollback_results(results: dict, expected_provider_count: int, expecte
 
     # Verify we got the expected number of reverted providers
     if num_reverted != expected_provider_count:
-        logger.warning(f'Expected {expected_provider_count} reverted providers but found {num_reverted}')
+        raise SmokeTestFailureException(
+            f'Expected {expected_provider_count} reverted providers but found {num_reverted}'
+        )
 
     # Verify the reverted provider has the expected structure
     for i, summary in enumerate(reverted):

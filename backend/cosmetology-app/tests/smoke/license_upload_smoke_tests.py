@@ -203,23 +203,28 @@ def upload_licenses_record(license_upload_auth_headers: dict):
 
 if __name__ == '__main__':
     load_smoke_test_env()
-    # Create staff user with permission to query providers (internal API)
-    test_user_sub = create_test_staff_user(
-        email=TEST_STAFF_USER_EMAIL,
-        compact=COMPACT,
-        jurisdiction=JURISDICTION,
-        permissions={'actions': {'admin'}, 'jurisdictions': {JURISDICTION: {'write', 'admin'}}},
-    )
-    client_credentials = create_test_app_client(TEST_APP_CLIENT_NAME, COMPACT, JURISDICTION)
-    client_id = client_credentials['client_id']
-    client_secret = client_credentials['client_secret']
+    
+    test_user_sub = None
+    client_id = None
     try:
+        # Create staff user with permission to query providers (internal API)
+        test_user_sub = create_test_staff_user(
+            email=TEST_STAFF_USER_EMAIL,
+            compact=COMPACT,
+            jurisdiction=JURISDICTION,
+            permissions={'actions': {'admin'}, 'jurisdictions': {JURISDICTION: {'write', 'admin'}}},
+        )
+        client_credentials = create_test_app_client(TEST_APP_CLIENT_NAME, COMPACT, JURISDICTION)
+        client_id = client_credentials['client_id']
+        client_secret = client_credentials['client_secret']
         license_upload_headers = get_client_auth_headers(client_id, client_secret, COMPACT, JURISDICTION)
         upload_licenses_record(license_upload_headers)
         logger.info('License record upload smoke test passed')
     except SmokeTestFailureException as e:
         logger.error(f'License record upload smoke test failed: {str(e)}')
     finally:
-        delete_test_app_client(client_id)
-        # Clean up the test staff user
-        delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=COMPACT)
+        if client_id:
+            delete_test_app_client(client_id)
+        if test_user_sub:
+            # Clean up the test staff user
+            delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=COMPACT)
