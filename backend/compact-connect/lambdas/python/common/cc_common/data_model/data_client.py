@@ -1057,8 +1057,8 @@ class DataClient:
                         'ExpressionAttributeValues': {
                             ':militaryStatus': {'S': military_status},
                             ':militaryStatusNote': {'S': note_value},
-                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                            ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                            ':dateOfUpdate': {'S': now.isoformat()},
+                            ':providerDateOfUpdate': {'S': now.isoformat()},
                         },
                         'ConditionExpression': 'attribute_exists(pk)',
                     }
@@ -1486,7 +1486,7 @@ class DataClient:
                         'UpdateExpression': 'SET administratorSetStatus = :status, dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
                             ':status': {'S': ActiveInactiveStatus.INACTIVE},
-                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                            ':dateOfUpdate': {'S': now.isoformat()},
                         },
                     },
                 },
@@ -1501,8 +1501,8 @@ class DataClient:
                         'UpdateExpression': 'SET dateOfUpdate = :dateOfUpdate, '
                         'providerDateOfUpdate = :providerDateOfUpdate',
                         'ExpressionAttributeValues': {
-                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                            ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                            ':dateOfUpdate': {'S': now.isoformat()},
+                            ':providerDateOfUpdate': {'S': now.isoformat()},
                         },
                     },
                 },
@@ -1590,6 +1590,7 @@ class DataClient:
         provider_encumbered_status: LicenseEncumberedStatusEnum,
     ):
         data_record = provider_data.serialize_to_database_record()
+        now = self.config.current_standard_datetime
         return {
             'Update': {
                 'TableName': self.config.provider_table.name,
@@ -1598,8 +1599,8 @@ class DataClient:
                 'providerDateOfUpdate = :providerDateOfUpdate',
                 'ExpressionAttributeValues': {
                     ':status': {'S': provider_encumbered_status},
-                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                    ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                    ':dateOfUpdate': {'S': now.isoformat()},
+                    ':providerDateOfUpdate': {'S': now.isoformat()},
                 },
             },
         }
@@ -3008,8 +3009,8 @@ class DataClient:
                     'providerDateOfUpdate = :providerDateOfUpdate',
                     'ExpressionAttributeValues': {
                         ':currentHomeJurisdiction': {'S': selected_jurisdiction},
-                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                        ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        ':dateOfUpdate': {'S': now.isoformat()},
+                        ':providerDateOfUpdate': {'S': now.isoformat()},
                     },
                 }
             },
