@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from cc_common.exceptions import CCInternalException
-from common_test.test_constants import DEFAULT_COMPACT, DEFAULT_PROVIDER_ID
+from common_test.test_constants import DEFAULT_COMPACT, DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_PROVIDER_ID
 from moto import mock_aws
 
 from .. import TstFunction
@@ -442,6 +442,49 @@ class TestPostProviderUsersEmailVerify(TstFunction):
         self.assertIsNone(stored_provider_data.pendingEmailAddress)
         self.assertIsNone(stored_provider_data.emailVerificationCode)
         self.assertIsNone(stored_provider_data.emailVerificationExpiry)
+
+    @patch('cc_common.config._Config.email_service_client')
+    def test_complete_provider_email_update_sets_provider_date_of_update_on_provider_record(self, mock_email_service_client):
+        from handlers.provider_users import provider_users_api_handler
+
+        self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=TEST_OLD_EMAIL,
+            UserAttributes=[
+                {'Name': 'email', 'Value': TEST_OLD_EMAIL},
+                {'Name': 'email_verified', 'Value': 'true'},
+                {'Name': 'custom:compact', 'Value': DEFAULT_COMPACT},
+                {'Name': 'custom:providerId', 'Value': DEFAULT_PROVIDER_ID},
+            ],
+            MessageAction='SUPPRESS',
+        )
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        stale_datetime = '2000-01-01T00:00:00+00:00'
+        self._provider_table.update_item(
+            Key={
+                'pk': f'{DEFAULT_COMPACT}#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'sk': f'{DEFAULT_COMPACT}#PROVIDER',
+            },
+            UpdateExpression='SET dateOfUpdate = :d, providerDateOfUpdate = :p',
+            ExpressionAttributeValues={
+                ':d': stale_datetime,
+                ':p': stale_datetime,
+            },
+        )
+
+        resp = provider_users_api_handler(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        provider_item = self._provider_table.get_item(
+            Key={
+                'pk': f'{DEFAULT_COMPACT}#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'sk': f'{DEFAULT_COMPACT}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_item['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_item['providerDateOfUpdate'])
 
     @patch('cc_common.config._Config.email_service_client')
     def test_endpoint_creates_dynamo_provider_update_record_with_expected_values(self, mock_email_service_client):

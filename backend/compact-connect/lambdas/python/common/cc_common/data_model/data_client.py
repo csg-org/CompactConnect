@@ -3892,12 +3892,14 @@ class DataClient:
                             },
                             'UpdateExpression': (
                                 'SET compactConnectRegisteredEmailAddress = :new_email, '
-                                'dateOfUpdate = :date_of_update '
+                                'dateOfUpdate = :date_of_update, '
+                                'providerDateOfUpdate = :provider_date_of_update '
                                 'REMOVE pendingEmailAddress, emailVerificationCode, emailVerificationExpiry'
                             ),
                             'ExpressionAttributeValues': {
                                 ':new_email': {'S': new_email_address},
-                                ':date_of_update': {'S': self.config.current_standard_datetime.isoformat()},
+                                ':date_of_update': {'S': now.isoformat()},
+                                ':provider_date_of_update': {'S': now.isoformat()},
                             },
                             # Ensure the provider record exists before updating
                             'ConditionExpression': 'attribute_exists(pk)',
