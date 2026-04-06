@@ -527,9 +527,14 @@ class DataClient:
                             'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
                             'sk': {'S': f'{compact}#PROVIDER'},
                         },
-                        'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
+                        'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions '
+                        'SET dateOfUpdate = :dateOfUpdate, providerDateOfUpdate = :providerDateOfUpdate',
                         'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
-                        'ExpressionAttributeValues': {':newJurisdictions': {'SS': jurisdiction_postal_abbreviations}},
+                        'ExpressionAttributeValues': {
+                            ':newJurisdictions': {'SS': jurisdiction_postal_abbreviations},
+                            ':dateOfUpdate': {'S': now.isoformat()},
+                            ':providerDateOfUpdate': {'S': now.isoformat()},
+                        },
                     }
                 }
             )
@@ -902,9 +907,13 @@ class DataClient:
                         'pk': {'S': provider_serialized_record['pk']},
                         'sk': {'S': provider_serialized_record['sk']},
                     },
-                    'UpdateExpression': ('SET dateOfUpdate = :dateOfUpdate REMOVE militaryStatus, militaryStatusNote'),
+                    'UpdateExpression': (
+                        'SET dateOfUpdate = :dateOfUpdate, providerDateOfUpdate = :providerDateOfUpdate '
+                        'REMOVE militaryStatus, militaryStatusNote'
+                    ),
                     'ExpressionAttributeValues': {
                         ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                     },
                     'ConditionExpression': 'attribute_exists(pk)',
                 }
@@ -1477,6 +1486,22 @@ class DataClient:
                         },
                     },
                 },
+                # Update dateOfUpdate and providerDateOfUpdate on the top-level provider record
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER'},
+                        },
+                        'UpdateExpression': 'SET dateOfUpdate = :dateOfUpdate, '
+                        'providerDateOfUpdate = :providerDateOfUpdate',
+                        'ExpressionAttributeValues': {
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                            ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                    },
+                },
                 # Create a history record, reflecting this change
                 {
                     'Put': {
@@ -1560,10 +1585,20 @@ class DataClient:
         # licenses and providers share the same encumbered status enum
         provider_encumbered_status: LicenseEncumberedStatusEnum,
     ):
-        return self._generate_encumbered_status_update_item(
-            data=provider_data,
-            encumbered_status=provider_encumbered_status,
-        )
+        data_record = provider_data.serialize_to_database_record()
+        return {
+            'Update': {
+                'TableName': self.config.provider_table.name,
+                'Key': {'pk': {'S': data_record['pk']}, 'sk': {'S': data_record['sk']}},
+                'UpdateExpression': 'SET encumberedStatus = :status, dateOfUpdate = :dateOfUpdate, '
+                'providerDateOfUpdate = :providerDateOfUpdate',
+                'ExpressionAttributeValues': {
+                    ':status': {'S': provider_encumbered_status},
+                    ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                    ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                },
+            },
+        }
 
     def _generate_put_transaction_item(self, item: dict):
         return {'Put': {'TableName': self.config.provider_table.name, 'Item': TypeSerializer().serialize(item)['M']}}
@@ -2965,10 +3000,12 @@ class DataClient:
                     },
                     'UpdateExpression': 'SET '
                     'currentHomeJurisdiction = :currentHomeJurisdiction, '
-                    'dateOfUpdate = :dateOfUpdate',
+                    'dateOfUpdate = :dateOfUpdate, '
+                    'providerDateOfUpdate = :providerDateOfUpdate',
                     'ExpressionAttributeValues': {
                         ':currentHomeJurisdiction': {'S': selected_jurisdiction},
                         ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                     },
                 }
             },

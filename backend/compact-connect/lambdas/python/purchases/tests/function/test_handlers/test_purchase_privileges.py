@@ -1245,3 +1245,28 @@ class TestPostPurchasePrivileges(TstFunction):
         expected_epoch = int(dt.timestamp())
         expected_sk = f'COMPACT#{TEST_COMPACT}#TIME#{expected_epoch}#TX#{MOCK_TRANSACTION_ID}'
         self.assertEqual(expected_sk, unsettled_tx['sk'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_updates_provider_date_of_update(self, mock_purchase_client_constructor):
+        """Test that purchasing privileges updates dateOfUpdate and providerDateOfUpdate on the provider record."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date='2050-01-01')
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+        expected_datetime = '2024-11-08T23:59:59+00:00'
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}',
+                'sk': f'{TEST_COMPACT}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(expected_datetime, provider_record['dateOfUpdate'])
+        self.assertEqual(expected_datetime, provider_record['providerDateOfUpdate'])

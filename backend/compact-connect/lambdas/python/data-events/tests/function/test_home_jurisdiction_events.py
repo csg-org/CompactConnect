@@ -341,3 +341,31 @@ class TestHomeJurisdictionChangeEvents(TstFunction):
         # Verify no emails were sent
         mock_send_old_state.assert_not_called()
         mock_send_new_state.assert_not_called()
+
+    def test_provider_date_of_update_is_set_after_home_jurisdiction_change(self):
+        """Test that providerDateOfUpdate is updated on the provider record after a home jurisdiction change
+        to a jurisdiction with no known license (Update expression path)."""
+        from cc_common.config import config
+
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'currentHomeJurisdiction': 'oh',
+            },
+            date_of_update_override='2020-01-01T00:00:00+00:00',
+        )
+
+        config.data_client.update_provider_home_state_jurisdiction(
+            compact=DEFAULT_COMPACT,
+            provider_id=DEFAULT_PROVIDER_ID,
+            selected_jurisdiction='tx',
+        )
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'{DEFAULT_COMPACT}#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'sk': f'{DEFAULT_COMPACT}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['providerDateOfUpdate'])

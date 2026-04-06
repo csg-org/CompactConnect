@@ -56,8 +56,12 @@ def _generate_test_body():
 class TestPostPrivilegeEncumbrance(TstFunction):
     """Test suite for privilege encumbrance endpoints."""
 
-    def _when_testing_privilege_encumbrance(self, body_overrides: dict | None = None):
-        self.test_data_generator.put_default_provider_record_in_provider_table()
+    def _when_testing_privilege_encumbrance(
+        self, body_overrides: dict | None = None, date_of_update_override: str | None = None
+    ):
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            date_of_update_override=date_of_update_override,
+        )
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table()
 
         body = _generate_test_body()
@@ -300,14 +304,39 @@ class TestPostPrivilegeEncumbrance(TstFunction):
             encumbrance_handler(event, self.mock_context)
         self.assertEqual('Event publishing failed', str(context.exception))
 
+    def test_privilege_encumbrance_updates_provider_date_of_update(self):
+        """Test that encumbering a privilege updates providerDateOfUpdate on the provider record."""
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_privilege_record = self._when_testing_privilege_encumbrance(
+            date_of_update_override='2020-01-01T00:00:00+00:00',
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'{test_privilege_record.compact}#PROVIDER#{test_privilege_record.providerId}',
+                'sk': f'{test_privilege_record.compact}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['providerDateOfUpdate'])
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
 
-    def _when_testing_valid_license_encumbrance(self, body_overrides: dict | None = None):
-        self.test_data_generator.put_default_provider_record_in_provider_table()
+    def _when_testing_valid_license_encumbrance(
+        self, body_overrides: dict | None = None, date_of_update_override: str | None = None
+    ):
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            date_of_update_override=date_of_update_override,
+        )
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
 
         body = _generate_test_body()
@@ -513,6 +542,27 @@ class TestPostLicenseEncumbrance(TstFunction):
             response_body,
         )
 
+    def test_license_encumbrance_updates_provider_date_of_update(self):
+        """Test that encumbering a license updates providerDateOfUpdate on the provider record."""
+        from handlers.encumbrance import encumbrance_handler
+
+        event, test_license_record = self._when_testing_valid_license_encumbrance(
+            date_of_update_override='2020-01-01T00:00:00+00:00',
+        )
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'{test_license_record.compact}#PROVIDER#{test_license_record.providerId}',
+                'sk': f'{test_license_record.compact}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['providerDateOfUpdate'])
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
@@ -520,11 +570,16 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
     """Test suite for privilege encumbrance lifting endpoints."""
 
     def _setup_privilege_with_adverse_action(
-        self, adverse_action_overrides=None, privilege_overrides=None, license_overrides=None
+        self,
+        adverse_action_overrides=None,
+        privilege_overrides=None,
+        license_overrides=None,
+        date_of_update_override: str | None = None,
     ):
         """Helper method to set up a privilege with an adverse action for testing."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={'encumberedStatus': 'encumbered'}
+            value_overrides={'encumberedStatus': 'encumbered'},
+            date_of_update_override=date_of_update_override,
         )
         test_privilege_record = self.test_data_generator.put_default_privilege_record_in_provider_table(
             value_overrides=privilege_overrides or {'encumberedStatus': 'encumbered'}
@@ -892,16 +947,41 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
             encumbrance_handler(event, self.mock_context)
         self.assertEqual('Event publishing failed', str(context.exception))
 
+    def test_should_update_provider_date_of_update_when_last_privilege_encumbrance_is_lifted(self):
+        """Test that lifting the last privilege encumbrance updates providerDateOfUpdate on the provider record."""
+        from handlers.encumbrance import encumbrance_handler
+
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            date_of_update_override='2020-01-01T00:00:00+00:00',
+        )
+        event = self._generate_lift_encumbrance_event(privilege_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'{privilege_record.compact}#PROVIDER#{privilege_record.providerId}',
+                'sk': f'{privilege_record.compact}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['providerDateOfUpdate'])
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPatchLicenseEncumbranceLifting(TstFunction):
     """Test suite for license encumbrance lifting endpoints."""
 
-    def _setup_license_with_adverse_action(self, adverse_action_overrides=None, license_overrides=None):
+    def _setup_license_with_adverse_action(
+        self, adverse_action_overrides=None, license_overrides=None, date_of_update_override: str | None = None
+    ):
         """Helper method to set up a license with an adverse action for testing."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={'encumberedStatus': 'encumbered'}
+            value_overrides={'encumberedStatus': 'encumbered'},
+            date_of_update_override=date_of_update_override,
         )
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides=license_overrides or {'encumberedStatus': 'encumbered'}
@@ -1176,6 +1256,28 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
 
         loaded_provider_data = provider_records.get_provider_record()
         self.assertEqual(LicenseEncumberedStatusEnum.ENCUMBERED, loaded_provider_data.encumberedStatus)
+
+    def test_should_update_provider_date_of_update_when_last_license_encumbrance_is_lifted(self):
+        """Test that lifting the last license encumbrance updates providerDateOfUpdate on the provider record."""
+        from handlers.encumbrance import encumbrance_handler
+
+        license_record, adverse_action = self._setup_license_with_adverse_action(
+            date_of_update_override='2020-01-01T00:00:00+00:00',
+        )
+        event = self._generate_lift_encumbrance_event(license_record, adverse_action)
+
+        response = encumbrance_handler(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'])
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'{license_record.compact}#PROVIDER#{license_record.providerId}',
+                'sk': f'{license_record.compact}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['providerDateOfUpdate'])
 
     def test_should_return_access_denied_if_compact_admin_attempts_to_lift_license_encumbrance(self):
         """Verifying that only state admins are allowed to lift license encumbrances"""
