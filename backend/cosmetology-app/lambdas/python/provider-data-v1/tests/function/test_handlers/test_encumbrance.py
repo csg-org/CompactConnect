@@ -58,6 +58,12 @@ def _generate_test_body():
 class TestPostPrivilegeEncumbrance(TstFunction):
     """Test suite for privilege encumbrance endpoints."""
 
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test(
+            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+        )
+
     def _when_testing_privilege_encumbrance(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
         self.test_data_generator.put_default_license_record_in_provider_table()
@@ -237,6 +243,12 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPostLicenseEncumbrance(TstFunction):
     """Test suite for license encumbrance endpoints."""
+
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test(
+            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+        )
 
     def _when_testing_valid_license_encumbrance(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
@@ -449,6 +461,12 @@ class TestPostLicenseEncumbrance(TstFunction):
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPatchPrivilegeEncumbranceLifting(TstFunction):
     """Test suite for privilege encumbrance lifting endpoints."""
+
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test(
+            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+        )
 
     def _setup_privilege_with_adverse_action(
         self,
@@ -762,6 +780,12 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestPatchLicenseEncumbranceLifting(TstFunction):
     """Test suite for license encumbrance lifting endpoints."""
+
+    def setUp(self):
+        super().setUp()
+        self.set_live_compact_jurisdictions_for_test(
+            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+        )
 
     def _setup_license_with_adverse_action(self, adverse_action_overrides=None, license_overrides=None):
         """Helper method to set up a license with an adverse action for testing."""

@@ -37,7 +37,9 @@ LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE = (
 
 
 def _ensure_jurisdiction_live(compact: str, jurisdiction: str) -> None:
-    if not config.compact_configuration_client.is_jurisdiction_live_in_compact(compact, jurisdiction):
+    live_jurisdictions = config.live_compact_jurisdictions.get(compact, [])
+    normalized = jurisdiction.lower()
+    if normalized not in {j.lower() for j in live_jurisdictions}:
         raise CCInvalidRequestException('Jurisdiction is not live in this compact')
 
 
