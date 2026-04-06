@@ -732,12 +732,14 @@ class DataClient:
                     'UpdateExpression': (
                         'SET militaryStatus = :militaryStatus, '
                         'militaryStatusNote = :militaryStatusNote, '
-                        'dateOfUpdate = :dateOfUpdate'
+                        'dateOfUpdate = :dateOfUpdate, '
+                        'providerDateOfUpdate = :providerDateOfUpdate'
                     ),
                     'ExpressionAttributeValues': {
                         ':militaryStatus': {'S': MilitaryStatus.TENTATIVE},
                         ':militaryStatusNote': {'S': ''},
-                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        ':dateOfUpdate': {'S': now.isoformat()},
+                        ':providerDateOfUpdate': {'S': now.isoformat()},
                     },
                     'ConditionExpression': 'attribute_exists(pk)',
                 }
@@ -770,7 +772,7 @@ class DataClient:
                         'ExpressionAttributeNames': {'#status': 'status'},
                         'ExpressionAttributeValues': {
                             ':status': {'S': status_value},
-                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                            ':dateOfUpdate': {'S': now.isoformat()},
                         },
                     }
                 }
@@ -912,8 +914,8 @@ class DataClient:
                         'REMOVE militaryStatus, militaryStatusNote'
                     ),
                     'ExpressionAttributeValues': {
-                        ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
-                        ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        ':dateOfUpdate': {'S': now.isoformat()},
+                        ':providerDateOfUpdate': {'S': now.isoformat()},
                     },
                     'ConditionExpression': 'attribute_exists(pk)',
                 }
@@ -1049,12 +1051,14 @@ class DataClient:
                         'UpdateExpression': (
                             'SET militaryStatus = :militaryStatus, '
                             'militaryStatusNote = :militaryStatusNote, '
-                            'dateOfUpdate = :dateOfUpdate'
+                            'dateOfUpdate = :dateOfUpdate, '
+                            'providerDateOfUpdate = :providerDateOfUpdate'
                         ),
                         'ExpressionAttributeValues': {
                             ':militaryStatus': {'S': military_status},
                             ':militaryStatusNote': {'S': note_value},
                             ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                            ':providerDateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
                         },
                         'ConditionExpression': 'attribute_exists(pk)',
                     }
