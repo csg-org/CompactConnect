@@ -40,9 +40,7 @@ updates:
   #---------------------------------------------------------------------------
   - package-ecosystem: "npm"
     directories:
-      - "/backend/compact-connect/lambdas/nodejs"
-      - "/backend/compact-connect-ui-app/lambdas/nodejs"
-      - "/backend/cosmetology-app/lambdas/nodejs"
+      - "/backend/*/lambdas/nodejs"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -50,6 +48,8 @@ updates:
     labels:
       - "dependencies"
       - "node"
+    # Require packages to be at least 7 days old before proposing updates.
+    # This does NOT apply to security updates, which are always immediate.
     cooldown:
       default-days: 7
     groups:
