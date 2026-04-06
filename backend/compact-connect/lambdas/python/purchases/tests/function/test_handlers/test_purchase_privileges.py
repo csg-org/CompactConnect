@@ -1256,6 +1256,20 @@ class TestPostPurchasePrivileges(TstFunction):
         event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date='2050-01-01')
         event['body'] = _generate_test_request_body()
 
+        # provider with stale datetime that should be updated to the mock current time
+        stale_datetime = '2000-01-01T00:00:00+00:00'
+        self._provider_table.update_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}',
+                'sk': f'{TEST_COMPACT}#PROVIDER',
+            },
+            UpdateExpression='SET dateOfUpdate = :d, providerDateOfUpdate = :p',
+            ExpressionAttributeValues={
+                ':d': stale_datetime,
+                ':p': stale_datetime,
+            },
+        )
+
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
 
