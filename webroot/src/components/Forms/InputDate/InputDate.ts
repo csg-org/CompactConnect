@@ -109,10 +109,12 @@ class InputDate extends mixins(MixinInput) {
         const { formInput } = this;
 
         formInput.validate = () => {
+            const { localValue, dateRaw } = this;
             const { validation } = formInput;
 
+            // Date format validation
             if (validation && (validation as any).validate) {
-                const result = (validation as any).validate(this.localValue);
+                const result = (validation as any).validate(localValue);
 
                 if (result.error) {
                     formInput.isValid = false;
@@ -127,6 +129,15 @@ class InputDate extends mixins(MixinInput) {
             } else {
                 formInput.errorMessage = '';
                 formInput.isValid = true;
+            }
+
+            // Date existance validation
+            if (formInput.isValid && (localValue && !dateRaw)) {
+                formInput.isValid = false;
+
+                if (formInput.isTouched) {
+                    formInput.errorMessage = this.$t('inputErrors.invalidDate');
+                }
             }
         };
     }

@@ -18,7 +18,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { AppModes } from '@/app.config';
+import { AppModes, dateFormatPatterns } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -269,6 +269,10 @@ class LicenseeSearch extends mixins(MixinForm) {
                 name: 'dob',
                 label: computed(() => this.$t('common.dateOfBirth')),
                 placeholder: computed(() => 'MM/DD/YYYY'),
+                validation: Joi.string()
+                    .allow(null, '')
+                    .pattern(dateFormatPatterns.MM_DD_YYYY)
+                    .messages(this.joiMessages.dateWithFormat('MM/DD/YYYY')),
                 value: this.searchParams.dob || '',
             }),
             privilegeState: new FormInput({
