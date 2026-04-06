@@ -444,7 +444,9 @@ class TestPostProviderUsersEmailVerify(TstFunction):
         self.assertIsNone(stored_provider_data.emailVerificationExpiry)
 
     @patch('cc_common.config._Config.email_service_client')
-    def test_complete_provider_email_update_sets_provider_date_of_update_on_provider_record(self, mock_email_service_client):
+    def test_complete_provider_email_update_sets_provider_date_of_update_on_provider_record(
+        self, mock_email_service_client
+    ):
         from handlers.provider_users import provider_users_api_handler
 
         self.config.cognito_client.admin_create_user(
