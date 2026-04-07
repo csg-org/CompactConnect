@@ -16,19 +16,19 @@
   "devDependencies": {
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
-    "esbuild": "0.24.0",
+    "esbuild": "0.27.4",
     "eslint": "^9.13.0",
     "chai": "^4.1.2",
     "chai-match-pattern": "^1.1.0",
     "chalk": "^4.1.2",
     "lambda-local": "^2.2.0",
-    "mocha": "^11.0.0"
+    "mocha": "^11.7.5"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^2.10.0",
-    "@aws-sdk/client-dynamodb": "^3.682.0",
-    "@aws-sdk/client-s3": "^3.682.0",
-    "@aws-sdk/util-dynamodb": "^3.682.0",
+    "@aws-lambda-powertools/logger": "^2.32.0",
+    "@aws-sdk/client-dynamodb": "^3.1020.0",
+    "@aws-sdk/client-s3": "^3.1020.0",
+    "@aws-sdk/util-dynamodb": "^3.996.2",
     "zod": "^3.23.8"
   },
   "resolutions": {
