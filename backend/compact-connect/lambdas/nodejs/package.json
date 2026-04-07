@@ -28,7 +28,7 @@
     "aws-sdk-client-mock-jest": "^4.1.0",
     "chai": "^4.1.2",
     "chai-match-pattern": "^1.1.0",
-    "chalk": "^4.1.2",
+    "chalk": "^5.6.2",
     "esbuild": "0.24.0",
     "eslint": "^9.13.0",
     "jest": "^29.7.0",
