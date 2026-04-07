@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from boto3.dynamodb.conditions import Key
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException
-from common_test.test_constants import DEFAULT_PROVIDER_ID, DEFAULT_LICENSE_JURISDICTION
+from common_test.test_constants import DEFAULT_LICENSE_JURISDICTION, DEFAULT_PROVIDER_ID
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -153,9 +153,9 @@ class TestDataClient(TstFunction):
 
         test_data_client = DataClient(self.config)
         # add provider record
-        provider_record = self.test_data_generator.put_default_provider_record_in_provider_table(value_overrides={
-            'privilegeJurisdictions': {}
-        })
+        provider_record = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'privilegeJurisdictions': {}}
+        )
 
         response = test_data_client.create_provider_privileges(
             compact=provider_record.compact,
@@ -248,14 +248,11 @@ class TestDataClient(TstFunction):
             }
         )
 
-
         provider_uuid = str(uuid4())
         # add provider record
         self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={
-                'providerId': provider_uuid,
-                'privilegeJurisdictions': {}
-            })
+            value_overrides={'providerId': provider_uuid, 'privilegeJurisdictions': {}}
+        )
         # Create the first privilege
         original_privilege = PrivilegeData.from_database_record(
             {
@@ -487,11 +484,8 @@ class TestDataClient(TstFunction):
         provider_uuid = str(uuid4())
         # add provider record
         self.test_data_generator.put_default_provider_record_in_provider_table(
-            value_overrides={
-            'providerId': provider_uuid,
-            'privilegeJurisdictions': {}
-        })
-
+            value_overrides={'providerId': provider_uuid, 'privilegeJurisdictions': {}}
+        )
 
         # use first 51 jurisdictions (will create 102 records - 51 privileges and 51 updates)
         jurisdictions = [jurisdiction for jurisdiction in self.config.jurisdictions[0:51]]
