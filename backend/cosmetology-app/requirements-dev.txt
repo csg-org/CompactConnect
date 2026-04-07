@@ -83,7 +83,7 @@ pytest==9.0.2
     #   pytest-cov
 pytest-cov==7.1.0
     # via -r requirements-dev.in
-requests==2.33.0
+requests==2.33.1
     # via
     #   cachecontrol
     #   pip-audit
