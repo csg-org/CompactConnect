@@ -24,7 +24,7 @@ cryptography==46.0.4
 docker==7.1.0
     # via moto
 faker==37.12.0
-    # via -r lambdas/python/staff-users/requirements-dev.in
+    # via -r requirements-dev.in
 idna==3.11
     # via requests
 jinja2==3.1.6
@@ -33,14 +33,14 @@ jmespath==1.1.0
     # via
     #   boto3
     #   botocore
-joserfc==1.6.1
+joserfc==1.6.3
     # via moto
 markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
 moto[cognitoidp,dynamodb,s3]==5.1.20
-    # via -r lambdas/python/staff-users/requirements-dev.in
+    # via -r requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
