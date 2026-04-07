@@ -34,7 +34,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[dynamodb,s3]==5.1.20
-    # via -r lambdas/python/custom-resources/requirements-dev.in
+    # via -r requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
@@ -47,7 +47,7 @@ pyyaml==6.0.3
     # via
     #   moto
     #   responses
-requests==2.32.5
+requests==2.33.0
     # via
     #   docker
     #   moto
