@@ -92,7 +92,7 @@
     "less-loader": "^5.0.0",
     "lint-staged": "^15.0.0",
     "moment-timezone": "^0.5.31",
-    "nyc": "^15.1.0",
+    "nyc": "^18.0.0",
     "replace-in-file": "^5.0.2",
     "sharp": "^0.33.3",
     "sinon": "^9.0.2",
