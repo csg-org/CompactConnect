@@ -70,7 +70,7 @@
     "@vue/test-utils": "2.4.5",
     "axe-core": "^4.9.1",
     "babel-loader": "^8.2.2",
-    "babel-plugin-istanbul": "^6.1.1",
+    "babel-plugin-istanbul": "^7.0.1",
     "chai": "^4.1.2",
     "chai-match-pattern": "^1.1.0",
     "chalk": "^4.0.0",
