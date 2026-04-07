@@ -270,7 +270,7 @@
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeEncumberSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
-                            <div class="static-value">{{ privilegeId }}</div>
+                            <div v-if="isAppModeJcc" class="static-value">{{ privilegeId }}</div>
                         </div>
                         <InputButton
                             id="encumber-modal-cancel-button"
@@ -486,7 +486,7 @@
                             <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationStartSuccess') }}</h1>
                             <div class="success-container">
                                 <div class="input-label static-label">{{ licenseeName }}</div>
-                                <div class="static-value">{{ privilegeId }}</div>
+                                <div v-if="isAppModeJcc" class="static-value">{{ privilegeId }}</div>
                             </div>
                             <InputSubmit
                                 :formInput="formData.addInvestigationModalContinue"
@@ -635,7 +635,7 @@
                         <h1 class="modal-title">{{ $t('licensing.confirmPrivilegeInvestigationEndSuccess') }}</h1>
                         <div class="success-container">
                             <div class="input-label static-label">{{ licenseeName }}</div>
-                            <div class="static-value">{{ privilegeId }}</div>
+                            <div v-if="isAppModeJcc" class="static-value">{{ privilegeId }}</div>
                         </div>
                         <InputButton
                             id="end-investigation-modal-cancel-button"
