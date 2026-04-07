@@ -21,6 +21,16 @@
                 <div class="list-actions-container">
                     <h1 class="list-title no-margin">{{ $t('licensing.licensingListTitle') }}</h1>
                     <div class="search-toggle-container">
+                        <div v-if="searchDisplayAll" class="search-tag">
+                            <span class="title">{{ $t('common.viewing') }}:</span>
+                            <span class="search-terms">{{ searchDisplayAll }}</span>
+                            <CloseX
+                                class="search-terms-reset"
+                                @click="resetSearch()"
+                                @keyup.enter="resetSearch()"
+                                tabindex="0"
+                            />
+                        </div>
                         <button
                             class="search-toggle"
                             @click="toggleSearch()"
@@ -28,15 +38,6 @@
                         >
                             {{ $t('licensing.searchLabel') }}
                         </button>
-                        <div v-if="searchDisplayAll" class="search-tag">
-                            <span class="title">{{ $t('common.viewing') }}:</span>
-                            <span class="search-terms">{{ searchDisplayAll }}</span>
-                            <CloseX
-                                class="search-terms-reset"
-                                @click="resetSearch()"
-                                tabindex="0"
-                            />
-                        </div>
                     </div>
                 </div>
                 <div class="list-description">{{ $t('licensing.licensingListDescription')}}</div>

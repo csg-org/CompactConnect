@@ -447,6 +447,7 @@
         "currencyType": "Debe ser un monto en moneda válido",
         "minNumber": "Debe ser mayor o igual a {min}",
         "maxNumber": "Debe ser menor o igual a {max}",
+        "invalidDate": "Fecha no válida",
         "invalidDateWithFormat": "Fecha debe estar en el formato requerido {format}"
     },
     "serverErrors": {

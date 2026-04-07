@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from boto3.dynamodb.conditions import Key
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException
-from common_test.test_constants import DEFAULT_PROVIDER_ID
+from common_test.test_constants import DEFAULT_LICENSE_JURISDICTION, DEFAULT_PROVIDER_ID
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -152,14 +152,18 @@ class TestDataClient(TstFunction):
         )
 
         test_data_client = DataClient(self.config)
+        # add provider record
+        provider_record = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'privilegeJurisdictions': {}}
+        )
 
         response = test_data_client.create_provider_privileges(
-            compact='aslp',
+            compact=provider_record.compact,
             provider_id=DEFAULT_PROVIDER_ID,
             license_type='audiologist',
             jurisdiction_postal_abbreviations=['ky'],
             license_expiration_date=date.fromisoformat('2024-10-31'),
-            provider_record=self.test_data_generator.generate_default_provider(),
+            provider_record=provider_record,
             existing_privileges_for_license=[],
             compact_transaction_id='test_transaction_id',
             attestations=self.sample_privilege_attestations,
@@ -244,8 +248,12 @@ class TestDataClient(TstFunction):
             }
         )
 
-        # Create the first privilege
         provider_uuid = str(uuid4())
+        # add provider record
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'providerId': provider_uuid, 'privilegeJurisdictions': {}}
+        )
+        # Create the first privilege
         original_privilege = PrivilegeData.from_database_record(
             {
                 'pk': f'aslp#PROVIDER#{provider_uuid}',
@@ -474,6 +482,10 @@ class TestDataClient(TstFunction):
 
         test_data_client = DataClient(self.config)
         provider_uuid = str(uuid4())
+        # add provider record
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'providerId': provider_uuid, 'privilegeJurisdictions': {}}
+        )
 
         # use first 51 jurisdictions (will create 102 records - 51 privileges and 51 updates)
         jurisdictions = [jurisdiction for jurisdiction in self.config.jurisdictions[0:51]]
@@ -487,7 +499,7 @@ class TestDataClient(TstFunction):
                     'providerId': provider_uuid,
                     'compact': 'aslp',
                     'jurisdiction': jurisdiction,
-                    'licenseJurisdiction': 'oh',
+                    'licenseJurisdiction': DEFAULT_LICENSE_JURISDICTION,
                     'licenseType': 'audiologist',
                     'privilegeId': f'AUD-{jurisdiction.upper()}-1',
                     'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),

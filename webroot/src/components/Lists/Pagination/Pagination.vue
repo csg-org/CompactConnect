@@ -11,6 +11,7 @@
             <li
                 @click="isFirstPage ? null : setPage(currentPage - 1)"
                 @keyup.enter="isFirstPage ? null : setPage(currentPage - 1)"
+                :tabindex="!isFirstPage ? 0 : -1"
                 :class="{ clickable: !isFirstPage }"
                 class="pagination-item caret"
                 :aria-label="$t('paging.previousPage')"
@@ -22,6 +23,7 @@
                 :key="id"
                 @click="clickable ? setPage(id) : null"
                 @keyup.enter="clickable ? setPage(id) : null"
+                :tabindex="clickable && !selected ? 0 : -1"
                 class="pagination-item page"
                 :class="{ selected, clickable }"
                 :aria-label="clickable ? `${$t('paging.goToPage')} ${id}` : $t('paging.notClickable')"
@@ -34,6 +36,7 @@
                 @click="isLastPage ? null : setPage(currentPage + 1)"
                 @keyup.enter="isLastPage ? null : setPage(currentPage + 1)"
                 :class="{ clickable: !isLastPage }"
+                :tabindex="!isLastPage ? 0 : -1"
                 class="pagination-item caret"
                 :aria-label="$t('paging.nextPage')"
             >
