@@ -544,6 +544,7 @@ class DataClient:
                             ':dateOfUpdate': {'S': now.isoformat()},
                             ':providerDateOfUpdate': {'S': now.isoformat()},
                         },
+                        'ConditionExpression': 'attribute_exists(pk)',
                     }
                 }
             )
@@ -1513,6 +1514,7 @@ class DataClient:
                             ':dateOfUpdate': {'S': now.isoformat()},
                             ':providerDateOfUpdate': {'S': now.isoformat()},
                         },
+                        'ConditionExpression': 'attribute_exists(pk)',
                     },
                 },
                 # Create a history record, reflecting this change
@@ -1611,6 +1613,7 @@ class DataClient:
                     ':dateOfUpdate': {'S': now.isoformat()},
                     ':providerDateOfUpdate': {'S': now.isoformat()},
                 },
+                'ConditionExpression': 'attribute_exists(pk)',
             },
         }
 
@@ -3021,6 +3024,7 @@ class DataClient:
                         ':dateOfUpdate': {'S': now.isoformat()},
                         ':providerDateOfUpdate': {'S': now.isoformat()},
                     },
+                    'ConditionExpression': 'attribute_exists(pk)',
                 }
             },
         ]
