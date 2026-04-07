@@ -495,3 +495,28 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         self.assertEqual(['militaryStatus', 'militaryStatusNote'], update_data.removedValues)
         # Verify updated values is empty (no fields were updated, only removed)
         self.assertEqual({}, update_data.updatedValues)
+
+    def test_patch_provider_military_affiliation_updates_provider_date_of_update(self):
+        """Test that ending military affiliation updates providerDateOfUpdate on the provider record."""
+        from handlers.provider_users import provider_users_api_handler
+
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'militaryStatus': 'declined'},
+            date_of_update_override='2020-01-01T00:00:00+00:00',
+        )
+        self.test_data_generator.put_default_military_affiliation_in_provider_table()
+
+        event = self._generate_path_api_event(test_provider)
+
+        resp = provider_users_api_handler(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{test_provider.providerId}',
+                'sk': f'{TEST_COMPACT}#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['providerDateOfUpdate'])
