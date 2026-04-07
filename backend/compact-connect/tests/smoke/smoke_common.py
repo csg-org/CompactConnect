@@ -243,7 +243,7 @@ def call_provider_users_me_endpoint():
     )
 
     # If we get a 403, the token may have expired - refresh it and retry once
-    if get_provider_data_response.status_code == 403:
+    if get_provider_data_response.status_code == 403 or get_provider_data_response.status_code == 401:
         logger.info('Received 403 response, refreshing provider user token and retrying...')
         # Clear the cached token to force a refresh
         if 'TEST_PROVIDER_USER_ID_TOKEN' in os.environ:
