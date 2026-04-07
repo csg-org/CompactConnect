@@ -447,6 +447,7 @@
         "currencyType": "Debe ser un monto en moneda válido",
         "minNumber": "Debe ser mayor o igual a {min}",
         "maxNumber": "Debe ser menor o igual a {max}",
+        "invalidDate": "Fecha no válida",
         "invalidDateWithFormat": "Fecha debe estar en el formato requerido {format}"
     },
     "serverErrors": {
@@ -623,6 +624,7 @@
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseNumber": "Número de licencia",
+        "stateLicenseNumber": "Número de licencia estatal",
         "npi": "NPI",
         "searchPlaceholderNpi": "Introducir NPI",
         "licenseExpirationDate": "Fecha de vencimiento de la licencia",

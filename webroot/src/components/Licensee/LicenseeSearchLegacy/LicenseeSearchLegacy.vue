@@ -12,6 +12,21 @@
         <div v-else class="search-title">{{ $t('licensing.searchTitle') }}</div>
         <div v-if="!isPublicSearch" class="search-subtext">{{ $t('licensing.searchSubtext') }}</div>
         <form @submit.prevent="handleSubmit" class="search-form">
+            <div class="search-form-row">
+                <MockPopulate
+                    :isEnabled="isMockPopulateEnabled"
+                    @selected="mockPopulate"
+                    class="mock-populate search-input"
+                />
+            </div>
+            <div class="search-form-row">
+                <a
+                    v-if="isMockPopulateEnabled"
+                    @click="resetForm()"
+                    @keyup.enter="resetForm()"
+                    class="clear-form search-input"
+                >{{ $t('common.clear') }}</a>
+            </div>
             <div class="search-form-row" v-if="enableCompactSelect">
                 <InputSelect
                     :formInput="formData.compact"
@@ -39,6 +54,12 @@
                     class="search-input last-name-input"
                     @input="customValidateLastName(true)"
                     @blur="customValidateLastName(true)"
+                />
+            </div>
+            <div v-if="isAppModeCosmetology" class="search-form-row">
+                <InputText
+                    :formInput="formData.licenseNumber"
+                    class="search-input license-number-input"
                 />
             </div>
             <div class="search-form-row">

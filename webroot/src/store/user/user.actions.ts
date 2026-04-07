@@ -16,7 +16,7 @@ import {
     autoLogoutConfig
 } from '@/app.config';
 import localStorage from '@store/local.storage';
-import { Compact } from '@models/Compact/Compact.model';
+import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import moment from 'moment';
 import axios from 'axios';
@@ -178,6 +178,14 @@ export default {
         commit(MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact);
 
         if (compact?.type) {
+            // Set the AppMode based on compact
+            if (compact.type === CompactType.COSMETOLOGY) {
+                dispatch('setAppMode', AppModes.COSMETOLOGY, { root: true });
+            } else {
+                dispatch('setAppMode', AppModes.JCC, { root: true });
+            }
+
+            // Fetch the states for the compact
             await dispatch('getCompactStatesRequest', { compact: compact.type });
         }
     },

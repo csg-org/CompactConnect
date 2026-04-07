@@ -42,6 +42,14 @@ class LicenseeRow extends Vue {
         return this.$store.state.sorting;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get sortingStoreOption(): any {
         return this.sortingStore.sortingMap[this.listId]?.option;
     }
