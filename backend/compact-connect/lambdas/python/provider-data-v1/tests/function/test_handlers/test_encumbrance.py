@@ -812,7 +812,9 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
         from handlers.encumbrance import encumbrance_handler
 
         # Set up first privilege with adverse action
-        privilege_record, adverse_action = self._setup_privilege_with_adverse_action()
+        privilege_record, adverse_action = self._setup_privilege_with_adverse_action(
+            date_of_update_override='2020-01-01T00:00:00+00:00'
+        )
 
         # Set up second privilege with encumbered status (different jurisdiction)
         self.test_data_generator.put_default_privilege_record_in_provider_table(
@@ -836,6 +838,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
         loaded_provider_data = provider_records.get_provider_record()
         self.assertEqual(LicenseEncumberedStatusEnum.ENCUMBERED, loaded_provider_data.encumberedStatus)
+        self.assertEqual('2020-01-01T00:00:00+00:00', loaded_provider_data.dateOfUpdate.isoformat())
 
     def test_should_not_update_provider_record_when_encumbered_license_exists(self):
         from cc_common.data_model.provider_record_util import ProviderUserRecords

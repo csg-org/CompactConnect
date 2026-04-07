@@ -262,7 +262,7 @@ def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jur
 
     original_jurisdiction = provider_info_before.get('currentHomeJurisdiction')
     original_expiration_date = provider_info_before['licenses'][0]['dateOfExpiration']
-    new_jurisdiction = 'ar'  # Alabama - assuming the provider doesn't have a license here
+    new_jurisdiction = 'al'  # Alabama - assuming the provider doesn't have a license here
     logger.info(f'Original home jurisdiction: {original_jurisdiction}')
 
     # create jurisdiction config for AL
