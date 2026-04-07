@@ -26,7 +26,7 @@
     "@typescript-eslint/parser": "^8.12.2",
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
-    "chai": "^4.1.2",
+    "chai": "^6.2.2",
     "chai-match-pattern": "^1.1.0",
     "chalk": "^4.1.2",
     "esbuild": "0.24.0",
