@@ -34,7 +34,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto==5.1.20
-    # via -r backups/requirements-dev.in
+    # via -r requirements-dev.in
 packaging==26.0
     # via pytest
 pluggy==1.6.0
@@ -44,7 +44,7 @@ pycparser==3.0
 pygments==2.19.2
     # via pytest
 pytest==9.0.2
-    # via -r backups/requirements-dev.in
+    # via -r requirements-dev.in
 python-dateutil==2.9.0.post0
     # via
     #   botocore
@@ -66,7 +66,7 @@ urllib3==2.6.3
     #   botocore
     #   requests
     #   responses
-werkzeug==3.1.5
+werkzeug==3.1.6
     # via moto
 xmltodict==1.0.2
     # via moto
