@@ -11,7 +11,7 @@ from smoke_common import (
     call_provider_users_me_endpoint,
     get_provider_user_auth_headers_cached,
     get_provider_user_records,
-    load_smoke_test_env,
+    load_smoke_test_env, get_license_type_abbreviation,
 )
 
 # This script can be run locally to test the home jurisdiction change flow against a sandbox environment
@@ -205,7 +205,7 @@ def add_license_for_provider(provider_record: dict, jurisdiction: str):
     compact = provider_record['compact']
     license_record = {
         'pk': f'{compact}#PROVIDER#{provider_id}',
-        'sk': f'{compact}#PROVIDER#license/{jurisdiction}/{license_type}#',
+        'sk': f'{compact}#PROVIDER#license/{jurisdiction}/{get_license_type_abbreviation(license_type)}#',
         'type': 'license',
         'providerId': provider_id,
         'compact': compact,
@@ -213,7 +213,7 @@ def add_license_for_provider(provider_record: dict, jurisdiction: str):
         'ssnLastFour': '1234',
         'npi': '0608337260',
         'licenseNumber': 'A0608337260',
-        'licenseType': 'speech-language pathologist',
+        'licenseType': license_type,
         'givenName': 'Björk',
         'middleName': 'Gunnar',
         'familyName': 'Guðmundsdóttir',
@@ -225,14 +225,14 @@ def add_license_for_provider(provider_record: dict, jurisdiction: str):
         'homeAddressStreet1': '123 A St.',
         'homeAddressStreet2': 'Apt 321',
         'homeAddressCity': 'Columbus',
-        'homeAddressState': 'oh',
+        'homeAddressState': jurisdiction,
         'homeAddressPostalCode': '43004',
         'emailAddress': 'björk@example.com',
         'phoneNumber': '+13213214321',
         'jurisdictionUploadedLicenseStatus': 'active',
         'licenseStatusName': 'DEFINITELY_A_HUMAN',
         'jurisdictionUploadedCompactEligibility': 'eligible',
-        'licenseGSIPK': 'C#aslp#J#oh',
+        'licenseGSIPK': f'C#{compact}#J#{jurisdiction}',
         'licenseGSISK': 'FN#gu%C3%B0mundsd%C3%B3ttir#GN#bj%C3%B6rk',
     }
     # put the license in for the new jurisdiction
@@ -249,6 +249,10 @@ def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jur
     Test that when a provider changes their home jurisdiction to a jurisdiction where they have a valid license:
     1. All their privileges are set to active
     2. Their compactEligibility on the provider record is set to eligible
+
+    NOTE: this test assumes that the compact your test provider is registered in has Alabama as a live state in
+    its configuration, if that state is not live in your environment for that compact, you will need to add it or
+    change the jurisdiction
     """
     logger.info('Running home jurisdiction change test - changing to jurisdiction with valid license')
 
@@ -257,7 +261,7 @@ def test_home_jurisdiction_change_moves_privileges_when_valid_license_in_new_jur
 
     original_jurisdiction = provider_info_before.get('currentHomeJurisdiction')
     original_expiration_date = provider_info_before['licenses'][0]['dateOfExpiration']
-    new_jurisdiction = 'al'  # Alabama - assuming the provider doesn't have a license here
+    new_jurisdiction = 'ar'  # Alabama - assuming the provider doesn't have a license here
     logger.info(f'Original home jurisdiction: {original_jurisdiction}')
 
     # create jurisdiction config for AL

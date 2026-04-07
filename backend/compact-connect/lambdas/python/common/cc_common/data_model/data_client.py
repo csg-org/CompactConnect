@@ -421,6 +421,14 @@ class DataClient:
             privilege_jurisdictions=jurisdiction_postal_abbreviations,
         )
 
+        if not jurisdiction_postal_abbreviations:
+            logger.error('No list of jurisdictions provided. Cannot generate privileges for empty list.',
+                         compact=compact,
+                         provider_id=provider_id,
+                         compact_transaction_id=compact_transaction_id,
+            )
+            raise CCInternalException('No list of jurisdictions provided. Cannot generate privileges for empty list.')
+
         license_jurisdiction = provider_record.licenseJurisdiction
 
         privileges = []
@@ -430,6 +438,8 @@ class DataClient:
             transactions = []
             processed_transactions = []
             privilege_update_records = []
+
+            now = config.current_standard_datetime
 
             for postal_abbreviation in jurisdiction_postal_abbreviations:
                 # get the original privilege issuance date from an existing privilege record if it exists
@@ -456,8 +466,6 @@ class DataClient:
                 )
 
                 privileges.append(privilege_record)
-
-                now = config.current_standard_datetime
 
                 # Create privilege update record if this is updating an existing privilege
                 if original_privilege:
