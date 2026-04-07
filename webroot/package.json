@@ -51,7 +51,7 @@
     "@intlify/unplugin-vue-i18n": "^0.6.2",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/chai": "^4.2.11",
-    "@types/mocha": "^5.2.4",
+    "@types/mocha": "^10.0.10",
     "@types/qrcode": "^1.5.5",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
