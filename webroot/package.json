@@ -23,7 +23,7 @@
     "click-outside-vue3": "^4.0.1",
     "core-js": "^3.23.0",
     "country-codes-flags-phone-codes": "^1.0.4",
-    "joi": "^17.13.0",
+    "joi": "^18.1.2",
     "joi-password": "^4.2.0",
     "libphonenumber-js": "^1.11.1",
     "lodash.clonedeep": "^4.5.0",
