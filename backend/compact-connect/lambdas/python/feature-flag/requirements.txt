@@ -13,8 +13,8 @@ idna==3.10
 requests==2.32.5
     # via statsig-python-core
 statsig-python-core==0.9.3
-    # via -r compact-connect/lambdas/python/feature-flag/requirements.in
+    # via -r requirements.in
 typing-extensions==4.15.0
     # via statsig-python-core
-urllib3==2.5.0
+urllib3==2.6.3
     # via requests
