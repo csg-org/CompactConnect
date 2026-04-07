@@ -61,7 +61,7 @@ jobs:
         working-directory: 'owasp-zap/authenticator'
 
       - name: ZAP Scan
-        uses: zaproxy/action-af@v0.1.0
+        uses: zaproxy/action-af@v0.2.0
         with:
           plan: 'owasp-zap/data/test-automation.yml'
 
