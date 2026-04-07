@@ -422,10 +422,11 @@ class DataClient:
         )
 
         if not jurisdiction_postal_abbreviations:
-            logger.error('No list of jurisdictions provided. Cannot generate privileges for empty list.',
-                         compact=compact,
-                         provider_id=provider_id,
-                         compact_transaction_id=compact_transaction_id,
+            logger.error(
+                'No list of jurisdictions provided. Cannot generate privileges for empty list.',
+                compact=compact,
+                provider_id=provider_id,
+                compact_transaction_id=compact_transaction_id,
             )
             raise CCInternalException('No list of jurisdictions provided. Cannot generate privileges for empty list.')
 

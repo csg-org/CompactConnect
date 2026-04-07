@@ -9,9 +9,10 @@ from purchasing_privileges_smoke_tests import test_purchasing_privilege
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
+    get_license_type_abbreviation,
     get_provider_user_auth_headers_cached,
     get_provider_user_records,
-    load_smoke_test_env, get_license_type_abbreviation,
+    load_smoke_test_env,
 )
 
 # This script can be run locally to test the home jurisdiction change flow against a sandbox environment
