@@ -19,12 +19,12 @@ idna==3.11
 opensearch-protobufs==0.19.0
     # via opensearch-py
 opensearch-py==3.1.0
-    # via -r lambdas/python/search/requirements.in
+    # via -r requirements.in
 protobuf==6.33.5
     # via opensearch-protobufs
 python-dateutil==2.9.0.post0
     # via opensearch-py
-requests==2.32.5
+requests==2.33.0
     # via opensearch-py
 six==1.17.0
     # via python-dateutil
