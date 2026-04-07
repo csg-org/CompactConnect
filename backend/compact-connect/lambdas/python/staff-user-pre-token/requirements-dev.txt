@@ -34,7 +34,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[dynamodb,s3]==5.1.20
-    # via -r lambdas/python/staff-user-pre-token/requirements-dev.in
+    # via -r requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
@@ -64,7 +64,7 @@ urllib3==2.6.3
     #   docker
     #   requests
     #   responses
-werkzeug==3.1.5
+werkzeug==3.1.6
     # via moto
 xmltodict==1.0.2
     # via moto
