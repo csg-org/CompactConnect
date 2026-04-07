@@ -22,7 +22,7 @@ jobs:
           python-version: '3.14'
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install dev dependencies
         run: "pip install -r backend/common-cdk/requirements-dev.in"
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v6

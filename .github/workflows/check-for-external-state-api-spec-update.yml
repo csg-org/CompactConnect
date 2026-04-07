@@ -24,7 +24,7 @@ jobs:
           python-version: '3.12'
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Fetch full history to compare with base branch
 

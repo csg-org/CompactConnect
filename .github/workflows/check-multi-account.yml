@@ -22,7 +22,7 @@ jobs:
           python-version: '3.12'
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: Upgrade pip
         # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out the repository under $GITHUB_WORKSPACE
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v6
