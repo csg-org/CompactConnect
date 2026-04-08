@@ -97,6 +97,7 @@ module.exports = {
         }],
         'vue/multi-word-component-names': OFF,
         'vue/no-multiple-template-root': OFF,
+        'vue/no-v-for-template-key': OFF,
         'prefer-regex-literals': OFF,
         'no-promise-executor-return': OFF,
     },

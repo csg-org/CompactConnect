@@ -95,6 +95,8 @@ class TestDeactivatePrivilege(TstFunction):
         expected_provider['privileges'][0]['dateOfUpdate'] = '2024-11-08T23:59:59+00:00'
         # remove activeSince Field, since the privilege in this case would not be active
         del expected_provider['privileges'][0]['activeSince']
+        # deactivating a privilege now also updates the provider record's dateOfUpdate
+        expected_provider['dateOfUpdate'] = '2024-11-08T23:59:59+00:00'
 
         body = json.loads(resp['body'])
         self.assertEqual(expected_provider, body)
@@ -301,3 +303,37 @@ class TestDeactivatePrivilege(TstFunction):
             privilege_purchase_message_handler(purchase_event, self.mock_context)
 
         mock_email_service_client.send_privilege_purchase_email.assert_called_once()
+
+    @patch('cc_common.config._Config.email_service_client')
+    def test_deactivate_privilege_updates_provider_date_of_update(self, mock_email_service_client):  # noqa: ARG002 unused-argument
+        """Test that deactivating a privilege updates dateOfUpdate and providerDateOfUpdate on the provider record."""
+        from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP, DEFAULT_PROVIDER_ID
+        from handlers.privileges import deactivate_privilege
+
+        self._load_provider_data()
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
+        event['requestContext']['authorizer']['claims']['sub'] = TEST_STAFF_USER_ID
+        event['pathParameters'] = {
+            'compact': 'aslp',
+            'providerId': DEFAULT_PROVIDER_ID,
+            'jurisdiction': 'ne',
+            'licenseType': 'slp',
+        }
+        event['body'] = json.dumps({'deactivationNote': TEST_NOTE})
+
+        resp = deactivate_privilege(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        provider_record = self._provider_table.get_item(
+            Key={
+                'pk': f'aslp#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'sk': 'aslp#PROVIDER',
+            }
+        )['Item']
+
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['dateOfUpdate'])
+        self.assertEqual(DEFAULT_DATE_OF_UPDATE_TIMESTAMP, provider_record['providerDateOfUpdate'])

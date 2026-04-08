@@ -70,7 +70,7 @@ export class Licensee implements InterfaceLicensee {
     public $features?: StatsigClient | null = null;
     public id? = null;
     public npi? = null;
-    public licenseNumber?= null;
+    public licenseNumber? = null;
     public firstName? = null;
     public middleName? = null;
     public lastName? = null;

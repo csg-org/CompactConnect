@@ -463,6 +463,7 @@
         "currencyType": "Must be a valid currency amount",
         "minNumber": "Must be greater than or equal to {min}",
         "maxNumber": "Must be less than or equal to {max}",
+        "invalidDate": "Invalid date",
         "invalidDateWithFormat": "Date must be of required format {format}"
     },
     "serverErrors": {
@@ -602,6 +603,7 @@
         "homeState": "Home state",
         "stateOfHomeLicense": "State of home license",
         "licenseNumber": "License number",
+        "stateLicenseNumber": "State license number",
         "npi": "NPI",
         "searchPlaceholderNpi": "Enter NPI",
         "licenseExpirationDate": "License expiration date",

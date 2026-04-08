@@ -63,6 +63,7 @@
             }"></span>
         </div>
         <div
+            v-if="isAppModeJcc"
             class="cell practicing-locations"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('practicingLocations') }"
             @click="isSortOptionEnabled('practicingLocations') && handleSortSelect('practicingLocations')"
@@ -76,6 +77,24 @@
                 'is-selected': isSortOptionSelected('practicingLocations'),
                 'asc': isSortOptionAscending('practicingLocations'),
                 'desc': isSortOptionDescending('practicingLocations'),
+            }"></span>
+        </div>
+        <div
+            v-if="isAppModeCosmetology"
+            class="cell license-number"
+            :class="{ 'is-sort-enabled': isSortOptionEnabled('licenseNumber') }"
+            @click="isSortOptionEnabled('licenseNumber') && handleSortSelect('licenseNumber')"
+            @keyup.enter="isSortOptionEnabled('licenseNumber') && handleSortSelect('licenseNumber')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('licenseNumber')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
+        >
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.stateLicenseNumber') }}:</span>
+            <template v-if="item.licenseNumber">{{ item.licenseNumber }}</template>
+            <template v-else-if="item.bestLicense">{{ item.bestLicense().licenseNumber }}</template>
+            <span v-if="isSortOptionEnabled('licenseNumber')" class="sort-icon" :class="{
+                'is-selected': isSortOptionSelected('licenseNumber'),
+                'asc': isSortOptionAscending('licenseNumber'),
+                'desc': isSortOptionDescending('licenseNumber'),
             }"></span>
         </div>
     </div>
