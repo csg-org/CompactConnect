@@ -165,8 +165,8 @@ class TestPublicSearchProviders(TstFunction):
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
         sort = call_body['sort']
         self.assertEqual(4, len(sort))
-        self.assertEqual({'familyName.keyword': 'asc'}, sort[0])
-        self.assertEqual({'givenName.keyword': 'asc'}, sort[1])
+        self.assertEqual({'licenses.familyName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}}, sort[0])
+        self.assertEqual({'licenses.givenName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}}, sort[1])
         self.assertEqual({'providerId': 'asc'}, sort[2])
         self.assertEqual({'_id': 'asc'}, sort[3])
         body = json.loads(response['body'])
@@ -194,8 +194,8 @@ class TestPublicSearchProviders(TstFunction):
         response = public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
         sort = call_body['sort']
-        self.assertEqual({'familyName.keyword': 'desc'}, sort[0])
-        self.assertEqual({'givenName.keyword': 'desc'}, sort[1])
+        self.assertEqual({'licenses.familyName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}}, sort[0])
+        self.assertEqual({'licenses.givenName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}}, sort[1])
         self.assertEqual({'providerId': 'desc'}, sort[2])
         self.assertEqual({'_id': 'asc'}, sort[3])
         body = json.loads(response['body'])
