@@ -203,7 +203,7 @@ def upload_licenses_record(license_upload_auth_headers: dict):
 
 if __name__ == '__main__':
     load_smoke_test_env()
-    
+
     test_user_sub = None
     client_id = None
     try:

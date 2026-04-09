@@ -674,9 +674,7 @@ def rollback_license_upload_smoke_test():
         logger.info('STEP 3: Waiting for provider records and update records to be created')
         logger.info('=' * 80)
 
-        logger.info(
-            f'Waiting {SECOND_UPLOAD_INGEST_BUFFER_SEC}s for second-upload ingest'
-        )
+        logger.info(f'Waiting {SECOND_UPLOAD_INGEST_BUFFER_SEC}s for second-upload ingest')
         time.sleep(SECOND_UPLOAD_INGEST_BUFFER_SEC)
 
         provider_ids = wait_for_all_providers_created(
