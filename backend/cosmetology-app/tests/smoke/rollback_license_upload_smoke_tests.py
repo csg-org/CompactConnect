@@ -256,12 +256,13 @@ def wait_for_all_providers_created(
             f'in jurisdiction "{JURISDICTION}" (across {page_num} pages)'
         )
 
-        if num_found >= expected_count:
-            if num_found > expected_count:
-                logger.warning(
-                    f'More providers ({num_found}) than uploads ({expected_count}) matched the query; '
-                    'use a unique run family_name if this is unexpected.'
-                )
+        if num_found > expected_count:
+            raise SmokeTestFailureException(
+                f'More providers ({num_found}) than uploads ({expected_count}) matched the query; '
+                '(family_name="{family_name}", jurisdiction="{JURISDICTION}", compact="{COMPACT}"). '
+            )
+
+        if num_found == expected_count:
             logger.info(f'All {expected_count} providers found!')
             return list(all_provider_ids)
 
