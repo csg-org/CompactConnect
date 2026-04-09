@@ -35,7 +35,10 @@ def public_search_api_handler(event: dict, context: LambdaContext):  # noqa: ARG
 
 
 def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
-    compact = event['pathParameters']['compact']
+    path_params = event.get('pathParameters') or {}
+    compact_raw = path_params.get('compact')
+    compact = _normalize_and_validate_compact_path_parameter(compact_raw)
+
     body = _parse_and_validate_public_query_body(event)
     query_obj = body.get('query', {})
     pagination = body.get('pagination') or {}
@@ -106,6 +109,20 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
         'query': query_obj,
         'sorting': {'key': resolved_sort_key, 'direction': resolved_direction},
     }
+
+
+def _normalize_and_validate_compact_path_parameter(compact_raw: str | None) -> str:
+    """
+    Strip and case-fold path compact for lookup; return the canonical value from config.compacts.
+    Rejects missing or unsupported values at the API boundary (400).
+    """
+    if compact_raw is None or not str(compact_raw).strip():
+        raise CCInvalidRequestException('Invalid or missing compact')
+    standardized_compact = str(compact_raw).lower().strip()
+    if standardized_compact not in config.compacts:
+        logger.info('Invalid compact provided in path parameter.', compact_path_parameter=standardized_compact)
+        raise CCInvalidRequestException('Unsupported compact')
+    return standardized_compact
 
 
 def _parse_and_validate_public_query_body(event: dict) -> dict:

@@ -274,6 +274,21 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual({'key', 'direction'}, set(body['sorting'].keys()))
 
     @patch('handlers.public_search.opensearch_client')
+    def test_unsupported_compact_returns_400(self, mock_opensearch_client):
+        """Path compact not in config.compacts returns 400 and does not call OpenSearch."""
+        from handlers.public_search import public_search_api_handler
+
+        event = self._create_public_api_event(
+            'not-a-compact',
+            body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        body = json.loads(response['body'])
+        self.assertIn('compact', body['message'].lower())
+        mock_opensearch_client.search.assert_not_called()
+
+    @patch('handlers.public_search.opensearch_client')
     def test_invalid_sort_key_returns_400(self, mock_opensearch_client):
         """Unknown sorting.key returns 400."""
         from handlers.public_search import public_search_api_handler
