@@ -174,7 +174,7 @@ def _build_public_opensearch_sort(body: dict) -> list:
     match sort_key:
         case 'familyName':
             return [
-                # we use nested sorting for familyName and givenName because the top level field is associated 
+                # we use nested sorting for familyName and givenName because the top level field is associated
                 # with the most recent issued license record, which if multiple licenses are issued for the same
                 # provider, the familyName and givenName may be different between the licenses.
                 {'licenses.familyName.keyword': {'order': os_dir, 'nested': {'path': 'licenses'}}},
