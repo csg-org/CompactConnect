@@ -211,8 +211,7 @@ class ProviderPublicResponseSchema(ForgivingSchema):
 
 class PublicLicenseSearchResponseSchema(ForgivingSchema):
     """
-    License object fields returned by the public query providers endpoint (OpenSearch-backed).
-    Jurisdiction is renamed to licenseJurisdiction for parity with JCC implementation.
+    License object fields returned by the public query providers endpoint.
     """
 
     providerId = Raw(required=True, allow_none=False)

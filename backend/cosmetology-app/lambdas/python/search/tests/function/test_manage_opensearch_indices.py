@@ -68,9 +68,10 @@ class TestOpenSearchIndexManager(TstFunction):
             mock_client_instance.index_exists.return_value = index_exists_return_value
 
         # We want to make assertions on the opensearch client calls that are made during index creation
-        # to ensure the alias/indices are created as expected. We also need to ensure we are checking against
-        # the actual index mapping that is used in the runtime logic. This points the mock to the actual
-        # function pointers in the opensearch_client client.
+        # to ensure the alias/indices are created with the expected mapping (see the assertions made in the
+        # test_on_create_creates_versioned_indices_and_aliases_for_all_compacts_when_none_exist test).
+        # This setup points the mock to the actual function pointers in the opensearch_client client so that
+        # we are not mocking the methods that set the index mapping.
         from opensearch_client import OpenSearchClient
 
         def _real_get_mapping(number_of_shards, number_of_replicas):

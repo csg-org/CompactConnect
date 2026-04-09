@@ -294,7 +294,7 @@ class TestPublicSearchProviders(TstFunction):
 
     @patch('handlers.public_search.opensearch_client')
     def test_no_search_criteria_returns_200(self, mock_opensearch_client):
-        """Test that at least one of licenseNumber, jurisdiction, or familyName is required."""
+        """Test that caller can provide an empty query body and still get a successful response."""
         from handlers.public_search import public_search_api_handler
 
         mock_opensearch_client.search.return_value = {
@@ -404,13 +404,7 @@ class TestPublicSearchProviders(TstFunction):
         """When hit count is below pageSize, there are no more pages and lastKey is null."""
         from handlers.public_search import public_search_api_handler
 
-        sort_four = [
-            'doe',
-            'john',
-            '00000000-0000-0000-0000-000000000001',
-            '00000000-0000-0000-0000-000000000001#oh#cosmetologist',
-        ]
-        single_hit = self._create_mock_hit(sort_values=sort_four)
+        single_hit = self._create_mock_hit()
         mock_opensearch_client.search.return_value = {
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [single_hit]},
         }
@@ -490,42 +484,6 @@ class TestPublicSearchProviders(TstFunction):
         response = public_search_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
         self.assertIn('Unsupported method or resource', json.loads(response['body'])['message'])
-
-    @patch('handlers.public_search.opensearch_client')
-    def test_terminal_page_returns_last_key_null(self, mock_opensearch_client):
-        """When fewer hits than pageSize, lastKey must be null."""
-        from handlers.public_search import public_search_api_handler
-
-        mock_hits = [
-            self._create_mock_hit(
-                provider_id='pid-1',
-                jurisdiction='oh',
-                license_number='L1',
-                sort_values=['doe', 'john', 'pid-1', 'pid-1#oh#cosmetologist'],
-            ),
-            self._create_mock_hit(
-                provider_id='pid-1',
-                jurisdiction='al',
-                license_number='L2',
-                sort_values=['doe', 'john', 'pid-1', 'pid-1#al#cosmetologist'],
-            ),
-            self._create_mock_hit(
-                provider_id='pid-2',
-                jurisdiction='oh',
-                license_number='L3',
-                sort_values=['doe', 'john', 'pid-2', 'pid-2#oh#cosmetologist'],
-            ),
-        ]
-        mock_opensearch_client.search.return_value = {
-            'hits': {'total': {'value': 3, 'relation': 'eq'}, 'hits': mock_hits},
-        }
-        event = self._create_public_api_event(
-            'cosm',
-            body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 10}},
-        )
-        response = public_search_api_handler(event, self.mock_context)
-        body = json.loads(response['body'])
-        self.assertIsNone(body['pagination']['lastKey'], 'no more results -> lastKey null')
 
     @patch('handlers.public_search.opensearch_client')
     def test_invalid_last_key_format_returns_400(self, mock_opensearch_client):
