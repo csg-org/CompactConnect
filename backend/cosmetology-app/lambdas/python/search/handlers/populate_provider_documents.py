@@ -19,6 +19,14 @@ Example input for resumption:
     "startingLastKey": {"pk": "...", "sk": "..."}
 }
 
+Optional parameters:
+
+- resetIndexes: If true, deletes and recreates all compact provider indexes before
+  indexing (uses numberOfShards / numberOfReplicas). Run during low traffic; do not
+  combine with resumption (startingCompact / startingLastKey) for the same run.
+- numberOfShards: Primary shard count for recreated indexes (default: 1).
+- numberOfReplicas: Replica shard count for recreated indexes (default: 0).
+
 Race Condition Consideration:
 A potential race condition can occur when running this function while provider
 data is being actively updated:
@@ -33,13 +41,23 @@ For this reason, it is recommended that this process be run during a period of
 low traffic. Given that it is a one-time process to initially populate the
 table, the risk is low and if needed, this Lambda function can be run again to
 synchronize all the provider documents.
+
+Note that the resetIndexes parameter is intended for development environments
+due to a limitation with how OpenSearch will randomly drop your data nodes if
+you only have 1 in your cluster. If the OpenSearch Domain drops that node due
+to network failures, aliases and indices will be lost and if the ingest pipeline
+inserts records before the aliases are recreated, OpenSearch will automatically
+create those indices under the alias name, but without the proper index mapping
+which will break our search endpoints. This reset functionality allows devs in
+test environments to reset those aliases/indices into a clean state before
+populating all the provider records.
 """
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException
 from marshmallow import ValidationError
-from opensearch_client import OpenSearchClient
+from opensearch_client import INITIAL_INDEX_VERSION, OpenSearchClient
 from utils import generate_provider_opensearch_documents
 
 # Batch size for DynamoDB pagination
@@ -64,11 +82,39 @@ def populate_provider_documents(event: dict, context: LambdaContext):
     :param event: Lambda event with optional parameters:
         - startingCompact: The compact to start/resume processing from
         - startingLastKey: The DynamoDB pagination key to resume from
+        - resetIndexes: If true, delete and recreate all compact indexes first
+        - numberOfShards: Shards for recreated indexes (default 1)
+        - numberOfReplicas: Replicas for recreated indexes (default 0)
     :param context: Lambda context
     :return: Summary of indexing operation, including pagination info if incomplete
     """
     data_client = config.data_client
     opensearch_client = OpenSearchClient()
+
+    reset_indexes = bool(event.get('resetIndexes', False))
+    number_of_shards = int(event.get('numberOfShards', 1))
+    number_of_replicas = int(event.get('numberOfReplicas', 0))
+
+    if reset_indexes:
+        # this reset functionality is only intended for development environments
+        if config.environment_name == 'prod':
+            raise CCInternalException('resetIndexes is not supported in production environments')
+        logger.info(
+            'resetIndexes=True: deleting and recreating all compact indexes',
+            number_of_shards=number_of_shards,
+            number_of_replicas=number_of_replicas,
+        )
+        for compact in config.compacts:
+            alias_name = f'compact_{compact}_providers'
+            index_name = f'compact_{compact}_providers_{INITIAL_INDEX_VERSION}'
+            opensearch_client.delete_provider_index_with_alias(alias_name=alias_name)
+            opensearch_client.create_provider_index_with_alias(
+                index_name=index_name,
+                alias_name=alias_name,
+                number_of_shards=number_of_shards,
+                number_of_replicas=number_of_replicas,
+            )
+        logger.info('Index reset complete. Proceeding with population.')
 
     # Get optional pagination parameters from event for resumption (normal mode)
     starting_compact = event.get('startingCompact')

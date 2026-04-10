@@ -30,6 +30,7 @@ TEST_DIRS = (
     'lambdas/python/disaster-recovery',
     'lambdas/python/migration',
     'lambdas/python/provider-data-v1',
+    'lambdas/python/search',
     'lambdas/python/staff-user-pre-token',
     'lambdas/python/staff-users',
     '.',  # CDK tests

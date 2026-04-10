@@ -19,15 +19,15 @@ aws-sam-translator==1.103.0
     #   moto
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.42.76
+boto3==1.42.80
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.42.76
+boto3-stubs[full]==1.42.80
     # via -r lambdas/python/common/requirements-dev.in
-boto3-stubs-full==1.42.76
+boto3-stubs-full==1.42.80
     # via boto3-stubs
-botocore==1.42.76
+botocore==1.42.80
     # via
     #   aws-xray-sdk
     #   boto3
@@ -139,9 +139,9 @@ referencing==0.37.0
     #   jsonschema-path
     #   jsonschema-specifications
     #   openapi-schema-validator
-regex==2026.2.28
+regex==2026.3.32
     # via cfn-lint
-requests==2.33.0
+requests==2.33.1
     # via
     #   docker
     #   moto

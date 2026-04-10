@@ -12,11 +12,11 @@ aws-cdk-asset-awscli-v1==2.2.263
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.1
     # via aws-cdk-lib
-aws-cdk-aws-lambda-python-alpha==2.244.0a0
+aws-cdk-aws-lambda-python-alpha==2.246.0a0
     # via -r requirements.in
-aws-cdk-cloud-assembly-schema==52.2.0
+aws-cdk-cloud-assembly-schema==53.11.0
     # via aws-cdk-lib
-aws-cdk-lib==2.244.0
+aws-cdk-lib==2.246.0
     # via
     #   -r requirements.in
     #   aws-cdk-aws-lambda-python-alpha

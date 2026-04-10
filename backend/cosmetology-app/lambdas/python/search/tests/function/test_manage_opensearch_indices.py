@@ -67,6 +67,25 @@ class TestOpenSearchIndexManager(TstFunction):
         else:
             mock_client_instance.index_exists.return_value = index_exists_return_value
 
+        # We want to make assertions on the opensearch client calls that are made during index creation
+        # to ensure the alias/indices are created with the expected mapping (see the assertions made in the
+        # test_on_create_creates_versioned_indices_and_aliases_for_all_compacts_when_none_exist test).
+        # This setup points the mock to the actual function pointers in the opensearch_client client so that
+        # we are not mocking the methods that set the index mapping.
+        from opensearch_client import OpenSearchClient
+
+        def _real_get_mapping(number_of_shards, number_of_replicas):
+            return OpenSearchClient._get_provider_index_mapping(  # noqa: SLF001 private-member-access
+                mock_client_instance, number_of_shards, number_of_replicas
+            )
+
+        mock_client_instance._get_provider_index_mapping = _real_get_mapping  # noqa: SLF001 private-member-access
+
+        def _real_create_provider_index(*args, **kwargs):
+            return OpenSearchClient.create_provider_index_with_alias(mock_client_instance, *args, **kwargs)
+
+        mock_client_instance.create_provider_index_with_alias.side_effect = _real_create_provider_index
+
         return mock_client_instance
 
     @patch('handlers.manage_opensearch_indices.OpenSearchClient')
@@ -363,8 +382,9 @@ class TestOpenSearchIndexManager(TstFunction):
         # Assert that alias_exists was called for each compact
         self.assertEqual(1, mock_client_instance.alias_exists.call_count)
 
-        # Assert that index_exists was called for each compact
-        self.assertEqual(1, mock_client_instance.index_exists.call_count)
+        # Assert that index_exists was called for each compact, and to check if an index was misconfigured
+        # under the alias name
+        self.assertEqual(2, mock_client_instance.index_exists.call_count)
 
         # Assert that create_index was NOT called since indices already exist
         mock_client_instance.create_index.assert_not_called()

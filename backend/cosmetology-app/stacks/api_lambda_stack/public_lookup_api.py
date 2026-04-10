@@ -38,6 +38,7 @@ class PublicLookupApiLambdas:
             env_vars=lambda_environment,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_table=persistent_stack.provider_table,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             alarm_topic=persistent_stack.alarm_topic,
         )
         api_lambda_stack.log_groups.append(self.get_provider_handler.log_group)
@@ -52,12 +53,18 @@ class PublicLookupApiLambdas:
         )
         api_lambda_stack.log_groups.append(self.query_providers_handler.log_group)
 
+        # Dummy export to avoid CDK deadly embrace: public query providers now uses
+        # SearchPersistentStack.public_handler; this lambda is no longer wired to the API.
+        # TODO: remove this export (and the lambda above) after the stack is deployed to all envs  # noqa: FIX002
+        stack.export_value(self.query_providers_handler.function_arn)
+
     def _get_provider_handler(
         self,
         scope: Construct,
         env_vars: dict,
         data_encryption_key: IKey,
         provider_table: ITable,
+        compact_configuration_table: ITable,
         alarm_topic: ITopic,
     ) -> PythonFunction:
         stack = Stack.of(scope)
@@ -74,6 +81,7 @@ class PublicLookupApiLambdas:
         )
         data_encryption_key.grant_decrypt(handler)
         provider_table.grant_read_data(handler)
+        compact_configuration_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,

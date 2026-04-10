@@ -3,12 +3,6 @@
     "providers": {
       "items": {
         "properties": {
-          "type": {
-            "enum": [
-              "provider"
-            ],
-            "type": "string"
-          },
           "providerId": {
             "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
             "type": "string"
@@ -18,25 +12,9 @@
             "minLength": 1,
             "type": "string"
           },
-          "middleName": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
           "familyName": {
             "maxLength": 100,
             "minLength": 1,
-            "type": "string"
-          },
-          "suffix": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "compact": {
-            "enum": [
-              "cosm"
-            ],
             "type": "string"
           },
           "licenseJurisdiction": {
@@ -54,18 +32,30 @@
             ],
             "type": "string"
           },
-          "dateOfUpdate": {
-            "format": "date-time",
+          "compact": {
+            "enum": [
+              "cosm"
+            ],
+            "type": "string"
+          },
+          "licenseType": {
+            "description": "License type or profession designation for this license row",
+            "type": "string"
+          },
+          "licenseNumber": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string"
           }
         },
         "required": [
-          "type",
           "providerId",
           "givenName",
           "familyName",
+          "licenseJurisdiction",
           "compact",
-          "licenseJurisdiction"
+          "licenseType",
+          "licenseNumber"
         ],
         "type": "object"
       },
@@ -129,6 +119,12 @@
         "familyName": {
           "description": "Filter for providers with a family name",
           "maxLength": 100,
+          "type": "string"
+        },
+        "licenseNumber": {
+          "description": "Filter for licenses with a specific license number",
+          "maxLength": 100,
+          "minLength": 1,
           "type": "string"
         }
       },

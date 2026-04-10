@@ -68,7 +68,7 @@ class ProviderSearchDomain(Construct):
         :param vpc_stack: The VPC stack containing network resources
         :param compact_abbreviations: List of compact abbreviations for index access policies
         :param alarm_topic: The SNS topic for capacity alarms
-        :param ingest_lambda_role: IAM role for the ingest Lambda function (write access)
+        :param ingest_lambda_role: IAM role for ingest and populate-provider Lambdas (OpenSearch read/write on indices)
         :param index_manager_lambda_role: IAM role for the index manager Lambda function (read/write access)
         :param search_api_lambda_role: IAM role for the search API Lambda function (read access)
         """
@@ -211,7 +211,9 @@ class ProviderSearchDomain(Construct):
 
         # Grant lambda roles access to domain
         self.domain.grant_read(self._search_api_lambda_role)
-        self.domain.grant_write(self._ingest_lambda_role)
+        # Ingest role is shared by stream ingest and populate-provider; populate resetIndexes needs GET/HEAD/DELETE
+        # on indices/aliases in addition to POST/PUT (see ingest_access_policy).
+        self.domain.grant_read_write(self._ingest_lambda_role)
         self.domain.grant_read_write(self._index_manager_lambda_role)
 
         # Add CDK Nag suppressions
@@ -229,7 +231,7 @@ class ProviderSearchDomain(Construct):
         Configure access policies for the OpenSearch domain.
 
         Creates IAM-based access policies that restrict access to specific Lambda roles:
-        - Ingest role: POST/PUT access to compact indices
+        - Ingest role: GET/HEAD/POST/PUT/DELETE on compact indices (bulk ingest, alias/index checks, index reset)
         - Index manager role: GET/HEAD/POST/PUT access for index management
         - Search API role: POST access restricted to _search endpoint only
 
@@ -239,8 +241,11 @@ class ProviderSearchDomain(Construct):
             effect=Effect.ALLOW,
             principals=[self._ingest_lambda_role],
             actions=[
+                'es:ESHttpGet',
+                'es:ESHttpHead',
                 'es:ESHttpPost',
                 'es:ESHttpPut',
+                'es:ESHttpDelete',
             ],
             resources=[Fn.join('', [self.domain.domain_arn, '/compact*'])],
         )

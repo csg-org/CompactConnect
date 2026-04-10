@@ -110,6 +110,12 @@ class ApiModel:
                                 max_length=100,
                                 description='Filter for providers with a family name',
                             ),
+                            'licenseNumber': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                min_length=1,
+                                max_length=100,
+                                description='Filter for licenses with a specific license number',
+                            ),
                         },
                     ),
                     'pagination': self._pagination_request_schema,
@@ -1311,7 +1317,7 @@ class ApiModel:
                     'providers': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         max_length=100,
-                        items=self._public_providers_response_schema,
+                        items=self._public_license_search_response_schema,
                     ),
                     'pagination': self._pagination_response_schema,
                     'query': JsonSchema(
@@ -1336,6 +1342,12 @@ class ApiModel:
                                 type=JsonSchemaType.STRING,
                                 max_length=100,
                                 description='Filter for providers with a family name',
+                            ),
+                            'licenseNumber': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                min_length=1,
+                                max_length=100,
+                                description='Filter for licenses with a specific license number',
                             ),
                         },
                     ),
@@ -1397,11 +1409,47 @@ class ApiModel:
                 'familyName',
             ],
             properties={
+                'licenses': JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    description='Sanitized home-state license rows (LicensePublicResponseSchema)',
+                    items=self._public_license_public_response_schema,
+                ),
                 'privileges': JsonSchema(
                     type=JsonSchemaType.ARRAY,
                     items=self._public_privilege_response_schema,
                 ),
                 **self._common_public_provider_properties,
+            },
+        )
+
+    @property
+    def _public_license_public_response_schema(self):
+        """License items in public GET provider responses; mirrors LicensePublicResponseSchema."""
+        stack: AppStack = AppStack.of(self.api)
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'type',
+                'compact',
+                'jurisdiction',
+                'licenseType',
+                'licenseStatus',
+                'compactEligibility',
+                'dateOfExpiration',
+                'licenseNumber',
+            ],
+            properties={
+                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['license']),
+                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                'jurisdiction': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=stack.node.get_context('jurisdictions'),
+                ),
+                'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
+                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             },
         )
 
@@ -1438,111 +1486,6 @@ class ApiModel:
                 'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-                'history': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=[
-                            'type',
-                            'updateType',
-                            'providerId',
-                            'compact',
-                            'jurisdiction',
-                            'licenseType',
-                            'dateOfUpdate',
-                            'previous',
-                            'updatedValues',
-                        ],
-                        properties={
-                            'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
-                            'updateType': self._update_type_schema,
-                            'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                            'jurisdiction': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                enum=stack.node.get_context('jurisdictions'),
-                            ),
-                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
-                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                            'previous': JsonSchema(
-                                type=JsonSchemaType.OBJECT,
-                                required=[
-                                    'administratorSetStatus',
-                                    'dateOfExpiration',
-                                    'licenseJurisdiction',
-                                ],
-                                properties={
-                                    'administratorSetStatus': JsonSchema(
-                                        type=JsonSchemaType.STRING, enum=['active', 'inactive']
-                                    ),
-                                    'dateOfExpiration': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
-                                    'licenseJurisdiction': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        enum=stack.node.get_context('jurisdictions'),
-                                    ),
-                                },
-                            ),
-                            'updatedValues': JsonSchema(
-                                type=JsonSchemaType.OBJECT,
-                                properties={
-                                    'administratorSetStatus': JsonSchema(
-                                        type=JsonSchemaType.STRING, enum=['active', 'inactive']
-                                    ),
-                                    'dateOfExpiration': JsonSchema(
-                                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                    ),
-                                    'licenseJurisdiction': JsonSchema(
-                                        type=JsonSchemaType.STRING,
-                                        enum=stack.node.get_context('jurisdictions'),
-                                    ),
-                                },
-                            ),
-                        },
-                    ),
-                ),
-                'adverseActions': JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        required=[
-                            'type',
-                            'compact',
-                            'providerId',
-                            'jurisdiction',
-                            'licenseTypeAbbreviation',
-                            'licenseType',
-                            'actionAgainst',
-                            'effectiveStartDate',
-                            'creationDate',
-                            'adverseActionId',
-                            'dateOfUpdate',
-                        ],
-                        properties={
-                            'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
-                            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                            'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                            'jurisdiction': JsonSchema(
-                                type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
-                            ),
-                            'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
-                            'licenseType': JsonSchema(type=JsonSchemaType.STRING),
-                            'actionAgainst': JsonSchema(type=JsonSchemaType.STRING),
-                            'effectiveStartDate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
-                            'creationDate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
-                            'adverseActionId': JsonSchema(type=JsonSchemaType.STRING),
-                            'effectiveLiftDate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                            ),
-                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                        },
-                    ),
-                ),
             },
         )
 
@@ -1626,6 +1569,37 @@ class ApiModel:
             ),
         )
         return self.api._v1_provider_registration_request_model
+
+    @property
+    def _public_license_search_response_schema(self):
+        """Schema for public query providers response"""
+        stack: AppStack = AppStack.of(self.api)
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'providerId',
+                'givenName',
+                'familyName',
+                'licenseJurisdiction',
+                'compact',
+                'licenseType',
+                'licenseNumber',
+            ],
+            properties={
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'licenseJurisdiction': JsonSchema(
+                    type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                ),
+                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                'licenseType': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='License type or profession designation for this license row',
+                ),
+                'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            },
+        )
 
     @property
     def _public_providers_response_schema(self):

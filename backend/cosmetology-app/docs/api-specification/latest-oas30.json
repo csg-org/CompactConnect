@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "StateApi",
-    "version": "2026-02-16T16:29:16Z"
+    "version": "2026-03-13T17:32:08Z"
   },
   "servers": [
     {
@@ -74,7 +74,16 @@
           {
             "SandboxStateAPIStackStateApiStateAuthAuthorizer7F83A6D3": [
               "cosm/write",
-              "az/cosm.write"
+              "al/cosm.write",
+              "az/cosm.write",
+              "co/cosm.write",
+              "ks/cosm.write",
+              "ky/cosm.write",
+              "md/cosm.write",
+              "oh/cosm.write",
+              "tn/cosm.write",
+              "va/cosm.write",
+              "wa/cosm.write"
             ]
           }
         ]
@@ -124,7 +133,16 @@
           {
             "SandboxStateAPIStackStateApiStateAuthAuthorizer7F83A6D3": [
               "cosm/write",
-              "az/cosm.write"
+              "al/cosm.write",
+              "az/cosm.write",
+              "co/cosm.write",
+              "ks/cosm.write",
+              "ky/cosm.write",
+              "md/cosm.write",
+              "oh/cosm.write",
+              "tn/cosm.write",
+              "va/cosm.write",
+              "wa/cosm.write"
             ]
           }
         ]

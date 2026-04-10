@@ -243,3 +243,21 @@ class LicenseOpenSearchDocumentSchema(LicenseGeneralResponseSchema):
     """
 
     dateOfBirth = Raw(required=False, allow_none=False)
+
+
+class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
+    """
+    License object fields, as seen by the public lookup endpoints.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))

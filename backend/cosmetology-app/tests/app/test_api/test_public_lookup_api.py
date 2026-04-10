@@ -85,8 +85,8 @@ class TestPublicLookupApi(TestApi):
         """Test that the POST /providers/query endpoint is configured correctly."""
         api_stack = self.app.sandbox_backend_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
-        api_lambda_stack = self.app.sandbox_backend_stage.api_lambda_stack
-        api_lambda_stack_template = Template.from_stack(api_lambda_stack)
+        search_persistent_stack = self.app.sandbox_backend_stage.search_persistent_stack
+        search_persistent_stack_template = Template.from_stack(search_persistent_stack)
 
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
@@ -102,13 +102,13 @@ class TestPublicLookupApi(TestApi):
 
         # Ensure the lambda is created with expected code path in the ApiLambdaStack
         query_handler = TestApi.get_resource_properties_by_logical_id(
-            api_lambda_stack.get_logical_id(
-                api_lambda_stack.public_lookup_lambdas.query_providers_handler.node.default_child
+            search_persistent_stack.get_logical_id(
+                search_persistent_stack.search_handler.public_handler.node.default_child
             ),
-            api_lambda_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+            search_persistent_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
-        self.assertEqual(query_handler['Handler'], 'handlers.public_lookup.public_query_providers')
+        self.assertEqual(query_handler['Handler'], 'handlers.public_search.public_search_api_handler')
 
         # Capture model logical IDs for verification
         request_model_logical_id_capture = Capture()
@@ -120,9 +120,9 @@ class TestPublicLookupApi(TestApi):
             props={
                 'HttpMethod': 'POST',
                 'Integration': TestApi.generate_expected_integration_object_for_imported_lambda(
-                    api_lambda_stack,
-                    api_lambda_stack_template,
-                    api_lambda_stack.public_lookup_lambdas.query_providers_handler,
+                    search_persistent_stack,
+                    search_persistent_stack_template,
+                    search_persistent_stack.search_handler.public_handler,
                 ),
                 'RequestModels': {
                     'application/json': {'Ref': request_model_logical_id_capture},

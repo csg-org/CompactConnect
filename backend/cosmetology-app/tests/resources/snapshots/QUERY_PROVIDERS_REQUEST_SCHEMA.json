@@ -35,6 +35,12 @@
           "description": "Filter for providers with a family name",
           "maxLength": 100,
           "type": "string"
+        },
+        "licenseNumber": {
+          "description": "Filter for licenses with a specific license number",
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
         }
       },
       "type": "object"
