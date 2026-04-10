@@ -81,6 +81,14 @@ class StateSettingsConfig extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get compactType(): CompactType | null {
         return this.userStore?.currentCompact?.type || null;
     }
@@ -134,12 +142,16 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     initFormInputs(): void {
+        const { isAppModeJcc } = this;
+
         this.formData = reactive({
             isJurisprudenceExamRequired: new FormInput({
                 id: 'jurisprudence-exam-required',
                 name: 'jurisprudence-exam-required',
                 label: computed(() => this.$t('compact.jurisprudenceExamRequired')),
-                validation: Joi.boolean().required().messages(this.joiMessages.boolean),
+                validation: (isAppModeJcc)
+                    ? Joi.boolean().required().messages(this.joiMessages.boolean)
+                    : Joi.any(),
                 valueOptions: [
                     { value: true, name: computed(() => this.$t('common.yes')) },
                     { value: false, name: computed(() => this.$t('common.no')) },
@@ -179,7 +191,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 label: computed(() => this.$t('compact.summaryReportEmails')),
                 labelSubtext: computed(() => this.$t('compact.summaryReportEmailsSubtext')),
                 placeholder: computed(() => this.$t('compact.addEmails')),
-                validation: Joi.array().min(1).messages(this.joiMessages.array),
+                validation: Joi.array().min(isAppModeJcc ? 1 : 0).messages(this.joiMessages.array),
                 value: this.initialStateConfig?.jurisdictionSummaryReportNotificationEmails || [],
             }),
             isPurchaseEnabled: new FormInput({
@@ -299,7 +311,15 @@ class StateSettingsConfig extends mixins(MixinForm) {
         } = this.formValues;
         const feeInputsCore = this.feeInputs.filter((feeInput) => feeInput.id.endsWith('fee'));
         const payload: CompactStateConfig = {
-            privilegeFees: feeInputsCore.map((feeInputCore) => {
+            // Common config fields
+            jurisdictionOperationsTeamEmails: opsNotificationEmails,
+            jurisdictionAdverseActionsNotificationEmails: adverseActionNotificationEmails,
+            licenseeRegistrationEnabled: isPurchaseEnabled,
+        };
+
+        // Per compact config fields
+        if (this.isAppModeJcc) {
+            payload.privilegeFees = feeInputsCore.map((feeInputCore) => {
                 // Map indeterminate set of privilege fee inputs to their payload structure
                 const [ licenseType ] = feeInputCore.id.split('-');
                 const militaryInput = Object.values(this.formData).find((formInput) =>
@@ -312,16 +332,13 @@ class StateSettingsConfig extends mixins(MixinForm) {
                         ? null
                         : Number(militaryInput?.value),
                 };
-            }),
-            jurisprudenceRequirements: {
+            });
+            payload.jurisprudenceRequirements = {
                 required: isJurisprudenceExamRequired,
                 linkToDocumentation: jurisprudenceInfoLink,
-            },
-            jurisdictionOperationsTeamEmails: opsNotificationEmails,
-            jurisdictionAdverseActionsNotificationEmails: adverseActionNotificationEmails,
-            jurisdictionSummaryReportNotificationEmails: summaryReportNotificationEmails,
-            licenseeRegistrationEnabled: isPurchaseEnabled,
-        };
+            };
+            payload.jurisdictionSummaryReportNotificationEmails = summaryReportNotificationEmails;
+        }
 
         // Call the server API to update
         await dataApi.updateCompactStateConfig(compact, this.stateAbbrev, payload).catch((err) => {
@@ -384,15 +401,20 @@ class StateSettingsConfig extends mixins(MixinForm) {
     }
 
     async mockPopulate(): Promise<void> {
-        this.feeInputs.forEach((feeInput) => {
-            this.populateFormInput(feeInput, 5);
-        });
-        this.populateFormInput(this.formData.isJurisprudenceExamRequired, true);
-        this.populateFormInput(this.formData.jurisprudenceInfoLink, 'https://example.com');
+        // Common state configs
         this.populateFormInput(this.formData.opsNotificationEmails, ['ops@example.com']);
         this.populateFormInput(this.formData.adverseActionNotificationEmails, ['adverse@example.com']);
-        this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);
         this.populateFormInput(this.formData.isPurchaseEnabled, true);
+
+        // Per compact state configs
+        if (this.isAppModeJcc) {
+            this.feeInputs.forEach((feeInput) => {
+                this.populateFormInput(feeInput, 5);
+            });
+            this.populateFormInput(this.formData.isJurisprudenceExamRequired, true);
+            this.populateFormInput(this.formData.jurisprudenceInfoLink, 'https://example.com');
+            this.populateFormInput(this.formData.summaryReportNotificationEmails, ['summary@example.com']);
+        }
     }
 
     //

@@ -35,14 +35,14 @@ export interface CompactConfig {
     compactAbbr?: string,
     compactName?: string,
     licenseeRegistrationEnabled: boolean,
-    compactCommissionFee: {
+    compactCommissionFee?: {
         feeType: FeeType,
         feeAmount: number,
     },
     compactOperationsTeamEmails: Array<string>,
     compactAdverseActionsNotificationEmails: Array<string>,
-    compactSummaryReportNotificationEmails: Array<string>,
-    transactionFeeConfiguration: {
+    compactSummaryReportNotificationEmails?: Array<string>,
+    transactionFeeConfiguration?: {
         licenseeCharges: {
             active: boolean,
             chargeType: FeeType,
@@ -60,19 +60,19 @@ export interface CompactStateConfig {
     jurisdictionName?: string,
     postalAbbreviation?: string,
     licenseeRegistrationEnabled: boolean,
-    privilegeFees: Array<{
+    privilegeFees?: Array<{
         licenseTypeAbbreviation: string,
         amount: number,
         militaryRate: number | null, // Specific mix of number & null required by server
         name?: string,
     }>
-    jurisprudenceRequirements: {
+    jurisprudenceRequirements?: {
         required: boolean,
         linkToDocumentation: string | null,
     },
     jurisdictionOperationsTeamEmails: Array<string>,
     jurisdictionAdverseActionsNotificationEmails: Array<string>,
-    jurisdictionSummaryReportNotificationEmails: Array<string>,
+    jurisdictionSummaryReportNotificationEmails?: Array<string>,
 }
 
 export interface InterfaceCompactCreate {
