@@ -261,7 +261,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get isSubmitEnabled(): boolean {
-        return this.isFormValid && this.formData.noRefunds.value && !this.isFormLoading;
+        const { noRefunds, purchaseExpiry } = this.formData;
+        const hasAcknowledgements = noRefunds.value || purchaseExpiry.value;
+
+        return this.isFormValid && hasAcknowledgements && !this.isFormLoading;
     }
 
     get isMockPopulateEnabled(): boolean {
@@ -360,7 +363,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             }
         } else {
             this.isFormError = true;
-            this.formErrorMessage = this.$t('common.formValidationErrorMessage');
+            this.formErrorMessage = this.$t('licensing.purchaseFormErrorMessage');
         }
     }
 

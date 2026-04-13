@@ -85,7 +85,6 @@
         "all": "All",
         "any": "Any",
         "cannotBeUndone": "This action cannot be undone.",
-        "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Monday",
@@ -634,6 +633,7 @@
         "licenseExpired": "License expired",
         "purchaseExpirationMessage": "<span>If purchased, these privileges will expire on <em>{date}</em>, the same as the home state license.</span>",
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
+        "purchaseFormErrorMessage": "Please correct the errors on the form shown in red",
         "ssn": "SSN",
         "ssnLastFour": "Last 4 of SSN",
         "revealFullSsn": "Reveal full SSN",
