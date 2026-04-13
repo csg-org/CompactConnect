@@ -26,7 +26,7 @@ cyclonedx-python-lib==11.7.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-faker==37.12.0
+faker==40.13.0
     # via -r requirements-dev.in
 filelock==3.25.2
     # via cachecontrol
@@ -97,8 +97,6 @@ tomli==2.4.1
     # via pip-audit
 tomli-w==1.2.0
     # via pip-audit
-tzdata==2025.3
-    # via faker
 urllib3==2.6.3
     # via requests
 wheel==0.46.3
