@@ -259,7 +259,7 @@ def wait_for_all_providers_created(
         if num_found > expected_count:
             raise SmokeTestFailureException(
                 f'More providers ({num_found}) than uploads ({expected_count}) matched the query; '
-                '(family_name="{family_name}", jurisdiction="{JURISDICTION}", compact="{COMPACT}"). '
+                f'(family_name="{family_name}", jurisdiction="{JURISDICTION}", compact="{COMPACT}"). '
             )
 
         if num_found == expected_count:
