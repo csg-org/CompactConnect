@@ -51,7 +51,7 @@ defusedxml==0.7.1
     # via py-serializable
 docker==7.1.0
     # via moto
-faker==37.12.0
+faker==40.13.0
     # via -r purchases/requirements-dev.in
 filelock==3.25.2
     # via cachecontrol
@@ -162,8 +162,6 @@ tomli-w==1.2.0
     # via pip-audit
 typing-extensions==4.15.0
     # via aws-lambda-powertools
-tzdata==2026.1
-    # via faker
 urllib3==2.6.3
     # via
     #   -r purchases/requirements-dev.in
