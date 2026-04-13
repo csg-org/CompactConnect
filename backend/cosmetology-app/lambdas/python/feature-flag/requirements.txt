@@ -10,10 +10,10 @@ charset-normalizer==3.4.3
     # via requests
 idna==3.10
     # via requests
-requests==2.32.5
+requests==2.33.1
     # via statsig-python-core
-statsig-python-core==0.9.3
-    # via -r compact-connect/lambdas/python/feature-flag/requirements.in
+statsig-python-core==0.17.2
+    # via -r requirements.in
 typing-extensions==4.15.0
     # via statsig-python-core
 urllib3==2.5.0
