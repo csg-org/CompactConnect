@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/provider-data-v1/requirements-dev.in
 #
-boto3==1.42.83
+boto3==1.42.89
     # via moto
-botocore==1.42.84
+botocore==1.42.89
     # via
     #   boto3
     #   moto
@@ -17,12 +17,12 @@ cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.7
     # via requests
-cryptography==46.0.6
+cryptography==46.0.7
     # via moto
 docker==7.1.0
     # via moto
-faker==37.12.0
-    # via -r provider-data-v1/requirements-dev.in
+faker==40.13.0
+    # via -r lambdas/python/provider-data-v1/requirements-dev.in
 idna==3.11
     # via requests
 jinja2==3.1.6
@@ -36,7 +36,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[dynamodb,s3]==5.1.22
-    # via -r provider-data-v1/requirements-dev.in
+    # via -r lambdas/python/provider-data-v1/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
@@ -60,8 +60,6 @@ s3transfer==0.16.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-tzdata==2026.1
-    # via faker
 urllib3==2.6.3
     # via
     #   botocore

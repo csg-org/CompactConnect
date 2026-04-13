@@ -5,7 +5,7 @@ coverage
 ruff
 pip-tools
 pip-audit
-Faker>=37, <38
+Faker>=40, <41
 
 # Dependencies normally provided via the common lambda layer
 argon2-cffi>=25.1.0, <26.0.0
