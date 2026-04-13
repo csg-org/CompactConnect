@@ -2,7 +2,7 @@
   "name": "compact-connect",
   "version": "1.0.0",
   "type": "commonjs",
-  "description": "NodeJS lambdas for Compact Connect",
+  "description": "NodeJS lambdas for CompactConnect",
   "resolutions": {
     "fast-xml-parser": "5.5.7"
   },

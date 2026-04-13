@@ -144,7 +144,7 @@ describe('EmailNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -178,7 +178,7 @@ describe('EmailNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -237,7 +237,7 @@ describe('EmailNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -273,7 +273,7 @@ describe('EmailNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -321,7 +321,7 @@ describe('EmailNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -388,7 +388,7 @@ describe('EmailNotificationService', () => {
 
             // Verify email was sent with correct parameters
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith({
-                from: 'Compact Connect <noreply@example.org>',
+                from: 'CompactConnect <noreply@example.org>',
                 to: ['summary@example.com'],
                 subject: 'Weekly Report for Audiology and Speech Language Pathology',
                 html: expect.any(String),
@@ -518,7 +518,7 @@ describe('EmailNotificationService', () => {
 
             // Verify email was sent with correct parameters
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith({
-                from: 'Compact Connect <noreply@example.org>',
+                from: 'CompactConnect <noreply@example.org>',
                 to: ['oh-summary@example.com'],
                 subject: 'Ohio Weekly Report for Audiology and Speech Language Pathology',
                 html: expect.any(String),
@@ -621,16 +621,16 @@ describe('EmailNotificationService', () => {
                                 Html: {
                                     Charset: 'UTF-8',
                                     Data: expect.stringContaining(
-                                        'A registration attempt was made in the Compact Connect system ')
+                                        'A registration attempt was made in the CompactConnect system ')
                                 }
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: 'Registration Attempt Notification - Compact Connect'
+                                Data: 'Registration Attempt Notification - CompactConnect'
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -658,7 +658,7 @@ describe('EmailNotificationService', () => {
                             Subject: expect.any(Object)
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -686,7 +686,7 @@ describe('EmailNotificationService', () => {
                             Subject: expect.any(Object)
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -745,11 +745,11 @@ describe('EmailNotificationService', () => {
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: 'Compact Connect Privilege Purchase Confirmation'
+                                Data: 'CompactConnect Privilege Purchase Confirmation'
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -804,11 +804,11 @@ describe('EmailNotificationService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'Verify Your New Email Address - Compact Connect'
+                            Data: 'Verify Your New Email Address - CompactConnect'
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
 
             // Get the actual HTML content for detailed validation
@@ -847,11 +847,11 @@ describe('EmailNotificationService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'Email Address Changed - Compact Connect'
+                            Data: 'Email Address Changed - CompactConnect'
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
 
             // Get the actual HTML content for detailed validation
@@ -893,11 +893,11 @@ describe('EmailNotificationService', () => {
                         },
                         Subject: {
                             Charset: 'UTF-8',
-                            Data: 'Confirm Account Recovery - Compact Connect'
+                            Data: 'Confirm Account Recovery - CompactConnect'
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
 
             // Get the actual HTML content for detailed validation
@@ -905,7 +905,7 @@ describe('EmailNotificationService', () => {
             const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
 
             expect(htmlContent).toBeDefined();
-            expect(htmlContent).toContain('A request was made to recover access to your Compact Connect user account.');
+            expect(htmlContent).toContain('A request was made to recover access to your CompactConnect user account.');
             expect(htmlContent).toContain('If you initiated this request, please confirm by clicking the link below to continue account recovery.');
             expect(htmlContent).toContain('Confirm Account Recovery');
 
@@ -993,7 +993,7 @@ describe('EmailNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
 
@@ -1107,11 +1107,11 @@ describe('EmailNotificationService', () => {
                             },
                             Subject: {
                                 Charset: 'UTF-8',
-                                Data: 'Your Compact Connect Privileges Expire on February 16, 2026',
+                                Data: 'Your CompactConnect Privileges Expire on February 16, 2026',
                             },
                         },
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>',
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>',
                 }
             );
 
@@ -1130,7 +1130,7 @@ describe('EmailNotificationService', () => {
             // Verify two-column table headers
             expect(htmlContent).toContain('Privilege');
             expect(htmlContent).toContain('Expires');
-            // Verify dashboard link is present so user can navigate to Compact Connect
+            // Verify dashboard link is present so user can navigate to CompactConnect
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Dashboard');
             expect(htmlContent).toMatch(/<a[^>]+href=["']https:\/\/app\.test\.compactconnect\.org\/Dashboard["'][^>]*>/);
         });

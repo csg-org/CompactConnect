@@ -146,7 +146,7 @@ describe('InvestigationNotificationService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -198,7 +198,7 @@ describe('InvestigationNotificationService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
     });
@@ -233,7 +233,7 @@ describe('InvestigationNotificationService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
     });
@@ -268,7 +268,7 @@ describe('InvestigationNotificationService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
     });
