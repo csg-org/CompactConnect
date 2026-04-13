@@ -50,6 +50,25 @@ updates:
           - "minor"
           - "patch"
 
+  # common-cdk (shared CDK library)
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/common-cdk"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    cooldown:
+      default-days: 7
+    groups:
+      common-cdk-python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
   # cosmetology-app
   - package-ecosystem: "pip"
     directories:
