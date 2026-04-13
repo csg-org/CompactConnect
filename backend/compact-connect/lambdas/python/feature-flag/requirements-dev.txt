@@ -4,9 +4,9 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --no-emit-index-url --pip-args=None compact-connect/lambdas/python/feature-flag/requirements-dev.in
 #
-boto3==1.40.44
+boto3==1.42.83
     # via moto
-botocore==1.40.44
+botocore==1.42.88
     # via
     #   boto3
     #   moto
@@ -17,7 +17,7 @@ cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.3
     # via requests
-cryptography==46.0.2
+cryptography==46.0.6
     # via moto
 docker==7.1.0
     # via moto
@@ -33,9 +33,9 @@ markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-moto[dynamodb]==5.1.13
-    # via -r compact-connect/lambdas/python/feature-flag/requirements-dev.in
-py-partiql-parser==0.6.1
+moto[dynamodb]==5.1.22
+    # via -r requirements-dev.in
+py-partiql-parser==0.6.3
     # via moto
 pycparser==2.23
     # via cffi
@@ -45,18 +45,18 @@ python-dateutil==2.9.0.post0
     #   moto
 pyyaml==6.0.3
     # via responses
-requests==2.32.5
+requests==2.33.1
     # via
     #   docker
     #   moto
     #   responses
 responses==0.25.8
     # via moto
-s3transfer==0.14.0
+s3transfer==0.16.0
     # via boto3
 six==1.17.0
     # via python-dateutil
-urllib3==2.5.0
+urllib3==2.6.3
     # via
     #   botocore
     #   docker
