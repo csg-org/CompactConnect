@@ -369,7 +369,7 @@ class PersistentStack(AppStack):
             )
 
         # Two statements so either display name is allowed during migration from "Compact Connect" to "CompactConnect".
-        # TODO: Remove the "Compact Connect" display name once all Lambda code exclusively uses "CompactConnect".
+        # TODO: Remove the "Compact Connect" display name once all Lambda code exclusively uses "CompactConnect".  # noqa: FIX002, E501
         for display_name in ('Compact Connect', 'CompactConnect'):
             lambda_function.role.add_to_principal_policy(
                 PolicyStatement(
@@ -377,8 +377,8 @@ class PersistentStack(AppStack):
                     resources=ses_resources,
                     effect=Effect.ALLOW,
                     conditions={
-                        # To mitigate the pretty open resources section for sandbox environments, we'll restrict the use of
-                        # this action by specifying what From address and display name the principal must use.
+                        # To mitigate the pretty open resources section for sandbox environments, we'll restrict the
+                        # use of this action by specifying what From address and display name the principal must use.
                         'StringEquals': {
                             'ses:FromAddress': f'noreply@{self.user_email_notifications.email_identity.email_identity_name}',  # noqa: E501 line too long
                             'ses:FromDisplayName': display_name,
