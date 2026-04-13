@@ -262,7 +262,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
     get isSubmitEnabled(): boolean {
         const { noRefunds, purchaseExpiry } = this.formData;
-        const hasAcknowledgements = noRefunds.value || purchaseExpiry.value;
+        const hasAcknowledgements = noRefunds.value && purchaseExpiry.value;
 
         return this.isFormValid && hasAcknowledgements && !this.isFormLoading;
     }
