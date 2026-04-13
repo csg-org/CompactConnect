@@ -7,7 +7,7 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 
-nvm install 22.3.0
+nvm install 24.14.0
 npm install -g yarn
 yarn install --ignore-engines
 yarn build --dest dist --ignore-engines
