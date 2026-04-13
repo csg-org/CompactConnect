@@ -5,19 +5,17 @@ updates:
   #---------------------------------------------------------------------------
   # Python dependencies (pip-compile / pip-tools)
   #
-  # /backend/* captures CDK app requirements.in files at the top level of
-  # each backend directory (compact-connect, cosmetology-app, etc.)
-  #
-  # /backend/*/lambdas/python/* captures requirements.in files in each
-  # individual lambda directory.
-  #
-  # Both are grouped so version alignment is maintained across CDK and
-  # lambda layers in a single PR for minor/patch bumps.
+  # Split per backend project to stay within job time limits. Each entry
+  # covers the CDK app requirements.in and all lambda requirements.in files.
+  # Minor/patch updates are grouped into a single PR per project; major
+  # updates get individual PRs.
   #---------------------------------------------------------------------------
+
+  # compact-connect
   - package-ecosystem: "pip"
     directories:
-      - "/backend/*"
-      - "/backend/*/lambdas/python/*"
+      - "/backend/compact-connect"
+      - "/backend/compact-connect/lambdas/python/*"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -25,12 +23,107 @@ updates:
     labels:
       - "dependencies"
       - "python"
-    # Require packages to be at least 7 days old before proposing updates.
-    # This does NOT apply to security updates, which are always immediate.
     cooldown:
       default-days: 7
     groups:
-      python-minor-patch:
+      compact-connect-python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # compact-connect-ui-app (no python lambdas, only top-level CDK directory)
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/compact-connect-ui-app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    cooldown:
+      default-days: 7
+    groups:
+      ui-app-python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # common-cdk (shared CDK library)
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/common-cdk"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    cooldown:
+      default-days: 7
+    groups:
+      common-cdk-python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # cosmetology-app
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/cosmetology-app"
+      - "/backend/cosmetology-app/lambdas/python/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    cooldown:
+      default-days: 7
+    groups:
+      cosmetology-python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # social-work-app
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/social-work-app"
+      - "/backend/social-work-app/lambdas/python/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    cooldown:
+      default-days: 7
+    groups:
+      social-work-python-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # multi-account
+  - package-ecosystem: "pip"
+    directories:
+      - "/backend/multi-account/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    cooldown:
+      default-days: 7
+    groups:
+      multi-account-python-minor-patch:
         update-types:
           - "minor"
           - "patch"
