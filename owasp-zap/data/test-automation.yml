@@ -61,6 +61,14 @@ jobs:
     newRisk: "False Positive"
     url: https://api.test.compactconnect.org/v1/provider-users/initiateRecovery
     urlRegex: false
+  # SQL Injection on payment-processor — ZAP sends injection payloads in
+  # apiLoginId, which gets forwarded to Authorize.net. The different error
+  # message makes ZAP think injection succeeded, but it's just the payment
+  # processor rejecting invalid credentials.
+  - ruleId: 40018
+    newRisk: "False Positive"
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/credentials/payment-processor
+    urlRegex: false
 - type: passiveScan-config
   parameters: {}
 - type: passiveScan-wait
