@@ -1,44 +1,35 @@
-# Compact Connect - Web Frontend Deployment - Development
-
 name: ZAP-Scan-Test
 
-# Controls when the action will run.
 on:
-  pull_request:
-    branches:
-      - main
+  # Weekly scheduled scan of the deployed test environment
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Manual trigger for ad-hoc runs
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   ZapScan:
-    # Runner OS
     runs-on: ubuntu-latest
 
-    # Job needs id-token access to work with GitHub OIDC to AWS IAM Role
     permissions:
       id-token: write
       contents: read
 
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Log trigger info
+        run: |
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
 
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: '22.1.0'
 
-      # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v4
         with:
           path: '**/node_modules'
@@ -56,8 +47,12 @@ jobs:
           COGNITO_PASSWORD: ${{ secrets.TEST_ZAP_PASSWORD_STAFF }}
         run: |
           token=$(node main.js | jq -r '.accessToken')
-          [[ -z "$token" ]] && exit 1
+          if [[ -z "$token" || "$token" == "null" ]]; then
+            echo "::error::Failed to obtain authentication token"
+            exit 1
+          fi
           echo "ZAP_AUTH_HEADER_VALUE=$token" >> "$GITHUB_ENV"
+          echo "Authentication successful"
         working-directory: 'owasp-zap/authenticator'
 
       - name: ZAP Scan
