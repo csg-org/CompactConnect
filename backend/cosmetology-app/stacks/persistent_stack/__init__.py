@@ -368,7 +368,6 @@ class PersistentStack(AppStack):
                 ),
             )
 
-
         lambda_function.role.add_to_principal_policy(
             PolicyStatement(
                 actions=['ses:SendEmail', 'ses:SendRawEmail'],
