@@ -44,6 +44,54 @@ jobs:
     targetUrl: "https://api.test.compactconnect.org"
     context: test
     user: ""
+# Seed requests with valid test data so ZAP gets 200 responses to fuzz from.
+# Without these, ZAP uses literal parameter names as values (e.g. "compact"
+# instead of "aslp") and every request fails validation.
+# Public endpoints (no auth required)
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/public/compacts
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/public/compacts/aslp/jurisdictions
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/public/jurisdictions
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/public/compacts/aslp/providers/query
+    method: POST
+    data: '{"query":{"startDateTime":"2024-01-01T00:00:00Z","endDateTime":"2026-12-31T00:00:00Z"}}'
+    headers:
+      Content-Type: application/json
+# Authenticated endpoints with valid test data
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/providers/59f0f54f-7bd6-463d-96eb-1fd9d804d2fc
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/providers/579371d3-b7e0-4bc6-a4e2-aac28a5bda67
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/providers/8a5c974c-fe70-43a9-9186-eca2e6ad9802
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/jurisdictions/oh/licenses/bulk-upload
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/jurisdictions/ky/licenses/bulk-upload
+    method: GET
+- type: requestor
+  parameters:
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/staff-users/me
+    method: GET
 - type: passiveScan-config
   parameters: {}
 - type: spider
