@@ -63,6 +63,9 @@ jobs:
           python3 owasp-zap/enrich-oas-for-zap.py \
             backend/compact-connect/docs/internal/api-specification/latest-oas30.json \
             backend/compact-connect/docs/internal/api-specification/latest-oas30-zap.json
+          python3 owasp-zap/enrich-oas-for-zap.py \
+            backend/compact-connect/docs/search-internal/api-specification/latest-oas30.json \
+            backend/compact-connect/docs/search-internal/api-specification/latest-oas30-zap.json
 
       - name: ZAP Scan
         uses: zaproxy/action-af@v0.1.0
