@@ -1,9 +1,6 @@
 name: ZAP-Scan-Test
 
 on:
-  pull_request:
-    branches:
-      - main
   # Weekly scheduled scan of the deployed test environment
   schedule:
     - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
