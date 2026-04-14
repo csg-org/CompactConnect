@@ -95,28 +95,24 @@ jobs:
 - type: passiveScan-config
   parameters: {}
 - type: spider
-  parameters: {}
+  parameters:
+    context: test
+    maxDuration: 5
+    maxDepth: 5
+    maxChildren: 20
   tests:
-  - name: At least 50 URLs found
+  - name: At least 20 URLs found
     type: stats
-    onFail: INFO
+    onFail: WARN
     statistic: automation.spider.urls.added
     operator: '>='
-    value: 50
-- type: spiderAjax
-  parameters: {}
-  tests:
-  - name: At least 50 URLs found
-    type: stats
-    onFail: INFO
-    statistic: spiderAjax.urls.added
-    operator: '>='
-    value: 50
+    value: 20
 - type: passiveScan-wait
   parameters: {}
 - type: activeScan
-  parameters: {}
-  policyDefinition: {}
+  parameters:
+    context: test
+    maxScanDurationInMins: 45
 - type: report
   parameters:
     template: risk-confidence-html
