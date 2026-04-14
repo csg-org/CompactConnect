@@ -1,4 +1,4 @@
-# Compact Connect - Backend developer documentation
+# CompactConnect - Backend developer documentation
 
 ## Looking for technical user documentation?
 [Find it here](./docs/README.md)

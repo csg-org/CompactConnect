@@ -1,35 +1,35 @@
-# Jurisdiction and Compact Onboarding for Compact Connect
+# Jurisdiction and Compact Onboarding for CompactConnect
 
-Before a jurisdiction (i.e. state) can be onboarded to the Compact Connect system, there is certain information that
+Before a jurisdiction (i.e. state) can be onboarded to the CompactConnect system, there is certain information that
 must be provided for that jurisdiction. This document is intended to be referenced by State IT staff/CSG maintainers
 that will need to assist with onboarding new jurisdictions or compacts into the system. It outlines the information
 that is required and how that information is to be defined in the system. The following steps must be taken to onboard
-a jurisdiction to the Compact Connect system:
+a jurisdiction to the CompactConnect system:
 
 ## Inviting users to the system
-Compact Administrators can invite state administrators to Compact Connect by creating user accounts for them through the administrative interface. The process works as follows:
+Compact Administrators can invite state administrators to CompactConnect by creating user accounts for them through the administrative interface. The process works as follows:
 
-1. The Compact Administrator logs into the Compact Connect system and navigates to the User Management section.
+1. The Compact Administrator logs into the CompactConnect system and navigates to the User Management section.
 2. They create a new user account for the state administrator, specifying their email address, name, and appropriate jurisdiction-level permissions.
 3. Upon creation, the system automatically sends an email to the state administrator containing temporary credentials (username and temporary password).
-4. The state administrator uses these temporary credentials to log in to Compact Connect for the first time.
+4. The state administrator uses these temporary credentials to log in to CompactConnect for the first time.
 5. During the first login, the system prompts the state administrator to set a permanent password.
 6. Once logged in, state administrators can access the settings panel (the cog icon) and set the needed configuration as described below.
 
 ## Jurisdiction Onboarding Overview
 
-Before a jurisdiction (i.e. state) can be onboarded to the Compact Connect system, the following information must be provided and configured through the Compact Connect UI:
+Before a jurisdiction (i.e. state) can be onboarded to the CompactConnect system, the following information must be provided and configured through the CompactConnect UI:
 
 1. Jurisdiction Fee for Compact Privileges
 2. Contact Details for System Notifications
 3. Jurisprudence Requirements
 4. Licensee Registration Settings
 
-These settings are managed by jurisdiction administrators through the Compact Connect administrative interface.
+These settings are managed by jurisdiction administrators through the CompactConnect administrative interface.
 
 ### Jurisdiction Fee for a Compact Privilege
 
-Jurisdiction administrators must set the fee that the jurisdiction will charge for a compact privilege. This is configured in the Jurisdiction Settings section of the Compact Connect UI. This is set per license type offered by the compact.
+Jurisdiction administrators must set the fee that the jurisdiction will charge for a compact privilege. This is configured in the Jurisdiction Settings section of the CompactConnect UI. This is set per license type offered by the compact.
 
 #### Military Rate Configuration
 
@@ -101,13 +101,13 @@ Both jurisdiction and compact administrators must provide contact details for sy
 > **Recommendation**: While the system supports multiple email addresses for each notification type, we recommend using distribution lists that users can subscribe to or unsubscribe from without requiring configuration changes.
 
 ## Uploading Authorize.net API Keys
-Compact administrators can configure their Authorize.net payment processing credentials through the Compact Connect UI. These 
+Compact administrators can configure their Authorize.net payment processing credentials through the CompactConnect UI. These 
 credentials are used to securely process payments for compact privilege applications. For detailed instructions on how to generate 
 these keys in your Authorize.net account, please visit the [Authorize.net documentation](https://support.authorize.net/knowledgebase/
 Knowledgearticle/?code=000001271). Once these credentials have been generated, the compact admin can set up payment processing for your 
 compact using the following steps:
 
-1. Log in to the Compact Connect UI as a compact administrator
+1. Log in to the CompactConnect UI as a compact administrator
 2. Navigate to the Compact Settings page (gear icon in the bottom left corner of the side navigation bar)
 3. Locate the "Authorize.net Credentials" section
 4. Enter the following Authorize.net credentials into the form and press "Submit":
@@ -117,7 +117,7 @@ compact using the following steps:
 If the request is successful, payment processing will be enabled for your compact.
 
 **Important Security Notes:**
-- If your credentials are ever compromised, or you suspect they might have been compromised, generate new ones immediately in your Authorize.net account and update them through the Compact Connect UI.
+- If your credentials are ever compromised, or you suspect they might have been compromised, generate new ones immediately in your Authorize.net account and update them through the CompactConnect UI.
 
 ## Access Management
 
