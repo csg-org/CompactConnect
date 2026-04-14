@@ -19,7 +19,7 @@ PARAM_EXAMPLES = {
     "licenseType": "audiologist",
     "providerId": "33f813a7-9526-4bba-95d6-570fcc2a5a12",
     "userId": "740864a8-8091-7097-3bb4-d96fb1619a15",
-    "attestationId": "00000000-0000-4000-8000-000000000000",
+    "attestationId": "jurisprudence-confirmation",
     "encumbranceId": "c8083de6-19a7-4e9c-8411-09e883fbc8ff",
     "flagId": "00000000-0000-4000-8000-000000000000",
     "investigationId": "3758ff63-1271-41d5-9257-54689192ac6a",
