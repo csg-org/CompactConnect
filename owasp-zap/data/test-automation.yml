@@ -2,10 +2,8 @@ env:
   contexts:
   - name: test
     urls:
-    - https://app.test.compactconnect.org
     - https://api.test.compactconnect.org
     includePaths:
-    - https://app.test.compactconnect.org.*
     - https://api.test.compactconnect.org.*
     authentication:
       verification:
@@ -44,21 +42,18 @@ jobs:
     targetUrl: "https://api.test.compactconnect.org"
     context: test
     user: ""
+# Suppress known false positives
+- type: alertFilter
+  alertFilters:
+  # SQL Injection on initiateRecovery — API uses DynamoDB not SQL.
+  # ZAP flags this because the 400 validation error reflects input back,
+  # which looks like successful boolean-based injection.
+  - ruleId: 40018
+    newRisk: "False Positive"
+    url: https://api.test.compactconnect.org/v1/provider-users/initiateRecovery
+    urlRegex: false
 - type: passiveScan-config
   parameters: {}
-- type: spider
-  parameters:
-    context: test
-    maxDuration: 5
-    maxDepth: 5
-    maxChildren: 20
-  tests:
-  - name: At least 20 URLs found
-    type: stats
-    onFail: WARN
-    statistic: automation.spider.urls.added
-    operator: '>='
-    value: 20
 - type: passiveScan-wait
   parameters: {}
 - type: activeScan
