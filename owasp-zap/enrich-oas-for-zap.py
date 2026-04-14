@@ -26,9 +26,20 @@ PARAM_EXAMPLES = {
 }
 
 
+# HTTP methods to strip from the spec before ZAP ingests it.
+# DELETE is excluded to prevent ZAP from deleting staff users during scans.
+EXCLUDED_METHODS = {"delete"}
+
+
 def enrich_spec(spec):
     """Add example values to path parameters and fix schema issues."""
-    for path, methods in spec.get("paths", {}).items():
+    for path, methods in list(spec.get("paths", {}).items()):
+        # Remove excluded HTTP methods
+        for method in EXCLUDED_METHODS:
+            if method in methods:
+                del methods[method]
+                print(f"Removed {method.upper()} {path}")
+
         for method, operation in methods.items():
             if not isinstance(operation, dict):
                 continue
