@@ -549,7 +549,7 @@ class LicenseCard extends mixins(MixinForm) {
                         npdbCategories: (Array.isArray(formData.encumberModalNpdbCategories.value))
                             ? formData.encumberModalNpdbCategories.value
                             : [formData.encumberModalNpdbCategories.value],
-                        startDate: formData.encumberModalNpdbCategories.value,
+                        startDate: formData.encumberModalStartDate.value,
                     },
                 }).catch((err) => {
                     this.modalErrorMessage = err?.message || this.$t('common.error');
