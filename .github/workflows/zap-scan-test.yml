@@ -68,7 +68,7 @@ jobs:
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: report/zap-results.sarif
+          sarif_file: report/zap-results.sarif.json
 
       - name: Upload Report
         if: always()
