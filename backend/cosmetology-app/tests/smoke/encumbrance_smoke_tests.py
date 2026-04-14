@@ -438,10 +438,10 @@ def test_license_encumbrance_workflow():
     """
     Test the complete license encumbrance workflow:
     1. Encumber a license twice
-    2. Encumber privilege and ensure it is updated to an 'encumbered' encumberedStatus
+    2. Encumber privilege and the associated adverse action record is created
     3. Lift one encumbrance (license should remain encumbered)
     4. Lift the final encumbrance (license should become unencumbered)
-    5. Verify that the associated privilege is still encumbered (has an 'encumbered' encumberedStatus)
+    5. Verify that the associated privilege is still encumbered (associated adverse action record is not lifted)
     6. Lift encumbrance from privilege
     7. Verify privilege is unencumbered
     """
@@ -612,6 +612,9 @@ def test_license_encumbrance_workflow():
         helper.verify_privilege_adverse_action_lifted(adverse_action_id=privilege_adverse_action_id)
         helper.verify_privilege_adverse_action_lifted(privilege_adverse_action_id)
         logger.info('Verified privilege is now unencumbered')
+
+        # Verify provider is now unencumbered
+        helper.validate_provider_encumbered_state('unencumbered')
 
         logger.info('License encumbrance workflow test completed successfully')
 
