@@ -15,6 +15,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      security-events: write
 
     steps:
       - name: Log trigger info
@@ -59,6 +60,12 @@ jobs:
         uses: zaproxy/action-af@v0.1.0
         with:
           plan: 'owasp-zap/data/test-automation.yml'
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: report/zap-results.sarif
 
       - name: Upload Report
         if: always()
