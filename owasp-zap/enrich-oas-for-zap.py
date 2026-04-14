@@ -22,7 +22,7 @@ PARAM_EXAMPLES = {
     "attestationId": "00000000-0000-4000-8000-000000000000",
     "encumbranceId": "c8083de6-19a7-4e9c-8411-09e883fbc8ff",
     "flagId": "00000000-0000-4000-8000-000000000000",
-    "investigationId": "00000000-0000-4000-8000-000000000000",
+    "investigationId": "442d180d-4bfd-4af1-b4e0-206e449860b6",
 }
 
 
