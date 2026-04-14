@@ -689,6 +689,7 @@
         "encumber": "Cargar",
         "encumbered": "Gravado",
         "encumberAction": "Acción disciplinaria",
+        "encumberBasisLabel": "Base para la acción",
         "npdbCategoryLabel": "Base para la acción / Categoría NPDB",
         "encumberStartDate": "Inicio del gravamen",
         "confirmLicenseEncumberTitle": "¿Estás seguro de que quieres gravar esta licencia?",
@@ -914,6 +915,10 @@
             {
                 "name": "Supervisión inadecuada o autorización de prácticas sin licencia",
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Daños al consumidor",
+                "key": "Consumer Harm"
             },
             {
                 "name": "Otro",

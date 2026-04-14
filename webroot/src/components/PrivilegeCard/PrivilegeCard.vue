@@ -216,7 +216,14 @@
                                 <InputSelect :formInput="formData.encumberModalDisciplineAction" />
                             </div>
                             <div class="form-row">
-                                <InputSelectMultiple :formInput="formData.encumberModalNpdbCategories" />
+                                <InputSelectMultiple
+                                    v-if="shouldAllowNpdbMultiSelect"
+                                    :formInput="formData.encumberModalNpdbCategories"
+                                />
+                                <InputSelect
+                                    v-else
+                                    :formInput="formData.encumberModalNpdbCategories"
+                                />
                             </div>
                             <div class="form-row">
                                 <InputDate
