@@ -27,7 +27,7 @@ PARAM_EXAMPLES = {
 
 
 def enrich_spec(spec):
-    """Add example values to all path parameters in the spec."""
+    """Add example values to path parameters and fix schema issues."""
     for path, methods in spec.get("paths", {}).items():
         for method, operation in methods.items():
             if not isinstance(operation, dict):
@@ -37,7 +37,24 @@ def enrich_spec(spec):
                     name = param.get("name", "")
                     if name in PARAM_EXAMPLES:
                         param["example"] = PARAM_EXAMPLES[name]
+
+    # Fix arrays missing 'items' — CDK-generated specs sometimes omit this,
+    # which is technically invalid OpenAPI and causes ZAP's parser to fail.
+    for name, schema in spec.get("components", {}).get("schemas", {}).items():
+        _fix_missing_array_items(schema)
+
     return spec
+
+
+def _fix_missing_array_items(obj):
+    """Recursively add items: {type: string} to arrays missing an items field."""
+    if not isinstance(obj, dict):
+        return
+    if obj.get("type") == "array" and "items" not in obj:
+        obj["items"] = {"type": "string"}
+    for value in obj.values():
+        if isinstance(value, dict):
+            _fix_missing_array_items(value)
 
 
 def main():
