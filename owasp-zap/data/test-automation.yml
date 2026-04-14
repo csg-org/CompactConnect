@@ -62,9 +62,6 @@ jobs:
     responseCode: 200
   - url: https://api.test.compactconnect.org/v1/public/compacts/aslp/providers/query
     method: POST
-    headers:
-    - name: Content-Type
-      value: application/json
     data: '{"query":{"startDateTime":"2024-01-01T00:00:00Z","endDateTime":"2026-12-31T00:00:00Z"}}'
     responseCode: 200
   # Authenticated endpoints with valid test provider IDs
