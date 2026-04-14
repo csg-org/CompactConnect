@@ -135,18 +135,6 @@ jobs:
   - reportParameters
   - requestHeader
   - summaries
-- type: report
-  parameters:
-    template: sarif-json
-    reportDir: /zap/wrk/report
-    reportFile: zap-results.sarif
-    reportTitle: ZAP SARIF Report
-    reportDescription: Test environment ZAP SARIF report for GitHub Security tab
-    displayReport: false
-  risks:
-  - low
-  - medium
-  - high
 - type: exitStatus
   parameters:
     warnExitValue: 0
