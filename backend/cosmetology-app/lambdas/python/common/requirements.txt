@@ -5,13 +5,13 @@
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/common/requirements.in
 #
 argon2-cffi==25.1.0
-    # via -r lambdas/python/common/requirements.in
+    # via -r requirements.in
 argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 aws-lambda-powertools==3.27.0
-    # via -r lambdas/python/common/requirements.in
+    # via -r requirements.in
 boto3==1.42.89
-    # via -r lambdas/python/common/requirements.in
+    # via -r requirements.in
 botocore==1.42.89
     # via
     #   boto3
@@ -25,7 +25,7 @@ cffi==2.0.0
 charset-normalizer==3.4.7
     # via requests
 cryptography==46.0.7
-    # via -r lambdas/python/common/requirements.in
+    # via -r requirements.in
 idna==3.11
     # via requests
 jmespath==1.1.0
@@ -33,16 +33,14 @@ jmespath==1.1.0
     #   aws-lambda-powertools
     #   boto3
     #   botocore
-marshmallow==3.26.2
-    # via -r lambdas/python/common/requirements.in
-packaging==26.0
-    # via marshmallow
+marshmallow==4.3.0
+    # via -r requirements.in
 pycparser==3.0
     # via cffi
 python-dateutil==2.9.0.post0
     # via botocore
 requests==2.33.1
-    # via -r lambdas/python/common/requirements.in
+    # via -r requirements.in
 s3transfer==0.16.0
     # via boto3
 six==1.17.0
