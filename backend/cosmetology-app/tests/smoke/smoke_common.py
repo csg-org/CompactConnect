@@ -229,7 +229,10 @@ def call_provider_details_endpoint(headers: dict, compact: str, provider_id: str
     return response.json()
 
 
-def get_all_provider_database_records(compact: str = 'cosm', provider_id: str = config.test_provider_id):
+def get_all_provider_database_records(compact: str = 'cosm', provider_id: str = None):
+
+    if provider_id is None:
+        provider_id = config.test_provider_id
 
     items: list = []
     last_evaluated_key = None
