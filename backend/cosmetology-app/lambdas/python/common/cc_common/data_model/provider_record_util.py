@@ -482,18 +482,14 @@ class ProviderUserRecords:
                 inv_records = self.get_investigation_records_for_privilege(
                     jurisdiction, license_type_abbr, include_closed=False
                 )
-                if (
-                    not is_eligible
-                    and not include_inactive_privileges
-                    and not privilege_aa
-                    and not inv_records
-                ):
-                    logger.debug('Not returning a privilege for this jurisdiction because the home '
-                    'license is not compact eligible and there are no matching privilege adverse '
-                    'actions or open investigations.',
-                    jurisdiction=jurisdiction,
-                    home_jurisdiction=home_jurisdiction,
-                    license_type_abbr=license_type_abbr,
+                if not is_eligible and not include_inactive_privileges and not privilege_aa and not inv_records:
+                    logger.debug(
+                        'Not returning a privilege for this jurisdiction because the home '
+                        'license is not compact eligible and there are no matching privilege adverse '
+                        'actions or open investigations.',
+                        jurisdiction=jurisdiction,
+                        home_jurisdiction=home_jurisdiction,
+                        license_type_abbr=license_type_abbr,
                     )
                     continue
                 privilege_dict = {

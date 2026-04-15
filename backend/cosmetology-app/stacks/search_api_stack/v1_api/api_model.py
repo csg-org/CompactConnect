@@ -358,7 +358,10 @@ class ApiModel:
                 'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                 'clinicalPrivilegeActionCategories': JsonSchema(
                     type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(type=JsonSchemaType.STRING),
+                    items=JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=['fraud', 'consumer harm', 'other'],
+                    ),
                 ),
                 'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
                 'submittingUser': JsonSchema(type=JsonSchemaType.STRING),

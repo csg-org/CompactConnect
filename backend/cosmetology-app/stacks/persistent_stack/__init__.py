@@ -374,11 +374,11 @@ class PersistentStack(AppStack):
                 resources=ses_resources,
                 effect=Effect.ALLOW,
                 conditions={
-                    # To mitigate the pretty open resources section for sandbox environments, we'll restrict the use of
-                    # this action by specifying what From address and display name the principal must use.
+                    # To mitigate the pretty open resources section for sandbox environments, we'll restrict the
+                    # use of this action by specifying what From address and display name the principal must use.
                     'StringEquals': {
                         'ses:FromAddress': f'noreply@{self.user_email_notifications.email_identity.email_identity_name}',  # noqa: E501 line too long
-                        'ses:FromDisplayName': 'Compact Connect',
+                        'ses:FromDisplayName': 'CompactConnect',
                     }
                 },
             )

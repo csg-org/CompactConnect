@@ -320,6 +320,7 @@ class ProviderManagementLambdas:
         )
         self.persistent_stack.provider_table.grant_read_write_data(handler)
         self.persistent_stack.staff_users.user_table.grant_read_data(handler)
+        self.persistent_stack.compact_configuration_table.grant_read_data(handler)
         self.data_event_bus.grant_put_events_to(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(

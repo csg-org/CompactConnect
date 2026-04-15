@@ -18,7 +18,7 @@ from smoke_common import (
 )
 
 COMPACT = 'cosm'
-JURISDICTION = 'ne'
+JURISDICTION = 'az'
 TEST_PROVIDER_GIVEN_NAME = 'Joe'
 TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 

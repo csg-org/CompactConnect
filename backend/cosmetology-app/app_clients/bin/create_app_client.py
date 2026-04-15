@@ -281,7 +281,7 @@ def print_email_template(environment, compact, state):
     license_upload_url = f'{api_base_urls.get(environment)}/v1/compacts/{compact}/jurisdictions/{state}/licenses'
 
     email_template = f"""
-Thank you for integrating with Compact Connect! You have been designated as the IT professional who is able to handle
+Thank you for integrating with CompactConnect! You have been designated as the IT professional who is able to handle
 credentials for secure machine-to-machine authentication between your state and CompactConnect.
 
 Details for these credentials are:

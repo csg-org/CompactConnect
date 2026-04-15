@@ -2,13 +2,11 @@ env:
   contexts:
   - name: test
     urls:
-    - https://app.test.compactconnect.org
     - https://api.test.compactconnect.org
-    - https://state-api.test.compactconnect.org
+    - https://search.test.compactconnect.org
     includePaths:
-    - https://app.test.compactconnect.org.*
     - https://api.test.compactconnect.org.*
-    - https://state-api.test.compactconnect.org.*
+    - https://search.test.compactconnect.org.*
     authentication:
       verification:
         method: response
@@ -41,43 +39,44 @@ jobs:
     inline: ""
 - type: openapi
   parameters:
-    apiFile: /zap/wrk/backend/compact-connect/docs/api-specification/latest-oas30.json
-    apiUrl: ""
-    targetUrl: "https://state-api.test.compactconnect.org"
-    context: test
-    user: ""
-- type: openapi
-  parameters:
-    apiFile: /zap/wrk/backend/compact-connect/docs/internal/api-specification/latest-oas30.json
+    apiFile: /zap/wrk/backend/compact-connect/docs/internal/api-specification/latest-oas30-zap.json
     apiUrl: ""
     targetUrl: "https://api.test.compactconnect.org"
     context: test
     user: ""
+- type: openapi
+  parameters:
+    apiFile: /zap/wrk/backend/compact-connect/docs/search-internal/api-specification/latest-oas30-zap.json
+    apiUrl: ""
+    targetUrl: "https://search.test.compactconnect.org"
+    context: test
+    user: ""
+# Suppress known false positives
+- type: alertFilter
+  alertFilters:
+  # SQL Injection on initiateRecovery — API uses DynamoDB not SQL.
+  # ZAP flags this because the 400 validation error reflects input back,
+  # which looks like successful boolean-based injection.
+  - ruleId: 40018
+    newRisk: "False Positive"
+    url: https://api.test.compactconnect.org/v1/provider-users/initiateRecovery
+    urlRegex: false
+  # SQL Injection on payment-processor — ZAP sends injection payloads in
+  # apiLoginId, which gets forwarded to Authorize.net. The different error
+  # message makes ZAP think injection succeeded, but it's just the payment
+  # processor rejecting invalid credentials.
+  - ruleId: 40018
+    newRisk: "False Positive"
+    url: https://api.test.compactconnect.org/v1/compacts/aslp/credentials/payment-processor
+    urlRegex: false
 - type: passiveScan-config
   parameters: {}
-- type: spider
-  parameters: {}
-  tests:
-  - name: At least 50 URLs found
-    type: stats
-    onFail: INFO
-    statistic: automation.spider.urls.added
-    operator: '>='
-    value: 50
-- type: spiderAjax
-  parameters: {}
-  tests:
-  - name: At least 50 URLs found
-    type: stats
-    onFail: INFO
-    statistic: spiderAjax.urls.added
-    operator: '>='
-    value: 50
 - type: passiveScan-wait
   parameters: {}
 - type: activeScan
-  parameters: {}
-  policyDefinition: {}
+  parameters:
+    context: test
+    maxScanDurationInMins: 45
 - type: report
   parameters:
     template: risk-confidence-html
