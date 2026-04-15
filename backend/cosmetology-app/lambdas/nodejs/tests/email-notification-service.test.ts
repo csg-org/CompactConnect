@@ -171,7 +171,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -243,7 +243,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -335,7 +335,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -408,7 +408,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -475,7 +475,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -546,7 +546,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -615,7 +615,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -687,7 +687,7 @@ describe('EmailNotificationServiceLambda', () => {
                             Data: 'Privilege Encumbrance Lifted Notification - John Doe'
                         }
                     }},
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -777,7 +777,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -869,7 +869,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -959,7 +959,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -1051,7 +1051,7 @@ describe('EmailNotificationServiceLambda', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 

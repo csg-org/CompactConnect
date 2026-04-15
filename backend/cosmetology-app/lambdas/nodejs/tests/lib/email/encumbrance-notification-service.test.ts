@@ -137,7 +137,7 @@ describe('EncumbranceNotificationService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -187,7 +187,7 @@ describe('EncumbranceNotificationService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             });
         });
 
@@ -265,7 +265,7 @@ describe('EncumbranceNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -321,7 +321,7 @@ describe('EncumbranceNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -400,7 +400,7 @@ describe('EncumbranceNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -456,7 +456,7 @@ describe('EncumbranceNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
 
@@ -559,7 +559,7 @@ describe('EncumbranceNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
         });
@@ -615,7 +615,7 @@ describe('EncumbranceNotificationService', () => {
                             }
                         }
                     },
-                    FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                    FromEmailAddress: 'CompactConnect <noreply@example.org>'
                 }
             );
 

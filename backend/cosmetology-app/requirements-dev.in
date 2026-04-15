@@ -4,4 +4,4 @@ coverage
 ruff
 pip-tools
 pip-audit
-Faker>=37, <38
+Faker>=40, <41

@@ -90,7 +90,7 @@ export abstract class BaseEmailService {
                     }
                 },
                 // We're required by the IAM policy to use this display name
-                FromEmailAddress: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
+                FromEmailAddress: `CompactConnect <${environmentVariableService.getFromAddress()}>`,
             });
 
             return (await this.sesClient.send(command)).MessageId;
@@ -121,7 +121,7 @@ export abstract class BaseEmailService {
 
             // Create the email message
             const message = {
-                from: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
+                from: `CompactConnect <${environmentVariableService.getFromAddress()}>`,
                 to: recipients,
                 subject: subject,
                 html: htmlContent,
