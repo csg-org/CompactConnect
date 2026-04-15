@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/staff-users/requirements-dev.in
 #
-boto3==1.42.89
+boto3==1.42.85
     # via moto
 botocore==1.42.89
     # via
@@ -24,7 +24,7 @@ cryptography==46.0.7
 docker==7.1.0
     # via moto
 faker==40.13.0
-    # via -r lambdas/python/staff-users/requirements-dev.in
+    # via -r staff-users/requirements-dev.in
 idna==3.11
     # via requests
 jinja2==3.1.6
@@ -40,7 +40,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[cognitoidp,dynamodb,s3]==5.1.22
-    # via -r lambdas/python/staff-users/requirements-dev.in
+    # via -r staff-users/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0

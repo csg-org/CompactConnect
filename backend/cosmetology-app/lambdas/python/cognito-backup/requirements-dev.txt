@@ -5,14 +5,14 @@
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/cognito-backup/requirements-dev.in
 #
 aws-lambda-powertools==3.27.0
-    # via -r lambdas/python/cognito-backup/requirements-dev.in
-boto3==1.42.89
+    # via -r cognito-backup/requirements-dev.in
+boto3==1.42.85
     # via
-    #   -r lambdas/python/cognito-backup/requirements-dev.in
+    #   -r cognito-backup/requirements-dev.in
     #   moto
 botocore==1.42.89
     # via
-    #   -r lambdas/python/cognito-backup/requirements-dev.in
+    #   -r cognito-backup/requirements-dev.in
     #   boto3
     #   moto
     #   s3transfer
@@ -44,7 +44,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[cognitoidp,s3]==5.1.22
-    # via -r lambdas/python/cognito-backup/requirements-dev.in
+    # via -r cognito-backup/requirements-dev.in
 packaging==26.0
     # via pytest
 pluggy==1.6.0
@@ -56,7 +56,7 @@ pycparser==3.0
 pygments==2.20.0
     # via pytest
 pytest==9.0.3
-    # via -r lambdas/python/cognito-backup/requirements-dev.in
+    # via -r cognito-backup/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via
     #   botocore
