@@ -74,7 +74,7 @@ markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-marshmallow==3.26.2
+marshmallow==4.3.0
     # via -r requirements-dev.in
 mdurl==0.1.2
     # via markdown-it-py
@@ -87,7 +87,6 @@ packageurl-python==0.17.6
 packaging==26.0
     # via
     #   build
-    #   marshmallow
     #   pip-audit
     #   pip-requirements-parser
     #   pytest
