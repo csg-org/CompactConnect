@@ -91,7 +91,7 @@
     "inquirer": "7.1.0",
     "less": "^3.0.4",
     "less-loader": "^5.0.0",
-    "lint-staged": "^15.0.0",
+    "lint-staged": "^16.4.0",
     "moment-timezone": "^0.5.31",
     "nyc": "^15.1.0",
     "replace-in-file": "^5.0.2",
