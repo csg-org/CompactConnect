@@ -1,6 +1,6 @@
 # Email Notification Service Lambda
 
-This package contains code required to generate system emails for users in compact connect, as well as
+This package contains code required to generate system emails for users in CompactConnect, as well as
 compacts/jurisdictions staff. It leverages [EmailBuilderJS](https://github.com/usewaypoint/email-builder-js) to dynamically render email HTML content that should
 be rendered consistently across email clients.
 

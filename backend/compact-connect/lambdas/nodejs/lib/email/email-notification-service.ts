@@ -358,7 +358,7 @@ export class EmailNotificationService extends BaseEmailService {
 
         const emailContent = this.getNewEmailTemplate();
         const headerText = `Privilege Purchase Confirmation`;
-        const subject = `Compact Connect Privilege Purchase Confirmation`;
+        const subject = `CompactConnect Privilege Purchase Confirmation`;
         const bodyText = `This email is to confirm you successfully purchased the following privileges on ${transactionDate}`;
 
         this.insertHeader(emailContent, headerText);
@@ -414,9 +414,9 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         const report = this.getNewEmailTemplate();
-        const subject = `Registration Attempt Notification - Compact Connect`;
+        const subject = `Registration Attempt Notification - CompactConnect`;
         const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard`;
-        const bodyText = `A registration attempt was made in the Compact Connect system for an account associated with this email address. This email address is already registered in our system.\n\nIf you originally registered within the past 24 hours, make sure to login with your temporary password sent to this same email address. You may log in to your existing account using the link below:\n\n${loginUrl}\n\nFor your security, we recommend that you log in to your account to verify your account information and ensure your account remains secure.`;
+        const bodyText = `A registration attempt was made in the CompactConnect system for an account associated with this email address. This email address is already registered in our system.\n\nIf you originally registered within the past 24 hours, make sure to login with your temporary password sent to this same email address. You may log in to your existing account using the link below:\n\n${loginUrl}\n\nFor your security, we recommend that you log in to your account to verify your account information and ensure your account remains secure.`;
 
         this.insertHeader(report, 'Registration Attempt');
         this.insertBody(report, bodyText, 'center', true);
@@ -443,7 +443,7 @@ export class EmailNotificationService extends BaseEmailService {
         const recipients = [providerEmail];
 
         const report = this.getNewEmailTemplate();
-        const subject = `Verify Your New Email Address - Compact Connect`;
+        const subject = `Verify Your New Email Address - CompactConnect`;
         const bodyText = `Please use the following verification code to complete your email address change:\n\n## ${verificationCode}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this email change, please contact support immediately.`;
 
         this.insertHeader(report, 'Email Update Verification');
@@ -471,8 +471,8 @@ export class EmailNotificationService extends BaseEmailService {
         const recipients = [oldEmailAddress];
 
         const report = this.getNewEmailTemplate();
-        const subject = `Email Address Changed - Compact Connect`;
-        const bodyText = `This is to notify you that your Compact Connect account email address has been changed to the following:\n\n${newEmailAddress}\n\nPlease use the new email address to login to your account from now on. If you did not make this change, please contact support immediately.`;
+        const subject = `Email Address Changed - CompactConnect`;
+        const bodyText = `This is to notify you that your CompactConnect account email address has been changed to the following:\n\n${newEmailAddress}\n\nPlease use the new email address to login to your account from now on. If you did not make this change, please contact support immediately.`;
 
         this.insertHeader(report, 'Email Address Changed');
         this.insertBody(report, bodyText, 'center');
@@ -505,12 +505,12 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         const emailContent = this.getNewEmailTemplate();
-        const subject = 'Confirm Account Recovery - Compact Connect';
+        const subject = 'Confirm Account Recovery - CompactConnect';
 
         const baseUrl = environmentVariableService.getUiBasePathUrl();
         const recoveryUrl = `${baseUrl}/Dashboard?bypass=recovery-practitioner&compact=${compact}&providerId=${providerId}&recoveryId=${recoveryToken}`;
 
-        const bodyText = `A request was made to recover access to your Compact Connect user account.\n\n` +
+        const bodyText = `A request was made to recover access to your CompactConnect user account.\n\n` +
             `If you initiated this request, please confirm by clicking the link below to continue account recovery. ` +
             `\n\n${recoveryUrl}\n\n` +
             `**If you did not request this, your password has likely been compromised and you should reset your password immediately**. To reset your password, please visit the following link:\n\n${baseUrl}/Dashboard?bypass=login-practitioner\n\n Select 'Forgot your password?' and follow the instructions.`;
@@ -542,7 +542,7 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         const report = this.getNewEmailTemplate();
-        const subject = 'Military Status Documentation Approved - Compact Connect';
+        const subject = 'Military Status Documentation Approved - CompactConnect';
         const bodyText = 'This message is to notify you that your military status documentation has been reviewed and approved by the compact staff.';
 
         this.insertHeader(report, subject);
@@ -574,7 +574,7 @@ export class EmailNotificationService extends BaseEmailService {
         }
 
         const report = this.getNewEmailTemplate();
-        const subject = 'Military Status Documentation Declined - Compact Connect';
+        const subject = 'Military Status Documentation Declined - CompactConnect';
         let bodyText = 'This message is to notify you that your military status documentation has been reviewed and declined by the compact staff.';
         
         if (auditNote && auditNote.trim().length > 0) {
@@ -690,7 +690,7 @@ export class EmailNotificationService extends BaseEmailService {
         const expirationDateSlash = formatIsoDateAsSlashFormat(expirationDate);
 
         const emailContent = this.getNewEmailTemplate();
-        const subject = `Your Compact Connect Privileges Expire on ${expirationDateDisplay}`;
+        const subject = `Your CompactConnect Privileges Expire on ${expirationDateDisplay}`;
 
         // Logo at the top
         this.insertLogo(emailContent);
@@ -725,7 +725,7 @@ export class EmailNotificationService extends BaseEmailService {
             { 'padding': { 'top': 24, 'bottom': 24, 'right': 32, 'left': 32 }}
         );
 
-        // Dashboard link so the user can navigate to Compact Connect
+        // Dashboard link so the user can navigate to CompactConnect
         const dashboardUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard`;
 
         this.insertBody(

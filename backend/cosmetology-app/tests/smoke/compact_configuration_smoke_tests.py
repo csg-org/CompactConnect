@@ -213,7 +213,7 @@ def test_compact_configuration():
             delete_test_staff_user(test_email, user_sub, compact)
 
 
-def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_config: bool = False):
+def test_jurisdiction_configuration(jurisdiction: str = 'az', recreate_compact_config: bool = False):
     """
     Test that a state admin can update and retrieve jurisdiction configuration.
 
@@ -437,4 +437,6 @@ if __name__ == '__main__':
     load_smoke_test_env()
     test_active_member_jurisdictions()
     test_compact_configuration()
-    test_jurisdiction_configuration()
+    # for the smoke tests, we set two jurisdictions to live for license and privilege smoke tests
+    test_jurisdiction_configuration('az')
+    test_jurisdiction_configuration('al')

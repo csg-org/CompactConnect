@@ -2,7 +2,7 @@
 
 ## Overview
 
-When a staff user loses access to their Multi-Factor Authentication (MFA) device, they cannot log into the Compact Connect system. 
+When a staff user loses access to their Multi-Factor Authentication (MFA) device, they cannot log into the CompactConnect system. 
 
 A staff user account consists of two parts: a Cognito user to track login information, and a DynamoDB record in the staff
 users DynamoDB table to track permissions and other account data about the user.

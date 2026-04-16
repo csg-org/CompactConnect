@@ -110,7 +110,7 @@ describe('IngestEventEmailService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             }
         );
     });
@@ -157,7 +157,7 @@ describe('IngestEventEmailService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             }
         );
     });
@@ -190,7 +190,7 @@ describe('IngestEventEmailService', () => {
                         }
                     }
                 },
-                FromEmailAddress: 'Compact Connect <noreply@example.org>'
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
             }
         );
     });

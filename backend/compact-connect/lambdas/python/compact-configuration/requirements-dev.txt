@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/compact-configuration/requirements-dev.in
 #
-boto3==1.42.83
+boto3==1.42.89
     # via moto
-botocore==1.42.84
+botocore==1.42.89
     # via
     #   boto3
     #   moto
@@ -17,7 +17,7 @@ cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.7
     # via requests
-cryptography==46.0.6
+cryptography==46.0.7
     # via moto
 docker==7.1.0
     # via moto
@@ -34,7 +34,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[dynamodb,s3]==5.1.22
-    # via -r compact-configuration/requirements-dev.in
+    # via -r lambdas/python/compact-configuration/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0

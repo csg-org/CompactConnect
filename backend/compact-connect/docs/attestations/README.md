@@ -1,6 +1,6 @@
-# Compact Connect Attestation Versioning Design
+# CompactConnect Attestation Versioning Design
 
-The Compact Connect system defines a set of attestations that providers must accept when purchasing privileges. Attestations are legally binding statements that providers must agree to, and they are versioned to ensure providers always see and accept the most current version.
+The CompactConnect system defines a set of attestations that providers must accept when purchasing privileges. Attestations are legally binding statements that providers must agree to, and they are versioned to ensure providers always see and accept the most current version.
 
 ## Required Attestations
 
