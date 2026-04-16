@@ -278,19 +278,13 @@ class LicenseCard extends mixins(MixinForm) {
         }));
 
         if (isAppModeJcc) {
-            const excludeList = ['Fraud', 'Consumer Harm'];
+            const excludeList = ['Consumer Harm'];
 
             options = options.filter((option) => !excludeList.includes(option.value));
         } else if (isAppModeCosmetology) {
-            const includeList = ['Fraud', 'Consumer Harm', 'Other'];
+            const includeList = ['Fraud, Deception, or Misrepresentation', 'Consumer Harm', 'Other'];
 
-            options = options
-                .filter((option) => includeList.includes(option.value))
-                .map((option) => {
-                    option.value = option.value?.toLowerCase();
-
-                    return option;
-                });
+            options = options.filter((option) => includeList.includes(option.value));
 
             options.unshift({
                 value: '',
