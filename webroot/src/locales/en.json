@@ -631,7 +631,7 @@
         "selectLicense": "Select a license",
         "personalInformation": "Personal information",
         "licenseExpired": "License expired",
-        "purchaseExpirationMessage": "<span>If purchased, these privileges will expire on <em>{date}</em>, the same as the home state license.</span>",
+        "purchaseExpirationMessage": "If purchased, these privileges will expire on {date}, the same as the home state license.",
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "purchaseFormErrorMessage": "Please correct the errors on the form shown in red",
         "ssn": "SSN",
