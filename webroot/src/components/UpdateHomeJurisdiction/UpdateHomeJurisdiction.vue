@@ -20,7 +20,6 @@
                 <div class="current-home-jurisdiction">{{ homeJurisdictionName }}</div>
             </div>
             <InputSelect :formInput="formData.newHomeJurisdiction" class="home-jurisdiction-select" />
-            <div class="input-label-subtext">{{ $t('homeJurisdictionChange.inputSubtext') }}</div>
             <InputSubmit
                 :formInput="formData.submit"
                 class="update-home-jurisdiction-btn"
