@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import ValidationError, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, String
+from marshmallow.fields import UUID, Date, AwareDateTime, String
 from marshmallow.validate import Length
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -82,4 +82,4 @@ class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfRenewal = Date(required=False, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
-    eventTime = DateTime(required=True, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)

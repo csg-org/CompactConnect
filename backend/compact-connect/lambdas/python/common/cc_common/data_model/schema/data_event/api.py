@@ -5,7 +5,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
 )
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAuditStatus
-from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, Date, AwareDateTime, Email, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 
@@ -27,7 +27,7 @@ class PrivilegeEventLineItemSchema(ForgivingSchema):
 class DataEventDetailBaseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    eventTime = DateTime(required=True, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)
 
 
 class PrivilegePurchaseEventDetailSchema(DataEventDetailBaseSchema):
@@ -73,8 +73,8 @@ class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     rollbackReason = String(required=True, allow_none=False)
-    startTime = DateTime(required=True, allow_none=False)
-    endTime = DateTime(required=True, allow_none=False)
+    startTime = AwareDateTime(required=True, allow_none=False)
+    endTime = AwareDateTime(required=True, allow_none=False)
     rollbackExecutionName = String(required=True, allow_none=False)
 
 
@@ -82,8 +82,8 @@ class PrivilegeRevertDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     rollbackReason = String(required=True, allow_none=False)
-    startTime = DateTime(required=True, allow_none=False)
-    endTime = DateTime(required=True, allow_none=False)
+    startTime = AwareDateTime(required=True, allow_none=False)
+    endTime = AwareDateTime(required=True, allow_none=False)
     rollbackExecutionName = String(required=True, allow_none=False)
 
 
@@ -96,7 +96,7 @@ class MilitaryAuditEventDetailSchema(ForgivingSchema):
         required=True, allow_none=False, validate=OneOf([entry.value for entry in MilitaryAuditStatus])
     )
     auditNote = String(required=False, allow_none=False)
-    eventTime = DateTime(required=True, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)
 
 
 class HomeJurisdictionChangeEventDetailSchema(ForgivingSchema):
@@ -106,4 +106,4 @@ class HomeJurisdictionChangeEventDetailSchema(ForgivingSchema):
     providerId = UUID(required=True, allow_none=False)
     previousHomeJurisdiction = String(required=True, allow_none=True)
     newHomeJurisdiction = String(required=True, allow_none=False)
-    eventTime = DateTime(required=True, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)

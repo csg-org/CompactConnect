@@ -4,13 +4,13 @@ from cc_common.data_model.schema.fields import (
     Compact,
     Jurisdiction,
 )
-from marshmallow.fields import UUID, Date, DateTime, String
+from marshmallow.fields import UUID, Date, AwareDateTime, String
 
 
 class DataEventDetailBaseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    eventTime = DateTime(required=True, allow_none=False)
+    eventTime = AwareDateTime(required=True, allow_none=False)
 
 
 class EncumbranceEventDetailSchema(DataEventDetailBaseSchema):
@@ -39,6 +39,6 @@ class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     rollbackReason = String(required=True, allow_none=False)
-    startTime = DateTime(required=True, allow_none=False)
-    endTime = DateTime(required=True, allow_none=False)
+    startTime = AwareDateTime(required=True, allow_none=False)
+    endTime = AwareDateTime(required=True, allow_none=False)
     rollbackExecutionName = String(required=True, allow_none=False)

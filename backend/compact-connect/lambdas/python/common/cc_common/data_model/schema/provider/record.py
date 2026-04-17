@@ -3,7 +3,7 @@ from datetime import date
 from urllib.parse import quote
 
 from marshmallow import post_dump, post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, Date, AwareDateTime, Email, List, Nested, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.config import config
@@ -72,11 +72,11 @@ class ProviderRecordSchema(BaseRecordSchema):
     # Optional Email verification fields (only present if the provider has requested an email change)
     pendingEmailAddress = Email(required=False, allow_none=False)
     emailVerificationCode = String(required=False, allow_none=False, validate=Length(4, 4))
-    emailVerificationExpiry = DateTime(required=False, allow_none=False)
+    emailVerificationExpiry = AwareDateTime(required=False, allow_none=False)
 
     # Optional fields for account recovery
     recoveryToken = String(required=False, allow_none=False)
-    recoveryExpiry = DateTime(required=False, allow_none=False)
+    recoveryExpiry = AwareDateTime(required=False, allow_none=False)
 
     # Military audit status fields
     militaryStatus = MilitaryStatusField(required=False, allow_none=False)
@@ -86,7 +86,7 @@ class ProviderRecordSchema(BaseRecordSchema):
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
-    providerDateOfUpdate = DateTime(required=True, allow_none=False)
+    providerDateOfUpdate = AwareDateTime(required=True, allow_none=False)
 
     # This field is set whenever the provider registers with the compact connect system,
     # or updates their home jurisdiction.
@@ -215,7 +215,7 @@ class ProviderUpdatePreviousRecordSchema(ForgivingSchema):
     militaryStatusNote = String(required=False, allow_none=False)
 
     currentHomeJurisdiction = CurrentHomeJurisdictionField(required=False, allow_none=False)
-    dateOfUpdate = DateTime(required=True, allow_none=False)
+    dateOfUpdate = AwareDateTime(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('providerUpdate')
@@ -234,7 +234,7 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     compact = Compact(required=True, allow_none=False)
     previous = Nested(ProviderUpdatePreviousRecordSchema, required=True, allow_none=False)
     # this tracks when the update record was created
-    createDate = DateTime(required=True, allow_none=False)
+    createDate = AwareDateTime(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(ProviderUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # List of field names that were present in the previous record but removed in the update

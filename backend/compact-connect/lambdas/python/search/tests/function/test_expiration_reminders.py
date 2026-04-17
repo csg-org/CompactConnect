@@ -210,7 +210,7 @@ class TestProcessExpirationReminders(TstLambdas):
         return {
             'providerId': provider_id,
             'type': 'provider',
-            'dateOfUpdate': '2026-01-01T00:00:00',
+            'dateOfUpdate': '2026-01-01T00:00:00+00:00',
             'compact': DEFAULT_COMPACT,
             'licenseJurisdiction': 'oh',
             'currentHomeJurisdiction': 'oh',
@@ -234,7 +234,7 @@ class TestProcessExpirationReminders(TstLambdas):
                     'dateOfIssuance': '2025-01-01',
                     'dateOfRenewal': '2025-01-01',
                     'dateOfExpiration': '2026-02-16',
-                    'dateOfUpdate': '2025-01-01T00:00:00',
+                    'dateOfUpdate': '2025-01-01T00:00:00+00:00',
                     'administratorSetStatus': 'active',
                     'privilegeId': 'priv-1',
                     'status': 'active',
@@ -260,7 +260,7 @@ class TestProcessExpirationReminders(TstLambdas):
                                 # Missing required 'givenName' -> ValidationError
                                 'providerId': 'invalid-provider-456',
                                 'type': 'provider',
-                                'dateOfUpdate': '2026-01-01T00:00:00',
+                                'dateOfUpdate': '2026-01-01T00:00:00+00:00',
                                 'compact': DEFAULT_COMPACT,
                                 'licenseJurisdiction': 'oh',
                                 'licenseStatus': 'active',
