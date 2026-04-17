@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import ValidationError, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, AwareDateTime, String
+from marshmallow.fields import UUID, AwareDateTime, Date, String
 from marshmallow.validate import Length
 
 from cc_common.data_model.schema.base_record import ForgivingSchema

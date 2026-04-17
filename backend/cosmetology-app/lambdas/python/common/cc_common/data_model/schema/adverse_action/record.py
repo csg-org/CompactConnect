@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
 from marshmallow import ValidationError, pre_dump, validates_schema
-from marshmallow.fields import UUID, Date, AwareDateTime, List, String
+from marshmallow.fields import UUID, AwareDateTime, Date, List, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config

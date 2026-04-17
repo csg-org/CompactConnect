@@ -2,7 +2,7 @@
 from datetime import date
 
 from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, AwareDateTime, List, Nested, String
+from marshmallow.fields import UUID, AwareDateTime, Date, List, Nested, String
 from marshmallow.validate import Length
 
 from cc_common.config import config

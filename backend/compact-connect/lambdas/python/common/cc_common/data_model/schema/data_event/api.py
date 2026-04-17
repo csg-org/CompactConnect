@@ -5,7 +5,7 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
 )
 from cc_common.data_model.schema.military_affiliation.common import MilitaryAuditStatus
-from marshmallow.fields import UUID, Date, AwareDateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, AwareDateTime, Date, Email, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 

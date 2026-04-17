@@ -3,7 +3,7 @@ from datetime import date
 from urllib.parse import quote
 
 from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, AwareDateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, AwareDateTime, Date, Email, List, Nested, String
 from marshmallow.validate import Length
 
 from cc_common.config import config

@@ -4,7 +4,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     Jurisdiction,
 )
-from marshmallow.fields import UUID, Date, AwareDateTime, String
+from marshmallow.fields import UUID, AwareDateTime, Date, String
 
 
 class DataEventDetailBaseSchema(ForgivingSchema):
