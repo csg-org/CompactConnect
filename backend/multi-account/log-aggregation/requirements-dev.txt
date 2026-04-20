@@ -6,11 +6,11 @@
 #
 iniconfig==2.3.0
     # via pytest
-packaging==26.0
+packaging==26.1
     # via pytest
 pluggy==1.6.0
     # via pytest
-pygments==2.19.2
+pygments==2.20.0
     # via pytest
-pytest==9.0.2
+pytest==9.0.3
     # via -r log-aggregation/requirements-dev.in
