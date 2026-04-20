@@ -12,5 +12,5 @@ pluggy==1.6.0
     # via pytest
 pygments==2.19.2
     # via pytest
-pytest==9.0.2
-    # via -r log-aggregation/requirements-dev.in
+pytest==9.0.3
+    # via -r requirements-dev.in
