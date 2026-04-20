@@ -12,7 +12,7 @@ idna==3.10
     # via requests
 requests==2.33.1
     # via statsig-python-core
-statsig-python-core==0.17.2
+statsig-python-core==0.19.0
     # via -r requirements.in
 typing-extensions==4.15.0
     # via statsig-python-core
