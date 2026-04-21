@@ -240,17 +240,39 @@ class SSNTable(Table):
         self.key.grant_encrypt_decrypt(self.license_upload_role)
         self._role_suppressions(self.license_upload_role)
 
+        # TODO: Remove this role in a follow-up deployment.
+        # This role is retained temporarily to avoid a CloudFormation cross-stack export
+        # deletion conflict with the API Lambda stack during the first deployment that removes
+        # the GET provider SSN endpoint. It has been stripped of all effective permissions
+        # (no table/KMS grants, not in the KMS deny-exception allowlist) and will be removed
+        # entirely in a follow-up deployment.
         self.api_query_role = Role(
             self,
             'ProviderQueryRole',
             assumed_by=ServicePrincipal('lambda.amazonaws.com'),
-            description='Dedicated role for API provider queries, with access to full SSNs',
+            description='Deprecated inert role retained only to preserve the cross-stack export '
+            'during SSN endpoint removal. Has no effective permissions.',
             managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
         )
-        self.grant_read_data(self.api_query_role)
-        self._role_suppressions(self.api_query_role)
-
+        # Keep exporting these values during phase 1 so dependent stacks can continue to resolve
+        # cross-stack references while endpoint resources are removed in stages.
         stack = Stack.of(self)
+        stack.export_value(self.api_query_role.role_arn)
+        stack.export_value(self.api_query_role.role_name)
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(self.api_query_role),
+            f'{self.api_query_role.node.path}/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'appliesTo': [
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                    ],
+                    'reason': 'This role is inert (no grants attached) and retained only to preserve a '
+                    'cross-stack export during staged removal of the SSN endpoint.',
+                },
+            ],
+        )
 
         # Configure permissions for the Lambda role
         # Add scan permissions for restored tables (needed by copy_records Lambda)
@@ -420,7 +442,6 @@ class SSNTable(Table):
         allowed_principal_arns = [
             self.ingest_role.role_arn,
             self.license_upload_role.role_arn,
-            self.api_query_role.role_arn,
             self.disaster_recovery_lambda_role.role_arn,
             self.disaster_recovery_step_function_role.role_arn,
         ]
@@ -442,7 +463,6 @@ class SSNTable(Table):
                 },
             )
         )
-        self.key.grant_decrypt(self.api_query_role)
         self.key.grant_encrypt_decrypt(self.ingest_role)
 
     def _setup_license_preprocessor_queue(self, data_event_bus: EventBus, alarm_topic: ITopic):

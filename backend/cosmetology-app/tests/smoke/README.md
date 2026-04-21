@@ -79,7 +79,6 @@ You must have a test license record uploaded in your sandbox environment to gene
    - `CC_TEST_ROLLBACK_STEP_FUNCTION_ARN`: Step function ARN for rollback tests
    - `CC_TEST_RATE_LIMITING_DYNAMO_TABLE_NAME`: DynamoDB table name for rate limiting
    - `CC_TEST_SSN_DYNAMO_TABLE_NAME`: DynamoDB table name for SSN data
-   - `CC_TEST_GET_PROVIDER_SSN_LAMBDA_NAME`: Lambda function name for SSN retrieval
 
 3. **Important:** Never commit `smoke_tests_env.json` to version control. It contains sensitive credentials and should be in `.gitignore`.
 
