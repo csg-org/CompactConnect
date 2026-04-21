@@ -315,7 +315,6 @@ class ApiModel:
                         properties={
                             'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                            'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -329,8 +328,7 @@ class ApiModel:
                                     properties={
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                        'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN)
                                     },
                                 ),
                             },

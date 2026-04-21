@@ -12,9 +12,6 @@
               },
               "admin": {
                 "type": "boolean"
-              },
-              "readSSN": {
-                "type": "boolean"
               }
             },
             "type": "object"
@@ -32,9 +29,6 @@
                       "type": "boolean"
                     },
                     "readPrivate": {
-                      "type": "boolean"
-                    },
-                    "readSSN": {
                       "type": "boolean"
                     }
                   },
