@@ -197,8 +197,6 @@ class TstAppABC(ABC):
 
         # Build the expected PrincipalArn array - always includes 4 roles, plus optional backup role
         # Note: SSN backup role reference may be a nested stack output, so we use Match.any_value() for flexibility
-        # The deprecated api_query_role is intentionally NOT in this allowlist while it is retained as an inert
-        # role during staged removal of the SSN endpoint.
         principal_arn_array = [
             {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
             {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
