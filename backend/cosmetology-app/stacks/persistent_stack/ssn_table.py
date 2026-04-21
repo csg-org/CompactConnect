@@ -240,7 +240,7 @@ class SSNTable(Table):
         self.key.grant_encrypt_decrypt(self.license_upload_role)
         self._role_suppressions(self.license_upload_role)
 
-        # TODO: Remove this role in a follow-up deployment.
+        # TODO: Remove this role in a follow-up deployment.  # noqa: FIX002
         # This role is retained temporarily to avoid a CloudFormation cross-stack export
         # deletion conflict with the API Lambda stack during the first deployment that removes
         # the GET provider SSN endpoint. It has been stripped of all effective permissions
