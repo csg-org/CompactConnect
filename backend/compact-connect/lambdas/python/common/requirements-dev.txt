@@ -19,15 +19,15 @@ aws-sam-translator==1.103.0
     #   moto
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.42.89
+boto3==1.42.91
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.42.89
+boto3-stubs[full]==1.42.91
     # via -r lambdas/python/common/requirements-dev.in
-boto3-stubs-full==1.42.88
+boto3-stubs-full==1.42.91
     # via boto3-stubs
-botocore==1.42.89
+botocore==1.42.91
     # via
     #   aws-xray-sdk
     #   boto3
@@ -50,7 +50,7 @@ cryptography==46.0.7
     #   moto
 docker==7.1.0
     # via moto
-faker==40.13.0
+faker==40.15.0
     # via -r lambdas/python/common/requirements-dev.in
 graphql-core==3.2.8
     # via moto
@@ -115,7 +115,7 @@ pydantic==2.12.4
     #   pydantic-settings
 pydantic-core==2.41.5
     # via pydantic
-pydantic-settings==2.13.1
+pydantic-settings==2.14.0
     # via
     #   openapi-schema-validator
     #   openapi-spec-validator

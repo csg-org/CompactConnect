@@ -2,7 +2,7 @@
 from datetime import date
 
 from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
+from marshmallow.fields import UUID, AwareDateTime, Date, List, Nested, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -83,8 +83,8 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    dateOfIssuance = DateTime(required=True, allow_none=False)
-    dateOfRenewal = DateTime(required=True, allow_none=False)
+    dateOfIssuance = AwareDateTime(required=True, allow_none=False)
+    dateOfRenewal = AwareDateTime(required=True, allow_none=False)
     # this is determined by the license expiration date, which is a date field, so this is also a date field
     dateOfExpiration = Date(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased the privilege
@@ -135,7 +135,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     def _enforce_datetimes(self, in_data, **kwargs):
         # for backwards compatibility with the old data model
         # we convert any records that are using a Date value
-        # for dateOfRenewal and dateOfIssuance to DateTime values
+        # for dateOfRenewal and dateOfIssuance to datetime values
         in_data['dateOfRenewal'] = ensure_value_is_datetime(in_data.get('dateOfRenewal', in_data['dateOfIssuance']))
         in_data['dateOfIssuance'] = ensure_value_is_datetime(in_data['dateOfIssuance'])
 
@@ -185,9 +185,9 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     compactTransactionId = String(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
-    dateOfIssuance = DateTime(required=True, allow_none=False)
-    dateOfRenewal = DateTime(required=True, allow_none=False)
-    dateOfUpdate = DateTime(required=True, allow_none=False)
+    dateOfIssuance = AwareDateTime(required=True, allow_none=False)
+    dateOfRenewal = AwareDateTime(required=True, allow_none=False)
+    dateOfUpdate = AwareDateTime(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
     homeJurisdictionChangeStatus = HomeJurisdictionChangeStatusField(required=False, allow_none=False)
@@ -217,8 +217,8 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin, ValidatesLi
     licenseType = String(required=True, allow_none=False)
     compactTransactionIdGSIPK = String(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousRecordSchema, required=True, allow_none=False)
-    createDate = DateTime(required=True, allow_none=False)
-    effectiveDate = DateTime(required=True, allow_none=False)
+    createDate = AwareDateTime(required=True, allow_none=False)
+    effectiveDate = AwareDateTime(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
     # optional field that is only included if the update was a deactivation

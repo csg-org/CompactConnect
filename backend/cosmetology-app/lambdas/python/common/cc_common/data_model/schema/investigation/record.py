@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815  invalid-name
 from marshmallow import Schema, ValidationError, pre_dump
-from marshmallow.fields import UUID, DateTime, String
+from marshmallow.fields import UUID, AwareDateTime, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
@@ -32,10 +32,10 @@ class InvestigationRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     # Populated on creation
     investigationId = UUID(required=True, allow_none=False)
     submittingUser = UUID(required=True, allow_none=False)
-    creationDate = DateTime(required=True, allow_none=False)
+    creationDate = AwareDateTime(required=True, allow_none=False)
 
     # Populated when the investigation is closed
-    closeDate = DateTime(required=False, allow_none=False)
+    closeDate = AwareDateTime(required=False, allow_none=False)
     closingUser = UUID(required=False, allow_none=False)
     resultingEncumbranceId = UUID(required=False, allow_none=False)
 

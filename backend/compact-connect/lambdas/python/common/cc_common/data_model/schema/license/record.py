@@ -3,7 +3,7 @@ from datetime import date
 from urllib.parse import quote
 
 from marshmallow import ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, AwareDateTime, Date, Email, List, Nested, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -55,7 +55,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
     # Optional field for tracking the first license upload that caused this record to be created
     # Note that records which were uploaded before this field was supported will not have this included
     # and will not be included in the license upload date GSI
-    firstUploadDate = DateTime(required=False, allow_none=False)
+    firstUploadDate = AwareDateTime(required=False, allow_none=False)
 
     # Provided fields
     npi = NationalProviderIdentifier(required=False, allow_none=False)
@@ -179,7 +179,7 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    dateOfUpdate = DateTime(required=True, allow_none=False)
+    dateOfUpdate = AwareDateTime(required=True, allow_none=False)
     # These date values are determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
     dateOfIssuance = Date(required=True, allow_none=False)
@@ -218,11 +218,11 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     licenseType = String(required=True, allow_none=False)
     previous = Nested(LicenseUpdateRecordPreviousSchema, required=True, allow_none=False)
     # this tracks when the update record was created
-    createDate = DateTime(required=True, allow_none=False)
+    createDate = AwareDateTime(required=True, allow_none=False)
     # this tracks when the update event should be considered in effect for the history of the license record
     # note for most update types this is the same as the createDate, except encumbrances, which are effective
     # based on the value provided by the state administrator
-    effectiveDate = DateTime(required=True, allow_none=False)
+    effectiveDate = AwareDateTime(required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(LicenseUpdateRecordPreviousSchema(partial=True), required=True, allow_none=False)
     # optional field that is only included if the update was an investigation

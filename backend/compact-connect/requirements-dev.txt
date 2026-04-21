@@ -26,9 +26,9 @@ cyclonedx-python-lib==11.7.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-faker==40.13.0
+faker==40.15.0
     # via -r requirements-dev.in
-filelock==3.25.2
+filelock==3.29.0
     # via cachecontrol
 idna==3.11
     # via requests
@@ -44,7 +44,7 @@ msgpack==1.1.2
     # via cachecontrol
 packageurl-python==0.17.6
     # via cyclonedx-python-lib
-packaging==26.0
+packaging==26.1
     # via
     #   build
     #   pip-audit
@@ -89,7 +89,7 @@ requests==2.33.1
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.15.10
+ruff==0.15.11
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib

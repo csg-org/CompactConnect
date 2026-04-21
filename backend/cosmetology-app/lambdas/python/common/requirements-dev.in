@@ -4,4 +4,3 @@ moto[all]>=5.0.12, <6
 boto3-stubs[full]
 Faker>=40, <41
 cryptography>=46, <47
-attrs>=25, <26

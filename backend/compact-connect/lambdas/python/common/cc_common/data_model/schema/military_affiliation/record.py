@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import pre_dump
-from marshmallow.fields import UUID, DateTime, List, String
+from marshmallow.fields import UUID, AwareDateTime, List, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
@@ -26,7 +26,7 @@ class MilitaryAffiliationRecordSchema(BaseRecordSchema):
     affiliationType = String(
         required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationType])
     )
-    dateOfUpload = DateTime(required=True, allow_none=False)
+    dateOfUpload = AwareDateTime(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
 
     # Generated fields
