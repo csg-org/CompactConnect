@@ -103,6 +103,14 @@ class LicenseCard extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get currentUser(): StaffUser {
         return this.userStore.model;
     }
@@ -243,10 +251,16 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get encumberDisciplineOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
+        let options = this.$tm('licensing.disciplineTypes').map((disciplineType) => ({
             value: disciplineType.key,
             name: disciplineType.name,
         }));
+
+        if (this.isAppModeCosmetology) {
+            const includeList = ['suspension', 'revocation', 'surrender of license'];
+
+            options = options.filter((option) => includeList.includes(option.value));
+        }
 
         options.unshift({
             value: '',
@@ -257,10 +271,32 @@ class LicenseCard extends mixins(MixinForm) {
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        return this.$tm('licensing.npdbTypes').map((npdbType) => ({
+        const { isAppModeJcc, isAppModeCosmetology } = this;
+        let options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
         }));
+
+        if (isAppModeJcc) {
+            const excludeList = ['Consumer Harm'];
+
+            options = options.filter((option) => !excludeList.includes(option.value));
+        } else if (isAppModeCosmetology) {
+            const includeList = ['Fraud, Deception, or Misrepresentation', 'Consumer Harm', 'Other'];
+
+            options = options.filter((option) => includeList.includes(option.value));
+
+            options.unshift({
+                value: '',
+                name: computed(() => this.$t('common.selectOption')),
+            });
+        }
+
+        return options;
+    }
+
+    get shouldAllowNpdbMultiSelect(): boolean {
+        return this.isAppModeJcc;
     }
 
     get endInvestigationModalTitle(): string {
@@ -314,10 +350,16 @@ class LicenseCard extends mixins(MixinForm) {
             encumberModalNpdbCategories: new FormInput({
                 id: 'npdb-categories',
                 name: 'npdb-categories',
-                label: computed(() => this.$t('licensing.npdbCategoryLabel')),
-                validation: Joi.array().min(1).messages(this.joiMessages.array),
+                label: (this.shouldAllowNpdbMultiSelect)
+                    ? computed(() => this.$t('licensing.npdbCategoryLabel'))
+                    : computed(() => this.$t('licensing.encumberBasisLabel')),
+                validation: (this.shouldAllowNpdbMultiSelect)
+                    ? Joi.array().min(1).messages(this.joiMessages.array)
+                    : Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.npdbCategoryOptions,
-                value: [],
+                value: (this.shouldAllowNpdbMultiSelect)
+                    ? []
+                    : '',
             }),
             encumberModalStartDate: new FormInput({
                 id: 'encumber-start',
@@ -482,7 +524,8 @@ class LicenseCard extends mixins(MixinForm) {
                 currentCompactType: compactType,
                 licenseeId,
                 stateAbbrev,
-                licenseTypeAbbrev
+                licenseTypeAbbrev,
+                formData
             } = this;
 
             if (this.selectedInvestigation) {
@@ -496,9 +539,11 @@ class LicenseCard extends mixins(MixinForm) {
                     licenseType: licenseTypeAbbrev.toLowerCase(),
                     investigationId,
                     encumbrance: {
-                        encumbranceType: this.formData.encumberModalDisciplineAction.value,
-                        npdbCategories: this.formData.encumberModalNpdbCategories.value,
-                        startDate: this.formData.encumberModalStartDate.value,
+                        encumbranceType: formData.encumberModalDisciplineAction.value,
+                        npdbCategories: (Array.isArray(formData.encumberModalNpdbCategories.value))
+                            ? formData.encumberModalNpdbCategories.value
+                            : [formData.encumberModalNpdbCategories.value],
+                        startDate: formData.encumberModalStartDate.value,
                     },
                 }).catch((err) => {
                     this.modalErrorMessage = err?.message || this.$t('common.error');
@@ -511,9 +556,11 @@ class LicenseCard extends mixins(MixinForm) {
                     licenseeId,
                     licenseState: stateAbbrev,
                     licenseType: licenseTypeAbbrev.toLowerCase(),
-                    encumbranceType: this.formData.encumberModalDisciplineAction.value,
-                    npdbCategories: this.formData.encumberModalNpdbCategories.value,
-                    startDate: this.formData.encumberModalStartDate.value,
+                    encumbranceType: formData.encumberModalDisciplineAction.value,
+                    npdbCategories: (Array.isArray(formData.encumberModalNpdbCategories.value))
+                        ? formData.encumberModalNpdbCategories.value
+                        : [formData.encumberModalNpdbCategories.value],
+                    startDate: formData.encumberModalStartDate.value,
                 }).catch((err) => {
                     this.modalErrorMessage = err?.message || this.$t('common.error');
                     this.isFormError = true;
@@ -952,7 +999,9 @@ class LicenseCard extends mixins(MixinForm) {
             this.validateAll({ asTouched: true });
         } else if (this.isEncumberLicenseModalDisplayed) {
             this.formData.encumberModalDisciplineAction.value = this.encumberDisciplineOptions[1]?.value;
-            this.formData.encumberModalNpdbCategories.value = [this.npdbCategoryOptions[1]?.value];
+            this.formData.encumberModalNpdbCategories.value = (this.shouldAllowNpdbMultiSelect)
+                ? [this.npdbCategoryOptions[1]?.value]
+                : this.npdbCategoryOptions[1]?.value;
             this.formData.encumberModalStartDate.value = moment().format('YYYY-MM-DD');
             await nextTick();
             this.validateAll({ asTouched: true });

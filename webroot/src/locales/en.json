@@ -706,6 +706,7 @@
         "encumber": "Encumber",
         "encumbered": "Encumbered",
         "encumberAction": "Disciplinary action",
+        "encumberBasisLabel": "Basis for action",
         "npdbCategoryLabel": "Basis for action / NPDB category",
         "encumberStartDate": "Start of encumbrance",
         "confirmLicenseEncumberTitle": "Are you sure you want to encumber this license?",
@@ -931,6 +932,10 @@
             {
                 "name": "Improper Supervision or Allowing Unlicensed Practice",
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
+            },
+            {
+                "name": "Consumer harm",
+                "key": "Consumer Harm"
             },
             {
                 "name": "Other",
