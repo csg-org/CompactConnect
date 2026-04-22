@@ -47,11 +47,20 @@ function sendingRequest(msg, initiator, helper) {
 
 function responseReceived(msg, initiator, helper) {
     const statusCode = msg.getResponseHeader().getStatusCode();
+    const uri = msg.getRequestHeader().getURI();
     print(
         statusCode,
         msg.getRequestHeader().getMethod(),
-        msg.getRequestHeader().getURI().toString()
+        uri.toString()
     );
+    // TEMP: diagnose why state /providers/query 400s despite the body example
+    const path = String(uri.getPath());
+    if (statusCode === 400 && String(uri.getHost()).indexOf('state-api.') === 0 && path.indexOf('/providers/query') !== -1) {
+        const body = String(msg.getRequestBody().toString()).substring(0, 400);
+        const resp = String(msg.getResponseBody().toString()).substring(0, 400);
+        print('[state-query-400] REQ:', body);
+        print('[state-query-400] RESP:', resp);
+    }
     // To debug auth issues, uncomment this for a hint
     // if (statusCode === 401 || statusCode == 403 ) {
     //     print('Request header:', msg.getRequestHeader().getHeader('Authorization').substring(0, 16));
