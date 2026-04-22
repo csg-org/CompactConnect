@@ -1,6 +1,9 @@
 name: ZAP-Scan-Test
 
 on:
+  # TEMP: trigger on PR pushes so we can validate the scan end-to-end. Revert before merge.
+  pull_request:
+
   # Weekly scheduled scan of the deployed test environment
   schedule:
     - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
