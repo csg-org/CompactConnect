@@ -53,13 +53,13 @@ function responseReceived(msg, initiator, helper) {
         msg.getRequestHeader().getMethod(),
         uri.toString()
     );
-    // TEMP: diagnose why state /providers/query 400s despite the body example
+    // TEMP: diagnose state /providers/query baseline — only the clean URL
     const path = String(uri.getPath());
-    if (statusCode === 400 && String(uri.getHost()).indexOf('state-api.') === 0 && path.indexOf('/providers/query') !== -1) {
-        const body = String(msg.getRequestBody().toString()).substring(0, 400);
-        const resp = String(msg.getResponseBody().toString()).substring(0, 400);
-        print('[state-query-400] REQ:', body);
-        print('[state-query-400] RESP:', resp);
+    if (String(uri.getHost()).indexOf('state-api.') === 0 && path === '/v1/compacts/aslp/jurisdictions/oh/providers/query') {
+        const ctype = msg.getRequestHeader().getHeader('Content-Type') || '(none)';
+        const body = String(msg.getRequestBody().toString()).replace(/\n/g, ' ').substring(0, 300);
+        const resp = String(msg.getResponseBody().toString()).replace(/\n/g, ' ').substring(0, 300);
+        print('[state-query ' + statusCode + '] CT:' + ctype + ' REQ:' + body + ' RESP:' + resp);
     }
     // To debug auth issues, uncomment this for a hint
     // if (statusCode === 401 || statusCode == 403 ) {
