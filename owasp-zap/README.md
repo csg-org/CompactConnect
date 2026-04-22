@@ -43,20 +43,23 @@ In order for the scan to run successfully, the target environment needs some set
    TEST_ZAP_PASSWORD_PROVIDER
    ```
 
-4. **State Auth M2M pool** — provision an app client dedicated to ZAP scanning. Follow the process in [`../backend/compact-connect/app_clients/README.md`](../backend/compact-connect/app_clients/README.md), granting the minimum scopes needed to exercise the four state API endpoints:
+4. **State Auth M2M pool** — provision an app client dedicated to ZAP scanning. This client needs two things that differ from a standard state onboarding client:
 
-   - `{compact}/readGeneral`
-   - `{state}/{compact}.write` for each covered jurisdiction
+   - A 60-minute access token validity (vs. the 15-minute default) so one token covers a scan run under the 45-minute active scan cap.
+   - Scopes to exercise all four state API endpoints: `{compact}/readGeneral` plus `{state}/{compact}.write` for each covered jurisdiction.
 
-   After creation, bump the access token validity from the default 15 minutes to 60 minutes so a single token covers a scan run under the 45-minute active scan cap:
+   Rather than creating with defaults and patching after (`update-user-pool-client` is a full-replacement API — any attribute omitted is reset to its default, which is easy to get wrong), temporarily bump the validity in the creation script:
 
-   ```
-   aws cognito-idp update-user-pool-client \
-     --user-pool-id <state-auth-pool-id> \
-     --client-id <zap-client-id> \
-     --access-token-validity 60 \
-     --token-validity-units AccessToken=minutes
-   ```
+   1. In `backend/compact-connect/app_clients/bin/create_app_client.py`, change `BASE_CLIENT_CONFIG['AccessTokenValidity']` from `15` to `60`. **Do not commit this change** — it's a one-shot override for this ZAP client.
+   2. Run the script against the test StateAuthUsers pool:
+
+      ```
+      python3 backend/compact-connect/app_clients/bin/create_app_client.py -u <state-auth-pool-id>
+      ```
+
+      At the prompts: client name `owasp-zap-v1` (increment the version on rotation), compact `aslp`, state `ky`, additional scopes `aslp/readGeneral,oh/aslp.write`. Capture the `clientId` / `clientSecret` from the output.
+   3. Revert the `AccessTokenValidity` change in `create_app_client.py`.
+   4. Verify the client with `aws cognito-idp describe-user-pool-client` — you should see `AccessTokenValidity: 60` and `AllowedOAuthScopes` containing `aslp/readGeneral`, `ky/aslp.write`, `oh/aslp.write`.
 
    Then define these GitHub secrets:
 
