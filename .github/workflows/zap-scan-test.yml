@@ -65,7 +65,9 @@ jobs:
           PROVIDER_COGNITO_USERNAME: ${{ secrets.TEST_ZAP_USERNAME_PROVIDER }}
           PROVIDER_COGNITO_PASSWORD: ${{ secrets.TEST_ZAP_PASSWORD_PROVIDER }}
         run: |
-          token=$(node main.js --mode=provider | jq -r '.accessToken')
+          # Provider API handlers read claims (email/username) from the ID token,
+          # not the access token (see backend/compact-connect/tests/smoke/smoke_common.py:174).
+          token=$(node main.js --mode=provider | jq -r '.idToken')
           if [[ -z "$token" || "$token" == "null" ]]; then
             echo "::error::Failed to obtain provider authentication token"
             exit 1

@@ -29,7 +29,13 @@ fetch_user_token() {
         echo "Skipping $mode token: ${prefix}_COGNITO_* vars not set in $env_file" >&2
         return 1
     fi
-    (cd "$authenticator_dir" && node main.js --mode="$mode") | jq -r '.accessToken'
+    # Provider API handlers require the ID token (claims like email/username);
+    # staff API accepts the access token.
+    local token_field='.accessToken'
+    if [[ "$mode" == 'provider' ]]; then
+        token_field='.idToken'
+    fi
+    (cd "$authenticator_dir" && node main.js --mode="$mode") | jq -r "$token_field"
 }
 
 fetch_m2m_token() {
