@@ -74,9 +74,9 @@ jobs:
       - name: Authenticate State API M2M Client
         env:
           COGNITO_STATE_AUTH_DOMAIN: ${{ secrets.TEST_COGNITO_STATE_AUTH_DOMAIN }}
-          STATE_AUTH_CLIENT_ID: ${{ secrets.TEST_STATE_AUTH_CLIENT_ID }}
-          STATE_AUTH_CLIENT_SECRET: ${{ secrets.TEST_STATE_AUTH_CLIENT_SECRET }}
-          STATE_AUTH_SCOPES: ${{ secrets.TEST_STATE_AUTH_SCOPES }}
+          STATE_AUTH_CLIENT_ID: ${{ secrets.TEST_ZAP_STATE_AUTH_CLIENT_ID }}
+          STATE_AUTH_CLIENT_SECRET: ${{ secrets.TEST_ZAP_STATE_AUTH_CLIENT_SECRET }}
+          STATE_AUTH_SCOPES: ${{ secrets.TEST_ZAP_STATE_AUTH_SCOPES }}
         run: |
           token=$(./get-m2m-token.sh)
           if [[ -z "$token" ]]; then

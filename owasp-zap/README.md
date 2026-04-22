@@ -62,9 +62,9 @@ In order for the scan to run successfully, the target environment needs some set
 
    ```
    TEST_COGNITO_STATE_AUTH_DOMAIN         (e.g. compact-connect-state-auth-test.auth.us-east-1.amazoncognito.com)
-   TEST_STATE_AUTH_CLIENT_ID
-   TEST_STATE_AUTH_CLIENT_SECRET
-   TEST_STATE_AUTH_SCOPES                 (space-separated, e.g. "aslp/readGeneral aslp/write ky/aslp.write oh/aslp.write")
+   TEST_ZAP_STATE_AUTH_CLIENT_ID
+   TEST_ZAP_STATE_AUTH_CLIENT_SECRET
+   TEST_ZAP_STATE_AUTH_SCOPES             (space-separated, e.g. "aslp/readGeneral ky/aslp.write oh/aslp.write")
    ```
 
 # Manual run
