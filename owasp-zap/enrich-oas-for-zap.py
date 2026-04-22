@@ -84,7 +84,11 @@ def enrich_spec(spec):
                     .get("content", {})
                     .get("application/json")
                 )
-                if json_content is not None and "example" not in json_content:
+                if (
+                    isinstance(json_content, dict)
+                    and "example" not in json_content
+                    and "examples" not in json_content
+                ):
                     json_content["example"] = body_example
 
     # Fix arrays missing 'items' — CDK-generated specs sometimes omit this,
