@@ -42,11 +42,13 @@ BODY_EXAMPLES = {
         "query": {"jurisdiction": "oh"},
         "pagination": {"pageSize": 10},
     },
-    # State API provider search — different schema, requires a date-time window
+    # State API provider search — different schema, requires a date-time window.
+    # The handler caps the window at 7 days
+    # (lambdas/python/common/cc_common/data_model/schema/provider/api.py:331-332).
     ("post", "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/query"): {
         "query": {
-            "startDateTime": "2024-01-01T00:00:00Z",
-            "endDateTime": "2025-01-01T00:00:00Z",
+            "startDateTime": "2026-04-15T00:00:00Z",
+            "endDateTime": "2026-04-22T00:00:00Z",
         },
     },
 }
