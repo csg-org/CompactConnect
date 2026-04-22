@@ -28,6 +28,30 @@ PARAM_EXAMPLES = {
 }
 
 
+# Valid baseline request bodies for selected endpoints, keyed by (method, path).
+# Only read-only endpoints are listed here — mutation endpoints would flood the
+# test DB with junk records. ZAP uses each example as the baseline for active
+# scanning, then fuzzes variants around it.
+BODY_EXAMPLES = {
+    # Read-only provider search (staff + public share one schema)
+    ("post", "/v1/compacts/{compact}/providers/query"): {
+        "query": {"jurisdiction": "oh"},
+        "pagination": {"pageSize": 10},
+    },
+    ("post", "/v1/public/compacts/{compact}/providers/query"): {
+        "query": {"jurisdiction": "oh"},
+        "pagination": {"pageSize": 10},
+    },
+    # State API provider search — different schema, requires a date-time window
+    ("post", "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/query"): {
+        "query": {
+            "startDateTime": "2024-01-01T00:00:00Z",
+            "endDateTime": "2025-01-01T00:00:00Z",
+        },
+    },
+}
+
+
 # HTTP methods to strip from the spec before ZAP ingests it.
 # DELETE is excluded to prevent ZAP from deleting staff users during scans.
 EXCLUDED_METHODS = {"delete"}
@@ -50,6 +74,16 @@ def enrich_spec(spec):
                     name = param.get("name", "")
                     if name in PARAM_EXAMPLES:
                         param["example"] = PARAM_EXAMPLES[name]
+
+            body_example = BODY_EXAMPLES.get((method, path))
+            if body_example is not None:
+                json_content = (
+                    operation.get("requestBody", {})
+                    .get("content", {})
+                    .get("application/json")
+                )
+                if json_content is not None and "example" not in json_content:
+                    json_content["example"] = body_example
 
     # Fix arrays missing 'items' — CDK-generated specs sometimes omit this,
     # which is technically invalid OpenAPI and causes ZAP's parser to fail.
@@ -85,16 +119,26 @@ def main():
     with open(output_path, "w") as f:
         json.dump(spec, f, indent=2)
 
-    # Count how many parameters were enriched
-    count = 0
+    # Count how many parameters and bodies were enriched
+    param_count = 0
+    body_count = 0
     for path, methods in spec.get("paths", {}).items():
         for method, operation in methods.items():
             if not isinstance(operation, dict):
                 continue
             for param in operation.get("parameters", []):
                 if param.get("in") == "path" and "example" in param:
-                    count += 1
-    print(f"Enriched {count} path parameters with example values")
+                    param_count += 1
+            json_content = (
+                operation.get("requestBody", {})
+                .get("content", {})
+                .get("application/json", {})
+            )
+            if "example" in json_content:
+                body_count += 1
+    print(
+        f"Enriched {param_count} path parameters and {body_count} request bodies"
+    )
 
 
 if __name__ == "__main__":
