@@ -60,6 +60,8 @@ docker run \
   -e ZAP_AUTH_STAFF_TOKEN="$STAFF_TOKEN" \
   -e ZAP_AUTH_PROVIDER_TOKEN="$PROVIDER_TOKEN" \
   -e ZAP_AUTH_STATE_TOKEN="$STATE_TOKEN" \
+  -e ZAP_STATE_SIGNATURE_PRIVATE_KEY="${STATE_SIGNATURE_PRIVATE_KEY:-}" \
+  -e ZAP_STATE_SIGNATURE_KEY_ID="${STATE_SIGNATURE_KEY_ID:-}" \
   -t zaproxy/zap-stable \
   zap.sh -cmd \
   -autorun /zap/wrk/owasp-zap/data/test-automation.yml

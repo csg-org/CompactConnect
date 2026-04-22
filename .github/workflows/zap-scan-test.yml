@@ -106,12 +106,19 @@ jobs:
 
       - name: ZAP Scan
         uses: zaproxy/action-af@v0.2.0
+        env:
+          # State API requires ECDSA signatures on top of the M2M bearer token.
+          # See backend/compact-connect/docs/client_signature_auth.md.
+          ZAP_STATE_SIGNATURE_PRIVATE_KEY: ${{ secrets.TEST_ZAP_STATE_SIGNATURE_PRIVATE_KEY }}
+          ZAP_STATE_SIGNATURE_KEY_ID: ${{ secrets.TEST_ZAP_STATE_SIGNATURE_KEY_ID }}
         with:
           plan: 'owasp-zap/data/test-automation.yml'
           docker_env_vars: |
             ZAP_AUTH_STAFF_TOKEN
             ZAP_AUTH_PROVIDER_TOKEN
             ZAP_AUTH_STATE_TOKEN
+            ZAP_STATE_SIGNATURE_PRIVATE_KEY
+            ZAP_STATE_SIGNATURE_KEY_ID
 
       - name: Upload Report
         if: always()
