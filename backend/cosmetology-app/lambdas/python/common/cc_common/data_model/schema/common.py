@@ -231,7 +231,6 @@ class CCPermissionsAction(StrEnum):
     ADMIN = 'admin'
     READ_GENERAL = 'readGeneral'
     READ_PRIVATE = 'readPrivate'
-    READ_SSN = 'readSSN'
 
 
 class S3PresignedPostSchema(Schema):

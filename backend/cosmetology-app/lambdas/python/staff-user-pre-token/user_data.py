@@ -53,8 +53,7 @@ class UserData:
         disallowed_actions = compact_actions - {
             CCPermissionsAction.READ,
             CCPermissionsAction.ADMIN,
-            CCPermissionsAction.READ_PRIVATE,
-            CCPermissionsAction.READ_SSN,
+            CCPermissionsAction.READ_PRIVATE
         }
         if disallowed_actions:
             raise ValueError(f'User {compact_abbr} permissions include disallowed actions: {disallowed_actions}')
@@ -64,9 +63,6 @@ class UserData:
 
         if CCPermissionsAction.READ_PRIVATE in compact_actions:
             self.scopes.add(f'{compact_abbr}/{CCPermissionsAction.READ_PRIVATE}')
-
-        if CCPermissionsAction.READ_SSN in compact_actions:
-            self.scopes.add(f'{compact_abbr}/{CCPermissionsAction.READ_SSN}')
 
         if CCPermissionsAction.ADMIN in compact_actions:
             self.scopes.add(f'{compact_abbr}/{CCPermissionsAction.ADMIN}')
@@ -87,8 +83,7 @@ class UserData:
         disallowed_actions = jurisdiction_actions - {
             CCPermissionsAction.WRITE,
             CCPermissionsAction.ADMIN,
-            CCPermissionsAction.READ_PRIVATE,
-            CCPermissionsAction.READ_SSN,
+            CCPermissionsAction.READ_PRIVATE
         }
         if disallowed_actions:
             raise ValueError(

@@ -44,7 +44,6 @@ class V1Api:
         read_scopes = []
         write_scopes = []
         admin_scopes = []
-        read_ssn_scopes = []
         # set the compact level scopes
         for compact in _active_compacts:
             # We only set the readGeneral permission scope at the compact level, since users with any permissions
@@ -52,7 +51,6 @@ class V1Api:
             read_scopes.append(f'{compact}/readGeneral')
             write_scopes.append(f'{compact}/write')
             admin_scopes.append(f'{compact}/admin')
-            read_ssn_scopes.append(f'{compact}/readSSN')
 
             _active_compact_jurisdictions = persistent_stack.get_list_of_active_jurisdictions_for_compact_environment(
                 compact=compact
@@ -64,7 +62,6 @@ class V1Api:
             for jurisdiction in _active_compact_jurisdictions:
                 write_scopes.append(f'{jurisdiction}/{compact}.write')
                 admin_scopes.append(f'{jurisdiction}/{compact}.admin')
-                read_ssn_scopes.append(f'{jurisdiction}/{compact}.readSSN')
 
         read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
@@ -81,12 +78,6 @@ class V1Api:
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=admin_scopes,
-        )
-
-        read_ssn_auth_method_options = MethodOptions(
-            authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=read_ssn_scopes,
         )
 
         # /v1/flags
@@ -129,7 +120,6 @@ class V1Api:
             resource=providers_resource,
             method_options=read_auth_method_options,
             admin_method_options=admin_auth_method_options,
-            ssn_method_options=read_ssn_auth_method_options,
             api_model=self.api_model,
             api_lambda_stack=api_lambda_stack,
         )

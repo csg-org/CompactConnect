@@ -32,10 +32,6 @@ class ResourceScopeMixin:
             scope_name='readGeneral',
             scope_description='Read access for generally available data (not private) in the compact',
         )
-        self.compact_read_ssn_scope = ResourceServerScope(
-            scope_name='readSSN',
-            scope_description='Read access for SSNs in the compact',
-        )
 
         active_compacts = stack.get_list_of_compact_abbreviations()
         self.compact_resource_servers = {}
@@ -49,7 +45,6 @@ class ResourceScopeMixin:
                     self.compact_admin_scope,
                     self.compact_write_scope,
                     self.compact_read_scope,
-                    self.compact_read_ssn_scope,
                 ],
             )
             # we define the jurisdiction level scopes, which will be used by every
@@ -88,10 +83,6 @@ class ResourceScopeMixin:
             ),
             ResourceServerScope(
                 scope_name=f'{compact}.readPrivate',
-                scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
-            ),
-            ResourceServerScope(
-                scope_name=f'{compact}.readSSN',
                 scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
             ),
         ]
