@@ -4,9 +4,11 @@ env:
     urls:
     - https://api.test.compactconnect.org
     - https://search.test.compactconnect.org
+    - https://state-api.test.compactconnect.org
     includePaths:
     - https://api.test.compactconnect.org.*
     - https://search.test.compactconnect.org.*
+    - https://state-api.test.compactconnect.org.*
     authentication:
       verification:
         method: response
@@ -49,6 +51,13 @@ jobs:
     apiFile: /zap/wrk/backend/compact-connect/docs/search-internal/api-specification/latest-oas30-zap.json
     apiUrl: ""
     targetUrl: "https://search.test.compactconnect.org"
+    context: test
+    user: ""
+- type: openapi
+  parameters:
+    apiFile: /zap/wrk/backend/compact-connect/docs/api-specification/latest-oas30-zap.json
+    apiUrl: ""
+    targetUrl: "https://state-api.test.compactconnect.org"
     context: test
     user: ""
 # Suppress known false positives

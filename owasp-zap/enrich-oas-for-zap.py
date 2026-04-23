@@ -18,11 +18,39 @@ PARAM_EXAMPLES = {
     "jurisdiction": "oh",
     "licenseType": "audiologist",
     "providerId": "33f813a7-9526-4bba-95d6-570fcc2a5a12",
-    "userId": "740864a8-8091-7097-3bb4-d96fb1619a15",
+
+    # Test user specifically created in test environment for modification by the ZAP scan
+    "userId": "3478a468-10f1-7011-b884-a2b4987561b4",
     "attestationId": "jurisprudence-confirmation",
     "encumbranceId": "c8083de6-19a7-4e9c-8411-09e883fbc8ff",
     "flagId": "00000000-0000-4000-8000-000000000000",
     "investigationId": "3758ff63-1271-41d5-9257-54689192ac6a",
+}
+
+
+# Valid baseline request bodies for selected endpoints, keyed by (method, path).
+# Only read-only endpoints are listed here — mutation endpoints would flood the
+# test DB with junk records. ZAP uses each example as the baseline for active
+# scanning, then fuzzes variants around it.
+BODY_EXAMPLES = {
+    # Read-only provider search (staff + public share one schema)
+    ("post", "/v1/compacts/{compact}/providers/query"): {
+        "query": {"jurisdiction": "oh"},
+        "pagination": {"pageSize": 10},
+    },
+    ("post", "/v1/public/compacts/{compact}/providers/query"): {
+        "query": {"jurisdiction": "oh"},
+        "pagination": {"pageSize": 10},
+    },
+    # State API provider search — different schema, requires a date-time window.
+    # The handler caps the window at 7 days
+    # (lambdas/python/common/cc_common/data_model/schema/provider/api.py:331-332).
+    ("post", "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/query"): {
+        "query": {
+            "startDateTime": "2026-04-15T00:00:00Z",
+            "endDateTime": "2026-04-22T00:00:00Z",
+        },
+    },
 }
 
 
@@ -48,6 +76,20 @@ def enrich_spec(spec):
                     name = param.get("name", "")
                     if name in PARAM_EXAMPLES:
                         param["example"] = PARAM_EXAMPLES[name]
+
+            body_example = BODY_EXAMPLES.get((method, path))
+            if body_example is not None:
+                json_content = (
+                    operation.get("requestBody", {})
+                    .get("content", {})
+                    .get("application/json")
+                )
+                if (
+                    isinstance(json_content, dict)
+                    and "example" not in json_content
+                    and "examples" not in json_content
+                ):
+                    json_content["example"] = body_example
 
     # Fix arrays missing 'items' — CDK-generated specs sometimes omit this,
     # which is technically invalid OpenAPI and causes ZAP's parser to fail.
@@ -83,16 +125,26 @@ def main():
     with open(output_path, "w") as f:
         json.dump(spec, f, indent=2)
 
-    # Count how many parameters were enriched
-    count = 0
+    # Count how many parameters and bodies were enriched
+    param_count = 0
+    body_count = 0
     for path, methods in spec.get("paths", {}).items():
         for method, operation in methods.items():
             if not isinstance(operation, dict):
                 continue
             for param in operation.get("parameters", []):
                 if param.get("in") == "path" and "example" in param:
-                    count += 1
-    print(f"Enriched {count} path parameters with example values")
+                    param_count += 1
+            json_content = (
+                operation.get("requestBody", {})
+                .get("content", {})
+                .get("application/json", {})
+            )
+            if "example" in json_content:
+                body_count += 1
+    print(
+        f"Enriched {param_count} path parameters and {body_count} request bodies"
+    )
 
 
 if __name__ == "__main__":

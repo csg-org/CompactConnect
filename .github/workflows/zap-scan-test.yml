@@ -1,6 +1,9 @@
 name: ZAP-Scan-Test
 
 on:
+  # TEMP: trigger on PR pushes so we can validate the scan end-to-end. Revert before merge.
+  pull_request:
+
   # Weekly scheduled scan of the deployed test environment
   schedule:
     - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
@@ -39,20 +42,54 @@ jobs:
         run: yarn install --ignore-engines
         working-directory: 'owasp-zap/authenticator'
 
-      - name: Authenticate ZAP User
+      - name: Authenticate Staff User
         env:
-          COGNITO_USER_POOL_ID: ${{ secrets.TEST_COGNITO_USER_POOL_ID_STAFF }}
-          COGNITO_USER_POOL_CLIENT_ID: ${{ secrets.TEST_WEBROOT_COGNITO_CLIENT_ID_STAFF }}
-          COGNITO_USERNAME: ${{ secrets.TEST_ZAP_USERNAME_STAFF }}
-          COGNITO_PASSWORD: ${{ secrets.TEST_ZAP_PASSWORD_STAFF }}
+          STAFF_COGNITO_USER_POOL_ID: ${{ secrets.TEST_COGNITO_USER_POOL_ID_STAFF }}
+          STAFF_COGNITO_USER_POOL_CLIENT_ID: ${{ secrets.TEST_WEBROOT_COGNITO_CLIENT_ID_STAFF }}
+          STAFF_COGNITO_USERNAME: ${{ secrets.TEST_ZAP_USERNAME_STAFF }}
+          STAFF_COGNITO_PASSWORD: ${{ secrets.TEST_ZAP_PASSWORD_STAFF }}
         run: |
-          token=$(node main.js | jq -r '.accessToken')
+          token=$(node main.js --mode=staff | jq -r '.accessToken')
           if [[ -z "$token" || "$token" == "null" ]]; then
-            echo "::error::Failed to obtain authentication token"
+            echo "::error::Failed to obtain staff authentication token"
             exit 1
           fi
-          echo "ZAP_AUTH_HEADER_VALUE=$token" >> "$GITHUB_ENV"
-          echo "Authentication successful"
+          echo "::add-mask::$token"
+          echo "ZAP_AUTH_STAFF_TOKEN=$token" >> "$GITHUB_ENV"
+        working-directory: 'owasp-zap/authenticator'
+
+      - name: Authenticate Provider User
+        env:
+          PROVIDER_COGNITO_USER_POOL_ID: ${{ secrets.TEST_COGNITO_USER_POOL_ID_PROVIDER }}
+          PROVIDER_COGNITO_USER_POOL_CLIENT_ID: ${{ secrets.TEST_COGNITO_CLIENT_ID_PROVIDER }}
+          PROVIDER_COGNITO_USERNAME: ${{ secrets.TEST_ZAP_USERNAME_PROVIDER }}
+          PROVIDER_COGNITO_PASSWORD: ${{ secrets.TEST_ZAP_PASSWORD_PROVIDER }}
+        run: |
+          # Provider API handlers read claims (email/username) from the ID token,
+          # not the access token (see backend/compact-connect/tests/smoke/smoke_common.py:174).
+          token=$(node main.js --mode=provider | jq -r '.idToken')
+          if [[ -z "$token" || "$token" == "null" ]]; then
+            echo "::error::Failed to obtain provider authentication token"
+            exit 1
+          fi
+          echo "::add-mask::$token"
+          echo "ZAP_AUTH_PROVIDER_TOKEN=$token" >> "$GITHUB_ENV"
+        working-directory: 'owasp-zap/authenticator'
+
+      - name: Authenticate State API M2M Client
+        env:
+          COGNITO_STATE_AUTH_DOMAIN: ${{ secrets.TEST_COGNITO_STATE_AUTH_DOMAIN }}
+          STATE_AUTH_CLIENT_ID: ${{ secrets.TEST_ZAP_STATE_AUTH_CLIENT_ID }}
+          STATE_AUTH_CLIENT_SECRET: ${{ secrets.TEST_ZAP_STATE_AUTH_CLIENT_SECRET }}
+          STATE_AUTH_SCOPES: ${{ secrets.TEST_ZAP_STATE_AUTH_SCOPES }}
+        run: |
+          token=$(./get-m2m-token.sh)
+          if [[ -z "$token" ]]; then
+            echo "::error::Failed to obtain state API M2M token"
+            exit 1
+          fi
+          echo "::add-mask::$token"
+          echo "ZAP_AUTH_STATE_TOKEN=$token" >> "$GITHUB_ENV"
         working-directory: 'owasp-zap/authenticator'
 
       - name: Enrich OpenAPI specs with valid parameter examples
@@ -63,11 +100,25 @@ jobs:
           python3 owasp-zap/enrich-oas-for-zap.py \
             backend/compact-connect/docs/search-internal/api-specification/latest-oas30.json \
             backend/compact-connect/docs/search-internal/api-specification/latest-oas30-zap.json
+          python3 owasp-zap/enrich-oas-for-zap.py \
+            backend/compact-connect/docs/api-specification/latest-oas30.json \
+            backend/compact-connect/docs/api-specification/latest-oas30-zap.json
 
       - name: ZAP Scan
-        uses: zaproxy/action-af@v0.1.0
+        uses: zaproxy/action-af@v0.2.0
+        env:
+          # State API requires ECDSA signatures on top of the M2M bearer token.
+          # See backend/compact-connect/docs/client_signature_auth.md.
+          ZAP_STATE_SIGNATURE_PRIVATE_KEY: ${{ secrets.TEST_ZAP_STATE_SIGNATURE_PRIVATE_KEY }}
+          ZAP_STATE_SIGNATURE_KEY_ID: ${{ secrets.TEST_ZAP_STATE_SIGNATURE_KEY_ID }}
         with:
           plan: 'owasp-zap/data/test-automation.yml'
+          docker_env_vars: |
+            ZAP_AUTH_STAFF_TOKEN
+            ZAP_AUTH_PROVIDER_TOKEN
+            ZAP_AUTH_STATE_TOKEN
+            ZAP_STATE_SIGNATURE_PRIVATE_KEY
+            ZAP_STATE_SIGNATURE_KEY_ID
 
       - name: Upload Report
         if: always()
