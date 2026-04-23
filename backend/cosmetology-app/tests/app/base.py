@@ -516,7 +516,6 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.api_lambda_stack)
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.disaster_recovery_stack)
-        self._check_no_stack_annotations(stage.event_listener_stack)
         self._check_no_stack_annotations(stage.feature_flag_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.managed_login_stack)
@@ -556,7 +555,6 @@ class TstAppABC(ABC):
             ('api_stack', stage.api_stack),
             ('backup_infrastructure_stack', stage.backup_infrastructure_stack),
             ('disaster_recovery_stack', stage.disaster_recovery_stack),
-            ('event_listener_stack', stage.event_listener_stack),
             ('feature_flag_stack', stage.feature_flag_stack),
             ('ingest_stack', stage.ingest_stack),
             ('managed_login_stack', stage.managed_login_stack),
