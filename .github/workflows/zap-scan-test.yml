@@ -65,7 +65,7 @@ jobs:
             backend/compact-connect/docs/search-internal/api-specification/latest-oas30-zap.json
 
       - name: ZAP Scan
-        uses: zaproxy/action-af@v0.1.0
+        uses: zaproxy/action-af@v0.2.0
         with:
           plan: 'owasp-zap/data/test-automation.yml'
 
