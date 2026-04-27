@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/aws-lambda": "8.10.161",
     "@types/jest": "^29.5.12",
-    "@types/node": "22.5.4",
+    "@types/node": "25.6.0",
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^18.3.12",
     "@typescript-eslint/eslint-plugin": "^8.58.1",
