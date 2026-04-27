@@ -99,7 +99,7 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseReadPrivateResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeReadPrivateResponseSchema(), required=False, allow_none=False))
     # list of all adverse action records, used by the disciplinary information table
-    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema(), required=False, allow_none=False))
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=True, allow_none=False)
@@ -148,7 +148,7 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     # list of all adverse action records, used by the disciplinary information table
-    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema(), required=False, allow_none=False))
 
 
 class ProviderOpenSearchDocumentSchema(ProviderGeneralResponseSchema):
