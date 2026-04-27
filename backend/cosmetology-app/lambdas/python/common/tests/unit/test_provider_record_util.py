@@ -569,6 +569,80 @@ class TestProviderRecordUtility(TstLambdas):
 
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
+class TestGenerateApiResponseObject(TstLambdas):
+    def _make_provider_records(self, provider_overrides=None, license_overrides_list=None, extra_records=None):
+        """Build list of provider + license (and optional other) records as dicts for ProviderUserRecords."""
+        from common_test.test_data_generator import TestDataGenerator
+
+        if license_overrides_list is None:
+            license_overrides_list = []
+
+        provider = TestDataGenerator.generate_default_provider(provider_overrides or {})
+        provider_record = provider.serialize_to_database_record()
+        records = [provider_record]
+        for overrides in license_overrides_list:
+            lic = TestDataGenerator.generate_default_license(overrides)
+            records.append(lic.serialize_to_database_record())
+        if extra_records:
+            records.extend(extra_records)
+        return records
+
+    def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
+        if live_compact_jurisdictions is None:
+            live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+        mock_config = MagicMock()
+        mock_config.live_compact_jurisdictions = live_compact_jurisdictions
+        mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        return patch('cc_common.data_model.provider_record_util.config', mock_config)
+
+    def test_generate_api_response_object_returns_adverse_actions_as_a_top_level_field_for_all_adverse_actions(self):
+        # create two adverse_actions, one for a license and one for a privilege, and verify that both are returned in
+        # generated api response object
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from common_test.test_data_generator import TestDataGenerator
+
+        license_adverse_action = TestDataGenerator.generate_default_adverse_action(
+            value_overrides={
+                'jurisdiction': 'oh',
+                'licenseTypeAbbreviation': 'cos',
+                'licenseType': 'cosmetologist',
+                'actionAgainst': 'license',
+            }
+        )
+        privilege_adverse_action = TestDataGenerator.generate_default_adverse_action(
+            value_overrides={
+                'jurisdiction': 'al',
+                'licenseTypeAbbreviation': 'cos',
+                'licenseType': 'cosmetologist',
+                'actionAgainst': 'privilege',
+                'effectiveStartDate': date.fromisoformat('2025-05-15'),
+            }
+        )
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                }
+            ],
+            extra_records=[
+                license_adverse_action.serialize_to_database_record(),
+                privilege_adverse_action.serialize_to_database_record(),
+            ],
+        )
+        with self._patch_config_for_privilege_generation():
+            pur = ProviderUserRecords(records)
+            api_response = pur.generate_api_response_object()
+
+        self.assertEqual(
+            [license_adverse_action.to_dict(), privilege_adverse_action.to_dict()],
+            api_response['adverseActions'],
+        )
+
+
+@patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
 class TestGenerateOpenSearchDocuments(TstLambdas):
     """Tests for ProviderUserRecords.generate_opensearch_documents()."""
 
