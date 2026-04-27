@@ -3,6 +3,7 @@ from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, Range, Regexp
 
+from cc_common.data_model.schema.adverse_action.api import AdverseActionGeneralResponseSchema
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.common import CCRequestSchema
 from cc_common.data_model.schema.fields import (
@@ -112,6 +113,8 @@ class ProviderReadPrivateResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicenseReadPrivateResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeReadPrivateResponseSchema(), required=False, allow_none=False))
+    # list of all adverse action records, used by the disciplinary information table
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
 
     # these fields are specific to the read private role
     dateOfBirth = Raw(required=True, allow_none=False)
@@ -159,6 +162,8 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
+    # list of all adverse action records, used by the disciplinary information table
+    adverseActions = List(Nested(AdverseActionGeneralResponseSchema, required=False, allow_none=False))
 
 
 class ProviderOpenSearchDocumentSchema(ProviderGeneralResponseSchema):
