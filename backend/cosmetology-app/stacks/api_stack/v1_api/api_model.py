@@ -315,7 +315,6 @@ class ApiModel:
                         properties={
                             'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                            'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -329,8 +328,7 @@ class ApiModel:
                                     properties={
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                        'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN)
                                     },
                                 ),
                             },
@@ -1264,29 +1262,6 @@ class ApiModel:
             ),
         )
         return self.api._v1_put_jurisdiction_request_model
-
-    @property
-    def get_provider_ssn_response_model(self) -> Model:
-        """Return the provider SSN response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_get_provider_ssn_response_model'):
-            return self.api._v1_get_provider_ssn_response_model
-
-        self.api._v1_get_provider_ssn_response_model = self.api.add_model(
-            'V1GetProviderSSNResponseModel',
-            description='Get provider SSN response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['ssn'],
-                properties={
-                    'ssn': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description="The provider's social security number",
-                        pattern=cc_api.SSN_FORMAT,
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_get_provider_ssn_response_model
 
     @property
     def public_query_providers_response_model(self) -> Model:

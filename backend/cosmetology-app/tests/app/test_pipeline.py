@@ -101,7 +101,7 @@ class TestBackendPipeline(TstAppABC, TestCase):
             )
             # Ensure the compact resource servers are created with the expected scopes
             self.assertEqual(
-                ['admin', 'write', 'readGeneral', 'readSSN'],
+                ['admin', 'write', 'readGeneral'],
                 [scope['ScopeName'] for scope in resource_server_properties['Scopes']],
                 msg=f'Expected scopes for compact {compact} not found',
             )

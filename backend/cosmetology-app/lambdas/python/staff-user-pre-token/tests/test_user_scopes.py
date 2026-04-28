@@ -20,7 +20,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#cosm',
                 'compact': 'cosm',
-                'permissions': {'actions': {'read', 'admin', 'readPrivate', 'readSSN'}, 'jurisdictions': {}},
+                'permissions': {'actions': {'read', 'admin', 'readPrivate'}, 'jurisdictions': {}},
             }
         )
 
@@ -31,7 +31,6 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'profile',
                 'cosm/admin',
                 'cosm/readGeneral',
-                'cosm/readSSN',
                 'cosm/readPrivate',
             },
             user_data.scopes,
@@ -46,7 +45,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#cosm',
                 'compact': 'cosm',
-                'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate', 'readSSN'}}},
+                'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate'}}},
             }
         )
 
@@ -58,8 +57,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'cosm/readGeneral',
                 'al/cosm.admin',
                 'al/cosm.write',
-                'al/cosm.readPrivate',
-                'al/cosm.readSSN',
+                'al/cosm.readPrivate'
             },
             user_data.scopes,
         )

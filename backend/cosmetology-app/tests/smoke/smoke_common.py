@@ -201,10 +201,6 @@ def get_data_events_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME'])
 
 
-def get_provider_ssn_lambda_name():
-    return os.environ['CC_TEST_GET_PROVIDER_SSN_LAMBDA_NAME']
-
-
 def get_lambda_client():
     return boto3.client('lambda')
 

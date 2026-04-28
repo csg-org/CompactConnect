@@ -10,7 +10,6 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     Jurisdiction,
-    SocialSecurityNumber,
 )
 from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
@@ -54,20 +53,6 @@ def _validate_no_cross_index_keys(obj, path: str = 'query') -> None:
         for i, item in enumerate(obj):
             _validate_no_cross_index_keys(item, path=f'{path}[{i}]')
     # Scalar values (str, int, bool, None) are safe - we only check keys
-
-
-class ProviderSSNResponseSchema(ForgivingSchema):
-    """
-    Schema for provider SSN API responses.
-
-    This schema validates the response from the provider SSN endpoint,
-    ensuring the SSN is properly formatted.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
 
 
 class ProviderReadPrivateResponseSchema(ForgivingSchema):

@@ -2,13 +2,6 @@ from __future__ import annotations
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
-from aws_cdk.aws_cloudwatch import (
-    Alarm,
-    ComparisonOperator,
-    Metric,
-    TreatMissingData,
-)
-from aws_cdk.aws_cloudwatch_actions import SnsAction
 
 from common_constructs.cc_api import CCApi
 from common_constructs.python_function import PythonFunction
@@ -28,7 +21,6 @@ class ProviderManagement:
         resource: Resource,
         method_options: MethodOptions,
         admin_method_options: MethodOptions,
-        ssn_method_options: MethodOptions,
         api_model: ApiModel,
         api_lambda_stack: ApiLambdaStack,
     ):
@@ -63,10 +55,6 @@ class ProviderManagement:
         self._add_get_provider(
             method_options=method_options,
             get_provider_handler=api_lambda_stack.provider_management_lambdas.get_provider_handler,
-        )
-        self._add_get_provider_ssn(
-            method_options=ssn_method_options,
-            get_provider_ssn_handler=api_lambda_stack.provider_management_lambdas.get_provider_ssn_handler,
         )
 
         self._add_encumber_privilege(
@@ -133,56 +121,6 @@ class ProviderManagement:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes,
         )
-
-    def _add_get_provider_ssn(
-        self,
-        method_options: MethodOptions,
-        get_provider_ssn_handler: PythonFunction,
-    ):
-        """Add GET /providers/{providerId}/ssn endpoint to retrieve a provider's SSN."""
-        # Add the SSN endpoint as a sub-resource of the provider
-        self.ssn_resource = self.provider_resource.add_resource('ssn')
-        self.ssn_resource.add_method(
-            'GET',
-            request_validator=self.api.parameter_body_validator,
-            method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={'application/json': self.api_model.get_provider_ssn_response_model},
-                ),
-            ],
-            integration=LambdaIntegration(get_provider_ssn_handler, timeout=Duration.seconds(29)),
-            request_parameters={'method.request.header.Authorization': True},
-            authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer,
-            authorization_scopes=method_options.authorization_scopes,
-        )
-
-        # Add an alarm for 4xx responses from the SSN endpoint
-        self.ssn_api_throttling_alarm = Alarm(
-            self.api,
-            'SSNApi4XXAlarm',
-            alarm_description=f'{self.api.node.path} SECURITY ALERT: Potential abuse detected - '
-            'Excessive 4xx errors triggered on GET provider SSN endpoint. '
-            'Immediate investigation required.',
-            metric=Metric(
-                namespace='AWS/ApiGateway',
-                metric_name='4XXError',
-                dimensions_map={
-                    'ApiName': self.api.rest_api_name,
-                    'Stage': self.api.deployment_stage.stage_name,
-                    'Resource': self.ssn_resource.path,
-                    'Method': 'GET',
-                },
-                statistic='Sum',
-                period=Duration.minutes(5),
-            ),
-            evaluation_periods=1,
-            threshold=100,
-            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-            treat_missing_data=TreatMissingData.NOT_BREACHING,
-        )
-        self.ssn_api_throttling_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
     def _add_encumber_privilege(
         self,
