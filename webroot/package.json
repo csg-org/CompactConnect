@@ -73,7 +73,7 @@
     "babel-plugin-istanbul": "^6.1.1",
     "chai": "^4.1.2",
     "chai-match-pattern": "^1.1.0",
-    "chalk": "^4.0.0",
+    "chalk": "^5.6.2",
     "cypress": "^14.5.2",
     "cypress-axe": "^1.6.0",
     "cypress-file-upload": "^5.0.8",
