@@ -1,6 +1,6 @@
 import { BaseEmailService } from './base-email-service';
 import { EnvironmentVariablesService } from '../environment-variables-service';
-import { IJurisdiction } from 'lib/models/jurisdiction';
+import { IJurisdiction } from '../models/jurisdiction';
 
 const environmentVariableService = new EnvironmentVariablesService();
 
