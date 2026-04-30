@@ -1,5 +1,5 @@
 import { BaseEmailService } from './base-email-service';
-import { IJurisdiction } from 'lib/models/jurisdiction';
+import { IJurisdiction } from '../models/jurisdiction';
 
 
 /**
