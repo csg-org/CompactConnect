@@ -64,6 +64,7 @@ class LicenseCard extends mixins(MixinForm) {
     @Prop({ required: true }) licensee!: Licensee;
     @Prop({ default: null }) homeState?: State | null;
     @Prop({ default: false }) shouldIncludeLogo?: boolean;
+    @Prop({ default: false }) isPublicSearch!: boolean;
 
     //
     // Data

@@ -91,7 +91,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="!isAppModeCosmetology" class="info-item-container">
+                        <div v-if="isAppModeJcc" class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.registrationEmail')}}</div>
                             <div class="info-item email">{{registrationEmail}}</div>
                         </div>
