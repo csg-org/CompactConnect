@@ -9,6 +9,7 @@
 - **[Tests](#tests)**
 - **[Build](#build)**
 - **[Auth](#auth)**
+- **[Dependency Notes](#dependency-notes)**
 
 ---
 ## Key
@@ -406,4 +407,18 @@ Note that testing the **built** app locally will require a running web server; f
     - Licensee users have the ability to self-register an account, provided matching data can be found in the state data.
     - The registration form utilizes recaptcha (Google recaptcha v3)
     - The registration form utilizes honeypot fields, which are initialized in the component code separately from the actual form fields.
+---
+
+## Dependency Notes
+- **`devDependencies/typescript`**
+    - Vue CLI 5 branch currently supports TS 5.x, not TS 6
+    - TS 5.4.5 works but has a warning about `@typescript-eslint/typescript-estree` peer dependency version
+    - TS 5.1.x works and has no peer dependency warnings _(2026-04-30)_
+    - Our approach to TS in this project is that it is nice to have as much as possible, but in cases where it requires lots of extra syntax bloat or toolchain rework then we'll defer / opt out.
+- **`dependencies/vue-facing-decorator`**
+    - Staying on stable v3; since v4 would cause a major re-work of our mixins, particularly just adding lots of extra TS syntax bloat.
+    - v4 is looking ahead to bleeding edge TS versions, which we are not planning to move to until we have time / need to re-work our entire toolchain from Vue CLI to (e.g.) Vite.
+- **`dependencies/sharp`**
+    - Sharp version is pinned because it is not semantically versioned / v1
+
 ---
