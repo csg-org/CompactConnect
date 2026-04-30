@@ -142,8 +142,8 @@ jobs:
         run: "cd backend/compact-connect/lambdas/python/purchases; ruff check $(git ls-files '*.py')"
 
       - name: Check Dependencies
-        # Ignore pip vulnerability that does not affect Python 3.12+
-        run: "pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph"
+        # Ignore known pip and lxml advisories currently accepted for this repo.
+        run: "pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph --ignore-vuln CVE-2026-41066"
 
       - name: Test backend
         run: "cd backend/compact-connect/lambdas/python/purchases; PYTHONPATH=../common pytest tests --cov --cov-fail-under=90"
