@@ -81,6 +81,14 @@ class UserRowEdit extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get currentUser(): StaffUser {
         return this.userStore.model;
     }
@@ -142,12 +150,24 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     get userPermissionOptionsCompact(): Array<PermissionOption> {
-        return [
-            { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
-            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
-            { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
-            { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
-        ];
+        let permissionOptions: Array<PermissionOption> = [];
+
+        if (this.isAppModeCosmetology) {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        } else {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        }
+
+        return permissionOptions;
     }
 
     get currentUserStatePermissions(): Array<StatePermission> {
@@ -161,13 +181,26 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     get userPermissionOptionsState(): Array<PermissionOption> {
-        return [
-            { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
-            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
-            { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
-            { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
-            { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
-        ];
+        let permissionOptions: Array<PermissionOption> = [];
+
+        if (this.isAppModeCosmetology) {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        } else {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
+                { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        }
+
+        return permissionOptions;
     }
 
     get userOptionsState(): Array<PermissionOption> {
@@ -389,6 +422,10 @@ class UserRowEdit extends mixins(MixinForm) {
             }
         }
 
+        if (this.isAppModeCosmetology) {
+            delete response.isReadSsn;
+        }
+
         return response;
     }
 
@@ -446,6 +483,10 @@ class UserRowEdit extends mixins(MixinForm) {
             break;
         default:
             break;
+        }
+
+        if (this.isAppModeCosmetology) {
+            delete response.isReadSsn;
         }
 
         return response;
