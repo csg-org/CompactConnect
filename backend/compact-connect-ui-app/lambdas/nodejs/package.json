@@ -16,11 +16,11 @@
   "devDependencies": {
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
-    "esbuild": "0.28.0",
-    "eslint": "^9.13.0",
     "chai": "^4.1.2",
     "chai-match-pattern": "^1.1.0",
     "chalk": "^4.1.2",
+    "esbuild": "0.28.0",
+    "eslint": "10.2.1",
     "lambda-local": "^2.2.0",
     "mocha": "^11.7.5"
   },
