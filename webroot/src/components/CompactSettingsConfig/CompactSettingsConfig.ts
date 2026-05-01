@@ -93,6 +93,12 @@ class CompactSettingsConfig extends mixins(MixinForm) {
         return this.userStore.model;
     }
 
+    get liveStatusLabel(): string {
+        return (this.isAppModeCosmetology)
+            ? this.$t('compact.licenseRegistrationEnabledSubtextCosm')
+            : this.$t('compact.licenseRegistrationEnabledSubtext');
+    }
+
     get submitLabel(): string {
         return (this.isFormLoading) ? this.$t('common.loading') : this.$t('common.saveChanges');
     }
@@ -189,7 +195,7 @@ class CompactSettingsConfig extends mixins(MixinForm) {
                 id: 'registration-enabled',
                 name: 'registration-enabled',
                 label: computed(() => this.$t('compact.licenseRegistrationEnabled')),
-                labelSubtext: computed(() => this.$t('compact.licenseRegistrationEnabledSubtext')),
+                labelSubtext: computed(() => this.liveStatusLabel),
                 validation: Joi.boolean().required().messages(this.joiMessages.boolean),
                 valueOptions: [
                     { value: true, name: computed(() => this.$t('common.yes')) },

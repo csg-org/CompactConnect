@@ -97,6 +97,12 @@ class StateSettingsConfig extends mixins(MixinForm) {
         return this.userStore?.model || null;
     }
 
+    get liveStatusLabel(): string {
+        return (this.isAppModeCosmetology)
+            ? this.$t('compact.privilegePurchaseEnabledSubtextCosm')
+            : this.$t('compact.privilegePurchaseEnabledSubtext');
+    }
+
     get submitLabel(): string {
         return (this.isFormLoading) ? this.$t('common.loading') : this.$t('common.saveChanges');
     }
@@ -198,7 +204,7 @@ class StateSettingsConfig extends mixins(MixinForm) {
                 id: 'purchase-enabled',
                 name: 'purchase-enabled',
                 label: computed(() => this.$t('compact.privilegePurchaseEnabled')),
-                labelSubtext: computed(() => this.$t('compact.privilegePurchaseEnabledSubtext')),
+                labelSubtext: computed(() => this.liveStatusLabel),
                 validation: Joi.boolean().required().messages(this.joiMessages.boolean),
                 valueOptions: [
                     { value: true, name: computed(() => this.$t('common.yes')) },
