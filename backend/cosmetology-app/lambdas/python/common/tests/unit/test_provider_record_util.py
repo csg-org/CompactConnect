@@ -20,8 +20,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         provider_record = provider.serialize_to_database_record()
         records = [provider_record]
         for overrides in license_overrides_list:
-            lic = TestDataGenerator.generate_default_license(overrides)
-            records.append(lic.serialize_to_database_record())
+            test_license = TestDataGenerator.generate_default_license(overrides)
+            records.append(test_license.serialize_to_database_record())
         return records
 
     def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
@@ -47,8 +47,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
 
         records = self._make_provider_records()
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(result, [])
 
     def test_skips_ineligible_license_type(self):
@@ -66,8 +66,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(result, [])
 
     def test_one_eligible_license_generates_privileges_excluding_home(self):
@@ -86,8 +86,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(len(result), 2)  # al and ky, not oh
         self.assertEqual(
             [
@@ -145,8 +145,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         # oh is more recent -> home is oh; we get privileges for al and ky only
         self.assertEqual(len(result), 2)
         for p in result:
@@ -179,8 +179,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(len(result), 2)
         for p in result:
             self.assertEqual(p['licenseJurisdiction'], 'oh', 'Home should be OH (most recently renewed)')
@@ -215,8 +215,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         for rec in records[1:]:
             rec.pop('dateOfRenewal', None)
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(len(result), 2)
         for p in result:
             self.assertEqual(p['licenseJurisdiction'], 'al', 'Home should be AL (most recently issued when no renewal)')
@@ -243,8 +243,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         # cosmetologist: al is home -> privileges for ky, oh (2).
         # esthetician: oh is home -> privileges for al, ky (2). Total 4.
         self.assertEqual(len(result), 4)
@@ -273,8 +273,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(result, [])
 
     def test_status_active_when_privilege_not_encumbered(self):
@@ -292,8 +292,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(2, len(result))
         for p in result:
             self.assertEqual(p['status'], 'active')
@@ -319,8 +319,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ).serialize_to_database_record()
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(2, len(result))
         for p in result:
             if p.get('jurisdiction') == 'al':
@@ -354,8 +354,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         )
         records.append(open_investigation.serialize_to_database_record())
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         privilege_al = next((p for p in result if p['jurisdiction'] == 'al'), None)
         self.assertIsNotNone(privilege_al, 'Expected a privilege for jurisdiction al')
         self.assertEqual(len(privilege_al['investigations']), 1, 'Open investigation should be in list')
@@ -387,8 +387,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             ).serialize_to_database_record()
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(1, len(result))
         self.assertEqual('al', result[0]['jurisdiction'])
         self.assertGreaterEqual(len(result[0]['adverseActions']), 1)
@@ -419,8 +419,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         )
         records.append(open_investigation.serialize_to_database_record())
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            result = pur.generate_privileges_for_provider()
+            provider_user_records = ProviderUserRecords(records)
+            result = provider_user_records.generate_privileges_for_provider()
         self.assertEqual(1, len(result))
         self.assertEqual('al', result[0]['jurisdiction'])
         self.assertEqual(1, len(result[0]['investigations']))
@@ -581,8 +581,8 @@ class TestGenerateApiResponseObject(TstLambdas):
         provider_record = provider.serialize_to_database_record()
         records = [provider_record]
         for overrides in license_overrides_list:
-            lic = TestDataGenerator.generate_default_license(overrides)
-            records.append(lic.serialize_to_database_record())
+            test_license = TestDataGenerator.generate_default_license(overrides)
+            records.append(test_license.serialize_to_database_record())
         if extra_records:
             records.extend(extra_records)
         return records
@@ -633,8 +633,8 @@ class TestGenerateApiResponseObject(TstLambdas):
             ],
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            api_response = pur.generate_api_response_object()
+            provider_user_records = ProviderUserRecords(records)
+            api_response = provider_user_records.generate_api_response_object()
 
         self.assertEqual(
             [license_adverse_action.to_dict(), privilege_adverse_action.to_dict()],
@@ -657,8 +657,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         provider_record = provider.serialize_to_database_record()
         records = [provider_record]
         for overrides in license_overrides_list:
-            lic = TestDataGenerator.generate_default_license(overrides)
-            records.append(lic.serialize_to_database_record())
+            test_license = TestDataGenerator.generate_default_license(overrides)
+            records.append(test_license.serialize_to_database_record())
         if extra_records:
             records.extend(extra_records)
         return records
@@ -685,8 +685,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            docs = pur.generate_opensearch_documents()
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual(
             [
@@ -798,8 +798,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            docs = pur.generate_opensearch_documents()
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual(
             [
@@ -991,8 +991,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            docs = pur.generate_opensearch_documents()
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual(
             [
@@ -1153,8 +1153,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ]
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            docs = pur.generate_opensearch_documents()
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual(2, len(docs))
         al_doc = next(d for d in docs if d['licenses'][0]['jurisdiction'] == 'al')
@@ -1191,8 +1191,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ],
         )
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            docs = pur.generate_opensearch_documents()
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual(1, len(docs))
         self.assertEqual(1, len(docs[0]['licenses'][0]['adverseActions']))
@@ -1203,7 +1203,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
 
         records = self._make_provider_records()
         with self._patch_config_for_privilege_generation():
-            pur = ProviderUserRecords(records)
-            docs = pur.generate_opensearch_documents()
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual([], docs)
