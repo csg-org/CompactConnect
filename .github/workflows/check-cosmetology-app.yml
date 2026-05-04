@@ -25,8 +25,8 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Upgrade pip
-        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
-        run: pip install --upgrade 'pip>=26.0'
+        # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
+        run: pip install --upgrade 'pip>=26.1'
 
       - name: Install dev dependencies
         run: "pip install -r backend/cosmetology-app/requirements-dev.txt"
@@ -86,8 +86,8 @@ jobs:
           python-version: '3.14'
 
       - name: Upgrade pip
-        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
-        run: pip install --upgrade 'pip>=26.0'
+        # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
+        run: pip install --upgrade 'pip>=26.1'
 
       # Setup Node
       - name: Setup Node

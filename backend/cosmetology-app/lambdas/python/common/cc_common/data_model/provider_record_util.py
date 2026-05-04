@@ -579,15 +579,6 @@ class ProviderUserRecords:
         # Build licenses dict with investigations and adverseActions
         for license_record in self._license_records:
             license_dict = license_record.to_dict()
-            # Note that we do not add synthetic expiration events for license records like we do privileges.
-            # This is because we may not have a complete expiration history for states based on the data they provide
-            # us. For example:
-            # 2023: license issued
-            # 2024: license expired
-            # 2025: license renewed(after expired for 1 year)
-            # 2026: license uploaded into compact connect with current expiration and issuance date
-            # In this case, our system has no visibility into previous expiration periods,
-            # so we cannot know if the license has been continuously active since issued.
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
@@ -607,6 +598,7 @@ class ProviderUserRecords:
 
         provider['licenses'] = licenses
         provider['privileges'] = privileges
+        provider['adverseActions'] = [rec.to_dict() for rec in self.get_adverse_action_records()]
 
         return provider
 

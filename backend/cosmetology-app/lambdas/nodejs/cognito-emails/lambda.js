@@ -20,7 +20,6 @@ export class Lambda {
         this.emailService = new CognitoEmailService({
             logger: logger,
             sesClient: props.sesClient,
-            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
             jurisdictionClient: jurisdictionClient
         });

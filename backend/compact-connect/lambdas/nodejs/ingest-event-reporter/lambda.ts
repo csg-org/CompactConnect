@@ -1,4 +1,4 @@
-import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/types';
+import type { LambdaInterface } from '@aws-lambda-powertools/commons/types';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -11,7 +11,7 @@ import { JurisdictionClient } from '../lib/jurisdiction-client';
 import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import { IngestEventEmailService } from '../lib/email';
 import { EventClient } from '../lib/event-client';
-import { Compact, IJurisdiction } from 'lib/models';
+import { Compact, IJurisdiction } from '../lib/models';
 
 const environmentVariables = new EnvironmentVariablesService();
 const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
