@@ -43,7 +43,7 @@ cfn-lint==1.41.0
     # via moto
 charset-normalizer==3.4.7
     # via requests
-cryptography==46.0.7
+cryptography==47.0.0
     # via
     #   -r common/requirements-dev.in
     #   joserfc
