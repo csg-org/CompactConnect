@@ -3,4 +3,4 @@ attrs>=25.4,<26
 moto[all]>=5.0.12, <6
 boto3-stubs[full]
 Faker>=40, <41
-cryptography>=46, <47
+cryptography>=47.0.0, <48
