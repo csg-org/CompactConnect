@@ -17,7 +17,7 @@ cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.3
     # via requests
-cryptography==46.0.7
+cryptography==47.0.0
     # via moto
 docker==7.1.0
     # via moto
@@ -34,7 +34,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[dynamodb]==5.1.22
-    # via -r requirements-dev.in
+    # via -r feature-flag/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==2.23
