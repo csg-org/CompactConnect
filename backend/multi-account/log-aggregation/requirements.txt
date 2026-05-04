@@ -12,15 +12,15 @@ aws-cdk-asset-awscli-v1==2.2.273
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.1
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==53.17.0
+aws-cdk-cloud-assembly-schema==53.20.0
     # via aws-cdk-lib
-aws-cdk-lib==2.250.0
-    # via -r log-aggregation/requirements.in
+aws-cdk-lib==2.251.0
+    # via -r requirements.in
 cattrs==25.3.0
     # via jsii
 constructs==10.6.0
     # via
-    #   -r log-aggregation/requirements.in
+    #   -r requirements.in
     #   aws-cdk-lib
 importlib-resources==7.1.0
     # via jsii
