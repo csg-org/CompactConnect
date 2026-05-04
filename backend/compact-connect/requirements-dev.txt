@@ -89,7 +89,7 @@ requests==2.33.1
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.15.11
+ruff==0.15.12
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib

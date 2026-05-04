@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/custom-resources/requirements-dev.in
 #
-boto3==1.42.89
+boto3==1.42.96
     # via moto
-botocore==1.42.91
+botocore==1.42.97
     # via
     #   boto3
     #   moto
@@ -34,7 +34,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[dynamodb,s3]==5.1.22
-    # via -r custom-resources/requirements-dev.in
+    # via -r requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
