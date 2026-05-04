@@ -10,7 +10,7 @@ antlr4-python3-runtime==4.13.2
     # via moto
 attrs==25.4.0
     # via
-    #   -r common/requirements-dev.in
+    #   -r requirements-dev.in
     #   jsonschema
     #   referencing
 aws-sam-translator==1.103.0
@@ -19,15 +19,15 @@ aws-sam-translator==1.103.0
     #   moto
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.42.89
+boto3==1.42.96
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.42.91
-    # via -r common/requirements-dev.in
+boto3-stubs[full]==1.42.96
+    # via -r requirements-dev.in
 boto3-stubs-full==1.42.91
     # via boto3-stubs
-botocore==1.42.91
+botocore==1.42.97
     # via
     #   aws-xray-sdk
     #   boto3
@@ -45,13 +45,13 @@ charset-normalizer==3.4.7
     # via requests
 cryptography==46.0.7
     # via
-    #   -r common/requirements-dev.in
+    #   -r requirements-dev.in
     #   joserfc
     #   moto
 docker==7.1.0
     # via moto
 faker==40.15.0
-    # via -r common/requirements-dev.in
+    # via -r requirements-dev.in
 graphql-core==3.2.8
     # via moto
 idna==3.11
@@ -89,7 +89,7 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 moto[all]==5.1.22
-    # via -r common/requirements-dev.in
+    # via -r requirements-dev.in
 mpmath==1.3.0
     # via sympy
 multipart==1.3.1
