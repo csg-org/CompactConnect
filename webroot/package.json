@@ -39,7 +39,7 @@
     "vue-facing-decorator": "^3.0.4",
     "vue-i18n": "10.0.8",
     "vue-responsiveness": "^0.2.0",
-    "vue-router": "^4.3.0",
+    "vue-router": "^4.5.1",
     "vue3-lazyload": "^0.4.2",
     "vuex": "^4.1.0",
     "vuex-extensions": "^4.1.0"
