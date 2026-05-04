@@ -23,8 +23,8 @@
     "@types/node": "25.6.0",
     "@types/nodemailer": "^8.0.0",
     "@types/react": "^18.3.12",
-    "@typescript-eslint/eslint-plugin": "^8.58.1",
-    "@typescript-eslint/parser": "^8.58.1",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
     "chai": "^4.1.2",
@@ -44,13 +44,13 @@
     "typescript": "6.0.3"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^2.32.0",
-    "@aws-sdk/client-dynamodb": "^3.1029.0",
-    "@aws-sdk/client-s3": "^3.1029.0",
-    "@aws-sdk/client-sesv2": "^3.1029.0",
+    "@aws-lambda-powertools/logger": "^2.33.0",
+    "@aws-sdk/client-dynamodb": "^3.1037.0",
+    "@aws-sdk/client-s3": "^3.1037.0",
+    "@aws-sdk/client-sesv2": "^3.1037.0",
     "@aws-sdk/util-dynamodb": "^3.996.2",
     "@csg-org/email-builder": "^0.0.13",
-    "nodemailer": "^8.0.5",
+    "nodemailer": "^8.0.7",
     "zod": "^3.23.8"
   }
 }
