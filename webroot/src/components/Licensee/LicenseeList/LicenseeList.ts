@@ -235,6 +235,12 @@ class LicenseeList extends Vue {
         return options;
     }
 
+    get listDescriptionText(): string {
+        return (this.isAppModeCosmetology)
+            ? this.$t('licensing.licensingListDescriptionCosm')
+            : this.$t('licensing.licensingListDescription');
+    }
+
     get headerRecord() {
         const record = {
             firstName: this.$t('common.firstName'),
