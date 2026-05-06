@@ -52,13 +52,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         user_data = UserData(self._user_sub)
 
         self.assertEqual(
-            {
-                'profile',
-                'cosm/readGeneral',
-                'al/cosm.admin',
-                'al/cosm.write',
-                'al/cosm.readPrivate'
-            },
+            {'profile', 'cosm/readGeneral', 'al/cosm.admin', 'al/cosm.write', 'al/cosm.readPrivate'},
             user_data.scopes,
         )
 

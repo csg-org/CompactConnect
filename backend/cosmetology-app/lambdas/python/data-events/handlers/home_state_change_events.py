@@ -27,11 +27,11 @@ def home_state_change_notification_listener(message: dict):
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
-            compact=compact,
-            provider_id=provider_id,
-            jurisdiction=jurisdiction,
-            license_type=license_type,
-            event_time=event_time,
+        compact=compact,
+        provider_id=provider_id,
+        jurisdiction=jurisdiction,
+        license_type=license_type,
+        event_time=event_time,
     ):
         logger.info('Processing provider home state change event')
 

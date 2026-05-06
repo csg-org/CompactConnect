@@ -53,7 +53,7 @@ class UserData:
         disallowed_actions = compact_actions - {
             CCPermissionsAction.READ,
             CCPermissionsAction.ADMIN,
-            CCPermissionsAction.READ_PRIVATE
+            CCPermissionsAction.READ_PRIVATE,
         }
         if disallowed_actions:
             raise ValueError(f'User {compact_abbr} permissions include disallowed actions: {disallowed_actions}')
@@ -83,7 +83,7 @@ class UserData:
         disallowed_actions = jurisdiction_actions - {
             CCPermissionsAction.WRITE,
             CCPermissionsAction.ADMIN,
-            CCPermissionsAction.READ_PRIVATE
+            CCPermissionsAction.READ_PRIVATE,
         }
         if disallowed_actions:
             raise ValueError(

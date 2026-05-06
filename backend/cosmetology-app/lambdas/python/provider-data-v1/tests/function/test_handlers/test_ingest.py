@@ -704,13 +704,16 @@ class TestIngest(TstFunction):
         home_change_entry = entries[0]
         self.assertEqual(
             {
-                'Detail': json.dumps({
-                    "compact": "cosm", 
-                "jurisdiction": "ky", 
-                "eventTime": "2024-11-08T23:59:59+00:00", 
-                "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570", 
-                "licenseType": "cosmetologist", 
-                "formerHomeJurisdiction": "oh"}),
+                'Detail': json.dumps(
+                    {
+                        'compact': 'cosm',
+                        'jurisdiction': 'ky',
+                        'eventTime': '2024-11-08T23:59:59+00:00',
+                        'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                        'licenseType': 'cosmetologist',
+                        'formerHomeJurisdiction': 'oh',
+                    }
+                ),
                 'DetailType': 'provider.homeStateChange',
                 'EventBusName': 'license-data-events',
                 'Source': 'org.compactconnect.provider-data',
