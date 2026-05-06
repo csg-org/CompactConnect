@@ -1,7 +1,6 @@
 from cc_common.config import config, logger
 from cc_common.data_model.schema.data_event.api import HomeJurisdictionChangeEventDetailSchema
 from cc_common.email_service_client import HomeJurisdictionChangeNotificationTemplateVariables
-from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler
 
 
