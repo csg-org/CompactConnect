@@ -1,6 +1,6 @@
 import json
 from datetime import date, datetime
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from moto import mock_aws
 
@@ -657,3 +657,87 @@ class TestIngest(TstFunction):
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
+
+    def test_same_license_types_different_jurisdictions_triggers_home_jurisdiction_change_event_bridge_notification(
+        self,
+    ):
+        """
+        Same license type (cosmetologist) in two jurisdictions: a newer issuance from KY replaces OH as the best
+        cosmetologist license and ingest emits ``provider.homeStateChange`` with former OH and new KY.
+        """
+        import handlers.ingest as ingest_handler
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        provider_data_after_first_license = self._get_provider_via_api(provider_id)
+
+        # Verify the first license was ingested correctly
+        self.assertEqual(1, len(provider_data_after_first_license['licenses']))
+        self.assertEqual('cosmetologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_first_license['givenName'])
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Same license type as OH, but KY upload with a newer issuance date → new “home” license jurisdiction for type
+        message['detail'].update(
+            {
+                'licenseType': 'cosmetologist',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2020-06-06',
+                'licenseNumber': 'B0608337260',
+                'givenName': 'Audrey',
+            }
+        )
+
+        mock_put_events = MagicMock(return_value={'FailedEntryCount': 0, 'Entries': [{'EventId': 'evt-1'}]})
+        # Patch the EventBridge client bound on this lambda's config (setUp replaces the global singleton each test).
+        with patch.object(ingest_handler.config.events_client, 'put_events', mock_put_events):
+            event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+            resp = ingest_license_message(event, self.mock_context)
+            self.assertEqual({'batchItemFailures': []}, resp)
+
+        mock_put_events.assert_called_once()
+        entries = mock_put_events.call_args.kwargs['Entries']
+        self.assertEqual(1, len(entries))
+        home_change_entry = entries[0]
+        self.assertEqual(
+            {
+                'Detail': json.dumps({
+                    "compact": "cosm", 
+                "jurisdiction": "ky", 
+                "eventTime": "2024-11-08T23:59:59+00:00", 
+                "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570", 
+                "licenseType": "cosmetologist", 
+                "formerHomeJurisdiction": "oh"}),
+                'DetailType': 'provider.homeStateChange',
+                'EventBusName': 'license-data-events',
+                'Source': 'org.compactconnect.provider-data',
+            },
+            home_change_entry,
+        )
+
+        provider_data = self._get_provider_via_api(provider_id)
+
+        self.assertEqual(2, len(provider_data['licenses']))
+        oh_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'oh'), None)
+        ky_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'ky'), None)
+
+        # Verify both licenses exist
+        self.assertIsNotNone(oh_license, 'Ohio license not found')
+        self.assertIsNotNone(ky_license, 'Kentucky license not found')
+
+        # Verify license details
+        self.assertEqual('cosmetologist', oh_license['licenseType'])
+        self.assertEqual('A0608337260', oh_license['licenseNumber'])
+        self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
+        self.assertEqual('Björk', oh_license['givenName'])
+
+        self.assertEqual('cosmetologist', ky_license['licenseType'])
+        self.assertEqual('B0608337260', ky_license['licenseNumber'])
+        self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
+        self.assertEqual('Audrey', ky_license['givenName'])
+
+        self.assertEqual('ky', provider_data['licenseJurisdiction'])
+        self.assertEqual('Audrey', provider_data['givenName'])

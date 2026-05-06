@@ -11,7 +11,7 @@ from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import sqs_handler
 
 license_schema = LicenseIngestSchema()
@@ -117,6 +117,7 @@ def ingest_license_message(message: dict):
 
             dynamo_transactions = []
 
+            current_best_license_for_posted_license_type = None
             try:
                 provider_data = config.data_client.get_provider(
                     compact=compact,
@@ -125,10 +126,18 @@ def ingest_license_message(message: dict):
                     consistent_read=True,
                 )
                 provider_records = provider_data['items']
+
                 license_records = ProviderRecordUtility.get_records_of_type(
                     provider_records,
                     ProviderRecordType.LICENSE,
                 )
+                # Best existing license for this license type (none yet if this is the first upload of this type)
+                try:
+                    current_best_license_for_posted_license_type = ProviderRecordUtility.find_best_license(
+                        license_records=license_records, license_type=posted_license_record.get('licenseType')
+                    )
+                except CCInternalException:
+                    current_best_license_for_posted_license_type = None
                 licenses_organized = {}
                 for record in license_records:
                     licenses_organized.setdefault(record['jurisdiction'], {})
@@ -206,6 +215,34 @@ def ingest_license_message(message: dict):
 
             # Write the records together as a transaction that succeeds or fails as one, to ensure consistency
             config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
+
+            # If this posted license is the new best license for the provider for the posted license type,
+            # and it's from a different jurisdiction, send a home jurisdiction change notification event
+            # to notify the former home jurisdiction.
+            best_license_after_upload_for_posted_license_type = ProviderRecordUtility.find_best_license(
+                license_records=licenses_flattened, license_type=posted_license_record.get('licenseType')
+            )
+
+            if (
+                current_best_license_for_posted_license_type is not None
+                and best_license_after_upload_for_posted_license_type.get('jurisdiction')
+                != current_best_license_for_posted_license_type.get('jurisdiction')
+            ):
+                logger.info(
+                    'New home state license detected. Sending home state change notification.',
+                    previous_home_jurisdiction=current_best_license_for_posted_license_type.get('jurisdiction'),
+                    new_home_jurisdiction=best_license_after_upload_for_posted_license_type.get('jurisdiction'),
+                )
+                home_jurisdiction_change_event = config.event_bus_client.generate_home_jurisdiction_change_event(
+                    source='org.compactconnect.provider-data',
+                    compact=best_license_after_upload_for_posted_license_type['compact'],
+                    jurisdiction=best_license_after_upload_for_posted_license_type['jurisdiction'],
+                    provider_id=best_license_after_upload_for_posted_license_type['providerId'],
+                    license_type=best_license_after_upload_for_posted_license_type['licenseType'],
+                    former_home_jurisdiction=current_best_license_for_posted_license_type.get('jurisdiction'),
+                )
+                data_events.append(home_jurisdiction_change_event)
+
             # We'll save our events until after the transaction is written, to ensure consistency
             with EventBatchWriter(config.events_client) as event_writer:
                 for event in data_events:

@@ -44,8 +44,7 @@ class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
     rollbackExecutionName = String(required=True, allow_none=False)
 
 
-class HomeStateChangeEventDetailSchema(DataEventDetailBaseSchema):
+class HomeJurisdictionChangeEventDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
-    licenseTypeAbbreviation = String(required=True, allow_none=False)
-    formerLicenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-
+    licenseType = String(required=True, allow_none=False)
+    formerHomeJurisdiction = Jurisdiction(required=True, allow_none=False)

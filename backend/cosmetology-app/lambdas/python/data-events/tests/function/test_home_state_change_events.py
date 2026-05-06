@@ -1,21 +1,21 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from common_test.test_constants import (
     DEFAULT_COMPACT,
     DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
     DEFAULT_LICENSE_JURISDICTION,
-    DEFAULT_LICENSE_TYPE_ABBREVIATION,
-    DEFAULT_PRIVILEGE_JURISDICTION,
-    DEFAULT_PROVIDER_ID, DEFAULT_LICENSE_TYPE,
+    DEFAULT_LICENSE_TYPE,
+    DEFAULT_PROVIDER_ID,
 )
 from moto import mock_aws
 
 from . import TstFunction
 
 TEST_FORMER_LICENSE_JURISDICTION = 'az'
+
 
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
@@ -29,9 +29,9 @@ class TestHomeStateChangeEvents(TstFunction):
                 'compact': DEFAULT_COMPACT,
                 'providerId': DEFAULT_PROVIDER_ID,
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
-                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
-                'formerLicenseJurisdiction': TEST_FORMER_LICENSE_JURISDICTION
+                'formerHomeJurisdiction': TEST_FORMER_LICENSE_JURISDICTION,
             }
         }
         if message_overrides:
@@ -52,9 +52,9 @@ class TestHomeStateChangeEvents(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table()
 
         # Add the license for the former home state
-        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
-            'jurisdiction': TEST_FORMER_LICENSE_JURISDICTION
-        })
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={'jurisdiction': TEST_FORMER_LICENSE_JURISDICTION}
+        )
         # Add license for the current home state
         self.test_data_generator.put_default_license_record_in_provider_table()
 
