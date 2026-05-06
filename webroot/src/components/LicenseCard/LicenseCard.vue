@@ -80,7 +80,13 @@
         </div>
         <div class="license-heading-row">
             <div class="license-type-abbrev">{{licenseTypeAbbrev}}</div>
-            <div class="license-status-description" ref="statusDescription">{{statusDescriptionDisplay}}</div>
+            <div
+                v-if="!isPublicSearch"
+                class="license-status-description"
+                ref="statusDescription"
+            >
+                {{statusDescriptionDisplay}}
+            </div>
         </div>
         <div class="license-info-grid">
            <div class="info-item-container">
@@ -91,23 +97,25 @@
                 <div class="info-item-title">{{$t('licensing.licenseNumSymbol')}}</div>
                 <div class="info-item rr-block">{{licenseNumber}}</div>
             </div>
-            <div class="info-item-container">
+            <div v-if="!isPublicSearch" class="info-item-container">
                 <div class="info-item-title">{{ $t('licensing.disciplineStatus') }}</div>
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
         </div>
-        <div v-if="isCompactEligible" class="license-eligibility-container">
-            <div class="eligibility-icon-container eligible">
-                <CheckCircleIcon class="eligibility-icon" />
+        <template v-if="!isPublicSearch">
+            <div v-if="isCompactEligible" class="license-eligibility-container">
+                <div class="eligibility-icon-container eligible">
+                    <CheckCircleIcon class="eligibility-icon" />
+                </div>
+                {{ $t('licensing.compactEligible') }}
             </div>
-            {{ $t('licensing.compactEligible') }}
-        </div>
-        <div v-else class="license-eligibility-container" :class="{ 'inactive': !isActive }">
-            <div class="eligibility-icon-container not-eligible">
-                <CloseXIcon class="eligibility-icon" />
+            <div v-else class="license-eligibility-container" :class="{ 'inactive': !isActive }">
+                <div class="eligibility-icon-container not-eligible">
+                    <CloseXIcon class="eligibility-icon" />
+                </div>
+                {{ $t('licensing.notCompactEligible') }}
             </div>
-            {{ $t('licensing.notCompactEligible') }}
-        </div>
+        </template>
         <TransitionGroup>
             <Modal
                 v-if="isEncumberLicenseModalDisplayed"

@@ -35,6 +35,31 @@
                     </div>
                 </div>
             </div>
+            <div v-if="isAppModeCosmetology" class="license-section">
+                <div class="title-row">
+                    <div class="title-info">
+                        <div class="license-logo-container">
+                            <LicenseIcon />
+                        </div>
+                        <div class="title-text">{{ this.$t('licensing.licenseDetails') }}</div>
+                    </div>
+                    <CollapseCaretButton @toggleCollapse="toggleLicensesCollapsed" />
+                </div>
+                <div v-if="!isLicensesCollapsed" class="license-card-list-container">
+                    <div
+                        v-for="(license, index) in licenseeLicenses"
+                        :key="'license'+index"
+                        class="no-touch-item license-chunk"
+                    >
+                        <LicenseCard
+                            :license="license"
+                            :licensee="licensee"
+                            :homeState="homeState"
+                            :isPublicSearch="true"
+                        />
+                    </div>
+                </div>
+            </div>
             <div class="privilege-section">
                 <div class="title-row">
                     <div class="title-info">

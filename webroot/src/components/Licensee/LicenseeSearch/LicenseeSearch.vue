@@ -117,7 +117,7 @@
                     class="search-input military-status-select"
                 />
             </div>
-            <div class="search-form-row">
+            <div v-if="isAppModeJcc" class="search-form-row">
                 <InputSelect
                     :formInput="formData.investigationStatus"
                     class="search-input investigation-status-select"

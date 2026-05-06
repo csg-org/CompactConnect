@@ -83,10 +83,15 @@ export default class LicensingDetail extends Vue {
     }
 
     get hasLoggedInReadSsnAccessForLicensee(): boolean {
-        const { compact, loggedInUser, licenseeStates } = this;
+        const {
+            compact,
+            loggedInUser,
+            isAppModeCosmetology,
+            licenseeStates
+        } = this;
         let hasLoggedInReadSsnAccess = false;
 
-        if (compact && loggedInUser) {
+        if (compact && loggedInUser && !isAppModeCosmetology) {
             hasLoggedInReadSsnAccess = licenseeStates.some((state) => loggedInUser.hasPermission(
                 Permission.READ_SSN,
                 this.compact as CompactType,
