@@ -239,3 +239,17 @@ class NotificationStack(AppStack):
             data_event_bus=data_event_bus,
             event_state_stack=event_state_stack,
         )
+
+    def _add_provider_home_state_change_notification_listener(
+        self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus, event_state_stack: ess.EventStateStack
+    ):
+        """Add the provider home state change listener lambda, queues, and event rules."""
+        self._add_emailer_event_listener(
+            construct_id_prefix='ProviderHomeStateChangeNotificationListener',
+            index='home_state_change_events.py',
+            handler='home_state_change_notification_listener',
+            listener_detail_type='provider.homeStateChange',
+            persistent_stack=persistent_stack,
+            data_event_bus=data_event_bus,
+            event_state_stack=event_state_stack,
+        )

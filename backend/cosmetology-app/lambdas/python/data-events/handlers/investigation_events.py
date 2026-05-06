@@ -19,27 +19,6 @@ class JurisdictionNotificationMethod(Protocol):
     ) -> dict[str, Any]: ...
 
 
-def _get_provider_records(compact: str, provider_id: str) -> tuple[ProviderUserRecords, ProviderData]:
-    """
-    Retrieve and validate provider records for notification processing.
-
-    :param compact: The compact identifier
-    :param provider_id: The provider ID
-    :return: Tuple of (provider_records, provider_record)
-    :raises Exception: If provider records cannot be retrieved
-    """
-    try:
-        provider_records = config.data_client.get_provider_user_records(
-            compact=compact,
-            provider_id=provider_id,
-        )
-        provider_record = provider_records.get_provider_record()
-        return provider_records, provider_record
-    except Exception as e:
-        logger.error('Failed to retrieve provider records for notification', exception=str(e))
-        raise
-
-
 def _send_primary_state_notification(
     notification_method: JurisdictionNotificationMethod,
     notification_type: str,
@@ -164,8 +143,8 @@ def license_investigation_notification_listener(message: dict):
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
-        # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records(compact, provider_id)
+        # Get top level provider record to gather provider information
+        provider_record = config.data_client.get_provider_top_level_record(compact=compact, provider_id=provider_id)
 
         # State Notifications
         # Note: We do NOT send notifications to providers for investigations
@@ -231,8 +210,8 @@ def license_investigation_closed_notification_listener(message: dict):
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
-        # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records(compact, provider_id)
+        # Get top level provider record to gather provider information
+        provider_record = config.data_client.get_provider_top_level_record(compact=compact, provider_id=provider_id)
 
         # State Notifications
         # Note: We do NOT send notifications to providers for investigations
@@ -292,8 +271,8 @@ def privilege_investigation_notification_listener(message: dict):
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
-        # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records(compact, provider_id)
+        # Get top level provider record to gather provider information
+        provider_record = config.data_client.get_provider_top_level_record(compact=compact, provider_id=provider_id)
 
         # State Notifications
         # Note: We do NOT send notifications to providers for investigations
@@ -359,11 +338,10 @@ def privilege_investigation_closed_notification_listener(message: dict):
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
 
-        # Get provider records to gather notification targets and provider information
-        provider_records, provider_record = _get_provider_records(compact, provider_id)
+        # Get top level provider record to gather provider information
+        provider_record = config.data_client.get_provider_top_level_record(compact=compact, provider_id=provider_id)
 
         # State Notifications
-        # Note: We do NOT send notifications to providers for investigations
         # Send notification to the state where the privilege investigation was closed
         _send_primary_state_notification(
             config.email_service_client.send_privilege_investigation_closed_state_notification_email,

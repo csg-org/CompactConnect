@@ -42,3 +42,10 @@ class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
     startTime = AwareDateTime(required=True, allow_none=False)
     endTime = AwareDateTime(required=True, allow_none=False)
     rollbackExecutionName = String(required=True, allow_none=False)
+
+
+class HomeStateChangeEventDetailSchema(DataEventDetailBaseSchema):
+    providerId = UUID(required=True, allow_none=False)
+    licenseTypeAbbreviation = String(required=True, allow_none=False)
+    formerLicenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+
