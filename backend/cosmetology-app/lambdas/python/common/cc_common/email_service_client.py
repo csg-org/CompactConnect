@@ -38,7 +38,7 @@ class InvestigationNotificationTemplateVariables:
 
 
 @dataclass
-class HomeStateChangeNotificationTemplateVariables:
+class HomeJurisdictionChangeNotificationTemplateVariables:
     """
     Template variables for license home state change notification emails.
     """
@@ -378,7 +378,7 @@ class EmailServiceClient:
         *,
         compact: str,
         jurisdiction: str,
-        template_variables: HomeStateChangeNotificationTemplateVariables,
+        template_variables: HomeJurisdictionChangeNotificationTemplateVariables,
     ) -> dict[str, str]:
         """
         Send a license home state change notification email to a state.
@@ -394,14 +394,14 @@ class EmailServiceClient:
         payload = {
             'compact': compact,
             'jurisdiction': jurisdiction,
-            'template': 'HomeStateChangeNotification',
+            'template': 'homeJurisdictionChangeNotification',
             'recipientType': 'JURISDICTION_OPERATIONS_TEAM',
             'templateVariables': {
                 'providerFirstName': template_variables.provider_first_name,
                 'providerLastName': template_variables.provider_last_name,
                 'providerId': str(template_variables.provider_id),
-                'formerJurisdiction': template_variables.former_jurisdiction,
-                'currentJurisdiction': template_variables.current_jurisdiction,
+                'previousJurisdiction': template_variables.former_jurisdiction,
+                'newJurisdiction': template_variables.current_jurisdiction,
                 'licenseType': template_variables.license_type,
             },
         }

@@ -1,6 +1,6 @@
 from cc_common.config import config, logger
 from cc_common.data_model.schema.data_event.api import HomeStateChangeEventDetailSchema
-from cc_common.email_service_client import HomeStateChangeNotificationTemplateVariables
+from cc_common.email_service_client import HomeJurisdictionChangeNotificationTemplateVariables
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler
 
@@ -33,7 +33,7 @@ def home_state_change_notification_listener(message: dict):
             license_type_abbreviation=license_type_abbreviation,
             event_time=event_time,
     ):
-        logger.info('Processing license investigation event')
+        logger.info('Processing provider home state change event')
 
         # Get license type name from abbreviation (lookup once at the top)
         license_type_name = LicenseUtility.get_license_type_by_abbreviation(compact, license_type_abbreviation).name
@@ -44,8 +44,9 @@ def home_state_change_notification_listener(message: dict):
         # Send notification to former state
         config.email_service_client.send_provider_home_state_change_email(
             compact = compact,
-            jurisdiction = jurisdiction,
-            template_variables = HomeStateChangeNotificationTemplateVariables(
+            # in the case of cosmetology, we only send the email notification to the former state.
+            jurisdiction = former_license_jurisdiction,
+            template_variables = HomeJurisdictionChangeNotificationTemplateVariables(
                 provider_first_name=provider_record.givenName,
                 provider_last_name=provider_record.familyName,
                 former_jurisdiction=former_license_jurisdiction,

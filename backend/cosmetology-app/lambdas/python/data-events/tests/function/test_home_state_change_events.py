@@ -45,7 +45,7 @@ class TestHomeStateChangeEvents(TstFunction):
     @patch('cc_common.email_service_client.EmailServiceClient.send_provider_home_state_change_email')
     def test_license_homes_state_change_listener_sends_notification_to_former_state(self, mock_state_email):
         """Test that license home state change listener sends an email notification to the former state."""
-        from cc_common.email_service_client import HomeStateChangeNotificationTemplateVariables
+        from cc_common.email_service_client import HomeJurisdictionChangeNotificationTemplateVariables
         from handlers.home_state_change_events import home_state_change_notification_listener
 
         # Set up test data with registered provider
@@ -67,7 +67,7 @@ class TestHomeStateChangeEvents(TstFunction):
         # Should succeed with no batch failures
         self.assertEqual({'batchItemFailures': []}, result)
 
-        expected_template_variables = HomeStateChangeNotificationTemplateVariables(
+        expected_template_variables = HomeJurisdictionChangeNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             former_jurisdiction=TEST_FORMER_LICENSE_JURISDICTION,
@@ -78,7 +78,8 @@ class TestHomeStateChangeEvents(TstFunction):
         expected_state_call = [
             {
                 'compact': DEFAULT_COMPACT,
-                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                # we only send to the former home state
+                'jurisdiction': TEST_FORMER_LICENSE_JURISDICTION,
                 'template_variables': expected_template_variables,
             },
         ]
