@@ -1082,7 +1082,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_HOME_JURISDICTION_CHANGE_NEW_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'homeJurisdictionChangeNotification',
             recipientType: 'JURISDICTION_OPERATIONS_TEAM',
-            compact: 'aslp',
+            compact: 'cosm',
             jurisdiction: 'tx',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1092,6 +1092,69 @@ describe('EmailNotificationServiceLambda', () => {
                 newJurisdiction: 'oh'
             }
         };
+
+        it('should successfully send home jurisdiction change notification email', async () => {
+            const mockTxJurisdictionConfig = {
+                'pk': { S: 'cosm#CONFIGURATION' },
+                'sk': { S: 'cosm#JURISDICTION#tx' },
+                'jurisdictionName': { S: 'Texas' },
+                'jurisdictionOperationsTeamEmails': { L: [{ S: 'tx-ops@example.com' }] },
+                'type': { S: 'jurisdiction' }
+            };
+
+            mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+                const sk = input.Key.sk.S;
+                if (sk === 'cosm#JURISDICTION#tx') {
+                    return Promise.resolve({ Item: mockTxJurisdictionConfig });
+                }
+                if (sk === 'cosm#CONFIGURATION') {
+                    return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
+                }
+                return Promise.resolve({});
+            });
+
+            const response = await lambda.handler(
+                SAMPLE_HOME_JURISDICTION_CHANGE_NEW_STATE_NOTIFICATION_EVENT,
+                {} as any
+            );
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            expect(mockDynamoDBClient).toHaveReceivedCommand(GetItemCommand);
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['tx-ops@example.com']
+                },
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Practitioner Home State Change - Audiology and Speech Language Pathology'
+                        }
+                    }
+                },
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
+            });
+
+            const emailCall = mockSESClient.commandCalls(SendEmailCommand)[0];
+            const htmlContent = emailCall.args[0].input.Content?.Simple?.Body?.Html?.Data;
+
+            expect(htmlContent).toBeDefined();
+            expect(htmlContent).toContain(
+                'This is to notify you that John Doe has changed their home state from TX to OH.'
+            );
+            expect(htmlContent).toContain(
+                'https://app.test.compactconnect.org/cosm/Licensing/provider-123'
+            );
+        });
 
         it('should throw error when required template variables are missing', async () => {
             const eventWithMissingVariables: EmailNotificationEvent = {
