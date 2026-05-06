@@ -1098,12 +1098,13 @@ describe('EmailNotificationServiceLambda', () => {
                 'pk': { S: 'cosm#CONFIGURATION' },
                 'sk': { S: 'cosm#JURISDICTION#tx' },
                 'jurisdictionName': { S: 'Texas' },
-                'jurisdictionOperationsTeamEmails': { L: [{ S: 'tx-ops@example.com' }] },
+                'jurisdictionOperationsTeamEmails': { L: [{ S: 'tx-ops@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
                 const sk = input.Key.sk.S;
+
                 if (sk === 'cosm#JURISDICTION#tx') {
                     return Promise.resolve({ Item: mockTxJurisdictionConfig });
                 }
