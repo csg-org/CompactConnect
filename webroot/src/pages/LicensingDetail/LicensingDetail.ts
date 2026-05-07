@@ -346,8 +346,8 @@ export default class LicensingDetail extends Vue {
     }
 
     sortByDisciplineStart(action1: AdverseAction, action2: AdverseAction): number {
-        const startDate1 = action1.startDateDisplay();
-        const startDate2 = action2.startDateDisplay();
+        const startDate1 = action1.startDate || '';
+        const startDate2 = action2.startDate || '';
         let sort = 0;
 
         if (startDate1 < startDate2) {
