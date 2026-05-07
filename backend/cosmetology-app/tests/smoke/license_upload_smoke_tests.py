@@ -118,12 +118,11 @@ def _wait_for_home_state_change_event(provider_id: str, max_wait_seconds: int = 
         response = data_events_table.query(
             KeyConditionExpression=Key('pk').eq(event_pk)
             & Key('sk').begins_with('TYPE#provider.homeStateChange#TIME#'),
+            FilterExpression='providerId = :provider_id',
+            ExpressionAttributeValues={':provider_id': provider_id},
             ConsistentRead=True,
         )
-        matching_event = next(
-            (item for item in response.get('Items', []) if item.get('providerId') == provider_id),
-            None,
-        )
+        matching_event = next(iter(response.get('Items', [])), None)
         if matching_event:
             logger.info(f'Found provider.homeStateChange data event for provider {provider_id}')
             return matching_event
@@ -138,14 +137,18 @@ def _wait_for_home_state_change_event(provider_id: str, max_wait_seconds: int = 
     return None
 
 
-def _query_license_ingest_events_for_jurisdiction(jurisdiction: str, start_time: datetime, end_time: datetime):
+def _query_license_ingest_events_for_jurisdiction(
+    jurisdiction: str, provider_id: str, start_time: datetime, end_time: datetime
+):
     data_events_table = get_data_events_dynamodb_table()
     return data_events_table.query(
         KeyConditionExpression='pk = :pk AND sk BETWEEN :start_time AND :end_time',
+        FilterExpression='providerId = :provider_id',
         ExpressionAttributeValues={
             ':pk': f'COMPACT#{COMPACT}#JURISDICTION#{jurisdiction}',
             ':start_time': f'TYPE#license.ingest#TIME#{int(start_time.timestamp())}',
             ':end_time': f'TYPE#license.ingest#TIME#{int(end_time.timestamp())}',
+            ':provider_id': provider_id,
         },
         ConsistentRead=True,
     )
@@ -257,10 +260,16 @@ def test_home_state_change_notification(staff_headers: dict, client_id: str, cli
             logger.info('cleaning up test provider records', provider_id=provider_id)
             end_time = datetime.now(tz=UTC)
             az_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
-                jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION, start_time=start_time, end_time=end_time
+                jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
+                provider_id=provider_id,
+                start_time=start_time,
+                end_time=end_time,
             )
             oh_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
-                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION, start_time=start_time, end_time=end_time
+                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+                provider_id=provider_id,
+                start_time=start_time,
+                end_time=end_time,
             )
             home_state_change_events = _query_home_state_change_events_for_provider(provider_id)
             _cleanup_home_state_change_generated_records(
