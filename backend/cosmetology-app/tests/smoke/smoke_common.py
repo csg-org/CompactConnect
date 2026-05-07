@@ -360,7 +360,13 @@ def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, f
 
 
 def wait_for_provider_creation(
-    staff_headers: dict, compact: str, given_name: str, family_name: str, max_wait_time: int = 300
+    staff_headers: dict,
+    compact: str,
+    given_name: str,
+    family_name: str,
+    max_wait_time: int = 300,
+    staff_user_email: str | None = None,
+    poll_interval_seconds: int = 30,
 ):
     """Poll for provider creation after license upload.
 
@@ -369,6 +375,8 @@ def wait_for_provider_creation(
     :param given_name: Provider's given name
     :param family_name: Provider's family name
     :param max_wait_time: Maximum time to wait in seconds (default: 300 = 5 minutes)
+    :param staff_user_email: Optional staff email; if provided, refresh auth headers on every poll attempt
+    :param poll_interval_seconds: Poll interval in seconds (default: 30)
     :return: The provider ID when found
     :raises SmokeTestFailureException: If provider not found within max_wait_time
     """
@@ -377,14 +385,14 @@ def wait_for_provider_creation(
     logger.info(f'Waiting for provider creation for {given_name} {family_name}...')
 
     start_time = time.time()
-    check_interval = 30  # Check every 30 seconds
     attempts = 0
-    max_attempts = max_wait_time // check_interval
+    max_attempts = max_wait_time // poll_interval_seconds
 
     while attempts < max_attempts:
         attempts += 1
 
-        provider_id = query_provider_by_name(staff_headers, compact, given_name, family_name)
+        headers = get_staff_user_auth_headers(staff_user_email) if staff_user_email else staff_headers
+        provider_id = query_provider_by_name(headers, compact, given_name, family_name)
         if provider_id:
             elapsed_time = time.time() - start_time
             logger.info(f'✅ Provider found after {elapsed_time:.1f} seconds. Provider ID: {provider_id}')
@@ -392,9 +400,9 @@ def wait_for_provider_creation(
 
         if attempts < max_attempts:
             logger.info(
-                f'Attempt {attempts}/{max_attempts}: Provider not found yet. Waiting {check_interval} seconds...'
+                f'Attempt {attempts}/{max_attempts}: Provider not found yet. Waiting {poll_interval_seconds} seconds...'
             )
-            time.sleep(check_interval)
+            time.sleep(poll_interval_seconds)
 
     elapsed_time = time.time() - start_time
     raise SmokeTestFailureException(
@@ -427,19 +435,33 @@ def cleanup_test_provider_records(provider_id: str, compact: str):
         logger.warning(f'Error during cleanup: {str(e)}')
 
 
-def create_test_app_client(client_name: str, compact: str, jurisdiction: str):
+def create_test_app_client(
+    client_name: str,
+    compact: str,
+    jurisdiction: str | None = None,
+    jurisdictions: list[str] | None = None,
+):
     """
     Create a test app client in Cognito for authentication testing.
 
     :param client_name: Name for the test app client
     :param compact: Compact abbreviation
-    :param jurisdiction: Jurisdiction abbreviation
+    :param jurisdiction: Jurisdiction abbreviation (backward-compatible single value)
+    :param jurisdictions: Optional list of jurisdiction abbreviations for write scopes
     :return: Dictionary containing client_id and client_secret
     """
     logger.info(f'Creating test app client: {client_name}')
 
     try:
         cognito_client = boto3.client('cognito-idp')
+        jurisdiction_list = jurisdictions if jurisdictions else ([jurisdiction] if jurisdiction else [])
+        if not jurisdiction_list:
+            raise SmokeTestFailureException('At least one jurisdiction is required to create a test app client')
+
+        allowed_scopes = [
+            f'{compact}/readGeneral',
+            *[f'{jurisdiction}/{compact}.write' for jurisdiction in jurisdiction_list],
+        ]
 
         # Create the user pool client
         response = cognito_client.create_user_pool_client(
@@ -451,7 +473,7 @@ def create_test_app_client(client_name: str, compact: str, jurisdiction: str):
             AccessTokenValidity=15,
             AllowedOAuthFlowsUserPoolClient=True,
             AllowedOAuthFlows=['client_credentials'],
-            AllowedOAuthScopes=[f'{compact}/readGeneral', f'{jurisdiction}/{compact}.write'],
+            AllowedOAuthScopes=allowed_scopes,
         )
 
         user_pool_client = response.get('UserPoolClient', {})
