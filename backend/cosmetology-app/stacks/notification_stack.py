@@ -248,7 +248,7 @@ class NotificationStack(AppStack):
     ):
         """Add the provider home state change listener lambda, queues, and event rules."""
         self._add_emailer_event_listener(
-            construct_id_prefix='ProviderhomeJurisdictionChangeNotificationListener',
+            construct_id_prefix='ProviderHomeJurisdictionChangeNotificationListener',
             index='home_state_change_events.py',
             handler='home_state_change_notification_listener',
             listener_detail_type='provider.homeStateChange',
