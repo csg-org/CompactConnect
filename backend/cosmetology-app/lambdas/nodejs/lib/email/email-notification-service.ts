@@ -12,14 +12,8 @@ export class EmailNotificationService extends BaseEmailService {
     private async getJurisdictionRecipients(
         compact: string,
         jurisdiction: string,
-        recipientType: RecipientType,
-        specificEmails?: string[]
+        recipientType: RecipientType
     ): Promise<string[]> {
-        if (recipientType === 'SPECIFIC') {
-            if (specificEmails) return specificEmails;
-
-            throw new Error(`SPECIFIC recipientType requested but no specific email addresses provided`);
-        }
 
         const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
 
