@@ -12,7 +12,8 @@ import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import MilitaryAffiliationInfoBlock from '@components/MilitaryAffiliationInfoBlock/MilitaryAffiliationInfoBlock.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
-import AlertIcon from '@components/Icons/AlertTriangle/AlertTriangle.vue';
+import AlertTriangleIcon from '@components/Icons/AlertTriangle/AlertTriangle.vue';
+import AlertCircleIcon from '@components/Icons/AlertCircle/AlertCircle.vue';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
 import ExpirationExplanationIcon from '@components/Icons/ExpirationExplanationIcon/ExpirationExplanationIcon.vue';
 import { CompactType } from '@models/Compact/Compact.model';
@@ -20,6 +21,7 @@ import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { State } from '@models/State/State.model';
+import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { dataApi } from '@network/data.api';
 
 @Component({
@@ -29,7 +31,8 @@ import { dataApi } from '@network/data.api';
         LicenseCard,
         PrivilegeCard,
         CollapseCaretButton,
-        AlertIcon,
+        AlertTriangleIcon,
+        AlertCircleIcon,
         LicenseIcon,
         MilitaryAffiliationInfoBlock,
         ExpirationExplanationIcon
@@ -42,6 +45,7 @@ export default class LicensingDetail extends Vue {
     isPersonalInfoCollapsed = false;
     isLicensesCollapsed = false;
     isPrivsCollapsed = false;
+    isDisciplineCollapsed = false;
     licenseeFullSsnLoading = false;
     licenseeFullSsn = '';
     licenseeFullSsnError = '';
@@ -236,6 +240,10 @@ export default class LicensingDetail extends Vue {
         return this.homeState?.name() || '';
     }
 
+    get licenseeDiscipline(): Array<AdverseAction> {
+        return (this.licensee?.adverseActions || []).slice().sort(this.sortDiscipline);
+    }
+
     //
     // Methods
     //
@@ -263,6 +271,10 @@ export default class LicensingDetail extends Vue {
 
     togglePrivsCollapsed(): void {
         this.isPrivsCollapsed = !this.isPrivsCollapsed;
+    }
+
+    toggleDisciplineCollapsed(): void {
+        this.isDisciplineCollapsed = !this.isDisciplineCollapsed;
     }
 
     sortingChange(): boolean {
@@ -312,6 +324,44 @@ export default class LicensingDetail extends Vue {
     sortByIssueState(license1: License, license2: License): number {
         const state1 = license1.issueState?.name().toLowerCase() || '';
         const state2 = license2.issueState?.name().toLowerCase() || '';
+        let sort = 0;
+
+        if (state1 < state2) {
+            sort = -1;
+        } else if (state1 > state2) {
+            sort = 1;
+        }
+
+        return sort;
+    }
+
+    sortDiscipline(action1: AdverseAction, action2: AdverseAction): number {
+        let sort = this.sortByDisciplineStart(action1, action2);
+
+        if (sort === 0) {
+            sort = this.sortByDisciplineState(action1, action2);
+        }
+
+        return sort;
+    }
+
+    sortByDisciplineStart(action1: AdverseAction, action2: AdverseAction): number {
+        const startDate1 = action1.startDateDisplay();
+        const startDate2 = action2.startDateDisplay();
+        let sort = 0;
+
+        if (startDate1 < startDate2) {
+            sort = -1;
+        } else if (startDate1 > startDate2) {
+            sort = 1;
+        }
+
+        return sort;
+    }
+
+    sortByDisciplineState(action1: AdverseAction, action2: AdverseAction): number {
+        const state1 = action1.state?.name().toLowerCase() || '';
+        const state2 = action2.state?.name().toLowerCase() || '';
         let sort = 0;
 
         if (state1 < state2) {

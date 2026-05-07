@@ -648,6 +648,7 @@
         "adminFee": "Tarifa Administrativa",
         "jurisdictionFee": "Tarifa Estatal",
         "jurisdictionFeeMilitary": "Tarifa Estatal (militar)",
+        "disciplineTitle": "Información disciplinaria",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Certifico que he completado con éxito un examen de jurisprudencia para este estado, si es necesario.",
         "scopeAttestTitle": "Alcance de la certificación de práctica",

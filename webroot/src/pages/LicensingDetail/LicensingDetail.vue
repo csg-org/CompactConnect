@@ -12,7 +12,7 @@
         </transition>
         <div class="licensee-detail-container">
             <div v-if="isLicenseeUnderInvestigation" class="licensee-alert">
-                <AlertIcon v-if="$matches.tablet.min" class="alert-icon" />
+                <AlertTriangleIcon v-if="$matches.tablet.min" class="alert-icon" />
                 {{ licenseeInvestigationAlertContent }}
             </div>
             <div class="licensee-header">
@@ -201,6 +201,63 @@
                             class="no-touch-item"
                         />
                     </template>
+                </div>
+            </div>
+            <div v-if="isAppModeCosmetology" class="discipline-section">
+                <div class="title-row">
+                    <div class="title-info">
+                        <div class="discipline-logo-container">
+                            <AlertCircleIcon class="alert-icon" />
+                        </div>
+                        <div class="title-text">{{ $t('licensing.disciplineTitle') }}</div>
+                    </div>
+                    <CollapseCaretButton @toggleCollapse="toggleDisciplineCollapsed" />
+                </div>
+                <div v-if="!isDisciplineCollapsed" class="discipline-list-container">
+                    <div v-if="!licenseeDiscipline.length" class="no-discipline">
+                        {{ $t('licensing.noDiscipline') }}
+                    </div>
+                    <div v-else class="discipline-list">
+                        <div v-if="$matches.tablet.min" class="discipline-row header">
+                            <div class="discipline-cell state">{{ $t('common.state') }}</div>
+                            <div class="discipline-cell start-date">{{ $t('common.startDate') }}</div>
+                            <div class="discipline-cell end-date">{{ $t('common.endDate') }}</div>
+                            <div class="discipline-cell action-type">{{ $t('licensing.encumberAction') }}</div>
+                            <div class="discipline-cell action-basis">{{ $t('licensing.encumberBasisLabel') }}</div>
+                        </div>
+                        <div v-for="(discipline, index) in licenseeDiscipline" :key="index" class="discipline-row">
+                            <div class="discipline-cell state">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('common.state') }}:
+                                </span>
+                                {{ discipline.state.name() }}
+                            </div>
+                            <div class="discipline-cell start-date">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('common.startDate') }}:
+                                </span>
+                                {{ discipline.startDateDisplay() }}
+                            </div>
+                            <div class="discipline-cell end-date">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('common.endDate') }}:
+                                </span>
+                                {{ discipline.endDateDisplay() }}
+                            </div>
+                            <div class="discipline-cell action-type">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('licensing.encumberAction') }}:
+                                </span>
+                                {{ discipline.encumbranceTypeName() }}
+                            </div>
+                            <div class="discipline-cell action-basis">
+                                <span v-if="$matches.phone.only" class="cell-title">
+                                    {{ $t('licensing.encumberBasisLabel') }}:
+                                </span>
+                                {{ discipline.npdbTypeNames().join('; ') }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

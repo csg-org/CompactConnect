@@ -156,6 +156,7 @@ describe('Staff User model', () => {
                         {
                             state: new State({ abbrev: 'co' }),
                             isReadPrivate: true,
+                            isReadSsn: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -166,9 +167,9 @@ describe('Staff User model', () => {
         const user = new StaffUser(data);
 
         expect(user).to.be.an.instanceof(StaffUser);
-        expect(user.permissionsShortDisplay(CompactType.ASLP)).to.equal('Read Private, Write, Admin');
+        expect(user.permissionsShortDisplay(CompactType.ASLP)).to.equal('Read Private, Read SSN, Write, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'Colorado: Read Private, Write, Admin',
+            'Colorado: Read Private, Read SSN, Write, Admin',
         ]);
         expect(user.affiliationDisplay(CompactType.ASLP)).to.equal('Colorado');
         expect(user.statesDisplay(CompactType.ASLP)).to.equal('Colorado');

@@ -47,6 +47,16 @@
                 width: 3.2rem;
                 height: 2.8rem;
             }
+
+            .alert-icon {
+                width: 3.2rem;
+                height: 2.8rem;
+                stroke: @fontColor;
+
+                &:deep(.custom-fill) {
+                    fill: @fontColor;
+                }
+            }
         }
 
         :deep(.collapse-caret-button) {
@@ -281,6 +291,87 @@
 
                 .break-wrap {
                     flex-basis: 100%;
+                }
+            }
+        }
+    }
+
+    .discipline-section {
+        margin: @spacingMobile;
+        padding-top: @spacingMobile;
+        padding-bottom: 4rem;
+        border-top: 1px solid @lightGrey;
+
+        @media @tabletWidth {
+            margin: @spacingMobile @spacingTablet;
+            padding-top: @spacingMobile;
+        }
+
+        @media @desktopWidth {
+            margin: @spacingMobile @spacingDesktop;
+            padding-top: @spacingMobile;
+        }
+
+        .discipline-list-container {
+            display: flex;
+            width: 100%;
+        }
+
+        .discipline-list {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+
+            .discipline-row {
+                display: flex;
+                flex-direction: column;
+                padding: 1.6rem 0;
+
+                &:not(:first-child) {
+                    border-top: 1px solid @lightGrey;
+                }
+
+                @media @tabletWidth {
+                    flex-direction: row;
+                }
+
+                &.header {
+                    font-weight: @fontWeightBold;
+                }
+            }
+
+            .discipline-cell {
+                display: flex;
+
+                @media @tabletWidth {
+                    align-items: center;
+                }
+
+                &.state {
+                    flex-basis: 18%;
+                }
+
+                &.start-date {
+                    flex-basis: 18%;
+                }
+
+                &.end-date {
+                    flex-basis: 18%;
+                }
+
+                &.action-type {
+                    flex-basis: 23%;
+                }
+
+                &.action-basis {
+                    flex-basis: 23%;
+                }
+
+                .cell-title {
+                    flex-shrink: 0;
+                    width: 14.4rem;
+                    padding-right: 0.4rem;
+                    font-weight: @fontWeightBold;
                 }
             }
         }
