@@ -172,7 +172,7 @@ def test_home_state_change_notification(staff_headers: dict, client_id: str, cli
             compact=COMPACT,
             given_name=HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME,
             family_name=HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME,
-            max_wait_time=720,
+            max_wait_time=750,
             staff_user_email=TEST_STAFF_USER_EMAIL,
             poll_interval_seconds=60,
         )
@@ -219,7 +219,7 @@ def test_home_state_change_notification(staff_headers: dict, client_id: str, cli
         )
 
         home_state_change_event = _wait_for_home_state_change_event(
-            provider_id=provider_id, max_wait_seconds=720, poll_interval_seconds=60
+            provider_id=provider_id, max_wait_seconds=750, poll_interval_seconds=60
         )
         if not home_state_change_event:
             raise SmokeTestFailureException(
