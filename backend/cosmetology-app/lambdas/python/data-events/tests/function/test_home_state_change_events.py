@@ -20,7 +20,7 @@ TEST_FORMER_LICENSE_JURISDICTION = 'az'
 @mock_aws
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestHomeStateChangeEvents(TstFunction):
-    """Test suite for investigation event handlers."""
+    """Test suite for home state change event handlers."""
 
     def _generate_license_home_state_change_message(self, message_overrides=None):
         """Generate a test SQS message for license home state change events."""
@@ -43,7 +43,7 @@ class TestHomeStateChangeEvents(TstFunction):
         return {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_provider_home_state_change_email')
-    def test_license_homes_state_change_listener_sends_notification_to_former_state(self, mock_state_email):
+    def test_license_home_state_change_listener_sends_notification_to_former_state(self, mock_state_email):
         """Test that license home state change listener sends an email notification to the former state."""
         from cc_common.email_service_client import HomeJurisdictionChangeNotificationTemplateVariables
         from handlers.home_state_change_events import home_state_change_notification_listener

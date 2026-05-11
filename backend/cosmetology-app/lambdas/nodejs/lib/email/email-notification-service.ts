@@ -55,7 +55,7 @@ export class EmailNotificationService extends BaseEmailService {
             'JURISDICTION_OPERATIONS_TEAM'
         );
 
-        if (recipients.length === 0) {
+        if (!recipients || recipients.length === 0) {
             throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
         }
 
