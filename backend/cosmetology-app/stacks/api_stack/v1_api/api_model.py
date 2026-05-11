@@ -1497,6 +1497,7 @@ class ApiModel:
                 'compact',
                 'licenseType',
                 'licenseNumber',
+                'licenseEligibility',
             ],
             properties={
                 'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
@@ -1511,6 +1512,11 @@ class ApiModel:
                     description='License type or profession designation for this license row',
                 ),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'licenseEligibility': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='Whether the license is eligible for compact participation in public search results',
+                    enum=['eligible', 'ineligible'],
+                ),
             },
         )
 
