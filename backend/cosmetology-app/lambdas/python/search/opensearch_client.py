@@ -362,6 +362,7 @@ class OpenSearchClient:
                     'providerFamGivMid': {'type': 'keyword'},
                     'providerDateOfUpdate': {'type': 'date'},
                     'birthMonthDay': {'type': 'keyword'},
+                    'adverseActions': {'type': 'nested', 'properties': adverse_action_properties},
                     'licenses': {'type': 'nested', 'properties': license_properties},
                     'privileges': {'type': 'nested', 'properties': privilege_properties},
                 }

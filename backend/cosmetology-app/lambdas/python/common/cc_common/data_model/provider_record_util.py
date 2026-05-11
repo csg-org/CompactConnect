@@ -590,9 +590,10 @@ class ProviderUserRecords:
         """
         Generate one OpenSearch document per license for this provider.
 
-        Each document contains the full provider-level fields, a single license in the `licenses`
-        array, and privileges only if that license is the home license for its type. This enables
-        1:1 mapping between OpenSearch documents and license records for native pagination.
+        Each document contains the full provider-level fields (including top-level `adverseActions`
+        for the provider), a single license in the `licenses` array, and privileges only if that license
+        is the home license for its type. This enables 1:1 mapping between OpenSearch documents and license
+        records for native pagination.
 
         Privileges are always included for home license documents — including when the license is
         ineligible — so that adverse actions and investigations remain linked to privilege records.
@@ -623,6 +624,8 @@ class ProviderUserRecords:
             home = sorted_licenses[0]
             home_licenses.add((home.jurisdiction.lower(), home.licenseType))
 
+        provider_level_adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
+
         documents = []
         for license_record in self._license_records:
             license_dict = license_record.to_dict()
@@ -647,6 +650,7 @@ class ProviderUserRecords:
             doc = dict(provider_dict)
             doc['licenses'] = [license_dict]
             doc['privileges'] = license_privileges
+            doc['adverseActions'] = provider_level_adverse_actions
             documents.append(doc)
 
         return documents

@@ -753,6 +753,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'type': 'privilege',
                         },
                     ],
+                    'adverseActions': [],
                     'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                     'ssnLastFour': '1234',
                     'type': 'provider',
@@ -866,6 +867,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'type': 'privilege',
                         },
                     ],
+                    'adverseActions': [],
                     'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                     'ssnLastFour': '1234',
                     'type': 'provider',
@@ -946,6 +948,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'type': 'privilege',
                         },
                     ],
+                    'adverseActions': [],
                     'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                     'ssnLastFour': '1234',
                     'type': 'provider',
@@ -1032,6 +1035,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     ],
                     'middleName': 'Gunnar',
                     'privileges': [],
+                    'adverseActions': [],
                     'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                     'ssnLastFour': '1234',
                     'type': 'provider',
@@ -1111,6 +1115,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'type': 'privilege',
                         },
                     ],
+                    'adverseActions': [],
                     'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                     'ssnLastFour': '1234',
                     'type': 'provider',
@@ -1184,6 +1189,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
 
         self.assertEqual(1, len(docs))
         self.assertEqual(1, len(docs[0]['licenses'][0]['adverseActions']))
+        self.assertEqual(1, len(docs[0]['adverseActions']))
 
     def test_no_licenses_returns_empty_list(self):
         """Provider with no license records produces an empty list."""

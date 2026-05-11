@@ -99,6 +99,7 @@ class TestPopulateProviderDocuments(TstFunction):
             'jurisdictionUploadedLicenseStatus': 'active',
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'birthMonthDay': '06-06',
+            'adverseActions': [],
             'documentId': f'{provider_id}#oh#{license_type}',
             'licenses': [
                 {
