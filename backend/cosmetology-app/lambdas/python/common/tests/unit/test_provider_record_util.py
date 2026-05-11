@@ -1160,7 +1160,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         self.assertGreater(len(esth_privs), 0)
 
     def test_license_adverse_actions_included(self):
-        """Each document includes adverse actions specific to its license."""
+        """Each document nests license-targeted adverse actions under that license and duplicates them at top level."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus
 
@@ -1190,6 +1190,43 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         self.assertEqual(1, len(docs))
         self.assertEqual(1, len(docs[0]['licenses'][0]['adverseActions']))
         self.assertEqual(1, len(docs[0]['adverseActions']))
+
+    def test_privilege_adverse_actions_included_in_top_level_adverse_actions(self):
+        """Privilege-targeted adverse actions are in top-level adverseActions (aggregated list)"""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+        from common_test.test_data_generator import TestDataGenerator
+
+        privilege_aa = TestDataGenerator.generate_default_adverse_action(
+            value_overrides={
+                'jurisdiction': 'al',
+                'licenseTypeAbbreviation': 'cos',
+                'licenseType': 'cosmetologist',
+                'actionAgainst': 'privilege',
+                'effectiveStartDate': date(2025, 5, 15),
+            }
+        )
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                }
+            ],
+            extra_records=[privilege_aa.serialize_to_database_record()],
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            all_aa = provider_user_records.get_adverse_action_records()
+            self.assertEqual(1, len(all_aa))
+            self.assertEqual('privilege', all_aa[0].actionAgainst)
+            docs = provider_user_records.generate_opensearch_documents()
+
+        self.assertEqual(1, len(docs))
+        self.assertEqual([], docs[0]['licenses'][0]['adverseActions'])
+        self.assertEqual([privilege_aa.to_dict()], docs[0]['adverseActions'])
 
     def test_no_licenses_returns_empty_list(self):
         """Provider with no license records produces an empty list."""

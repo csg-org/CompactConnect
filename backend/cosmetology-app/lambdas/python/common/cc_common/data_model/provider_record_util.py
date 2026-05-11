@@ -624,7 +624,7 @@ class ProviderUserRecords:
             home = sorted_licenses[0]
             home_licenses.add((home.jurisdiction.lower(), home.licenseType))
 
-        provider_level_adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
+        all_adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
 
         documents = []
         for license_record in self._license_records:
@@ -650,7 +650,7 @@ class ProviderUserRecords:
             doc = dict(provider_dict)
             doc['licenses'] = [license_dict]
             doc['privileges'] = license_privileges
-            doc['adverseActions'] = provider_level_adverse_actions
+            doc['adverseActions'] = all_adverse_actions
             documents.append(doc)
 
         return documents
