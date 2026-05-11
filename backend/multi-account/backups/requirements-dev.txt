@@ -23,18 +23,14 @@ idna==3.11
     # via requests
 iniconfig==2.3.0
     # via pytest
-jinja2==3.1.6
-    # via moto
 jmespath==1.1.0
     # via
     #   boto3
     #   botocore
 markupsafe==3.0.3
-    # via
-    #   jinja2
-    #   werkzeug
-moto==5.1.22
-    # via -r backups/requirements-dev.in
+    # via werkzeug
+moto==5.2.0
+    # via -r requirements-dev.in
 packaging==26.1
     # via pytest
 pluggy==1.6.0
@@ -44,11 +40,9 @@ pycparser==3.0
 pygments==2.20.0
     # via pytest
 pytest==9.0.3
-    # via -r backups/requirements-dev.in
+    # via -r requirements-dev.in
 python-dateutil==2.9.0.post0
-    # via
-    #   botocore
-    #   moto
+    # via botocore
 pyyaml==6.0.3
     # via responses
 requests==2.33.1
