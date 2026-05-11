@@ -1,4 +1,3 @@
-import copy
 import json
 from base64 import b64decode, b64encode
 
@@ -117,14 +116,14 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
             if not licenses:
                 logger.warning('OpenSearch hit has no licenses array', provider_id=provider_id)
                 continue
-            
+
             license_fields = licenses[0].copy()
             license_fields['providerId'] = source['providerId']
             license_fields['compact'] = source['compact']
             license_fields['givenName'] = source['givenName']
             license_fields['familyName'] = source['familyName']
             license_fields['licenseEligibility'] = _determine_license_eligibility(provider_source=source)
-            
+
             # home state is stored under the 'jurisdiction' field on the license record, but
             # the frontend expects this to be labeled 'licenseJurisdiction' for parity with other
             # public search response schemas.
