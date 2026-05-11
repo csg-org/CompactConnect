@@ -744,3 +744,61 @@ class TestIngest(TstFunction):
 
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
+
+
+    def test_multiple_license_types_different_jurisdictions_does_not_trigger_home_jurisdiction_change(
+        self,
+    ):
+        """
+        In this case, we have a practitioner with two existing license types in a jurisdiction. A new license is added
+        from jurisdiction that is more recent than the corresponding license type in the original jurisdiction, but not
+        the most recent license. The home state should be determined solely by the most recently issued/renewed license,
+        regardless of the license type.
+        """
+        import handlers.ingest as ingest_handler
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+        # add a new license type, 
+        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
+            "providerId": provider_id,
+            "licenseType": "esthetician",
+            "dateOfIssuance": date.fromisoformat("2024-05-06"),
+            "jurisdiction": "oh",
+        })
+        # update the original to later date
+        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
+            "providerId": provider_id,
+            "licenseType": "cosmetologist",
+            "jurisdiction": "oh",
+            "dateOfRenewal": date.fromisoformat("2026-06-06"),
+        })
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Same license type in KY, with a newer issuance date then the same license in OH, 
+        # but not the most recent renewal date. No new "home" license jurisdiction event should be issued.
+        message['detail'].update(
+            {
+                'licenseType': 'esthetician',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2025-06-06',
+                'licenseNumber': 'B0608337260',
+                'givenName': 'Audrey',
+            }
+        )
+
+        mock_put_events = MagicMock(return_value={'FailedEntryCount': 0, 'Entries': [{'EventId': 'evt-1'}]})
+        # Patch the EventBridge client bound on this lambda's config (setUp replaces the global singleton each test).
+        with patch.object(ingest_handler.config.events_client, 'put_events', mock_put_events):
+            event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+            resp = ingest_license_message(event, self.mock_context)
+            self.assertEqual({'batchItemFailures': []}, resp)
+
+        mock_put_events.assert_not_called()
+
+        # Verify provider record remains the same
+        provider_data = self._get_provider_via_api(provider_id)
+        self.assertEqual('oh', provider_data['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data['givenName'])
