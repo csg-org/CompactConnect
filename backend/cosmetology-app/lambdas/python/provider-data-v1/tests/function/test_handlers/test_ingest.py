@@ -745,7 +745,6 @@ class TestIngest(TstFunction):
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
 
-
     def test_multiple_license_types_different_jurisdictions_does_not_trigger_home_jurisdiction_change(
         self,
     ):
@@ -759,25 +758,29 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
-        # add a new license type, 
-        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
-            "providerId": provider_id,
-            "licenseType": "esthetician",
-            "dateOfIssuance": date.fromisoformat("2024-05-06"),
-            "jurisdiction": "oh",
-        })
+        # add a new license type,
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_id,
+                'licenseType': 'esthetician',
+                'dateOfIssuance': date.fromisoformat('2024-05-06'),
+                'jurisdiction': 'oh',
+            }
+        )
         # update the original to later date
-        self.test_data_generator.put_default_license_record_in_provider_table(value_overrides={
-            "providerId": provider_id,
-            "licenseType": "cosmetologist",
-            "jurisdiction": "oh",
-            "dateOfRenewal": date.fromisoformat("2026-06-06"),
-        })
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_id,
+                'licenseType': 'cosmetologist',
+                'jurisdiction': 'oh',
+                'dateOfRenewal': date.fromisoformat('2026-06-06'),
+            }
+        )
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Same license type in KY, with a newer issuance date then the same license in OH, 
+        # Same license type in KY, with a newer issuance date then the same license in OH,
         # but not the most recent renewal date. No new "home" license jurisdiction event should be issued.
         message['detail'].update(
             {

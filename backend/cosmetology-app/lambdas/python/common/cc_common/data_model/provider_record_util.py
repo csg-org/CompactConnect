@@ -90,9 +90,7 @@ class ProviderRecordUtility:
         return (effective_date, date_of_issuance)
 
     @classmethod
-    def find_most_recently_issued_or_renewed_license(
-        cls, license_records: Iterable[dict]
-    ) -> dict:
+    def find_most_recently_issued_or_renewed_license(cls, license_records: Iterable[dict]) -> dict:
         """
         This selects the license renewed or issued most recently. Sort by date of renewal
         if present, otherwise date of issuance; use date of issuance as tiebreaker. Compact

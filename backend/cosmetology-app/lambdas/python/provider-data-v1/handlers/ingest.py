@@ -11,7 +11,7 @@ from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCInternalException, CCNotFoundException
+from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
 
 license_schema = LicenseIngestSchema()
@@ -195,8 +195,10 @@ def ingest_license_message(message: dict):
                 # If this posted license is the most recent issued/renewed license for the provider,
                 # and it's from a different jurisdiction, send a home jurisdiction change notification event
                 # to notify the former home jurisdiction.
-                if (current_provider_record
-                    and current_provider_record.licenseJurisdiction != best_license['jurisdiction']):
+                if (
+                    current_provider_record
+                    and current_provider_record.licenseJurisdiction != best_license['jurisdiction']
+                ):
                     logger.info(
                         'New home state license detected. Sending home state change notification.',
                         previous_home_jurisdiction=current_provider_record.licenseJurisdiction,
