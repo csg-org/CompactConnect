@@ -35,10 +35,12 @@ def _generate_post_body(attestations_from_system, license_type):
 
 def test_purchase_privilege_options():
     """Test the GET /v1/purchases/privileges/options endpoint."""
+    original_provider_data = call_provider_users_me_endpoint()
+    compact = original_provider_data.get('compact')
     # First, ensure we have known configuration by calling the configuration tests
     # These will set up the configurations and return them for verification
-    compact_config = test_compact_configuration()
-    jurisdiction_config = test_jurisdiction_configuration()
+    compact_config = test_compact_configuration(compact=compact)
+    jurisdiction_config = test_jurisdiction_configuration(compact=compact)
 
     # Now test the purchase privilege options endpoint
     headers = get_provider_user_auth_headers_cached()
