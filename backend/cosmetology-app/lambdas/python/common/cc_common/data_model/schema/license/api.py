@@ -39,7 +39,7 @@ class LicenseExpirationStatusMixin:
 
     @pre_load
     def correct_expired_license_status(self, in_data, **kwargs):
-        """Set licenseStatus to inactive if the license has expired."""
+        """Correct licenseStatus and compactEligibility if the license has expired."""
         if in_data.get('licenseStatus') != ActiveInactiveStatus.ACTIVE:
             # Already inactive, no correction needed
             return in_data
@@ -54,9 +54,10 @@ class LicenseExpirationStatusMixin:
         else:
             expiration_date = date_of_expiration
 
-        # If expired, correct the status to inactive
+        # If expired, correct the status to inactive and eligibility to ineligible
         if expiration_date < config.expiration_resolution_date:
             in_data['licenseStatus'] = ActiveInactiveStatus.INACTIVE
+            in_data['compactEligibility'] = CompactEligibilityStatus.INELIGIBLE
 
         return in_data
 
