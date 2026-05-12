@@ -624,11 +624,14 @@ class ProviderUserRecords:
             home = sorted_licenses[0]
             home_licenses.add((home.jurisdiction.lower(), home.licenseType))
 
+        most_recent_license = self.find_best_license_in_current_known_licenses()
+
         all_adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
 
         documents = []
-        for license_record in self._license_records:
+        for license_record in self.get_license_records():
             license_dict = license_record.to_dict()
+            license_dict['mostRecentLicense'] = license_record is most_recent_license
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
