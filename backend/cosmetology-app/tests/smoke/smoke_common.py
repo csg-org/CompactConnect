@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 
 import boto3
 import requests
@@ -32,7 +33,7 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 os.environ['LICENSE_TYPES'] = json.dumps(LICENSE_TYPES)
 
 # We have to import this after we've added the common lib to our path and environment
-from cc_common.data_model.provider_record_util import ProviderUserRecords  # noqa: E402 F401
+from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords  # noqa: E402 F401
 
 # importing this here so it can be easily referenced in the rollback upload tests
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData  # noqa: E402 F401
@@ -225,11 +226,81 @@ def call_provider_details_endpoint(headers: dict, compact: str, provider_id: str
     return response.json()
 
 
+def wait_for_opensearch_sync() -> None:
+    """Wait for provider table changes to propagate into OpenSearch (best-effort fixed delay)."""
+    seconds = 30
+    logger.info(f'Waiting {seconds}s for changes to propagate in OpenSearch...')
+    time.sleep(seconds)
+
+def get_most_recently_issued_or_renewed_license(licenses: list[dict]) -> dict:
+    return ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+
+_PUBLIC_QUERY_INTERNAL_MAX_PAGES = 500
+
+
+def call_public_query_providers(
+    compact: str,
+    *,
+    provider_id_filter: str,
+    first_name_filter: str | None = None,
+    last_name_filter: str | None = None,
+    license_number_filter: str | None = None,
+    page_size: int = 100,
+    timeout: int = 30,
+) -> list[dict]:
+    """
+    POST /v1/public/compacts/{compact}/providers/query (no auth).
+
+    Builds query body from provided filters
+    """
+    url = f'{config.api_base_url}/v1/public/compacts/{compact}/providers/query'
+    headers = {'Content-Type': 'application/json'}
+    query_parameters: dict = {}
+    if first_name_filter:
+        query_parameters['givenName'] = first_name_filter
+    if last_name_filter:
+        query_parameters['familyName'] = last_name_filter
+    if license_number_filter:
+        query_parameters['licenseNumber'] = license_number_filter
+
+    pagination_state: dict = {'pageSize': page_size}
+    matching_license_rows: list[dict] = []
+
+    for _page_index in range(_PUBLIC_QUERY_INTERNAL_MAX_PAGES):
+        request_body = {'query': query_parameters, 'pagination': pagination_state}
+        response = requests.post(url=url, headers=headers, json=request_body, timeout=timeout)
+        if response.status_code != 200:
+            raise SmokeTestFailureException(f'Failed POST public query providers. Response: {response.json()}')
+        page_response_body = response.json()
+
+        for provider_license_row in page_response_body.get('providers') or []:
+            if provider_id_filter and provider_license_row.get('providerId') == provider_id_filter:
+                matching_license_rows.append(provider_license_row)
+
+        last_pagination_key = (page_response_body.get('pagination') or {}).get('lastKey')
+        if not last_pagination_key:
+            break
+        pagination_state = {**pagination_state, 'lastKey': last_pagination_key}
+
+    return matching_license_rows
+
+
+def call_public_get_provider(compact: str, provider_id: str, *, timeout: int = 30) -> dict:
+    """GET /v1/public/compacts/{compact}/providers/{provider_id} (no auth)."""
+    url = f'{config.api_base_url}/v1/public/compacts/{compact}/providers/{provider_id}'
+    response = requests.get(url=url, timeout=timeout)
+
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed GET public provider. Response: {response.json()}')
+    return response.json()
+
+
 def get_all_provider_database_records(compact: str = 'cosm', provider_id: str = None):
 
     if provider_id is None:
         provider_id = config.test_provider_id
 
+    logger.info('Querying records for provider', provider_id=provider_id)
     items: list = []
     last_evaluated_key = None
     while True:
