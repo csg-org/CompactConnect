@@ -199,9 +199,7 @@ def test_public_query_endpoint_returns_ineligible_license_if_license_is_marked_b
 if __name__ == '__main__':
     load_smoke_test_env()
     provider_context = test_public_search_endpoints_returns_details_of_provider()
-    test_public_query_endpoint_returns_ineligible_license_if_license_is_expired(
-        provider_context=provider_context
-    )
+    test_public_query_endpoint_returns_ineligible_license_if_license_is_expired(provider_context=provider_context)
     test_public_query_endpoint_returns_ineligible_license_if_license_is_marked_by_jurisdiction_as_ineligible(
         provider_context=provider_context
     )

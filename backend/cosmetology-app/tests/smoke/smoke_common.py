@@ -232,8 +232,10 @@ def wait_for_opensearch_sync() -> None:
     logger.info(f'Waiting {seconds}s for changes to propagate in OpenSearch...')
     time.sleep(seconds)
 
+
 def get_most_recently_issued_or_renewed_license(licenses: list[dict]) -> dict:
     return ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+
 
 _PUBLIC_QUERY_INTERNAL_MAX_PAGES = 500
 
