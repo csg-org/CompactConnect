@@ -125,13 +125,6 @@ class TestPublicSearchProviders(TstFunction):
         adverse_actions: list | None = None,
     ) -> dict:
         """Nested license object sufficient for ProviderOpenSearchDocumentSchema / LicenseGeneralResponseSchema."""
-        # In production, compactEligibility is computed at ingest/index time from the record rules.
-        # Tests that override jurisdictionUploadedCompactEligibility should reflect that expected state.
-        compact_eligibility = (
-            'ineligible'
-            if jurisdiction_uploaded_compact_eligibility == 'ineligible' or license_status == 'inactive'
-            else 'eligible'
-        )
         return {
             'providerId': provider_id,
             'type': 'license',
@@ -142,7 +135,10 @@ class TestPublicSearchProviders(TstFunction):
             'licenseStatusName': 'OK',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',
-            'compactEligibility': compact_eligibility,
+            # for simplicity in the test setup, we set this field to whatever was passed
+            # in for the 'jurisdictionUploadedCompactEligibility' field. It will be recalculated
+            # to its actual value when run through the '_ingest_style_sanitize_opensearch_source' method
+            'compactEligibility': jurisdiction_uploaded_compact_eligibility,
             'jurisdictionUploadedCompactEligibility': jurisdiction_uploaded_compact_eligibility,
             'licenseNumber': license_number,
             'givenName': given_name,

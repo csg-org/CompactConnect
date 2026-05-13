@@ -643,6 +643,7 @@ class ProviderUserRecords:
         }
 
         documents = []
+        adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
         for license_record in self.get_license_records():
             license_dict = license_record.to_dict()
             license_dict['adverseActions'] = [
@@ -672,7 +673,7 @@ class ProviderUserRecords:
             doc = dict(provider_dict)
             doc['licenses'] = [license_dict]
             doc['privileges'] = license_privileges
-            doc['adverseActions'] = [rec.to_dict() for rec in self.get_adverse_action_records()]
+            doc['adverseActions'] = adverse_actions
             documents.append(doc)
 
         return documents
