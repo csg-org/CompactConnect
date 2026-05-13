@@ -11,6 +11,26 @@ from moto import mock_aws
 
 from . import TstFunction
 
+# Public search always scopes nested license clauses to the per-type "home" indexed row.
+_MOST_RECENT_LICENSE_FOR_TYPE_TERM = {'term': {'licenses.mostRecentLicenseForType': True}}
+
+_DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_ASC = [
+    {'licenses.familyName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
+    {'licenses.givenName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
+    {'providerId': 'asc'},
+    {'_id': 'asc'},
+]
+
+_DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_DESC = [
+    {'licenses.familyName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}},
+    {'licenses.givenName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}},
+    {'providerId': 'desc'},
+    {'_id': 'asc'},
+]
+
+_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_ASC = [{'dateOfUpdate': 'asc'}, {'_id': 'asc'}]
+_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_DESC = [{'dateOfUpdate': 'desc'}, {'_id': 'asc'}]
+
 
 @mock_aws
 class TestPublicSearchProviders(TstFunction):
@@ -18,6 +38,37 @@ class TestPublicSearchProviders(TstFunction):
 
     def setUp(self):
         super().setUp()
+
+    @staticmethod
+    def _expected_public_search_request_body(
+        *,
+        licenses_nested_must: list,
+        page_size: int = 10,
+        sort: list | None = None,
+        compact: str = 'cosm',
+        search_after: list | None = None,
+    ) -> dict:
+        """Full OpenSearch search body for public license query (must stay aligned with public_search handler)."""
+        body: dict = {
+            'query': {
+                'bool': {
+                    'must': [
+                        {'term': {'compact': compact}},
+                        {
+                            'nested': {
+                                'path': 'licenses',
+                                'query': {'bool': {'must': licenses_nested_must}},
+                            }
+                        },
+                    ]
+                }
+            },
+            'size': page_size,
+            'sort': sort or _DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_ASC,
+        }
+        if search_after is not None:
+            body['search_after'] = search_after
+        return body
 
     def _ingest_style_sanitize_opensearch_source(self, source: dict) -> dict:
         """
@@ -103,6 +154,7 @@ class TestPublicSearchProviders(TstFunction):
             'homeAddressCity': 'Columbus',
             'homeAddressState': 'oh',
             'homeAddressPostalCode': '43004',
+            'mostRecentLicenseForType': True,
             'adverseActions': adverse_actions if adverse_actions is not None else [],
             'investigations': [],
         }
@@ -195,13 +247,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        self.assertIn('query', call_body)
-        must = call_body['query']['bool']['must']
-        nested = next(m for m in must if 'nested' in m)
-        self.assertEqual('licenses', nested['nested']['path'])
-        self.assertNotIn('inner_hits', nested['nested'])
-        inner_must = nested['nested']['query']['bool']['must']
-        self.assertIn({'term': {'licenses.licenseNumber': 'LN999'}}, inner_must)
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.licenseNumber': 'LN999'}},
+                ],
+            ),
+            call_body,
+        )
 
     @patch('handlers.public_search.opensearch_client')
     def test_jurisdiction_and_name_search_builds_nested_query(self, mock_opensearch_client):
@@ -220,12 +274,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        must = call_body['query']['bool']['must']
-        nested = next(m for m in must if 'nested' in m)
-        self.assertNotIn('inner_hits', nested['nested'])
-        inner_must = nested['nested']['query']['bool']['must']
-        self.assertIn({'term': {'licenses.jurisdiction': 'oh'}}, inner_must)
-        self.assertTrue(any('licenses.familyName' in str(m) for m in inner_must))
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.jurisdiction': 'oh'}},
+                    {'match': {'licenses.familyName': 'Smith'}},
+                ],
+            ),
+            call_body,
+        )
 
     @patch('handlers.public_search.opensearch_client')
     def test_name_only_search_builds_nested_query(self, mock_opensearch_client):
@@ -241,11 +299,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        must = call_body['query']['bool']['must']
-        nested = next(m for m in must if 'nested' in m)
-        self.assertNotIn('inner_hits', nested['nested'])
-        inner_must = nested['nested']['query']['bool']['must']
-        self.assertTrue(any('familyName' in str(m) for m in inner_must))
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Jones'}},
+                ],
+            ),
+            call_body,
+        )
 
     @patch('handlers.public_search.opensearch_client')
     def test_sort_includes_id_tiebreaker(self, mock_opensearch_client):
@@ -261,6 +323,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+            ),
+            call_body,
+        )
         sort = call_body['sort']
         self.assertEqual(4, len(sort))
         self.assertEqual({'_id': 'asc'}, sort[3])
@@ -279,12 +350,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        sort = call_body['sort']
-        self.assertEqual(4, len(sort))
-        self.assertEqual({'licenses.familyName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}}, sort[0])
-        self.assertEqual({'licenses.givenName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}}, sort[1])
-        self.assertEqual({'providerId': 'asc'}, sort[2])
-        self.assertEqual({'_id': 'asc'}, sort[3])
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+            ),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertEqual(
             {'key': 'familyName', 'direction': 'ascending'},
@@ -309,11 +383,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        sort = call_body['sort']
-        self.assertEqual({'licenses.familyName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}}, sort[0])
-        self.assertEqual({'licenses.givenName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}}, sort[1])
-        self.assertEqual({'providerId': 'desc'}, sort[2])
-        self.assertEqual({'_id': 'asc'}, sort[3])
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+                sort=_DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_DESC,
+            ),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertEqual(
             {'key': 'familyName', 'direction': 'descending'},
@@ -339,8 +418,14 @@ class TestPublicSearchProviders(TstFunction):
         response = public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
         self.assertEqual(
-            [{'dateOfUpdate': 'asc'}, {'_id': 'asc'}],
-            call_body['sort'],
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.licenseNumber': 'LN999'}},
+                ],
+                sort=_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_ASC,
+            ),
+            call_body,
         )
         body = json.loads(response['body'])
         self.assertEqual(
@@ -367,8 +452,14 @@ class TestPublicSearchProviders(TstFunction):
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
         self.assertEqual(
-            [{'dateOfUpdate': 'desc'}, {'_id': 'asc'}],
-            call_body['sort'],
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.licenseNumber': 'LN999'}},
+                ],
+                sort=_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_DESC,
+            ),
+            call_body,
         )
 
     @patch('handlers.public_search.opensearch_client')
@@ -385,6 +476,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'])
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.jurisdiction': 'oh'}},
+                ],
+            ),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertIn('sorting', body)
         self.assertEqual({'key', 'direction'}, set(body['sorting'].keys()))
@@ -438,6 +539,11 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'])
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            self._expected_public_search_request_body(licenses_nested_must=[_MOST_RECENT_LICENSE_FOR_TYPE_TERM]),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertEqual(
             {
@@ -489,10 +595,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        self.assertEqual(25, call_body['size'])
         self.assertEqual(
-            ['doe', 'jane', 'uuid-123', 'uuid-123#oh#cosmetologist'],
-            call_body['search_after'],
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+                page_size=25,
+                search_after=['doe', 'jane', 'uuid-123', 'uuid-123#oh#cosmetologist'],
+            ),
+            call_body,
         )
 
     @patch('handlers.public_search.opensearch_client')
