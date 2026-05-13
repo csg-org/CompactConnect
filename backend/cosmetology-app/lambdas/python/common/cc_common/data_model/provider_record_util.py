@@ -614,7 +614,7 @@ class ProviderUserRecords:
         for lic in self._license_records:
             by_type.setdefault(lic.licenseType, []).append(lic)
 
-        home_licenses: set[tuple[str, str]] = set()
+        most_recent_licenses: set[tuple[str, str]] = set()
         for _lt, licenses in by_type.items():
             sorted_licenses = sorted(
                 licenses,
@@ -622,16 +622,13 @@ class ProviderUserRecords:
                 reverse=True,
             )
             home = sorted_licenses[0]
-            home_licenses.add((home.jurisdiction.lower(), home.licenseType))
-
-        most_recent_license = self.find_best_license_in_current_known_licenses()
+            most_recent_licenses.add((home.jurisdiction.lower(), home.licenseType))
 
         all_adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
 
         documents = []
         for license_record in self.get_license_records():
             license_dict = license_record.to_dict()
-            license_dict['mostRecentLicense'] = license_record is most_recent_license
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
@@ -645,10 +642,12 @@ class ProviderUserRecords:
                 )
             ]
 
-            is_home = (license_record.jurisdiction.lower(), license_record.licenseType) in home_licenses
+            is_most_recent_license_for_type = (license_record.jurisdiction.lower(), license_record.licenseType) in most_recent_licenses
             license_privileges = (
-                [p for p in all_privileges if p['licenseType'] == license_record.licenseType] if is_home else []
-            )
+                [p for p in all_privileges if p['licenseType'] == license_record.licenseType]
+                    if is_most_recent_license_for_type else []
+                )
+            license_dict['mostRecentLicenseForType'] = is_most_recent_license_for_type
 
             doc = dict(provider_dict)
             doc['licenses'] = [license_dict]

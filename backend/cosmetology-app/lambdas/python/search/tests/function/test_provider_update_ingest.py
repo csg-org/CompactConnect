@@ -160,7 +160,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
-                    'mostRecentLicense': True,
+                    'mostRecentLicenseForType': True,
                     'familyName': f'test{compact}FamilyName',
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
@@ -292,7 +292,7 @@ class TestProviderUpdateIngest(TstFunction):
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_home_state_license_is_set_as_most_recent(self, mock_opensearch_client):
         """Documents for providers with multiple licenses have the home state license indexed with
-        mostRecentLicense set to true. All other licenses have mostRecentLicense set to false."""
+        mostRecentLicenseForType set to true. All other licenses have mostRecentLicenseForType set to false."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
@@ -323,8 +323,8 @@ class TestProviderUpdateIngest(TstFunction):
         documents_by_id = {doc['documentId']: doc for doc in documents}
         oh_id = f'{MOCK_COSM_PROVIDER_ID}#oh#cosmetologist'
         ky_id = f'{MOCK_COSM_PROVIDER_ID}#ky#cosmetologist'
-        self.assertTrue(documents_by_id[oh_id]['licenses'][0]['mostRecentLicense'])
-        self.assertFalse(documents_by_id[ky_id]['licenses'][0]['mostRecentLicense'])
+        self.assertTrue(documents_by_id[oh_id]['licenses'][0]['mostRecentLicenseForType'])
+        self.assertFalse(documents_by_id[ky_id]['licenses'][0]['mostRecentLicenseForType'])
 
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_provider_ids_are_deduped_only_one_document_indexed(self, mock_opensearch_client):

@@ -117,7 +117,7 @@ class TestPopulateProviderDocuments(TstFunction):
                     'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
-                    'mostRecentLicense': True,
+                    'mostRecentLicenseForType': True,
                     'familyName': f'test{compact}FamilyName',
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,

@@ -294,7 +294,7 @@ class OpenSearchClient:
             # by the provider_record_util.generate_opensearch_documents method
             # and is used to indicate the most recent license for filtering
             # public search results
-            'mostRecentLicense': {'type': 'boolean'},
+            'mostRecentLicenseForType': {'type': 'boolean'},
         }
 
         privilege_properties = {

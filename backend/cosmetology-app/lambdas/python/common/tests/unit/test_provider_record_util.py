@@ -718,7 +718,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
                             'licenseType': 'cosmetologist',
                             'middleName': 'Gunnar',
-                            'mostRecentLicense': True,
+                            'mostRecentLicenseForType': True,
                             'phoneNumber': '+13213214321',
                             'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                             'ssnLastFour': '1234',
@@ -833,7 +833,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
                             'licenseType': 'cosmetologist',
                             'middleName': 'Gunnar',
-                            'mostRecentLicense': True,
+                            'mostRecentLicenseForType': True,
                             'phoneNumber': '+13213214321',
                             'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                             'ssnLastFour': '1234',
@@ -914,7 +914,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
                             'licenseType': 'esthetician',
                             'middleName': 'Gunnar',
-                            'mostRecentLicense': False,
+                            'mostRecentLicenseForType': True,
                             'phoneNumber': '+13213214321',
                             'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                             'ssnLastFour': '1234',
@@ -959,6 +959,56 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ],
             docs,
         )
+
+    def test_three_licenses_two_same_type_one_other_sets_most_recent_per_type(self):
+        """Two cosmetologist licenses + one esthetician: each type's most recent license shows
+        mostRecentLicenseForType true."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'ky',
+                    'licenseType': 'cosmetologist',
+                    'licenseNumber': 'KY-COS-OLDER',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'dateOfIssuance': date(2005, 1, 1),
+                    'dateOfRenewal': date(2010, 6, 1),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'cosmetologist',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': 'esthetician',
+                    'licenseNumber': 'AL-EST-ONLY',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
+
+        self.assertEqual(3, len(docs))
+        by_jurisdiction_and_type = {
+            (d['licenses'][0]['jurisdiction'], d['licenses'][0]['licenseType']): d['licenses'][0][
+                'mostRecentLicenseForType'
+            ]
+            for d in docs
+        }
+        self.assertFalse(by_jurisdiction_and_type[('ky', 'cosmetologist')])
+        self.assertTrue(by_jurisdiction_and_type[('oh', 'cosmetologist')])
+        self.assertTrue(by_jurisdiction_and_type[('al', 'esthetician')])
 
     def test_privileges_assigned_only_to_home_license_document(self):
         """Privileges are only on the document whose license is the home license for its type."""
@@ -1030,7 +1080,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
                             'licenseType': 'cosmetologist',
                             'middleName': 'Gunnar',
-                            'mostRecentLicense': False,
+                            'mostRecentLicenseForType': False,
                             'phoneNumber': '+13213214321',
                             'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                             'ssnLastFour': '1234',
@@ -1084,7 +1134,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
                             'licenseType': 'cosmetologist',
                             'middleName': 'Gunnar',
-                            'mostRecentLicense': True,
+                            'mostRecentLicenseForType': True,
                             'phoneNumber': '+13213214321',
                             'providerId': UUID('89a6377e-c3a5-40e5-bca5-317ec854c570'),
                             'ssnLastFour': '1234',
