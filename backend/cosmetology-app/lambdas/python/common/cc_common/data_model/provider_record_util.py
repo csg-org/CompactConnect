@@ -642,11 +642,15 @@ class ProviderUserRecords:
                 )
             ]
 
-            is_most_recent_license_for_type = (license_record.jurisdiction.lower(), license_record.licenseType) in most_recent_licenses
+            is_most_recent_license_for_type = (
+                license_record.jurisdiction.lower(),
+                license_record.licenseType,
+            ) in most_recent_licenses
             license_privileges = (
                 [p for p in all_privileges if p['licenseType'] == license_record.licenseType]
-                    if is_most_recent_license_for_type else []
-                )
+                if is_most_recent_license_for_type
+                else []
+            )
             license_dict['mostRecentLicenseForType'] = is_most_recent_license_for_type
 
             doc = dict(provider_dict)
