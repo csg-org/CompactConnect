@@ -22,7 +22,9 @@ def public_get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 un
         raise CCInvalidRequestException('Missing required field') from e
 
     with logger.append_context_keys(compact=compact, provider_id=provider_id):
-        provider_information = get_provider_information(compact=compact, provider_id=provider_id)
+        provider_information = get_provider_information(
+            compact=compact, provider_id=provider_id, is_public_response=True
+        )
 
         public_schema = ProviderPublicResponseSchema()
         return public_schema.load(provider_information)
