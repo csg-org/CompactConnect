@@ -66,6 +66,11 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
                 {
                     'id': 'AwsSolutions-COG3',
                     'reason': 'Threat protection mode enforcement offers no benefit when there are no users.',
-                }
+                },
+                {
+                    'id': 'AwsSolutions-COG8',
+                    'reason': 'This pool is for state API machine-to-machine auth only; '
+                    'Cognito Plus features are not relevant for a user pool with no users.',
+                },
             ],
         )
