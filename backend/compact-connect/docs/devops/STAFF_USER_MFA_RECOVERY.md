@@ -41,9 +41,8 @@ Before beginning this procedure, ensure you have:
 
 ### Step 2: Archive the DynamoDB Record
 
-In the DynamoDB console, if you change the partition key (pk) value of a existing DynamoDB item, it automatically deletes the old record with the old pk and creates a new one with the new pk, effectively archiving the user record. Perform the following steps:
+In the DynamoDB console, perform the following steps:
 
-1. **Create the Archived Record**
    - In the DynamoDB table, find the existing staff user record and select it to open the 'Edit item' view.
    - **Add a new field**: `archivedDate` = current date (yyyy-mm-dd format)
    - **Add a new field**: `archivedReason` = "MFA recovery - user lost access to MFA device"
