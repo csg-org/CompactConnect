@@ -36,9 +36,23 @@ def public_search_api_handler(event: dict, context: LambdaContext):  # noqa: ARG
     return _public_query_licenses(event, context)
 
 
-def _provider_has_unlifted_adverse_actions(loaded_provider: dict) -> bool:
-    for aa in loaded_provider.get('adverseActions') or []:
+def _unlifted_adverse_action_found(adverse_actions: list[dict]) -> bool:
+    for aa in adverse_actions:
         if not aa.get('effectiveLiftDate'):
+            return True
+    return False
+
+
+def _provider_has_unlifted_adverse_actions_associated_with_license(
+    license_row: dict, license_privileges: list[dict]
+) -> bool:
+    # A home state license is determined to be restricted
+    # if there is an unlifted encumbrance on the license or
+    # any of the privileges associated with the license
+    if _unlifted_adverse_action_found(license_row.get('adverseActions')):
+        return True
+    for privilege in license_privileges:
+        if _unlifted_adverse_action_found(privilege.get('adverseActions')):
             return True
     return False
 
@@ -47,8 +61,9 @@ def _determine_license_eligibility(*, provider_source: dict) -> str:
     """
     Derive public licenseEligibility from the full provider OpenSearch document.
 
-    Each indexed document contains exactly one license. Ineligible if any provider-level adverse action lacks
-    effectiveLiftDate, or if that license's compactEligibility is ineligible.
+    Each indexed document contains exactly one license. Ineligible if that license's compactEligibility is
+    ineligible, or if any adverse action on that license or on a privilege in the same document lacks
+    effectiveLiftDate.
     """
     schema = ProviderOpenSearchDocumentSchema()
     try:
@@ -61,9 +76,6 @@ def _determine_license_eligibility(*, provider_source: dict) -> str:
         )
         return CompactEligibilityStatus.INELIGIBLE.value
 
-    if _provider_has_unlifted_adverse_actions(loaded_provider):
-        return CompactEligibilityStatus.INELIGIBLE.value
-
     licenses_list = loaded_provider.get('licenses') or []
     if not licenses_list:
         logger.warning(
@@ -74,6 +86,9 @@ def _determine_license_eligibility(*, provider_source: dict) -> str:
 
     license_row = licenses_list[0]
     if license_row.get('compactEligibility') == CompactEligibilityStatus.INELIGIBLE.value:
+        return CompactEligibilityStatus.INELIGIBLE.value
+
+    if _provider_has_unlifted_adverse_actions_associated_with_license(license_row, loaded_provider['privileges']):
         return CompactEligibilityStatus.INELIGIBLE.value
 
     return CompactEligibilityStatus.ELIGIBLE.value

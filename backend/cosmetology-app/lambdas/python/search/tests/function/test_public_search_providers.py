@@ -155,6 +155,50 @@ class TestPublicSearchProviders(TstFunction):
             'investigations': [],
         }
 
+    def _minimal_opensearch_privilege(
+        self,
+        *,
+        provider_id: str,
+        compact: str,
+        license_jurisdiction: str,
+        license_type: str,
+        privilege_jurisdiction: str,
+        date_of_expiration: str,
+        adverse_actions: list | None = None,
+    ) -> dict:
+        """Privilege row sufficient for PrivilegeGeneralResponseSchema / ingest sanitize."""
+        return {
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': compact,
+            'jurisdiction': privilege_jurisdiction,
+            'licenseJurisdiction': license_jurisdiction,
+            'licenseType': license_type,
+            'dateOfExpiration': date_of_expiration,
+            'adverseActions': adverse_actions if adverse_actions is not None else [],
+            'investigations': [],
+            'administratorSetStatus': 'active',
+            'status': 'active',
+        }
+
+    def _generate_unlifted_license_adverse_action(self, *, provider_id: str) -> dict:
+        return {
+            'type': 'adverseAction',
+            'compact': 'cosm',
+            'providerId': provider_id,
+            'jurisdiction': 'oh',
+            'licenseTypeAbbreviation': 'cos',
+            'licenseType': 'cosmetologist',
+            'actionAgainst': 'license',
+            'effectiveStartDate': '2024-01-01',
+            'creationDate': '2024-01-01T00:00:00+00:00',
+            'adverseActionId': 'aa-license-unlifted',
+            'dateOfUpdate': '2024-01-02T00:00:00+00:00',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['fraud'],
+            'submittingUser': {'userId': 'staff-1'},
+        }
+
     def _minimal_opensearch_provider_source(
         self,
         *,
@@ -164,6 +208,7 @@ class TestPublicSearchProviders(TstFunction):
         family_name: str,
         license_nested: dict,
         provider_adverse_actions: list | None = None,
+        privileges: list | None = None,
     ) -> dict:
         """Top-level OpenSearch provider document sufficient for ProviderOpenSearchDocumentSchema."""
         lic_exp = license_nested['dateOfExpiration']
@@ -182,7 +227,7 @@ class TestPublicSearchProviders(TstFunction):
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'birthMonthDay': '06-06',
             'licenses': [license_nested],
-            'privileges': [],
+            'privileges': privileges if privileges is not None else [],
             'adverseActions': provider_adverse_actions or [],
         }
         return self._ingest_style_sanitize_opensearch_source(source)
@@ -199,6 +244,7 @@ class TestPublicSearchProviders(TstFunction):
         license_type: str = 'cosmetologist',
         license_nested: dict | None = None,
         provider_adverse_actions: list | None = None,
+        privileges: list | None = None,
     ) -> dict:
         """Create a mock OpenSearch hit for one document per license."""
         doc_id = f'{provider_id}#{jurisdiction}#{license_type}'
@@ -219,6 +265,7 @@ class TestPublicSearchProviders(TstFunction):
             family_name=family_name,
             license_nested=nested,
             provider_adverse_actions=provider_adverse_actions,
+            privileges=privileges,
         )
         hit = {
             '_index': f'compact_{compact}_providers',
@@ -724,18 +771,22 @@ class TestPublicSearchProviders(TstFunction):
 
     @patch('handlers.public_search.opensearch_client')
     @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
-    def test_license_eligibility_ineligible_when_unlifted_adverse_action(self, mock_opensearch_client):
-        """Any provider adverse action without effectiveLiftDate yields ineligible."""
+    def test_license_eligibility_eligible_when_no_unlifted_adverse_action_on_license_or_privileges(
+        self, mock_opensearch_client
+    ):
+        """LicenseEligibility is eligible when there are no unlifted adverse actions on the license or privileges."""
         from handlers.public_search import public_search_api_handler
 
         pid = '00000000-0000-0000-0000-0000000000bb'
+        # create a unlifted adverse action for another license
+        # which should not be considered
         unlifted = {
             'type': 'adverseAction',
             'compact': 'cosm',
             'providerId': pid,
             'jurisdiction': 'oh',
             'licenseTypeAbbreviation': 'cos',
-            'licenseType': 'cosmetologist',
+            'licenseType': 'esthetician',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
@@ -759,7 +810,106 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         body = json.loads(response['body'])
-        self.assertEqual(body['providers'][0]['licenseEligibility'], 'ineligible')
+        self.assertEqual(body['providers'][0]['licenseEligibility'], 'eligible')
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_set_to_ineligible_if_adverse_action_on_license(self, mock_opensearch_client):
+        """Unlifted adverse action on the indexed license row marks licenseEligibility ineligible."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000ee'
+        unlifted = self._generate_unlifted_license_adverse_action(provider_id=pid)
+        nested = self._minimal_opensearch_license(
+            provider_id=pid,
+            compact='cosm',
+            jurisdiction='oh',
+            license_number='LN-LIC-AA',
+            license_type='cosmetologist',
+            given_name='John',
+            family_name='Doe',
+            date_of_expiration='2035-01-01',
+            adverse_actions=[unlifted],
+        )
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-LIC-AA',
+            license_nested=nested,
+            provider_adverse_actions=[],
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-LIC-AA'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual('ineligible', body['providers'][0]['licenseEligibility'])
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_set_to_ineligible_if_unlifted_adverse_action_on_privilege_for_license(
+        self, mock_opensearch_client
+    ):
+        """Unlifted adverse action on a privilege bundled with the license doc marks licenseEligibility ineligible."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000ff'
+        unlifted = {
+            'type': 'adverseAction',
+            'compact': 'cosm',
+            'providerId': pid,
+            'jurisdiction': 'mi',
+            'licenseTypeAbbreviation': 'cos',
+            'licenseType': 'cosmetologist',
+            'actionAgainst': 'privilege',
+            'effectiveStartDate': '2024-01-01',
+            'creationDate': '2024-01-01T00:00:00+00:00',
+            'adverseActionId': 'aa-priv-unlifted',
+            'dateOfUpdate': '2024-01-02T00:00:00+00:00',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['fraud'],
+            'submittingUser': {'userId': 'staff-1'},
+        }
+        nested = self._minimal_opensearch_license(
+            provider_id=pid,
+            compact='cosm',
+            jurisdiction='oh',
+            license_number='LN-PRIV-AA',
+            license_type='cosmetologist',
+            given_name='John',
+            family_name='Doe',
+            date_of_expiration='2035-01-01',
+            adverse_actions=[],
+        )
+        privilege = self._minimal_opensearch_privilege(
+            provider_id=pid,
+            compact='cosm',
+            license_jurisdiction='oh',
+            license_type='cosmetologist',
+            privilege_jurisdiction='mi',
+            date_of_expiration='2035-01-01',
+            adverse_actions=[unlifted],
+        )
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-PRIV-AA',
+            license_nested=nested,
+            provider_adverse_actions=[],
+            privileges=[privilege],
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-PRIV-AA'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual('ineligible', body['providers'][0]['licenseEligibility'])
 
     @patch('handlers.public_search.opensearch_client')
     @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
