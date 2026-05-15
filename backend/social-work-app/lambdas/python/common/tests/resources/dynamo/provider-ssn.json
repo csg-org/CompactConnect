@@ -1,0 +1,9 @@
+{
+  "pk": "cosm#SSN#123-12-1234",
+  "sk": "cosm#SSN#123-12-1234",
+  "providerIdGSIpk": "cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "type": "provider-ssn",
+  "compact": "cosm",
+  "ssn": "123-12-1234",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570"
+}

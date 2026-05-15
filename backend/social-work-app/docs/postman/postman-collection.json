@@ -1,0 +1,824 @@
+{
+    "auth": {
+        "bearer": [
+            {
+                "key": "token",
+                "type": "string",
+                "value": "{{accessToken}}"
+            }
+        ],
+        "type": "bearer"
+    },
+    "info": {
+        "_postman_id": "aa3254dc-cc8c-4d01-a794-29804caee5aa",
+        "description": {
+            "content": "",
+            "type": "text/plain"
+        },
+        "name": "CompactConnect API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "item": [
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "client-credentials-grant",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "POST",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "token"
+                            ],
+                            "query": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "client_credentials"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{m2mClientId}}"
+                                },
+                                {
+                                    "key": "client_secret",
+                                    "value": "{{m2mClientSecret}}"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "{{m2mScopes}}"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{m2mClientId}}&client_secret={{m2mClientSecret}}&scope={{m2mScopes}}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});",
+                                    "",
+                                    "pm.test('Identity token returned', () => {",
+                                    "    var id_token = pm.response.json().id_token;",
+                                    "    pm.expect(id_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"idToken\", id_token);",
+                                    "    console.log('id token: ' + id_token);",
+                                    "});",
+                                    "",
+                                    "pm.test('Refresh token returned', () => {",
+                                    "    var refresh_token = pm.response.json().refresh_token;",
+                                    "    pm.expect(refresh_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"refreshToken\", refresh_token);",
+                                    "    console.log('refresh token: ' + refresh_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "authorization-code-grant-token",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "POST",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "token"
+                            ],
+                            "query": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "authorization_code"
+                                },
+                                {
+                                    "key": "code",
+                                    "value": "f23723c3-1d21-40e1-89ec-64807d2d658d"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "openid"
+                                },
+                                {
+                                    "key": "redirect_uri",
+                                    "value": "http://localhost:3018/auth/callback"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=f23723c3-1d21-40e1-89ec-64807d2d658d&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:3018/auth/callback"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    ""
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "authorization-code-authorize",
+                    "protocolProfileBehavior": {
+                        "followRedirects": false
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "disabled": true,
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "disabled": true,
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "GET",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "authorize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "response_type",
+                                    "value": "code"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "redirect_uri",
+                                    "value": "http://localhost:3018/auth/callback"
+                                },
+                                {
+                                    "key": "scope",
+                                    "value": "openid"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback&scope=openid"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.expect(access_token).not.to.be.empty;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "authorization-code-login",
+                    "protocolProfileBehavior": {
+                        "followRedirects": false
+                    },
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "GET",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "authorize"
+                            ],
+                            "query": [
+                                {
+                                    "key": "scope",
+                                    "value": "openid"
+                                },
+                                {
+                                    "key": "response_type",
+                                    "value": "code"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "redirect_uri",
+                                    "value": "http://localhost:3018/auth/callback"
+                                },
+                                {
+                                    "key": "identity_provider",
+                                    "value": "COGNITO"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?scope=openid&response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback&identity_provider=COGNITO"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Access token returned', () => {",
+                                    "    var access_token = pm.response.json().access_token;",
+                                    "    pm.environment.set(\"accessToken\", access_token);",
+                                    "    console.log('Access token: ' + access_token);",
+                                    "});",
+                                    "",
+                                    "pm.test('Identity token returned', () => {",
+                                    "    var id_token = pm.response.json().id_token;",
+                                    "    pm.environment.set(\"idToken\", id_token);",
+                                    "    console.log('id token: ' + id_token);",
+                                    "});"
+                                ],
+                                "packages": {},
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "name": "refresh-token",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "POST",
+                        "url": {
+                            "host": [
+                                "{{staffUserPoolUrl}}"
+                            ],
+                            "path": [
+                                "oauth2",
+                                "token"
+                            ],
+                            "query": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "refresh_token"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{clientId}}"
+                                },
+                                {
+                                    "key": "refresh_token",
+                                    "value": "{{refreshToken}}"
+                                }
+                            ],
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}"
+                        }
+                    },
+                    "response": []
+                }
+            ],
+            "name": "Staff-Auth"
+        },
+        {
+            "description": "",
+            "item": [
+                {
+                    "description": "",
+                    "item": [
+                        {
+                            "description": "",
+                            "item": [
+                                {
+                                    "description": "",
+                                    "item": [
+                                        {
+                                            "description": "",
+                                            "item": [
+                                                {
+                                                    "description": "",
+                                                    "item": [
+                                                        {
+                                                            "event": [],
+                                                            "id": "950dbc5d-759c-46e3-9db1-ae172063583e",
+                                                            "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+                                                            "protocolProfileBehavior": {
+                                                                "disableBodyPruning": true
+                                                            },
+                                                            "request": {
+                                                                "body": {
+                                                                    "mode": "raw",
+                                                                    "options": {
+                                                                        "raw": {
+                                                                            "headerFamily": "json",
+                                                                            "language": "json"
+                                                                        }
+                                                                    },
+                                                                    "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2159-10-07\",\n    \"dateOfExpiration\": \"1122-03-03\",\n    \"dateOfIssuance\": \"1692-10-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"172-51-9536\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+25906623\",\n    \"dateOfRenewal\": \"1987-09-27\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2188-08-31\",\n    \"dateOfExpiration\": \"2548-02-08\",\n    \"dateOfIssuance\": \"2942-06-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"058-01-7527\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+4163553436\",\n    \"dateOfRenewal\": \"2585-11-02\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                },
+                                                                "description": {},
+                                                                "header": [
+                                                                    {
+                                                                        "key": "Content-Type",
+                                                                        "value": "application/json"
+                                                                    },
+                                                                    {
+                                                                        "key": "Accept",
+                                                                        "value": "application/json"
+                                                                    }
+                                                                ],
+                                                                "method": "POST",
+                                                                "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+                                                                "url": {
+                                                                    "host": [
+                                                                        "{{baseUrl}}"
+                                                                    ],
+                                                                    "path": [
+                                                                        "v1",
+                                                                        "compacts",
+                                                                        ":compact",
+                                                                        "jurisdictions",
+                                                                        ":jurisdiction",
+                                                                        "licenses"
+                                                                    ],
+                                                                    "query": [],
+                                                                    "variable": [
+                                                                        {
+                                                                            "description": {
+                                                                                "content": "(Required) ",
+                                                                                "type": "text/plain"
+                                                                            },
+                                                                            "disabled": false,
+                                                                            "key": "compact",
+                                                                            "type": "any",
+                                                                            "value": "<string>"
+                                                                        },
+                                                                        {
+                                                                            "description": {
+                                                                                "content": "(Required) ",
+                                                                                "type": "text/plain"
+                                                                            },
+                                                                            "disabled": false,
+                                                                            "key": "jurisdiction",
+                                                                            "type": "any",
+                                                                            "value": "<string>"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "response": [
+                                                                {
+                                                                    "_postman_previewlanguage": "json",
+                                                                    "body": "{\n  \"message\": \"<string>\"\n}",
+                                                                    "code": 200,
+                                                                    "cookie": [],
+                                                                    "header": [
+                                                                        {
+                                                                            "key": "Content-Type",
+                                                                            "value": "application/json"
+                                                                        }
+                                                                    ],
+                                                                    "id": "16298898-f09f-429b-8fdc-70c26ca237f9",
+                                                                    "name": "200 response",
+                                                                    "originalRequest": {
+                                                                        "body": {
+                                                                            "mode": "raw",
+                                                                            "options": {
+                                                                                "raw": {
+                                                                                    "headerFamily": "json",
+                                                                                    "language": "json"
+                                                                                }
+                                                                            },
+                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2159-10-07\",\n    \"dateOfExpiration\": \"1122-03-03\",\n    \"dateOfIssuance\": \"1692-10-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"172-51-9536\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+25906623\",\n    \"dateOfRenewal\": \"1987-09-27\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2188-08-31\",\n    \"dateOfExpiration\": \"2548-02-08\",\n    \"dateOfIssuance\": \"2942-06-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"058-01-7527\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+4163553436\",\n    \"dateOfRenewal\": \"2585-11-02\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                        },
+                                                                        "header": [
+                                                                            {
+                                                                                "key": "Content-Type",
+                                                                                "value": "application/json"
+                                                                            },
+                                                                            {
+                                                                                "key": "Accept",
+                                                                                "value": "application/json"
+                                                                            },
+                                                                            {
+                                                                                "description": {
+                                                                                    "content": "Added as a part of security scheme: apikey",
+                                                                                    "type": "text/plain"
+                                                                                },
+                                                                                "key": "Authorization",
+                                                                                "value": "<API Key>"
+                                                                            }
+                                                                        ],
+                                                                        "method": "POST",
+                                                                        "url": {
+                                                                            "host": [
+                                                                                "{{baseUrl}}"
+                                                                            ],
+                                                                            "path": [
+                                                                                "v1",
+                                                                                "compacts",
+                                                                                ":compact",
+                                                                                "jurisdictions",
+                                                                                ":jurisdiction",
+                                                                                "licenses"
+                                                                            ],
+                                                                            "query": [],
+                                                                            "variable": []
+                                                                        }
+                                                                    },
+                                                                    "status": "OK"
+                                                                },
+                                                                {
+                                                                    "_postman_previewlanguage": "json",
+                                                                    "body": "{\n  \"message\": \"<string>\",\n  \"errors\": {\n    \"nulla76a\": {\n      \"tempor_1\": [\n        \"<string>\",\n        \"<string>\"\n      ]\n    }\n  }\n}",
+                                                                    "code": 400,
+                                                                    "cookie": [],
+                                                                    "header": [
+                                                                        {
+                                                                            "key": "Content-Type",
+                                                                            "value": "application/json"
+                                                                        }
+                                                                    ],
+                                                                    "id": "de4d86f6-3083-42ec-a2cd-1f5531148be5",
+                                                                    "name": "400 response",
+                                                                    "originalRequest": {
+                                                                        "body": {
+                                                                            "mode": "raw",
+                                                                            "options": {
+                                                                                "raw": {
+                                                                                    "headerFamily": "json",
+                                                                                    "language": "json"
+                                                                                }
+                                                                            },
+                                                                            "raw": "[\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2159-10-07\",\n    \"dateOfExpiration\": \"1122-03-03\",\n    \"dateOfIssuance\": \"1692-10-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"172-51-9536\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+25906623\",\n    \"dateOfRenewal\": \"1987-09-27\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  },\n  {\n    \"compactEligibility\": \"eligible\",\n    \"dateOfBirth\": \"2188-08-31\",\n    \"dateOfExpiration\": \"2548-02-08\",\n    \"dateOfIssuance\": \"2942-06-30\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseNumber\": \"<string>\",\n    \"licenseStatus\": \"active\",\n    \"licenseType\": \"esthetician\",\n    \"ssn\": \"058-01-7527\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"suffix\": \"<string>\",\n    \"emailAddress\": \"<email>\",\n    \"phoneNumber\": \"+4163553436\",\n    \"dateOfRenewal\": \"2585-11-02\",\n    \"middleName\": \"<string>\",\n    \"licenseStatusName\": \"<string>\"\n  }\n]"
+                                                                        },
+                                                                        "header": [
+                                                                            {
+                                                                                "key": "Content-Type",
+                                                                                "value": "application/json"
+                                                                            },
+                                                                            {
+                                                                                "key": "Accept",
+                                                                                "value": "application/json"
+                                                                            },
+                                                                            {
+                                                                                "description": {
+                                                                                    "content": "Added as a part of security scheme: apikey",
+                                                                                    "type": "text/plain"
+                                                                                },
+                                                                                "key": "Authorization",
+                                                                                "value": "<API Key>"
+                                                                            }
+                                                                        ],
+                                                                        "method": "POST",
+                                                                        "url": {
+                                                                            "host": [
+                                                                                "{{baseUrl}}"
+                                                                            ],
+                                                                            "path": [
+                                                                                "v1",
+                                                                                "compacts",
+                                                                                ":compact",
+                                                                                "jurisdictions",
+                                                                                ":jurisdiction",
+                                                                                "licenses"
+                                                                            ],
+                                                                            "query": [],
+                                                                            "variable": []
+                                                                        }
+                                                                    },
+                                                                    "status": "Bad Request"
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "description": "",
+                                                            "item": [
+                                                                {
+                                                                    "event": [
+                                                                        {
+                                                                            "listen": "test",
+                                                                            "script": {
+                                                                                "exec": [
+                                                                                    "pm.test('URL returned', () => {",
+                                                                                    "    var url = pm.response.json().upload.url;",
+                                                                                    "    pm.expect(url).not.to.be.empty;",
+                                                                                    "    pm.environment.set(\"docUrl\", url);",
+                                                                                    "    console.log('Upload url: ' + url);",
+                                                                                    "});",
+                                                                                    "",
+                                                                                    "pm.test('Fields returned', () => {",
+                                                                                    "    var fields = pm.response.json().upload.fields;",
+                                                                                    "    pm.expect(fields).not.to.be.empty;",
+                                                                                    "    for (const [key, value] of Object.entries(fields)) {",
+                                                                                    "        pm.environment.set(`docField-${key}`, value);",
+                                                                                    "        console.log(`Doc field \"${key}\": ${value}`);",
+                                                                                    "    }",
+                                                                                    "});"
+                                                                                ],
+                                                                                "packages": {},
+                                                                                "type": "text/javascript"
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "id": "e2d7115d-bc92-4c6e-b6d1-396eecee8832",
+                                                                    "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+                                                                    "protocolProfileBehavior": {
+                                                                        "disableBodyPruning": true
+                                                                    },
+                                                                    "request": {
+                                                                        "body": {},
+                                                                        "description": {},
+                                                                        "header": [
+                                                                            {
+                                                                                "key": "Accept",
+                                                                                "value": "application/json"
+                                                                            }
+                                                                        ],
+                                                                        "method": "GET",
+                                                                        "name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+                                                                        "url": {
+                                                                            "host": [
+                                                                                "{{baseUrl}}"
+                                                                            ],
+                                                                            "path": [
+                                                                                "v1",
+                                                                                "compacts",
+                                                                                ":compact",
+                                                                                "jurisdictions",
+                                                                                ":jurisdiction",
+                                                                                "licenses",
+                                                                                "bulk-upload"
+                                                                            ],
+                                                                            "query": [],
+                                                                            "variable": [
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "compact",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                },
+                                                                                {
+                                                                                    "description": {
+                                                                                        "content": "(Required) ",
+                                                                                        "type": "text/plain"
+                                                                                    },
+                                                                                    "disabled": false,
+                                                                                    "key": "jurisdiction",
+                                                                                    "type": "any",
+                                                                                    "value": "<string>"
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    "response": [
+                                                                        {
+                                                                            "_postman_previewlanguage": "json",
+                                                                            "body": "{\n  \"upload\": {\n    \"fields\": {\n      \"velitd2\": \"<string>\",\n      \"quis_b\": \"<string>\"\n    },\n    \"url\": \"<string>\"\n  }\n}",
+                                                                            "code": 200,
+                                                                            "cookie": [],
+                                                                            "header": [
+                                                                                {
+                                                                                    "key": "Content-Type",
+                                                                                    "value": "application/json"
+                                                                                }
+                                                                            ],
+                                                                            "id": "55a4e48a-b54d-48a3-bd95-2dc7ec625e63",
+                                                                            "name": "200 response",
+                                                                            "originalRequest": {
+                                                                                "body": {},
+                                                                                "header": [
+                                                                                    {
+                                                                                        "key": "Accept",
+                                                                                        "value": "application/json"
+                                                                                    },
+                                                                                    {
+                                                                                        "description": {
+                                                                                            "content": "Added as a part of security scheme: apikey",
+                                                                                            "type": "text/plain"
+                                                                                        },
+                                                                                        "key": "Authorization",
+                                                                                        "value": "<API Key>"
+                                                                                    }
+                                                                                ],
+                                                                                "method": "GET",
+                                                                                "url": {
+                                                                                    "host": [
+                                                                                        "{{baseUrl}}"
+                                                                                    ],
+                                                                                    "path": [
+                                                                                        "v1",
+                                                                                        "compacts",
+                                                                                        ":compact",
+                                                                                        "jurisdictions",
+                                                                                        ":jurisdiction",
+                                                                                        "licenses",
+                                                                                        "bulk-upload"
+                                                                                    ],
+                                                                                    "query": [],
+                                                                                    "variable": []
+                                                                                }
+                                                                            },
+                                                                            "status": "OK"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "name": "bulk-upload"
+                                                        }
+                                                    ],
+                                                    "name": "licenses"
+                                                }
+                                            ],
+                                            "name": "{jurisdiction}"
+                                        }
+                                    ],
+                                    "name": "jurisdictions"
+                                }
+                            ],
+                            "name": "{compact}"
+                        }
+                    ],
+                    "name": "compacts"
+                }
+            ],
+            "name": "v1"
+        },
+        {
+            "name": "Upload Document",
+            "request": {
+                "auth": {
+                    "type": "noauth"
+                },
+                "body": {
+                    "formdata": [
+                        {
+                            "key": "key",
+                            "type": "text",
+                            "value": "{{docField-key}}"
+                        },
+                        {
+                            "key": "x-amz-algorithm",
+                            "type": "text",
+                            "value": "{{docField-x-amz-algorithm}}"
+                        },
+                        {
+                            "key": "x-amz-credential",
+                            "type": "text",
+                            "value": "{{docField-x-amz-credential}}"
+                        },
+                        {
+                            "key": "x-amz-date",
+                            "type": "text",
+                            "value": "{{docField-x-amz-date}}"
+                        },
+                        {
+                            "key": "x-amz-signature",
+                            "type": "text",
+                            "value": "{{docField-x-amz-signature}}"
+                        },
+                        {
+                            "key": "x-amz-security-token",
+                            "type": "text",
+                            "value": "{{docField-x-amz-security-token}}"
+                        },
+                        {
+                            "key": "policy",
+                            "type": "text",
+                            "value": "{{docField-policy}}"
+                        },
+                        {
+                            "key": "file",
+                            "src": "AmVhGkArk/octp-nc-mock-data.csv",
+                            "type": "file"
+                        }
+                    ],
+                    "mode": "formdata"
+                },
+                "header": [],
+                "method": "POST",
+                "url": {
+                    "host": [
+                        "{{docUrl}}"
+                    ],
+                    "raw": "{{docUrl}}"
+                }
+            },
+            "response": []
+        }
+    ]
+}

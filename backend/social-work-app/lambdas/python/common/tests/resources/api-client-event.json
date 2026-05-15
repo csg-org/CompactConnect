@@ -1,0 +1,108 @@
+{
+  "resource": "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/query",
+  "path": "/v1/compacts/cosm/jurisdictions/al/providers/query",
+  "httpMethod": "POST",
+  "headers": {
+    "Accept": "application/json",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Authorization": "Bearer <jwt>",
+    "Cache-Control": "no-cache",
+    "Content-Type": "application/json",
+    "Host": "state-api.justin.jcc.iaapi.io",
+    "Postman-Token": "6abca03f-897e-40a4-86fd-9b89bd9185b2",
+    "User-Agent": "PostmanRuntime/7.45.0",
+    "X-Amzn-Trace-Id": "Root=1-689b712b-288ca4441a564698563d2d8e",
+    "X-Forwarded-For": "192.0.2.1",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+    "Accept": [
+      "application/json"
+    ],
+    "Accept-Encoding": [
+      "gzip, deflate, br"
+    ],
+    "Cache-Control": [
+      "no-cache"
+    ],
+    "Content-Type": [
+      "application/json"
+    ],
+    "Host": [
+      "state-api.justin.jcc.iaapi.io"
+    ],
+    "Postman-Token": [
+      "6abca03f-897e-40a4-86fd-9b89bd9185b2"
+    ],
+    "User-Agent": [
+      "PostmanRuntime/7.45.0"
+    ],
+    "X-Amzn-Trace-Id": [
+      "Root=1-689b712b-288ca4441a564698563d2d8e"
+    ],
+    "X-Forwarded-For": [
+      "192.0.2.1"
+    ],
+    "X-Forwarded-Port": [
+      "443"
+    ],
+    "X-Forwarded-Proto": [
+      "https"
+    ]
+  },
+  "queryStringParameters": null,
+  "multiValueQueryStringParameters": null,
+  "pathParameters": {
+    "compact": "cosm",
+    "jurisdiction": "al"
+  },
+  "stageVariables": null,
+  "requestContext": {
+    "resourceId": "54n3vn",
+    "authorizer": {
+      "claims": {
+        "sub": "5ve0e281b3fqndjl67cucu684c",
+        "token_use": "access",
+        "scope": "ne/cosm.write cosm/readGeneral ne/cosm.readPrivate",
+        "auth_time": "1755017510",
+        "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_gxBtau7Di",
+        "exp": "Tue Aug 12 17:06:50 UTC 2025",
+        "iat": "Tue Aug 12 16:51:50 UTC 2025",
+        "version": "2",
+        "jti": "aa274fc1-e499-4bf7-bc9a-e375fdc81a17",
+        "client_id": "5ve0e281b3fqndjl67cucu684c"
+      }
+    },
+    "resourcePath": "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/providers/query",
+    "httpMethod": "POST",
+    "extendedRequestId": "PM6e4GcZoAMEnTA=",
+    "requestTime": "12/Aug/2025:16:51:55 +0000",
+    "path": "/v1/compacts/cosm/jurisdictions/al/providers/query",
+    "accountId": "992382587219",
+    "protocol": "HTTP/1.1",
+    "stage": "justin-blue",
+    "domainPrefix": "state-api",
+    "requestTimeEpoch": 1755017515698,
+    "requestId": "84065b67-2bce-4d15-b711-3eb10bc535cd",
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "sourceIp": "192.0.2.1",
+      "principalOrgId": null,
+      "accessKey": null,
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "PostmanRuntime/7.45.0",
+      "user": null
+    },
+    "domainName": "state-api.justin.jcc.iaapi.io",
+    "deploymentId": "fmpo3s",
+    "apiId": "h1gi77rn55"
+  },
+  "body": "{\n  \"query\": {\n    \"endDateTime\": \"2025-04-01T22:58:09.38Z\",\n    \"startDateTime\": \"2025-03-28T21:19:04Z\"\n  }\n}",
+  "isBase64Encoded": false
+}

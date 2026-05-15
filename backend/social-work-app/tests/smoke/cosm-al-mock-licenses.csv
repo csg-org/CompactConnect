@@ -1,0 +1,21 @@
+ssn,licenseNumber,licenseType,licenseStatus,licenseStatusName,compactEligibility,givenName,middleName,familyName,suffix,dateOfIssuance,dateOfRenewal,dateOfExpiration,dateOfBirth,homeAddressStreet1,homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode,emailAddress,phoneNumber
+000-00-0000,5E-069O0ZC,esthetician,active,ACTIVE_IN_RENEWAL,eligible,Jill,David,Miles,,2017-10-10,2025-07-30,2026-07-30,1983-11-22,5462 Nguyen Island,,North Sean,al,36735,kevin51@example.net,+11407622081
+000-00-0001,3PK315088A,cosmetologist,active,ACTIVE,eligible,Robert,Leah,Bean,,1993-03-24,2026-03-03,2027-03-03,1969-12-01,468 Clinton Way Suite 834,,East Rose,al,36037,erinhunt@example.net,+14039797941
+000-00-0002,52C5W157,esthetician,active,ACTIVE_IN_RENEWAL,eligible,Angela,Juan,Haynes,,1992-09-21,2026-01-23,2027-01-23,1960-06-06,42862 Chris Club Suite 397,,North Jennifer,al,36604,,+16723238353
+000-00-0003,V78XD6--O9236,esthetician,active,ACTIVE_IN_RENEWAL,eligible,Brad,Michelle,Dickerson,,1951-12-01,2026-01-25,2027-01-25,1928-02-06,24259 Kyle Alley,Apt. 539,Watkinsport,al,35446,julian22@example.net,+11123093698
+000-00-0004,4W85177K95,esthetician,active,ACTIVE,eligible,Gregory,Michele,Reeves,,2021-06-07,2026-03-09,2027-03-09,1996-06-07,8857 Caitlin Ranch,Apt. 332,Connerbury,al,35046,,+19286855165
+000-00-0005,-2VS8V06-7-2,cosmetologist,active,ACTIVE,eligible,Adam,Stephen,Sawyer,,2010-09-02,2025-03-19,2026-03-19,1985-08-13,04144 Kyle Skyway,Apt. 437,Richardsfort,al,36585,kendraabbott@example.org,+13877233850
+000-00-0006,D2501XAAMJ,esthetician,active,,eligible,Matthew,Tracy,Wilson,,2010-09-07,2025-06-14,2026-06-14,1972-03-06,4394 Alison Plaza Apt. 227,Apt. 238,East Kevinstad,al,35024,lindapatterson@example.net,+15169695462
+000-00-0007,28R-7DU415E0243G7BA,esthetician,active,,eligible,James,Emily,Carter,,1981-07-08,2025-10-22,2026-10-22,1956-09-10,120 Torres Bridge,Apt. 627,South Mistyhaven,al,36712,,+17777102362
+000-00-0008,S4-1KB,cosmetologist,active,ACTIVE,eligible,Veronica,Tyrone,Doyle,,2026-02-28,2026-02-28,2027-02-28,1995-10-04,89914 Copeland Crossroad,Apt. 972,West Leslieton,al,35760,,+13240716278
+000-00-0009,2-P-76U52-L01,esthetician,active,ACTIVE_IN_RENEWAL,eligible,Elizabeth,Margaret,Reeves,,1986-08-20,2026-03-09,2027-03-09,1952-10-17,95612 Hurst Corners,,Juanport,al,35943,,+17016289648
+000-00-0010,7UW92YL,esthetician,active,ACTIVE,eligible,Patricia,Arthur,Green,,2026-03-16,2026-03-16,2027-03-16,1994-11-14,699 Miller Light Apt. 700,Suite 171,Jonesburgh,al,35545,,+13858142717
+000-00-0011,F9W-3,esthetician,active,,eligible,Phillip,Phillip,Baird,,2026-03-16,2026-03-16,2027-03-16,2021-09-25,3877 Timothy Mission Suite 650,Apt. 842,Manuelchester,al,36510,,+15751990790
+000-00-0012,Q919KAM3--J16-,cosmetologist,active,ACTIVE,eligible,Andrew,Lindsay,Watts,,2026-03-16,2026-03-16,2027-03-16,1989-07-29,519 Small Camp Apt. 226,,Lake Meghanville,al,35336,jenniferwagner@example.net,+11000703911
+000-00-0013,246BLC--8B---B-D99,esthetician,active,ACTIVE,eligible,Randall,Maria,Forbes,,1960-08-28,2025-12-26,2026-12-26,1932-10-22,3331 Mary Terrace Suite 043,,Jonesbury,al,35944,,+15795699221
+000-00-0014,S01-17X53-F982N348,esthetician,active,ACTIVE,eligible,Morgan,Heather,Brown,,2012-07-26,2025-05-19,2026-05-19,1987-10-25,892 Shaffer Ridge,Suite 360,West Kelly,al,36076,,+16620969797
+000-00-0015,7Z1-C81I26Z--983,esthetician,active,,eligible,John,Arthur,Berry,,1980-11-28,2025-09-21,2026-09-21,1955-04-16,9560 Cindy Ford Suite 730,Apt. 014,East Chrischester,al,36791,,+12575189497
+000-00-0016,0-33-90-217C8SL9,esthetician,active,ACTIVE_IN_RENEWAL,eligible,Eric,Jessica,Lambert,,1994-11-05,2025-03-21,2026-03-21,1962-05-14,92179 Hernandez Parkways,Suite 769,Pattersonchester,al,36851,,+16760795876
+000-00-0017,6-33-J30P,esthetician,active,,eligible,Wendy,Selena,Thompson,,2026-03-16,2026-03-16,2027-03-16,2023-12-28,125 Maria Manors,,South Rebecca,al,35681,,+16041464783
+000-00-0018,L-L2OP98,esthetician,active,ACTIVE,eligible,Bradley,Jennifer,Mueller,,2026-03-16,2026-03-16,2027-03-16,2002-10-09,3557 Gonzalez Ramp Suite 266,,North Thomas,al,36902,brownkenneth@example.net,+14886195207
+000-00-0019,-50XT0KK445B-6,esthetician,active,,eligible,Jeremy,Melanie,Colon,,2026-03-16,2026-03-16,2027-03-16,2020-07-15,0893 Stephen Pike Apt. 049,,North Anthonyside,al,35446,kayla62@example.com,+17764987123
