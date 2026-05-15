@@ -47,16 +47,16 @@ deployment. You can add local configuration that will be merged into the `cdk.js
 ### `ui_domain_name_override`
 
 **Important:** Because the Social Work backend is hosted on a different domain than the shared frontend UI application (e.g. the
-backend hosted zone is `cosmetology.compactconnect.org` but the UI lives at `app.compactconnect.org`), each
+backend hosted zone is `socialwork.compactconnect.org` but the UI lives at `app.compactconnect.org`), each
 environment's context must include a `ui_domain_name_override` field that specifies the correct UI domain name. Without
 this override, the UI domain would be incorrectly derived from the backend's hosted zone (e.g.
-`app.cosmetology.compactconnect.org` instead of `app.compactconnect.org`). This value is used for CORS allowed origins,
+`app.socialwork.compactconnect.org` instead of `app.compactconnect.org`). This value is used for CORS allowed origins,
 Cognito callback/logout URLs, and email template links.
 
 Example:
 ```json
 {
-  "domain_name": "cosmetology.compactconnect.org",
+  "domain_name": "socialwork.compactconnect.org",
   "ui_domain_name_override": "app.compactconnect.org"
 }
 ```
