@@ -22,13 +22,13 @@ from pipeline import (
 from pipeline.backend_stage import BackendStage
 
 # Pipeline stack name constants for DRY code
-TEST_BACKEND_PIPELINE_STACK = 'TestBackendCosmetology'
-BETA_BACKEND_PIPELINE_STACK = 'BetaBackendCosmetology'
-PROD_BACKEND_PIPELINE_STACK = 'ProdBackendCosmetology'
-DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesCosmetology'
+TEST_BACKEND_PIPELINE_STACK = 'TestBackendSocialWork'
+BETA_BACKEND_PIPELINE_STACK = 'BetaBackendSocialWork'
+PROD_BACKEND_PIPELINE_STACK = 'ProdBackendSocialWork'
+DEPLOYMENT_RESOURCES_STACK = 'DeploymentResourcesSocialWork'
 
 # CDK path
-CDK_PATH = 'backend/cosmetology-app'
+CDK_PATH = 'backend/social-work-app'
 
 
 class CompactConnectApp(App):
@@ -135,7 +135,7 @@ class CompactConnectApp(App):
         self.deployment_resources_stack = DeploymentResourcesStack(
             self,
             DEPLOYMENT_RESOURCES_STACK,
-            pipeline_context_parameter_name=f'{DEPLOY_ENVIRONMENT_NAME}-cosmetology-context',
+            pipeline_context_parameter_name=f'{DEPLOY_ENVIRONMENT_NAME}-social-work-context',
             env=self.environment,
             standard_tags=StandardTags(**self.tags, environment='deploy'),
         )

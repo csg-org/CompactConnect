@@ -6,12 +6,12 @@
   },
   "ssm_context": {
     "github_repo_string": "csg-org/CompactConnect",
-    "app_name": "cosmetology-compact-connect",
+    "app_name": "social-work-compact-connect",
     "environments": {
       "justin": {
         "account_id": "111122223333",
         "region": "us-east-1",
-        "domain_name": "justin.cosmetology.compactconnect.org",
+        "domain_name": "justin.socialwork.compactconnect.org",
         "ui_domain_name_override": "app.justin.compactconnect.org",
         "backup_enabled": false,
         "allow_local_ui": true,

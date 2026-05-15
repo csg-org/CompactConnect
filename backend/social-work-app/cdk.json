@@ -17,7 +17,7 @@
   "context": {
     "tags": {
       "project": "compact-connect",
-      "service": "cosmetology"
+      "service": "socialwork"
     },
     "jurisdictions": [
       "al",
@@ -32,16 +32,15 @@
       "wa"
     ],
     "license_types": {
-      "cosm": [
-        {"name": "cosmetologist", "abbreviation": "cos"},
-        {"name": "esthetician", "abbreviation": "esth"}
+      "socw": [
+        {"name": "TBD", "abbreviation": "tbd"}
       ]
     },
     "compacts": [
-      "cosm"
+      "socw"
     ],
     "active_compact_member_jurisdictions": {
-      "cosm": [
+      "socw": [
         "al",
         "az",
         "co",

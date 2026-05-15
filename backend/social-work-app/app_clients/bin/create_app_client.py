@@ -260,20 +260,20 @@ def print_email_template(environment, compact, state):
     """Print an email template with contextual information for the consuming team."""
     # Get environment-specific URLs
     auth_urls = {
-        'beta': 'https://compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com/oauth2/token',
-        'prod': 'https://compact-connect-state-auth.auth.us-east-1.amazoncognito.com/oauth2/token',
-        'test': 'https://compact-connect-state-auth-test.auth.us-east-1.amazoncognito.com/oauth2/token',
+        'beta': 'https://socialwork-compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com',
+        'prod': 'https://socialwork-compact-connect-state-auth.auth.us-east-1.amazoncognito.com',
+        'test': 'https://socialwork-compact-connect-state-auth-beta.auth.us-east-1.amazoncognito.com',
     }
 
     api_base_urls = {
-        'beta': 'https://state-api.beta.compactconnect.org',
-        'prod': 'https://state-api.compactconnect.org',
-        'test': 'https://state-api.test.compactconnect.org',
+        'beta': 'https://state-api.beta.socialwork.compactconnect.org',
+        'prod': 'https://state-api.socialwork.compactconnect.org',
+        'test': 'https://state-api.test.socialwork.compactconnect.org.org',
     }
 
     # Compact name mapping
     compact_names = {
-        'cosm': 'Cosmetology',
+        'socw': 'Social Work',
     }
 
     compact_name = compact_names.get(compact, compact.upper())

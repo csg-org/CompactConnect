@@ -289,7 +289,7 @@ Resources:
                 Principal:
                   AWS:
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-SocialWork-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       RoleName:
@@ -319,7 +319,7 @@ Resources:
                 Principal:
                   AWS:
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-SocialWork-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       RoleName:
@@ -350,7 +350,7 @@ Resources:
                   AWS:
                     # Trust both backend and frontend pipeline roles from the pipeline account
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-SocialWork-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       RoleName:
@@ -457,7 +457,7 @@ Resources:
                 Principal:
                   AWS:
                     - Fn::Sub:
-                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-Cosmetology-CrossAccountRole"
+                        - "arn:aws:iam::${TrustedAccount}:role/CompactConnect-test-SocialWork-CrossAccountRole"
                         - TrustedAccount: !Select [0, !Ref TrustedAccounts]
               - Ref: AWS::NoValue
       Policies:

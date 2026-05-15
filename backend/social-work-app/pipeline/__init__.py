@@ -43,7 +43,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
             construct_id,
             environment_name=environment_name,
             env=env,
-            pipeline_context_parameter_name=f'{environment_name}-cosmetology-context',
+            pipeline_context_parameter_name=f'{environment_name}-social-work-context',
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,
@@ -53,7 +53,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
         if self.environment_name not in ALLOWED_ENVIRONMENT_NAMES:
             raise ValueError(f'Environment name must be one of {ALLOWED_ENVIRONMENT_NAMES}')
 
-        return f'{self.environment_name}-cosmetology-backendPipeline'
+        return f'{self.environment_name}-social-work-backendPipeline'
 
     def _determine_backend_stage(self, construct_id, app_name, environment_name, environment_context):
         """
@@ -120,7 +120,7 @@ class TestBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern='cosm-test-*',
+            git_tag_trigger_pattern='sw-test-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -177,7 +177,7 @@ class BetaBackendPipelineStack(BaseBackendPipelineStack):
             connection_arn=self.connection_arn,
             # We will explicitly tie beta deploys to the production tag, because we always want the
             # beta environment code to mirror production.
-            git_tag_trigger_pattern='cosm-prod-*',
+            git_tag_trigger_pattern='sw-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,
@@ -236,7 +236,7 @@ class ProdBackendPipelineStack(BaseBackendPipelineStack):
             github_repo_string=self.github_repo_string,
             cdk_path=cdk_path,
             connection_arn=self.connection_arn,
-            git_tag_trigger_pattern='cosm-prod-*',
+            git_tag_trigger_pattern='sw-prod-*',
             encryption_key=pipeline_shared_encryption_key,
             alarm_topic=pipeline_alarm_topic,
             access_logs_bucket=self.access_logs_bucket,

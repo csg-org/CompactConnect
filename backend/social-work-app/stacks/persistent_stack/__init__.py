@@ -426,7 +426,7 @@ class PersistentStack(AppStack):
             front-ends so that these dependencies are properly resolved.
         """
         # Create and store UI application configuration in SSM Parameter Store for use in the UI stack
-        frontend_app_config = PersistentStackFrontendAppConfigUtility(app_id=AppId.COSMETOLOGY)
+        frontend_app_config = PersistentStackFrontendAppConfigUtility(app_id=AppId.SOCIAL_WORK)
 
         # Add staff user pool Cognito configuration
         auth_domain_name = ''
