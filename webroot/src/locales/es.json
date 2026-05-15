@@ -611,7 +611,7 @@
         "ssnLastFour": "Últimos 4 números del SSN",
         "revealFullSsn": "Revelar el SSN completo",
         "incorrectInfoDisclaimer": "La información en esta página fue proporcionada por su estado de origen. Si la información es incorrecta, debe comunicarse con ese estado y pedirles que la corrijan. Consulte la página compacta de Preguntas Frecuentes para obtener más información.",
-        "purchaseExpirationMessage": "Si se adquieren, estos privilegios caducarán el&nbsp; {date}, al igual que la licencia del estado de origen.",
+        "purchaseExpirationMessage": "Si se adquieren, estos privilegios caducarán el {date}.",
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "purchaseFormErrorMessage": "Por favor, corrija los errores del formulario que se muestran en rojo.",
         "licenseTypeSearch": "Tipo de profesión",
