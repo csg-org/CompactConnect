@@ -70,12 +70,15 @@ new AWS organization that we will set up here. Have them:
 ### Provision workflow accounts
 - Log into the AWS Management account console via your IAM Identity Center user
 - Go to the ControlTower service, Organization view
-- Create a new OU structure as follows:
+- Create a new OU structure as follows. Each compact gets its own OU under `Workflows`, with its own
+  `PreProd` and `Prod` sub-OUs inside it. Name the compact-level OU after the compact (e.g. `CompactConnect`
+  for the initial JCC compact):
 ```text
 └── Workflows
     ├── Deployment
-    ├── PreProd
-    └── Prod
+    └── CompactConnect
+        ├── PreProd
+        └── Prod
 ```
 - Go to the ControlTower service, Account factory view
 - Create six new AWS accounts for the OUs in the following structure, with the following details. Use the
@@ -85,21 +88,22 @@ new AWS organization that we will set up here. Have them:
 └── Workflows
     ├── Deployment
     │   └── Deploy
-    ├── PreProd
-    │   └── Test
-    │   └── Test Secondary (Backups and Disaster Recovery)
-    │   └── Beta
-    └── Prod
-        └── Production
-        └── Production Secondary (Backups and Disaster Recovery)
+    └── CompactConnect
+        ├── PreProd
+        │   ├── Test
+        │   ├── Test Secondary (Backups and Disaster Recovery)
+        │   └── Beta
+        └── Prod
+            ├── Production
+            └── Production Secondary (Backups and Disaster Recovery)
 ```
 - Go to the IAM Identity Center service, Groups view
 - Create a new group called CSGAdmins and add yourself
 - Create a new group called CSGReadOnly and add yourself
-- Go to the IAM Identity Center service, AWS Accounts view, check all AWS Accounts under the Workflow OU and select
-  Assign users or groups
+- Go to the IAM Identity Center service, AWS Accounts view, check all AWS Accounts under the compact's OU
+  (e.g. `Workflows/CompactConnect`) and the Deploy account and select Assign users or groups
 - Select the CSGAdmin group, and the `AWSAdministratorAccess` permission set
-- Select all the accounts under the Workflow OU and select Assign users or groups
+- Select all those same accounts and select Assign users or groups again
 - Select the CSGReadOnly group, and the `AWSReadOnlyAccess` permission set
 - In the future, add any new IAM Identity Center users to these groups as appropriate (or create even more groups, with
   more granular permissions, as needed).
@@ -290,7 +294,7 @@ The logs will be stored in an S3 bucket in the Logs account, and the trail itsel
 
 ## Adding a new compact
 
-Each compact runs in its own set of application accounts under the existing AWS Organization. The Deploy account is **shared** across all compacts, so you do not provision a new Deploy account when onboarding a new compact. You only need to add the compact's application accounts (Test, Test Secondary, Beta, Production, Production Secondary) under the existing OUs and stand up the compact's pipeline stacks inside the existing Deploy account.
+Each compact runs in its own set of application accounts under the existing AWS Organization, in its own dedicated OU under `Workflows`. The Deploy account is **shared** across all compacts, so you do not provision a new Deploy account when onboarding a new compact. You need to create a new compact-level OU (with `PreProd` and `Prod` sub-OUs inside it), provision the compact's application accounts within those OUs, and stand up the compact's pipeline stacks inside the existing Deploy account.
 
 The follow documentation mirrors the process described above for setting up the original JCC compact, but with details specific for new compacts.
 
@@ -311,29 +315,49 @@ shared across all compacts.
 
 ### Provision the new compact's application accounts
 - Log into the AWS Management account console via your IAM Identity Center user
+- Go to the ControlTower service, Organization view
+- Create a new compact-level OU under `Workflows` named after the compact (e.g. `Cosmetology`), and within it
+  create `PreProd` and `Prod` sub-OUs, following the same pattern as the original compact's OU structure
 - Go to the ControlTower service, Account factory view
-- Create five new AWS accounts under the **existing** OUs.
+- Create five new AWS accounts within the new compact's OUs.
   Use the corresponding email distribution list from the previous step as the account address, give each account a
   Display name that clearly identifies both the compact and the environment, and assign your own IAM Identity Center
   user for Access configuration. The resulting OU structure should look like the following (the original compact's
-  accounts are shown for reference, and the new compact's accounts slot in alongside them):
+  OU is shown for reference, and the new compact's OU sits alongside it):
 ```text
 └── Workflows
     ├── Deployment
     │   └── Deploy                                    (shared, already exists)
-    ├── PreProd
-    │   ├── Test                                      (original compact)
-    │   ├── Test Secondary                            (original compact)
-    │   ├── Beta                                      (original compact)
-    │   ├── <Compact> Test                            (new)
-    │   ├── <Compact> Test Secondary                  (new)
-    │   └── <Compact> Beta                            (new)
-    └── Prod
-        ├── Production                                (original compact)
-        ├── Production Secondary                      (original compact)
-        ├── <Compact> Production                      (new)
-        └── <Compact> Production Secondary            (new)
+    ├── CompactConnect                                (original compact, already exists)
+    │   ├── PreProd
+    │   │   ├── Test
+    │   │   ├── Test Secondary
+    │   │   └── Beta
+    │   └── Prod
+    │       ├── Production
+    │       └── Production Secondary
+    └── <Compact>                                     (new compact OU)
+        ├── PreProd
+        │   ├── <Compact> Test                        (new)
+        │   ├── <Compact> Test Secondary              (new)
+        │   └── <Compact> Beta                        (new)
+        └── Prod
+            ├── <Compact> Production                  (new)
+            └── <Compact> Production Secondary        (new)
 ```
+
+### Grant IAM Identity Center access to the new accounts
+- Go to the IAM Identity Center service, AWS Accounts view
+- Select the five newly created application accounts under the new compact's OU (e.g.
+  `Workflows/<Compact>/PreProd` and `Workflows/<Compact>/Prod`) and select Assign users or groups
+- Assign the existing `CSGAdmins` group with the `AWSAdministratorAccess` permission set
+- Select those same accounts again and select Assign users or groups
+- Assign the existing `CSGReadOnly` group with the `AWSReadOnlyAccess` permission set
+- The `DenyComputeBackupAndResourceModifications` inline policy described in
+  [Configure Permission Set Inline Policies](#configure-permission-set-inline-policies) is attached at the permission
+  set level, so it automatically applies to the new accounts with no further action.
+- The `Disallow actions as a root user` control configured in [Disallow Root](#disallow-root) is enabled at the OU
+  level, so it automatically applies to the new compact's OU as well.
 
 ### Deploy the new compact's pipeline stacks
 The new compact's pipeline stacks are deployed into the **existing** Deploy account alongside the original compact's
