@@ -287,3 +287,120 @@ After setting up the multi-account architecture, you can deploy the log aggregat
 This will set up a CloudTrail organization trail that logs read operations on DynamoDB tables with the `-DataEventsLog` suffix across all accounts in the organization.
 
 The logs will be stored in an S3 bucket in the Logs account, and the trail itself will be managed from the Management account.
+
+## Adding a new compact
+
+Each compact runs in its own set of application accounts under the existing AWS Organization. The Deploy account is **shared** across all compacts, so you do not provision a new Deploy account when onboarding a new compact. You only need to add the compact's application accounts (Test, Test Secondary, Beta, Production, Production Secondary) under the existing OUs and stand up the compact's pipeline stacks inside the existing Deploy account.
+
+The follow documentation mirrors the process described above for setting up the original JCC compact, but with details specific for new compacts.
+
+### Create email distribution lists for the new compact
+Following the same pattern established for the initial compact (see
+[Deploy the multi-account app](#deploy-the-multi-account-app)), create (or have your IT department create) email
+distribution lists that allow external senders for the new compact's application accounts. Include the compact
+identifier in the list name so it is easy to distinguish from the other compacts' accounts. For example, for a
+hypothetical `<compact>` compact:
+- `cc-<compact>-prod@<email_domain>`
+- `cc-<compact>-prod-secondary@<email_domain>` (for backups and disaster recovery)
+- `cc-<compact>-beta@<email_domain>`
+- `cc-<compact>-test@<email_domain>`
+- `cc-<compact>-test-secondary@<email_domain>` (for backups and disaster recovery)
+
+Note you do **not** need a new `-deploy@` distribution list. The Deploy account provisioned during the initial setup is
+shared across all compacts.
+
+### Provision the new compact's application accounts
+- Log into the AWS Management account console via your IAM Identity Center user
+- Go to the ControlTower service, Account factory view
+- Create five new AWS accounts under the **existing** OUs.
+  Use the corresponding email distribution list from the previous step as the account address, give each account a
+  Display name that clearly identifies both the compact and the environment, and assign your own IAM Identity Center
+  user for Access configuration. The resulting OU structure should look like the following (the original compact's
+  accounts are shown for reference, and the new compact's accounts slot in alongside them):
+```text
+└── Workflows
+    ├── Deployment
+    │   └── Deploy                                    (shared, already exists)
+    ├── PreProd
+    │   ├── Test                                      (original compact)
+    │   ├── Test Secondary                            (original compact)
+    │   ├── Beta                                      (original compact)
+    │   ├── <Compact> Test                            (new)
+    │   ├── <Compact> Test Secondary                  (new)
+    │   └── <Compact> Beta                            (new)
+    └── Prod
+        ├── Production                                (original compact)
+        ├── Production Secondary                      (original compact)
+        ├── <Compact> Production                      (new)
+        └── <Compact> Production Secondary            (new)
+```
+
+### Deploy the new compact's pipeline stacks
+The new compact's pipeline stacks are deployed into the **existing** Deploy account alongside the original compact's
+pipeline stacks. Each compact's CDK app defines its own set of pipeline stacks (for example, the Cosmetology compact
+defines `TestBackendCosmetology`, `BetaBackendCosmetology`, and `ProdBackendCosmetology`), so the pipelines for
+different compacts do not collide.
+
+- Navigate to the new compact's CDK project directory (for example, `backend/cosmetology-app` or
+  `backend/social-work-app`)
+- Follow that project's deployment instructions for the pipelined environments. The Cosmetology compact's instructions
+  are a good reference for any new compact and live at
+  [Cosmetology README - First deploy to the pipelined environments](../cosmetology-app/README.md#first-deploy-to-the-pipelined-environments).
+  In particular, you generally will need to perform the following:
+  - Complete the StatSig Feature Flag Setup for each environment (test, beta, prod)
+  - Create Route53 hosted zones for the new compact's domain names in each of its Test, Beta, and Production accounts
+  - Populate the compact-specific `cdk.context.json` files with the new account IDs and push them to SSM via
+    `bin/put_ssm_context.sh <environment>`
+  - Configure your CLI to use the Deploy account and run the appropriate `cdk deploy` command to create the new
+    compact's pipeline stacks (e.g.
+    `cdk deploy --context action=bootstrapDeploy TestBackendCosmetology BetaBackendCosmetology ProdBackendCosmetology`
+    for the Cosmetology compact; substitute the equivalent stack names for any other compact)
+
+**Important**: As with the initial compact setup, the new compact's pipeline stacks create cross-account roles in the
+Deploy account (e.g. `CompactConnect-test-Cosmetology-CrossAccountRole`) that the new compact's application account
+bootstrap templates trust. These pipeline stacks must be deployed before bootstrapping the new compact's application
+accounts in the next step.
+
+### Bootstrap the new compact's application accounts
+Each compact ships its own custom bootstrap templates that trust only the pipeline roles for that specific compact,
+under `<compact-app>/resources/bootstrap-stack-{test,beta,prod}.yaml`. Update the role names in those templates (not the original compact's templates) to reference the new cross-account roles and then use the templates when bootstrapping the new compact's application accounts so the resulting bootstrap roles trust the correct cross-account roles.
+
+- For each of the new compact's Test, Beta, and Production accounts:
+  - Configure your CLI to use the target account
+  - Run the secure bootstrap command with the new compact's environment-specific template. For example, for the
+    Cosmetology compact:
+
+  ```bash
+  # Run these commands from the backend/cosmetology-app directory
+
+  # For the new compact's Test account
+  cdk bootstrap <new compact test account>/us-east-1 --force \
+    --template resources/bootstrap-stack-test.yaml \
+    --trust <deploy account id> \
+    --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
+
+  # For the new compact's Beta account
+  cdk bootstrap <new compact beta account>/us-east-1 --force \
+    --template resources/bootstrap-stack-beta.yaml \
+    --trust <deploy account id> \
+    --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
+
+  # For the new compact's Production account
+  cdk bootstrap <new compact prod account>/us-east-1 --force \
+    --template resources/bootstrap-stack-prod.yaml \
+    --trust <deploy account id> \
+    --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'
+  ```
+
+  For a different compact, run the commands from that compact's CDK project directory and use its
+  `resources/bootstrap-stack-*.yaml` templates.
+
+After the secure bootstrap completes, perform the first manual application deploy into each of the new compact's
+application accounts and trigger the first pipeline run as described in the compact's README (for the Cosmetology
+compact, see
+[Cosmetology README - First deploy to the pipelined environments](../cosmetology-app/README.md#first-deploy-to-the-pipelined-environments)).
+
+### Bootstrap the new compact's secondary accounts
+The Test Secondary and Production Secondary accounts host the new compact's backups and disaster recovery resources.
+See [`backend/multi-account/backups/README.md`](./backups/README.md) for instructions on bootstrapping these secondary
+accounts and deploying the backup resources for the new compact.
