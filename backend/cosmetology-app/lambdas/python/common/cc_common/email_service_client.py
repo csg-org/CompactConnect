@@ -388,9 +388,6 @@ class EmailServiceClient:
         :param template_variables: Template variables for the email
         :return: Response from the email notification service
         """
-        if template_variables.provider_id is None:
-            raise ValueError('provider_id must be provided for state notifications')
-
         payload = {
             'compact': compact,
             'jurisdiction': jurisdiction,

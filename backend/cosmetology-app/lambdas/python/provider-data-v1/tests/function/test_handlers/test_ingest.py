@@ -780,7 +780,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Same license type in KY, with a newer issuance date then the same license in OH,
+        # Same license type in KY, with a newer issuance date than the same license in OH,
         # but not the most recent renewal date. No new "home" license jurisdiction event should be issued.
         message['detail'].update(
             {
