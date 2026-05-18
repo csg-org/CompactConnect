@@ -8,6 +8,7 @@ from cc_common.config import config
 from cc_common.data_model.schema.common import InvestigationAgainstEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
+    HomeJurisdictionChangeEventDetailSchema,
     InvestigationEventDetailSchema,
     LicenseDeactivationDetailSchema,
     LicenseRevertDetailSchema,
@@ -78,6 +79,45 @@ class EventBusClient:
         return {
             'Source': source,
             'DetailType': 'license.deactivation',
+            'Detail': json.dumps(loaded_detail, cls=ResponseEncoder),
+            'EventBusName': config.event_bus_name,
+        }
+
+    def generate_home_jurisdiction_change_event(
+        self,
+        source: str,
+        compact: str,
+        jurisdiction: str,
+        provider_id: UUID,
+        license_type: str,
+        former_home_jurisdiction: str,
+    ) -> dict:
+        """
+        Generate a home jurisdiction change event entry for use with batch writers.
+
+        :param source: The source of the event
+        :param compact: The compact abbreviation
+        :param jurisdiction: The new jurisdiction that uploaded the license
+        :param provider_id: The provider's unique identifier
+        :param license_type: The type of license
+        :param former_home_jurisdiction: The former home jurisdiction of the provider
+        :returns: Event entry dict that can be used with EventBatchWriter
+        """
+        event_detail = {
+            'eventTime': config.current_standard_datetime.isoformat(),
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'providerId': str(provider_id),
+            'licenseType': license_type,
+            'formerHomeJurisdiction': former_home_jurisdiction,
+        }
+
+        home_jurisdiction_change_schema = HomeJurisdictionChangeEventDetailSchema()
+        loaded_detail = home_jurisdiction_change_schema.load(event_detail)
+
+        return {
+            'Source': source,
+            'DetailType': 'provider.homeStateChange',
             'Detail': json.dumps(loaded_detail, cls=ResponseEncoder),
             'EventBusName': config.event_bus_name,
         }

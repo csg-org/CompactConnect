@@ -90,31 +90,15 @@ class ProviderRecordUtility:
         return (effective_date, date_of_issuance)
 
     @classmethod
-    def find_best_license(cls, license_records: Iterable[dict], home_jurisdiction: str | None = None) -> dict:
+    def find_most_recently_issued_or_renewed_license(cls, license_records: Iterable[dict]) -> dict:
         """
-        Find the best license from a collection of licenses.
-
         This selects the license renewed or issued most recently. Sort by date of renewal
         if present, otherwise date of issuance; use date of issuance as tiebreaker. Compact
         eligibility and active status are not considered.
 
-        1. If home jurisdiction is selected, only consider licenses from that jurisdiction
-        2. Return the single license with the latest (renewal date or issuance date)
-
         :param license_records: An iterable of license records
-        :param home_jurisdiction: The home jurisdiction selection
         :return: The best license record
         """
-        # If the provider's home jurisdiction was selected, we only consider licenses from that jurisdiction
-        # Unless the provider does not have any licenses in that jurisdiction
-        # (ie they moved to a non-member jurisdiction)
-        if home_jurisdiction is not None:
-            license_records_in_jurisdiction = cls.get_records_of_type(
-                license_records, ProviderRecordType.LICENSE, _filter=lambda x: x['jurisdiction'] == home_jurisdiction
-            )
-            if license_records_in_jurisdiction:
-                license_records = license_records_in_jurisdiction
-
         latest_licenses = sorted(license_records, key=cls._license_sort_key, reverse=True)
         if not latest_licenses:
             raise CCInternalException('No licenses found')

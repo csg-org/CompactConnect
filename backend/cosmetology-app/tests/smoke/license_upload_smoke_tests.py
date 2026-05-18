@@ -4,37 +4,47 @@ import time
 from datetime import UTC, datetime, timedelta
 
 import requests
+from boto3.dynamodb.conditions import Key
+from compact_configuration_smoke_tests import test_jurisdiction_configuration
 from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
+    call_provider_details_endpoint,
     create_test_app_client,
     create_test_staff_user,
     delete_test_app_client,
     delete_test_staff_user,
-    get_api_base_url,
     get_client_auth_headers,
     get_data_events_dynamodb_table,
     get_provider_user_dynamodb_table,
     get_staff_user_auth_headers,
     load_smoke_test_env,
+    wait_for_provider_creation,
 )
 
-MOCK_SSN = '999-99-9999'
 COMPACT = 'cosm'
-JURISDICTION = 'az'
-TEST_PROVIDER_GIVEN_NAME = 'Joe'
-TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 
 # This script can be run locally to test the license upload/ingest flow against a sandbox environment.
 # License POST uses the state API (CC_TEST_STATE_API_BASE_URL) with a short-lived Cognito app client
 # (CC_TEST_STATE_AUTH_URL, CC_TEST_COGNITO_STATE_AUTH_USER_POOL_ID); provider query/GET use the internal API
 # (CC_TEST_API_BASE_URL) with a staff user. Configure smoke_tests_env.json from smoke_tests_env_example.json.
 
+# Developer note: this smoke test intentionally polls up to 12 minutes (60s interval) because the
+# preprocess and ingest SQS event source mappings currently use 5-minute max batching windows.
+# If faster runtime is needed, manually lower those event source mapping batching windows in the
+# target environment before running this test.
+
 # Note that by design, developers do not have the ability to delete records from the SSN DynamoDB table,
 # so this script does not delete the created SSN records as part of cleanup.
 
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-upload-smoke-client'
+HOME_STATE_CHANGE_MOCK_SSN = '999-88-8888'
+HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME = 'Jane'
+HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME = 'TestSmith'
+HOME_STATE_CHANGE_LICENSE_TYPE = 'cosmetologist'
+HOME_STATE_CHANGE_FORMER_JURISDICTION = 'az'
+HOME_STATE_CHANGE_NEW_JURISDICTION = 'oh'
 
 
 def _cleanup_test_generated_records(provider_id: str, license_ingest_record_response: dict):
@@ -60,149 +70,254 @@ def _cleanup_test_generated_records(provider_id: str, license_ingest_record_resp
     logger.info('Successfully deleted license ingest record from data events table')
 
 
-def upload_licenses_record(license_upload_auth_headers: dict):
-    """
-    Verifies that a license record can be uploaded to the Compact Connect API and the appropriate
-    records are created in the provider table as well as the data events table.
-
-    Step 1: Upload a license via the state API (POST .../licenses) using state app client credentials.
-    Step 2: Verify the provider records are added by querying the internal staff API.
-    Step 3: Verify the license record is recorded in the data events table.
-    """
-    staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
-
-    # Step 1: State-authenticated license upload (see stacks/state_api_stack).
-    post_body = [
+def _build_home_state_change_license_post_body(jurisdiction: str, date_of_issuance: str):
+    return [
         {
-            'licenseNumber': 'A0608337260',
+            'licenseNumber': f'{jurisdiction.upper()}-HOME-STATE-TEST',
             'homeAddressPostalCode': '68001',
-            'givenName': TEST_PROVIDER_GIVEN_NAME,
-            'familyName': TEST_PROVIDER_FAMILY_NAME,
-            'homeAddressStreet1': '123 Fake Street',
+            'givenName': HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME,
+            'familyName': HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME,
+            'homeAddressStreet1': '123 Home State Test Street',
             'dateOfBirth': '1991-12-10',
-            'dateOfIssuance': '2024-12-10',
-            'ssn': MOCK_SSN,
-            'licenseType': 'cosmetologist',
+            'dateOfIssuance': date_of_issuance,
+            'ssn': HOME_STATE_CHANGE_MOCK_SSN,
+            'licenseType': HOME_STATE_CHANGE_LICENSE_TYPE,
             'dateOfExpiration': '2050-12-10',
-            'homeAddressState': 'AZ',
+            'homeAddressState': jurisdiction.upper(),
             'homeAddressCity': 'Omaha',
             'compactEligibility': 'eligible',
             'licenseStatus': 'active',
         }
     ]
 
+
+def _post_license_to_state_api(client_id: str, client_secret: str, jurisdiction: str, post_body: list[dict]):
+    # Access tokens are short lived, so regenerate before each upload call.
+    license_upload_auth_headers = get_client_auth_headers(client_id, client_secret, COMPACT, jurisdiction)
     post_response = requests.post(
-        url=f'{config.state_api_base_url}/v1/compacts/{COMPACT}/jurisdictions/{JURISDICTION}/licenses',
+        url=f'{config.state_api_base_url}/v1/compacts/{COMPACT}/jurisdictions/{jurisdiction}/licenses',
         headers=license_upload_auth_headers,
         json=post_body,
         timeout=60,
     )
 
     if post_response.status_code != 200:
-        raise SmokeTestFailureException(f'Failed to POST license record. Response: {post_response.json()}')
-
-    logger.info(f'License record successfully uploaded {post_response.json()}')
-
-    # Step 2: Verify the provider records are added by querying the API
-    provider_id = None
-
-    # The preprocessing and ingest SQS queues have a visibility timeout of 5 minutes each
-    # so we will need to poll until the record is available
-    for _ in range(30):
-        # Query the provider API to find the provider by name
-        query_body = {'query': {'familyName': TEST_PROVIDER_FAMILY_NAME, 'givenName': TEST_PROVIDER_GIVEN_NAME}}
-
-        query_response = requests.post(
-            url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/query',
-            headers=staff_headers,
-            json=query_body,
-            timeout=10,
+        raise SmokeTestFailureException(
+            f'Failed to POST home state change license record for {jurisdiction}. Response: {post_response.json()}'
         )
 
-        if query_response.status_code != 200:
-            logger.info(f'Query failed with status {query_response.status_code}. Retrying...')
-            time.sleep(30)
-            continue
+    logger.info(f'Home state change license record successfully uploaded for {jurisdiction}: {post_response.json()}')
 
-        providers = query_response.json().get('providers', [])
-        if providers:
-            # Find our test provider in the results
-            for provider in providers:
-                if (
-                    provider.get('givenName') == TEST_PROVIDER_GIVEN_NAME
-                    and provider.get('familyName') == TEST_PROVIDER_FAMILY_NAME
-                ):
-                    provider_id = provider.get('providerId')
-                    break
 
-        if provider_id:
-            break
-
-        logger.info('Provider record not found via API query. Retrying...')
-        time.sleep(30)
-
-    if not provider_id:
-        raise SmokeTestFailureException('Failed to find provider record via API query.')
-
-    logger.info(f'Provider record successfully found via API query. Provider ID: {provider_id}')
-
-    # Now get the provider details to verify the license record
-    provider_details_response = requests.get(
-        url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/{provider_id}',
-        headers=staff_headers,
-        timeout=10,
-    )
-
-    if provider_details_response.status_code != 200:
-        raise SmokeTestFailureException(f'Failed to get provider details. Response: {provider_details_response.json()}')
-
-    provider_details = provider_details_response.json()
-    licenses = provider_details.get('licenses', [])
-
-    if not licenses:
-        raise SmokeTestFailureException('Failed to find license record in provider details.')
-
-    license_record = next(
-        (license_record for license_record in licenses if license_record.get('licenseType') == 'cosmetologist'), None
-    )
-
-    if not license_record:
-        raise SmokeTestFailureException('Failed to find cosmetologist license record in provider details.')
-
-    logger.info(f'License record successfully found in provider details: {license_record}')
-
-    # Step 3: Verify the license record is recorded in the data events table.
-    # we don't loop here because the record should be available in the data events table by the time the
-    # provider table record is available. We use a consistent read to ensure that we get the latest record.
+def _wait_for_home_state_change_event(provider_id: str, max_wait_seconds: int = 720, poll_interval_seconds: int = 60):
     data_events_table = get_data_events_dynamodb_table()
-    event_time = datetime.now(tz=UTC)
-    start_time = event_time - timedelta(minutes=15)
-    logger.info('searching for license in data event')
-    license_ingest_record_response = data_events_table.query(
+    max_attempts = max_wait_seconds // poll_interval_seconds
+    event_pk = f'COMPACT#{COMPACT}#JURISDICTION#{HOME_STATE_CHANGE_NEW_JURISDICTION}'
+
+    for attempt in range(1, max_attempts + 1):
+        response = data_events_table.query(
+            KeyConditionExpression=Key('pk').eq(event_pk)
+            & Key('sk').begins_with('TYPE#provider.homeStateChange#TIME#'),
+            FilterExpression='providerId = :provider_id',
+            ExpressionAttributeValues={':provider_id': provider_id},
+            ConsistentRead=True,
+        )
+        matching_event = next(iter(response.get('Items', [])), None)
+        if matching_event:
+            logger.info(f'Found provider.homeStateChange data event for provider {provider_id}')
+            return matching_event
+
+        if attempt < max_attempts:
+            logger.info(
+                f'provider.homeStateChange event not found yet for provider {provider_id}. '
+                f'Attempt {attempt}/{max_attempts}. Retrying in {poll_interval_seconds} seconds.'
+            )
+            time.sleep(poll_interval_seconds)
+
+    return None
+
+
+def _query_license_ingest_events_for_jurisdiction(
+    jurisdiction: str, provider_id: str, start_time: datetime, end_time: datetime
+):
+    data_events_table = get_data_events_dynamodb_table()
+    return data_events_table.query(
         KeyConditionExpression='pk = :pk AND sk BETWEEN :start_time AND :end_time',
+        FilterExpression='providerId = :provider_id',
         ExpressionAttributeValues={
-            ':pk': f'COMPACT#{COMPACT}#JURISDICTION#{JURISDICTION}',
+            ':pk': f'COMPACT#{COMPACT}#JURISDICTION#{jurisdiction}',
             ':start_time': f'TYPE#license.ingest#TIME#{int(start_time.timestamp())}',
-            ':end_time': f'TYPE#license.ingest#TIME#{int(event_time.timestamp())}',
+            ':end_time': f'TYPE#license.ingest#TIME#{int(end_time.timestamp())}',
+            ':provider_id': provider_id,
         },
         ConsistentRead=True,
     )
 
-    if not license_ingest_record_response.get('Items'):
-        logger.error(
-            f'Failed to find license ingest record in data events table. Response: {license_ingest_record_response}'
-        )
-        _cleanup_test_generated_records(provider_id, license_ingest_record_response)
-        raise SmokeTestFailureException('Failed to find license ingest records in data event table.')
 
-    logger.info(
-        f'License ingest data event successfully added to data events table {license_ingest_record_response["Items"]}'
+def test_home_state_change_notification(staff_headers: dict, client_id: str, client_secret: str):
+    start_time = datetime.now(tz=UTC) - timedelta(minutes=2)
+    provider_id = None
+    try:
+        _post_license_to_state_api(
+            client_id=client_id,
+            client_secret=client_secret,
+            jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
+            post_body=_build_home_state_change_license_post_body(
+                jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION, date_of_issuance='2024-01-15'
+            ),
+        )
+
+        provider_id = wait_for_provider_creation(
+            staff_headers=staff_headers,
+            compact=COMPACT,
+            given_name=HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME,
+            family_name=HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME,
+            max_wait_time=750,
+            staff_user_email=TEST_STAFF_USER_EMAIL,
+            poll_interval_seconds=60,
+        )
+        logger.info(f'Found home state change test provider id {provider_id}')
+
+        refreshed_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+        az_provider_details = call_provider_details_endpoint(
+            headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
+        )
+        az_cosmetology_licenses = [
+            license_record
+            for license_record in az_provider_details.get('licenses', [])
+            if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
+        ]
+
+        if len(az_cosmetology_licenses) != 1:
+            raise SmokeTestFailureException(
+                f'Expected one {HOME_STATE_CHANGE_LICENSE_TYPE} license after AZ upload, '
+                f'found {len(az_cosmetology_licenses)}'
+            )
+
+        if az_cosmetology_licenses[0].get('jurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
+            raise SmokeTestFailureException(
+                'Expected first home state license jurisdiction to be '
+                f'{HOME_STATE_CHANGE_FORMER_JURISDICTION}, found {az_cosmetology_licenses[0].get("jurisdiction")}'
+            )
+
+        if az_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
+            raise SmokeTestFailureException(
+                'Expected licenseJurisdiction to be '
+                f'{HOME_STATE_CHANGE_FORMER_JURISDICTION} after first upload, '
+                f'found {az_provider_details.get("licenseJurisdiction")}'
+            )
+
+        _post_license_to_state_api(
+            client_id=client_id,
+            client_secret=client_secret,
+            jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+            post_body=_build_home_state_change_license_post_body(
+                # upload license that was issued at a later date to trigger home state change
+                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+                date_of_issuance='2025-06-15',
+            ),
+        )
+
+        home_state_change_event = _wait_for_home_state_change_event(
+            provider_id=provider_id, max_wait_seconds=750, poll_interval_seconds=60
+        )
+        if not home_state_change_event:
+            raise SmokeTestFailureException(
+                'Failed to find provider.homeStateChange data event for the home state change smoke test.'
+            )
+
+        refreshed_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+        updated_provider_details = call_provider_details_endpoint(
+            headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
+        )
+        updated_cosmetology_licenses = [
+            license_record
+            for license_record in updated_provider_details.get('licenses', [])
+            if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
+        ]
+        updated_jurisdictions = {license_record.get('jurisdiction') for license_record in updated_cosmetology_licenses}
+        if updated_jurisdictions != {HOME_STATE_CHANGE_FORMER_JURISDICTION, HOME_STATE_CHANGE_NEW_JURISDICTION}:
+            raise SmokeTestFailureException(
+                f'Expected cosmetology licenses for both {HOME_STATE_CHANGE_FORMER_JURISDICTION} and '
+                f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {sorted(updated_jurisdictions)}'
+            )
+
+        if updated_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_NEW_JURISDICTION:
+            raise SmokeTestFailureException(
+                'Expected licenseJurisdiction to change to '
+                f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {updated_provider_details.get("licenseJurisdiction")}'
+            )
+
+        logger.info(
+            'MANUAL VERIFICATION REQUIRED: check inbox for '
+            f'{config.smoke_test_notification_email}. Verify a provider home state change email was sent to '
+            f'the former home jurisdiction {HOME_STATE_CHANGE_FORMER_JURISDICTION.upper()} after upload from '
+            f'{HOME_STATE_CHANGE_NEW_JURISDICTION.upper()} for provider '
+            f'{HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME} {HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME} ({provider_id}).'
+        )
+    finally:
+        if provider_id:
+            logger.info('cleaning up test provider records', provider_id=provider_id)
+            end_time = datetime.now(tz=UTC)
+            az_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
+                jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
+                provider_id=provider_id,
+                start_time=start_time,
+                end_time=end_time,
+            )
+            oh_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
+                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+                provider_id=provider_id,
+                start_time=start_time,
+                end_time=end_time,
+            )
+            home_state_change_events = _query_home_state_change_events_for_provider(provider_id)
+            _cleanup_home_state_change_generated_records(
+                provider_id=provider_id,
+                az_license_ingest_events=az_license_ingest_events,
+                oh_license_ingest_events=oh_license_ingest_events,
+                home_state_change_events=home_state_change_events,
+            )
+        else:
+            logger.info('Skipping provider cleanup because provider id was never discovered.')
+
+
+def _cleanup_home_state_change_generated_records(
+    provider_id: str,
+    az_license_ingest_events: dict,
+    oh_license_ingest_events: dict,
+    home_state_change_events: list[dict] | None = None,
+):
+    merged_items = [
+        *az_license_ingest_events.get('Items', []),
+        *oh_license_ingest_events.get('Items', []),
+    ]
+    _cleanup_test_generated_records(provider_id, {'Items': merged_items})
+
+    if home_state_change_events:
+        data_events_table = get_data_events_dynamodb_table()
+        for home_state_change_event in home_state_change_events:
+            data_events_table.delete_item(
+                Key={'pk': home_state_change_event['pk'], 'sk': home_state_change_event['sk']}
+            )
+        logger.info('Successfully deleted provider.homeStateChange event(s) from data events table')
+
+
+def _query_home_state_change_events_for_provider(provider_id: str):
+    data_events_table = get_data_events_dynamodb_table()
+    event_pk = f'COMPACT#{COMPACT}#JURISDICTION#{HOME_STATE_CHANGE_NEW_JURISDICTION}'
+    response = data_events_table.query(
+        KeyConditionExpression=Key('pk').eq(event_pk) & Key('sk').begins_with('TYPE#provider.homeStateChange#TIME#'),
+        ConsistentRead=True,
     )
-    _cleanup_test_generated_records(provider_id, license_ingest_record_response)
+    return [item for item in response.get('Items', []) if item.get('providerId') == provider_id]
 
 
 if __name__ == '__main__':
     load_smoke_test_env()
+
+    test_jurisdiction_configuration(HOME_STATE_CHANGE_FORMER_JURISDICTION, recreate_compact_config=True)
+    test_jurisdiction_configuration(HOME_STATE_CHANGE_NEW_JURISDICTION)
 
     test_user_sub = None
     client_id = None
@@ -211,15 +326,30 @@ if __name__ == '__main__':
         test_user_sub = create_test_staff_user(
             email=TEST_STAFF_USER_EMAIL,
             compact=COMPACT,
-            jurisdiction=JURISDICTION,
-            permissions={'actions': {'admin'}, 'jurisdictions': {JURISDICTION: {'write', 'admin'}}},
+            jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
+            permissions={
+                'actions': {'admin'},
+                'jurisdictions': {
+                    HOME_STATE_CHANGE_FORMER_JURISDICTION: {'write', 'admin'},
+                    HOME_STATE_CHANGE_NEW_JURISDICTION: {'write', 'admin'},
+                },
+            },
         )
-        client_credentials = create_test_app_client(TEST_APP_CLIENT_NAME, COMPACT, JURISDICTION)
+
+        client_credentials = create_test_app_client(
+            TEST_APP_CLIENT_NAME,
+            COMPACT,
+            jurisdictions=[HOME_STATE_CHANGE_FORMER_JURISDICTION, HOME_STATE_CHANGE_NEW_JURISDICTION],
+        )
         client_id = client_credentials['client_id']
         client_secret = client_credentials['client_secret']
-        license_upload_headers = get_client_auth_headers(client_id, client_secret, COMPACT, JURISDICTION)
-        upload_licenses_record(license_upload_headers)
-        logger.info('License record upload smoke test passed')
+        home_state_change_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+        test_home_state_change_notification(
+            staff_headers=home_state_change_staff_headers,
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+        logger.info('Home state change notification smoke test passed')
     except SmokeTestFailureException as e:
         logger.error(f'License record upload smoke test failed: {str(e)}')
     finally:

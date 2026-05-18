@@ -795,3 +795,112 @@ class TestNotificationStack(TstAppABC, TestCase):
             },
             privilege_investigation_closed_rule,
         )
+
+    def test_provider_home_jurisdiction_change_notification_listener_resources_created(self):
+        """
+        Test that the provider home jurisdiction change notification listener lambda is added with a SQS queue
+        and an event bridge event rule that listens for 'provider.homeStateChange' detail types.
+        """
+        notification_stack = self.app.sandbox_backend_stage.notification_stack
+        notification_template = Template.from_stack(notification_stack)
+
+        # Verify the lambda function is created
+        provider_home_jurisdiction_change_handler_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'ProviderHomeJurisdictionChangeNotificationListener'
+            ].queue_processor.process_function.node.default_child
+        )
+        provider_home_jurisdiction_change_handler = TestNotificationStack.get_resource_properties_by_logical_id(
+            provider_home_jurisdiction_change_handler_logical_id,
+            resources=notification_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(
+            'handlers.home_state_change_events.home_state_change_notification_listener',
+            provider_home_jurisdiction_change_handler['Handler'],
+        )
+
+        # Verify SQS queue is created
+        listener_queue_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'ProviderHomeJurisdictionChangeNotificationListener'
+            ].queue_processor.queue.node.default_child
+        )
+        listener_queue = TestNotificationStack.get_resource_properties_by_logical_id(
+            listener_queue_logical_id,
+            resources=notification_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        dlq_logical_id = notification_stack.get_logical_id(
+            notification_stack.event_processors[
+                'ProviderHomeJurisdictionChangeNotificationListener'
+            ].queue_processor.dlq.node.default_child
+        )
+
+        # remove dynamic field
+        del listener_queue['KmsMasterKeyId']
+
+        self.assertEqual(
+            {
+                'MessageRetentionPeriod': 43200,
+                'RedrivePolicy': {'deadLetterTargetArn': {'Fn::GetAtt': [dlq_logical_id, 'Arn']}, 'maxReceiveCount': 3},
+                'VisibilityTimeout': 300,
+            },
+            listener_queue,
+        )
+
+        # Verify EventBridge rule is created with correct detail type
+        event_bridge_rule = TestNotificationStack.get_resource_properties_by_logical_id(
+            notification_stack.get_logical_id(
+                notification_stack.event_processors[
+                    'ProviderHomeJurisdictionChangeNotificationListener'
+                ].event_rule.node.default_child
+            ),
+            resources=notification_template.find_resources(CfnRule.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(
+            {
+                'EventBusName': {
+                    'Fn::Select': [
+                        1,
+                        {
+                            'Fn::Split': [
+                                '/',
+                                {'Fn::Select': [5, {'Fn::Split': [':', {'Ref': 'DataEventBusArnParameterParameter'}]}]},
+                            ]
+                        },
+                    ]
+                },
+                'EventPattern': {'detail-type': ['provider.homeStateChange']},
+                'State': 'ENABLED',
+                'Targets': [
+                    {
+                        'Arn': {'Fn::GetAtt': [listener_queue_logical_id, 'Arn']},
+                        'DeadLetterConfig': {'Arn': {'Fn::GetAtt': [dlq_logical_id, 'Arn']}},
+                        'Id': 'Target0',
+                    }
+                ],
+            },
+            event_bridge_rule,
+        )
+
+        # Verify event source mapping is created
+        event_source_mapping = TestNotificationStack.get_resource_properties_by_logical_id(
+            notification_stack.get_logical_id(
+                notification_stack.event_processors[
+                    'ProviderHomeJurisdictionChangeNotificationListener'
+                ].queue_processor.event_source_mapping.node.default_child
+            ),
+            resources=notification_template.find_resources(CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.assertEqual(
+            {
+                'BatchSize': 10,
+                'EventSourceArn': {'Fn::GetAtt': [listener_queue_logical_id, 'Arn']},
+                'FunctionName': {'Ref': provider_home_jurisdiction_change_handler_logical_id},
+                'FunctionResponseTypes': ['ReportBatchItemFailures'],
+                'MaximumBatchingWindowInSeconds': 15,
+            },
+            event_source_mapping,
+        )

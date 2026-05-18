@@ -328,7 +328,7 @@ class ApiModel:
                                     properties={
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN)
+                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
                                 ),
                             },

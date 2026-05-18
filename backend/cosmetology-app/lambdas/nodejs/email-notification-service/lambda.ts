@@ -7,7 +7,7 @@ import { Context } from 'aws-lambda';
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
-import { EncumbranceNotificationService, InvestigationNotificationService } from '../lib/email';
+import { EmailNotificationService, EncumbranceNotificationService, InvestigationNotificationService } from '../lib/email';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
@@ -19,6 +19,7 @@ interface LambdaProperties {
 }
 
 export class Lambda implements LambdaInterface {
+    private readonly emailService: EmailNotificationService;
     private readonly encumbranceService: EncumbranceNotificationService;
     private readonly investigationService: InvestigationNotificationService;
 
@@ -34,6 +35,13 @@ export class Lambda implements LambdaInterface {
         });
 
         this.encumbranceService = new EncumbranceNotificationService({
+            logger: logger,
+            sesClient: props.sesClient,
+            compactConfigurationClient: compactConfigurationClient,
+            jurisdictionClient: jurisdictionClient
+        });
+
+        this.emailService = new EmailNotificationService({
             logger: logger,
             sesClient: props.sesClient,
             compactConfigurationClient: compactConfigurationClient,
@@ -317,6 +325,27 @@ export class Lambda implements LambdaInterface {
                 event.templateVariables.providerId,
                 event.templateVariables.investigationJurisdiction,
                 event.templateVariables.licenseType
+            );
+            break;
+        case 'homeJurisdictionChangeNotification':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for home jurisdiction change notification template.');
+            }
+            if (!event.templateVariables?.providerFirstName
+                || !event.templateVariables?.providerLastName
+                || !event.templateVariables?.providerId
+                || !event.templateVariables?.previousJurisdiction
+                || !event.templateVariables?.newJurisdiction) {
+                throw new Error('Missing required template variables for home jurisdiction change notification template.');
+            }
+            await this.emailService.sendHomeJurisdictionChangeStateNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName,
+                event.templateVariables.providerId,
+                event.templateVariables.previousJurisdiction,
+                event.templateVariables.newJurisdiction
             );
             break;
         default:

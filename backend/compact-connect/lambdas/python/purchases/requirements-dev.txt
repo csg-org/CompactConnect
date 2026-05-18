@@ -161,7 +161,7 @@ tomli-w==1.2.0
     # via pip-audit
 typing-extensions==4.15.0
     # via aws-lambda-powertools
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   -r purchases/requirements-dev.in
     #   botocore

@@ -3,3 +3,4 @@ export { EncumbranceNotificationService } from './encumbrance-notification-servi
 export { InvestigationNotificationService } from './investigation-notification-service';
 export { IngestEventEmailService } from './ingest-event-email-service';
 export { EnvironmentBannerService } from './environment-banner-service';
+export { EmailNotificationService } from './email-notification-service';

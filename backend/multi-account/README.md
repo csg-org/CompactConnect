@@ -124,6 +124,7 @@ We do not want users updating runtime code or deleting critical resources outsid
 			"Sid": "DenyComputeAndBackupUpdates",
 			"Effect": "Deny",
 			"Action": [
+                "ec2:RunInstances",
 				"lambda:Delete*",
 				"lambda:Create*",
 				"lambda:Update*",
@@ -155,6 +156,7 @@ We do not want users updating runtime code or deleting critical resources outsid
 			"Sid": "DenyResourceModification",
 			"Effect": "Deny",
 			"Action": [
+                "dynamodb:BatchWriteItem",
 				"dynamodb:Delete*",
 				"s3:Delete*",
 				"s3:Create*",

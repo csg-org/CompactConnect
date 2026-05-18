@@ -95,7 +95,7 @@ tomli==2.4.1
     # via pip-audit
 tomli-w==1.2.0
     # via pip-audit
-urllib3==2.6.3
+urllib3==2.7.0
     # via requests
 wheel==0.46.3
     # via pip-tools

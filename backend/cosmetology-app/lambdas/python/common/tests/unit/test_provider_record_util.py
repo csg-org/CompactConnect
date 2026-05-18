@@ -466,18 +466,6 @@ class TestProviderRecordUtility(TstLambdas):
             'adverseActions': [],
         }
 
-    def test_find_best_license_with_home_jurisdiction(self):
-        """Test that find_best_license correctly filters by home jurisdiction when specified."""
-        from cc_common.data_model.provider_record_util import ProviderRecordUtility
-
-        licenses = [
-            {**self.base_license, 'jurisdiction': 'oh', 'dateOfIssuance': '2024-02-01'},
-            {**self.base_license, 'jurisdiction': 'ky', 'dateOfIssuance': '2024-01-01'},
-        ]
-
-        best_license = ProviderRecordUtility.find_best_license(licenses, home_jurisdiction='ky')
-        self.assertEqual(best_license['jurisdiction'], 'ky')
-
     def test_find_best_license_date_of_issuance_preferred_when_no_renewal(self):
         """Test that find_best_license selects by most recent issuance."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
@@ -496,7 +484,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        best_license = ProviderRecordUtility.find_best_license(licenses)
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
         self.assertEqual(best_license['dateOfIssuance'], '2024-02-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
 
@@ -523,7 +511,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        best_license = ProviderRecordUtility.find_best_license(licenses)
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
         self.assertEqual(best_license['dateOfRenewal'], '2024-06-01')
         self.assertEqual(best_license['licenseStatus'], ActiveInactiveStatus.INACTIVE)
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
@@ -534,7 +522,7 @@ class TestProviderRecordUtility(TstLambdas):
         from cc_common.exceptions import CCInternalException
 
         with self.assertRaises(CCInternalException):
-            ProviderRecordUtility.find_best_license([])
+            ProviderRecordUtility.find_most_recently_issued_or_renewed_license([])
 
     def test_find_best_license_complex_scenario(self):
         """With multiple licenses, the one with the most recent issuance is selected regardless of status."""
@@ -563,7 +551,7 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        best_license = ProviderRecordUtility.find_best_license(licenses)
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
         self.assertEqual(best_license['dateOfIssuance'], '2024-03-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
 

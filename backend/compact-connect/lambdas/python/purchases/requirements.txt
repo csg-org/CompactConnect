@@ -18,7 +18,7 @@ pyxb-x==1.2.6.3
     # via authorizenet
 requests==2.33.1
     # via authorizenet
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   -r requirements.in
     #   requests
