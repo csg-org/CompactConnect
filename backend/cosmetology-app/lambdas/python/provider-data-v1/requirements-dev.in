@@ -1,2 +1,2 @@
-moto[dynamodb, s3]>=5.0.12, <6
-Faker>=40, <41
+moto[dynamodb, s3]>=5.2.1, <6
+Faker>=40.15.0, <41
