@@ -25,14 +25,6 @@ To deploy this app, you will need:
 2) Python>=3.14 installed on your machine, preferably through a virtual environment management tool like
    [pyenv](https://github.com/pyenv/pyenv), for clean management of virtual environments across multiple Python
    versions.
-   > Note: The [purchases lambda](./lambdas/python/purchases) depends on the
-   > [Authorize.Net python sdk](https://github.com/AuthorizeNet/sdk-python/issues/164), which is barely maintained at
-   > present, and is not yet compatible with Python 3.13. Due to that restriction, we have to hold back the python
-   > version of just this lambda package, so that the entire project is not impacted. For local development, this means
-   > that, at least for lambdas that use this package, developers will have to have a dedicated python environment, held
-   > back at Python 3.12. That environment and its dependencies will have to be maintained separately from those of the
-   > rest of the project, which can all share a common virtual environment and common dependencies, without excessive risk of
-   > version conflicts.
 3) Otherwise, follow the [Prerequisites section](https://cdkworkshop.com/15-prerequisites.html) of the CDK workshop to
    prepare your system to work with AWS-CDK, including a NodeJS install.
 4) Follow the steps in the [Installing Dependencies](#installing-dependencies) section.
@@ -97,14 +89,9 @@ To add additional dependencies, for example other CDK libraries, just add them t
 ### Convenience scripts
 
 To simplify dependency installation in this project, which includes many runtimes with similar dependencies, maintain
-the dependency files with two convenience scripts, which manage the file contents for _most_ runtimes (See Note below),
+the dependency files with two convenience scripts, which manage the file contents for the runtimes,
 [compile_requirements.sh](./bin/compile_requirements.sh), and installs the defined dependencies,
 [sync_deps.sh](./bin/sync_deps.sh).
-
-> Note: Due to its dependency on the Authorize.Net python sdk, the [purchases lambda](./lambdas/python/purchases)
-> dependencies have to be maintained separately from the rest of the project. You can update the requirements files for
-> that lambda directly with the `pip-compile` command, and install dependencies into your python enviornment dedicated
-> to that lambda with the `pip-sync` command.
 
 ## Local Development
 [Back to top](#compact-connect---backend-developer-documentation)
@@ -267,13 +254,12 @@ The production environment requires a few steps to fully set up before deploys c
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipelines into the appropriate AWS account:
 - Complete the [StatSig Feature Flag Setup](#statsig-feature-flag-setup) steps for each environment you will be deploying to (test, beta, prod).
-- Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
+- If the GitHub repository has not previously been connected to the deploy account, have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
   connection that grants AWS permission to receive GitHub events. Note the ARN of the resulting connection for
   the next step.
-- Create a new Route53 hosted zone for the domain name you plan to use for the app in each of the production, beta, and
-  test AWS accounts. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
+- In the `SocialWork Prod` account, create a new Route53 hosted zone for `socialwork.compactconnect.org`, and set up the appropriate DNS records in each of the production, beta, and test AWS accounts. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
 - With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local machine to authenticate against the Deploy account as an administrator.
 - For every environment, copy the appropriate example context file (`cdk.context.deploy-example.json` for the `Deploy`
   account, `cdk.context.test-example.json` for the `Test` account, `cdk.context.beta-example.json` for the `Beta`
@@ -477,14 +463,29 @@ A Hosted Zone in Route53 represents a collection of DNS records for a particular
 together. See the [Route53 FAQs for more](https://aws.amazon.com/route53/faqs/). When creating a hosted zone, you have
 to also configure the domain name registrar (be it AWS or some other vendor) to point to the name servers associated
 with your hosted zone, before the records in the zone will have any effect. When deploying this app, creating a hosted
-zone in the AWS account for the UI and API domains is part of the environment setup. If you use the common approach
-of having your test environments be a subdomain of your production environments (i.e. `compactconnect.org` for prod
-and `test.compactconnect.org` for test), you need to delegate nameserver authority from your production hosted zone
-(`compactconnect.org` in this example) to your test account's hosted zone (`test.compactconnect.org`). To do this, you
-need to create your production hosted zone (`compactconnect.org`) in your production account first, then create your
-test hosted zone (`test.compactconnect.org`) in your test account second, then delegate name server authority to your
-test subdomain. To do this, find the NS record associated with your test hosted zone and copy its value, which should
-look something like:
+zone in the AWS account for the UI and API domains is part of the environment setup.
+
+### Domain ownership and the compactconnect.org base domain
+
+The base domain `compactconnect.org` is owned by CSG. Its authoritative hosted zone lives in the
+**`Prod` account of the `CompactConnect` OU** in the AWS organization (i.e. the original compact's production account).
+All compact-specific subdomains (e.g. `socialwork.compactconnect.org`) are delegated from that base hosted zone.
+
+This means that when you create the hosted zone for this compact's production environment in the `SocialWork Prod` account,
+you must also add a corresponding NS delegation record in the `compactconnect.org` hosted zone in the CompactConnect
+`Prod` account so that DNS queries for your compact's subdomain are routed to the correct hosted zone.
+
+If you use the common approach of having your test and beta environments be subdomains of your compact's production
+domain (i.e. `socialwork.compactconnect.org` for prod, `test.socialwork.compactconnect.org` for test, and
+`beta.socialwork.compactconnect.org` for beta), you need to delegate nameserver authority from the compact's production
+hosted zone down to the test and beta hosted zones. To do this, create the production hosted zone first
+(`socialwork.compactconnect.org`) in the compact's `Prod` account, then create each pre-production hosted zone in its
+respective account (`test.socialwork.compactconnect.org` in the `Test` account,
+`beta.socialwork.compactconnect.org` in the `Beta` account), and then delegate nameserver authority from the production
+zone to each subdomain zone.
+
+To delegate nameserver authority, find the NS record associated with the subdomain hosted zone and copy its value,
+which should look something like:
 ```text
 ns-1.awsdns-19.co.uk.
 ns-2.awsdns-18.com.
@@ -492,20 +493,29 @@ ns-5.awsdns-15.net.
 ns-6.awsdns-16.org.
 ```
 
-Copy those name server values and, back in your production hosted zone, create a new NS record that matches the test
-one, with the same value (i.e. Record Name: `test.compactconnect.org`, Type: `NS`, Value: `<same as above>`). Once that
-is done, your test hosted zone is ready for use by the app. You will need to perform this action for your beta
-environment as well, should you choose to deploy one.
+Copy those name server values and, in the compact's **production** hosted zone (`socialwork.compactconnect.org`),
+create a new NS record for the subdomain (i.e. Record Name: `test.socialwork.compactconnect.org`, Type: `NS`,
+Value: `<same as above>`). Repeat for the beta subdomain. Once that is done, the subdomain hosted zones are ready
+for use by the app.
+
+In summary, coordinate with a team member who has access to the necessary accounts to complete the following steps if you do not have access yourself:
+
+1. In the **`SocialWork Prod` account**, create the `socialwork.compactconnect.org` hosted zone. Find the NS record for the hosted zone and copy them. 
+2. In the **CompactConnect `Prod` account** go to the `compactconnect.org` hosted zone and add an NS record delegating
+   `socialwork.compactconnect.org` to the compact's `Prod` account hosted zone.
+3. In the SocialWork test and SocialWork beta accounts, create hosted zones for the respective subdomain (`test.socialwork.compactconnect.org` and `beta.socialwork.compactconnect.org`). Copy the NS record values for each respective hosted zone.
+4. In the **`SocialWork Prod` account** (`socialwork.compactconnect.org` hosted zone): add NS records delegating
+   `test.socialwork.compactconnect.org` to the `Test` account and `beta.socialwork.compactconnect.org` to the `Beta`
+   account.
 
 > [!WARNING]
-> Additionally, If you are setting up a Route53 HostedZone, you need to add an A record at your environment's HostedZone's
-> base domain (i.e. `compactconnect.org` for prod and `test.compactconnect.org` for test) if there is not one already
-> there. The target of the A record is actually not important, we simply need an A record at the base domain to
-> prove that we own it. This is necessary to create auth subdomains for the user pools. We have been pointing the A record
-> at the ip of compactconnect.org, which can be obtained by running the command `dig compactconnect.org +short`
+> Additionally, when setting up a Route53 HostedZone, you need to add an A record at your environment's
+> HostedZone's base domain (i.e. `socialwork.compactconnect.org` for prod and `test.socialwork.compactconnect.org` for test) if there is not one already there. The target of the A record is not important — we simply need an A record at the base domain to prove domain ownership. This is necessary to
+> create auth subdomains for the user pools. We have been pointing the A record at the IP of `compactconnect.org`,
+> which can be obtained by running the command `dig compactconnect.org +short`.
 
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
 
-- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop for a quick
+- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, it is highly recommend you go through the CDK Workshop for a quick
   introduction to the technology and its concepts before getting too deep into any particular project.
