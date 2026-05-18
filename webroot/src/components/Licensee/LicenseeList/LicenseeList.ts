@@ -249,6 +249,12 @@ class LicenseeList extends Vue {
             ...(this.isAppModeCosmetology
                 ? {
                     licenseNumber: this.$t('licensing.stateLicenseNumber'),
+                    ...(this.isPublicSearch)
+                        ? {
+                            eligibilityDisplay: () => this.$t('licensing.compactRestriction'),
+                            isRestricted: () => false,
+                        }
+                        : {}
                 }
                 : {
                     privilegeStatesDisplay: () => this.$t('licensing.privileges'),

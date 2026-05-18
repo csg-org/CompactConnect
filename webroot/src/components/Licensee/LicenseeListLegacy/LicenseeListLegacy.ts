@@ -148,6 +148,8 @@ class LicenseeList extends Vue {
     }
 
     get headerRecord() {
+        console.log(`HEADER isPublicSearch: ${this.isPublicSearch}`);
+
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
@@ -155,6 +157,13 @@ class LicenseeList extends Vue {
             ...(this.isAppModeCosmetology
                 ? {
                     licenseNumber: this.$t('licensing.stateLicenseNumber'),
+                    ...(this.isPublicSearch)
+                        ? {
+                            isPublicSearch: true,
+                            eligibilityDisplay: () => this.$t('licensing.compactRestriction'),
+                            isRestricted: () => false,
+                        }
+                        : {}
                 }
                 : {
                     privilegeStatesDisplay: () => this.$t('licensing.privileges'),

@@ -678,6 +678,10 @@
             "inactive": "Inactivo",
             "initializing": "Inicializando"
         },
+        "restrictionOptions": {
+            "eligible": "Sin restricciones",
+            "ineligible": "Alerta: Restringido"
+        },
         "licenseActions": "Acciones de licencia",
         "privilegeActions": "Acciones de privilegio",
         "privilegeActionsNone": "No hay acciones disponibles",
@@ -933,6 +937,7 @@
         "personalInfoTitle": "Información personal",
         "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
         "statusBlockLabel": "{status} bloque de estado",
+        "compactRestriction": "Restricción",
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",

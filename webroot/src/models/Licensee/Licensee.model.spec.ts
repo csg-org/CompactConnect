@@ -9,7 +9,12 @@ import chai, { expect } from 'chai';
 import chaiMatchPattern from 'chai-match-pattern';
 import { serverDateFormat, displayDateFormat } from '@/app.config';
 import { CompactType } from '@models/Compact/Compact.model';
-import { Licensee, LicenseeStatus, LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import {
+    Licensee,
+    LicenseeStatus,
+    LicenseeEligibility,
+    LicenseeSerializer
+} from '@models/Licensee/Licensee.model';
 import { Address } from '@models/Address/Address.model';
 import {
     License,
@@ -78,6 +83,8 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.licenseTypeName()).to.equal('');
         expect(licensee.statusDisplay()).to.equal('Inactive');
+        expect(licensee.eligibilityDisplay()).to.equal('');
+        expect(licensee.isRestricted()).to.equal(false);
         expect(licensee.phoneNumberDisplay()).to.equal('');
         expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
@@ -153,6 +160,7 @@ describe('Licensee model', () => {
             ],
             lastUpdated: '2020-01-01',
             status: LicenseeStatus.ACTIVE,
+            eligibility: LicenseeEligibility.INELIGIBLE,
         };
         const licensee = new Licensee(data);
 
@@ -197,6 +205,8 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.statusDisplay()).to.equal('Active');
+        expect(licensee.eligibilityDisplay()).to.equal('Alert: Restricted');
+        expect(licensee.isRestricted()).to.equal(true);
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
         expect(licensee.isMilitaryStatusActive()).to.equal(false);
         expect(licensee.activeMilitaryAffiliation()).to.equal(null);
@@ -424,6 +434,7 @@ describe('Licensee model', () => {
             ],
             dateOfUpdate: moment().format(serverDateFormat),
             licenseStatus: LicenseeStatus.ACTIVE,
+            licenseEligibility: LicenseeEligibility.ELIGIBLE,
         };
         const licensee = LicenseeSerializer.fromServer(data);
 
@@ -469,6 +480,8 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.statusDisplay()).to.equal('Active');
+        expect(licensee.eligibilityDisplay()).to.equal('No restrictions');
+        expect(licensee.isRestricted()).to.equal(false);
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
         expect(licensee.isMilitaryStatusActive()).to.equal(true);
         expect(licensee.activeMilitaryAffiliation()).to.matchPattern({
