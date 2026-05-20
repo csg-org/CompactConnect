@@ -43,7 +43,7 @@ class BaseBackendPipelineStack(BasePipelineStack):
             construct_id,
             environment_name=environment_name,
             env=env,
-            pipeline_context_parameter_name=f'{environment_name}-social-work-context',
+            pipeline_context_parameter_name=f'{environment_name}-socialwork-context',
             removal_policy=removal_policy,
             pipeline_access_logs_bucket=pipeline_access_logs_bucket,
             **kwargs,

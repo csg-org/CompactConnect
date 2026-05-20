@@ -135,7 +135,7 @@ class CompactConnectApp(App):
         self.deployment_resources_stack = DeploymentResourcesStack(
             self,
             DEPLOYMENT_RESOURCES_STACK,
-            pipeline_context_parameter_name=f'{DEPLOY_ENVIRONMENT_NAME}-social-work-context',
+            pipeline_context_parameter_name=f'{DEPLOY_ENVIRONMENT_NAME}-socialwork-context',
             env=self.environment,
             standard_tags=StandardTags(**self.tags, environment='deploy'),
         )

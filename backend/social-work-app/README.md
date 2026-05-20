@@ -291,7 +291,7 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
   - deploy the backend pipeline stacks (note: you will need to approve the
     permission change requests for each stack deployment in the terminal):
       ```
-      cdk deploy --context action=bootstrapDeploy TestBackendSocialWork BetaBackendSocialWork ProdBackendSocialWork`
+      cdk deploy --context action=bootstrapDeploy TestBackendSocialWork BetaBackendSocialWork ProdBackendSocialWork
       ```
 
 - To get the application stood up for the first time, manually use cdk to deploy the app into the environment account for each environment account (test, beta, and prod):
@@ -320,12 +320,9 @@ that is done, perform the following steps to deploy the CI/CD pipelines into the
     cdk deploy --app . --no-rollback --require-approval never 'ProdBackendSocialWork/Prod/*'
     ```
   Some AWS services are not perfectly graceful in handling their initial provisioning. There are three expected failures that you just retry to get past. If these happen, log into the AWS console, find the failed stack and just click *retry*. Once the failed stack creation succeeds, you can re-run the `cdk deploy` command to proceed:
-- In the PersistentStack: StaffUsersGreenUserPoolRiskConfiguration may fail to provision. This is due to a service linked role that Cognito creates at creation-time, which it doesn't reliably create before it fails
-            its own process.
-- In the SearchPersistentStack: ProviderSearchDomain, may fail for a similar issue. The Opensearch service
-            linked role is created at creation-time and a retry should succeed.
-- In the ApiStack: CloudFormation will attempt to create all of the API Gateway resources too quickly and will fail with a `429` (too many requests) error when API Gateway rate-limits CloudFormation. Again, retry the
-            stack creation to get past this error.
+- In the PersistentStack: StaffUsersGreenUserPoolRiskConfiguration may fail to provision. This is due to a service linked role that Cognito creates at creation-time, which it doesn't reliably create before it fails its own process.
+- In the SearchPersistentStack: ProviderSearchDomain, may fail for a similar issue. The Opensearch service linked role is created at creation-time and a retry should succeed.
+- In the ApiStack: CloudFormation will attempt to create all of the API Gateway resources too quickly and will fail with a `429` (too many requests) error when API Gateway rate-limits CloudFormation. Again, retry the stack creation to get past this error.
 
 5. Restrict the environment account's bootstrap role access to the pipeline's cross-account role by deploying the
       [custom bootstrap stack](#custom-bootstrap-stack).

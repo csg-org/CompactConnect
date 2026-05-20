@@ -184,14 +184,14 @@ class BackendStage(Stage):
         )
 
         # Stack to create and manage feature flags
-        self.feature_flag_stack = FeatureFlagStack(
-            self,
-            'FeatureFlagStack',
-            env=environment,
-            environment_name=environment_name,
-            environment_context=environment_context,
-            standard_tags=standard_tags,
-        )
+        # self.feature_flag_stack = FeatureFlagStack(
+        #     self,
+        #     'FeatureFlagStack',
+        #     env=environment,
+        #     environment_name=environment_name,
+        #     environment_context=environment_context,
+        #     standard_tags=standard_tags,
+        # )
 
         self.search_api_stack = SearchApiStack(
             self,
