@@ -75,6 +75,18 @@ export default {
                     .findIndex((p: any) => p.id === licensee.id);
 
                 if (licenseeToUpdateIndex !== -1) {
+                    const currentLicenseeRecord = state.model[licenseeToUpdateIndex];
+                    const listFetchOnlyProps = ['licenseNumber', 'eligibility'];
+
+                    listFetchOnlyProps.forEach((listFetchOnlyProp) => {
+                        const isCurrentRecordIncludingProp = Object.hasOwn(licensee, listFetchOnlyProp);
+                        const isNewRecordMissingProp = Object.hasOwn(currentLicenseeRecord, listFetchOnlyProp);
+
+                        if (isCurrentRecordIncludingProp && isNewRecordMissingProp) {
+                            licensee[listFetchOnlyProp] = currentLicenseeRecord[listFetchOnlyProp];
+                        }
+                    });
+
                     state.model.splice(licenseeToUpdateIndex, 1, licensee);
                 } else {
                     state.model.push(licensee);

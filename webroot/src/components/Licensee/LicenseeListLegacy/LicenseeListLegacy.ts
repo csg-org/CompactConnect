@@ -148,8 +148,6 @@ class LicenseeList extends Vue {
     }
 
     get headerRecord() {
-        console.log(`HEADER isPublicSearch: ${this.isPublicSearch}`);
-
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),

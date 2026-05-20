@@ -251,6 +251,7 @@ class LicenseeList extends Vue {
                     licenseNumber: this.$t('licensing.stateLicenseNumber'),
                     ...(this.isPublicSearch)
                         ? {
+                            isPublicSearch: true,
                             eligibilityDisplay: () => this.$t('licensing.compactRestriction'),
                             isRestricted: () => false,
                         }
