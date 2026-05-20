@@ -4,7 +4,7 @@ from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from cdk_nag import NagSuppressions
 
-from common_constructs.cc_api import CCApi
+from common_constructs.compact_connect_api import CompactConnectApi
 from stacks import search_persistent_stack as sps
 from stacks.api_lambda_stack import ApiLambdaStack
 
@@ -23,7 +23,7 @@ class PublicLookupApi:
         super().__init__()
 
         self.resource = resource
-        self.api: CCApi = resource.api
+        self.api: CompactConnectApi = resource.api
         self.api_model = api_model
 
         self.provider_resource = self.resource.add_resource('{providerId}')

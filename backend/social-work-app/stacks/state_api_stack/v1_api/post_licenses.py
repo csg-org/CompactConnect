@@ -7,7 +7,7 @@ from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodRespo
 from aws_cdk.aws_iam import IRole
 from common_constructs.stack import Stack
 
-from common_constructs.cc_api import CCApi
+from common_constructs.compact_connect_api import CompactConnectApi
 from common_constructs.python_function import PythonFunction
 from stacks import persistent_stack as ps
 
@@ -26,7 +26,7 @@ class PostLicenses:
         super().__init__()
 
         self.resource = resource
-        self.api: CCApi = resource.api
+        self.api: CompactConnectApi = resource.api
         self.api_model = api_model
         self.log_groups = []
 

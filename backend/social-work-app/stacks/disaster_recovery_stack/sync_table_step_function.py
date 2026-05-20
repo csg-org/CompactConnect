@@ -23,7 +23,7 @@ from common_constructs.stack import Stack
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
-from stacks.persistent_stack.ssn_table import SSN_SYNC_STATE_MACHINE_NAME
+from common_constructs.ssn_table import SSN_SYNC_STATE_MACHINE_NAME
 
 
 class SyncTableDataStepFunctionConstruct(Construct):

@@ -16,9 +16,10 @@ class TestDataMigration(TestCase):
         from common_constructs.data_migration import DataMigration
         from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 
-        app = App()
-        # The persistent stack and layer are required for DataMigration, as an internal lambda depends on it.
-        # Use a non-pipeline environment name so domain_name is not required (avoids HostedZone.from_lookup in tests).
+        # Skip Docker bundling; this test asserts CloudFormation synthesis only.
+        app = App(context={'aws:cdk:bundling-stacks': []})
+
+        # PythonCommonLayerVersions must exist before DataMigration's PythonFunction is created.
         common_stack = AppStack(
             app,
             'CommonStack',

@@ -25,7 +25,7 @@ from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from stacks import persistent_stack as ps
-from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class DataEventTable(Table):

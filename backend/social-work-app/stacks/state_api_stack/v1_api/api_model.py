@@ -7,13 +7,13 @@ from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
 from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
-from common_constructs import cc_api
+from common_constructs import compact_connect_api
 
 
 class ApiModel:
     """This class is responsible for defining the model definitions used in the API endpoints."""
 
-    def __init__(self, api: cc_api.CCApi):
+    def __init__(self, api: compact_connect_api.CompactConnectApi):
         self.stack: AppStack = AppStack.of(api)
         self.api = api
 
@@ -136,7 +136,7 @@ class ApiModel:
                         'ssn': JsonSchema(
                             type=JsonSchemaType.STRING,
                             description="The provider's social security number",
-                            pattern=cc_api.SSN_FORMAT,
+                            pattern=compact_connect_api.SSN_FORMAT,
                         ),
                         **self._common_license_properties,
                     },
@@ -152,19 +152,19 @@ class ApiModel:
             'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
             'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
-            'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+            'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+            'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
-            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.PHONE_NUMBER_FORMAT),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
         }

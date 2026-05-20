@@ -3,7 +3,7 @@ from __future__ import annotations
 from aws_cdk.aws_apigateway import LambdaIntegration, Resource
 from cdk_nag import NagSuppressions
 
-from common_constructs.cc_api import CCApi
+from common_constructs.compact_connect_api import CompactConnectApi
 from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel
@@ -21,7 +21,7 @@ class FeatureFlagsApi:
     ):
         super().__init__()
         self.resource = resource
-        self.api: CCApi = resource.api
+        self.api: CompactConnectApi = resource.api
         self.api_model = api_model
 
         # POST /v1/flags/{flagId}/check

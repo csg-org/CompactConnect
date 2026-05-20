@@ -7,13 +7,13 @@ from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
 from common_constructs.stack import AppStack
 
 # Importing module level to allow lazy loading for typing
-from common_constructs import cc_api
+from common_constructs import compact_connect_api
 
 
 class ApiModel:
     """This class is responsible for defining the model definitions used in the Search API endpoints."""
 
-    def __init__(self, api: cc_api.CCApi):
+    def __init__(self, api: compact_connect_api.CompactConnectApi):
         self.stack: AppStack = AppStack.of(api)
         self.api = api
 
@@ -136,7 +136,7 @@ class ApiModel:
                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
                 'providerId': JsonSchema(
                     type=JsonSchemaType.STRING,
-                    pattern=cc_api.UUID4_FORMAT,
+                    pattern=compact_connect_api.UUID4_FORMAT,
                 ),
                 'givenName': JsonSchema(
                     type=JsonSchemaType.STRING,
@@ -241,7 +241,7 @@ class ApiModel:
                 'licenseNumber',
             ],
             properties={
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.UUID4_FORMAT),
                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['license-home']),
                 'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
@@ -261,16 +261,16 @@ class ApiModel:
                 'middleName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'familyName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'suffix': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+                'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
                 'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
                 'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                 'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
                 'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
                 'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
                 'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email'),
-                'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
+                'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.PHONE_NUMBER_FORMAT),
                 'adverseActions': JsonSchema(type=JsonSchemaType.ARRAY, items=self._adverse_action_general_schema),
                 'investigations': JsonSchema(type=JsonSchemaType.ARRAY, items=self._investigation_general_schema),
                 'investigationStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['underInvestigation']),
@@ -300,14 +300,14 @@ class ApiModel:
             ],
             properties={
                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilege']),
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.UUID4_FORMAT),
                 'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
                 'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
                 'licenseJurisdiction': JsonSchema(
                     type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
                 ),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
-                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
                 'adverseActions': JsonSchema(type=JsonSchemaType.ARRAY, items=self._adverse_action_general_schema),
                 'investigations': JsonSchema(type=JsonSchemaType.ARRAY, items=self._investigation_general_schema),
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
@@ -345,15 +345,15 @@ class ApiModel:
             properties={
                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
                 'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.UUID4_FORMAT),
                 'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
                 'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
                 'actionAgainst': JsonSchema(type=JsonSchemaType.STRING, enum=['license', 'privilege']),
-                'effectiveStartDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'effectiveStartDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+                'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
                 'adverseActionId': JsonSchema(type=JsonSchemaType.STRING),
-                'effectiveLiftDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'effectiveLiftDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
                 'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                 'clinicalPrivilegeActionCategories': JsonSchema(
@@ -392,7 +392,7 @@ class ApiModel:
             properties={
                 'type': JsonSchema(type=JsonSchemaType.STRING, enum=['investigation']),
                 'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.UUID4_FORMAT),
                 'investigationId': JsonSchema(type=JsonSchemaType.STRING),
                 'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),

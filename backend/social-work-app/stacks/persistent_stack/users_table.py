@@ -14,7 +14,7 @@ from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.backup_plan import CCBackupPlan
-from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class UsersTable(Table):

@@ -28,7 +28,7 @@ from constructs import Construct
 
 from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.python_function import PythonFunction
-from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class CognitoUserBackup(Construct):

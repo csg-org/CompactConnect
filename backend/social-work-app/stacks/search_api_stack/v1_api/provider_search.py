@@ -3,7 +3,7 @@ from __future__ import annotations
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
 
-from common_constructs.cc_api import CCApi
+from common_constructs.compact_connect_api import CompactConnectApi
 from stacks import search_persistent_stack
 
 from .api_model import ApiModel
@@ -25,7 +25,7 @@ class ProviderSearch:
         super().__init__()
 
         self.resource = resource
-        self.api: CCApi = resource.api
+        self.api: CompactConnectApi = resource.api
         self.api_model = api_model
 
         # Create the nested resources used by endpoints

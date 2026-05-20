@@ -23,16 +23,17 @@ from aws_cdk.aws_apigateway import (
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_cognito import IUserPool
 from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDays
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
+from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
+from constructs import Construct
+
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
-from constructs import Construct
-
-from stacks import persistent_stack as ps
 
 MD_FORMAT = r'^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 YMD_FORMAT = r'^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'
@@ -64,7 +65,7 @@ class NagSuppressOptionsNotAuthorized:
                 )
 
 
-class CCApi(RestApi):
+class CompactConnectApi(RestApi):
     def __init__(
         self,
         scope: Construct,
@@ -72,7 +73,8 @@ class CCApi(RestApi):
         *,
         environment_name: str,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
-        persistent_stack: ps.PersistentStack,
+        alarm_topic: ITopic,
+        staff_users_user_pool: IUserPool,
         domain_name: str | None = None,
         **kwargs,
     ):
@@ -174,9 +176,8 @@ class CCApi(RestApi):
                 api_domain_name=domain_name,
             )
 
-        self.alarm_topic = persistent_stack.alarm_topic
-
-        self._persistent_stack = persistent_stack
+        self.alarm_topic = alarm_topic
+        self.staff_users = staff_users_user_pool
 
         self.web_acl = WebACL(self, 'WebACL', acl_scope=WebACLScope.REGIONAL, security_profile=security_profile)
         self.web_acl.associate_stage(self.deployment_stage)

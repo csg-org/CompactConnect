@@ -15,7 +15,7 @@ from stacks.disaster_recovery_stack.restore_dynamo_db_table_step_function import
     RestoreDynamoDbTableStepFunctionConstruct,
 )
 from stacks.disaster_recovery_stack.sync_table_step_function import SyncTableDataStepFunctionConstruct
-from stacks.persistent_stack.ssn_table import SSN_RESTORED_TABLE_NAME_PREFIX, SSNTable
+from common_constructs.ssn_table import SSN_RESTORED_TABLE_NAME_PREFIX, SSNTable
 
 
 class DisasterRecoveryStack(AppStack):

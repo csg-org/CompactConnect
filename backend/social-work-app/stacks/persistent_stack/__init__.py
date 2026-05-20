@@ -21,7 +21,7 @@ from constructs import Construct
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from common_constructs.ssm_parameter_utility import SSMParameterUtility
-from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
@@ -29,7 +29,7 @@ from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
-from stacks.persistent_stack.ssn_table import SSNTable
+from common_constructs.ssn_table import SSNTable
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 

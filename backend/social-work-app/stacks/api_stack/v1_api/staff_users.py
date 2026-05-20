@@ -7,7 +7,7 @@ from aws_cdk.aws_apigateway import (
     Resource,
 )
 
-from common_constructs.cc_api import CCApi
+from common_constructs.compact_connect_api import CompactConnectApi
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
 
@@ -28,7 +28,7 @@ class StaffUsers:
 
         self.stack: ps.PersistentStack = ps.PersistentStack.of(admin_resource)
         self.admin_resource = admin_resource
-        self.api: CCApi = admin_resource.api
+        self.api: CompactConnectApi = admin_resource.api
         self.api_model = api_model
 
         # <base-url>/

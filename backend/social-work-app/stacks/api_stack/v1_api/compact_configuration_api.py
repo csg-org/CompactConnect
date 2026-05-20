@@ -3,7 +3,7 @@ from __future__ import annotations
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
 from cdk_nag import NagSuppressions
 
-from common_constructs.cc_api import CCApi
+from common_constructs.compact_connect_api import CompactConnectApi
 from common_constructs.python_function import PythonFunction
 from stacks.api_lambda_stack import ApiLambdaStack
 
@@ -19,7 +19,7 @@ class CompactConfigurationApi:
     def __init__(
         self,
         *,
-        api: CCApi,
+        api: CompactConnectApi,
         compact_resource: Resource,
         live_jurisdictions_resource: Resource,
         jurisdictions_resource: Resource,

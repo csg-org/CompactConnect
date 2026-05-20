@@ -22,7 +22,7 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.resource_scope_mixin import ResourceScopeMixin
 from common_constructs.user_pool import UserPool
 from stacks import persistent_stack as ps
-from stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.users_table import UsersTable
 
 

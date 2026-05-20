@@ -4,11 +4,11 @@ from functools import cached_property
 
 from constructs import Construct
 
-from common_constructs.cc_api import CCApi
+from common_constructs.compact_connect_api import CompactConnectApi
 from stacks import persistent_stack, search_persistent_stack
 
 
-class SearchApi(CCApi):
+class SearchApi(CompactConnectApi):
     def __init__(
         self,
         scope: Construct,
@@ -21,7 +21,8 @@ class SearchApi(CCApi):
         super().__init__(
             scope,
             construct_id,
-            persistent_stack=persistent_stack,
+            alarm_topic=persistent_stack.alarm_topic,
+            staff_users_user_pool=persistent_stack.staff_users,
             **kwargs,
         )
         from stacks.search_api_stack.v1_api import V1Api
@@ -35,5 +36,5 @@ class SearchApi(CCApi):
         from aws_cdk.aws_apigateway import CognitoUserPoolsAuthorizer
 
         return CognitoUserPoolsAuthorizer(
-            self, 'StaffUsersPoolAuthorizer', cognito_user_pools=[self._persistent_stack.staff_users]
+            self, 'StaffUsersPoolAuthorizer', cognito_user_pools=[self.staff_users]
         )
