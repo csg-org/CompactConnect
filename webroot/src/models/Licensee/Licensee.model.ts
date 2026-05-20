@@ -17,6 +17,7 @@ import {
     EligibilityStatus
 } from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
+import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { State } from '@models/State/State.model';
 import moment from 'moment';
@@ -62,6 +63,7 @@ export interface InterfaceLicensee {
     licenses?: Array<License>;
     privilegeStates?: Array<State>;
     privileges?: Array<License>;
+    adverseActions?: Array<AdverseAction>;
     lastUpdated?: string | null;
     status?: LicenseeStatus;
     eligibility?: LicenseeEligibility | null;
@@ -94,6 +96,7 @@ export class Licensee implements InterfaceLicensee {
     public militaryStatus? = null;
     public militaryStatusNote? = null;
     public privileges? = [];
+    public adverseActions? = [];
     public lastUpdated? = null;
     public status? = LicenseeStatus.INACTIVE;
     public eligibility? = null;
@@ -451,6 +454,7 @@ export class LicenseeSerializer {
             licenses: [] as Array<License>,
             privilegeStates: [] as Array<State>,
             privileges: [] as Array<License>,
+            adverseActions: [] as Array<AdverseAction>,
             militaryAffiliations: [] as Array<MilitaryAffiliation>,
             militaryStatus: json.militaryStatus,
             militaryStatusNote: json.militaryStatusNote,
@@ -489,6 +493,13 @@ export class LicenseeSerializer {
         if (Array.isArray(json.militaryAffiliations)) {
             json.militaryAffiliations.forEach((serverAffiliation) => {
                 licenseeData.militaryAffiliations.push(MilitaryAffiliationSerializer.fromServer(serverAffiliation));
+            });
+        }
+
+        // In get-one responses, server returns adverse action ojects at top level for some compacts, does not in get-all
+        if (Array.isArray(json.adverseActions)) {
+            json.adverseActions.forEach((serverAdverseAction) => {
+                licenseeData.adverseActions.push(AdverseActionSerializer.fromServer(serverAdverseAction));
             });
         }
 

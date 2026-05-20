@@ -7,7 +7,7 @@
 
 import chai, { expect } from 'chai';
 import chaiMatchPattern from 'chai-match-pattern';
-import { serverDateFormat, displayDateFormat } from '@/app.config';
+import { serverDateFormat, serverDatetimeFormat, displayDateFormat } from '@/app.config';
 import { CompactType } from '@models/Compact/Compact.model';
 import {
     Licensee,
@@ -23,6 +23,7 @@ import {
     EligibilityStatus
 } from '@models/License/License.model';
 import { MilitaryAffiliation } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
+import { AdverseAction } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
@@ -65,6 +66,7 @@ describe('Licensee model', () => {
         expect(licensee.licenses).to.matchPattern([]);
         expect(licensee.privilegeStates).to.matchPattern([]);
         expect(licensee.privileges).to.matchPattern([]);
+        expect(licensee.adverseActions).to.matchPattern([]);
         expect(licensee.militaryAffiliations).to.matchPattern([]);
         expect(licensee.militaryStatus).to.equal(null);
         expect(licensee.militaryStatusNote).to.equal(null);
@@ -158,6 +160,7 @@ describe('Licensee model', () => {
             privileges: [
                 new License(),
             ],
+            adverseActions: [new AdverseAction()],
             lastUpdated: '2020-01-01',
             status: LicenseeStatus.ACTIVE,
             eligibility: LicenseeEligibility.INELIGIBLE,
@@ -188,6 +191,8 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
         expect(licensee.privileges).to.be.an('array').with.length(1);
         expect(licensee.privileges[0]).to.be.an.instanceof(License);
+        expect(licensee.adverseActions).to.be.an('array').with.length(1);
+        expect(licensee.adverseActions[0]).to.be.an.instanceof(AdverseAction);
         expect(licensee.militaryStatus).to.equal(data.militaryStatus);
         expect(licensee.militaryStatusNote).to.equal(data.militaryStatusNote);
         expect(licensee.lastUpdated).to.equal(data.lastUpdated);
@@ -435,6 +440,25 @@ describe('Licensee model', () => {
             dateOfUpdate: moment().format(serverDateFormat),
             licenseStatus: LicenseeStatus.ACTIVE,
             licenseEligibility: LicenseeEligibility.ELIGIBLE,
+            adverseActions: [
+                {
+                    adverseActionId: 'test-adverseAction-id',
+                    providerId: 'test-provider-id',
+                    compact: 'aslp',
+                    type: 'adverseAction',
+                    encumbranceType: 'fine',
+                    clinicalPrivilegeActionCategories: ['Non-compliance With Requirements'],
+                    actionAgainst: 'privilege',
+                    jurisdiction: 'oh',
+                    licenseTypeAbbreviation: 'aud',
+                    licenseType: 'audiologist',
+                    creationDate: moment().subtract(1, 'week').format(serverDatetimeFormat),
+                    effectiveStartDate: moment().subtract(1, 'month').format(serverDateFormat),
+                    effectiveLiftDate: moment().add(11, 'months').format(serverDateFormat),
+                    submittingUser: '1',
+                    liftingUser: '1',
+                },
+            ],
         };
         const licensee = LicenseeSerializer.fromServer(data);
 
@@ -458,6 +482,8 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
         expect(licensee.privileges).to.be.an('array').with.length(1);
         expect(licensee.privileges[0]).to.be.an.instanceof(License);
+        expect(licensee.adverseActions).to.be.an('array').with.length(1);
+        expect(licensee.adverseActions[0]).to.be.an.instanceof(AdverseAction);
         expect(licensee.lastUpdated).to.equal(data.dateOfUpdate);
         expect(licensee.militaryAffiliations).to.be.an('array').with.length(2);
         expect(licensee.militaryAffiliations[0]).to.be.an.instanceof(MilitaryAffiliation);
