@@ -39,7 +39,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="list-description">{{ $t('licensing.licensingListDescription')}}</div>
+                <div class="list-description">{{ listDescriptionText }}</div>
                 <ListContainer
                     :listId="listId"
                     :listData="this.licenseStore.model"

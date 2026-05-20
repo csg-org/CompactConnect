@@ -78,9 +78,10 @@ export default {
                     const currentLicenseeRecord = state.model[licenseeToUpdateIndex];
                     const listFetchOnlyProps = ['licenseNumber', 'eligibility'];
 
+                    // Some props are only returned on the list fetch, and we want to preserve those where possible.
                     listFetchOnlyProps.forEach((listFetchOnlyProp) => {
-                        const isCurrentRecordIncludingProp = Object.hasOwn(licensee, listFetchOnlyProp);
-                        const isNewRecordMissingProp = Object.hasOwn(currentLicenseeRecord, listFetchOnlyProp);
+                        const isCurrentRecordIncludingProp = Object.hasOwn(currentLicenseeRecord, listFetchOnlyProp);
+                        const isNewRecordMissingProp = Object.hasOwn(licensee, listFetchOnlyProp);
 
                         if (isCurrentRecordIncludingProp && isNewRecordMissingProp) {
                             licensee[listFetchOnlyProp] = currentLicenseeRecord[listFetchOnlyProp];
