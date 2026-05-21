@@ -86,11 +86,11 @@ You must have a test license record uploaded in your sandbox environment to gene
 
 ### Running Individual Test Files
 
-Each test file can be run independently from the cosmetology-app folder:
+Each test file can be run independently from the social-work-app folder:
 
 ```bash
 # Navigate to the compact-connect directory
-cd backend/cosmetology-app
+cd backend/social-work-app
 
 # Run a specific test file
 python3 tests/smoke/encumbrance_smoke_tests.py

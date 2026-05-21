@@ -552,7 +552,7 @@ class TestSignatureAuth(TstLambdas):
                 # Verify the nonce was stored
                 mock_table.put_item.assert_called_once()
                 call_args = mock_table.put_item.call_args
-                self.assertEqual('NONCE#cosm#JURISDICTION#al', call_args[1]['Item']['pk'])
+                self.assertEqual('NONCE#socw#JURISDICTION#al', call_args[1]['Item']['pk'])
                 self.assertEqual(f'NONCE#{event["headers"]["X-Nonce"]}', call_args[1]['Item']['sk'])
 
                 # Reset the mock for the second call

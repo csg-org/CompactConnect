@@ -112,9 +112,9 @@ class TestDataClient(TstFunction):
         # Put a duplicate record into the table, so this provider id has two SSNs associated with it
         self.config.ssn_table.put_item(
             Item={
-                'pk': 'cosm#SSN#123-12-5678',
-                'sk': 'cosm#SSN#123-12-5678',
-                'providerIdGSIpk': 'cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'pk': 'socw#SSN#123-12-5678',
+                'sk': 'socw#SSN#123-12-5678',
+                'providerIdGSIpk': 'socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'compact': 'socw',
                 'ssn': '123-12-5678',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
@@ -226,8 +226,8 @@ class TestDataClient(TstFunction):
 
         # Verify the complete investigation record structure
         expected_investigation = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'socw#PROVIDER#{provider_id}',
+            'sk': f'socw#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -284,8 +284,8 @@ class TestDataClient(TstFunction):
 
         # Verify the complete investigation record structure
         expected_investigation = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'socw#PROVIDER#{provider_id}',
+            'sk': f'socw#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -318,7 +318,7 @@ class TestDataClient(TstFunction):
 
         # Verify the complete update record structure
         expected_update = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
+            'pk': f'socw#PROVIDER#{provider_id}',
             'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'investigation',
@@ -447,8 +447,8 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information
         expected_investigation_close = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'socw#PROVIDER#{provider_id}',
+            'sk': f'socw#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -521,8 +521,8 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information
         expected_investigation_close = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'socw#PROVIDER#{provider_id}',
+            'sk': f'socw#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -565,7 +565,7 @@ class TestDataClient(TstFunction):
 
         # Verify the complete closure update record structure
         expected_closure_update = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
+            'pk': f'socw#PROVIDER#{provider_id}',
             'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'closingInvestigation',
@@ -814,8 +814,8 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#')
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('socw#PROVIDER#privilege/ne/cos#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -823,8 +823,8 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information and encumbrance reference
         expected_investigation_close = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'socw#PROVIDER#{provider_id}',
+            'sk': f'socw#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -890,8 +890,8 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'cosm#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('cosm#PROVIDER#license/oh/cos#INVESTIGATION#')
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('socw#PROVIDER#license/oh/cos#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -899,8 +899,8 @@ class TestDataClient(TstFunction):
 
         # Verify the investigation record was updated with close information and encumbrance reference
         expected_investigation_close = {
-            'pk': f'cosm#PROVIDER#{provider_id}',
-            'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
+            'pk': f'socw#PROVIDER#{provider_id}',
+            'sk': f'socw#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),

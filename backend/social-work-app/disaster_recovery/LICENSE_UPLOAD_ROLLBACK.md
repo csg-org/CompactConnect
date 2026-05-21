@@ -44,7 +44,7 @@ You'll need the following information for the execution:
 1. Click **"Start Execution"**
 2. Enter a descriptive execution name (this will be used for the S3 results folder):
    ```
-   rollback-cosm-oh-2020-01-15
+   rollback-socw-oh-2020-01-15
    ```
    
 3. Paste the following JSON input (replace values with your specific parameters):
@@ -73,7 +73,7 @@ Once the execution completes, comprehensive results are stored in S3. The S3 key
 
 1. Navigate to S3 in the AWS Console
 2. Find the bucket with `disasterrecoveryrollbackresults` in the name.
-3. Navigate to the folder matching your execution name: `rollback-cosm-oh-2025-01-15/`
+3. Navigate to the folder matching your execution name: `rollback-socw-oh-2025-01-15/`
 4. Download the file: `results.json`
 
 #### Understanding the Results Structure

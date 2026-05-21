@@ -427,8 +427,8 @@ describe('Weekly runs', () => {
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'cosm#CONFIGURATION' },
-                    'sk': { S: 'cosm#CONFIGURATION' }
+                    'pk': { S: 'socw#CONFIGURATION' },
+                    'sk': { S: 'socw#CONFIGURATION' }
                 }
             }
         );

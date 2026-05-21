@@ -18,7 +18,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'permissions': {'actions': {'read', 'admin', 'readPrivate'}, 'jurisdictions': {}},
             }
@@ -43,7 +43,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate'}}},
             }
@@ -63,7 +63,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'permissions': {
                     'jurisdictions': {
@@ -95,7 +95,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
             }
@@ -103,7 +103,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'abc',
                 'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
             }
@@ -123,7 +123,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'permissions': {
                     # Write is jurisdiction-specific
@@ -147,7 +147,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'permissions': {'jurisdictions': {'ab': {'write', 'admin'}}},
             }
@@ -167,7 +167,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{self._user_sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'permissions': {'jurisdictions': {'al': {'write', 'hack'}}},
             }

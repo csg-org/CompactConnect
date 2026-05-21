@@ -21,8 +21,8 @@ const SAMPLE_EVENT: EmailNotificationEvent = {
 };
 
 const SAMPLE_COMPACT_CONFIGURATION = {
-    'pk': { S: 'cosm#CONFIGURATION' },
-    'sk': { S: 'cosm#CONFIGURATION' },
+    'pk': { S: 'socw#CONFIGURATION' },
+    'sk': { S: 'socw#CONFIGURATION' },
     'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }]},
     'compactCommissionFee': {
         M: {
@@ -38,8 +38,8 @@ const SAMPLE_COMPACT_CONFIGURATION = {
 };
 
 const SAMPLE_JURISDICTION_CONFIGURATION = {
-    'pk': { S: 'cosm#CONFIGURATION' },
-    'sk': { S: 'cosm#JURISDICTION#oh' },
+    'pk': { S: 'socw#CONFIGURATION' },
+    'sk': { S: 'socw#JURISDICTION#oh' },
     'jurisdictionName': { S: 'Ohio' },
     'type': { S: 'jurisdiction' }
 };
@@ -78,11 +78,11 @@ describe('EmailNotificationServiceLambda', () => {
         mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
             const key = input.Key;
 
-            if (key.sk.S === 'cosm#CONFIGURATION') {
+            if (key.sk.S === 'socw#CONFIGURATION') {
                 return Promise.resolve({
                     Item: SAMPLE_COMPACT_CONFIGURATION
                 });
-            } else if (key.sk.S === 'cosm#JURISDICTION#oh') {
+            } else if (key.sk.S === 'socw#JURISDICTION#oh') {
                 return Promise.resolve({
                     Item: SAMPLE_JURISDICTION_CONFIGURATION
                 });
@@ -205,15 +205,15 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license encumbrance state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionName': { S: 'California' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -249,14 +249,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should include provider detail link with correct environment URL', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -369,14 +369,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license encumbrance lifting state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -509,14 +509,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege encumbrance state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -649,14 +649,14 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege encumbrance lifting state notification email', async () => {
             const mockJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -731,23 +731,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license investigation state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#oh' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'socw#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -821,23 +821,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send license investigation closed state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#oh' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'socw#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -913,23 +913,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege investigation state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#oh' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'socw#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1003,23 +1003,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send privilege investigation closed state notification email', async () => {
             const mockCaJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#ca' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#ca' },
                 'jurisdictionAdverseActionsNotificationEmails': { L: [{ S: 'ca-adverse@example.com' }]},
                 'type': { S: 'jurisdiction' }
             };
 
             const mockOhJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#oh' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#oh' },
                 'jurisdictionName': { S: 'Ohio' },
                 'type': { S: 'jurisdiction' }
             };
 
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
-                if (input.Key.sk.S === 'cosm#JURISDICTION#ca') {
+                if (input.Key.sk.S === 'socw#JURISDICTION#ca') {
                     return Promise.resolve({ Item: mockCaJurisdictionConfig });
-                } else if (input.Key.sk.S === 'cosm#JURISDICTION#oh') {
+                } else if (input.Key.sk.S === 'socw#JURISDICTION#oh') {
                     return Promise.resolve({ Item: mockOhJurisdictionConfig });
                 }
                 return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
@@ -1095,8 +1095,8 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should successfully send home jurisdiction change notification email', async () => {
             const mockTxJurisdictionConfig = {
-                'pk': { S: 'cosm#CONFIGURATION' },
-                'sk': { S: 'cosm#JURISDICTION#tx' },
+                'pk': { S: 'socw#CONFIGURATION' },
+                'sk': { S: 'socw#JURISDICTION#tx' },
                 'jurisdictionName': { S: 'Texas' },
                 'jurisdictionOperationsTeamEmails': { L: [{ S: 'tx-ops@example.com' }]},
                 'type': { S: 'jurisdiction' }
@@ -1105,10 +1105,10 @@ describe('EmailNotificationServiceLambda', () => {
             mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
                 const sk = input.Key.sk.S;
 
-                if (sk === 'cosm#JURISDICTION#tx') {
+                if (sk === 'socw#JURISDICTION#tx') {
                     return Promise.resolve({ Item: mockTxJurisdictionConfig });
                 }
-                if (sk === 'cosm#CONFIGURATION') {
+                if (sk === 'socw#CONFIGURATION') {
                     return Promise.resolve({ Item: SAMPLE_COMPACT_CONFIGURATION });
                 }
                 return Promise.resolve({});

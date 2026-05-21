@@ -1,6 +1,6 @@
 {
-  "pk": "cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "cosm#PROVIDER#license/oh/cos#",
+  "pk": "socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "sk": "socw#PROVIDER#license/oh/cos#",
   "type": "license",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
   "compact": "socw",
@@ -26,6 +26,6 @@
   "jurisdictionUploadedLicenseStatus": "active",
   "licenseStatusName": "DEFINITELY_A_HUMAN",
   "jurisdictionUploadedCompactEligibility": "eligible",
-  "licenseGSIPK": "C#cosm#J#oh",
+  "licenseGSIPK": "C#socw#J#oh",
   "licenseGSISK": "FN#gu%C3%B0mundsd%C3%B3ttir#GN#bj%C3%B6rk"
 }

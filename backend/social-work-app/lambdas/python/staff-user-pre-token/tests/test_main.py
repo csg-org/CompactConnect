@@ -20,7 +20,7 @@ class TestCustomizeScopes(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
@@ -39,7 +39,7 @@ class TestCustomizeScopes(TstLambdas):
             sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
         # Check that the user's status is updated in the DB
-        record = self._table.get_item(Key={'pk': f'USER#{sub}', 'sk': 'COMPACT#cosm'})
+        record = self._table.get_item(Key={'pk': f'USER#{sub}', 'sk': 'COMPACT#socw'})
         self.assertEqual(StaffUserStatus.ACTIVE.value, record['Item']['status'])
 
     def test_should_suppress_cognito_admin_scope(self):
@@ -58,7 +58,7 @@ class TestCustomizeScopes(TstLambdas):
         self._table.put_item(
             Item={
                 'pk': f'USER#{sub}',
-                'sk': 'COMPACT#cosm',
+                'sk': 'COMPACT#socw',
                 'compact': 'socw',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {

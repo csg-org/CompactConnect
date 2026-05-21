@@ -23,13 +23,13 @@ mock_cognito_client.admin_create_user.return_value = {
 class TestDeleteUser(TstFunction):
     def _assert_user_gone(self):
         user = self._table.get_item(
-            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#cosm'},
+            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#socw'},
         ).get('Item')
         self.assertEqual(None, user)
 
     def _assert_user_not_gone(self):
         user = self._table.get_item(
-            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#cosm'},
+            Key={'pk': 'USER#a4182428-d061-701c-82e5-a3d1d547d797', 'sk': 'COMPACT#socw'},
         ).get('Item')
         self.assertNotEqual(None, user)
 

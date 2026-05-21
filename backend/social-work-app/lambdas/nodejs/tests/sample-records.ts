@@ -1,6 +1,6 @@
 export const SAMPLE_INGEST_SUCCESS_RECORD = {
     'pk': {
-        'S': 'COMPACT#cosm#JURISDICTION#oh'
+        'S': 'COMPACT#socw#JURISDICTION#oh'
     },
     'sk': {
         'S': 'TYPE#license.ingest#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03e1234'
@@ -33,7 +33,7 @@ export const SAMPLE_INGEST_SUCCESS_RECORD = {
 
 export const SAMPLE_INGEST_FAILURE_ERROR_RECORD = {
     'pk': {
-        'S': 'COMPACT#cosm#JURISDICTION#oh'
+        'S': 'COMPACT#socw#JURISDICTION#oh'
     },
     'sk': {
         'S': 'TYPE#license.ingest-failure#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03ee984'
@@ -63,7 +63,7 @@ export const SAMPLE_INGEST_FAILURE_ERROR_RECORD = {
 };
 
 export const SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD = {
-    'pk': 'COMPACT#cosm#JURISDICTION#oh',
+    'pk': 'COMPACT#socw#JURISDICTION#oh',
     'sk': 'TYPE#license.ingest-failure#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03ee984',
     'compact': 'socw',
     'errors': [ '\'utf-8\' codec can\'t decode byte 0x83 in position 0: invalid start byte' ],
@@ -75,7 +75,7 @@ export const SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD = {
 
 export const SAMPLE_VALIDATION_ERROR_RECORD = {
     'pk': {
-        'S': 'COMPACT#cosm#JURISDICTION#oh'
+        'S': 'COMPACT#socw#JURISDICTION#oh'
     },
     'sk': {
         'S': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c'
@@ -135,7 +135,7 @@ export const SAMPLE_VALIDATION_ERROR_RECORD = {
 
 export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
     {
-        'pk': 'COMPACT#cosm#JURISDICTION#oh',
+        'pk': 'COMPACT#socw#JURISDICTION#oh',
         'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
         'eventType': 'license.validation-error',
         'eventTime': '2024-10-30T04:47:55.843000+00:00',
@@ -158,7 +158,7 @@ export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
         }
     },
     {
-        'pk': 'COMPACT#cosm#JURISDICTION#oh',
+        'pk': 'COMPACT#socw#JURISDICTION#oh',
         'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
         'eventType': 'license.validation-error',
         'eventTime': '2024-10-30T05:47:55.843000+00:00',
@@ -181,7 +181,7 @@ export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
         }
     },
     {
-        'pk': 'COMPACT#cosm#JURISDICTION#oh',
+        'pk': 'COMPACT#socw#JURISDICTION#oh',
         'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
         'eventType': 'license.validation-error',
         'eventTime': '2024-10-30T05:47:55.843000+00:00',
@@ -206,7 +206,7 @@ export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
 ];
 
 export const SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD = {
-    'pk': 'COMPACT#cosm#JURISDICTION#oh',
+    'pk': 'COMPACT#socw#JURISDICTION#oh',
     'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
     'eventType': 'license.validation-error',
     'eventTime': '2024-10-30T04:47:55.843000+00:00',
@@ -231,10 +231,10 @@ export const SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD = {
 
 export const SAMPLE_JURISDICTION_CONFIGURATION = {
     'pk': {
-        'S': 'cosm#CONFIGURATION'
+        'S': 'socw#CONFIGURATION'
     },
     'sk': {
-        'S': 'cosm#JURISDICTION#oh'
+        'S': 'socw#JURISDICTION#oh'
     },
     'compact': {
         'S': 'socw'
@@ -272,8 +272,8 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
 };
 
 export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
-    'pk': 'cosm#CONFIGURATION',
-    'sk': 'cosm#JURISDICTION#oh',
+    'pk': 'socw#CONFIGURATION',
+    'sk': 'socw#JURISDICTION#oh',
     'compact': 'socw',
     'dateOfUpdate': '2024-11-14',
     'jurisdictionAdverseActionsNotificationEmails': [],
@@ -288,8 +288,8 @@ export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
 };
 
 export const SAMPLE_COMPACT_CONFIGURATION = {
-    'pk': { 'S': 'cosm#CONFIGURATION' },
-    'sk': { 'S': 'cosm#CONFIGURATION' },
+    'pk': { 'S': 'socw#CONFIGURATION' },
+    'sk': { 'S': 'socw#CONFIGURATION' },
     'compactAdverseActionsNotificationEmails': { 'L': [{ 'S': 'adverse@example.com' }]},
     'compactCommissionFee': {
         'M': {
@@ -305,8 +305,8 @@ export const SAMPLE_COMPACT_CONFIGURATION = {
 };
 
 export const SAMPLE_UNMARSHALLED_COMPACT_CONFIGURATION = {
-    'pk': 'cosm#CONFIGURATION',
-    'sk': 'cosm#CONFIGURATION',
+    'pk': 'socw#CONFIGURATION',
+    'sk': 'socw#CONFIGURATION',
     'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
     'compactCommissionFee': {
         'feeAmount': 3.5,

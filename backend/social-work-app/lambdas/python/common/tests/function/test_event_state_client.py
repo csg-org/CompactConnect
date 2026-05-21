@@ -54,7 +54,7 @@ class TestEventStateClient(TstFunction):
                 'eventTime': '2024-01-15T10:30:00Z',
                 'eventType': 'license.encumbrance',
                 'jurisdiction': 'oh',
-                'pk': 'COMPACT#cosm#SQS_MESSAGE#test-message-123',
+                'pk': 'COMPACT#socw#SQS_MESSAGE#test-message-123',
                 'providerId': '12345678-1234-1234-1234-123456789abc',
                 'sk': 'NOTIFICATION#state#oh',
                 'status': 'SUCCESS',

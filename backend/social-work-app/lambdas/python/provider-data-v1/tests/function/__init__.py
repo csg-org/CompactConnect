@@ -375,7 +375,7 @@ class TstFunction(TstLambdas):
                     self.mock_context,
                 )
                 # we need to get the provider id from the ssn table so it can be used in the ingest message
-                provider_id = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{ssn}', 'sk': f'cosm#SSN#{ssn}'})['Item'][
+                provider_id = self._ssn_table.get_item(Key={'pk': f'socw#SSN#{ssn}', 'sk': f'socw#SSN#{ssn}'})['Item'][
                     'providerId'
                 ]
 

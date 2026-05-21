@@ -9,9 +9,9 @@ Uses CC_TEST_PROVIDER_ID and mutates the smoke license in DynamoDB; restores sta
 This test assumes the test provider has no existing license in TEST_JURISDICTION. If this is not the case,
 you can change the TEST_JURISDICTION variable to a jurisdiction where the test provider does not have a license.
 
-Run from repo root with cosmetology-app cwd, or set paths like other smoke scripts:
+Run from repo root with social-work-app cwd, or set paths like other smoke scripts:
 
-  cd backend/cosmetology-app && python tests/smoke/public_search_smoke_tests.py
+  cd backend/social-work-app && python tests/smoke/public_search_smoke_tests.py
 """
 
 from __future__ import annotations

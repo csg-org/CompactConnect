@@ -472,7 +472,7 @@ class TestIngest(TstFunction):
         test_ssn = '123-12-1234'
 
         # Before running method under test, ensure the provider ssn record does not exist
-        provider = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{test_ssn}', 'sk': f'cosm#SSN#{test_ssn}'})
+        provider = self._ssn_table.get_item(Key={'pk': f'socw#SSN#{test_ssn}', 'sk': f'socw#SSN#{test_ssn}'})
         self.assertNotIn('Item', provider)
 
         with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
@@ -486,7 +486,7 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         # Find the provider's id from their ssn
-        provider = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{test_ssn}', 'sk': f'cosm#SSN#{test_ssn}'})['Item']
+        provider = self._ssn_table.get_item(Key={'pk': f'socw#SSN#{test_ssn}', 'sk': f'socw#SSN#{test_ssn}'})['Item']
         provider_id = provider['providerId']
         # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
         self.assertIsNotNone(provider_id)

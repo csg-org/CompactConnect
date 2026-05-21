@@ -12,8 +12,8 @@ import { Compact } from '../../../lib/models/compact';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 const SAMPLE_COMPACT_CONFIG: Compact = {
-    pk: 'cosm#CONFIGURATION',
-    sk: 'cosm#CONFIGURATION',
+    pk: 'socw#CONFIGURATION',
+    sk: 'socw#CONFIGURATION',
     compactAdverseActionsNotificationEmails: ['adverse@example.com'],
     compactCommissionFee: {
         feeAmount: 3.5,
@@ -27,8 +27,8 @@ const SAMPLE_COMPACT_CONFIG: Compact = {
 };
 
 const SAMPLE_JURISDICTION_CONFIG = {
-    pk: 'cosm#CONFIGURATION',
-    sk: 'cosm#JURISDICTION#oh',
+    pk: 'socw#CONFIGURATION',
+    sk: 'socw#JURISDICTION#oh',
     jurisdictionName: 'Ohio',
     postalAbbreviation: 'oh',
     compact: 'socw',

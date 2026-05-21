@@ -281,7 +281,7 @@ class TestProviderUpdateIngest(TstFunction):
                 'familyName': 'testcosmFamilyName',
                 'licenseType': TEST_LICENSE_TYPE_MAPPING['socw'],
                 'jurisdiction': 'ky',
-                'licenseNumber': 'KY-COSM-001',
+                'licenseNumber': 'KY-SOCW-001',
                 'dateOfIssuance': date(2005, 1, 1),
                 'dateOfRenewal': date(2010, 6, 1),
                 'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_EXPIRATION_DATE),

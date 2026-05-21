@@ -57,7 +57,7 @@ class TestPatchUser(TstFunction):
 
         user = {
             'pk': 'USER#648864e8-10f1-702f-e666-2e0ff3482502',
-            'sk': 'COMPACT#cosm',
+            'sk': 'COMPACT#socw',
             'attributes': {
                 'email': 'test@example.com',
                 'familyName': 'User',

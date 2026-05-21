@@ -63,7 +63,7 @@ export class CognitoEmailService extends BaseEmailService {
 
         this.insertHeader(template, subject);
 
-        const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff-cosmo`;
+        const loginUrl = `${environmentVariableService.getUiBasePathUrl()}/Dashboard?bypass=login-staff-socw`;
         const loginText = `Please immediately [sign in](${loginUrl}) and change your password when prompted.`;
 
         this.insertBody(template,

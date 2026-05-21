@@ -283,7 +283,7 @@ adverse actions, and investigations.
 CompactConnect maintains a comprehensive historical record of each provider from their first addition to the system.
 Any change to a provider's status, dates, or demographic information creates a supporting record that tracks the change.
 
-For license changes, records use sort keys like `cosm#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
+For license changes, records use sort keys like `socw#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
 contains:
 - The jurisdiction (e.g., "oh")
 - "UPDATE" indicator

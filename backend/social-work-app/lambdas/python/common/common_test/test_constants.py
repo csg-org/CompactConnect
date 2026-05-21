@@ -37,7 +37,7 @@ DEFAULT_COMPACT_TRANSACTION_BATCH = {
 }
 DEFAULT_COMPACT_TRANSACTION_PRIVILEGE_LINE_ITEM = {
     'description': 'Compact Privilege for Ohio',
-    'itemId': 'priv:cosm-oh',
+    'itemId': 'priv:socw-oh',
     'name': 'Ohio Compact Privilege',
     'quantity': '1.0',
     'taxable': 'False',
@@ -109,4 +109,4 @@ DEFAULT_INVESTIGATION_ID = '98765432-9876-9876-9876-987654321098'
 DEFAULT_ADMINISTRATOR_SET_STATUS = 'active'
 
 # Default Dynamo PK/SKs
-DEFAULT_PROVIDER_PK = 'cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570'
+DEFAULT_PROVIDER_PK = 'socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570'

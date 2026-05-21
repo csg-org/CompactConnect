@@ -5,8 +5,8 @@ import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { CompactConfigurationClient } from '../../lib/compact-configuration-client';
 
 const SAMPLE_COMPACT_CONFIGURATION = {
-    'pk': { S: 'cosm#CONFIGURATION' },
-    'sk': { S: 'cosm#CONFIGURATION' },
+    'pk': { S: 'socw#CONFIGURATION' },
+    'sk': { S: 'socw#CONFIGURATION' },
     'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }]},
     'compactCommissionFee': {
         M: {
@@ -59,15 +59,15 @@ describe('CompactConfigurationClient', () => {
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'cosm#CONFIGURATION' },
-                    'sk': { S: 'cosm#CONFIGURATION' }
+                    'pk': { S: 'socw#CONFIGURATION' },
+                    'sk': { S: 'socw#CONFIGURATION' }
                 }
             }
         );
 
         expect(config).toEqual({
-            pk: 'cosm#CONFIGURATION',
-            sk: 'cosm#CONFIGURATION',
+            pk: 'socw#CONFIGURATION',
+            sk: 'socw#CONFIGURATION',
             compactAdverseActionsNotificationEmails: ['adverse@example.com'],
             compactCommissionFee: {
                 feeAmount: 3.5,

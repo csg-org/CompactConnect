@@ -9,10 +9,10 @@ import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 const SAMPLE_JURISDICTION_ITEMS = [
     {
         'pk': {
-            'S': 'cosm#CONFIGURATION'
+            'S': 'socw#CONFIGURATION'
         },
         'sk': {
-            'S': 'cosm#JURISDICTION#oh'
+            'S': 'socw#JURISDICTION#oh'
         },
         'compact': {
             'S': 'socw'
@@ -50,10 +50,10 @@ const SAMPLE_JURISDICTION_ITEMS = [
     },
     {
         'pk': {
-            'S': 'cosm#CONFIGURATION'
+            'S': 'socw#CONFIGURATION'
         },
         'sk': {
-            'S': 'cosm#JURISDICTION#ne'
+            'S': 'socw#JURISDICTION#ne'
         },
         'compact': {
             'S': 'socw'
@@ -138,8 +138,8 @@ describe('JurisdictionClient', () => {
                 TableName: 'compact-table',
                 KeyConditionExpression: 'pk = :pk and begins_with (sk, :sk)',
                 ExpressionAttributeValues: {
-                    ':pk': { 'S': 'cosm#CONFIGURATION' },
-                    ':sk': { 'S': 'cosm#JURISDICTION#' }
+                    ':pk': { 'S': 'socw#CONFIGURATION' },
+                    ':sk': { 'S': 'socw#JURISDICTION#' }
                 }
             }
         );
@@ -182,8 +182,8 @@ describe('JurisdictionClient', () => {
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'cosm#CONFIGURATION' },
-                    'sk': { S: 'cosm#JURISDICTION#oh' }
+                    'pk': { S: 'socw#CONFIGURATION' },
+                    'sk': { S: 'socw#JURISDICTION#oh' }
                 }
             }
         );
@@ -228,8 +228,8 @@ describe('JurisdictionClient', () => {
             {
                 TableName: 'compact-table',
                 Key: {
-                    'pk': { S: 'cosm#CONFIGURATION' },
-                    'sk': { S: 'cosm#JURISDICTION#oh' }
+                    'pk': { S: 'socw#CONFIGURATION' },
+                    'sk': { S: 'socw#JURISDICTION#oh' }
                 }
             }
         );

@@ -82,7 +82,7 @@ class TestTransformations(TstFunction):
         ingest_license_message(event, self.mock_context)
 
         # We'll fetch the provider id from the ssn table
-        provider_id = self._ssn_table.get_item(Key={'pk': f'cosm#SSN#{license_ssn}', 'sk': f'cosm#SSN#{license_ssn}'})[
+        provider_id = self._ssn_table.get_item(Key={'pk': f'socw#SSN#{license_ssn}', 'sk': f'socw#SSN#{license_ssn}'})[
             'Item'
         ]['providerId']
         self.assertEqual(expected_provider_id, provider_id)
@@ -108,7 +108,7 @@ class TestTransformations(TstFunction):
             expected_license['licenseStatus'] = 'active'
             expected_license['compactEligibility'] = 'eligible'
             expected_license['firstUploadDate'] = MOCK_CURRENT_DATETIME_STRING
-            expected_license['licenseUploadDateGSIPK'] = 'C#cosm#J#oh#D#2024-11'
+            expected_license['licenseUploadDateGSIPK'] = 'C#socw#J#oh#D#2024-11'
             expected_license['licenseUploadDateGSISK'] = (
                 'TIME#1731110399#LT#cos#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
             )

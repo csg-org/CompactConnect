@@ -35,8 +35,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
@@ -63,8 +63,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
@@ -113,8 +113,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
@@ -145,8 +145,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
@@ -173,8 +173,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
@@ -237,8 +237,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
@@ -270,8 +270,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
@@ -304,8 +304,8 @@ class TestSignatureAuthFunctional(TstFunction):
         # Add public key to database
         self._compact_configuration_table.put_item(
             Item={
-                'pk': 'cosm#SIGNATURE_KEYS#al',
-                'sk': 'cosm#JURISDICTION#al#test-key-001',
+                'pk': 'socw#SIGNATURE_KEYS#al',
+                'sk': 'socw#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
                 'compact': 'socw',
                 'jurisdiction': 'al',
