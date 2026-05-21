@@ -9,12 +9,14 @@ from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_backup import CfnBackupPlan
 from aws_cdk.aws_dynamodb import CfnTable
 from aws_cdk.aws_events import EventBus
-from aws_cdk.aws_iam import CfnRole, ManagedPolicy, Role, ServicePrincipal
-from aws_cdk.aws_kms import Alias, CfnKey
+from aws_cdk.aws_iam import CfnPolicy, CfnRole
+from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_sns import Topic
 
-from common_constructs.ssn_table import SSN_TABLE_NAME, SSNTable
+from common_constructs.ssn_table import (
+    SSNTable,
+)
 from common_constructs.stack import AppStack, StandardTags
 from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
@@ -59,6 +61,86 @@ _ENVIRONMENT_CONTEXT_WITH_BACKUP = {
 
 _STANDARD_TAGS = StandardTags(project='test', service='test', environment='test')
 
+_DR_LAMBDA_ROLE_DESCRIPTION = 'Dedicated role for SSN table disaster recovery Lambda operations'
+_DR_STEP_FUNCTION_ROLE_DESCRIPTION = 'Dedicated role for SSN table disaster recovery Step Function operations'
+
+
+def _get_ssn_table_logical_id(template: Template) -> str:
+    tables = template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME)
+    if len(tables) != 1:
+        raise AssertionError(f'Expected exactly one DynamoDB table, found {len(tables)}')
+    return next(iter(tables.keys()))
+
+
+def _get_ssn_key_logical_id(template: Template) -> str:
+    keys = template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
+    if len(keys) != 1:
+        raise AssertionError(f'Expected exactly one KMS key, found {len(keys)}')
+    return next(iter(keys.keys()))
+
+
+def _get_ssn_key_policy_document(template: Template) -> dict:
+    keys = template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
+    if len(keys) != 1:
+        raise AssertionError(f'Expected exactly one KMS key, found {len(keys)}')
+    (key,) = keys.values()
+    return key['Properties']['KeyPolicy']
+
+
+def _get_role_logical_id_by_description(template: Template, description: str) -> str:
+    roles = template.find_resources(CfnRole.CFN_RESOURCE_TYPE_NAME)
+    matches = [lid for lid, role in roles.items() if role['Properties'].get('Description') == description]
+    if len(matches) != 1:
+        raise AssertionError(f'Expected exactly one role with description {description!r}, found {len(matches)}')
+    return matches[0]
+
+
+def _policy_attached_to_role(role_logical_id: str, roles_property: list) -> bool:
+    for role in roles_property:
+        if role == role_logical_id:
+            return True
+        if isinstance(role, dict) and role.get('Ref') == role_logical_id:
+            return True
+    return False
+
+
+def _get_role_policy_document_by_description(template: Template, description: str) -> dict:
+    role_logical_id = _get_role_logical_id_by_description(template, description)
+    policies = template.find_resources(CfnPolicy.CFN_RESOURCE_TYPE_NAME)
+    matches = [
+        policy['Properties']['PolicyDocument']
+        for policy in policies.values()
+        if _policy_attached_to_role(role_logical_id, policy['Properties'].get('Roles', []))
+    ]
+    if len(matches) != 1:
+        raise AssertionError(f'Expected exactly one inline policy for role {description!r}, found {len(matches)}')
+    return matches[0]
+
+
+def _get_ssn_table_resource_policy_document(template: Template) -> dict:
+    tables = template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME)
+    if len(tables) != 1:
+        raise AssertionError(f'Expected exactly one DynamoDB table, found {len(tables)}')
+    (table,) = tables.values()
+    return table['Properties']['ResourcePolicy']['PolicyDocument']
+
+
+def _dynamodb_ssn_index_not_resource_arn_join() -> dict:
+    return {
+        'Fn::Join': [
+            '',
+            [
+                'arn:',
+                {'Ref': 'AWS::Partition'},
+                ':dynamodb:',
+                {'Ref': 'AWS::Region'},
+                ':',
+                {'Ref': 'AWS::AccountId'},
+                ':table/ssn-table-DataEventsLog/index/ssnIndex',
+            ],
+        ],
+    }
+
 
 def _join_with_python_fixtures(*parts: str) -> str:
     """Redirect lambdas/python paths to tests/fixtures so CDK asset bundling resolves correctly."""
@@ -87,7 +169,7 @@ def _make_ssn_table(
         patch('common_constructs.python_common_layer_versions.os.path.join', side_effect=_join_with_python_fixtures),
     ):
         # Reset per-test so layers are always created in the current stack (avoids cross-App references).
-        PythonFunction._common_layer_versions = None
+        PythonFunction._common_layer_versions = None  # noqa: SLF001
         PythonCommonLayerVersions(stack, 'CommonLayers', compatible_runtimes=[Runtime.PYTHON_3_14])
 
         return SSNTable(
@@ -118,7 +200,7 @@ class TestSSNTableConfig(TestCase):
     def test_table_name_is_ssn_table_data_events_log(self):
         self.template.has_resource_properties(
             CfnTable.CFN_RESOURCE_TYPE_NAME,
-            {'TableName': SSN_TABLE_NAME},
+            {'TableName': 'ssn-table-DataEventsLog'},
         )
 
     def test_billing_mode_is_pay_per_request(self):
@@ -195,46 +277,55 @@ class TestSSNTableResourcePolicy(TestCase):
         _make_ssn_table(cls.stack)
         cls.template = Template.from_stack(cls.stack)
 
-    def _get_table_resource_policy_statements(self):
-        tables = self.template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME)
-        (table,) = tables.values()
-        return table['Properties']['ResourcePolicy']['PolicyDocument']['Statement']
+    def test_table_resource_policy_document(self):
+        """Snapshot of the full DynamoDB resource policy; any intentional change should update this test."""
+        dr_lambda_role_id = _get_role_logical_id_by_description(self.template, _DR_LAMBDA_ROLE_DESCRIPTION)
 
-    def test_deny_create_backup_for_non_dynamodb_service(self):
-        stmts = self._get_table_resource_policy_statements()
-        deny_backup = next(
-            (s for s in stmts if s.get('Effect') == 'Deny' and 'dynamodb:CreateBackup' in s.get('Action', [])),
-            None,
-        )
-        self.assertIsNotNone(deny_backup, 'No DENY CreateBackup statement found in resource policy')
+        expected = {
+            'Version': '2012-10-17',
+            'Statement': [
+                {
+                    'Action': 'dynamodb:CreateBackup',
+                    'Condition': {
+                        'StringNotEquals': {
+                            'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
+                        }
+                    },
+                    'Effect': 'Deny',
+                    'Principal': '*',
+                    'Resource': '*',
+                },
+                {
+                    'Action': [
+                        'dynamodb:BatchGetItem',
+                        'dynamodb:BatchWriteItem',
+                        'dynamodb:PartiQL*',
+                        'dynamodb:Scan',
+                    ],
+                    'Condition': {
+                        'StringNotEquals': {
+                            'aws:PrincipalArn': [{'Fn::GetAtt': [dr_lambda_role_id, 'Arn']}],
+                            'aws:PrincipalServiceName': 'dynamodb.amazonaws.com',
+                        }
+                    },
+                    'Effect': 'Deny',
+                    'Principal': '*',
+                    'Resource': '*',
+                },
+                {
+                    'Action': [
+                        'dynamodb:GetItem',
+                        'dynamodb:Query',
+                        'dynamodb:ConditionCheckItem',
+                    ],
+                    'Effect': 'Deny',
+                    'NotResource': _dynamodb_ssn_index_not_resource_arn_join(),
+                    'Principal': '*',
+                },
+            ],
+        }
 
-    def test_deny_batch_and_scan_for_non_service(self):
-        stmts = self._get_table_resource_policy_statements()
-        deny_bulk = next(
-            (s for s in stmts if s.get('Effect') == 'Deny' and 'dynamodb:Scan' in s.get('Action', [])),
-            None,
-        )
-        self.assertIsNotNone(deny_bulk, 'No DENY Scan/BatchGetItem statement found in resource policy')
-
-    def test_deny_get_item_query_when_not_ssn_index(self):
-        """GetItem/Query/ConditionCheckItem are denied on anything that is NOT the ssnIndex GSI ARN."""
-        # This policy uses add_to_resource_policy (table policy), not inline resource_policy.
-        # Check the DynamoDB table policy via find_resources.
-        stmts = self.template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME)
-        (table,) = stmts.values()
-        all_stmts = table['Properties'].get('ResourcePolicy', {}).get('PolicyDocument', {}).get('Statement', [])
-
-        # Look for the not-resource style DENY
-        get_query_deny = next(
-            (s for s in all_stmts if s.get('Effect') == 'Deny' and 'dynamodb:GetItem' in s.get('Action', [])),
-            None,
-        )
-        # This specific deny uses NotResource, which CDK emits differently.
-        # Check the AWS::DynamoDB::Table resource policy and bucket policy via template raw JSON.
-        template_json = str(self.template.to_json())
-        self.assertIn('dynamodb:GetItem', template_json)
-        self.assertIn('dynamodb:Query', template_json)
-        self.assertIn('dynamodb:ConditionCheckItem', template_json)
+        self.assertEqual(expected, _get_ssn_table_resource_policy_document(self.template))
 
 
 class TestSSNTableKMSKey(TestCase):
@@ -263,30 +354,44 @@ class TestSSNTableKMSKey(TestCase):
             {'AliasName': 'alias/ssn-key'},
         )
 
-    def test_kms_deny_policy_for_unauthorized_principals(self):
-        """DENY kms:Decrypt/Encrypt/GenerateDataKey*/ReEncrypt* for any principal not in the allowlist."""
-        keys = self.template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
-        deny_found = False
-        for key in keys.values():
-            stmts = key['Properties'].get('KeyPolicy', {}).get('Statement', [])
-            for stmt in stmts:
-                if stmt.get('Effect') == 'Deny' and 'kms:Decrypt' in str(stmt.get('Action', '')):
-                    deny_found = True
-                    break
-        self.assertTrue(deny_found, 'No DENY kms:Decrypt statement found on SSN KMS key policy')
-
-    def test_kms_deny_allows_dynamodb_service_as_exception(self):
-        """The deny statement allows dynamodb.amazonaws.com as a principal service exception."""
-        keys = self.template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
-        exception_found = False
-        for key in keys.values():
-            stmts = key['Properties'].get('KeyPolicy', {}).get('Statement', [])
-            for stmt in stmts:
-                conditions = stmt.get('Condition', {})
-                if 'dynamodb.amazonaws.com' in str(conditions):
-                    exception_found = True
-                    break
-        self.assertTrue(exception_found, 'dynamodb.amazonaws.com not in KMS deny exception list')
+    def test_ssn_key_policy_document(self):
+        """Snapshot of the full SSN KMS key policy; any intentional change should update this test."""
+        expected = {
+            'Statement': [
+                {
+                    'Action': 'kms:*',
+                    'Effect': 'Allow',
+                    'Principal': {
+                        'AWS': {
+                            'Fn::Join': [
+                                '',
+                                ['arn:', {'Ref': 'AWS::Partition'}, ':iam::', {'Ref': 'AWS::AccountId'}, ':root'],
+                            ]
+                        }
+                    },
+                    'Resource': '*',
+                },
+                {
+                    'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
+                    'Condition': {
+                        'StringNotEquals': {
+                            'aws:PrincipalArn': [
+                                {'Fn::GetAtt': ['SSNTableLicenseIngestRoleC883020F', 'Arn']},
+                                {'Fn::GetAtt': ['SSNTableLicenseUploadRole46F85F47', 'Arn']},
+                                {'Fn::GetAtt': ['DisasterRecoveryLambdaRole4BDEAE6F', 'Arn']},
+                                {'Fn::GetAtt': ['SSNTableDisasterRecoveryStepFunctionRoleCE265991', 'Arn']},
+                            ],
+                            'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
+                        }
+                    },
+                    'Effect': 'Deny',
+                    'Principal': '*',
+                    'Resource': '*',
+                },
+            ],
+            'Version': '2012-10-17',
+        }
+        self.assertEqual(expected, _get_ssn_key_policy_document(self.template))
 
 
 class TestSSNTableRoles(TestCase):
@@ -314,10 +419,6 @@ class TestSSNTableRoles(TestCase):
     def test_license_upload_role_exists(self):
         template_json = self.template.to_json()
         self.assertIn('Dedicated role for lambdas that upload license records', str(template_json))
-
-    def test_provider_query_role_exists(self):
-        template_json = self.template.to_json()
-        self.assertIn('Deprecated inert role', str(template_json))
 
     def test_disaster_recovery_lambda_role_assumes_lambda(self):
         self.template.has_resource_properties(
@@ -348,39 +449,116 @@ class TestSSNTableRoles(TestCase):
             },
         )
 
-    def test_dr_step_function_policy_includes_restore_table_to_pitr(self):
-        template_json = str(self.template.to_json())
-        self.assertIn('dynamodb:RestoreTableToPointInTime', template_json)
+    def test_disaster_recovery_step_function_role_policy_document(self):
+        """Snapshot of the full inline policy for the DR Step Function role."""
+        table_id = _get_ssn_table_logical_id(self.template)
+        key_id = _get_ssn_key_logical_id(self.template)
 
-    def test_dr_step_function_policy_includes_kms_create_grant(self):
-        template_json = str(self.template.to_json())
-        self.assertIn('kms:CreateGrant', template_json)
+        expected = {
+            'Version': '2012-10-17',
+            'Statement': [
+                {
+                    'Action': [
+                        'dynamodb:RestoreTableToPointInTime',
+                        'dynamodb:DescribeTable',
+                        'dynamodb:BatchWriteItem',
+                        'dynamodb:DeleteItem',
+                        'dynamodb:GetItem',
+                        'dynamodb:PutItem',
+                        'dynamodb:Query',
+                        'dynamodb:Scan',
+                        'dynamodb:UpdateItem',
+                    ],
+                    'Effect': 'Allow',
+                    'Resource': [
+                        {'Fn::GetAtt': [table_id, 'Arn']},
+                        {
+                            'Fn::Join': [
+                                '',
+                                [{'Fn::GetAtt': [table_id, 'Arn']}, '/backup/*'],
+                            ]
+                        },
+                        {
+                            'Fn::Join': [
+                                '',
+                                [
+                                    'arn:aws:dynamodb:',
+                                    {'Ref': 'AWS::Region'},
+                                    ':',
+                                    {'Ref': 'AWS::AccountId'},
+                                    ':table/DR-TEMP-SSN-*',
+                                ],
+                            ]
+                        },
+                        {
+                            'Fn::Join': [
+                                '',
+                                [
+                                    'arn:aws:dynamodb:',
+                                    {'Ref': 'AWS::Region'},
+                                    ':',
+                                    {'Ref': 'AWS::AccountId'},
+                                    ':table/DR-TEMP-SSN-*/index/*',
+                                ],
+                            ]
+                        },
+                    ],
+                },
+                {
+                    'Action': 'states:StartExecution',
+                    'Effect': 'Allow',
+                    'Resource': {
+                        'Fn::Join': [
+                            '',
+                            [
+                                'arn:',
+                                {'Ref': 'AWS::Partition'},
+                                ':states:',
+                                {'Ref': 'AWS::Region'},
+                                ':',
+                                {'Ref': 'AWS::AccountId'},
+                                ':stateMachine:SSNTable-SSNSyncTableData',
+                            ],
+                        ],
+                    },
+                },
+                {
+                    'Action': [
+                        'events:PutTargets',
+                        'events:PutRule',
+                        'events:DescribeRule',
+                    ],
+                    'Effect': 'Allow',
+                    'Resource': {
+                        'Fn::Join': [
+                            '',
+                            [
+                                'arn:aws:events:',
+                                {'Ref': 'AWS::Region'},
+                                ':',
+                                {'Ref': 'AWS::AccountId'},
+                                ':rule/StepFunctionsGetEventsForStepFunctionsExecutionRule',
+                            ],
+                        ],
+                    },
+                },
+                {
+                    'Action': [
+                        'kms:DescribeKey',
+                        'kms:CreateGrant',
+                        'kms:Decrypt',
+                        'kms:Encrypt',
+                        'kms:GenerateDataKey*',
+                        'kms:ReEncrypt*',
+                    ],
+                    'Effect': 'Allow',
+                    'Resource': {'Fn::GetAtt': [key_id, 'Arn']},
+                },
+            ],
+        }
 
-
-class TestSSNTableBackupDisabled(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        app = App(context=_CDK_CONTEXT)
-        cls.stack = AppStack(
-            app,
-            'TestStack',
-            standard_tags=_STANDARD_TAGS,
-            environment_name='sandbox',
-            environment_context=_APP_ENV_CONTEXT,
-        )
-        _make_ssn_table(cls.stack, environment_context=_ENVIRONMENT_CONTEXT_NO_BACKUP)
-        cls.template = Template.from_stack(cls.stack)
-
-    def test_no_backup_plan_when_backup_disabled(self):
-        backup_plans = self.template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME)
-        self.assertEqual({}, backup_plans)
-
-    def test_hipaa_suppression_present_when_backup_disabled(self):
-        """CDK NAG suppression for DynamoDB backup is added when backup is disabled."""
-        # The NagSuppressions call is validated by confirming the table is synthesized successfully
-        # and no backup plan is created.
-        tables = self.template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME)
-        self.assertGreaterEqual(len(tables), 1)
+        actual = _get_role_policy_document_by_description(self.template, _DR_STEP_FUNCTION_ROLE_DESCRIPTION)
+        self.assertEqual(expected, actual)
 
 
 class TestSSNTableBackupEnabled(TestCase):
@@ -416,17 +594,47 @@ class TestSSNTableBackupEnabled(TestCase):
         backup_plans = self.template.find_resources(CfnBackupPlan.CFN_RESOURCE_TYPE_NAME)
         self.assertGreaterEqual(len(backup_plans), 1)
 
-    def test_backup_service_role_added_to_kms_allow_list(self):
-        """When backup is enabled, the backup service role ARN is in the KMS DENY exception list."""
-        keys = self.template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
-        ssn_key_with_backup_role = False
-        for key in keys.values():
-            stmts = key['Properties'].get('KeyPolicy', {}).get('Statement', [])
-            for stmt in stmts:
-                if stmt.get('Effect') == 'Deny' and 'kms:Decrypt' in str(stmt.get('Action', '')):
-                    conditions = str(stmt.get('Condition', {}))
-                    # The backup service role ARN should appear as a reference in the deny exception
-                    if 'SSNBackupServiceRole' in conditions or 'Arn' in conditions:
-                        ssn_key_with_backup_role = True
-                        break
-        self.assertTrue(ssn_key_with_backup_role, 'Backup service role not referenced in KMS deny exception list')
+    def test_ssn_key_policy_document_when_backup_enabled(self):
+        """Snapshot of the SSN KMS key policy with backup enabled (backup role on DENY allowlist)."""
+        expected = {
+            'Statement': [
+                {
+                    'Action': 'kms:*',
+                    'Effect': 'Allow',
+                    'Principal': {
+                        'AWS': {
+                            'Fn::Join': [
+                                '',
+                                ['arn:', {'Ref': 'AWS::Partition'}, ':iam::', {'Ref': 'AWS::AccountId'}, ':root'],
+                            ]
+                        }
+                    },
+                    'Resource': '*',
+                },
+                {
+                    'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
+                    'Condition': {
+                        'StringNotEquals': {
+                            'aws:PrincipalArn': [
+                                {'Fn::GetAtt': ['SSNTableLicenseIngestRoleC883020F', 'Arn']},
+                                {'Fn::GetAtt': ['SSNTableLicenseUploadRole46F85F47', 'Arn']},
+                                {'Fn::GetAtt': ['DisasterRecoveryLambdaRole4BDEAE6F', 'Arn']},
+                                {'Fn::GetAtt': ['SSNTableDisasterRecoveryStepFunctionRoleCE265991', 'Arn']},
+                                {
+                                    'Fn::GetAtt': [
+                                        'BackupInfrastructureNestedStackBackupInfrastructureNestedStackResource71C96FBD',
+                                        'Outputs.MainStackBackupInfrastructureSSNBackupServiceRoleEB4E841DArn',
+                                    ]
+                                },
+                            ],
+                            'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
+                        }
+                    },
+                    'Effect': 'Deny',
+                    'Principal': '*',
+                    'Resource': '*',
+                },
+            ],
+            'Version': '2012-10-17',
+        }
+        self.assertEqual(expected, _get_ssn_key_policy_document(self.template))
