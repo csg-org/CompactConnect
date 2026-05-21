@@ -139,4 +139,4 @@ class TestPostUser(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         body = json.loads(resp['body'])
 
-        self.assertEqual({'message': "'FL' is not a valid jurisdiction for 'socw' compact"}, body)
+        self.assertEqual({'message': "'FL' is not a valid jurisdiction for 'SOCW' compact"}, body)
