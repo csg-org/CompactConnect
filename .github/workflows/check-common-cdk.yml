@@ -60,5 +60,4 @@ jobs:
         run: "pip install -r backend/common-cdk/requirements.in"
 
       - name: Test backend
-        # We will raise this up to 90 over time, to support these constructs more like a library
-        run: "cd backend/common-cdk; pytest tests --cov=common_constructs --cov-fail-under 89"
+        run: "cd backend/common-cdk; pytest tests --cov=common_constructs --cov-fail-under 90"

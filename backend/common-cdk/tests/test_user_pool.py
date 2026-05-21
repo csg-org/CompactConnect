@@ -1,3 +1,4 @@
+import base64
 import os
 from unittest import TestCase
 
@@ -18,6 +19,10 @@ from common_constructs.security_profile import SecurityProfile
 from common_constructs.user_pool import UserPool
 
 _FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
+_BRANDING_DIR = os.path.join(_FIXTURES_DIR, 'branding')
+_FAVICON_ICO = os.path.join(_BRANDING_DIR, 'favicon.ico')
+_FORM_LOGO_PNG = os.path.join(_BRANDING_DIR, 'logo.png')
+_PAGE_BACKGROUND_PNG = os.path.join(_BRANDING_DIR, 'background.png')
 
 
 def _make_pool(stack: Stack, construct_id: str = 'Pool', **kwargs) -> UserPool:
@@ -301,3 +306,52 @@ class TestUserPool(TestCase):
             'AWS::Cognito::UserPoolDomain',
             {'Domain': Match.string_like_regexp('testprefix')},
         )
+
+
+class TestUserPoolManagedLoginBranding(TestCase):
+    """Tests for prepare_assets_for_managed_login_ui and convert_img_to_base_64."""
+
+    def setUp(self):
+        self._original_dir = os.getcwd()
+        os.chdir(_FIXTURES_DIR)
+        self.addCleanup(os.chdir, self._original_dir)
+
+        self.app = App()
+        self.stack = Stack(self.app, 'TestStack')
+        self.pool = _make_pool(self.stack, construct_id='BrandingPool')
+
+    def test_convert_img_to_base_64_round_trips_file_bytes(self):
+        expected = open(_FORM_LOGO_PNG, 'rb').read()
+
+        encoded = self.pool.convert_img_to_base_64(_FORM_LOGO_PNG)
+
+        self.assertIsInstance(encoded, str)
+        self.assertEqual(expected, base64.b64decode(encoded))
+
+    def test_prepare_assets_without_background_returns_favicon_and_logo(self):
+        assets = self.pool.prepare_assets_for_managed_login_ui(_FAVICON_ICO, _FORM_LOGO_PNG)
+
+        self.assertEqual(2, len(assets))
+        self.assertEqual(
+            [
+                {'category': 'FAVICON_ICO', 'color_mode': 'LIGHT', 'extension': 'ICO'},
+                {'category': 'FORM_LOGO', 'color_mode': 'LIGHT', 'extension': 'PNG'},
+            ],
+            [{'category': a.category, 'color_mode': a.color_mode, 'extension': a.extension} for a in assets],
+        )
+        for asset in assets:
+            self.assertGreater(len(asset.bytes), 0)
+
+    def test_prepare_assets_with_background_includes_page_background_asset(self):
+        assets = self.pool.prepare_assets_for_managed_login_ui(
+            _FAVICON_ICO,
+            _FORM_LOGO_PNG,
+            background_file_path=_PAGE_BACKGROUND_PNG,
+        )
+
+        self.assertEqual(3, len(assets))
+        background = assets[2]
+        self.assertEqual('PAGE_BACKGROUND', background.category)
+        self.assertEqual('LIGHT', background.color_mode)
+        self.assertEqual('PNG', background.extension)
+        self.assertGreater(len(background.bytes), 0)
