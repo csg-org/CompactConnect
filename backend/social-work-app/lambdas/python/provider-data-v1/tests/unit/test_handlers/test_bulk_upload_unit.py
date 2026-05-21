@@ -120,7 +120,7 @@ class TestProcessBulkUploadFile(TstLambdas):
             process_bulk_upload_file(
                 event_time=datetime.now(tz=UTC),
                 body=stream,
-                object_key='cosm/oh/1234',
+                object_key='socw/oh/1234',
                 compact='socw',
                 jurisdiction='oh',
             )
@@ -166,7 +166,7 @@ class TestProcessBulkUploadFile(TstLambdas):
         process_bulk_upload_file(
             event_time=datetime.now(tz=UTC),
             body=stream,
-            object_key='cosm/oh/1234',
+            object_key='socw/oh/1234',
             compact='socw',
             jurisdiction='oh',
         )

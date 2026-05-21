@@ -173,10 +173,10 @@ Each jurisdiction has its own resource server with scopes that control access to
 different compacts. For example, the Kentucky (KY) resource server would have scopes like:
 
 ```
-ky/cosm.admin
-ky/cosm.write
-ky/cosm.readPrivate
-ky/cosm.readSSN
+ky/socw.admin
+ky/socw.write
+ky/socw.readPrivate
+ky/socw.readSSN
 ky/octp.admin
 ky/octp.write
 ky/octp.readPrivate
@@ -190,10 +190,10 @@ Each compact also has its own resource server with compact-wide scopes, which ar
 all jurisdictions within a compact:
 
 ```
-cosm/admin
-cosm/readGeneral
-cosm/readPrivate
-cosm/readSSN
+socw/admin
+socw/readGeneral
+socw/readPrivate
+socw/readSSN
 ```
 
 If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
@@ -330,13 +330,13 @@ operational needs and audit requirements for healthcare provider licensing acros
 ## Multi-State License Model / Privilege Generation
 [Back to top](#backend-design)
 
-Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The Cosmetology Compact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for the Cosmetology Compact.
+Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. TheSocial WorkCompact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for theSocial WorkCompact.
 
-Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, the Cosmetology backend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
+Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, theSocial Workbackend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
 
 ### Privilege Runtime Generation for Multi-State Licenses
 
-When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Unlike the JCC model, where practitioners register under a specific home state, this Cosmetology system does not currently allow the user to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which license was issued or renewed most recently. Privileges are then generated from that home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. 
+When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Unlike the JCC model, where practitioners register under a specific home state, thisSocial Worksystem does not currently allow the user to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which license was issued or renewed most recently. Privileges are then generated from that home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. 
 
 This means that if a practitioner has two licenses from two different states, if one is eligible for privileges and the other is not, the system will only generate privileges for that practitioner if the most recently issued/renewed license is eligible for privileges.
 
@@ -384,7 +384,7 @@ The search infrastructure consists of several key components:
 
 ### Document model (Cosmetology vs. JCC)
 
-Unlike the JCC CompactConnect model, which indexes **one OpenSearch document per provider** (with that provider’s licenses nested in a single document), Cosmetology indexes **one document per license**. Each document repeats the same top-level provider fields you would see on a provider detail response, while the `licenses` array contains **only the license represented by that document** (effectively one license entry per document).
+Unlike the JCC CompactConnect model, which indexes **one OpenSearch document per provider** (with that provider’s licenses nested in a single document),Social Workindexes **one document per license**. Each document repeats the same top-level provider fields you would see on a provider detail response, while the `licenses` array contains **only the license represented by that document** (effectively one license entry per document).
 
 Cosmetology needs to support searching and listing **rows of license records** by license number in the search UI. OpenSearch pagination (`from`/`size`, `search_after`, etc.) applies to **documents**, not to entries inside a nested array. Splitting each license into its own document lets the UI paginate natively at license granularity. It also keeps the search API response model consistent across the compacts.
 
@@ -394,7 +394,7 @@ Most practitioners only have one multi-state license, so this model does not sig
 
 Documents are stored in compact-specific indices with the naming convention: `compact_{compact}
 _providers_{version}`
-(e.g., `compact_cosm_providers_v1`). We use index aliases to provide a stable reference to the current version of each index, allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
+(e.g., `compact_socw_providers_v1`). We use index aliases to provide a stable reference to the current version of each index, allowing read and write operations to be transparently redirected during planned index migrations or upgrades. This enables seamless index schema changes without requiring app code changes, as applications and APIs can continue to reference the alias rather than a specific index name. See [OpenSearch index alias documentation](https://docs.opensearch.org/latest/im-plugin/index-alias/) for more information.
 
 #### Index Management
 

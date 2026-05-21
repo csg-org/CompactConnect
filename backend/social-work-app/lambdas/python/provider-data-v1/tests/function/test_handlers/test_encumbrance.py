@@ -81,7 +81,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
         }
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {context["jurisdiction"]}/cosm.admin',
+            scope_override=f'openid email {context["jurisdiction"]}/socw.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': PRIVILEGE_ENCUMBRANCE_ENDPOINT_RESOURCE,
@@ -260,7 +260,7 @@ class TestPostLicenseEncumbrance(TstFunction):
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {test_license_record.jurisdiction}/cosm.admin',
+            scope_override=f'openid email {test_license_record.jurisdiction}/socw.admin',
             value_overrides={
                 'httpMethod': 'POST',
                 'resource': LICENSE_ENCUMBRANCE_ENDPOINT_RESOURCE,
@@ -533,7 +533,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
 
         return self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {context["jurisdiction"]}/cosm.admin',
+            scope_override=f'openid email {context["jurisdiction"]}/socw.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': PRIVILEGE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
@@ -813,7 +813,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
 
         return self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {license_record.jurisdiction}/cosm.admin',
+            scope_override=f'openid email {license_record.jurisdiction}/socw.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,
@@ -910,7 +910,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
 
         event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
-            scope_override=f'openid email {adverse_action.jurisdiction}/cosm.admin',
+            scope_override=f'openid email {adverse_action.jurisdiction}/socw.admin',
             value_overrides={
                 'httpMethod': 'PATCH',
                 'resource': LICENSE_ENCUMBRANCE_ID_ENDPOINT_RESOURCE,

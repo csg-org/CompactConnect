@@ -58,7 +58,7 @@
         "security": [
           {
             "TestBackendCosmetologyTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer02E7F51B": [
-              "cosm/readGeneral"
+              "socw/readGeneral"
             ]
           }
         ]

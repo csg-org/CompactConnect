@@ -6,7 +6,7 @@ look [here](./design/README.md).
 
 ## Introduction
 
-The Cosmetology compact commission is building a system to share professional licensure data between state licensing boards to facilitate participation in the occupational licensure compact.
+TheSocial Workcompact commission is building a system to share professional licensure data between state licensing boards to facilitate participation in the occupational licensure compact.
 
 ## Table of Contents
 - **[How to use the API bulk-upload feature](#how-to-use-the-api-bulk-upload-feature)**

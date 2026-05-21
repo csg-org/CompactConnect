@@ -5,15 +5,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -23,15 +23,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -41,15 +41,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -59,15 +59,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -77,15 +77,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -95,15 +95,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -113,15 +113,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -131,15 +131,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -149,15 +149,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   },
@@ -167,15 +167,15 @@
     "Scopes": [
       {
         "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.admin"
+        "ScopeName": "socw.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
-        "ScopeName": "cosm.readPrivate"
+        "ScopeName": "socw.readPrivate"
       },
       {
         "ScopeDescription": "Write access for the socw compact within the jurisdiction",
-        "ScopeName": "cosm.write"
+        "ScopeName": "socw.write"
       }
     ]
   }

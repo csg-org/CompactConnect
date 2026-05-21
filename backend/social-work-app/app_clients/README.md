@@ -70,7 +70,7 @@ python3 bin/create_app_client.py -u <user_pool_id>
 **Interactive Process:**
 The script will prompt you for:
 - App client name (e.g., "example-ky-app-client-v1")
-- Compact (cosm)
+- Compact (socw)
 - State postal abbreviation (e.g., "ky", "la")
 - Additional scopes (optional)
 

@@ -14,7 +14,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='socw',
-            scopes={'openid', 'email', 'cosm/admin'},
+            scopes={'openid', 'email', 'socw/admin'},
             compact_changes={'actions': {'admin': True, 'readPrivate': False}, 'jurisdictions': {}},
         )
         self.assertEqual(
@@ -35,7 +35,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='socw',
-            scopes={'openid', 'email', 'oh/cosm.admin'},
+            scopes={'openid', 'email', 'oh/socw.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}}},
         )
         self.assertEqual(
@@ -55,7 +55,7 @@ class TestCollectChanges(TstLambdas):
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
                 path_compact='socw',
-                scopes={'openid', 'email', 'oh/cosm.admin'},
+                scopes={'openid', 'email', 'oh/socw.admin'},
                 compact_changes={'jurisdictions': {'ne': {'actions': {'admin': True, 'write': False}}}},
             )
 
@@ -66,7 +66,7 @@ class TestCollectChanges(TstLambdas):
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
                 path_compact='socw',
-                scopes={'openid', 'email', 'oh/cosm.admin'},
+                scopes={'openid', 'email', 'oh/socw.admin'},
                 compact_changes={'actions': {'admin': True}, 'jurisdictions': {}},
             )
 
@@ -78,7 +78,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='socw',
-            scopes={'openid', 'email', 'cosm/admin'},
+            scopes={'openid', 'email', 'socw/admin'},
             compact_changes={
                 'actions': {'admin': True, 'readPrivate': False},
                 'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}},
@@ -102,7 +102,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='socw',
-            scopes={'openid', 'email', 'oh/cosm.admin'},
+            scopes={'openid', 'email', 'oh/socw.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True}}}},
         )
         self.assertEqual(

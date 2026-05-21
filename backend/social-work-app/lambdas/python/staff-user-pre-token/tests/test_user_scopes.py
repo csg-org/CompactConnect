@@ -29,9 +29,9 @@ class TestGetUserScopesFromDB(TstLambdas):
         self.assertEqual(
             {
                 'profile',
-                'cosm/admin',
-                'cosm/readGeneral',
-                'cosm/readPrivate',
+                'socw/admin',
+                'socw/readGeneral',
+                'socw/readPrivate',
             },
             user_data.scopes,
         )
@@ -52,7 +52,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         user_data = UserData(self._user_sub)
 
         self.assertEqual(
-            {'profile', 'cosm/readGeneral', 'al/cosm.admin', 'al/cosm.write', 'al/cosm.readPrivate'},
+            {'profile', 'socw/readGeneral', 'al/socw.admin', 'al/socw.write', 'al/socw.readPrivate'},
             user_data.scopes,
         )
 
@@ -67,7 +67,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'compact': 'socw',
                 'permissions': {
                     'jurisdictions': {
-                        'al': {'write'}  # should correspond to the 'al/cosm.write' scope
+                        'al': {'write'}  # should correspond to the 'al/socw.write' scope
                     },
                 },
             }
@@ -75,7 +75,7 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         user_data = UserData(self._user_sub)
 
-        self.assertEqual({'profile', 'cosm/readGeneral', 'al/cosm.write'}, user_data.scopes)
+        self.assertEqual({'profile', 'socw/readGeneral', 'al/socw.write'}, user_data.scopes)
 
     def test_missing_user(self):
         from user_data import UserData

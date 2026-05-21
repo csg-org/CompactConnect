@@ -9,7 +9,7 @@ def home_state_change_notification_listener(message: dict):
     """
     Handle home state change events by sending notifications.
 
-    For the Cosmetology compact, the home state for a practitioner is determined by
+    For theSocial Workcompact, the home state for a practitioner is determined by
     which license was issued or renewed most recently. If another home state uploads
     or renews a license record for that same practitioner with a more recent date,
     that state becomes the new home state for that practitioner, and this notification
@@ -40,7 +40,7 @@ def home_state_change_notification_listener(message: dict):
         # Send notification to former state
         config.email_service_client.send_provider_home_state_change_email(
             compact=compact,
-            # in the case of cosmetology, we only send the email notification to the former state.
+            # in the case of social work, we only send the email notification to the former state.
             jurisdiction=former_home_jurisdiction,
             template_variables=HomeJurisdictionChangeNotificationTemplateVariables(
                 provider_first_name=provider_record.givenName,

@@ -520,7 +520,7 @@ class TestOpenSearchClientDeleteProviderDocuments(TestCase):
         """Test that delete_provider_documents builds the provider query and calls the internal client."""
         client, mock_internal_client = self._create_client_with_mock()
 
-        index_name = 'compact_cosm_providers'
+        index_name = 'compact_socw_providers'
         provider_id = 'provider-1'
         expected_response = {'deleted': 3, 'failures': []}
         mock_internal_client.delete_by_query.return_value = expected_response
@@ -547,7 +547,7 @@ class TestOpenSearchClientDeleteProviderDocuments(TestCase):
         ]
 
         result = client.delete_provider_documents(
-            index_name='compact_cosm_providers',
+            index_name='compact_socw_providers',
             provider_id='provider-1',
         )
 
@@ -567,7 +567,7 @@ class TestOpenSearchClientDeleteProviderDocuments(TestCase):
 
         with self.assertRaises(CCInternalException) as context:
             client.delete_provider_documents(
-                index_name='compact_cosm_providers',
+                index_name='compact_socw_providers',
                 provider_id='provider-1',
             )
 

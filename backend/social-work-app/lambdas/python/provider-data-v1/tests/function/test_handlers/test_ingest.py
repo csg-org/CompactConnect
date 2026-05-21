@@ -52,7 +52,7 @@ class TestIngest(TstFunction):
 
         event['pathParameters'] = {'compact': 'socw', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = (
-            'openid email stuff cosm/readGeneral cosm/readPrivate'
+            'openid email stuff socw/readGeneral socw/readPrivate'
         )
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)

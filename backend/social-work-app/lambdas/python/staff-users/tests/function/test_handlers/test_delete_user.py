@@ -42,7 +42,7 @@ class TestDeleteUser(TstFunction):
         # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
@@ -60,7 +60,7 @@ class TestDeleteUser(TstFunction):
         # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
@@ -80,7 +80,7 @@ class TestDeleteUser(TstFunction):
         # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
@@ -104,7 +104,7 @@ class TestDeleteUser(TstFunction):
         # The user has admin permission for all of cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
@@ -128,7 +128,7 @@ class TestDeleteUser(TstFunction):
         # The user has admin permission for oh/cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
@@ -148,10 +148,10 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for cosm/ne, user does not have cosm/oh permissions
+        # The user has admin permission for socw/ne, user does not have socw/oh permissions
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/socw.admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
@@ -168,10 +168,10 @@ class TestDeleteUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for cosm/ne, user does not have cosm/oh permissions
+        # The user has admin permission for socw/ne, user does not have socw/oh permissions
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/socw.admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 

@@ -70,8 +70,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -100,8 +100,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -137,8 +137,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -165,8 +165,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
@@ -203,8 +203,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
@@ -249,8 +249,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Test case where request body is not a list
@@ -270,8 +270,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Test case where request body is not deserializable
@@ -293,8 +293,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Test case where request body is not deserializable
@@ -317,8 +317,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -345,8 +345,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -376,8 +376,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -406,8 +406,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
@@ -438,8 +438,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Load base license data and add whitespace to string fields
@@ -501,8 +501,8 @@ class TestLicenses(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])

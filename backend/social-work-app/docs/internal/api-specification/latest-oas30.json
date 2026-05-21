@@ -48,7 +48,7 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/readGeneral"
+              "socw/readGeneral"
             ]
           }
         ]
@@ -97,17 +97,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -148,7 +148,7 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/readGeneral"
+              "socw/readGeneral"
             ]
           }
         ]
@@ -197,7 +197,7 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/readGeneral"
+              "socw/readGeneral"
             ]
           }
         ]
@@ -254,17 +254,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -313,17 +313,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/write",
-              "al/cosm.write",
-              "az/cosm.write",
-              "co/cosm.write",
-              "ks/cosm.write",
-              "ky/cosm.write",
-              "md/cosm.write",
-              "oh/cosm.write",
-              "tn/cosm.write",
-              "va/cosm.write",
-              "wa/cosm.write"
+              "socw/write",
+              "al/socw.write",
+              "az/socw.write",
+              "co/socw.write",
+              "ks/socw.write",
+              "ky/socw.write",
+              "md/socw.write",
+              "oh/socw.write",
+              "tn/socw.write",
+              "va/socw.write",
+              "wa/socw.write"
             ]
           }
         ]
@@ -374,7 +374,7 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/readGeneral"
+              "socw/readGeneral"
             ]
           }
         ]
@@ -423,7 +423,7 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/readGeneral"
+              "socw/readGeneral"
             ]
           }
         ]
@@ -498,17 +498,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -591,17 +591,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -676,17 +676,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -769,17 +769,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -854,17 +854,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -947,17 +947,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1032,17 +1032,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1125,17 +1125,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1175,17 +1175,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1233,17 +1233,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1301,17 +1301,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1360,17 +1360,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1436,17 +1436,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]
@@ -1497,17 +1497,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
-              "cosm/admin",
-              "al/cosm.admin",
-              "az/cosm.admin",
-              "co/cosm.admin",
-              "ks/cosm.admin",
-              "ky/cosm.admin",
-              "md/cosm.admin",
-              "oh/cosm.admin",
-              "tn/cosm.admin",
-              "va/cosm.admin",
-              "wa/cosm.admin"
+              "socw/admin",
+              "al/socw.admin",
+              "az/socw.admin",
+              "co/socw.admin",
+              "ks/socw.admin",
+              "ky/socw.admin",
+              "md/socw.admin",
+              "oh/socw.admin",
+              "tn/socw.admin",
+              "va/socw.admin",
+              "wa/socw.admin"
             ]
           }
         ]

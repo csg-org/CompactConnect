@@ -83,8 +83,8 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Add signature authentication headers
@@ -108,7 +108,7 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
 
         # Verify the key follows the expected pattern: compact/jurisdiction/uuid
         key = upload['fields']['key']
-        self.assertTrue(key.startswith('cosm/oh/'))
+        self.assertTrue(key.startswith('socw/oh/'))
         self.assertEqual(len(key.split('/')), 3)
 
     def test_bulk_upload_url_handler_missing_signature_rejected(self):
@@ -121,8 +121,8 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has write permission for cosm/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
+        # The user has write permission for socw/oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Do NOT add signature authentication headers - this should cause the request to be rejected

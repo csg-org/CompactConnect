@@ -267,7 +267,7 @@ describe('EmailNotificationServiceLambda', () => {
             const emailData = mockSESClient.commandCalls(
                 SendEmailCommand)[0].args[0].input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailData).toContain('Provider Details: <a href="https://app.test.compactconnect.org/cosm/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/cosm/Licensing/provider-123</a>');
+            expect(emailData).toContain('Provider Details: <a href="https://app.test.compactconnect.org/socw/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/socw/Licensing/provider-123</a>');
         });
 
         it('should throw error when required template variables are missing', async () => {
@@ -1153,7 +1153,7 @@ describe('EmailNotificationServiceLambda', () => {
                 'This is to notify you that John Doe has changed their home state from TX to OH.'
             );
             expect(htmlContent).toContain(
-                'https://app.test.compactconnect.org/cosm/Licensing/provider-123'
+                'https://app.test.compactconnect.org/socw/Licensing/provider-123'
             );
         });
 

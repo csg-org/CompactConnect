@@ -14,7 +14,7 @@ class TestGetUsers(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for all of cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = None
 
@@ -29,7 +29,7 @@ class TestGetUsers(TstFunction):
 
         # One user who is a compact admin in cosm
         self._create_compact_staff_user(compacts=['socw'])
-        # One board user in each test jurisdiction (oh, ne, ky) with permissions in cosm.
+        # One board user in each test jurisdiction (oh, ne, ky) with permissions in socw.
         self._create_board_staff_users(compacts=['socw'])
 
         from handlers.users import get_users
@@ -38,7 +38,7 @@ class TestGetUsers(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for all of cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = None
 
@@ -55,7 +55,7 @@ class TestGetUsers(TstFunction):
 
     def test_get_users_paginated(self):
         self._create_compact_staff_user(compacts=['socw'])
-        # Nine users: Three board users in each test jurisdiction (oh, ne, ky) with permissions in cosm.
+        # Nine users: Three board users in each test jurisdiction (oh, ne, ky) with permissions in socw.
         self._create_board_staff_users(compacts=['socw'])
         self._create_board_staff_users(compacts=['socw'])
         self._create_board_staff_users(compacts=['socw'])
@@ -66,7 +66,7 @@ class TestGetUsers(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for all of cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['queryStringParameters'] = {'pageSize': '5'}
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = None

@@ -27,7 +27,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.write'
 
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
@@ -67,7 +67,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for cosm, not octp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.write'
 
         event['pathParameters'] = {'compact': 'octp', 'jurisdiction': 'oh'}
 
@@ -92,7 +92,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh, not ne
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.write'
 
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'ne'}
 
@@ -124,7 +124,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.write'
 
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 

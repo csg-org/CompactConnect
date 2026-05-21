@@ -113,7 +113,7 @@ class TestClient(TstFunction):
         )
 
     def test_update_user_permissions_board_to_compact_admin(self):
-        # The sample user looks like board staff in cosm/oh
+        # The sample user looks like board staff in socw/oh
         user_id = UUID(self._load_user_data())
 
         from cc_common.data_model.user_client import UserClient
@@ -188,7 +188,7 @@ class TestClient(TstFunction):
             )
 
     def test_update_user_attributes(self):
-        # The sample user looks like board staff in cosm/oh
+        # The sample user looks like board staff in socw/oh
         user_id = UUID(self._load_user_data())
 
         from cc_common.data_model.user_client import UserClient

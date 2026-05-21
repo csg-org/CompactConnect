@@ -15,8 +15,8 @@ class OpenSearchIndexManager(CustomResourceHandler):
     """
     Custom resource handler to create OpenSearch indices for compacts.
 
-    Creates versioned indices (e.g., compact_cosm_providers_v1) with aliases
-    (e.g., compact_cosm_providers) to enable safe blue-green migrations for
+    Creates versioned indices (e.g., compact_socw_providers_v1) with aliases
+    (e.g., compact_socw_providers) to enable safe blue-green migrations for
     future mapping changes. Queries use the alias, allowing the underlying
     index to be swapped without application changes.
     See https://docs.opensearch.org/latest/im-plugin/index-alias/
@@ -46,9 +46,9 @@ class OpenSearchIndexManager(CustomResourceHandler):
 
         compacts = config.compacts
         for compact in compacts:
-            # Create versioned index name (e.g., compact_cosm_providers_v1)
+            # Create versioned index name (e.g., compact_socw_providers_v1)
             index_name = f'compact_{compact}_providers_{INITIAL_INDEX_VERSION}'
-            # Create alias name (e.g., compact_cosm_providers)
+            # Create alias name (e.g., compact_socw_providers)
             alias_name = f'compact_{compact}_providers'
             client.create_provider_index_with_alias(
                 index_name=index_name,

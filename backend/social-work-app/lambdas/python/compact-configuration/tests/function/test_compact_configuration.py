@@ -342,7 +342,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting a compact configuration returns an invalid exception if the HTTP method is invalid."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('PATCH', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+        event = generate_test_event('PATCH', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='socw/admin')
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'], msg=json.loads(response['body']))
@@ -357,7 +357,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting an error if invalid compact is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='socw/admin')
         event['pathParameters']['compact'] = 'invalid_compact'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -373,7 +373,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         """Test getting a compact configuration returns a compact configuration."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='cosm/admin')
+        event = generate_test_event('GET', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE, scopes='socw/admin')
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
@@ -398,7 +398,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = 'foo'
         # add compact admin scope to the event
-        event['requestContext']['authorizer']['claims']['scopes'] = 'cosm/admin'
+        event['requestContext']['authorizer']['claims']['scopes'] = 'socw/admin'
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(403, response['statusCode'])
@@ -411,7 +411,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters']['compact'] = 'socw'
         # add state admin scope to the event, but not compact admin
-        event['requestContext']['authorizer']['scopes'] = 'oh/cosm.admin'
+        event['requestContext']['authorizer']['scopes'] = 'oh/socw.admin'
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(403, response['statusCode'])
@@ -644,7 +644,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting a jurisdiction configuration returns an invalid exception if the HTTP method is invalid."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('PATCH', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event = generate_test_event('PATCH', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/socw.admin')
         event['pathParameters']['jurisdiction'] = 'ky'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -660,7 +660,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting an error if invalid compact is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/socw.admin')
         event['pathParameters']['compact'] = 'invalid_compact'
         event['pathParameters']['jurisdiction'] = 'ky'
 
@@ -677,7 +677,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting an error if invalid jurisdiction is provided."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/socw.admin')
         event['pathParameters']['jurisdiction'] = 'invalid_jurisdiction'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -693,7 +693,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         """Test getting a jurisdiction configuration returns a default configuration if none exists."""
         from handlers.compact_configuration import compact_configuration_api_handler
 
-        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/cosm.admin')
+        event = generate_test_event('GET', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE, scopes='ky/socw.admin')
         event['pathParameters']['jurisdiction'] = 'ky'
 
         response = compact_configuration_api_handler(event, self.mock_context)
@@ -765,7 +765,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         # add compact admin scope to the event, but not state admin
-        event['requestContext']['authorizer']['claims']['scope'] = 'cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'socw/admin'
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'
 
         response = compact_configuration_api_handler(event, self.mock_context)

@@ -4,19 +4,19 @@
 	"values": [
 		{
 			"key": "boardUserPoolUrl",
-			"value": "https://staff-auth.beta.cosmetology.compactconnect.org",
+			"value": "https://staff-auth.beta.socialwork.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "baseUrl",
-			"value": "https://state-api.beta.cosmetology.compactconnect.org",
+			"value": "https://state-api.beta.socialwork.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "uiUrl",
-			"value": "https://app.beta.cosmetology.compactconnect.org",
+			"value": "https://app.beta.socialwork.compactconnect.org",
 			"type": "default",
 			"enabled": true
 		},
@@ -34,7 +34,7 @@
 		},
 		{
 			"key": "m2mScopes",
-			"value": "ky/cosm.write ky/cosm.readPrivate cosm/readGeneral",
+			"value": "ky/socw.write ky/socw.readPrivate socw/readGeneral",
 			"type": "default",
 			"enabled": true
 		}

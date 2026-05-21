@@ -481,7 +481,7 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0].args[0]
                 .input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/cosm/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/cosm/Licensing/provider-123</a>');
+            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/socw/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/socw/Licensing/provider-123</a>');
             expect(emailContent).toContain('This encumbrance restricts the provider\'s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 
@@ -622,7 +622,7 @@ describe('EncumbranceNotificationService', () => {
             const emailContent = mockSESClient.commandCalls(SendEmailCommand)[0]
                 .args[0].input.Content?.Simple?.Body?.Html?.Data;
 
-            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/cosm/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/cosm/Licensing/provider-123</a>');
+            expect(emailContent).toContain('Provider Details: <a href="https://app.test.compactconnect.org/socw/Licensing/provider-123" target="_blank">https://app.test.compactconnect.org/socw/Licensing/provider-123</a>');
             expect(emailContent).toContain('The encumbrance no longer restricts the provider\'s ability to practice in Ohio under the Audiology and Speech Language Pathology compact');
         });
 

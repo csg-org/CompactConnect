@@ -17,7 +17,7 @@ class TestAuthorizeCompact(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff socw/readGeneral'
         event['pathParameters'] = {
             'compact': 'socw',
         }
@@ -35,7 +35,7 @@ class TestAuthorizeCompact(TstLambdas):
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff socw/readGeneral'
         event['pathParameters'] = {}
 
         with self.assertRaises(CCInvalidRequestException):

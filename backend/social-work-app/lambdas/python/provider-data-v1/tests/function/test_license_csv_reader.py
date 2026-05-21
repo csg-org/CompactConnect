@@ -15,7 +15,7 @@ class TestCSVParser(TstFunction):
 
         # Upload our test file to mocked 'S3' then retrieve it, so we can specifically
         # test our reader's ability to process data from boto3's StreamingBody
-        key = f'cosm/oh/{uuid4().hex}'
+        key = f'socw/oh/{uuid4().hex}'
         self._bucket.upload_file('../common/tests/resources/licenses.csv', key)
         stream = TextIOWrapper(self._bucket.Object(key).get()['Body'], encoding='utf-8')
 

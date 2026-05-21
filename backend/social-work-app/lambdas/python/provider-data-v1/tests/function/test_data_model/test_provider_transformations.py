@@ -42,7 +42,7 @@ class TestTransformations(TstFunction):
         # Compact and jurisdiction are provided via path parameters
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         # Authorize ourselves to write the license
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.write'
 
         from handlers.licenses import post_licenses
 
@@ -92,7 +92,7 @@ class TestTransformations(TstFunction):
             compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
-        # One record for each of: provider and license (no privileges in cosmetology model)
+        # One record for each of: provider and license (no privileges inSocial Workmodel)
         self.assertEqual(2, len(provider_user_records.provider_records))
         records = {item['type']: item for item in provider_user_records.provider_records}
 
@@ -130,7 +130,7 @@ class TestTransformations(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'socw', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral cosm/readPrivate'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral socw/readPrivate'
 
         resp = get_provider(event, self.mock_context)
 

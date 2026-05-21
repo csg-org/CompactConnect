@@ -182,22 +182,22 @@ def test_home_state_change_notification(staff_headers: dict, client_id: str, cli
         az_provider_details = call_provider_details_endpoint(
             headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
         )
-        az_cosmetology_licenses = [
+        az_social_work_licenses = [
             license_record
             for license_record in az_provider_details.get('licenses', [])
             if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
         ]
 
-        if len(az_cosmetology_licenses) != 1:
+        if len(az_social_work_licenses) != 1:
             raise SmokeTestFailureException(
                 f'Expected one {HOME_STATE_CHANGE_LICENSE_TYPE} license after AZ upload, '
-                f'found {len(az_cosmetology_licenses)}'
+                f'found {len(az_social_work_licenses)}'
             )
 
-        if az_cosmetology_licenses[0].get('jurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
+        if az_social_work_licenses[0].get('jurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
             raise SmokeTestFailureException(
                 'Expected first home state license jurisdiction to be '
-                f'{HOME_STATE_CHANGE_FORMER_JURISDICTION}, found {az_cosmetology_licenses[0].get("jurisdiction")}'
+                f'{HOME_STATE_CHANGE_FORMER_JURISDICTION}, found {az_social_work_licenses[0].get("jurisdiction")}'
             )
 
         if az_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
@@ -230,15 +230,15 @@ def test_home_state_change_notification(staff_headers: dict, client_id: str, cli
         updated_provider_details = call_provider_details_endpoint(
             headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
         )
-        updated_cosmetology_licenses = [
+        updated_social_work_licenses = [
             license_record
             for license_record in updated_provider_details.get('licenses', [])
             if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
         ]
-        updated_jurisdictions = {license_record.get('jurisdiction') for license_record in updated_cosmetology_licenses}
+        updated_jurisdictions = {license_record.get('jurisdiction') for license_record in updated_social_work_licenses}
         if updated_jurisdictions != {HOME_STATE_CHANGE_FORMER_JURISDICTION, HOME_STATE_CHANGE_NEW_JURISDICTION}:
             raise SmokeTestFailureException(
-                f'Expected cosmetology licenses for both {HOME_STATE_CHANGE_FORMER_JURISDICTION} and '
+                f'ExpectedSocial Worklicenses for both {HOME_STATE_CHANGE_FORMER_JURISDICTION} and '
                 f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {sorted(updated_jurisdictions)}'
             )
 

@@ -16,7 +16,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/socw.write'
         event['pathParameters'] = {
             'compact': 'socw',
             'jurisdiction': 'oh',
@@ -34,7 +34,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/socw.write'
         event['pathParameters'] = {}
 
         with self.assertRaises(CCInvalidRequestException):
@@ -91,7 +91,7 @@ class TestAuthorizeCompact(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff socw/readGeneral'
         event['pathParameters'] = {
             'compact': 'socw',
         }
@@ -109,7 +109,7 @@ class TestAuthorizeCompact(TstLambdas):
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff socw/readGeneral'
         event['pathParameters'] = {}
 
         with self.assertRaises(CCInvalidRequestException):

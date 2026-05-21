@@ -21,10 +21,10 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for cosm/oh
+        # The user has admin permission for socw/oh
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
 
@@ -78,7 +78,7 @@ class TestPatchUser(TstFunction):
 
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
         event['body'] = json.dumps(
             {
@@ -136,7 +136,7 @@ class TestPatchUser(TstFunction):
 
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
@@ -178,7 +178,7 @@ class TestPatchUser(TstFunction):
 
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(api_user)
 
@@ -220,7 +220,7 @@ class TestPatchUser(TstFunction):
         # The user has admin permission for oh/cosm not ne/cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
 
@@ -239,7 +239,7 @@ class TestPatchUser(TstFunction):
         # The caller has admin permission for oh/cosm not ne/cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin'
         # The staff user does not exist
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
@@ -262,7 +262,7 @@ class TestPatchUser(TstFunction):
         # The user has admin permission for compact and oh
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin socw/admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps(
             {
@@ -311,7 +311,7 @@ class TestPatchUser(TstFunction):
         # The user has admin permission for cosm
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         # in this case, the user is attempting to add permission for inactive compact, which is not valid
         event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'fl': {'actions': {'admin': True}}}}}})

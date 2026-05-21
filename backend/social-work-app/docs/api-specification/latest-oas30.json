@@ -76,17 +76,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": [
-              "cosm/write",
-              "al/cosm.write",
-              "az/cosm.write",
-              "co/cosm.write",
-              "ks/cosm.write",
-              "ky/cosm.write",
-              "md/cosm.write",
-              "oh/cosm.write",
-              "tn/cosm.write",
-              "va/cosm.write",
-              "wa/cosm.write"
+              "socw/write",
+              "al/socw.write",
+              "az/socw.write",
+              "co/socw.write",
+              "ks/socw.write",
+              "ky/socw.write",
+              "md/socw.write",
+              "oh/socw.write",
+              "tn/socw.write",
+              "va/socw.write",
+              "wa/socw.write"
             ]
           }
         ]
@@ -135,17 +135,17 @@
         "security": [
           {
             "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": [
-              "cosm/write",
-              "al/cosm.write",
-              "az/cosm.write",
-              "co/cosm.write",
-              "ks/cosm.write",
-              "ky/cosm.write",
-              "md/cosm.write",
-              "oh/cosm.write",
-              "tn/cosm.write",
-              "va/cosm.write",
-              "wa/cosm.write"
+              "socw/write",
+              "al/socw.write",
+              "az/socw.write",
+              "co/socw.write",
+              "ks/socw.write",
+              "ky/socw.write",
+              "md/socw.write",
+              "oh/socw.write",
+              "tn/socw.write",
+              "va/socw.write",
+              "wa/socw.write"
             ]
           }
         ]

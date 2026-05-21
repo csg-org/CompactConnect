@@ -20,7 +20,7 @@ class TestBulkUpload(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         resp = bulk_upload_url_handler(event, self.mock_context)
 
@@ -34,7 +34,7 @@ class TestBulkUpload(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
         # User has permission in ne, not oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff ne/cosm.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff ne/socw.write'
         event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         resp = bulk_upload_url_handler(event, self.mock_context)
@@ -49,7 +49,7 @@ class TestProcessObjects(TstFunction):
         from handlers.bulk_upload import parse_bulk_upload_file
 
         # Upload a bulk license csv file
-        object_key = f'cosm/co/{uuid4().hex}'
+        object_key = f'socw/co/{uuid4().hex}'
         self._bucket.upload_file('../common/tests/resources/licenses.csv', object_key)
 
         # Simulate the s3 bucket event
@@ -73,7 +73,7 @@ class TestProcessObjects(TstFunction):
         from handlers.bulk_upload import parse_bulk_upload_file
 
         # Upload a bulk license csv file
-        object_key = f'cosm/oh/{uuid4().hex}'
+        object_key = f'socw/oh/{uuid4().hex}'
         self._bucket.upload_file('../common/tests/resources/licenses.csv', object_key)
 
         # Simulate the s3 bucket event
@@ -146,7 +146,7 @@ class TestProcessObjects(TstFunction):
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        object_key = f'cosm/oh/{uuid4().hex}'
+        object_key = f'socw/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         # Simulate the s3 bucket event
@@ -207,8 +207,8 @@ class TestProcessObjects(TstFunction):
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        # URL path indicates cosm/oh, but CSV contains malicious_compact/malicious_jurisdiction
-        object_key = f'cosm/oh/{uuid4().hex}'
+        # URL path indicates socw/oh, but CSV contains malicious_compact/malicious_jurisdiction
+        object_key = f'socw/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         # Simulate the s3 bucket event
@@ -287,7 +287,7 @@ class TestProcessObjects(TstFunction):
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        object_key = f'cosm/oh/{uuid4().hex}'
+        object_key = f'socw/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         # Simulate the s3 bucket event
@@ -371,7 +371,7 @@ class TestProcessObjects(TstFunction):
         )
 
         # Upload the CSV content directly to the mock S3 bucket
-        object_key = f'cosm/oh/{uuid4().hex}'
+        object_key = f'socw/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content)
 
         # Simulate the s3 bucket event
@@ -418,7 +418,7 @@ class TestProcessObjects(TstFunction):
         )
 
         # Upload the CSV content with BOM added at byte level (simulates real BOM files)
-        object_key = f'cosm/oh/{uuid4().hex}'
+        object_key = f'socw/oh/{uuid4().hex}'
         self._bucket.put_object(Key=object_key, Body=csv_content.encode('utf-8-sig'))
 
         # Simulate the s3 bucket event

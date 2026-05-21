@@ -17,7 +17,7 @@ def generate_provider_opensearch_documents(compact: str, provider_id: str) -> li
     """
     Process a single provider and return a list of sanitized documents ready for indexing.
 
-    Each document corresponds to one license. This is because the Cosmetology compact search returns results by license,
+    Each document corresponds to one license. This is because theSocial Workcompact search returns results by license,
     so we need to index one document per license to support native pagination.
 
     Because of this, rather than just using the provider_id as the documentId,

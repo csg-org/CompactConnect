@@ -110,7 +110,7 @@ class TestOpenSearchIndexManager(TstFunction):
         mock_opensearch_client.assert_called_once()
 
         # Assert that alias_exists was called for each compact
-        expected_alias_exists_calls = [call('compact_cosm_providers')]
+        expected_alias_exists_calls = [call('compact_socw_providers')]
         mock_client_instance.alias_exists.assert_has_calls(expected_alias_exists_calls, any_order=False)
         self.assertEqual(1, mock_client_instance.alias_exists.call_count)
 
@@ -121,14 +121,14 @@ class TestOpenSearchIndexManager(TstFunction):
         create_index_calls = mock_client_instance.create_index.call_args_list
         index_names_created = [call_args[0][0] for call_args in create_index_calls]
         self.assertEqual(
-            ['compact_cosm_providers_v1'],
+            ['compact_socw_providers_v1'],
             index_names_created,
         )
 
         # Assert that create_alias was called for each compact
         self.assertEqual(1, mock_client_instance.create_alias.call_count)
         expected_alias_calls = [
-            call('compact_cosm_providers_v1', 'compact_cosm_providers'),
+            call('compact_socw_providers_v1', 'compact_socw_providers'),
         ]
         mock_client_instance.create_alias.assert_has_calls(expected_alias_calls, any_order=False)
 
@@ -392,7 +392,7 @@ class TestOpenSearchIndexManager(TstFunction):
             mock_opensearch_client,
             alias_exists_return_value=False,
             index_exists_return_value={
-                'compact_cosm_providers_v1': True,
+                'compact_socw_providers_v1': True,
             },
         )
 
@@ -415,7 +415,7 @@ class TestOpenSearchIndexManager(TstFunction):
         # Assert that create_alias was called for each compact (to create the missing aliases)
         self.assertEqual(1, mock_client_instance.create_alias.call_count)
         expected_alias_calls = [
-            call('compact_cosm_providers_v1', 'compact_cosm_providers'),
+            call('compact_socw_providers_v1', 'compact_socw_providers'),
         ]
         mock_client_instance.create_alias.assert_has_calls(expected_alias_calls, any_order=False)
 

@@ -12,13 +12,13 @@ from moto import mock_aws
 
 from . import TstFunction
 
-MOCK_COSM_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
+MOCK_SOCW_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 test_license_type_mapping = {
     'socw': 'cosmetologist',
 }
 test_provider_id_mapping = {
-    'socw': MOCK_COSM_PROVIDER_ID,
+    'socw': MOCK_SOCW_PROVIDER_ID,
 }
 
 
@@ -154,7 +154,7 @@ class TestPopulateProviderDocuments(TstFunction):
         self.assertGreaterEqual(mock_client_instance.bulk_index.call_count, 1)
 
         bulk_index_call = mock_client_instance.bulk_index.call_args
-        self.assertEqual('compact_cosm_providers', bulk_index_call.kwargs['index_name'])
+        self.assertEqual('compact_socw_providers', bulk_index_call.kwargs['index_name'])
         self.assertEqual('documentId', bulk_index_call.kwargs['id_field'])
 
         indexed_documents = bulk_index_call.kwargs['documents']

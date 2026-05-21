@@ -1,6 +1,6 @@
 # Smoke Tests
 
-This directory contains smoke tests for the Compact Connect Cosmetology API. Smoke tests are end-to-end integration tests that run against a test environment to verify that critical functionality works as expected.
+This directory contains smoke tests for the Compact ConnectSocial WorkAPI. Smoke tests are end-to-end integration tests that run against a test environment to verify that critical functionality works as expected.
 
 ## Overview
 
@@ -12,7 +12,7 @@ Before running smoke tests, you must complete the following setup:
 
 ### 1. Sandbox/Test Environment
 
-You must have access to a deployed sandbox environment of the Compact Connect Cosmetology API. The sandbox should be deployed with the following configuration:
+You must have access to a deployed sandbox environment of the Compact ConnectSocial WorkAPI. The sandbox should be deployed with the following configuration:
 
 - **Security Profile**: Your `cdk.context.json` file must have `"security_profile": "VULNERABLE"` set. This allows the smoke tests to create users programmatically using the boto3 Cognito client.
 - 

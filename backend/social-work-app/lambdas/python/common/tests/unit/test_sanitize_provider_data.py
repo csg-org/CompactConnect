@@ -20,17 +20,17 @@ class TestSanitizeProviderData(TstLambdas):
 
     def test_full_provider_record_returned_if_caller_has_compact_read_private_permissions(self):
         self.when_expecting_full_provider_record_returned(
-            scopes={'openid', 'email', 'cosm/readGeneral', 'cosm/readPrivate'}
+            scopes={'openid', 'email', 'socw/readGeneral', 'socw/readPrivate'}
         )
 
     def test_full_provider_record_returned_if_caller_has_read_private_permissions_for_license_jurisdiction(self):
         self.when_expecting_full_provider_record_returned(
-            scopes={'openid', 'email', 'cosm/readGeneral', 'oh/cosm.readPrivate'}
+            scopes={'openid', 'email', 'socw/readGeneral', 'oh/socw.readPrivate'}
         )
 
     def test_full_provider_record_returned_if_caller_has_read_private_permissions_for_privileges_jurisdiction(self):
         self.when_expecting_full_provider_record_returned(
-            scopes={'openid', 'email', 'cosm/readGeneral', 'ne/cosm.readPrivate'}
+            scopes={'openid', 'email', 'socw/readGeneral', 'ne/socw.readPrivate'}
         )
 
     def when_testing_general_provider_info_returned(self, scopes: set[str]):
@@ -69,10 +69,10 @@ class TestSanitizeProviderData(TstLambdas):
     ):
         # Mock datetime so schema expiration checks keep license/privilege status active (test data expires 2025-04-04)
         self.when_testing_general_provider_info_returned(
-            scopes={'openid', 'email', 'cosm/readGeneral', 'az/cosm.readPrivate'}
+            scopes={'openid', 'email', 'socw/readGeneral', 'az/socw.readPrivate'}
         )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-01T12:00:00+00:00'))
     def test_sanitized_provider_record_returned_if_caller_does_not_have_any_read_private_permissions(self):
         # Mock datetime so schema expiration checks keep license/privilege status active (test data expires 2025-04-04)
-        self.when_testing_general_provider_info_returned(scopes={'openid', 'email', 'cosm/readGeneral'})
+        self.when_testing_general_provider_info_returned(scopes={'openid', 'email', 'socw/readGeneral'})

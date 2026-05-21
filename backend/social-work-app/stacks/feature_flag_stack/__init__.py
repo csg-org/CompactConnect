@@ -100,7 +100,7 @@ class FeatureFlagStack(AppStack):
             self,
             'CosmetologyExampleFlag',
             provider=self.provider,  # Shared provider
-            flag_name='cosmetology-example-flag',
+            flag_name='socialwork-example-flag',
             # This causes the flag to automatically be set to enabled for every environment in the list
             auto_enable_envs=[
                 FeatureFlagEnvironmentName.TEST,

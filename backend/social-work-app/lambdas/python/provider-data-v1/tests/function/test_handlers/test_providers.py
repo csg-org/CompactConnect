@@ -20,7 +20,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral cosm/readPrivate'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral socw/readPrivate'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
 
@@ -52,7 +52,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral cosm/readPrivate'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral socw/readPrivate'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
@@ -93,7 +93,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
@@ -126,7 +126,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {
@@ -157,7 +157,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {
@@ -183,7 +183,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps({'query': {}})
 
@@ -211,7 +211,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral'
         event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps({'query': {'jurisdiction': 'oh'}, 'sorting': {'key': 'invalid'}})
 
@@ -235,7 +235,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral'
         event['pathParameters'] = {'compact': 'socw'}
 
         # Test multiple fields with whitespace
@@ -311,13 +311,13 @@ class TestGetProvider(TstFunction):
 
     def test_get_provider_with_compact_level_read_private_access(self):
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email cosm/readGeneral cosm/readPrivate',
+            scopes='openid email socw/readGeneral socw/readPrivate',
         )
 
     def test_get_provider_with_matching_license_jurisdiction_level_read_private_access(self):
         # test provider has a license in oh
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email cosm/readGeneral oh/cosm.readPrivate'
+            scopes='openid email socw/readGeneral oh/socw.readPrivate'
         )
 
     def test_get_provider_missing_provider_id(self):
@@ -327,7 +327,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
 
         # The user has read permission for cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral'
         # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
         event['pathParameters'] = {'compact': 'socw'}
         event['queryStringParameters'] = None
@@ -346,5 +346,5 @@ class TestGetProvider(TstFunction):
             del expected_provider['licenses'][0]['dateOfBirth']
 
         self._when_testing_get_provider_response_based_on_read_access(
-            scopes='openid email cosm/readGeneral', expected_provider=expected_provider
+            scopes='openid email socw/readGeneral', expected_provider=expected_provider
         )

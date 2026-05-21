@@ -149,7 +149,7 @@ class TestSearchProviders(TstFunction):
 
         # Verify the search was called with correct parameters
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_cosm_providers', body={'query': {'match_all': {}}, 'size': 100}
+            index_name='compact_socw_providers', body={'query': {'match_all': {}}, 'size': 100}
         )
 
         # Verify response structure
@@ -179,7 +179,7 @@ class TestSearchProviders(TstFunction):
 
         # Verify the custom query was passed through
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_cosm_providers',
+            index_name='compact_socw_providers',
             body={
                 'query': {'bool': {'must': [{'match': {'givenName': 'John'}}, {'term': {'licenseStatus': 'active'}}]}},
                 'size': 100,
@@ -227,7 +227,7 @@ class TestSearchProviders(TstFunction):
         search_api_handler(event, self.mock_context)
 
         mock_opensearch_client.search.assert_called_once_with(
-            index_name='compact_cosm_providers',
+            index_name='compact_socw_providers',
             body={
                 'query': {'match_all': {}},
                 'size': 100,
@@ -389,7 +389,7 @@ class TestSearchProviders(TstFunction):
                 'query': {
                     'terms': {
                         'providerId': {
-                            'index': 'compact_cosm_providers',
+                            'index': 'compact_socw_providers',
                             'id': 'some-uuid',
                             'path': 'providerId',
                         }
@@ -418,7 +418,7 @@ class TestSearchProviders(TstFunction):
                         'fields': ['familyName', 'givenName'],
                         'like': [
                             {
-                                '_index': 'compact_cosm_providers',
+                                '_index': 'compact_socw_providers',
                                 '_id': 'target-provider-uuid',
                             }
                         ],
@@ -448,7 +448,7 @@ class TestSearchProviders(TstFunction):
                             {
                                 'terms': {
                                     'familyName.keyword': {
-                                        'index': 'compact_cosm_providers',
+                                        'index': 'compact_socw_providers',
                                         'id': 'target-uuid',
                                         'path': 'familyName.keyword',
                                     }
@@ -510,7 +510,7 @@ class TestSearchProviders(TstFunction):
         event = self._create_api_event(
             'socw',
             body={'query': query},
-            scopes_override='openid email cosm/readGeneral cosm/readPrivate',
+            scopes_override='openid email socw/readGeneral socw/readPrivate',
         )
 
         response = search_api_handler(event, self.mock_context)
@@ -536,7 +536,7 @@ class TestSearchProviders(TstFunction):
         event = self._create_api_event(
             'socw',
             body={'query': query},
-            scopes_override='openid email cosm/readGeneral oh/cosm.readPrivate',
+            scopes_override='openid email socw/readGeneral oh/socw.readPrivate',
         )
 
         response = search_api_handler(event, self.mock_context)
@@ -681,7 +681,7 @@ class TestSearchProviders(TstFunction):
                 'query': {'match_all': {}},
                 'sort': [{'licenses.dateOfBirth': 'desc'}, {'providerId': 'asc'}],
             },
-            scopes_override='openid email cosm/readGeneral cosm/readPrivate',
+            scopes_override='openid email socw/readGeneral socw/readPrivate',
         )
 
         response = search_api_handler(event, self.mock_context)

@@ -147,8 +147,8 @@ class OpenSearchClient:
         """
         Create the provider index and alias in OpenSearch if they don't exist.
 
-        :param index_name: The versioned index name (e.g., compact_cosm_providers_v1)
-        :param alias_name: The alias name (e.g., compact_cosm_providers)
+        :param index_name: The versioned index name (e.g., compact_socw_providers_v1)
+        :param alias_name: The alias name (e.g., compact_socw_providers)
         :param number_of_shards: Number of primary shards for the index
         :param number_of_replicas: Number of replica shards for the index
         """
@@ -187,7 +187,7 @@ class OpenSearchClient:
         exists, attempts to delete the canonical versioned index name
         ({alias_name}_{INITIAL_INDEX_VERSION}).
 
-        :param alias_name: The alias name (e.g., compact_cosm_providers)
+        :param alias_name: The alias name (e.g., compact_socw_providers)
         """
         if self.alias_exists(alias_name):
             indices = self.get_indices_for_alias(alias_name)

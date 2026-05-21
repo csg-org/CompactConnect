@@ -25,7 +25,7 @@ class TestCustomizeScopes(TstLambdas):
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'jurisdictions': {
-                        # should correspond to the 'al/cosm.write' scope
+                        # should correspond to the 'al/socw.write' scope
                         'al': {'write'}
                     },
                 },
@@ -35,7 +35,7 @@ class TestCustomizeScopes(TstLambdas):
         resp = customize_scopes(event, self.mock_context)
 
         self.assertEqual(
-            sorted(['profile', 'cosm/readGeneral', 'al/cosm.write']),
+            sorted(['profile', 'socw/readGeneral', 'al/socw.write']),
             sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
         # Check that the user's status is updated in the DB
@@ -63,7 +63,7 @@ class TestCustomizeScopes(TstLambdas):
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'jurisdictions': {
-                        # should correspond to the 'al/cosm.write' scope
+                        # should correspond to the 'al/socw.write' scope
                         'al': {'write'}
                     },
                 },

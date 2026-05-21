@@ -25,10 +25,10 @@ class TestPostUser(TstFunction):
             f.seek(0)
             api_user = json.load(f)
 
-        # The user has admin permission for cosm/oh
+        # The user has admin permission for socw/oh
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
@@ -64,7 +64,7 @@ class TestPostUser(TstFunction):
 
         # The user has admin permission for socw admin
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
@@ -74,7 +74,7 @@ class TestPostUser(TstFunction):
         # Drop backend-generated fields from comparison
         user_id = user.pop('userId')
         del user['dateOfUpdate']
-        # The cosm.actions and cosm.jurisdictions.oh fields should be removed, since they are empty
+        # The socw.actions and socw.jurisdictions.oh fields should be removed, since they are empty
         api_user['permissions'] = {'socw': {'jurisdictions': {}}}
 
         # Add status to the comparison
@@ -106,7 +106,7 @@ class TestPostUser(TstFunction):
 
         # The user has admin permission for nebraska, not oh, which is where the user they are trying to create
         # has permission.
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/socw.admin'
         event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
@@ -131,7 +131,7 @@ class TestPostUser(TstFunction):
 
         # The user has admin permission for cosm
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin oh/socw.admin'
         event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)

@@ -14,7 +14,7 @@ class TestPatchMe(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for all of cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['pathParameters'] = {}
         event['body'] = json.dumps({'attributes': {'givenName': 'George'}})
 
@@ -32,7 +32,7 @@ class TestPatchMe(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for all of cosm
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/admin'
         event['requestContext']['authorizer']['claims']['sub'] = user_id
         event['pathParameters'] = {}
         event['body'] = json.dumps({'attributes': {'givenName': 'George'}})
