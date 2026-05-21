@@ -6,7 +6,10 @@ Smoke tests for public license search (unauthenticated).
 POST /v1/public/compacts/{compact}/providers/query and GET /v1/public/compacts/{compact}/providers/{providerId}.
 Uses CC_TEST_PROVIDER_ID and mutates the smoke license in DynamoDB; restores state in finally blocks.
 
-This test assumes the test provider has no existing license in TEST_JURISDICTION. If this is not the case,
+These test assume the test provider's most recent license is eligible. If this is not the case you will need
+to update your test practitioner so that the most recent license is compact eligible, or the tests will fail.
+
+These tests also assume the test provider has no existing license in TEST_JURISDICTION. If this is not the case,
 you can change the TEST_JURISDICTION variable to a jurisdiction where the test provider does not have a license.
 
 Run from repo root with cosmetology-app cwd, or set paths like other smoke scripts:
@@ -91,22 +94,11 @@ def test_public_search_endpoints_returns_details_of_provider() -> dict:
     if not license_number:
         raise SmokeTestFailureException('Smoke license record has no licenseNumber for public query')
 
-    logger.info('Running public query endpoint test')
-    matching_license_rows = call_public_query_providers(
-        COMPACT,
-        license_number_filter=license_number,
-        provider_id_filter=provider_id,
+    _assert_license_eligibility_for_smoke_license(
+        provider_id=provider_id,
+        license_number=license_number,
+        expected_license_eligibility='eligible',
     )
-    if not matching_license_rows:
-        raise SmokeTestFailureException(
-            f'Public query returned no rows for provider {provider_id} (licenseNumber={license_number})'
-        )
-    license_row = matching_license_rows[0]
-    if license_row.get('licenseEligibility') != 'eligible':
-        raise SmokeTestFailureException(
-            f'Expected licenseEligibility eligible for provider {provider_id}, '
-            f'got {license_row.get("licenseEligibility")!r}'
-        )
 
     public_provider_detail = call_public_get_provider(COMPACT, provider_id)
     licenses_from_get = public_provider_detail.get('licenses') or []

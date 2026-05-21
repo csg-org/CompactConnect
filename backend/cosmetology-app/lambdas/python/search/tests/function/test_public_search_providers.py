@@ -786,6 +786,9 @@ class TestPublicSearchProviders(TstFunction):
             'providerId': pid,
             'jurisdiction': 'oh',
             'licenseTypeAbbreviation': 'cos',
+            # adverse action is for their 'esthetician' license
+            # the license record that matches the query is for a
+            # 'cosmetologist license
             'licenseType': 'esthetician',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
@@ -799,6 +802,7 @@ class TestPublicSearchProviders(TstFunction):
         mock_hit = self._create_mock_hit(
             provider_id=pid,
             license_number='LN-AA',
+            license_type='cosmetologist',
             provider_adverse_actions=[unlifted],
         )
         mock_opensearch_client.search.return_value = {

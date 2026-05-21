@@ -83,7 +83,8 @@ def _determine_license_eligibility(*, provider_source: dict) -> str:
             provider_id=loaded_provider.get('providerId'),
         )
         return CompactEligibilityStatus.INELIGIBLE.value
-
+    # The Cosmetology OpenSearch documents only include one license per document
+    # Here we extract that single record and check its eligibility status
     license_row = licenses_list[0]
     if license_row.get('compactEligibility') == CompactEligibilityStatus.INELIGIBLE.value:
         return CompactEligibilityStatus.INELIGIBLE.value
