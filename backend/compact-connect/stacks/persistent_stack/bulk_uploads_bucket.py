@@ -128,19 +128,6 @@ class BulkUploadsBucket(Bucket):
         self.add_event_notification(event=EventType.OBJECT_CREATED, dest=LambdaDestination(parse_objects_handler))
         stack = ps.PersistentStack.of(self)
 
-        NagSuppressions.add_resource_suppressions_by_path(
-            Stack.of(parse_objects_handler.role),
-            f'{parse_objects_handler.role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                            This policy contains wild-carded actions and resources but are still scoped to this bucket
-                            and specific actions, KMS key and SQS queue that this lambda specifically needs access to.
-                            """,
-                },
-            ],
-        )
         # Per-bucket notification permissions are attached as inline HandlerPolicy on the bucket's
         # `Notifications` construct as of CDK v2.252.0 (not Role/DefaultPolicy on the stack singleton) so we only
         # need to suppress the handler role. See https://github.com/aws/aws-cdk/issues/37667.
