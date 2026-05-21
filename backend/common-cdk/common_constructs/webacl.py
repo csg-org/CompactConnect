@@ -67,7 +67,7 @@ class WebACL(Resource):
             # WARNING: THIS WILL NOT WORK IN GOVCLOUD
             # Global ACLs need a log group in us-east-1
             # Regional ACLs need a log group in the matching region
-            if scope == WebACLScope.CLOUDFRONT and not stack.region == 'us-east-1':
+            if acl_scope == WebACLScope.CLOUDFRONT and not stack.region == 'us-east-1':
                 raise RuntimeError(
                     'CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have logging enabled'
                 )
