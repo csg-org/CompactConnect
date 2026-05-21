@@ -19,7 +19,7 @@ class TestAuthorizeCompact(TstLambdas):
 
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff cosm/readGeneral'
         event['pathParameters'] = {
-            'compact': 'cosm',
+            'compact': 'socw',
         }
 
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
@@ -53,7 +53,7 @@ class TestAuthorizeCompact(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         with self.assertRaises(CCUnauthorizedException):
             example_entrypoint(event, self.mock_context)
@@ -70,7 +70,7 @@ class TestAuthorizeCompact(TstLambdas):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         with self.assertRaises(CCAccessDeniedException):
             example_entrypoint(event, self.mock_context)

@@ -6,7 +6,7 @@ export const SAMPLE_INGEST_SUCCESS_RECORD = {
         'S': 'TYPE#license.ingest#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03e1234'
     },
     'compact': {
-        'S': 'cosm'
+        'S': 'socw'
     },
     'jurisdiction': {
         'S': 'oh'
@@ -39,7 +39,7 @@ export const SAMPLE_INGEST_FAILURE_ERROR_RECORD = {
         'S': 'TYPE#license.ingest-failure#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03ee984'
     },
     'compact': {
-        'S': 'cosm'
+        'S': 'socw'
     },
     'errors': {
         'L': [
@@ -65,7 +65,7 @@ export const SAMPLE_INGEST_FAILURE_ERROR_RECORD = {
 export const SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD = {
     'pk': 'COMPACT#cosm#JURISDICTION#oh',
     'sk': 'TYPE#license.ingest-failure#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03ee984',
-    'compact': 'cosm',
+    'compact': 'socw',
     'errors': [ '\'utf-8\' codec can\'t decode byte 0x83 in position 0: invalid start byte' ],
     'eventExpiry': '1739394328',
     'eventTime': '2024-11-14T21:00:12.382000+00:00',
@@ -87,7 +87,7 @@ export const SAMPLE_VALIDATION_ERROR_RECORD = {
         'S': '2024-10-30T04:47:55.843000+00:00'
     },
     'compact': {
-        'S': 'cosm'
+        'S': 'socw'
     },
     'jurisdiction': {
         'S': 'oh'
@@ -139,7 +139,7 @@ export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
         'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
         'eventType': 'license.validation-error',
         'eventTime': '2024-10-30T04:47:55.843000+00:00',
-        'compact': 'cosm',
+        'compact': 'socw',
         'jurisdiction': 'oh',
         'errors': {
             'dateOfRenewal': [
@@ -162,7 +162,7 @@ export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
         'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
         'eventType': 'license.validation-error',
         'eventTime': '2024-10-30T05:47:55.843000+00:00',
-        'compact': 'cosm',
+        'compact': 'socw',
         'jurisdiction': 'oh',
         'errors': {
             'dateOfRenewal': [
@@ -185,7 +185,7 @@ export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
         'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
         'eventType': 'license.validation-error',
         'eventTime': '2024-10-30T05:47:55.843000+00:00',
-        'compact': 'cosm',
+        'compact': 'socw',
         'jurisdiction': 'oh',
         'errors': {
             'dateOfRenewal': [
@@ -210,7 +210,7 @@ export const SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD = {
     'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
     'eventType': 'license.validation-error',
     'eventTime': '2024-10-30T04:47:55.843000+00:00',
-    'compact': 'cosm',
+    'compact': 'socw',
     'jurisdiction': 'oh',
     'errors': {
         'dateOfRenewal': [
@@ -237,7 +237,7 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
         'S': 'cosm#JURISDICTION#oh'
     },
     'compact': {
-        'S': 'cosm'
+        'S': 'socw'
     },
     'dateOfUpdate': {
         'S': '2024-11-14'
@@ -274,7 +274,7 @@ export const SAMPLE_JURISDICTION_CONFIGURATION = {
 export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
     'pk': 'cosm#CONFIGURATION',
     'sk': 'cosm#JURISDICTION#oh',
-    'compact': 'cosm',
+    'compact': 'socw',
     'dateOfUpdate': '2024-11-14',
     'jurisdictionAdverseActionsNotificationEmails': [],
 
@@ -297,7 +297,7 @@ export const SAMPLE_COMPACT_CONFIGURATION = {
             'feeType': { 'S': 'FLAT_RATE' }
         }
     },
-    'compactAbbr': { 'S': 'cosm' },
+    'compactAbbr': { 'S': 'socw' },
     'compactName': { 'S': 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { 'L': [{ 'S': 'compact-ops@example.com' }]},
     'dateOfUpdate': { 'S': '2024-12-10T19:27:28+00:00' },
@@ -312,7 +312,7 @@ export const SAMPLE_UNMARSHALLED_COMPACT_CONFIGURATION = {
         'feeAmount': 3.5,
         'feeType': 'FLAT_RATE'
     },
-    'compactAbbr': 'cosm',
+    'compactAbbr': 'socw',
     'compactName': 'Audiology and Speech Language Pathology',
     'compactOperationsTeamEmails': ['compact-ops@example.com'],
     'dateOfUpdate': '2024-12-10T19:27:28+00:00',

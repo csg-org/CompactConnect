@@ -17,7 +17,7 @@ class TstLambdas(TestCase):
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'AWS_REGION': 'us-east-1',
                 'ENVIRONMENT_NAME': 'test',
-                'COMPACTS': '["cosm"]',
+                'COMPACTS': '["socw"]',
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-config-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
@@ -85,7 +85,7 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'cosm': [
+                        'socw': [
                             {'name': 'cosmetologist', 'abbreviation': 'cos'},
                             {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],

@@ -108,7 +108,7 @@ class TestInvestigationDataClass(TstLambdas):
             {
                 'investigationAgainst': 'privilege',
                 'investigationId': '98765432-9876-9876-9876-987654321098',
-                'compact': 'cosm',
+                'compact': 'socw',
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'jurisdiction': 'ne',
                 'licenseType': 'cosmetologist',

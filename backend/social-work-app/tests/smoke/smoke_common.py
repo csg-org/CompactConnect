@@ -297,7 +297,7 @@ def call_public_get_provider(compact: str, provider_id: str, *, timeout: int = 3
     return response.json()
 
 
-def get_all_provider_database_records(compact: str = 'cosm', provider_id: str = None):
+def get_all_provider_database_records(compact: str = 'socw', provider_id: str = None):
 
     if provider_id is None:
         provider_id = config.test_provider_id

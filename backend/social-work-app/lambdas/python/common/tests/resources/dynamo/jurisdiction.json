@@ -2,7 +2,7 @@
   "pk": "cosm#CONFIGURATION",
   "sk": "cosm#JURISDICTION#oh",
   "type": "jurisdiction",
-  "compact": "cosm",
+  "compact": "socw",
   "jurisdictionName": "ohio",
   "postalAbbreviation": "oh",
   "jurisdictionOperationsTeamEmails": ["some-operations-team@test.com"],

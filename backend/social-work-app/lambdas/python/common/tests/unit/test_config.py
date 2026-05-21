@@ -15,7 +15,7 @@ class TestConfigLiveCompactJurisdictions(TestCase):
     def test_returns_dict_of_compact_to_list_of_jurisdiction_codes(self):
         """live_compact_jurisdictions returns dict[str, list[str]] (postal abbreviations)."""
         mock_jurisdictions = ['al', 'ky']
-        with patch.dict(os.environ, {'COMPACTS': '["cosm"]'}, clear=False):
+        with patch.dict(os.environ, {'COMPACTS': '["socw"]'}, clear=False):
             from cc_common.config import _Config
 
             config = _Config()
@@ -26,13 +26,13 @@ class TestConfigLiveCompactJurisdictions(TestCase):
             result = config.live_compact_jurisdictions
 
             self.assertIsInstance(result, dict)
-            self.assertIn('cosm', result)
-            self.assertIsInstance(result['cosm'], list)
-            self.assertEqual(result['cosm'], mock_jurisdictions)
+            self.assertIn('socw', result)
+            self.assertIsInstance(result['socw'], list)
+            self.assertEqual(result['socw'], mock_jurisdictions)
 
     def test_calls_get_live_compact_jurisdictions_for_each_compact(self):
         """For each compact in compacts, calls get_live_compact_jurisdictions(compact)."""
-        with patch.dict(os.environ, {'COMPACTS': '["cosm", "other"]'}, clear=False):
+        with patch.dict(os.environ, {'COMPACTS': '["socw", "other"]'}, clear=False):
             from cc_common.config import _Config
 
             config = _Config()
@@ -46,14 +46,14 @@ class TestConfigLiveCompactJurisdictions(TestCase):
             result = config.live_compact_jurisdictions
 
             self.assertEqual(mock_client.get_live_compact_jurisdictions.call_count, 2)
-            mock_client.get_live_compact_jurisdictions.assert_any_call('cosm')
+            mock_client.get_live_compact_jurisdictions.assert_any_call('socw')
             mock_client.get_live_compact_jurisdictions.assert_any_call('other')
-            self.assertEqual(result['cosm'], ['al', 'oh'])
+            self.assertEqual(result['socw'], ['al', 'oh'])
             self.assertEqual(result['other'], ['tx'])
 
     def test_on_exception_logs_error_and_reraises(self):
         """On exception from get_live_compact_jurisdictions, log error and re-raise."""
-        with patch.dict(os.environ, {'COMPACTS': '["cosm", "failing"]'}, clear=False):
+        with patch.dict(os.environ, {'COMPACTS': '["socw", "failing"]'}, clear=False):
             with patch('cc_common.config.logger') as mock_logger:
                 from cc_common.config import _Config
 
@@ -74,7 +74,7 @@ class TestConfigLiveCompactJurisdictions(TestCase):
 
     def test_value_is_cached_after_first_access(self):
         """live_compact_jurisdictions is cached; second access does not call client again."""
-        with patch.dict(os.environ, {'COMPACTS': '["cosm"]'}, clear=False):
+        with patch.dict(os.environ, {'COMPACTS': '["socw"]'}, clear=False):
             from cc_common.config import _Config
 
             config = _Config()
@@ -86,4 +86,4 @@ class TestConfigLiveCompactJurisdictions(TestCase):
             second = config.live_compact_jurisdictions
 
             self.assertEqual(first, second)
-            mock_client.get_live_compact_jurisdictions.assert_called_once_with('cosm')
+            mock_client.get_live_compact_jurisdictions.assert_called_once_with('socw')

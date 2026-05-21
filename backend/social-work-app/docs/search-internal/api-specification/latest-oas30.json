@@ -154,7 +154,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "jurisdiction": {
@@ -197,7 +197,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "cosm"
+                                "socw"
                               ]
                             },
                             "providerId": {
@@ -301,7 +301,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "cosm"
+                                "socw"
                               ]
                             },
                             "jurisdiction": {
@@ -404,7 +404,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "givenName": {
@@ -486,7 +486,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "homeAddressStreet2": {
@@ -539,7 +539,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "cosm"
+                                "socw"
                               ]
                             },
                             "providerId": {
@@ -725,7 +725,7 @@
                             "compact": {
                               "type": "string",
                               "enum": [
-                                "cosm"
+                                "socw"
                               ]
                             },
                             "jurisdiction": {

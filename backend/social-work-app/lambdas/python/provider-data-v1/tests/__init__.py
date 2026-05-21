@@ -32,7 +32,7 @@ class TstLambdas(TestCase):
                 'SSN_INDEX_NAME': 'ssnIndex',
                 'USER_POOL_ID': 'us-east-1-12345',
                 'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
-                'COMPACTS': '["cosm"]',
+                'COMPACTS': '["socw"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -92,7 +92,7 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'cosm': [
+                        'socw': [
                             {'name': 'cosmetologist', 'abbreviation': 'cos'},
                             {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],

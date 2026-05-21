@@ -21,7 +21,7 @@ class TestBulkUpload(TstFunction):
             event = json.load(f)
 
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/cosm.write'
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         resp = bulk_upload_url_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
@@ -35,7 +35,7 @@ class TestBulkUpload(TstFunction):
             event = json.load(f)
         # User has permission in ne, not oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff ne/cosm.write'
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         resp = bulk_upload_url_handler(event, self.mock_context)
 
@@ -99,7 +99,7 @@ class TestProcessObjects(TstFunction):
             reader = csv.DictReader(f)
             for row in reader:
                 # add compact and jurisdiction to each row since this is injected into the sqs message
-                row['compact'] = 'cosm'
+                row['compact'] = 'socw'
                 row['jurisdiction'] = 'oh'
                 # the event time comes from the test put-event.json file
                 row['eventTime'] = '1970-01-01T00:00:00+00:00'
@@ -184,7 +184,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('Active', message_data['licenseStatusName'])  # Should be trimmed
 
         # Verify that other fields remain unchanged
-        self.assertEqual('cosm', message_data['compact'])
+        self.assertEqual('socw', message_data['compact'])
         self.assertEqual('oh', message_data['jurisdiction'])
         self.assertEqual('123-45-6789', message_data['ssn'])
         self.assertEqual('active', message_data['licenseStatus'])
@@ -244,7 +244,7 @@ class TestProcessObjects(TstFunction):
                 'Detail': json.dumps(
                     {
                         'eventTime': '1970-01-01T00:00:00+00:00',
-                        'compact': 'cosm',
+                        'compact': 'socw',
                         'jurisdiction': 'oh',
                         'recordNumber': 1,
                         'validData': {
@@ -323,7 +323,7 @@ class TestProcessObjects(TstFunction):
                 'Detail': json.dumps(
                     {
                         'eventTime': '1970-01-01T00:00:00+00:00',
-                        'compact': 'cosm',
+                        'compact': 'socw',
                         'jurisdiction': 'oh',
                         'recordNumber': 2,
                         'validData': {
@@ -457,7 +457,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('529-31-5413', message_data['ssn'])
 
         # Verify injected fields
-        self.assertEqual('cosm', message_data['compact'])
+        self.assertEqual('socw', message_data['compact'])
         self.assertEqual('oh', message_data['jurisdiction'])
         self.assertEqual('1970-01-01T00:00:00+00:00', message_data['eventTime'])
 

@@ -16,7 +16,7 @@ class TstLambdas(TestCase):
                 'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'ENVIRONMENT_NAME': 'test',
-                'COMPACTS': '["cosm"]',
+                'COMPACTS': '["socw"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',

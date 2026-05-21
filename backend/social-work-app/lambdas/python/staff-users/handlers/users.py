@@ -78,7 +78,7 @@ def patch_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argu
     ```json
     {
       "permissions": {
-        "cosm": {
+        "socw": {
           "actions": {
             "admin": true
           }

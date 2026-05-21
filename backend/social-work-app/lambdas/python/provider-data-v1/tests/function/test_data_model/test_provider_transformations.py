@@ -40,7 +40,7 @@ class TestTransformations(TstFunction):
         event['body'] = json.dumps([license_post])
 
         # Compact and jurisdiction are provided via path parameters
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         # Authorize ourselves to write the license
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
@@ -89,7 +89,7 @@ class TestTransformations(TstFunction):
 
         # Get the provider and all update records straight from the table, to inspect them
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
         # One record for each of: provider and license (no privileges in cosmetology model)
@@ -129,7 +129,7 @@ class TestTransformations(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': provider_id}
+        event['pathParameters'] = {'compact': 'socw', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral cosm/readPrivate'
 
         resp = get_provider(event, self.mock_context)

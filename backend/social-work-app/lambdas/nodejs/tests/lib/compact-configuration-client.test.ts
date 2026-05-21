@@ -14,7 +14,7 @@ const SAMPLE_COMPACT_CONFIGURATION = {
             'feeType': { S: 'FLAT_RATE' }
         }
     },
-    'compactAbbr': { S: 'cosm' },
+    'compactAbbr': { S: 'socw' },
     'compactName': { S: 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
@@ -52,7 +52,7 @@ describe('CompactConfigurationClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const config = await compactConfigurationClient.getCompactConfiguration('cosm');
+        const config = await compactConfigurationClient.getCompactConfiguration('socw');
 
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
             GetItemCommand,
@@ -73,7 +73,7 @@ describe('CompactConfigurationClient', () => {
                 feeAmount: 3.5,
                 feeType: 'FLAT_RATE'
             },
-            compactAbbr: 'cosm',
+            compactAbbr: 'socw',
             compactName: 'Audiology and Speech Language Pathology',
             compactOperationsTeamEmails: ['operations@example.com'],
             dateOfUpdate: '2024-12-10T19:27:28+00:00',

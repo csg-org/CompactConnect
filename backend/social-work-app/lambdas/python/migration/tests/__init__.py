@@ -26,7 +26,7 @@ class TstLambdas(TestCase):
                 'LICENSE_GSI_NAME': 'licenseGSI',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'SSN_INDEX_NAME': 'ssnIndex',
-                'COMPACTS': '["cosm"]',
+                'COMPACTS': '["socw"]',
                 'JURISDICTIONS': json.dumps(
                     [
                         'al',
@@ -86,7 +86,7 @@ class TstLambdas(TestCase):
                 ),
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'cosm': [
+                        'socw': [
                             {'name': 'cosmetologist', 'abbreviation': 'cos'},
                             {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],

@@ -11,7 +11,7 @@ EXPECTED_PROVIDER_RESPONSE = {
     'type': 'provider',
     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
     'dateOfUpdate': '2024-07-08T23:59:59+00:00',
-    'compact': 'cosm',
+    'compact': 'socw',
     'licenseJurisdiction': 'oh',
     'licenseStatus': 'active',
     'compactEligibility': 'eligible',
@@ -21,7 +21,7 @@ EXPECTED_PROVIDER_RESPONSE = {
     'licenses': [
         {
             'type': 'license',
-            'compact': 'cosm',
+            'compact': 'socw',
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
             'licenseStatus': 'active',
@@ -34,7 +34,7 @@ EXPECTED_PROVIDER_RESPONSE = {
         {
             'type': 'privilege',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-            'compact': 'cosm',
+            'compact': 'socw',
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
             'licenseType': 'cosmetologist',
@@ -51,7 +51,7 @@ EXPECTED_PROVIDER_RESPONSE = {
 class TestPublicGetProvider(TstFunction):
     def setUp(self):
         super().setUp()
-        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.set_live_compact_jurisdictions_for_test({'socw': ['ne']})
 
     def test_public_get_provider_response_with_expected_fields_filtered(self):
         self._load_provider_data()
@@ -63,7 +63,7 @@ class TestPublicGetProvider(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['pathParameters'] = {'compact': 'socw', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
         resp = public_get_provider(event, self.mock_context)
@@ -92,7 +92,7 @@ class TestPublicGetProvider(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['pathParameters'] = {'compact': 'socw', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
         resp = public_get_provider(event, self.mock_context)
@@ -143,7 +143,7 @@ class TestPublicGetProvider(TstFunction):
 
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['pathParameters'] = {'compact': 'socw', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
         resp = public_get_provider(event, self.mock_context)
@@ -155,7 +155,7 @@ class TestPublicGetProvider(TstFunction):
         expected_licenses = [
             {
                 'type': 'license',
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'oh',
                 'licenseType': 'cosmetologist',
                 'licenseStatus': 'active',
@@ -165,7 +165,7 @@ class TestPublicGetProvider(TstFunction):
             },
             {
                 'type': 'license',
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'oh',
                 'licenseType': 'esthetician',
                 'licenseStatus': 'active',
@@ -185,7 +185,7 @@ class TestPublicGetProvider(TstFunction):
         # public endpoint does not have authorizer
         del event['requestContext']['authorizer']
         # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['queryStringParameters'] = None
 
         resp = public_get_provider(event, self.mock_context)

@@ -8,7 +8,7 @@ from .. import TstFunction
 @mock_aws
 class TestPostUser(TstFunction):
     def _when_testing_with_valid_jurisdiction(self):
-        # load list of active jurisdiction for cosm compact to pass the jurisdiction validation
+        # load list of active jurisdiction for socw compact to pass the jurisdiction validation
         self._load_compact_active_member_jurisdictions()
 
     def test_post_user(self):
@@ -29,7 +29,7 @@ class TestPostUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
 
@@ -59,13 +59,13 @@ class TestPostUser(TstFunction):
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
         # A user with no compact read or admin, no actions in a jurisdiction
-        api_user['permissions'] = {'cosm': {'actions': {}, 'jurisdictions': {'oh': {'actions': {}}}}}
+        api_user['permissions'] = {'socw': {'actions': {}, 'jurisdictions': {'oh': {'actions': {}}}}}
         event['body'] = json.dumps(api_user)
 
-        # The user has admin permission for cosm admin
+        # The user has admin permission for socw admin
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
@@ -75,7 +75,7 @@ class TestPostUser(TstFunction):
         user_id = user.pop('userId')
         del user['dateOfUpdate']
         # The cosm.actions and cosm.jurisdictions.oh fields should be removed, since they are empty
-        api_user['permissions'] = {'cosm': {'jurisdictions': {}}}
+        api_user['permissions'] = {'socw': {'jurisdictions': {}}}
 
         # Add status to the comparison
         api_user['status'] = StaffUserStatus.INACTIVE.value
@@ -84,7 +84,7 @@ class TestPostUser(TstFunction):
 
         # Get the user back out via the API to check GET vs POST consistency
         del event['body']
-        event['pathParameters'] = {'compact': 'cosm', 'userId': user_id}
+        event['pathParameters'] = {'compact': 'socw', 'userId': user_id}
         resp = get_one_user(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
         user = json.loads(resp['body'])
@@ -107,7 +107,7 @@ class TestPostUser(TstFunction):
         # The user has admin permission for nebraska, not oh, which is where the user they are trying to create
         # has permission.
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
 
@@ -126,17 +126,17 @@ class TestPostUser(TstFunction):
             api_user = json.load(f)
 
         # A user with an invalid jurisdiction
-        api_user['permissions'] = {'cosm': {'actions': {}, 'jurisdictions': {'fl': {'actions': {'readPrivate': True}}}}}
+        api_user['permissions'] = {'socw': {'actions': {}, 'jurisdictions': {'fl': {'actions': {'readPrivate': True}}}}}
         event['body'] = json.dumps(api_user)
 
         # The user has admin permission for cosm
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
         body = json.loads(resp['body'])
 
-        self.assertEqual({'message': "'FL' is not a valid jurisdiction for 'COSM' compact"}, body)
+        self.assertEqual({'message': "'FL' is not a valid jurisdiction for 'socw' compact"}, body)

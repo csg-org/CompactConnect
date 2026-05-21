@@ -21,7 +21,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral cosm/readPrivate'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
 
         resp = query_providers(event, self.mock_context)
@@ -53,7 +53,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral cosm/readPrivate'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
@@ -94,7 +94,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
@@ -127,7 +127,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -158,7 +158,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(
             {
                 'sorting': {'key': 'familyName'},
@@ -184,7 +184,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps({'query': {}})
 
         resp = query_providers(event, self.mock_context)
@@ -212,7 +212,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps({'query': {'jurisdiction': 'oh'}, 'sorting': {'key': 'invalid'}})
 
         resp = query_providers(event, self.mock_context)
@@ -236,7 +236,7 @@ class TestQueryProviders(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         # Test multiple fields with whitespace
         event['body'] = json.dumps(
@@ -265,7 +265,7 @@ class TestQueryProviders(TstFunction):
 class TestGetProvider(TstFunction):
     def setUp(self):
         super().setUp()
-        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.set_live_compact_jurisdictions_for_test({'socw': ['ne']})
 
     @staticmethod
     def _get_sensitive_hash():
@@ -282,7 +282,7 @@ class TestGetProvider(TstFunction):
 
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = scopes
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['pathParameters'] = {'compact': 'socw', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
         resp = get_provider(event, self.mock_context)
@@ -329,7 +329,7 @@ class TestGetProvider(TstFunction):
         # The user has read permission for cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral'
         # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['queryStringParameters'] = None
 
         resp = get_provider(event, self.mock_context)

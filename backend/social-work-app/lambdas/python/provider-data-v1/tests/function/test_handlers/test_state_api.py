@@ -26,9 +26,9 @@ class SignatureTestBase(TstFunction):
 
     def _setup_signature_keys(self):
         """Setup signature keys for testing. Override in subclasses to customize key setup."""
-        # Default setup - load keys for 'cosm' compact with 'oh' and 'ne' jurisdictions
-        self._load_signature_public_key('cosm', 'oh', 'test-key-001', self.public_key_pem)
-        self._load_signature_public_key('cosm', 'ne', 'test-key-001', self.public_key_pem)
+        # Default setup - load keys for 'socw' compact with 'oh' and 'ne' jurisdictions
+        self._load_signature_public_key('socw', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_signature_public_key('socw', 'ne', 'test-key-001', self.public_key_pem)
 
     def _load_signature_public_key(self, compact: str, jurisdiction: str, key_id: str, public_key_pem: str):
         """Load a signature public key into the compact configuration table."""
@@ -74,7 +74,7 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
     def _setup_signature_keys(self):
         """Setup signature keys for testing. Only need 'oh' jurisdiction for this test."""
 
-        self._load_signature_public_key('cosm', 'oh', 'test-key-001', self.public_key_pem)
+        self._load_signature_public_key('socw', 'oh', 'test-key-001', self.public_key_pem)
 
     def test_bulk_upload_url_handler_success(self):
         """Test successful bulk upload URL generation with optional signature authentication."""
@@ -85,7 +85,7 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
 
         # The user has write permission for cosm/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Add signature authentication headers
         event = self._create_signed_event(event)
@@ -123,7 +123,7 @@ class TestBulkUploadUrlHandler(SignatureTestBase):
 
         # The user has write permission for cosm/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/readGeneral oh/cosm.write'
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         # Do NOT add signature authentication headers - this should cause the request to be rejected
         # since signature keys are configured for this compact/jurisdiction

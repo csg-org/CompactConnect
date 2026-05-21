@@ -27,7 +27,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -55,7 +55,7 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
@@ -84,7 +84,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -112,7 +112,7 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
@@ -141,7 +141,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -169,7 +169,7 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
@@ -198,7 +198,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -226,7 +226,7 @@ class TestInvestigationEventBusClient(TstLambdas):
 
         # Create expected detail structure
         expected_detail = {
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
@@ -258,7 +258,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -288,7 +288,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -318,7 +318,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -348,7 +348,7 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Call the method
         self.client.publish_investigation_closed_event(
             source='test.source',
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',

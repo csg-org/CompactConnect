@@ -6,7 +6,7 @@ from cc_common.config import logger
 
 from tests import TstLambdas
 
-TEST_COMPACT = 'cosm'
+TEST_COMPACT = 'socw'
 TEST_FORMER_JURISDICTION = 'tn'
 TEST_NEW_JURISDICTION = 'oh'
 TEST_PROVIDER_ID = UUID('12345678-1234-5678-1234-567812345678')

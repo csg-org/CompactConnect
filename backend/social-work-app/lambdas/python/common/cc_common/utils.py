@@ -367,15 +367,15 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
 
     ReadGeneral - granted at compact level, allows read access to all generally available (not private) jurisdiction
     data within the compact.
-    i.e. cosm/readGeneral would allow read access to all generally available jurisdiction data within the cosm compact.
+    i.e. cosm/readGeneral would allow read access to all generally available jurisdiction data within the socw compact.
 
     Write - granted at jurisdiction level, allows write access to a specific jurisdiction within the compact.
-    i.e. oh/cosm.write would allow write access to the ohio jurisdiction within the cosm compact.
+    i.e. oh/cosm.write would allow write access to the ohio jurisdiction within the socw compact.
 
     Admin - granted at compact level and jurisdiction level, allows administrative access to either a specific
     compact or a specific jurisdiction within the compact.
-    i.e. 'cosm/admin' would allow administrative access to the cosm compact. 'oh/cosm.admin' would allow
-    administrative access to the ohio jurisdiction within the cosm compact.
+    i.e. 'cosm/admin' would allow administrative access to the socw compact. 'oh/cosm.admin' would allow
+    administrative access to the ohio jurisdiction within the socw compact.
 
     :param dict event: The event object passed to the lambda function.
     :param str resource_parameter: The value of the resource parameter in the path.

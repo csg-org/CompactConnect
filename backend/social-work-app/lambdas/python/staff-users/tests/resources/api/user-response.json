@@ -9,7 +9,7 @@
   },
   "status": "inactive",
   "permissions": {
-    "cosm": {
+    "socw": {
       "actions": {
         "readPrivate": true
       },

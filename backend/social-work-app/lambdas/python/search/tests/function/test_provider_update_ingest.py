@@ -17,10 +17,10 @@ from . import TstFunction
 MOCK_COSM_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 TEST_LICENSE_TYPE_MAPPING = {
-    'cosm': 'cosmetologist',
+    'socw': 'cosmetologist',
 }
 TEST_PROVIDER_ID_MAPPING = {
-    'cosm': MOCK_COSM_PROVIDER_ID,
+    'socw': MOCK_COSM_PROVIDER_ID,
 }
 
 
@@ -222,7 +222,7 @@ class TestProviderUpdateIngest(TstFunction):
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+        self._put_test_provider_and_license_record_in_dynamodb_table('socw')
 
         event = {
             'Records': [
@@ -230,7 +230,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
@@ -246,7 +246,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
-        self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
+        self.assertEqual([self._generate_expected_document('socw')], call_args.kwargs['documents'])
         self.assertEqual('documentId', call_args.kwargs['id_field'])
 
         self.assertEqual({'batchItemFailures': []}, result)
@@ -255,7 +255,7 @@ class TestProviderUpdateIngest(TstFunction):
         """Provider + OH cosmetologist (default dates) + KY cosmetologist (older issuance/renewal)."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
-                'compact': 'cosm',
+                'compact': 'socw',
                 'providerId': MOCK_COSM_PROVIDER_ID,
                 'givenName': 'testcosmGivenName',
                 'familyName': 'testcosmFamilyName',
@@ -264,22 +264,22 @@ class TestProviderUpdateIngest(TstFunction):
         )
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
-                'compact': 'cosm',
+                'compact': 'socw',
                 'providerId': MOCK_COSM_PROVIDER_ID,
                 'givenName': 'testcosmGivenName',
                 'familyName': 'testcosmFamilyName',
-                'licenseType': TEST_LICENSE_TYPE_MAPPING['cosm'],
+                'licenseType': TEST_LICENSE_TYPE_MAPPING['socw'],
                 'jurisdiction': 'oh',
             },
             date_of_update_override=DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
         )
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
-                'compact': 'cosm',
+                'compact': 'socw',
                 'providerId': MOCK_COSM_PROVIDER_ID,
                 'givenName': 'testcosmGivenName',
                 'familyName': 'testcosmFamilyName',
-                'licenseType': TEST_LICENSE_TYPE_MAPPING['cosm'],
+                'licenseType': TEST_LICENSE_TYPE_MAPPING['socw'],
                 'jurisdiction': 'ky',
                 'licenseNumber': 'KY-COSM-001',
                 'dateOfIssuance': date(2005, 1, 1),
@@ -304,7 +304,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
@@ -332,7 +332,7 @@ class TestProviderUpdateIngest(TstFunction):
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+        self._put_test_provider_and_license_record_in_dynamodb_table('socw')
 
         event = {
             'Records': [
@@ -340,7 +340,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number-1',
                             event_name='INSERT',
@@ -351,7 +351,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12346',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number-2',
                             event_name='MODIFY',
@@ -362,7 +362,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12347',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number-3',
                             event_name='MODIFY',
@@ -393,7 +393,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         provider = self.test_data_generator.generate_default_provider(
             value_overrides={
-                'compact': 'cosm',
+                'compact': 'socw',
                 'providerId': MOCK_COSM_PROVIDER_ID,
                 'givenName': 'testGivenName',
                 'familyName': 'testFamilyName',
@@ -409,7 +409,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
@@ -447,7 +447,7 @@ class TestProviderUpdateIngest(TstFunction):
             ],
         }
 
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+        self._put_test_provider_and_license_record_in_dynamodb_table('socw')
 
         event = {
             'Records': [
@@ -455,7 +455,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number-1',
                         )
@@ -478,7 +478,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         mock_opensearch_client.bulk_index.side_effect = CCInternalException('Connection timeout after 5 retries')
 
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+        self._put_test_provider_and_license_record_in_dynamodb_table('socw')
 
         event = {
             'Records': [
@@ -486,7 +486,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number-1',
                         )
@@ -496,7 +496,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12346',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number-2',
                         )
@@ -531,7 +531,7 @@ class TestProviderUpdateIngest(TstFunction):
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+        self._put_test_provider_and_license_record_in_dynamodb_table('socw')
 
         event = {
             'Records': [
@@ -539,7 +539,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                             event_name='INSERT',
@@ -557,7 +557,7 @@ class TestProviderUpdateIngest(TstFunction):
 
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
-        self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
+        self.assertEqual([self._generate_expected_document('socw')], call_args.kwargs['documents'])
         self.assertEqual('documentId', call_args.kwargs['id_field'])
 
         # No delete_provider_documents should be called for INSERT events
@@ -582,7 +582,7 @@ class TestProviderUpdateIngest(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Provider still exists in DynamoDB with remaining records
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+        self._put_test_provider_and_license_record_in_dynamodb_table('socw')
 
         event = {
             'Records': [
@@ -590,7 +590,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record_with_old_image_only(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
@@ -612,7 +612,7 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
         call_args = mock_opensearch_client.bulk_index.call_args
         self.assertEqual('compact_cosm_providers', call_args.kwargs['index_name'])
-        self.assertEqual([self._generate_expected_document('cosm')], call_args.kwargs['documents'])
+        self.assertEqual([self._generate_expected_document('socw')], call_args.kwargs['documents'])
         self.assertEqual('documentId', call_args.kwargs['id_field'])
 
         self.assertEqual({'batchItemFailures': []}, result)
@@ -639,7 +639,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record_with_old_image_only(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
@@ -678,7 +678,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record_with_old_image_only(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                         )
@@ -714,7 +714,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'messageId': '12345',
                     'body': json.dumps(
                         self._create_dynamodb_stream_record(
-                            compact='cosm',
+                            compact='socw',
                             provider_id=MOCK_COSM_PROVIDER_ID,
                             sequence_number='some-sequence-number',
                             event_name='MODIFY',

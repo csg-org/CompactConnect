@@ -29,7 +29,7 @@ class TestPostLicenses(TstLambdas):
         # The user has scopes for oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -94,7 +94,7 @@ class TestPostLicenses(TstLambdas):
         # The user has scopes for oh, not ne
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'ne'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'ne'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -126,7 +126,7 @@ class TestPostLicenses(TstLambdas):
         # The user has scopes for oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.write'
 
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
 
         with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])

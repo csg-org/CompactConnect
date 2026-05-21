@@ -241,7 +241,7 @@ class TstFunction(TstLambdas):
         """
         Override live_compact_jurisdictions for this test without patching.
 
-        Use when the test needs specific compacts -> list of jurisdiction codes (e.g. {'cosm': ['ne', 'oh']})
+        Use when the test needs specific compacts -> list of jurisdiction codes (e.g. {'socw': ['ne', 'oh']})
         so that runtime privilege generation returns the expected privileges. Call at the start of the
         test; the cache is cleared in setUp so this value will be used on first access.
         """
@@ -312,7 +312,7 @@ class TstFunction(TstLambdas):
             # Update preprocessing message with license data including SSN
             preprocessing_sqs_message_copy.update(
                 {
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'jurisdiction': home,
                     'licenseNumber': f'TEST-{ssn_serial}',
                     'licenseType': 'cosmetologist',
@@ -337,7 +337,7 @@ class TstFunction(TstLambdas):
                     'familyName': family_name,
                     'givenName': given_name,
                     'middleName': name_faker.unique.first_name(),
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'jurisdiction': home,
                     'licenseNumber': f'TEST-{ssn_serial}',
                     'licenseType': 'cosmetologist',

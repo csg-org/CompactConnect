@@ -56,7 +56,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
 
     def setUp(self):
         super().setUp()
-        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.set_live_compact_jurisdictions_for_test({'socw': ['ne']})
 
     def _when_testing_privilege_investigation(self):
         self.test_data_generator.put_default_provider_record_in_provider_table()
@@ -402,7 +402,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
 
     def setUp(self):
         super().setUp()
-        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.set_live_compact_jurisdictions_for_test({'socw': ['ne']})
 
     def _when_testing_privilege_investigation_close(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
@@ -599,7 +599,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test(
-            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+            {'socw': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
 
     def _load_license_data(self):

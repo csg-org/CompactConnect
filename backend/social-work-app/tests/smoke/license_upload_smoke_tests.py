@@ -22,7 +22,7 @@ from smoke_common import (
     wait_for_provider_creation,
 )
 
-COMPACT = 'cosm'
+COMPACT = 'socw'
 
 # This script can be run locally to test the license upload/ingest flow against a sandbox environment.
 # License POST uses the state API (CC_TEST_STATE_API_BASE_URL) with a short-lived Cognito app client

@@ -19,7 +19,7 @@ const SAMPLE_COMPACT_CONFIG: Compact = {
         feeAmount: 3.5,
         feeType: 'FLAT_RATE'
     },
-    compactAbbr: 'cosm',
+    compactAbbr: 'socw',
     compactName: 'Audiology and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
     dateOfUpdate: '2024-12-10T19:27:28+00:00',
@@ -31,7 +31,7 @@ const SAMPLE_JURISDICTION_CONFIG = {
     sk: 'cosm#JURISDICTION#oh',
     jurisdictionName: 'Ohio',
     postalAbbreviation: 'oh',
-    compact: 'cosm',
+    compact: 'socw',
     jurisdictionOperationsTeamEmails: ['oh-ops@example.com'],
     jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com']
 };
@@ -110,7 +110,7 @@ describe('EncumbranceNotificationService', () => {
     describe('License Encumbrance Provider Notification', () => {
         it('should send license encumbrance provider notification email', async () => {
             await encumbranceService.sendLicenseEncumbranceProviderNotificationEmail(
-                'cosm',
+                'socw',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -143,7 +143,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendLicenseEncumbranceProviderNotificationEmail(
-                'cosm',
+                'socw',
                 [],
                 'John',
                 'Doe',
@@ -159,7 +159,7 @@ describe('EncumbranceNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
 
             await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -198,7 +198,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -218,7 +218,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendLicenseEncumbranceStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -236,7 +236,7 @@ describe('EncumbranceNotificationService', () => {
     describe('License Encumbrance Lifting Provider Notification', () => {
         it('should send license encumbrance lifting provider notification email with correct content', async () => {
             await encumbranceService.sendLicenseEncumbranceLiftingProviderNotificationEmail(
-                'cosm',
+                'socw',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -272,7 +272,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendLicenseEncumbranceLiftingProviderNotificationEmail(
-                'cosm',
+                'socw',
                 [],
                 'John',
                 'Doe',
@@ -291,7 +291,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
-                'cosm',
+                'socw',
                 'ca',
                 'John',
                 'Doe',
@@ -333,7 +333,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -353,7 +353,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendLicenseEncumbranceLiftingStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -371,7 +371,7 @@ describe('EncumbranceNotificationService', () => {
     describe('Privilege Encumbrance Provider Notification', () => {
         it('should send privilege encumbrance provider notification email with correct content', async () => {
             await encumbranceService.sendPrivilegeEncumbranceProviderNotificationEmail(
-                'cosm',
+                'socw',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -407,7 +407,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendPrivilegeEncumbranceProviderNotificationEmail(
-                'cosm',
+                'socw',
                 [],
                 'John',
                 'Doe',
@@ -426,7 +426,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'cosm',
+                'socw',
                 'ca',
                 'John',
                 'Doe',
@@ -468,7 +468,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should include provider detail link in email content', async () => {
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'cosm',
+                'socw',
                 'ca',
                 'John',
                 'Doe',
@@ -492,7 +492,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -512,7 +512,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendPrivilegeEncumbranceStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -530,7 +530,7 @@ describe('EncumbranceNotificationService', () => {
     describe('Privilege Encumbrance Lifting Provider Notification', () => {
         it('should send privilege encumbrance lifting provider notification email with correct content', async () => {
             await encumbranceService.sendPrivilegeEncumbranceLiftingProviderNotificationEmail(
-                'cosm',
+                'socw',
                 ['provider@example.com'],
                 'John',
                 'Doe',
@@ -566,7 +566,7 @@ describe('EncumbranceNotificationService', () => {
 
         it('should throw error when no recipients provided', async () => {
             await expect(encumbranceService.sendPrivilegeEncumbranceLiftingProviderNotificationEmail(
-                'cosm',
+                'socw',
                 [],
                 'John',
                 'Doe',
@@ -585,7 +585,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
-                'cosm',
+                'socw',
                 'ca',
                 'John',
                 'Doe',
@@ -633,7 +633,7 @@ describe('EncumbranceNotificationService', () => {
             });
 
             await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',
@@ -653,7 +653,7 @@ describe('EncumbranceNotificationService', () => {
             );
 
             await encumbranceService.sendPrivilegeEncumbranceLiftingStateNotificationEmail(
-                'cosm',
+                'socw',
                 'oh',
                 'John',
                 'Doe',

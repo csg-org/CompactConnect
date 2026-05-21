@@ -25,7 +25,7 @@ class TestDataClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_provider(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
         )
         self.assertEqual(2, len(resp['items']))
@@ -56,7 +56,7 @@ class TestDataClient(TstFunction):
 
         # The field should not be allowed out via API
         resp = client.get_provider(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
         )
         for item in resp['items']:
@@ -87,7 +87,7 @@ class TestDataClient(TstFunction):
         # Create a provider record with an SSN
         self._load_provider_data()
 
-        ssn = client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+        ssn = client.get_ssn_by_provider_id(compact='socw', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
         self.assertEqual('123-12-1234', ssn)
 
     def test_get_ssn_by_provider_id_raises_exception_if_provider_id_does_not_exist(self):
@@ -99,7 +99,7 @@ class TestDataClient(TstFunction):
 
         # We didn't create the provider this time, so this won't exist
         with self.assertRaises(CCNotFoundException):
-            client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+            client.get_ssn_by_provider_id(compact='socw', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
 
     def test_get_ssn_by_provider_id_raises_exception_multiple_records_found(self):
         """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
@@ -115,14 +115,14 @@ class TestDataClient(TstFunction):
                 'pk': 'cosm#SSN#123-12-5678',
                 'sk': 'cosm#SSN#123-12-5678',
                 'providerIdGSIpk': 'cosm#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
-                'compact': 'cosm',
+                'compact': 'socw',
                 'ssn': '123-12-5678',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
             }
         )
 
         with self.assertRaises(CCInternalException):
-            client.get_ssn_by_provider_id(compact='cosm', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+            client.get_ssn_by_provider_id(compact='socw', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
 
     def test_get_provider_user_records_correctly_handles_pagination(self):
         """Test that get_provider_user_records correctly handles pagination by returning all records.
@@ -140,7 +140,7 @@ class TestDataClient(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
                 'providerId': provider_uuid,
-                'compact': 'cosm',
+                'compact': 'socw',
             }
         )
 
@@ -151,7 +151,7 @@ class TestDataClient(TstFunction):
             self.test_data_generator.put_default_license_record_in_provider_table(
                 value_overrides={
                     'providerId': provider_uuid,
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'jurisdiction': jurisdiction,
                     'licenseType': 'esthetician',
                 }
@@ -169,7 +169,7 @@ class TestDataClient(TstFunction):
 
         try:
             # Call the method that should handle pagination correctly
-            provider_records = client.get_provider_user_records(compact='cosm', provider_id=provider_uuid)
+            provider_records = client.get_provider_user_records(compact='socw', provider_id=provider_uuid)
 
             # Verify that we got all the records
             # We expect 1 provider record + 30 license records = 31 total
@@ -202,7 +202,7 @@ class TestDataClient(TstFunction):
         investigation = self.test_data_generator.generate_default_investigation(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'ne',
                 'licenseType': 'cosmetologist',
                 'investigationAgainst': 'privilege',
@@ -214,7 +214,7 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was created
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_privilege(
             privilege_jurisdiction='ne',
@@ -229,7 +229,7 @@ class TestDataClient(TstFunction):
             'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'cosmetologist',
@@ -256,7 +256,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -272,7 +272,7 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was created
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction='oh',
@@ -287,7 +287,7 @@ class TestDataClient(TstFunction):
             'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
@@ -322,7 +322,7 @@ class TestDataClient(TstFunction):
             'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'investigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
@@ -376,7 +376,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': str(provider_id),
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -408,7 +408,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -424,7 +424,7 @@ class TestDataClient(TstFunction):
         # Now close the investigation
         closing_user = str(uuid4())
         client.close_investigation(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -436,7 +436,7 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
         investigation_records = provider_user_records.get_investigation_records_for_privilege(
             privilege_jurisdiction='ne', privilege_license_type_abbreviation='cos', include_closed=True
@@ -450,7 +450,7 @@ class TestDataClient(TstFunction):
             'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'cosmetologist',
@@ -479,7 +479,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -496,7 +496,7 @@ class TestDataClient(TstFunction):
         closing_user = str(uuid4())
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='cos',
@@ -508,7 +508,7 @@ class TestDataClient(TstFunction):
 
         # grab all provider records to make assertions
         provider_user_records = self.config.data_client.get_provider_user_records(
-            compact='cosm', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
+            compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
         # Verify investigation record was updated with close information
@@ -524,7 +524,7 @@ class TestDataClient(TstFunction):
             'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
@@ -569,7 +569,7 @@ class TestDataClient(TstFunction):
             'sk': ANY,
             'type': 'licenseUpdate',
             'updateType': 'closingInvestigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
@@ -619,7 +619,7 @@ class TestDataClient(TstFunction):
         # Try to close a non-existent investigation
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='cosm',
+                compact='socw',
                 provider_id=provider_id,
                 jurisdiction='ne',
                 license_type_abbreviation='cos',
@@ -645,7 +645,7 @@ class TestDataClient(TstFunction):
         # Try to close a non-existent investigation
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='cosm',
+                compact='socw',
                 provider_id=provider_id,
                 jurisdiction='oh',
                 license_type_abbreviation='cos',
@@ -673,7 +673,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -689,7 +689,7 @@ class TestDataClient(TstFunction):
         # Now close the investigation
         closing_user = str(uuid4())
         client.close_investigation(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -700,7 +700,7 @@ class TestDataClient(TstFunction):
         )
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='cosm',
+                compact='socw',
                 provider_id=provider_id,
                 jurisdiction='ne',
                 license_type_abbreviation='cos',
@@ -728,7 +728,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -744,7 +744,7 @@ class TestDataClient(TstFunction):
         # Now close the investigation
         closing_user = str(uuid4())
         client.close_investigation(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='cos',
@@ -755,7 +755,7 @@ class TestDataClient(TstFunction):
         )
         with self.assertRaises(CCNotFoundException) as context:
             client.close_investigation(
-                compact='cosm',
+                compact='socw',
                 provider_id=provider_id,
                 jurisdiction='oh',
                 license_type_abbreviation='cos',
@@ -782,7 +782,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -801,7 +801,7 @@ class TestDataClient(TstFunction):
 
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
@@ -826,7 +826,7 @@ class TestDataClient(TstFunction):
             'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': f'cosm#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'ne',
             'licenseType': 'cosmetologist',
@@ -858,7 +858,7 @@ class TestDataClient(TstFunction):
         investigation = InvestigationData.create_new(
             {
                 'providerId': provider_id,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
@@ -877,7 +877,7 @@ class TestDataClient(TstFunction):
 
         close_date = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
         client.close_investigation(
-            compact='cosm',
+            compact='socw',
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='cos',
@@ -902,7 +902,7 @@ class TestDataClient(TstFunction):
             'pk': f'cosm#PROVIDER#{provider_id}',
             'sk': f'cosm#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',

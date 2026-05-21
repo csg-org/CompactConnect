@@ -19,7 +19,7 @@ const SAMPLE_COMPACT_CONFIG: Compact = {
         feeAmount: 3.5,
         feeType: 'FLAT_RATE'
     },
-    compactAbbr: 'cosm',
+    compactAbbr: 'socw',
     compactName: 'Audiology and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
     dateOfUpdate: '2024-12-10T19:27:28+00:00',
@@ -31,7 +31,7 @@ const SAMPLE_JURISDICTION_CONFIG = {
     sk: 'cosm#JURISDICTION#oh',
     jurisdictionName: 'Ohio',
     postalAbbreviation: 'oh',
-    compact: 'cosm',
+    compact: 'socw',
     jurisdictionOperationsTeamEmails: ['oh-ops@example.com'],
     jurisdictionAdverseActionsNotificationEmails: ['oh-adverse@example.com']
 };
@@ -110,7 +110,7 @@ describe('InvestigationNotificationService', () => {
     describe('License Investigation State Notification', () => {
         it('should send license investigation state notification email', async () => {
             await investigationService.sendLicenseInvestigationStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -145,7 +145,7 @@ describe('InvestigationNotificationService', () => {
             mockJurisdictionClient.getJurisdictionConfiguration.mockRejectedValue(new Error('Jurisdiction not found'));
 
             await investigationService.sendLicenseInvestigationStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -162,7 +162,7 @@ describe('InvestigationNotificationService', () => {
     describe('License Investigation Closed State Notification', () => {
         it('should send license investigation closed state notification email', async () => {
             await investigationService.sendLicenseInvestigationClosedStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -197,7 +197,7 @@ describe('InvestigationNotificationService', () => {
     describe('Privilege Investigation State Notification', () => {
         it('should send privilege investigation state notification email', async () => {
             await investigationService.sendPrivilegeInvestigationStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -232,7 +232,7 @@ describe('InvestigationNotificationService', () => {
     describe('Privilege Investigation Closed State Notification', () => {
         it('should send privilege investigation closed state notification email', async () => {
             await investigationService.sendPrivilegeInvestigationClosedStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -270,7 +270,7 @@ describe('InvestigationNotificationService', () => {
 
             await expect(
                 investigationService.sendLicenseInvestigationStateNotificationEmail(
-                    'cosm',
+                    'socw',
                     'OH',
                     'John',
                     'Doe',
@@ -292,7 +292,7 @@ describe('InvestigationNotificationService', () => {
             );
 
             await investigationService.sendLicenseInvestigationStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -316,7 +316,7 @@ describe('InvestigationNotificationService', () => {
             );
 
             await investigationService.sendLicenseInvestigationClosedStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -340,7 +340,7 @@ describe('InvestigationNotificationService', () => {
             );
 
             await investigationService.sendPrivilegeInvestigationStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -364,7 +364,7 @@ describe('InvestigationNotificationService', () => {
             );
 
             await investigationService.sendPrivilegeInvestigationClosedStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -384,7 +384,7 @@ describe('InvestigationNotificationService', () => {
 
             // When notifying jurisdiction equals affected jurisdiction, it should use the same config
             await investigationService.sendLicenseInvestigationStateNotificationEmail(
-                'cosm',
+                'socw',
                 'OH',
                 'John',
                 'Doe',
@@ -394,7 +394,7 @@ describe('InvestigationNotificationService', () => {
             );
 
             // Should have been called at least once with the jurisdiction
-            expect(mockJurisdictionClient.getJurisdictionConfiguration).toHaveBeenCalledWith('cosm', 'OH');
+            expect(mockJurisdictionClient.getJurisdictionConfiguration).toHaveBeenCalledWith('socw', 'OH');
             // Should have sent the email successfully
             expect(mockSESClient).toHaveReceivedCommand(SendEmailCommand);
         });

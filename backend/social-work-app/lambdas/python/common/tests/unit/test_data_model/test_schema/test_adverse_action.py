@@ -112,7 +112,7 @@ class TestAdverseActionDataClass(TstLambdas):
                 'adverseActionId': '98765432-9876-9876-9876-987654321098',
                 'encumbranceType': 'suspension',
                 'clinicalPrivilegeActionCategories': ['fraud'],
-                'compact': 'cosm',
+                'compact': 'socw',
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'effectiveStartDate': '2024-02-15',
                 'jurisdiction': 'ne',

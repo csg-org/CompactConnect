@@ -13,7 +13,7 @@ class TestCollectChanges(TstLambdas):
         from cc_common.utils import collect_and_authorize_changes
 
         resp = collect_and_authorize_changes(
-            path_compact='cosm',
+            path_compact='socw',
             scopes={'openid', 'email', 'cosm/admin'},
             compact_changes={'actions': {'admin': True, 'readPrivate': False}, 'jurisdictions': {}},
         )
@@ -34,7 +34,7 @@ class TestCollectChanges(TstLambdas):
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
-            path_compact='cosm',
+            path_compact='socw',
             scopes={'openid', 'email', 'oh/cosm.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}}},
         )
@@ -54,7 +54,7 @@ class TestCollectChanges(TstLambdas):
 
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
-                path_compact='cosm',
+                path_compact='socw',
                 scopes={'openid', 'email', 'oh/cosm.admin'},
                 compact_changes={'jurisdictions': {'ne': {'actions': {'admin': True, 'write': False}}}},
             )
@@ -65,7 +65,7 @@ class TestCollectChanges(TstLambdas):
 
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
-                path_compact='cosm',
+                path_compact='socw',
                 scopes={'openid', 'email', 'oh/cosm.admin'},
                 compact_changes={'actions': {'admin': True}, 'jurisdictions': {}},
             )
@@ -77,7 +77,7 @@ class TestCollectChanges(TstLambdas):
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
-            path_compact='cosm',
+            path_compact='socw',
             scopes={'openid', 'email', 'cosm/admin'},
             compact_changes={
                 'actions': {'admin': True, 'readPrivate': False},
@@ -101,7 +101,7 @@ class TestCollectChanges(TstLambdas):
         self._when_testing_collect_and_authorize_changes_with_valid_jurisdiction(mock_compact_configuration_client)
 
         resp = collect_and_authorize_changes(
-            path_compact='cosm',
+            path_compact='socw',
             scopes={'openid', 'email', 'oh/cosm.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True}}}},
         )

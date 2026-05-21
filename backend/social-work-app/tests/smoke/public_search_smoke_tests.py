@@ -31,7 +31,7 @@ from smoke_common import (
     wait_for_opensearch_sync,
 )
 
-COMPACT = 'cosm'
+COMPACT = 'socw'
 EXPIRED_DATE_FOR_TEST = '2020-05-05'
 # set older date of issuance and renewal for the test license that should be excluded from the public search results
 TEST_DATE_OF_ISSUANCE = '2013-05-05'

@@ -38,7 +38,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -66,7 +66,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -116,7 +116,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -148,7 +148,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -176,7 +176,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -240,7 +240,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -273,7 +273,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }
@@ -307,7 +307,7 @@ class TestSignatureAuthFunctional(TstFunction):
                 'pk': 'cosm#SIGNATURE_KEYS#al',
                 'sk': 'cosm#JURISDICTION#al#test-key-001',
                 'publicKey': self.public_key_pem,
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdiction': 'al',
                 'keyId': 'test-key-001',
             }

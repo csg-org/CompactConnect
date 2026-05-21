@@ -3,7 +3,7 @@ class CompactConfigUtility:
 
     # Mapping of compact abbreviations to full names
     COMPACT_NAME_MAPPING: dict[str, str] = {
-        'cosm': 'Cosmetology',
+        'socw': 'Cosmetology',
     }
 
     # Mapping of jurisdiction postal abbreviations to full state names

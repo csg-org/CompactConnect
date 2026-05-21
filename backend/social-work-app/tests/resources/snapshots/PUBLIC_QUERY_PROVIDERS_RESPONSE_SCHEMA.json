@@ -34,7 +34,7 @@
           },
           "compact": {
             "enum": [
-              "cosm"
+              "socw"
             ],
             "type": "string"
           },

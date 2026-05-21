@@ -73,7 +73,7 @@ class TestSearchProviders(TstFunction):
     def _create_mock_provider_hit(
         self,
         provider_id: str = '00000000-0000-0000-0000-000000000001',
-        compact: str = 'cosm',
+        compact: str = 'socw',
         sort_values: list = None,
     ) -> dict:
         """Create a mock OpenSearch hit for a one-doc-per-license provider document."""
@@ -140,7 +140,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Create event with minimal body - just the required query field
-        event = self._create_api_event(compact='cosm', body={'query': {'match_all': {}}})
+        event = self._create_api_event(compact='socw', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -173,7 +173,7 @@ class TestSearchProviders(TstFunction):
                 ]
             }
         }
-        event = self._create_api_event('cosm', body={'query': custom_query, 'from': 20})
+        event = self._create_api_event('socw', body={'query': custom_query, 'from': 20})
 
         search_api_handler(event, self.mock_context)
 
@@ -193,7 +193,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Request size larger than MAX_SIZE
-        event = self._create_api_event('cosm', body={'query': {'match_all': {}}, 'size': 500})
+        event = self._create_api_event('socw', body={'query': {'match_all': {}}, 'size': 500})
 
         result = search_api_handler(event, self.mock_context)
         self.assertEqual(400, result['statusCode'])
@@ -216,7 +216,7 @@ class TestSearchProviders(TstFunction):
         sort_config = [{'providerId': 'asc'}, {'dateOfUpdate': 'desc'}]
         search_after_values = ['provider-uuid-123']
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'match_all': {}},
                 'sort': sort_config,
@@ -245,7 +245,7 @@ class TestSearchProviders(TstFunction):
 
         # search_after without sort should fail
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'match_all': {}},
                 'search_after': ['provider-uuid-123'],
@@ -263,7 +263,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with missing required 'query' field
-        event = self._create_api_event('cosm', body={'size': 10})
+        event = self._create_api_event('socw', body={'size': 10})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -286,7 +286,7 @@ class TestSearchProviders(TstFunction):
         }
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
-        event = self._create_api_event('cosm', body={'query': {'match_all': {}}})
+        event = self._create_api_event('socw', body={'query': {'match_all': {}}})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -296,7 +296,7 @@ class TestSearchProviders(TstFunction):
         self.assertEqual(1, len(providers))
         provider = providers[0]
         # Verify provider-level fields are present and sanitized
-        self.assertEqual('cosm', provider['compact'])
+        self.assertEqual('socw', provider['compact'])
         self.assertEqual('John', provider['givenName'])
         self.assertEqual('Doe', provider['familyName'])
         self.assertEqual('oh', provider['licenseJurisdiction'])
@@ -335,7 +335,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client, search_response=search_response)
 
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'providerId': 'asc'}, {'dateOfUpdate': 'asc'}],
@@ -356,7 +356,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         # Test with different compacts
-        for compact in ['cosm']:
+        for compact in ['socw']:
             mock_opensearch_client.reset_mock()
 
             event = self._create_api_event(compact, body={'query': {'match_all': {}}})
@@ -370,7 +370,7 @@ class TestSearchProviders(TstFunction):
         from handlers.search import search_api_handler
 
         # Create event with unsupported route
-        event = self._create_api_event(compact='cosm', scopes_override='openid email')
+        event = self._create_api_event(compact='socw', scopes_override='openid email')
 
         response = search_api_handler(event, self.mock_context)
 
@@ -384,7 +384,7 @@ class TestSearchProviders(TstFunction):
 
         # Test with 'index' key (terms lookup attack pattern)
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {
                     'terms': {
@@ -411,7 +411,7 @@ class TestSearchProviders(TstFunction):
 
         # Test with '_index' key (more_like_this attack pattern)
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {
                     'more_like_this': {
@@ -440,7 +440,7 @@ class TestSearchProviders(TstFunction):
 
         # Test with 'index' key nested deep in the query structure
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {
                     'bool': {
@@ -481,7 +481,7 @@ class TestSearchProviders(TstFunction):
         mock_opensearch_client.search.side_effect = CCInvalidRequestException(error_reason)
 
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'familyName': 'asc'}],  # Sorting on text field causes this error
@@ -508,7 +508,7 @@ class TestSearchProviders(TstFunction):
             }
         }
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={'query': query},
             scopes_override='openid email cosm/readGeneral cosm/readPrivate',
         )
@@ -534,7 +534,7 @@ class TestSearchProviders(TstFunction):
             }
         }
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={'query': query},
             scopes_override='openid email cosm/readGeneral oh/cosm.readPrivate',
         )
@@ -554,7 +554,7 @@ class TestSearchProviders(TstFunction):
                 'query': {'term': {'licenses.dateOfBirth': '1985-06-06'}},
             }
         }
-        event = self._create_api_event('cosm', body={'query': query})
+        event = self._create_api_event('socw', body={'query': query})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -586,7 +586,7 @@ class TestSearchProviders(TstFunction):
                 ]
             }
         }
-        event = self._create_api_event('cosm', body={'query': query})
+        event = self._create_api_event('socw', body={'query': query})
 
         response = search_api_handler(event, self.mock_context)
 
@@ -603,7 +603,7 @@ class TestSearchProviders(TstFunction):
 
         # OpenSearch "exists" query references field by value: {"exists": {"field": "dateOfBirth"}}
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'exists': {'field': 'dateOfBirth'}},
             },
@@ -625,7 +625,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {
                     'multi_match': {
@@ -653,7 +653,7 @@ class TestSearchProviders(TstFunction):
 
         # Query does not reference dateOfBirth; only sort does
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'providerId': 'asc'}, {'licenses.dateOfBirth': 'desc'}],
@@ -676,7 +676,7 @@ class TestSearchProviders(TstFunction):
         self._when_testing_mock_opensearch_client(mock_opensearch_client)
 
         event = self._create_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'match_all': {}},
                 'sort': [{'licenses.dateOfBirth': 'desc'}, {'providerId': 'asc'}],

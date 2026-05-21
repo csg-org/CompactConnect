@@ -43,7 +43,7 @@ class TestDeleteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -61,7 +61,7 @@ class TestDeleteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -81,7 +81,7 @@ class TestDeleteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)
@@ -105,7 +105,7 @@ class TestDeleteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)
@@ -129,7 +129,7 @@ class TestDeleteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)
@@ -152,7 +152,7 @@ class TestDeleteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)
@@ -172,7 +172,7 @@ class TestDeleteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = delete_user(event, self.mock_context)

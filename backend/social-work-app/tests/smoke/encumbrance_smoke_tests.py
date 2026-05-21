@@ -26,7 +26,7 @@ from smoke_common import (
     logger,
 )
 
-ENCUMBRANCE_SMOKE_COMPACT = 'cosm'
+ENCUMBRANCE_SMOKE_COMPACT = 'socw'
 LIVE_JURISDICTION = 'az'
 
 

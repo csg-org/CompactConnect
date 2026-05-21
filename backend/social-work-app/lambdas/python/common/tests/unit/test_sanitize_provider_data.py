@@ -14,7 +14,7 @@ class TestSanitizeProviderData(TstLambdas):
 
         test_provider = expected_provider.copy()
 
-        resp = sanitize_provider_data_based_on_caller_scopes(compact='cosm', provider=test_provider, scopes=scopes)
+        resp = sanitize_provider_data_based_on_caller_scopes(compact='socw', provider=test_provider, scopes=scopes)
 
         self.assertEqual(expected_provider, resp)
 
@@ -52,7 +52,7 @@ class TestSanitizeProviderData(TstLambdas):
         loaded_provider['licenses'][0]['dateOfBirth'] = mock_dob
 
         # test provider has a license in oh and privilege in ne
-        resp = sanitize_provider_data_based_on_caller_scopes(compact='cosm', provider=loaded_provider, scopes=scopes)
+        resp = sanitize_provider_data_based_on_caller_scopes(compact='socw', provider=loaded_provider, scopes=scopes)
 
         # now create expected provider record with the ssn and dob removed
         del expected_provider['ssnLastFour']

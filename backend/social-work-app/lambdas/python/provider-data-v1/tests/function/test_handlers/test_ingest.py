@@ -50,7 +50,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {'compact': 'cosm', 'providerId': provider_id}
+        event['pathParameters'] = {'compact': 'socw', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = (
             'openid email stuff cosm/readGeneral cosm/readPrivate'
         )
@@ -97,7 +97,7 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
 
         # So get_provider returns one privilege (ne) to match expected fixture
-        self.set_live_compact_jurisdictions_for_test({'cosm': ['ne']})
+        self.set_live_compact_jurisdictions_for_test({'socw': ['ne']})
 
         # The test resource provider has a license in oh
         self._load_provider_data()
@@ -197,7 +197,7 @@ class TestIngest(TstFunction):
                     'DetailType': 'license.deactivation',
                     'Detail': json.dumps(
                         {
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'jurisdiction': 'oh',
                             'eventTime': '2024-11-08T23:59:59+00:00',
                             'providerId': provider_id,
@@ -706,7 +706,7 @@ class TestIngest(TstFunction):
             {
                 'Detail': json.dumps(
                     {
-                        'compact': 'cosm',
+                        'compact': 'socw',
                         'jurisdiction': 'ky',
                         'eventTime': '2024-11-08T23:59:59+00:00',
                         'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',

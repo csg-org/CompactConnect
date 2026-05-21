@@ -24,7 +24,7 @@ You'll need the following information for the execution:
 
 | Parameter | Description                                              | Example |
 |-----------|----------------------------------------------------------|---------|
-| `compact` | The compact abbreviation (lowercase)                     | `"cosm"` |
+| `compact` | The compact abbreviation (lowercase)                     | `"socw"` |
 | `jurisdiction` | The state/jurisdiction code (lowercase)                  | `"oh"`, `"ky"`, `"ne"` |
 | `startDateTime` | UTC timestamp when problematic uploads began (inclusive) | `"2020-01-15T08:00:00Z"` |
 | `endDateTime` | UTC timestamp when problematic uploads ended (inclusive) | `"2020-01-15T17:59:59Z"` |
@@ -51,7 +51,7 @@ You'll need the following information for the execution:
 
 ```json
 {
-  "compact": "cosm",
+  "compact": "socw",
   "jurisdiction": "oh",
   "startDateTime": "2020-01-15T08:00:00Z",
   "endDateTime": "2020-01-15T17:59:59Z",

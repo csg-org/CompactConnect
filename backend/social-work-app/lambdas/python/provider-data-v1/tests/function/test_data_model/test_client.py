@@ -17,7 +17,7 @@ class TestClient(TstFunction):
 
         # We expect to see 10 providers with licenses in oh
         resp = client.get_providers_sorted_by_family_name(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             pagination={'pageSize': 5},
         )
@@ -28,7 +28,7 @@ class TestClient(TstFunction):
 
         last_key = resp['pagination']['lastKey']
         resp = client.get_providers_sorted_by_family_name(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 100},
         )
@@ -51,7 +51,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_family_name(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             scan_forward=False,
         )
@@ -76,7 +76,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_family_name(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             provider_name=('Testerly', None),
             scan_forward=False,
@@ -102,7 +102,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_family_name(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             # By providing given and family name, we can expect only one provider returned
             provider_name=('Testerly', 'Tess'),
@@ -124,7 +124,7 @@ class TestClient(TstFunction):
 
         # We expect to see 10 providers with licenses in oh
         resp = client.get_providers_sorted_by_updated(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             pagination={'pageSize': 5},
         )
@@ -135,7 +135,7 @@ class TestClient(TstFunction):
 
         last_key = resp['pagination']['lastKey']
         resp = client.get_providers_sorted_by_updated(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 10},
         )
@@ -158,7 +158,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_updated(
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             scan_forward=False,
         )

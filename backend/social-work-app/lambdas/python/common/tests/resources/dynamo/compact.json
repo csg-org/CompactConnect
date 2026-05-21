@@ -2,7 +2,7 @@
   "pk": "cosm#CONFIGURATION",
   "sk": "cosm#CONFIGURATION",
   "type": "compact",
-  "compactAbbr": "cosm",
+  "compactAbbr": "socw",
   "compactName": "Cosmetology",
   "compactOperationsTeamEmails": ["<email address>"],
   "compactAdverseActionsNotificationEmails": ["<email address>"],

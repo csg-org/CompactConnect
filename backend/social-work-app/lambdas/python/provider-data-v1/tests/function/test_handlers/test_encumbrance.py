@@ -61,7 +61,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test(
-            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+            {'socw': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
 
     def _when_testing_privilege_encumbrance(self, body_overrides: dict | None = None):
@@ -247,7 +247,7 @@ class TestPostLicenseEncumbrance(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test(
-            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+            {'socw': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
 
     def _when_testing_valid_license_encumbrance(self, body_overrides: dict | None = None):
@@ -465,7 +465,7 @@ class TestPatchPrivilegeEncumbranceLifting(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test(
-            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+            {'socw': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
 
     def _setup_privilege_with_adverse_action(
@@ -784,7 +784,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
     def setUp(self):
         super().setUp()
         self.set_live_compact_jurisdictions_for_test(
-            {'cosm': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
+            {'socw': [DEFAULT_LICENSE_JURISDICTION, DEFAULT_PRIVILEGE_JURISDICTION]}
         )
 
     def _setup_license_with_adverse_action(self, adverse_action_overrides=None, license_overrides=None):

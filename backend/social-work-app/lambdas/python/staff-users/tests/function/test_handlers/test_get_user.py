@@ -15,7 +15,7 @@ class TestGetUser(TstFunction):
 
         # The user has admin permission for all of cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -33,7 +33,7 @@ class TestGetUser(TstFunction):
 
         # The user has admin permission for all of cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = get_one_user(event, self.mock_context)
@@ -58,7 +58,7 @@ class TestGetUser(TstFunction):
 
         # The user has admin permission for cosm/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = get_one_user(event, self.mock_context)
@@ -82,7 +82,7 @@ class TestGetUser(TstFunction):
 
         # The user has admin permission for cosm/ne, user does not have cosm/oh permissions
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         resp = get_one_user(event, self.mock_context)

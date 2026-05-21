@@ -23,7 +23,7 @@ from smoke_common import (
     logger,
 )
 
-INVESTIGATION_SMOKE_COMPACT = 'cosm'
+INVESTIGATION_SMOKE_COMPACT = 'socw'
 
 
 def _fetch_provider_details(auth_headers: dict) -> dict:
@@ -460,7 +460,7 @@ def main():
         staff_user_email = 'test-investigation-admin@example.com'
         staff_user_sub = create_test_staff_user(
             email=staff_user_email,
-            compact='cosm',
+            compact='socw',
             jurisdiction='az',
             permissions={
                 'actions': {'admin'},
@@ -492,7 +492,7 @@ def main():
     finally:
         # Clean up test staff user
         if staff_user_email and staff_user_sub:
-            delete_test_staff_user(staff_user_email, staff_user_sub, 'cosm')
+            delete_test_staff_user(staff_user_email, staff_user_sub, 'socw')
         clean_investigation_records()
 
     logger.info('All investigation smoke tests passed!')

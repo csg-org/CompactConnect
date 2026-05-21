@@ -15,7 +15,7 @@ output as input to continue processing.
 
 Example input for resumption:
 {
-    "startingCompact": "cosm",
+    "startingCompact": "socw",
     "startingLastKey": {"pk": "...", "sk": "..."}
 }
 

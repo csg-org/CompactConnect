@@ -39,7 +39,7 @@ class TestRollbackLicenseUpload(TstFunction):
         """Set up test fixtures before each test method."""
         super().setUp()
         # Create sample test data
-        self.compact = 'cosm'
+        self.compact = 'socw'
         self.license_jurisdiction = 'oh'
         self.provider_id = MOCK_PROVIDER_ID
         # default upload time between start and end time

@@ -121,7 +121,7 @@ class TestProcessBulkUploadFile(TstLambdas):
                 event_time=datetime.now(tz=UTC),
                 body=stream,
                 object_key='cosm/oh/1234',
-                compact='cosm',
+                compact='socw',
                 jurisdiction='oh',
             )
 
@@ -167,7 +167,7 @@ class TestProcessBulkUploadFile(TstLambdas):
             event_time=datetime.now(tz=UTC),
             body=stream,
             object_key='cosm/oh/1234',
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
         )
 

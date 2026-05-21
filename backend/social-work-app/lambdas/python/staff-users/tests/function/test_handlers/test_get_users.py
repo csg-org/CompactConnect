@@ -15,7 +15,7 @@ class TestGetUsers(TstFunction):
 
         # The user has admin permission for all of cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -28,9 +28,9 @@ class TestGetUsers(TstFunction):
         from cc_common.data_model.schema.common import StaffUserStatus
 
         # One user who is a compact admin in cosm
-        self._create_compact_staff_user(compacts=['cosm'])
+        self._create_compact_staff_user(compacts=['socw'])
         # One board user in each test jurisdiction (oh, ne, ky) with permissions in cosm.
-        self._create_board_staff_users(compacts=['cosm'])
+        self._create_board_staff_users(compacts=['socw'])
 
         from handlers.users import get_users
 
@@ -39,7 +39,7 @@ class TestGetUsers(TstFunction):
 
         # The user has admin permission for all of cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = None
 
         resp = get_users(event, self.mock_context)
@@ -54,11 +54,11 @@ class TestGetUsers(TstFunction):
             self.assertEqual(StaffUserStatus.INACTIVE.value, user['status'])
 
     def test_get_users_paginated(self):
-        self._create_compact_staff_user(compacts=['cosm'])
+        self._create_compact_staff_user(compacts=['socw'])
         # Nine users: Three board users in each test jurisdiction (oh, ne, ky) with permissions in cosm.
-        self._create_board_staff_users(compacts=['cosm'])
-        self._create_board_staff_users(compacts=['cosm'])
-        self._create_board_staff_users(compacts=['cosm'])
+        self._create_board_staff_users(compacts=['socw'])
+        self._create_board_staff_users(compacts=['socw'])
+        self._create_board_staff_users(compacts=['socw'])
 
         from handlers.users import get_users
 
@@ -68,7 +68,7 @@ class TestGetUsers(TstFunction):
         # The user has admin permission for all of cosm
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
         event['queryStringParameters'] = {'pageSize': '5'}
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = None
 
         first_resp = get_users(event, self.mock_context)

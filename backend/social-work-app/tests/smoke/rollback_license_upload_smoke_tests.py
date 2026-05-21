@@ -29,7 +29,7 @@ Test to verify that license records can be rolled back using rollback step funct
 Note that these tests upload license records into the system
 """
 
-COMPACT = 'cosm'
+COMPACT = 'socw'
 JURISDICTION = 'az'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'

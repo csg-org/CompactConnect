@@ -16,12 +16,12 @@ class TstLambdas(TestCase):
                 'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
-                'COMPACTS': '["cosm"]',
+                'COMPACTS': '["socw"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'ENVIRONMENT_NAME': 'test',
                 'LICENSE_TYPES': json.dumps(
                     {
-                        'cosm': [
+                        'socw': [
                             {'name': 'cosmetologist', 'abbreviation': 'cos'},
                             {'name': 'esthetician', 'abbreviation': 'esth'},
                         ],

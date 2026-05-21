@@ -52,7 +52,7 @@ if is_feature_enabled('my-feature-flag-name'):
 # With targeting context
 context = FeatureFlagContext(
     user_id='user-123',
-    custom_attributes={'compact': 'cosm', 'licenseType': 'cos'}
+    custom_attributes={'compact': 'socw', 'licenseType': 'cos'}
 )
 if is_feature_enabled('my-feature-flag-name', context=context):
     # run feature gated code if enabled
@@ -109,7 +109,7 @@ class FeatureFlagStack(AppStack):
                 FeatureFlagEnvironmentName.SANDBOX,
             ],
             # Note that flags are not updated once set and must be manually updated through the console
-            custom_attributes={'compact': ['cosm']},
+            custom_attributes={'compact': ['socw']},
             environment_name=environment_name,
         )
 

@@ -23,7 +23,7 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        user = client.get_user_in_compact(compact='cosm', user_id=user_id)
+        user = client.get_user_in_compact(compact='socw', user_id=user_id)
 
         # Verify that we're getting the expected fields
         self.assertEqual(
@@ -40,27 +40,27 @@ class TestClient(TstFunction):
 
         # This user isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_user_in_compact(compact='cosm', user_id='123')
+            client.get_user_in_compact(compact='socw', user_id='123')
 
     def test_get_one_jurisdiction_users_by_family_name(self):
         # One user with compact-staff-like permissions in cosm
-        self._create_compact_staff_user(compacts=['cosm'])
-        # One user with board-staff-like permissions in cosm in each jurisdiction
-        self._create_board_staff_users(compacts=['cosm'])
-        # One user with board-staff-like permissions in cosm in each jurisdiction
-        self._create_board_staff_users(compacts=['cosm'])
+        self._create_compact_staff_user(compacts=['socw'])
+        # One user with board-staff-like permissions in socw in each jurisdiction
+        self._create_board_staff_users(compacts=['socw'])
+        # One user with board-staff-like permissions in socw in each jurisdiction
+        self._create_board_staff_users(compacts=['socw'])
 
         from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
         resp = client.get_users_sorted_by_family_name(
-            compact='cosm',
+            compact='socw',
             # Only oh this time
             jurisdictions=['oh'],
         )
 
-        # We created two board users that have cosm permissions in oh so those are what we should get back
+        # We created two board users that have socw permissions in oh so those are what we should get back
         self.assertEqual(2, len(resp['items']))
 
         # Verify that we're getting the expected fields
@@ -82,7 +82,7 @@ class TestClient(TstFunction):
 
         with self.assertRaises(CCNotFoundException):
             client.update_user_permissions(
-                compact='cosm',
+                compact='socw',
                 user_id='does-not-exist',
                 jurisdiction_action_additions={'oh': {'admin'}},
                 jurisdiction_action_removals={'oh': {'write'}},
@@ -96,7 +96,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.update_user_permissions(
-            compact='cosm',
+            compact='socw',
             user_id=user_id,
             jurisdiction_action_additions={'oh': {'admin'}, 'ky': {'write'}},
             jurisdiction_action_removals={'oh': {'write'}},
@@ -121,7 +121,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.update_user_permissions(
-            compact='cosm',
+            compact='socw',
             user_id=user_id,
             compact_action_additions={'admin'},
             jurisdiction_action_removals={'oh': {'write'}},
@@ -150,7 +150,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.update_user_permissions(
-            compact='cosm',
+            compact='socw',
             user_id=user_id,
             compact_action_removals={'admin'},
             jurisdiction_action_additions={'oh': {'write', 'admin'}},
@@ -181,7 +181,7 @@ class TestClient(TstFunction):
 
         with self.assertRaises(CCInvalidRequestException):
             client.update_user_permissions(
-                compact='cosm',
+                compact='socw',
                 user_id=str(user_id),
                 compact_action_removals=set(),
                 jurisdiction_action_additions={},
@@ -225,7 +225,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.create_user(
-            compact='cosm',
+            compact='socw',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
@@ -245,20 +245,20 @@ class TestClient(TstFunction):
 
         # Create an oh board admin
         first_user = client.create_user(
-            compact='cosm',
+            compact='socw',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
 
         # Create them again in the same compact
         second_user = client.create_user(
-            compact='cosm',
+            compact='socw',
             attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             permissions={'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}},
         )
 
         # The second user should now have permissions in both jurisdictions
-        self.assertEqual('cosm', second_user['compact'])
+        self.assertEqual('socw', second_user['compact'])
         self.assertEqual(first_user['userId'], second_user['userId'])
         self.assertEqual(
             {'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}, 'ne': {'write', 'admin'}}},
@@ -272,7 +272,7 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        client.delete_user(compact='cosm', user_id=user_id)
+        client.delete_user(compact='socw', user_id=user_id)
 
     def test_delete_user_in_compact_not_found(self):
         """User ID not found should raise an exception"""
@@ -283,10 +283,10 @@ class TestClient(TstFunction):
 
         # This user isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_user_in_compact(compact='cosm', user_id='123')
+            client.get_user_in_compact(compact='socw', user_id='123')
 
     def test_reinvite_new_user(self):
-        user_id = self._create_compact_staff_user(compacts=['cosm'])
+        user_id = self._create_compact_staff_user(compacts=['socw'])
 
         from cc_common.data_model.user_client import UserClient
 
@@ -309,7 +309,7 @@ class TestClient(TstFunction):
         self.assertEqual('FORCE_CHANGE_PASSWORD', user_data['UserStatus'])
 
     def test_reinvite_existing_user(self):
-        user_id = self._create_compact_staff_user(compacts=['cosm'])
+        user_id = self._create_compact_staff_user(compacts=['socw'])
 
         from cc_common.data_model.user_client import UserClient
 

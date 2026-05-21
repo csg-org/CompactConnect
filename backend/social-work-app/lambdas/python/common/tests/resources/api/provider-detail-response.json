@@ -9,7 +9,7 @@
   "jurisdictionUploadedCompactEligibility": "eligible",
   "licenseStatus": "active",
   "compactEligibility": "eligible",
-  "compact": "cosm",
+  "compact": "socw",
   "licenseJurisdiction": "oh",
   "dateOfBirth": "1985-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
@@ -20,7 +20,7 @@
     {
       "type": "license",
       "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-      "compact": "cosm",
+      "compact": "socw",
       "jurisdiction": "oh",
       "ssnLastFour": "1234",
       "licenseNumber": "A0608337260",
@@ -53,7 +53,7 @@
     {
       "type": "privilege",
       "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-      "compact": "cosm",
+      "compact": "socw",
       "jurisdiction": "ne",
       "licenseType": "cosmetologist",
       "licenseJurisdiction": "oh",

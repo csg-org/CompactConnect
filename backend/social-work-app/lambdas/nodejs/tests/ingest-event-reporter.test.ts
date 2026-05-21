@@ -75,7 +75,7 @@ describe('Frequent runs', () => {
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
-        process.env.COMPACTS = '["cosm"]';
+        process.env.COMPACTS = '["socw"]';
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
@@ -287,7 +287,7 @@ describe('Weekly runs', () => {
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
-        process.env.COMPACTS = '["cosm"]';
+        process.env.COMPACTS = '["socw"]';
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';

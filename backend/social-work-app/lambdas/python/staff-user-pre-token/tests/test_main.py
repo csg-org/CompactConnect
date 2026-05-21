@@ -21,7 +21,7 @@ class TestCustomizeScopes(TstLambdas):
             Item={
                 'pk': f'USER#{sub}',
                 'sk': 'COMPACT#cosm',
-                'compact': 'cosm',
+                'compact': 'socw',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'jurisdictions': {
@@ -59,7 +59,7 @@ class TestCustomizeScopes(TstLambdas):
             Item={
                 'pk': f'USER#{sub}',
                 'sk': 'COMPACT#cosm',
-                'compact': 'cosm',
+                'compact': 'socw',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'jurisdictions': {

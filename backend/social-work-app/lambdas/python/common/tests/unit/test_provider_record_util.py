@@ -32,13 +32,13 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         We also set the mock current date to 2025-06-01. The license expiration date is set to 2025-04-04, so
         if the test does not override this the license will be expired and therefore inactive.
 
-        live_compact_jurisdictions: dict[compact, list[jurisdiction_str]], e.g. {'cosm': ['al', 'ky', 'oh']}.
+        live_compact_jurisdictions: dict[compact, list[jurisdiction_str]], e.g. {'socw': ['al', 'ky', 'oh']}.
         """
         if live_compact_jurisdictions is None:
-            live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+            live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        mock_config.license_type_abbreviations = {'socw': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_returns_empty_list_when_no_licenses(self):
@@ -94,7 +94,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 {
                     'administratorSetStatus': 'active',
                     'adverseActions': [],
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'dateOfExpiration': date(2026, 2, 28),
                     'investigations': [],
                     'jurisdiction': 'al',
@@ -107,7 +107,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 {
                     'administratorSetStatus': 'active',
                     'adverseActions': [],
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'dateOfExpiration': date(2026, 2, 28),
                     'investigations': [],
                     'jurisdiction': 'ky',
@@ -437,7 +437,7 @@ class TestProviderRecordUtility(TstLambdas):
         # Create a base license record that we'll modify for different test cases
         self.base_license = {
             'type': 'license',
-            'compact': 'cosm',
+            'compact': 'socw',
             'jurisdiction': 'oh',
             'licenseType': 'physician',
             'licenseNumber': '12345',
@@ -451,7 +451,7 @@ class TestProviderRecordUtility(TstLambdas):
             'dateOfUpdate': '2025-05-12T15:05:08+00:00',
             'type': 'privilege',
             'providerId': 'aa2e057d-6972-4a68-a55d-aad1c3d05278',
-            'compact': 'cosm',
+            'compact': 'socw',
             'jurisdiction': 'al',
             'licenseJurisdiction': 'ky',
             'licenseType': 'cosmetologist',
@@ -577,10 +577,10 @@ class TestGenerateApiResponseObject(TstLambdas):
 
     def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
         if live_compact_jurisdictions is None:
-            live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+            live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        mock_config.license_type_abbreviations = {'socw': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_generate_api_response_object_returns_adverse_actions_as_a_top_level_field_for_all_adverse_actions(self):
@@ -653,10 +653,10 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
 
     def _patch_config_for_privilege_generation(self, live_compact_jurisdictions=None):
         if live_compact_jurisdictions is None:
-            live_compact_jurisdictions = {'cosm': ['al', 'ky', 'oh']}
+            live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'cosm': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        mock_config.license_type_abbreviations = {'socw': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_single_license_returns_one_document(self):
@@ -680,7 +680,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             [
                 {
                     'birthMonthDay': '06-06',
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'compactEligibility': 'ineligible',
                     'dateOfBirth': date(1985, 6, 6),
                     'dateOfExpiration': date(2025, 4, 4),
@@ -694,7 +694,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'licenses': [
                         {
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'compactEligibility': 'eligible',
                             'dateOfBirth': date(1985, 6, 6),
                             'dateOfExpiration': date(2026, 4, 4),
@@ -730,7 +730,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'al',
@@ -743,7 +743,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'ky',
@@ -795,7 +795,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             [
                 {
                     'birthMonthDay': '06-06',
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'compactEligibility': 'ineligible',
                     'dateOfBirth': date(1985, 6, 6),
                     'dateOfExpiration': date(2025, 4, 4),
@@ -809,7 +809,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'licenses': [
                         {
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'compactEligibility': 'eligible',
                             'dateOfBirth': date(1985, 6, 6),
                             'dateOfExpiration': date(2026, 4, 4),
@@ -845,7 +845,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'ky',
@@ -858,7 +858,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'oh',
@@ -876,7 +876,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                 },
                 {
                     'birthMonthDay': '06-06',
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'compactEligibility': 'ineligible',
                     'dateOfBirth': date(1985, 6, 6),
                     'dateOfExpiration': date(2025, 4, 4),
@@ -890,7 +890,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'licenses': [
                         {
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'compactEligibility': 'ineligible',
                             'dateOfBirth': date(1985, 6, 6),
                             'dateOfExpiration': date(2026, 4, 4),
@@ -927,7 +927,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'al',
@@ -940,7 +940,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'ky',
@@ -1042,7 +1042,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             [
                 {
                     'birthMonthDay': '06-06',
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'compactEligibility': 'ineligible',
                     'dateOfBirth': date(1985, 6, 6),
                     'dateOfExpiration': date(2025, 4, 4),
@@ -1056,7 +1056,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'licenses': [
                         {
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'compactEligibility': 'eligible',
                             'dateOfBirth': date(1985, 6, 6),
                             'dateOfExpiration': date(2026, 4, 4),
@@ -1096,7 +1096,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                 },
                 {
                     'birthMonthDay': '06-06',
-                    'compact': 'cosm',
+                    'compact': 'socw',
                     'compactEligibility': 'ineligible',
                     'dateOfBirth': date(1985, 6, 6),
                     'dateOfExpiration': date(2025, 4, 4),
@@ -1110,7 +1110,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'licenses': [
                         {
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'compactEligibility': 'eligible',
                             'dateOfBirth': date(1985, 6, 6),
                             'dateOfExpiration': date(2026, 4, 4),
@@ -1146,7 +1146,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'al',
@@ -1159,7 +1159,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                         {
                             'administratorSetStatus': 'active',
                             'adverseActions': [],
-                            'compact': 'cosm',
+                            'compact': 'socw',
                             'dateOfExpiration': date(2026, 4, 4),
                             'investigations': [],
                             'jurisdiction': 'ky',

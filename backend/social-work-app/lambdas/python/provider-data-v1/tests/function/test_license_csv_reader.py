@@ -22,5 +22,5 @@ class TestCSVParser(TstFunction):
         schema = LicensePostRequestSchema()
         reader = LicenseCSVReader()
         for license_row in reader.licenses(stream):
-            validated = schema.load({'compact': 'cosm', 'jurisdiction': 'oh', **license_row})
+            validated = schema.load({'compact': 'socw', 'jurisdiction': 'oh', **license_row})
             logger.debug('Read validated license', license=reader.schema.dump(validated))

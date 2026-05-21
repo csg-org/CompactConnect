@@ -439,7 +439,7 @@ The function:
 
 ```json
 {
-  "startingCompact": "cosm",
+  "startingCompact": "socw",
   "startingLastKey": {"pk": "...", "sk": "..."}
 }
 ```

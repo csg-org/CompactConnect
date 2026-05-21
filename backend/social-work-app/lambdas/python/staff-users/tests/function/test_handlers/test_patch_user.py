@@ -13,7 +13,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user(self):
         self._load_user_data()
-        self._when_testing_with_valid_jurisdiction(compact='cosm')
+        self._when_testing_with_valid_jurisdiction(compact='socw')
 
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
@@ -25,8 +25,8 @@ class TestPatchUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
-        event['body'] = json.dumps({'permissions': {'cosm': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
 
         resp = patch_user(event, self.mock_context)
 
@@ -38,7 +38,7 @@ class TestPatchUser(TstFunction):
                 'dateOfUpdate': '2024-09-12T23:59:59+00:00',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
-                    'cosm': {
+                    'socw': {
                         'actions': {'readPrivate': True},
                         'jurisdictions': {'oh': {'actions': {'admin': True, 'write': True}}},
                     },
@@ -53,7 +53,7 @@ class TestPatchUser(TstFunction):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
 
-        self._when_testing_with_valid_jurisdiction(compact='cosm')
+        self._when_testing_with_valid_jurisdiction(compact='socw')
 
         user = {
             'pk': 'USER#648864e8-10f1-702f-e666-2e0ff3482502',
@@ -64,7 +64,7 @@ class TestPatchUser(TstFunction):
                 'givenName': 'Test',
             },
             'status': StaffUserStatus.INACTIVE.value,
-            'compact': 'cosm',
+            'compact': 'socw',
             'dateOfUpdate': '2024-09-12T12:34:56+00:00',
             'famGiv': 'User#Test',
             'permissions': {'actions': {'read'}, 'jurisdictions': {'oh': {'admin', 'write'}}},
@@ -79,11 +79,11 @@ class TestPatchUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
         event['body'] = json.dumps(
             {
                 'permissions': {
-                    'cosm': {
+                    'socw': {
                         'actions': {'read': True, 'admin': False},
                         'jurisdictions': {'oh': {'actions': {'write': True, 'admin': False}}},
                     }
@@ -107,7 +107,7 @@ class TestPatchUser(TstFunction):
                     'givenName': 'Test',
                 },
                 'permissions': {
-                    'cosm': {
+                    'socw': {
                         'actions': {'read': True},
                         'jurisdictions': {'oh': {'actions': {'write': True}}},
                     },
@@ -123,7 +123,7 @@ class TestPatchUser(TstFunction):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
 
-        self._when_testing_with_valid_jurisdiction(compact='cosm')
+        self._when_testing_with_valid_jurisdiction(compact='socw')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -131,13 +131,13 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
         # Create a user with no compact read or admin, no actions in a jurisdiction
-        api_user['permissions'] = {'cosm': {'jurisdictions': {}}}
+        api_user['permissions'] = {'socw': {'jurisdictions': {}}}
         event['body'] = json.dumps(api_user)
 
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
 
         resp = post_user(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
@@ -145,9 +145,9 @@ class TestPatchUser(TstFunction):
         user_id = user.pop('userId')
 
         # Add compact read and oh admin permissions to the user
-        event['pathParameters'] = {'compact': 'cosm', 'userId': user_id}
+        event['pathParameters'] = {'compact': 'socw', 'userId': user_id}
         api_user['permissions'] = {
-            'cosm': {'actions': {'readPrivate': True}, 'jurisdictions': {'oh': {'actions': {'admin': True}}}}
+            'socw': {'actions': {'readPrivate': True}, 'jurisdictions': {'oh': {'actions': {'admin': True}}}}
         }
         event['body'] = json.dumps(api_user)
 
@@ -168,7 +168,7 @@ class TestPatchUser(TstFunction):
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
 
-        self._when_testing_with_valid_jurisdiction(compact='cosm')
+        self._when_testing_with_valid_jurisdiction(compact='socw')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -179,7 +179,7 @@ class TestPatchUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm'}
+        event['pathParameters'] = {'compact': 'socw'}
         event['body'] = json.dumps(api_user)
 
         resp = post_user(event, self.mock_context)
@@ -188,9 +188,9 @@ class TestPatchUser(TstFunction):
         user_id = user.pop('userId')
 
         # Remove all the permissions from the user
-        event['pathParameters'] = {'compact': 'cosm', 'userId': user_id}
+        event['pathParameters'] = {'compact': 'socw', 'userId': user_id}
         api_user['permissions'] = {
-            'cosm': {'actions': {'readPrivate': False}, 'jurisdictions': {'oh': {'actions': {'write': False}}}}
+            'socw': {'actions': {'readPrivate': False}, 'jurisdictions': {'oh': {'actions': {'write': False}}}}
         }
         event['body'] = json.dumps(api_user)
 
@@ -205,12 +205,12 @@ class TestPatchUser(TstFunction):
         # Add status to the comparison
         api_user['status'] = StaffUserStatus.INACTIVE.value
 
-        api_user['permissions'] = {'cosm': {'jurisdictions': {}}}
+        api_user['permissions'] = {'socw': {'jurisdictions': {}}}
         self.assertEqual(api_user, user)
 
     def test_patch_user_forbidden(self):
         self._load_user_data()
-        self._when_testing_with_valid_jurisdiction(compact='cosm')
+        self._when_testing_with_valid_jurisdiction(compact='socw')
 
         from handlers.users import patch_user
 
@@ -221,8 +221,8 @@ class TestPatchUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
-        event['body'] = json.dumps({'permissions': {'cosm': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
 
         resp = patch_user(event, self.mock_context)
 
@@ -231,7 +231,7 @@ class TestPatchUser(TstFunction):
     def test_patch_user_not_found(self):
         from handlers.users import patch_user
 
-        self._when_testing_with_valid_jurisdiction(compact='cosm')
+        self._when_testing_with_valid_jurisdiction(compact='socw')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -241,8 +241,8 @@ class TestPatchUser(TstFunction):
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
         # The staff user does not exist
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
-        event['body'] = json.dumps({'permissions': {'cosm': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
 
         resp = patch_user(event, self.mock_context)
 
@@ -251,7 +251,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user_allows_adding_read_private_permission(self):
         self._load_user_data()
-        self._when_testing_with_valid_jurisdiction(compact='cosm')
+        self._when_testing_with_valid_jurisdiction(compact='socw')
 
         from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
@@ -263,11 +263,11 @@ class TestPatchUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps(
             {
                 'permissions': {
-                    'cosm': {
+                    'socw': {
                         'actions': {
                             'readPrivate': True,
                         },
@@ -287,7 +287,7 @@ class TestPatchUser(TstFunction):
                 'dateOfUpdate': '2024-09-12T23:59:59+00:00',
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
-                    'cosm': {
+                    'socw': {
                         'actions': {'readPrivate': True},
                         # test user starts with the write permission, so it should still be there
                         'jurisdictions': {'oh': {'actions': {'write': True, 'readPrivate': True}}},
@@ -301,7 +301,7 @@ class TestPatchUser(TstFunction):
 
     def test_patch_user_returns_400_if_invalid_jurisdiction(self):
         self._load_user_data()
-        self._load_compact_active_member_jurisdictions(compact='cosm')
+        self._load_compact_active_member_jurisdictions(compact='socw')
 
         from handlers.users import patch_user
 
@@ -312,13 +312,13 @@ class TestPatchUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         # in this case, the user is attempting to add permission for inactive compact, which is not valid
-        event['body'] = json.dumps({'permissions': {'cosm': {'jurisdictions': {'fl': {'actions': {'admin': True}}}}}})
+        event['body'] = json.dumps({'permissions': {'socw': {'jurisdictions': {'fl': {'actions': {'admin': True}}}}}})
 
         resp = patch_user(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
         body = json.loads(resp['body'])
 
-        self.assertEqual({'message': "'FL' is not a valid jurisdiction for 'COSM' compact"}, body)
+        self.assertEqual({'message': "'FL' is not a valid jurisdiction for 'socw' compact"}, body)

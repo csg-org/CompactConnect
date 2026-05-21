@@ -23,7 +23,7 @@ def generate_test_event(method: str, resource: str, scopes: str = None) -> dict:
         event['httpMethod'] = method
         event['resource'] = resource
         event['pathParameters'] = {
-            'compact': 'cosm',
+            'compact': 'socw',
         }
 
         if scopes:
@@ -32,7 +32,7 @@ def generate_test_event(method: str, resource: str, scopes: str = None) -> dict:
     return event
 
 
-def load_compact_active_member_jurisdictions(postal_abbreviations: list[str], compact: str = 'cosm'):
+def load_compact_active_member_jurisdictions(postal_abbreviations: list[str], compact: str = 'socw'):
     """Load active member jurisdictions using the TestDataGenerator."""
     from common_test.test_data_generator import TestDataGenerator
 
@@ -109,8 +109,8 @@ class TestGetStaffUsersCompactJurisdictions(TstFunction):
 
         self.assertEqual(
             [
-                {'compact': 'cosm', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
-                {'compact': 'cosm', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+                {'compact': 'socw', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'socw', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
             ],
             sorted_response,
         )
@@ -185,8 +185,8 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
         self.assertEqual(
             [
-                {'compact': 'cosm', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
-                {'compact': 'cosm', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
+                {'compact': 'socw', 'jurisdictionName': 'Kentucky', 'postalAbbreviation': 'ky'},
+                {'compact': 'socw', 'jurisdictionName': 'Ohio', 'postalAbbreviation': 'oh'},
             ],
             sorted_response,
         )
@@ -196,10 +196,10 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         # Create compact configurations with some jurisdictions marked as live
-        # COSM compact with some live jurisdictions
+        # socw compact with some live jurisdictions
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
-                'compactAbbr': 'cosm',
+                'compactAbbr': 'socw',
                 'configuredStates': [
                     {'postalAbbreviation': 'ky', 'isLive': True},
                     {'postalAbbreviation': 'oh', 'isLive': True},
@@ -217,10 +217,10 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         response_body = json.loads(response['body'])
 
         # Should return all compacts with their live jurisdictions
-        self.assertIn('cosm', response_body)
+        self.assertIn('socw', response_body)
 
         # Verify the live jurisdictions for each compact
-        self.assertCountEqual(['oh', 'ky'], response_body['cosm'])
+        self.assertCountEqual(['oh', 'ky'], response_body['socw'])
 
     def test_get_public_live_compact_jurisdictions_returns_list_of_live_jurisdictions_in_compact(self):
         """Test getting list of live jurisdictions for compact designated through query param"""
@@ -229,7 +229,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         # Create compact configurations
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
-                'compactAbbr': 'cosm',
+                'compactAbbr': 'socw',
                 'configuredStates': [
                     {'postalAbbreviation': 'ky', 'isLive': True},
                     {'postalAbbreviation': 'oh', 'isLive': True},
@@ -240,17 +240,17 @@ class TestGetPublicCompactJurisdictions(TstFunction):
 
         # Create event with compact query param
         event = generate_test_event('GET', LIVE_JURISDICTIONS_ENDPOINT_RESOURCE)
-        event['queryStringParameters'] = {'compact': 'cosm'}
+        event['queryStringParameters'] = {'compact': 'socw'}
 
         response = compact_configuration_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
         # Should only return the specified compact
-        self.assertIn('cosm', response_body)
+        self.assertIn('socw', response_body)
 
         # Verify the live jurisdictions
-        self.assertCountEqual(['ky', 'oh'], response_body['cosm'])
+        self.assertCountEqual(['ky', 'oh'], response_body['socw'])
 
     def test_get_public_live_compact_jurisdictions_returns_400_if_bad_compact_param(self):
         """Test getting list of live jurisdictions returns 400 when invalid query param provided"""
@@ -259,7 +259,7 @@ class TestGetPublicCompactJurisdictions(TstFunction):
         # Create compact configurations
         self.test_data_generator.put_default_compact_configuration_in_configuration_table(
             value_overrides={
-                'compactAbbr': 'cosm',
+                'compactAbbr': 'socw',
                 'configuredStates': [
                     {'postalAbbreviation': 'ky', 'isLive': True},
                 ],
@@ -381,7 +381,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
 
         self.assertEqual(
             {
-                'compactAbbr': 'cosm',
+                'compactAbbr': 'socw',
                 'compactName': 'Cosmetology',
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
@@ -409,7 +409,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = generate_test_event('PUT', COMPACT_CONFIGURATION_ENDPOINT_RESOURCE)
-        event['pathParameters']['compact'] = 'cosm'
+        event['pathParameters']['compact'] = 'socw'
         # add state admin scope to the event, but not compact admin
         event['requestContext']['authorizer']['scopes'] = 'oh/cosm.admin'
 
@@ -703,7 +703,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         # Verify the jurisdiction name is set correctly from the mapping
         self.assertEqual(
             {
-                'compact': 'cosm',
+                'compact': 'socw',
                 'jurisdictionAdverseActionsNotificationEmails': [],
                 'jurisdictionName': 'Kentucky',
                 'jurisdictionOperationsTeamEmails': [],
@@ -763,7 +763,7 @@ class TestStaffUsersJurisdictionConfiguration(TstFunction):
         from handlers.compact_configuration import compact_configuration_api_handler
 
         event = generate_test_event('PUT', JURISDICTION_CONFIGURATION_ENDPOINT_RESOURCE)
-        event['pathParameters'] = {'compact': 'cosm', 'jurisdiction': 'oh'}
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
         # add compact admin scope to the event, but not state admin
         event['requestContext']['authorizer']['claims']['scope'] = 'cosm/admin'
         event['requestContext']['authorizer']['claims']['sub'] = 'some-admin-id'

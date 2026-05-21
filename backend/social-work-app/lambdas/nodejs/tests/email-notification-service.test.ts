@@ -9,7 +9,7 @@ import { describe, it, beforeAll, beforeEach, jest } from '@jest/globals';
 const SAMPLE_EVENT: EmailNotificationEvent = {
     template: 'licenseEncumbranceProviderNotification',
     recipientType: 'SPECIFIC',
-    compact: 'cosm',
+    compact: 'socw',
     specificEmails: ['provider@example.com'],
     templateVariables: {
         providerFirstName: 'John',
@@ -30,7 +30,7 @@ const SAMPLE_COMPACT_CONFIGURATION = {
             'feeType': { S: 'FLAT_RATE' }
         }
     },
-    'compactAbbr': { S: 'cosm' },
+    'compactAbbr': { S: 'socw' },
     'compactName': { S: 'Audiology and Speech Language Pathology' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
@@ -135,7 +135,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'cosm',
+            compact: 'socw',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -191,7 +191,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -297,7 +297,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceLiftingProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'cosm',
+            compact: 'socw',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -355,7 +355,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceLiftingStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -439,7 +439,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'cosm',
+            compact: 'socw',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -495,7 +495,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -577,7 +577,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceLiftingProviderNotification',
             recipientType: 'SPECIFIC',
-            compact: 'cosm',
+            compact: 'socw',
             specificEmails: ['provider@example.com'],
             templateVariables: {
                 providerFirstName: 'John',
@@ -635,7 +635,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_ENCUMBRANCE_LIFTING_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeEncumbranceLiftingStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -718,7 +718,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseInvestigationStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -808,7 +808,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_LICENSE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseInvestigationClosedStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -900,7 +900,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_INVESTIGATION_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeInvestigationStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -990,7 +990,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_PRIVILEGE_INVESTIGATION_CLOSED_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'privilegeInvestigationClosedStateNotification',
             recipientType: 'JURISDICTION_ADVERSE_ACTIONS',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'ca',
             templateVariables: {
                 providerFirstName: 'John',
@@ -1082,7 +1082,7 @@ describe('EmailNotificationServiceLambda', () => {
         const SAMPLE_HOME_JURISDICTION_CHANGE_NEW_STATE_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'homeJurisdictionChangeNotification',
             recipientType: 'JURISDICTION_OPERATIONS_TEAM',
-            compact: 'cosm',
+            compact: 'socw',
             jurisdiction: 'tx',
             templateVariables: {
                 providerFirstName: 'John',

@@ -25,7 +25,7 @@ class TestGetMe(TstFunction):
 
     def test_get_me(self):
         # Using a compact staff user method because it creates a single user that spans multiple compacts
-        user_id = self._create_compact_staff_user(compacts=['cosm'])
+        user_id = self._create_compact_staff_user(compacts=['socw'])
 
         from handlers.me import get_me
 
@@ -48,7 +48,7 @@ class TestGetMe(TstFunction):
         # Verify we've successfully merged permissions from two compacts
         self.assertEqual(
             {
-                'cosm': {'actions': {'read': True}, 'jurisdictions': {}},
+                'socw': {'actions': {'read': True}, 'jurisdictions': {}},
             },
             body['permissions'],
         )

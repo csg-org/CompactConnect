@@ -17,7 +17,7 @@ class TestReinviteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -34,7 +34,7 @@ class TestReinviteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['pathParameters'] = {'compact': 'socw', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
@@ -43,7 +43,7 @@ class TestReinviteUser(TstFunction):
         self.assertEqual(404, resp['statusCode'])
 
     def test_reinvite_user_compact_admin(self):
-        user_id = self._create_compact_board_user(compact='cosm', jurisdiction='oh')
+        user_id = self._create_compact_board_user(compact='socw', jurisdiction='oh')
 
         from handlers.users import reinvite_user
 
@@ -54,7 +54,7 @@ class TestReinviteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email cosm/admin'
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
-        event['pathParameters'] = {'compact': 'cosm', 'userId': user_id}
+        event['pathParameters'] = {'compact': 'socw', 'userId': user_id}
         event['body'] = None
 
         resp = reinvite_user(event, self.mock_context)
@@ -65,7 +65,7 @@ class TestReinviteUser(TstFunction):
         self.assertEqual({'message': 'User reinvited'}, body)
 
     def test_reinvite_user_jurisdiction_admin(self):
-        user_id = self._create_compact_board_user(compact='cosm', jurisdiction='oh')
+        user_id = self._create_compact_board_user(compact='socw', jurisdiction='oh')
 
         from handlers.users import reinvite_user
 
@@ -76,7 +76,7 @@ class TestReinviteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': user_id}
+        event['pathParameters'] = {'compact': 'socw', 'userId': user_id}
         event['body'] = None
 
         resp = reinvite_user(event, self.mock_context)
@@ -87,7 +87,7 @@ class TestReinviteUser(TstFunction):
         self.assertEqual({'message': 'User reinvited'}, body)
 
     def test_reinvite_user_outside_jurisdiction(self):
-        user_id = self._create_compact_board_user(compact='cosm', jurisdiction='oh')
+        user_id = self._create_compact_board_user(compact='socw', jurisdiction='oh')
 
         from handlers.users import reinvite_user
 
@@ -98,7 +98,7 @@ class TestReinviteUser(TstFunction):
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
-        event['pathParameters'] = {'compact': 'cosm', 'userId': user_id}
+        event['pathParameters'] = {'compact': 'socw', 'userId': user_id}
         event['body'] = None
 
         resp = reinvite_user(event, self.mock_context)

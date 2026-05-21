@@ -12,7 +12,7 @@
           },
           "compact": {
             "enum": [
-              "cosm"
+              "socw"
             ],
             "type": "string"
           },
@@ -92,7 +92,7 @@
           },
           "compact": {
             "enum": [
-              "cosm"
+              "socw"
             ],
             "type": "string"
           },
@@ -200,7 +200,7 @@
     },
     "compact": {
       "enum": [
-        "cosm"
+        "socw"
       ],
       "type": "string"
     },

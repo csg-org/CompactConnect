@@ -15,10 +15,10 @@ from . import TstFunction
 MOCK_COSM_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 test_license_type_mapping = {
-    'cosm': 'cosmetologist',
+    'socw': 'cosmetologist',
 }
 test_provider_id_mapping = {
-    'cosm': MOCK_COSM_PROVIDER_ID,
+    'socw': MOCK_COSM_PROVIDER_ID,
 }
 
 
@@ -143,7 +143,7 @@ class TestPopulateProviderDocuments(TstFunction):
         from handlers.populate_provider_documents import populate_provider_documents
 
         mock_client_instance = self._when_testing_mock_opensearch_client(mock_opensearch_client)
-        self._put_test_provider_and_license_record_in_dynamodb_table('cosm')
+        self._put_test_provider_and_license_record_in_dynamodb_table('socw')
 
         mock_context = Mock()
         mock_context.get_remaining_time_in_millis.return_value = 600000
@@ -159,4 +159,4 @@ class TestPopulateProviderDocuments(TstFunction):
 
         indexed_documents = bulk_index_call.kwargs['documents']
         self.assertEqual(1, len(indexed_documents))
-        self.assertEqual(self._generate_expected_document('cosm'), indexed_documents[0])
+        self.assertEqual(self._generate_expected_document('socw'), indexed_documents[0])

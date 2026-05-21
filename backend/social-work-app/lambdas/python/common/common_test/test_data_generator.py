@@ -382,7 +382,7 @@ class TestDataGenerator:
     ) -> JurisdictionConfigurationData:
         """Generate a default jurisdiction configuration"""
         default_jurisdiction_config = {
-            'compact': 'cosm',
+            'compact': 'socw',
             'postalAbbreviation': 'ky',
             'jurisdictionName': 'Kentucky',
             'jurisdictionOperationsTeamEmails': ['state-ops@example.com'],

@@ -88,7 +88,7 @@ class TstFunction(TstLambdas):
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
 
-    def _load_compact_active_member_jurisdictions(self, compact: str = 'cosm'):
+    def _load_compact_active_member_jurisdictions(self, compact: str = 'socw'):
         """Load active member jurisdictions using the TestDataGenerator."""
         from common_test.test_data_generator import TestDataGenerator
 
@@ -202,7 +202,7 @@ class TstFunction(TstLambdas):
         )
         return get_sub_from_user_attributes(user_data['User']['Attributes'])
 
-    def _when_testing_with_valid_caller(self, compact: str = 'cosm'):
+    def _when_testing_with_valid_caller(self, compact: str = 'socw'):
         # creates a user for endpoints that require the caller to have an active database record
         user = self.config.user_client.create_user(
             compact=compact,

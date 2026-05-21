@@ -2013,7 +2013,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "providerId": {
@@ -2082,7 +2082,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "licenseStatus": {
@@ -2146,7 +2146,7 @@
           "compact": {
             "type": "string",
             "enum": [
-              "cosm"
+              "socw"
             ]
           },
           "providerId": {
@@ -2476,7 +2476,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "jurisdiction": {
@@ -2519,7 +2519,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "providerId": {
@@ -2591,7 +2591,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "previous": {
@@ -2633,7 +2633,7 @@
                           "compact": {
                             "type": "string",
                             "enum": [
-                              "cosm"
+                              "socw"
                             ]
                           },
                           "providerId": {
@@ -2721,7 +2721,7 @@
                           "compact": {
                             "type": "string",
                             "enum": [
-                              "cosm"
+                              "socw"
                             ]
                           },
                           "providerId": {
@@ -2853,7 +2853,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "jurisdiction": {
@@ -2949,7 +2949,7 @@
           "compact": {
             "type": "string",
             "enum": [
-              "cosm"
+              "socw"
             ]
           },
           "givenName": {
@@ -3025,7 +3025,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "homeAddressStreet2": {
@@ -3078,7 +3078,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "providerId": {
@@ -3256,7 +3256,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "previous": {
@@ -3609,7 +3609,7 @@
                       "compact": {
                         "type": "string",
                         "enum": [
-                          "cosm"
+                          "socw"
                         ]
                       },
                       "jurisdiction": {
@@ -3753,7 +3753,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "jurisdiction": {
@@ -3951,7 +3951,7 @@
             "type": "string",
             "description": "The compact this jurisdiction configuration belongs to",
             "enum": [
-              "cosm"
+              "socw"
             ]
           },
           "licenseeRegistrationEnabled": {
@@ -4376,7 +4376,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "providerId": {
@@ -4614,7 +4614,7 @@
                 "compact": {
                   "type": "string",
                   "enum": [
-                    "cosm"
+                    "socw"
                   ]
                 },
                 "givenName": {

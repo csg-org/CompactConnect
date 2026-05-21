@@ -146,14 +146,14 @@ class _Config:
         Reshapes the new LICENSE_TYPES format into the previous format for backward compatibility.
         The new format is:
         {
-            "cosm": [
+            "socw": [
                 {"abbreviation": "cos", "name": "cosmetologist"},
                 {"abbreviation": "esth", "name": "esthetician"}
             ]
         }
         The returned format is:
         {
-            "cosm": ["cosmetologist", "esthetician"]
+            "socw": ["cosmetologist", "esthetician"]
         }
         """
         raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
@@ -165,7 +165,7 @@ class _Config:
         Creates a lookup dictionary for license type abbreviations based on compact and full name.
         Returns a structure like:
         {
-            "cosm": {
+            "socw": {
                 "cosmetologist": "cos",
                 "esthetician": "esth"
             }

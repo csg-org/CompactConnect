@@ -45,7 +45,7 @@ class TestPublicSearchProviders(TstFunction):
         licenses_nested_must: list,
         page_size: int = 10,
         sort: list | None = None,
-        compact: str = 'cosm',
+        compact: str = 'socw',
         search_after: list | None = None,
     ) -> dict:
         """Full OpenSearch search body for public license query (must stay aligned with public_search handler)."""
@@ -84,7 +84,7 @@ class TestPublicSearchProviders(TstFunction):
         # Only sanitize for supported compacts. Some tests intentionally construct
         # mismatched compacts to verify handler filtering; those documents would
         # never be produced by ingest and will fail schema validation.
-        if source.get('compact') != 'cosm':
+        if source.get('compact') != 'socw':
             return source
 
         schema = ProviderOpenSearchDocumentSchema()
@@ -184,7 +184,7 @@ class TestPublicSearchProviders(TstFunction):
     def _generate_unlifted_license_adverse_action(self, *, provider_id: str) -> dict:
         return {
             'type': 'adverseAction',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': provider_id,
             'jurisdiction': 'oh',
             'licenseTypeAbbreviation': 'cos',
@@ -235,7 +235,7 @@ class TestPublicSearchProviders(TstFunction):
     def _create_mock_hit(
         self,
         provider_id: str = '00000000-0000-0000-0000-000000000001',
-        compact: str = 'cosm',
+        compact: str = 'socw',
         jurisdiction: str = 'oh',
         license_number: str = 'LN123',
         family_name: str = 'Doe',
@@ -285,7 +285,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN999'}, 'pagination': {'pageSize': 10}},
         )
         public_search_api_handler(event, self.mock_context)
@@ -309,7 +309,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'jurisdiction': 'oh', 'familyName': 'Smith'},
                 'pagination': {'pageSize': 10},
@@ -337,7 +337,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'familyName': 'Jones'}, 'pagination': {'pageSize': 10}},
         )
         public_search_api_handler(event, self.mock_context)
@@ -361,7 +361,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 10}},
         )
         public_search_api_handler(event, self.mock_context)
@@ -388,7 +388,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -417,7 +417,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'familyName': 'Doe'},
                 'pagination': {'pageSize': 10},
@@ -451,7 +451,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'licenseNumber': 'LN999'},
                 'pagination': {'pageSize': 10},
@@ -485,7 +485,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'licenseNumber': 'LN999'},
                 'pagination': {'pageSize': 10},
@@ -514,7 +514,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -554,7 +554,7 @@ class TestPublicSearchProviders(TstFunction):
         from handlers.public_search import public_search_api_handler
 
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'familyName': 'Doe'},
                 'pagination': {'pageSize': 10},
@@ -577,7 +577,7 @@ class TestPublicSearchProviders(TstFunction):
         }
 
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -603,7 +603,7 @@ class TestPublicSearchProviders(TstFunction):
         from handlers.public_search import public_search_api_handler
 
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
@@ -630,7 +630,7 @@ class TestPublicSearchProviders(TstFunction):
         last_key_payload = json.dumps({'search_after': ['doe', 'jane', 'uuid-123', 'uuid-123#oh#cosmetologist']})
         last_key_str = b64encode(last_key_payload.encode('utf-8')).decode('utf-8')
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'familyName': 'Doe'},
                 'pagination': {'pageSize': 25, 'lastKey': last_key_str},
@@ -675,7 +675,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 10, 'relation': 'eq'}, 'hits': mock_hits_full_page},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 5}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -695,7 +695,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [single_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 100}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -712,7 +712,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN123'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -744,7 +744,7 @@ class TestPublicSearchProviders(TstFunction):
         pid = '00000000-0000-0000-0000-0000000000aa'
         nested = self._minimal_opensearch_license(
             provider_id=pid,
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             license_number='LN-EXP',
             license_type='cosmetologist',
@@ -762,7 +762,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN-EXP'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -782,7 +782,7 @@ class TestPublicSearchProviders(TstFunction):
         # which should not be considered
         unlifted = {
             'type': 'adverseAction',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': pid,
             'jurisdiction': 'oh',
             'licenseTypeAbbreviation': 'cos',
@@ -805,7 +805,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN-AA'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -822,7 +822,7 @@ class TestPublicSearchProviders(TstFunction):
         unlifted = self._generate_unlifted_license_adverse_action(provider_id=pid)
         nested = self._minimal_opensearch_license(
             provider_id=pid,
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             license_number='LN-LIC-AA',
             license_type='cosmetologist',
@@ -841,7 +841,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN-LIC-AA'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -859,7 +859,7 @@ class TestPublicSearchProviders(TstFunction):
         pid = '00000000-0000-0000-0000-0000000000ff'
         unlifted = {
             'type': 'adverseAction',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': pid,
             'jurisdiction': 'mi',
             'licenseTypeAbbreviation': 'cos',
@@ -875,7 +875,7 @@ class TestPublicSearchProviders(TstFunction):
         }
         nested = self._minimal_opensearch_license(
             provider_id=pid,
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             license_number='LN-PRIV-AA',
             license_type='cosmetologist',
@@ -886,7 +886,7 @@ class TestPublicSearchProviders(TstFunction):
         )
         privilege = self._minimal_opensearch_privilege(
             provider_id=pid,
-            compact='cosm',
+            compact='socw',
             license_jurisdiction='oh',
             license_type='cosmetologist',
             privilege_jurisdiction='mi',
@@ -904,7 +904,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN-PRIV-AA'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -920,7 +920,7 @@ class TestPublicSearchProviders(TstFunction):
         pid = '00000000-0000-0000-0000-0000000000cc'
         nested = self._minimal_opensearch_license(
             provider_id=pid,
-            compact='cosm',
+            compact='socw',
             jurisdiction='oh',
             license_number='LN-JUR',
             license_type='cosmetologist',
@@ -938,7 +938,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN-JUR'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -954,7 +954,7 @@ class TestPublicSearchProviders(TstFunction):
         pid = '00000000-0000-0000-0000-0000000000dd'
         lifted = {
             'type': 'adverseAction',
-            'compact': 'cosm',
+            'compact': 'socw',
             'providerId': pid,
             'jurisdiction': 'oh',
             'licenseTypeAbbreviation': 'cos',
@@ -978,7 +978,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'licenseNumber': 'LN-OK'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -995,7 +995,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
         }
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={'query': {'familyName': 'Doe'}, 'pagination': {'pageSize': 10}},
         )
         response = public_search_api_handler(event, self.mock_context)
@@ -1006,7 +1006,7 @@ class TestPublicSearchProviders(TstFunction):
         """Test that invalid or missing body returns 400."""
         from handlers.public_search import public_search_api_handler
 
-        event = self._create_public_api_event('cosm', body=None)
+        event = self._create_public_api_event('socw', body=None)
         event['body'] = 'not valid json'
         response = public_search_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
@@ -1017,7 +1017,7 @@ class TestPublicSearchProviders(TstFunction):
         """Test that wrong method/path returns 400."""
         from handlers.public_search import public_search_api_handler
 
-        event = self._create_public_api_event('cosm', body={'query': {'familyName': 'x'}})
+        event = self._create_public_api_event('socw', body={'query': {'familyName': 'x'}})
         event['resource'] = '/v1/public/compacts/{compact}/providers/other'
         response = public_search_api_handler(event, self.mock_context)
         self.assertEqual(400, response['statusCode'])
@@ -1036,7 +1036,7 @@ class TestPublicSearchProviders(TstFunction):
         bad_payload = json.dumps({})
         last_key = b64encode(bad_payload.encode('utf-8')).decode('utf-8')
         event = self._create_public_api_event(
-            'cosm',
+            'socw',
             body={
                 'query': {'familyName': 'Doe'},
                 'pagination': {'pageSize': 10, 'lastKey': last_key},
