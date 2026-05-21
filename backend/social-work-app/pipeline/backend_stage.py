@@ -6,7 +6,8 @@ from stacks.api_lambda_stack import ApiLambdaStack
 from stacks.api_stack import ApiStack
 from stacks.disaster_recovery_stack import DisasterRecoveryStack
 from stacks.event_state_stack import EventStateStack
-from stacks.feature_flag_stack import FeatureFlagStack
+
+# from stacks.feature_flag_stack import FeatureFlagStack
 from stacks.ingest_stack import IngestStack
 from stacks.managed_login_stack import ManagedLoginStack
 from stacks.notification_stack import NotificationStack

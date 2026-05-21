@@ -10,10 +10,10 @@ from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
 from aws_cdk.aws_logs import QueryDefinition, QueryString, RetentionDays
 from cdk_nag import NagSuppressions
+from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.python_function import PythonFunction
 from stacks import event_state_stack as ess
 from stacks import persistent_stack as ps
 from stacks import search_persistent_stack as sps

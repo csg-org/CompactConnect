@@ -6,9 +6,9 @@ from aws_cdk import Stack
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_s3 import IBucket
 from aws_cdk.aws_sns import ITopic
+from common_constructs.python_function import PythonFunction
 from constructs import Construct
 
-from common_constructs.python_function import PythonFunction
 from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 
