@@ -70,7 +70,7 @@ class StateAuthUsers(UserPool, ResourceScopeMixin):
                 {
                     'id': 'AwsSolutions-COG8',
                     'reason': 'This pool is for state API machine-to-machine auth only; '
-                              'Cognito Plus features are not relevant for a user pool with no users.',
+                    'Cognito Plus features are not relevant for a user pool with no users.',
                 },
             ],
         )

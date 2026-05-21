@@ -30,9 +30,13 @@ class TestCCBackupPlan(TestCase):
             'delete_after_days': 180,
             'cold_storage_after_days': 30,
         }
-        self.resource = BackupResource.from_dynamo_db_table(
-            Stack.of(self.stack).node.try_find_child('Dummy')  # placeholder; works as construct reference
-        ) if False else None  # Use arn-based resource instead
+        self.resource = (
+            BackupResource.from_dynamo_db_table(
+                Stack.of(self.stack).node.try_find_child('Dummy')  # placeholder; works as construct reference
+            )
+            if False
+            else None
+        )  # Use arn-based resource instead
 
     def _make_plan(self, **kwargs):
         from aws_cdk.aws_dynamodb import Attribute, AttributeType, Table
@@ -60,11 +64,7 @@ class TestCCBackupPlan(TestCase):
         template = Template.from_stack(self.stack)
         template.has_resource_properties(
             CfnBackupPlan.CFN_RESOURCE_TYPE_NAME,
-            {
-                'BackupPlan': Match.object_like(
-                    {'BackupPlanName': 'test-resource-BackupPlan'}
-                )
-            },
+            {'BackupPlan': Match.object_like({'BackupPlanName': 'test-resource-BackupPlan'})},
         )
 
     def test_rule_uses_delete_after_from_policy(self):
@@ -113,7 +113,9 @@ class TestCCBackupPlan(TestCase):
                 'BackupSelection': Match.object_like(
                     {
                         'SelectionName': 'test-resource-Selection',
-                        'IamRoleArn': {'Fn::GetAtt': [self.stack.get_logical_id(self.backup_role.node.default_child), 'Arn']},
+                        'IamRoleArn': {
+                            'Fn::GetAtt': [self.stack.get_logical_id(self.backup_role.node.default_child), 'Arn']
+                        },
                     }
                 )
             },

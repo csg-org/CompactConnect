@@ -77,11 +77,7 @@ class TestUserPool(TestCase):
         template = Template.from_stack(self.stack)
         template.has_resource_properties(
             CfnUserPool.CFN_RESOURCE_TYPE_NAME,
-            {
-                'Policies': {
-                    'PasswordPolicy': Match.object_like({'MinimumLength': 12})
-                }
-            },
+            {'Policies': {'PasswordPolicy': Match.object_like({'MinimumLength': 12})}},
         )
 
     def test_password_history_size_4(self):
@@ -90,11 +86,7 @@ class TestUserPool(TestCase):
         template = Template.from_stack(self.stack)
         template.has_resource_properties(
             CfnUserPool.CFN_RESOURCE_TYPE_NAME,
-            {
-                'Policies': {
-                    'PasswordPolicy': Match.object_like({'PasswordHistorySize': 4})
-                }
-            },
+            {'Policies': {'PasswordPolicy': Match.object_like({'PasswordHistorySize': 4})}},
         )
 
     def test_custom_password_policy_kwarg_overrides_default(self):
@@ -150,9 +142,7 @@ class TestUserPool(TestCase):
             CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
             {
                 'AccountTakeoverRiskConfiguration': {
-                    'Actions': Match.object_like(
-                        {'HighAction': Match.object_like({'EventAction': 'MFA_REQUIRED'})}
-                    )
+                    'Actions': Match.object_like({'HighAction': Match.object_like({'EventAction': 'MFA_REQUIRED'})})
                 }
             },
         )
@@ -165,9 +155,7 @@ class TestUserPool(TestCase):
             CfnUserPoolRiskConfigurationAttachment.CFN_RESOURCE_TYPE_NAME,
             {
                 'AccountTakeoverRiskConfiguration': {
-                    'Actions': Match.object_like(
-                        {'HighAction': Match.object_like({'EventAction': 'NO_ACTION'})}
-                    )
+                    'Actions': Match.object_like({'HighAction': Match.object_like({'EventAction': 'NO_ACTION'})})
                 }
             },
         )

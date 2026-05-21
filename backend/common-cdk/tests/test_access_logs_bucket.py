@@ -36,9 +36,7 @@ class TestAccessLogsBucket(TestCase):
             CfnBucket.CFN_RESOURCE_TYPE_NAME,
             {
                 'BucketEncryption': {
-                    'ServerSideEncryptionConfiguration': [
-                        {'ServerSideEncryptionByDefault': {'SSEAlgorithm': 'AES256'}}
-                    ]
+                    'ServerSideEncryptionConfiguration': [{'ServerSideEncryptionByDefault': {'SSEAlgorithm': 'AES256'}}]
                 }
             },
         )

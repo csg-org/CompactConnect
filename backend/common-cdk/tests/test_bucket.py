@@ -111,6 +111,10 @@ class TestBucket(TestCase):
         # The prefix is _logs/<account>/<region>/<scope.node.path>/<construct_id>
         buckets = template.find_resources(
             CfnBucket.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {'LoggingConfiguration': {'LogFilePrefix': '_logs/111122223333/us-east-1/TestStack/MyBucket'}}},
+            props={
+                'Properties': {
+                    'LoggingConfiguration': {'LogFilePrefix': '_logs/111122223333/us-east-1/TestStack/MyBucket'}
+                }
+            },
         )
         self.assertEqual(1, len(buckets))

@@ -29,7 +29,9 @@ class TestStackLicenseContext(TestCase):
         self.stack = Stack(self.app, 'BaseStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox')
 
     def test_license_type_names_flattens_all_compacts(self):
-        self.assertEqual(['audiologist', 'occupational therapist', 'licensed professional counselor'], self.stack.license_type_names)
+        self.assertEqual(
+            ['audiologist', 'occupational therapist', 'licensed professional counselor'], self.stack.license_type_names
+        )
 
     def test_license_type_abbreviations_flattens_all_compacts(self):
         self.assertEqual(['aud', 'ot', 'lpc'], self.stack.license_type_abbreviations)

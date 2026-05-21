@@ -105,7 +105,13 @@ class TestSSNTableConfig(TestCase):
     @classmethod
     def setUpClass(cls):
         app = App(context=_CDK_CONTEXT)
-        cls.stack = AppStack(app, 'TestStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox', environment_context=_APP_ENV_CONTEXT)
+        cls.stack = AppStack(
+            app,
+            'TestStack',
+            standard_tags=_STANDARD_TAGS,
+            environment_name='sandbox',
+            environment_context=_APP_ENV_CONTEXT,
+        )
         _make_ssn_table(cls.stack)
         cls.template = Template.from_stack(cls.stack)
 
@@ -135,14 +141,18 @@ class TestSSNTableConfig(TestCase):
     def test_pitr_enabled(self):
         self.template.has_resource_properties(
             CfnTable.CFN_RESOURCE_TYPE_NAME,
-            {
-                'PointInTimeRecoverySpecification': {'PointInTimeRecoveryEnabled': True}
-            },
+            {'PointInTimeRecoverySpecification': {'PointInTimeRecoveryEnabled': True}},
         )
 
     def test_deletion_protection_enabled_when_retain(self):
         app = App(context=_CDK_CONTEXT)
-        stack = AppStack(app, 'RetainStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox', environment_context=_APP_ENV_CONTEXT)
+        stack = AppStack(
+            app,
+            'RetainStack',
+            standard_tags=_STANDARD_TAGS,
+            environment_name='sandbox',
+            environment_context=_APP_ENV_CONTEXT,
+        )
         _make_ssn_table(stack, removal_policy=RemovalPolicy.RETAIN)
 
         template = Template.from_stack(stack)
@@ -156,7 +166,16 @@ class TestSSNTableConfig(TestCase):
             CfnTable.CFN_RESOURCE_TYPE_NAME,
             {
                 'GlobalSecondaryIndexes': Match.array_with(
-                    [Match.object_like({'IndexName': 'ssnIndex', 'KeySchema': Match.array_with([Match.object_like({'AttributeName': 'providerIdGSIpk'})])})]
+                    [
+                        Match.object_like(
+                            {
+                                'IndexName': 'ssnIndex',
+                                'KeySchema': Match.array_with(
+                                    [Match.object_like({'AttributeName': 'providerIdGSIpk'})]
+                                ),
+                            }
+                        )
+                    ]
                 )
             },
         )
@@ -166,7 +185,13 @@ class TestSSNTableResourcePolicy(TestCase):
     @classmethod
     def setUpClass(cls):
         app = App(context=_CDK_CONTEXT)
-        cls.stack = AppStack(app, 'TestStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox', environment_context=_APP_ENV_CONTEXT)
+        cls.stack = AppStack(
+            app,
+            'TestStack',
+            standard_tags=_STANDARD_TAGS,
+            environment_name='sandbox',
+            environment_context=_APP_ENV_CONTEXT,
+        )
         _make_ssn_table(cls.stack)
         cls.template = Template.from_stack(cls.stack)
 
@@ -197,9 +222,7 @@ class TestSSNTableResourcePolicy(TestCase):
         # Check the DynamoDB table policy via find_resources.
         stmts = self.template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME)
         (table,) = stmts.values()
-        all_stmts = (
-            table['Properties'].get('ResourcePolicy', {}).get('PolicyDocument', {}).get('Statement', [])
-        )
+        all_stmts = table['Properties'].get('ResourcePolicy', {}).get('PolicyDocument', {}).get('Statement', [])
 
         # Look for the not-resource style DENY
         get_query_deny = next(
@@ -218,7 +241,13 @@ class TestSSNTableKMSKey(TestCase):
     @classmethod
     def setUpClass(cls):
         app = App(context=_CDK_CONTEXT)
-        cls.stack = AppStack(app, 'TestStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox', environment_context=_APP_ENV_CONTEXT)
+        cls.stack = AppStack(
+            app,
+            'TestStack',
+            standard_tags=_STANDARD_TAGS,
+            environment_name='sandbox',
+            environment_context=_APP_ENV_CONTEXT,
+        )
         _make_ssn_table(cls.stack)
         cls.template = Template.from_stack(cls.stack)
 
@@ -264,7 +293,13 @@ class TestSSNTableRoles(TestCase):
     @classmethod
     def setUpClass(cls):
         app = App(context=_CDK_CONTEXT)
-        cls.stack = AppStack(app, 'TestStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox', environment_context=_APP_ENV_CONTEXT)
+        cls.stack = AppStack(
+            app,
+            'TestStack',
+            standard_tags=_STANDARD_TAGS,
+            environment_name='sandbox',
+            environment_context=_APP_ENV_CONTEXT,
+        )
         _make_ssn_table(cls.stack)
         cls.template = Template.from_stack(cls.stack)
 
@@ -326,7 +361,13 @@ class TestSSNTableBackupDisabled(TestCase):
     @classmethod
     def setUpClass(cls):
         app = App(context=_CDK_CONTEXT)
-        cls.stack = AppStack(app, 'TestStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox', environment_context=_APP_ENV_CONTEXT)
+        cls.stack = AppStack(
+            app,
+            'TestStack',
+            standard_tags=_STANDARD_TAGS,
+            environment_name='sandbox',
+            environment_context=_APP_ENV_CONTEXT,
+        )
         _make_ssn_table(cls.stack, environment_context=_ENVIRONMENT_CONTEXT_NO_BACKUP)
         cls.template = Template.from_stack(cls.stack)
 
@@ -346,7 +387,13 @@ class TestSSNTableBackupEnabled(TestCase):
     @classmethod
     def setUpClass(cls):
         app = App(context=_CDK_CONTEXT)
-        cls.main_stack = AppStack(app, 'MainStack', standard_tags=_STANDARD_TAGS, environment_name='sandbox', environment_context=_APP_ENV_CONTEXT)
+        cls.main_stack = AppStack(
+            app,
+            'MainStack',
+            standard_tags=_STANDARD_TAGS,
+            environment_name='sandbox',
+            environment_context=_APP_ENV_CONTEXT,
+        )
         backup_alarm_topic = Topic(cls.main_stack, 'BackupAlarmTopic')
 
         cls.backup_infrastructure_stack = BackupInfrastructureStack(
