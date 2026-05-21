@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from aws_cdk import App, Duration, Stack
-from aws_cdk.assertions import Match, Template
+from aws_cdk.assertions import Template
 from aws_cdk.aws_cloudwatch import CfnAlarm
 from aws_cdk.aws_lambda import CfnFunction, Runtime
 from aws_cdk.aws_logs import CfnLogGroup, RetentionDays

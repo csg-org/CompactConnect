@@ -1,10 +1,9 @@
 """Tests for the CompactConnectApi common construct."""
 
-import json
 from unittest import TestCase
 
 from aws_cdk import App, Environment
-from aws_cdk.assertions import Match, Template
+from aws_cdk.assertions import Template
 from aws_cdk.aws_apigateway import CfnRestApi, CfnStage
 from aws_cdk.aws_cloudwatch import CfnAlarm
 from aws_cdk.aws_cognito import UserPool as CdkUserPool

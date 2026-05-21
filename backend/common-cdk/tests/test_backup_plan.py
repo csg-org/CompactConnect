@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from aws_cdk import App, Stack
 from aws_cdk.assertions import Match, Template
-from aws_cdk.aws_backup import BackupPlan, BackupResource, BackupVault, CfnBackupPlan, CfnBackupSelection
+from aws_cdk.aws_backup import BackupResource, BackupVault, CfnBackupPlan, CfnBackupSelection
 from aws_cdk.aws_iam import Role, ServicePrincipal
 from aws_cdk.aws_kms import Key
 

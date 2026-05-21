@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from aws_cdk import App, RemovalPolicy, Stack
+from aws_cdk import App, Stack
 from aws_cdk.assertions import Template
 from aws_cdk.aws_s3 import BucketEncryption, CfnBucket
 
