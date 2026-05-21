@@ -3,9 +3,9 @@ from __future__ import annotations
 from functools import cached_property
 
 from aws_cdk.aws_logs import QueryDefinition, QueryString
+from common_constructs.compact_connect_api import CompactConnectApi
 from constructs import Construct
 
-from common_constructs.compact_connect_api import CompactConnectApi
 from stacks import persistent_stack as ps
 from stacks.state_auth import StateAuthStack
 

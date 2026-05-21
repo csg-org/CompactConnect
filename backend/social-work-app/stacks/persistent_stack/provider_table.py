@@ -12,10 +12,9 @@ from aws_cdk.aws_dynamodb import (
 )
 from aws_cdk.aws_kms import Key
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.backup_plan import CCBackupPlan
 from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
+from constructs import Construct
 
 
 class ProviderTable(Table):

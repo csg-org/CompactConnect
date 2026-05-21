@@ -6,8 +6,8 @@ from aws_cdk.aws_apigateway import (
     MethodResponse,
     Resource,
 )
-
 from common_constructs.compact_connect_api import CompactConnectApi
+
 from stacks import persistent_stack as ps
 from stacks.api_lambda_stack import ApiLambdaStack
 

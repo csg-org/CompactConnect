@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from functools import cached_property
 
+from common_constructs.compact_connect_api import CompactConnectApi
 from constructs import Construct
 
-from common_constructs.compact_connect_api import CompactConnectApi
 from stacks import persistent_stack as ps
 from stacks import search_persistent_stack as sps
 from stacks.api_lambda_stack import ApiLambdaStack
@@ -41,6 +41,4 @@ class LicenseApi(CompactConnectApi):
     def staff_users_authorizer(self):
         from aws_cdk.aws_apigateway import CognitoUserPoolsAuthorizer
 
-        return CognitoUserPoolsAuthorizer(
-            self, 'StaffUsersPoolAuthorizer', cognito_user_pools=[self.staff_users]
-        )
+        return CognitoUserPoolsAuthorizer(self, 'StaffUsersPoolAuthorizer', cognito_user_pools=[self.staff_users])

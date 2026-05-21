@@ -35,9 +35,10 @@ from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import UserPoolDomainTarget
 from cdk_nag import NagSuppressions
+from constructs import Construct
+
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import Stack
-from constructs import Construct
 
 
 class UserPool(CdkUserPool):

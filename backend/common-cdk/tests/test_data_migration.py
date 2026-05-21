@@ -11,10 +11,9 @@ MIGRATION_DIR = 'dummy_migration'
 
 class TestDataMigration(TestCase):
     def test_data_migration_synthesizes(self):
-        from common_constructs.stack import AppStack, StandardTags
-
         from common_constructs.data_migration import DataMigration
         from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
+        from common_constructs.stack import AppStack, StandardTags
 
         # Skip Docker bundling; this test asserts CloudFormation synthesis only.
         app = App(context={'aws:cdk:bundling-stacks': []})

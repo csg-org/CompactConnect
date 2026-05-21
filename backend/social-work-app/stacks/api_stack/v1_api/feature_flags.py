@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from aws_cdk.aws_apigateway import LambdaIntegration, Resource
 from cdk_nag import NagSuppressions
-
 from common_constructs.compact_connect_api import CompactConnectApi
+
 from stacks.api_lambda_stack import ApiLambdaStack
 
 from .api_model import ApiModel

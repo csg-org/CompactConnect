@@ -18,10 +18,10 @@ from aws_cdk.aws_opensearchservice import (
 )
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
+from common_constructs.constants import PROD_ENV_NAME
 from common_constructs.stack import Stack
 from constructs import Construct
 
-from common_constructs.constants import PROD_ENV_NAME
 from stacks.vpc_stack import PRIVATE_SUBNET_ONE_NAME, VpcStack
 
 PROD_EBS_VOLUME_SIZE = 25

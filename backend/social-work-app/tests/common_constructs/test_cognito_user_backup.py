@@ -19,11 +19,11 @@ from aws_cdk.aws_lambda import CfnFunction, Runtime
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sns import Topic
 from common_constructs.access_logs_bucket import AccessLogsBucket
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from common_constructs.stack import AppStack, StandardTags
+from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 from common_constructs.cognito_user_backup import CognitoUserBackup
-from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
-from common_stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
 class TestCognitoUserBackup(TestCase):

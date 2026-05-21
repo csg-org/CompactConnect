@@ -3,8 +3,8 @@ from __future__ import annotations
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from cdk_nag import NagSuppressions
-
 from common_constructs.compact_connect_api import CompactConnectApi
+
 from stacks import search_persistent_stack as sps
 from stacks.api_lambda_stack import ApiLambdaStack
 

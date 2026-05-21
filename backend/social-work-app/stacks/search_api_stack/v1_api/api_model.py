@@ -261,9 +261,15 @@ class ApiModel:
                 'middleName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'familyName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'suffix': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
-                'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
-                'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
-                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+                'dateOfIssuance': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                ),
+                'dateOfRenewal': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                ),
+                'dateOfExpiration': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                ),
                 'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
                 'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                 'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
@@ -307,7 +313,9 @@ class ApiModel:
                     type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
                 ),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
-                'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+                'dateOfExpiration': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                ),
                 'adverseActions': JsonSchema(type=JsonSchemaType.ARRAY, items=self._adverse_action_general_schema),
                 'investigations': JsonSchema(type=JsonSchemaType.ARRAY, items=self._investigation_general_schema),
                 'administratorSetStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
@@ -350,10 +358,16 @@ class ApiModel:
                 'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
                 'actionAgainst': JsonSchema(type=JsonSchemaType.STRING, enum=['license', 'privilege']),
-                'effectiveStartDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
-                'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+                'effectiveStartDate': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                ),
+                'creationDate': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                ),
                 'adverseActionId': JsonSchema(type=JsonSchemaType.STRING),
-                'effectiveLiftDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+                'effectiveLiftDate': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+                ),
                 'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
                 'clinicalPrivilegeActionCategories': JsonSchema(

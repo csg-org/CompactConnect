@@ -4,6 +4,7 @@ from aws_cdk.aws_iam import PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_s3 import BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership
 from cdk_nag import NagSuppressions
+from common_constructs.ssn_table import SSN_RESTORED_TABLE_NAME_PREFIX, SSNTable
 from common_constructs.stack import AppStack
 from constructs import Construct
 
@@ -15,7 +16,6 @@ from stacks.disaster_recovery_stack.restore_dynamo_db_table_step_function import
     RestoreDynamoDbTableStepFunctionConstruct,
 )
 from stacks.disaster_recovery_stack.sync_table_step_function import SyncTableDataStepFunctionConstruct
-from common_constructs.ssn_table import SSN_RESTORED_TABLE_NAME_PREFIX, SSNTable
 
 
 class DisasterRecoveryStack(AppStack):

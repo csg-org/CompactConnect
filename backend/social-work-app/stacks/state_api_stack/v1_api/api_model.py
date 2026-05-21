@@ -152,15 +152,23 @@ class ApiModel:
             'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+            'dateOfBirth': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
             'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
-            'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
-            'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
-            'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT),
+            'dateOfIssuance': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
+            'dateOfRenewal': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
+            'dateOfExpiration': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
