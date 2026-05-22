@@ -135,9 +135,9 @@ class BulkUploadsBucket(Bucket):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
-                                    This policy contains wild-carded actions and resources but are still scoped to this bucket
-                                    and specific actions, KMS key and SQS queue that this lambda specifically needs access to.
-                                    """,
+                            This policy contains wild-carded actions and resources but are still scoped to this bucket
+                            and specific actions, KMS key and SQS queue that this lambda specifically needs access to.
+                            """,
                 },
             ],
         )
