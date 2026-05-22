@@ -33,8 +33,9 @@
           },
           "licenseType": {
             "enum": [
-              "cosmetologist",
-              "esthetician"
+              "licensed clinical social worker",
+              "licensed master social worker,",
+              "licensed bachelor social worker"
             ],
             "type": "string"
           },
@@ -128,8 +129,9 @@
           },
           "licenseType": {
             "enum": [
-              "cosmetologist",
-              "esthetician"
+              "licensed clinical social worker",
+              "licensed master social worker,",
+              "licensed bachelor social worker"
             ],
             "type": "string"
           },
