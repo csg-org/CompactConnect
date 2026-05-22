@@ -41,6 +41,21 @@ DEACTIVATION_EVENT_TYPES: list[UpdateCategory] = [
 ]
 
 
+def _license_sort_key(license_record: dict | LicenseData) -> tuple:
+    """
+    Sort key for license records: by date of renewal if present, else date of issuance;
+    use date of issuance as tiebreaker. Works with both dict and LicenseData so the same
+    ordering is used in find_best_license (dicts) and find_best_license_in_current_known_licenses (LicenseData).
+    """
+    if isinstance(license_record, dict):
+        effective_date = license_record.get('dateOfRenewal') or license_record['dateOfIssuance']
+        date_of_issuance = license_record['dateOfIssuance']
+    else:
+        effective_date = license_record.dateOfRenewal or license_record.dateOfIssuance
+        date_of_issuance = license_record.dateOfIssuance
+    return effective_date, date_of_issuance
+
+
 class ProviderRecordUtility:
     """
     A class for housing official logic for how to handle provider records without making database queries.
@@ -75,21 +90,6 @@ class ProviderRecordUtility:
         return provider_records[0] if provider_records else None
 
     @classmethod
-    def _license_sort_key(cls, license_record: dict | LicenseData) -> tuple:
-        """
-        Sort key for license records: by date of renewal if present, else date of issuance;
-        use date of issuance as tiebreaker. Works with both dict and LicenseData so the same
-        ordering is used in find_best_license (dicts) and find_best_license_in_current_known_licenses (LicenseData).
-        """
-        if isinstance(license_record, dict):
-            effective_date = license_record.get('dateOfRenewal') or license_record['dateOfIssuance']
-            date_of_issuance = license_record['dateOfIssuance']
-        else:
-            effective_date = license_record.dateOfRenewal or license_record.dateOfIssuance
-            date_of_issuance = license_record.dateOfIssuance
-        return (effective_date, date_of_issuance)
-
-    @classmethod
     def find_most_recently_issued_or_renewed_license(cls, license_records: Iterable[dict]) -> dict:
         """
         This selects the license renewed or issued most recently. Sort by date of renewal
@@ -99,7 +99,7 @@ class ProviderRecordUtility:
         :param license_records: An iterable of license records
         :return: The best license record
         """
-        latest_licenses = sorted(license_records, key=cls._license_sort_key, reverse=True)
+        latest_licenses = sorted(license_records, key=_license_sort_key, reverse=True)
         if not latest_licenses:
             raise CCInternalException('No licenses found')
 
@@ -373,6 +373,30 @@ class ProviderUserRecords:
             raise CCInternalException('No provider record found for user.')
         return self._provider_records[0]
 
+    @staticmethod
+    def _sort_licenses_by_most_recent(licenses: list[LicenseData]) -> list[LicenseData]:
+        return sorted(
+            licenses,
+            key=_license_sort_key,
+            reverse=True,
+        )
+
+    def find_most_recent_licenses_for_each_license_type(self) -> list[LicenseData]:
+        """
+        For each license type, find the most recent license for the provider.
+
+        :return: A list of LicenseData objects, one for each license type the provider holds.
+        """
+        most_recent_licenses: list[LicenseData] = []
+        by_type: dict[str, list] = {}
+        for lic in self._license_records:
+            by_type.setdefault(lic.licenseType, []).append(lic)
+        for _lt, licenses in by_type.items():
+            sorted_licenses = self._sort_licenses_by_most_recent(licenses)
+            most_recent_licenses.append(sorted_licenses[0])
+
+        return most_recent_licenses
+
     def find_best_license_in_current_known_licenses(
         self,
         jurisdiction: str | None = None,
@@ -401,11 +425,7 @@ class ProviderUserRecords:
         if not license_records:
             raise CCNotFoundException('No licenses found')
 
-        sorted_licenses = sorted(
-            license_records,
-            key=ProviderRecordUtility._license_sort_key,  # noqa: SLF001
-            reverse=True,
-        )
+        sorted_licenses = self._sort_licenses_by_most_recent(license_records)
         return sorted_licenses[0]
 
     def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
@@ -446,7 +466,7 @@ class ProviderUserRecords:
         for _lt, licenses in by_type.items():
             sorted_licenses = sorted(
                 licenses,
-                key=ProviderRecordUtility._license_sort_key,  # noqa: SLF001
+                key=_license_sort_key,
                 reverse=True,
             )
             most_recent_license = sorted_licenses[0]
@@ -550,18 +570,26 @@ class ProviderUserRecords:
             and (filter_condition is None or filter_condition(record))
         ]
 
-    def generate_api_response_object(self) -> dict:
+    def generate_api_response_object(self, is_public_response: bool = False) -> dict:
         """
         Assemble a list of provider records into a single object used by the provider details api.
 
+        :param is_public_response: If True, licenses that are not the most recent license for a type
+        will not be included in the response.
         :return: A single provider record matching our provider details api schema.
         """
         provider = self.get_provider_record().to_dict()
         licenses = []
         privileges = []
 
+        if is_public_response:
+            # only include the most recent license for each license type in the public response
+            license_records = self.find_most_recent_licenses_for_each_license_type()
+        else:
+            license_records = self.get_license_records()
+
         # Build licenses dict with investigations and adverseActions
-        for license_record in self._license_records:
+        for license_record in license_records:
             license_dict = license_record.to_dict()
             license_dict['adverseActions'] = [
                 rec.to_dict()
@@ -590,9 +618,10 @@ class ProviderUserRecords:
         """
         Generate one OpenSearch document per license for this provider.
 
-        Each document contains the full provider-level fields, a single license in the `licenses`
-        array, and privileges only if that license is the home license for its type. This enables
-        1:1 mapping between OpenSearch documents and license records for native pagination.
+        Each document contains the full provider-level fields (including top-level `adverseActions`
+        for the provider), a single license in the `licenses` array, and privileges only if that license
+        is the home license for its type. This enables 1:1 mapping between OpenSearch documents and license
+        records for native pagination.
 
         Privileges are always included for home license documents — including when the license is
         ineligible — so that adverse actions and investigations remain linked to privilege records.
@@ -607,24 +636,15 @@ class ProviderUserRecords:
         provider_dict = self.get_provider_record().to_dict()
         all_privileges = self.generate_privileges_for_provider(include_inactive_privileges=True)
 
-        # Determine the home license for each license type using the same sort logic
-        # as generate_privileges_for_provider, so privilege assignment is consistent.
-        by_type: dict[str, list] = {}
-        for lic in self._license_records:
-            by_type.setdefault(lic.licenseType, []).append(lic)
-
-        home_licenses: set[tuple[str, str]] = set()
-        for _lt, licenses in by_type.items():
-            sorted_licenses = sorted(
-                licenses,
-                key=ProviderRecordUtility._license_sort_key,  # noqa: SLF001
-                reverse=True,
-            )
-            home = sorted_licenses[0]
-            home_licenses.add((home.jurisdiction.lower(), home.licenseType))
+        # Determine the most recent (aka home) license for each license type
+        most_recent_licenses = {
+            (most_recent_license_for_type.jurisdiction.lower(), most_recent_license_for_type.licenseType)
+            for most_recent_license_for_type in self.find_most_recent_licenses_for_each_license_type()
+        }
 
         documents = []
-        for license_record in self._license_records:
+        adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
+        for license_record in self.get_license_records():
             license_dict = license_record.to_dict()
             license_dict['adverseActions'] = [
                 rec.to_dict()
@@ -639,14 +659,21 @@ class ProviderUserRecords:
                 )
             ]
 
-            is_home = (license_record.jurisdiction.lower(), license_record.licenseType) in home_licenses
+            is_most_recent_license_for_type = (
+                license_record.jurisdiction.lower(),
+                license_record.licenseType,
+            ) in most_recent_licenses
             license_privileges = (
-                [p for p in all_privileges if p['licenseType'] == license_record.licenseType] if is_home else []
+                [p for p in all_privileges if p['licenseType'] == license_record.licenseType]
+                if is_most_recent_license_for_type
+                else []
             )
+            license_dict['mostRecentLicenseForType'] = is_most_recent_license_for_type
 
             doc = dict(provider_dict)
             doc['licenses'] = [license_dict]
             doc['privileges'] = license_privileges
+            doc['adverseActions'] = adverse_actions
             documents.append(doc)
 
         return documents

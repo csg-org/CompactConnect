@@ -143,6 +143,28 @@ class TestOpenSearchIndexManager(TstFunction):
                 {
                     'mappings': {
                         'properties': {
+                            'adverseActions': {
+                                'properties': {
+                                    'actionAgainst': {'type': 'keyword'},
+                                    'adverseActionId': {'type': 'keyword'},
+                                    'clinicalPrivilegeActionCategories': {'type': 'keyword'},
+                                    'clinicalPrivilegeActionCategory': {'type': 'keyword'},
+                                    'compact': {'type': 'keyword'},
+                                    'creationDate': {'type': 'date'},
+                                    'dateOfUpdate': {'type': 'date'},
+                                    'effectiveLiftDate': {'type': 'date'},
+                                    'effectiveStartDate': {'type': 'date'},
+                                    'encumbranceType': {'type': 'keyword'},
+                                    'jurisdiction': {'type': 'keyword'},
+                                    'licenseType': {'type': 'keyword'},
+                                    'licenseTypeAbbreviation': {'type': 'keyword'},
+                                    'liftingUser': {'type': 'keyword'},
+                                    'providerId': {'type': 'keyword'},
+                                    'submittingUser': {'type': 'keyword'},
+                                    'type': {'type': 'keyword'},
+                                },
+                                'type': 'nested',
+                            },
                             'birthMonthDay': {'type': 'keyword'},
                             'compact': {'type': 'keyword'},
                             'compactEligibility': {'type': 'keyword'},
@@ -238,6 +260,7 @@ class TestOpenSearchIndexManager(TstFunction):
                                         'fields': {'keyword': {'ignore_above': 256, 'type': 'keyword'}},
                                         'type': 'text',
                                     },
+                                    'mostRecentLicenseForType': {'type': 'boolean'},
                                     'phoneNumber': {'type': 'keyword'},
                                     'providerId': {'type': 'keyword'},
                                     'suffix': {'type': 'keyword'},

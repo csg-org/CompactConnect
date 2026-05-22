@@ -49,6 +49,7 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
                     'homeAddressState': 'OH',
                     'homeAddressPostalCode': '43215',
                     'dateOfBirth': '1985-06-06',
+                    'mostRecentLicenseForType': True,
                 }
             ],
             'privileges': [],

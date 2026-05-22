@@ -1,9 +1,35 @@
 import json
+from datetime import date
 from unittest.mock import patch
 
+from common_test.test_constants import (
+    DEFAULT_LICENSE_ISSUANCE_DATE,
+    DEFAULT_LICENSE_UPDATE_DATETIME,
+    DEFAULT_PROVIDER_UPDATE_DATETIME,
+)
 from moto import mock_aws
 
 from . import TstFunction
+
+# Public search always scopes nested license clauses to the per-type "home" indexed row.
+_MOST_RECENT_LICENSE_FOR_TYPE_TERM = {'term': {'licenses.mostRecentLicenseForType': True}}
+
+_DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_ASC = [
+    {'licenses.familyName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
+    {'licenses.givenName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
+    {'providerId': 'asc'},
+    {'_id': 'asc'},
+]
+
+_DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_DESC = [
+    {'licenses.familyName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}},
+    {'licenses.givenName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}},
+    {'providerId': 'desc'},
+    {'_id': 'asc'},
+]
+
+_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_ASC = [{'dateOfUpdate': 'asc'}, {'_id': 'asc'}]
+_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_DESC = [{'dateOfUpdate': 'desc'}, {'_id': 'asc'}]
 
 
 @mock_aws
@@ -12,6 +38,58 @@ class TestPublicSearchProviders(TstFunction):
 
     def setUp(self):
         super().setUp()
+
+    @staticmethod
+    def _expected_public_search_request_body(
+        *,
+        licenses_nested_must: list,
+        page_size: int = 10,
+        sort: list | None = None,
+        compact: str = 'cosm',
+        search_after: list | None = None,
+    ) -> dict:
+        """Full OpenSearch search body for public license query (must stay aligned with public_search handler)."""
+        body: dict = {
+            'query': {
+                'bool': {
+                    'must': [
+                        {'term': {'compact': compact}},
+                        {
+                            'nested': {
+                                'path': 'licenses',
+                                'query': {'bool': {'must': licenses_nested_must}},
+                            }
+                        },
+                    ]
+                }
+            },
+            'size': page_size,
+            'sort': sort or _DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_ASC,
+        }
+        if search_after is not None:
+            body['search_after'] = search_after
+        return body
+
+    def _ingest_style_sanitize_opensearch_source(self, source: dict) -> dict:
+        """
+        Mirror production ingest behavior used by provider_update_ingest/populate_provider_documents.
+
+        In prod we build raw docs then do:
+        ProviderOpenSearchDocumentSchema().load(raw_doc) -> json roundtrip via ResponseEncoder
+        (see lambdas/python/search/utils.py generate_provider_opensearch_documents).
+        """
+        from cc_common.data_model.schema.provider.api import ProviderOpenSearchDocumentSchema
+        from cc_common.utils import ResponseEncoder
+
+        # Only sanitize for supported compacts. Some tests intentionally construct
+        # mismatched compacts to verify handler filtering; those documents would
+        # never be produced by ingest and will fail schema validation.
+        if source.get('compact') != 'cosm':
+            return source
+
+        schema = ProviderOpenSearchDocumentSchema()
+        sanitized = schema.load(source)
+        return json.loads(json.dumps(sanitized, cls=ResponseEncoder))
 
     def _create_public_api_event(self, compact: str, body: dict = None) -> dict:
         """Create API Gateway event for public query providers (no auth)."""
@@ -31,6 +109,129 @@ class TestPublicSearchProviders(TstFunction):
             'isBase64Encoded': False,
         }
 
+    def _minimal_opensearch_license(
+        self,
+        *,
+        provider_id: str,
+        compact: str,
+        jurisdiction: str,
+        license_number: str,
+        license_type: str,
+        given_name: str,
+        family_name: str,
+        date_of_expiration: str,
+        license_status: str = 'active',
+        jurisdiction_uploaded_compact_eligibility: str = 'eligible',
+        adverse_actions: list | None = None,
+    ) -> dict:
+        """Nested license object sufficient for ProviderOpenSearchDocumentSchema / LicenseGeneralResponseSchema."""
+        return {
+            'providerId': provider_id,
+            'type': 'license',
+            'dateOfUpdate': DEFAULT_LICENSE_UPDATE_DATETIME,
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'licenseType': license_type,
+            'licenseStatusName': 'OK',
+            'licenseStatus': license_status,
+            'jurisdictionUploadedLicenseStatus': 'active',
+            # for simplicity in the test setup, we set this field to whatever was passed
+            # in for the 'jurisdictionUploadedCompactEligibility' field. It will be recalculated
+            # to its actual value when run through the '_ingest_style_sanitize_opensearch_source' method
+            'compactEligibility': jurisdiction_uploaded_compact_eligibility,
+            'jurisdictionUploadedCompactEligibility': jurisdiction_uploaded_compact_eligibility,
+            'licenseNumber': license_number,
+            'givenName': given_name,
+            'familyName': family_name,
+            'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
+            'dateOfExpiration': date_of_expiration,
+            'dateOfBirth': '1985-06-06',
+            'homeAddressStreet1': '123 A St.',
+            'homeAddressCity': 'Columbus',
+            'homeAddressState': 'oh',
+            'homeAddressPostalCode': '43004',
+            'mostRecentLicenseForType': True,
+            'adverseActions': adverse_actions if adverse_actions is not None else [],
+            'investigations': [],
+        }
+
+    def _minimal_opensearch_privilege(
+        self,
+        *,
+        provider_id: str,
+        compact: str,
+        license_jurisdiction: str,
+        license_type: str,
+        privilege_jurisdiction: str,
+        date_of_expiration: str,
+        adverse_actions: list | None = None,
+    ) -> dict:
+        """Privilege row sufficient for PrivilegeGeneralResponseSchema / ingest sanitize."""
+        return {
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': compact,
+            'jurisdiction': privilege_jurisdiction,
+            'licenseJurisdiction': license_jurisdiction,
+            'licenseType': license_type,
+            'dateOfExpiration': date_of_expiration,
+            'adverseActions': adverse_actions if adverse_actions is not None else [],
+            'investigations': [],
+            'administratorSetStatus': 'active',
+            'status': 'active',
+        }
+
+    def _generate_unlifted_license_adverse_action(self, *, provider_id: str) -> dict:
+        return {
+            'type': 'adverseAction',
+            'compact': 'cosm',
+            'providerId': provider_id,
+            'jurisdiction': 'oh',
+            'licenseTypeAbbreviation': 'cos',
+            'licenseType': 'cosmetologist',
+            'actionAgainst': 'license',
+            'effectiveStartDate': '2024-01-01',
+            'creationDate': '2024-01-01T00:00:00+00:00',
+            'adverseActionId': 'aa-license-unlifted',
+            'dateOfUpdate': '2024-01-02T00:00:00+00:00',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['fraud'],
+            'submittingUser': {'userId': 'staff-1'},
+        }
+
+    def _minimal_opensearch_provider_source(
+        self,
+        *,
+        provider_id: str,
+        compact: str,
+        given_name: str,
+        family_name: str,
+        license_nested: dict,
+        provider_adverse_actions: list | None = None,
+        privileges: list | None = None,
+    ) -> dict:
+        """Top-level OpenSearch provider document sufficient for ProviderOpenSearchDocumentSchema."""
+        lic_exp = license_nested['dateOfExpiration']
+        source = {
+            'providerId': provider_id,
+            'type': 'provider',
+            'dateOfUpdate': DEFAULT_PROVIDER_UPDATE_DATETIME,
+            'compact': compact,
+            'licenseJurisdiction': license_nested['jurisdiction'],
+            'licenseStatus': license_nested['licenseStatus'],
+            'compactEligibility': 'eligible',
+            'givenName': given_name,
+            'familyName': family_name,
+            'dateOfExpiration': lic_exp,
+            'jurisdictionUploadedLicenseStatus': 'active',
+            'jurisdictionUploadedCompactEligibility': 'eligible',
+            'birthMonthDay': '06-06',
+            'licenses': [license_nested],
+            'privileges': privileges if privileges is not None else [],
+            'adverseActions': provider_adverse_actions or [],
+        }
+        return self._ingest_style_sanitize_opensearch_source(source)
+
     def _create_mock_hit(
         self,
         provider_id: str = '00000000-0000-0000-0000-000000000001',
@@ -41,25 +242,35 @@ class TestPublicSearchProviders(TstFunction):
         given_name: str = 'John',
         sort_values: list = None,
         license_type: str = 'cosmetologist',
+        license_nested: dict | None = None,
+        provider_adverse_actions: list | None = None,
+        privileges: list | None = None,
     ) -> dict:
         """Create a mock OpenSearch hit for one document per license."""
         doc_id = f'{provider_id}#{jurisdiction}#{license_type}'
+        nested = license_nested or self._minimal_opensearch_license(
+            provider_id=provider_id,
+            compact=compact,
+            jurisdiction=jurisdiction,
+            license_number=license_number,
+            license_type=license_type,
+            given_name=given_name,
+            family_name=family_name,
+            date_of_expiration='2035-01-01',
+        )
+        source = self._minimal_opensearch_provider_source(
+            provider_id=provider_id,
+            compact=compact,
+            given_name=given_name,
+            family_name=family_name,
+            license_nested=nested,
+            provider_adverse_actions=provider_adverse_actions,
+            privileges=privileges,
+        )
         hit = {
             '_index': f'compact_{compact}_providers',
             '_id': doc_id,
-            '_source': {
-                'providerId': provider_id,
-                'compact': compact,
-                'givenName': given_name,
-                'familyName': family_name,
-                'licenses': [
-                    {
-                        'jurisdiction': jurisdiction,
-                        'licenseNumber': license_number,
-                        'licenseType': license_type,
-                    }
-                ],
-            },
+            '_source': source,
         }
         if sort_values is not None:
             hit['sort'] = sort_values
@@ -79,13 +290,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        self.assertIn('query', call_body)
-        must = call_body['query']['bool']['must']
-        nested = next(m for m in must if 'nested' in m)
-        self.assertEqual('licenses', nested['nested']['path'])
-        self.assertNotIn('inner_hits', nested['nested'])
-        inner_must = nested['nested']['query']['bool']['must']
-        self.assertIn({'term': {'licenses.licenseNumber': 'LN999'}}, inner_must)
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.licenseNumber': 'LN999'}},
+                ],
+            ),
+            call_body,
+        )
 
     @patch('handlers.public_search.opensearch_client')
     def test_jurisdiction_and_name_search_builds_nested_query(self, mock_opensearch_client):
@@ -104,12 +317,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        must = call_body['query']['bool']['must']
-        nested = next(m for m in must if 'nested' in m)
-        self.assertNotIn('inner_hits', nested['nested'])
-        inner_must = nested['nested']['query']['bool']['must']
-        self.assertIn({'term': {'licenses.jurisdiction': 'oh'}}, inner_must)
-        self.assertTrue(any('licenses.familyName' in str(m) for m in inner_must))
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.jurisdiction': 'oh'}},
+                    {'match': {'licenses.familyName': 'Smith'}},
+                ],
+            ),
+            call_body,
+        )
 
     @patch('handlers.public_search.opensearch_client')
     def test_name_only_search_builds_nested_query(self, mock_opensearch_client):
@@ -125,11 +342,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        must = call_body['query']['bool']['must']
-        nested = next(m for m in must if 'nested' in m)
-        self.assertNotIn('inner_hits', nested['nested'])
-        inner_must = nested['nested']['query']['bool']['must']
-        self.assertTrue(any('familyName' in str(m) for m in inner_must))
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Jones'}},
+                ],
+            ),
+            call_body,
+        )
 
     @patch('handlers.public_search.opensearch_client')
     def test_sort_includes_id_tiebreaker(self, mock_opensearch_client):
@@ -145,6 +366,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+            ),
+            call_body,
+        )
         sort = call_body['sort']
         self.assertEqual(4, len(sort))
         self.assertEqual({'_id': 'asc'}, sort[3])
@@ -163,12 +393,15 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        sort = call_body['sort']
-        self.assertEqual(4, len(sort))
-        self.assertEqual({'licenses.familyName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}}, sort[0])
-        self.assertEqual({'licenses.givenName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}}, sort[1])
-        self.assertEqual({'providerId': 'asc'}, sort[2])
-        self.assertEqual({'_id': 'asc'}, sort[3])
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+            ),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertEqual(
             {'key': 'familyName', 'direction': 'ascending'},
@@ -193,11 +426,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        sort = call_body['sort']
-        self.assertEqual({'licenses.familyName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}}, sort[0])
-        self.assertEqual({'licenses.givenName.keyword': {'order': 'desc', 'nested': {'path': 'licenses'}}}, sort[1])
-        self.assertEqual({'providerId': 'desc'}, sort[2])
-        self.assertEqual({'_id': 'asc'}, sort[3])
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+                sort=_DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_DESC,
+            ),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertEqual(
             {'key': 'familyName', 'direction': 'descending'},
@@ -223,8 +461,14 @@ class TestPublicSearchProviders(TstFunction):
         response = public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
         self.assertEqual(
-            [{'dateOfUpdate': 'asc'}, {'_id': 'asc'}],
-            call_body['sort'],
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.licenseNumber': 'LN999'}},
+                ],
+                sort=_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_ASC,
+            ),
+            call_body,
         )
         body = json.loads(response['body'])
         self.assertEqual(
@@ -251,8 +495,14 @@ class TestPublicSearchProviders(TstFunction):
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
         self.assertEqual(
-            [{'dateOfUpdate': 'desc'}, {'_id': 'asc'}],
-            call_body['sort'],
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.licenseNumber': 'LN999'}},
+                ],
+                sort=_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_DESC,
+            ),
+            call_body,
         )
 
     @patch('handlers.public_search.opensearch_client')
@@ -269,6 +519,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'])
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'term': {'licenses.jurisdiction': 'oh'}},
+                ],
+            ),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertIn('sorting', body)
         self.assertEqual({'key', 'direction'}, set(body['sorting'].keys()))
@@ -322,6 +582,11 @@ class TestPublicSearchProviders(TstFunction):
         )
         response = public_search_api_handler(event, self.mock_context)
         self.assertEqual(200, response['statusCode'])
+        call_body = mock_opensearch_client.search.call_args.kwargs['body']
+        self.assertEqual(
+            self._expected_public_search_request_body(licenses_nested_must=[_MOST_RECENT_LICENSE_FOR_TYPE_TERM]),
+            call_body,
+        )
         body = json.loads(response['body'])
         self.assertEqual(
             {
@@ -373,10 +638,16 @@ class TestPublicSearchProviders(TstFunction):
         )
         public_search_api_handler(event, self.mock_context)
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
-        self.assertEqual(25, call_body['size'])
         self.assertEqual(
-            ['doe', 'jane', 'uuid-123', 'uuid-123#oh#cosmetologist'],
-            call_body['search_after'],
+            self._expected_public_search_request_body(
+                licenses_nested_must=[
+                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
+                    {'match': {'licenses.familyName': 'Doe'}},
+                ],
+                page_size=25,
+                search_after=['doe', 'jane', 'uuid-123', 'uuid-123#oh#cosmetologist'],
+            ),
+            call_body,
         )
 
     @patch('handlers.public_search.opensearch_client')
@@ -456,11 +727,267 @@ class TestPublicSearchProviders(TstFunction):
             'compact',
             'licenseType',
             'licenseNumber',
+            'licenseEligibility',
         }
         self.assertEqual(set(provider.keys()), allowed)
         self.assertEqual(provider['licenseJurisdiction'], 'oh')
         self.assertEqual(provider['licenseType'], 'cosmetologist')
         self.assertEqual(provider['licenseNumber'], 'LN123')
+        self.assertEqual(provider['licenseEligibility'], 'eligible')
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_ineligible_when_license_expired(self, mock_opensearch_client):
+        """Expired license (inactive after schema correction) yields licenseEligibility ineligible."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000aa'
+        nested = self._minimal_opensearch_license(
+            provider_id=pid,
+            compact='cosm',
+            jurisdiction='oh',
+            license_number='LN-EXP',
+            license_type='cosmetologist',
+            given_name='John',
+            family_name='Doe',
+            date_of_expiration='2020-01-01',
+            license_status='active',
+        )
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-EXP',
+            license_nested=nested,
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-EXP'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual('ineligible', body['providers'][0]['licenseEligibility'])
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_eligible_when_no_unlifted_adverse_action_on_license_or_privileges(
+        self, mock_opensearch_client
+    ):
+        """LicenseEligibility is eligible when there are no unlifted adverse actions on the license or privileges."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000bb'
+        # create a unlifted adverse action for another license
+        # which should not be considered
+        unlifted = {
+            'type': 'adverseAction',
+            'compact': 'cosm',
+            'providerId': pid,
+            'jurisdiction': 'oh',
+            'licenseTypeAbbreviation': 'cos',
+            # adverse action is for their 'esthetician' license
+            # the license record that matches the query is for a
+            # 'cosmetologist license
+            'licenseType': 'esthetician',
+            'actionAgainst': 'license',
+            'effectiveStartDate': '2024-01-01',
+            'creationDate': '2024-01-01T00:00:00+00:00',
+            'adverseActionId': 'aa-unlifted',
+            'dateOfUpdate': '2024-01-02T00:00:00+00:00',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['fraud'],
+            'submittingUser': {'userId': 'staff-1'},
+        }
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-AA',
+            license_type='cosmetologist',
+            provider_adverse_actions=[unlifted],
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-AA'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual(body['providers'][0]['licenseEligibility'], 'eligible')
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_set_to_ineligible_if_adverse_action_on_license(self, mock_opensearch_client):
+        """Unlifted adverse action on the indexed license row marks licenseEligibility ineligible."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000ee'
+        unlifted = self._generate_unlifted_license_adverse_action(provider_id=pid)
+        nested = self._minimal_opensearch_license(
+            provider_id=pid,
+            compact='cosm',
+            jurisdiction='oh',
+            license_number='LN-LIC-AA',
+            license_type='cosmetologist',
+            given_name='John',
+            family_name='Doe',
+            date_of_expiration='2035-01-01',
+            adverse_actions=[unlifted],
+        )
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-LIC-AA',
+            license_nested=nested,
+            provider_adverse_actions=[],
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-LIC-AA'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual('ineligible', body['providers'][0]['licenseEligibility'])
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_set_to_ineligible_if_unlifted_adverse_action_on_privilege_for_license(
+        self, mock_opensearch_client
+    ):
+        """Unlifted adverse action on a privilege bundled with the license doc marks licenseEligibility ineligible."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000ff'
+        unlifted = {
+            'type': 'adverseAction',
+            'compact': 'cosm',
+            'providerId': pid,
+            'jurisdiction': 'mi',
+            'licenseTypeAbbreviation': 'cos',
+            'licenseType': 'cosmetologist',
+            'actionAgainst': 'privilege',
+            'effectiveStartDate': '2024-01-01',
+            'creationDate': '2024-01-01T00:00:00+00:00',
+            'adverseActionId': 'aa-priv-unlifted',
+            'dateOfUpdate': '2024-01-02T00:00:00+00:00',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['fraud'],
+            'submittingUser': {'userId': 'staff-1'},
+        }
+        nested = self._minimal_opensearch_license(
+            provider_id=pid,
+            compact='cosm',
+            jurisdiction='oh',
+            license_number='LN-PRIV-AA',
+            license_type='cosmetologist',
+            given_name='John',
+            family_name='Doe',
+            date_of_expiration='2035-01-01',
+            adverse_actions=[],
+        )
+        privilege = self._minimal_opensearch_privilege(
+            provider_id=pid,
+            compact='cosm',
+            license_jurisdiction='oh',
+            license_type='cosmetologist',
+            privilege_jurisdiction='mi',
+            date_of_expiration='2035-01-01',
+            adverse_actions=[unlifted],
+        )
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-PRIV-AA',
+            license_nested=nested,
+            provider_adverse_actions=[],
+            privileges=[privilege],
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-PRIV-AA'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual('ineligible', body['providers'][0]['licenseEligibility'])
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_ineligible_when_jurisdiction_uploaded_ineligible(self, mock_opensearch_client):
+        """jurisdictionUploadedCompactEligibility ineligible on the matched license yields ineligible."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000cc'
+        nested = self._minimal_opensearch_license(
+            provider_id=pid,
+            compact='cosm',
+            jurisdiction='oh',
+            license_number='LN-JUR',
+            license_type='cosmetologist',
+            given_name='John',
+            family_name='Doe',
+            date_of_expiration='2035-01-01',
+            jurisdiction_uploaded_compact_eligibility='ineligible',
+        )
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-JUR',
+            license_nested=nested,
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-JUR'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual('ineligible', body['providers'][0]['licenseEligibility'])
+
+    @patch('handlers.public_search.opensearch_client')
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2030, 1, 1))
+    def test_license_eligibility_eligible_when_no_blocking_factors(self, mock_opensearch_client):
+        """Active license, eligible jurisdiction upload, lifted adverse only -> eligible."""
+        from handlers.public_search import public_search_api_handler
+
+        pid = '00000000-0000-0000-0000-0000000000dd'
+        lifted = {
+            'type': 'adverseAction',
+            'compact': 'cosm',
+            'providerId': pid,
+            'jurisdiction': 'oh',
+            'licenseTypeAbbreviation': 'cos',
+            'licenseType': 'cosmetologist',
+            'actionAgainst': 'license',
+            'effectiveStartDate': '2024-01-01',
+            'creationDate': '2024-01-01T00:00:00+00:00',
+            'adverseActionId': 'aa-lifted',
+            'dateOfUpdate': '2024-06-01T00:00:00+00:00',
+            'effectiveLiftDate': '2024-06-01',
+            'encumbranceType': 'suspension',
+            'clinicalPrivilegeActionCategories': ['fraud'],
+            'submittingUser': {'userId': 'staff-1'},
+        }
+        mock_hit = self._create_mock_hit(
+            provider_id=pid,
+            license_number='LN-OK',
+            provider_adverse_actions=[lifted],
+        )
+        mock_opensearch_client.search.return_value = {
+            'hits': {'total': {'value': 1, 'relation': 'eq'}, 'hits': [mock_hit]},
+        }
+        event = self._create_public_api_event(
+            'cosm',
+            body={'query': {'licenseNumber': 'LN-OK'}, 'pagination': {'pageSize': 10}},
+        )
+        response = public_search_api_handler(event, self.mock_context)
+        body = json.loads(response['body'])
+        self.assertEqual(body['providers'][0]['licenseEligibility'], 'eligible')
 
     @patch('handlers.public_search.opensearch_client')
     def test_compact_mismatch_filtered_out(self, mock_opensearch_client):

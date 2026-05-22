@@ -211,6 +211,7 @@ class PublicLicenseSearchResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+    licenseEligibility = CompactEligibility(required=True, allow_none=False)
 
 
 class QueryProvidersRequestSchema(CCRequestSchema):

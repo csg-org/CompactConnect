@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2026-04-28T15:48:19Z"
+    "version": "2026-05-11T21:56:12Z"
   },
   "servers": [
     {
@@ -4338,6 +4338,7 @@
                 "compact",
                 "familyName",
                 "givenName",
+                "licenseEligibility",
                 "licenseJurisdiction",
                 "licenseNumber",
                 "licenseType",
@@ -4348,6 +4349,14 @@
                 "licenseType": {
                   "type": "string",
                   "description": "License type or profession designation for this license row"
+                },
+                "licenseEligibility": {
+                  "type": "string",
+                  "description": "Whether the license is eligible for compact participation in public search results",
+                  "enum": [
+                    "eligible",
+                    "ineligible"
+                  ]
                 },
                 "licenseJurisdiction": {
                   "type": "string",

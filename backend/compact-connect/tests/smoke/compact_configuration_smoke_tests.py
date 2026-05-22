@@ -103,7 +103,7 @@ def test_active_member_jurisdictions():
         print(f'Successfully verified active member jurisdictions for compact {compact}')
 
 
-def test_compact_configuration():
+def test_compact_configuration(compact: str = None):
     """
     Test that a compact admin can update and retrieve compact configuration.
 
@@ -112,8 +112,9 @@ def test_compact_configuration():
     """
     print('Testing compact configuration...')
 
+    if compact is None:
+        compact = COMPACTS[0]  # Use the first compact for testing
     # Create a test compact admin user
-    compact = COMPACTS[0]  # Use the first compact for testing
     test_email = f'test-compact-admin-{compact}@ccSmokeTestFakeEmail.com'
     permissions = {'actions': {'admin'}, 'jurisdictions': {}}
 
@@ -222,7 +223,9 @@ def test_compact_configuration():
             delete_test_staff_user(test_email, user_sub, compact)
 
 
-def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_config: bool = False):
+def test_jurisdiction_configuration(
+    compact: str = None, jurisdiction: str = 'ne', recreate_compact_config: bool = False
+):
     """
     Test that a state admin can update and retrieve jurisdiction configuration.
 
@@ -232,7 +235,8 @@ def test_jurisdiction_configuration(jurisdiction: str = 'ne', recreate_compact_c
     print('Testing jurisdiction configuration...')
 
     # Create a test state admin user with compact admin permissions for simplicity
-    compact = COMPACTS[0]  # Use the first compact for testing
+    if compact is None:
+        compact = COMPACTS[0]  # Use the first compact for testing
     test_email = f'test-state-admin-{jurisdiction}@ccSmokeTestFakeEmail.com'
     permissions = {'actions': {'admin'}, 'jurisdictions': {jurisdiction: {'admin'}}}
 

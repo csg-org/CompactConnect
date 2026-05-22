@@ -2,11 +2,14 @@
   "openapi": "3.0.1",
   "info": {
     "title": "SearchApi",
-    "version": "2026-03-13T19:50:46Z"
+    "version": "2026-04-17T19:42:45Z"
   },
   "servers": [
     {
-      "url": "https://search.beta.compactconnect.org"
+      "url": "https://search.beta.compactconnect.org",
+      "x-amazon-apigateway-endpoint-configuration": {
+        "disableExecuteApiEndpoint": true
+      }
     }
   ],
   "paths": {
@@ -34,7 +37,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboSearc6bIbGbp1agwX"
+                "$ref": "#/components/schemas/TestSSearch7KTSu0MG6ez"
               }
             }
           },
@@ -46,7 +49,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboSearce1qe0F7F8UqP"
+                  "$ref": "#/components/schemas/TestSSearcCrqH7R9Q0ysc"
                 }
               }
             }
@@ -54,7 +57,7 @@
         },
         "security": [
           {
-            "SandboxSearchAPIStackSearchApiStaffUsersPoolAuthorizer469875BC": [
+            "TestBackendCosmetologyTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer02E7F51B": [
               "cosm/readGeneral"
             ]
           }
@@ -64,7 +67,7 @@
   },
   "components": {
     "schemas": {
-      "SandboSearce1qe0F7F8UqP": {
+      "TestSSearcCrqH7R9Q0ysc": {
         "required": [
           "providers",
           "total"
@@ -287,7 +290,12 @@
                             "clinicalPrivilegeActionCategories": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "type": "string",
+                                "enum": [
+                                  "fraud",
+                                  "consumer harm",
+                                  "other"
+                                ]
                               }
                             },
                             "compact": {
@@ -706,7 +714,12 @@
                             "clinicalPrivilegeActionCategories": {
                               "type": "array",
                               "items": {
-                                "type": "string"
+                                "type": "string",
+                                "enum": [
+                                  "fraud",
+                                  "consumer harm",
+                                  "other"
+                                ]
                               }
                             },
                             "compact": {
@@ -834,7 +847,7 @@
           }
         }
       },
-      "SandboSearc6bIbGbp1agwX": {
+      "TestSSearch7KTSu0MG6ez": {
         "required": [
           "query"
         ],
@@ -871,7 +884,7 @@
       }
     },
     "securitySchemes": {
-      "SandboxSearchAPIStackSearchApiStaffUsersPoolAuthorizer469875BC": {
+      "TestBackendCosmetologyTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer02E7F51B": {
         "type": "apiKey",
         "name": "Authorization",
         "in": "header",

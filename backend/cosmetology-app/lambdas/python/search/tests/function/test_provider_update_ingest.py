@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 from common_test.test_constants import (
@@ -141,6 +142,7 @@ class TestProviderUpdateIngest(TstFunction):
             'jurisdictionUploadedLicenseStatus': 'active',
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'birthMonthDay': '06-06',
+            'adverseActions': [],
             'documentId': f'{provider_id}#oh#{license_type}',
             'licenses': [
                 {
@@ -158,6 +160,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
+                    'mostRecentLicenseForType': True,
                     'familyName': f'test{compact}FamilyName',
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
@@ -247,6 +250,81 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual('documentId', call_args.kwargs['id_field'])
 
         self.assertEqual({'batchItemFailures': []}, result)
+
+    def _put_provider_with_two_cosm_licenses_oh_newer_than_ky(self):
+        """Provider + OH cosmetologist (default dates) + KY cosmetologist (older issuance/renewal)."""
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={
+                'compact': 'cosm',
+                'providerId': MOCK_COSM_PROVIDER_ID,
+                'givenName': 'testcosmGivenName',
+                'familyName': 'testcosmFamilyName',
+            },
+            date_of_update_override=DEFAULT_PROVIDER_UPDATE_DATETIME,
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'compact': 'cosm',
+                'providerId': MOCK_COSM_PROVIDER_ID,
+                'givenName': 'testcosmGivenName',
+                'familyName': 'testcosmFamilyName',
+                'licenseType': TEST_LICENSE_TYPE_MAPPING['cosm'],
+                'jurisdiction': 'oh',
+            },
+            date_of_update_override=DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'compact': 'cosm',
+                'providerId': MOCK_COSM_PROVIDER_ID,
+                'givenName': 'testcosmGivenName',
+                'familyName': 'testcosmFamilyName',
+                'licenseType': TEST_LICENSE_TYPE_MAPPING['cosm'],
+                'jurisdiction': 'ky',
+                'licenseNumber': 'KY-COSM-001',
+                'dateOfIssuance': date(2005, 1, 1),
+                'dateOfRenewal': date(2010, 6, 1),
+                'dateOfExpiration': date.fromisoformat(DEFAULT_LICENSE_EXPIRATION_DATE),
+            },
+            date_of_update_override=DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
+        )
+
+    @patch('handlers.provider_update_ingest.opensearch_client')
+    def test_home_state_license_is_set_as_most_recent(self, mock_opensearch_client):
+        """Documents for providers with multiple licenses have the home state license indexed with
+        mostRecentLicenseForType set to true. All other licenses have mostRecentLicenseForType set to false."""
+        from handlers.provider_update_ingest import provider_update_ingest_handler
+
+        self._when_testing_mock_opensearch_client(mock_opensearch_client)
+        self._put_provider_with_two_cosm_licenses_oh_newer_than_ky()
+
+        event = {
+            'Records': [
+                {
+                    'messageId': '12345',
+                    'body': json.dumps(
+                        self._create_dynamodb_stream_record(
+                            compact='cosm',
+                            provider_id=MOCK_COSM_PROVIDER_ID,
+                            sequence_number='some-sequence-number',
+                        )
+                    ),
+                }
+            ]
+        }
+
+        mock_context = MagicMock()
+        result = provider_update_ingest_handler(event, mock_context)
+
+        self.assertEqual({'batchItemFailures': []}, result)
+        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
+        documents = mock_opensearch_client.bulk_index.call_args.kwargs['documents']
+        self.assertEqual(2, len(documents))
+        documents_by_id = {doc['documentId']: doc for doc in documents}
+        oh_id = f'{MOCK_COSM_PROVIDER_ID}#oh#cosmetologist'
+        ky_id = f'{MOCK_COSM_PROVIDER_ID}#ky#cosmetologist'
+        self.assertTrue(documents_by_id[oh_id]['licenses'][0]['mostRecentLicenseForType'])
+        self.assertFalse(documents_by_id[ky_id]['licenses'][0]['mostRecentLicenseForType'])
 
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_provider_ids_are_deduped_only_one_document_indexed(self, mock_opensearch_client):
