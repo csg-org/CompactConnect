@@ -439,7 +439,7 @@ export class StaffUserSerializer {
             const hasStateWriteSetting = Object.prototype.hasOwnProperty.call(statePermission, 'isWrite');
             const hasStateAdminSetting = Object.prototype.hasOwnProperty.call(statePermission, 'isAdmin');
 
-            if (hasStateReadPrivateSetting || hasStateWriteSetting || hasStateAdminSetting) {
+            if (hasStateReadPrivateSetting || hasStateReadSsnSetting || hasStateWriteSetting || hasStateAdminSetting) {
                 const actions: any = {};
 
                 jurisdictions[statePermission.abbrev] = { actions };
@@ -465,7 +465,7 @@ export class StaffUserSerializer {
             const hasCompactAdminSetting = Object.prototype.hasOwnProperty.call(compactPermission, 'isAdmin');
             const hasStates = Boolean(compactPermission.states?.length);
 
-            if (hasCompactReadPrivateSetting || hasCompactAdminSetting) {
+            if (hasCompactReadPrivateSetting || hasCompactReadSsnSetting || hasCompactAdminSetting) {
                 const actions: any = {};
 
                 serverData.permissions[compactPermission.compact] = { actions };
