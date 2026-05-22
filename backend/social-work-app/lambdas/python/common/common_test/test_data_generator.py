@@ -346,7 +346,7 @@ class TestDataGenerator:
         """Generate a default compact configuration"""
         default_compact_config = {
             'compactAbbr': DEFAULT_COMPACT,
-            'compactName': 'Cosmetology',
+            'compactName': 'Social Work',
             'compactOperationsTeamEmails': ['ops@example.com'],
             'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
             'licenseeRegistrationEnabled': True,

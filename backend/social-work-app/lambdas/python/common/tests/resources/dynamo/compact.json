@@ -3,7 +3,7 @@
   "sk": "socw#CONFIGURATION",
   "type": "compact",
   "compactAbbr": "socw",
-  "compactName": "Cosmetology",
+  "compactName": "Social Work",
   "compactOperationsTeamEmails": ["<email address>"],
   "compactAdverseActionsNotificationEmails": ["<email address>"],
   "licenseeRegistrationEnabled": true,

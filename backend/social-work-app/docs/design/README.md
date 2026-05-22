@@ -342,7 +342,7 @@ This means that if a practitioner has two licenses from two different states, if
 
 The following flow describes how the home state license is assigned.
 
-([Cosmetology Practitioner License Assignment Flow](./practitioner-home-state-license-assignment.pdf))
+([Social Work Practitioner License Assignment Flow](./practitioner-home-state-license-assignment.pdf))
 
 
 Licenses are **grouped by license type**. For each type, the system picks the **most recently renewed license** as the effective “home” license for that type. If date of renewal cannot be determined for either license, it falls back to use the most recent date of issuance.
@@ -382,11 +382,11 @@ The search infrastructure consists of several key components:
 4. **Populate Handler**: A Lambda function for bulk indexing all provider data from DynamoDB
 5. **Provider Update Ingest Handler**: A Lambda function for updating documents in OpenSearch whenever provider records are updated in DynamoDB.
 
-### Document model (Cosmetology vs. JCC)
+### Document model (Social Work vs. JCC)
 
-Unlike the JCC CompactConnect model, which indexes **one OpenSearch document per provider** (with that provider’s licenses nested in a single document),Social Workindexes **one document per license**. Each document repeats the same top-level provider fields you would see on a provider detail response, while the `licenses` array contains **only the license represented by that document** (effectively one license entry per document).
+Unlike the JCC CompactConnect model, which indexes **one OpenSearch document per provider** (with that provider’s licenses nested in a single document),Social Work indexes **one document per license**. Each document repeats the same top-level provider fields you would see on a provider detail response, while the `licenses` array contains **only the license represented by that document** (effectively one license entry per document).
 
-Cosmetology needs to support searching and listing **rows of license records** by license number in the search UI. OpenSearch pagination (`from`/`size`, `search_after`, etc.) applies to **documents**, not to entries inside a nested array. Splitting each license into its own document lets the UI paginate natively at license granularity. It also keeps the search API response model consistent across the compacts.
+Social Work needs to support searching and listing **rows of license records** by license number in the search UI. OpenSearch pagination (`from`/`size`, `search_after`, etc.) applies to **documents**, not to entries inside a nested array. Splitting each license into its own document lets the UI paginate natively at license granularity. It also keeps the search API response model consistent across the compacts.
 
 Most practitioners only have one multi-state license, so this model does not significantly increase the size of storage used by the OpenSearch domain.
 

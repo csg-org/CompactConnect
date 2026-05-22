@@ -49,7 +49,7 @@ The credentials will be sent to you in this format:
 ```
 
 You will also receive an email with the following contextual information:
-- **Compact**: The full name of the compact (e.g., "Cosmetology")
+- **Compact**: The full name of the compact (e.g., "Social Work")
 - **State**: Your state's postal abbreviation (e.g., "KY", "LA")
 - **Auth URL**: The authentication endpoint URL
 - **License Upload URL**: The API endpoint for uploading license data
@@ -82,7 +82,7 @@ Replace:
 - `<clientSecret>` with your client secret
 - `<jurisdiction>` with your lower-cased two-letter state code (e.g., `ky` for Kentucky) - this information was provided
   in the email
-- `<compact>` with the lower-cased compact abbreviation (`cosm` for the 'Cosmetology' Compact) - this
+- `<compact>` with the lower-cased compact abbreviation (`cosm` for the 'Social Work' Compact) - this
   information was provided in the email
 
 Example response:

@@ -382,7 +382,7 @@ class TestStaffUsersCompactConfiguration(TstFunction):
         self.assertEqual(
             {
                 'compactAbbr': 'socw',
-                'compactName': 'Cosmetology',
+                'compactName': 'Social Work',
                 'compactOperationsTeamEmails': [],
                 'compactAdverseActionsNotificationEmails': [],
                 'licenseeRegistrationEnabled': False,

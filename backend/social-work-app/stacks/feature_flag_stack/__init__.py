@@ -98,7 +98,7 @@ class FeatureFlagStack(AppStack):
         # All flags share the same custom resource provider defined above
         self.example_flag = FeatureFlagResource(
             self,
-            'CosmetologyExampleFlag',
+            'SocialWorkExampleFlag',
             provider=self.provider,  # Shared provider
             flag_name='socialwork-example-flag',
             # This causes the flag to automatically be set to enabled for every environment in the list

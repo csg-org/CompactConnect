@@ -92,7 +92,7 @@ Providers that were successfully rolled back (example):
       "licensesReverted": [
         {
           "jurisdiction": "oh",
-          "licenseType": "cosmetology",
+          "licenseType": "SocialWork",
           "revisionId": "98765432-10ab-cdef-0123-456789abcdef",
           "action": "REVERT"
         }
@@ -100,7 +100,7 @@ Providers that were successfully rolled back (example):
       "privilegesReverted": [
         {
           "jurisdiction": "ky",
-          "licenseType": "cosmetology",
+          "licenseType": "SocialWork",
           "revisionId": "11111111-2222-3333-4444-555555555555",
           "action": "REACTIVATED"
         }
@@ -133,7 +133,7 @@ Providers that require manual review (example):
           "recordType": "licenseUpdate",
           "typeOfUpdate": "encumbrance",
           "updateTime": "2025-01-16T10:30:00Z",
-          "licenseType": "cosmetology",
+          "licenseType": "SocialWork",
           "reason": "License was updated with a change unrelated to license upload or the update occurred after rollback end time. Manual review required."
         }
       ]
