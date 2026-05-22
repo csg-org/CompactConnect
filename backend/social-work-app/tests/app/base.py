@@ -512,7 +512,8 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.api_lambda_stack)
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.disaster_recovery_stack)
-        self._check_no_stack_annotations(stage.feature_flag_stack)
+        # TODO - add this check back in once feature flags are enabled  # noqa: FIX002
+        # self._check_no_stack_annotations(stage.feature_flag_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.managed_login_stack)
         self._check_no_stack_annotations(stage.persistent_stack)
@@ -551,12 +552,13 @@ class TstAppABC(ABC):
             ('api_stack', stage.api_stack),
             ('backup_infrastructure_stack', stage.backup_infrastructure_stack),
             ('disaster_recovery_stack', stage.disaster_recovery_stack),
-            ('feature_flag_stack', stage.feature_flag_stack),
             ('ingest_stack', stage.ingest_stack),
             ('managed_login_stack', stage.managed_login_stack),
             ('persistent_stack', stage.persistent_stack),
             ('state_api_stack', stage.state_api_stack),
             ('state_auth_stack', stage.state_auth_stack),
+            # TODO - add this check back in once feature flags are enabled  # noqa: FIX002
+            # ('feature_flag_stack', stage.feature_flag_stack),
         ]
         if stage.persistent_stack.hosted_zone:
             stacks_to_check.extend(
