@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/data-events/requirements-dev.in
 #
-boto3==1.43.7
+boto3==1.43.8
     # via moto
-botocore==1.43.7
+botocore==1.43.13
     # via
     #   boto3
     #   moto
@@ -30,7 +30,7 @@ jmespath==1.1.0
 markupsafe==3.0.3
     # via werkzeug
 moto[dynamodb,s3]==5.2.1
-    # via -r lambdas/python/data-events/requirements-dev.in
+    # via -r requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
@@ -41,7 +41,7 @@ pyyaml==6.0.3
     # via
     #   moto
     #   responses
-requests==2.34.1
+requests==2.34.2
     # via
     #   docker
     #   moto
