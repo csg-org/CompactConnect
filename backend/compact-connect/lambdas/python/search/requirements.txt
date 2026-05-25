@@ -16,15 +16,15 @@ grpcio==1.80.0
     # via opensearch-protobufs
 idna==3.11
     # via requests
-opensearch-protobufs==0.19.0
+opensearch-protobufs==1.2.0
     # via opensearch-py
-opensearch-py==3.1.0
-    # via -r lambdas/python/search/requirements.in
+opensearch-py==3.2.0
+    # via -r requirements.in
 protobuf==7.34.1
     # via opensearch-protobufs
 python-dateutil==2.9.0.post0
     # via opensearch-py
-requests==2.33.1
+requests==2.34.2
     # via opensearch-py
 six==1.17.0
     # via python-dateutil
