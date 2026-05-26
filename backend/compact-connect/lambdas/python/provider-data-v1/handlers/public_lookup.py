@@ -1,8 +1,8 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import ProviderPublicResponseSchema, QueryProvidersRequestSchema
-from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler
+from cc_common.exceptions import CCInvalidRequestException, CCNotFoundException
+from cc_common.utils import api_handler, delayed_function
 from marshmallow import ValidationError
 
 from . import get_provider_information
@@ -113,6 +113,7 @@ def public_query_providers(event: dict, context: LambdaContext):  # noqa: ARG001
 
 
 @api_handler
+@delayed_function(delay_seconds=1.0)
 def public_get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return one provider's data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
@@ -128,6 +129,9 @@ def public_get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 un
 
     with logger.append_context_keys(compact=compact, provider_id=provider_id):
         provider_information = get_provider_information(compact=compact, provider_id=provider_id)
+        if not provider_information.get('privileges'):
+            # Only return providers with privileges to the public endpoint
+            raise CCNotFoundException('Provider not found')
 
         public_schema = ProviderPublicResponseSchema()
         return public_schema.load(provider_information)

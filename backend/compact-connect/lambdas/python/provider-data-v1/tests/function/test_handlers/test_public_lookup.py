@@ -1,11 +1,23 @@
 import json
 from datetime import datetime
+from functools import wraps
 from unittest.mock import patch
 from urllib.parse import quote
 
 from moto import mock_aws
 
 from .. import TstFunction
+
+
+def mock_delay_decorator(*args, **kwargs):  # noqa: ARG001 unused-argument
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
 
 
 @mock_aws
@@ -413,6 +425,7 @@ class TestPublicQueryProviders(TstFunction):
 
 
 @mock_aws
+@patch('cc_common.utils.delayed_function', mock_delay_decorator)
 @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
 class TestPublicGetProvider(TstFunction):
     @staticmethod
@@ -481,3 +494,26 @@ class TestPublicGetProvider(TstFunction):
         resp = public_get_provider(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
+
+    def test_public_get_provider_does_not_return_provider_if_they_do_not_have_privileges(self):
+        from handlers.public_lookup import public_get_provider
+
+        # add provider without any privileges
+        test_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            value_overrides={'privilegeJurisdictions': set()}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # public endpoint does not have authorizer
+        del event['requestContext']['authorizer']
+        # Searching for provider by id
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider.providerId}
+        event['queryStringParameters'] = None
+
+        resp = public_get_provider(event, self.mock_context)
+
+        self.assertEqual(404, resp['statusCode'])
+        self.assertEqual({'message': 'Provider not found'}, json.loads(resp['body']))
