@@ -34,6 +34,7 @@ class V1Api:
         self.api: LicenseApi = root.api
         self.api_model = ApiModel(api=self.api)
         stack: Stack = Stack.of(self.resource)
+        deploy_public_lookup_api = stack.environment_name != 'beta'
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
         # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
@@ -101,12 +102,13 @@ class V1Api:
         self.public_compacts_compact_providers_resource = self.public_compacts_compact_resource.add_resource(
             'providers'
         )
-        self.public_lookup_api = PublicLookupApi(
-            resource=self.public_compacts_compact_providers_resource,
-            api_model=self.api_model,
-            api_lambda_stack=api_lambda_stack,
-            search_persistent_stack=search_persistent_stack,
-        )
+        if deploy_public_lookup_api:
+            self.public_lookup_api = PublicLookupApi(
+                resource=self.public_compacts_compact_providers_resource,
+                api_model=self.api_model,
+                api_lambda_stack=api_lambda_stack,
+                search_persistent_stack=search_persistent_stack,
+            )
 
         # /v1/compacts
         self.compacts_resource = self.resource.add_resource('compacts')

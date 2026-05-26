@@ -122,6 +122,19 @@ class TestBackendPipeline(TstAppABC, TestCase):
                 msg=f'Expected scopes for compact {compact} not found',
             )
 
+    def test_beta_api_stack_omits_public_lookup_api(self):
+        """Beta must not expose unauthenticated public provider lookup routes."""
+        api_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.api_stack
+        self.assertFalse(hasattr(api_stack.api.v1_api, 'public_lookup_api'))
+
+    def test_non_beta_api_stacks_include_public_lookup_api(self):
+        for api_stack in (
+            self.app.test_backend_pipeline_stack.test_stage.api_stack,
+            self.app.prod_backend_pipeline_stack.prod_stage.api_stack,
+        ):
+            with self.subTest(api_stack.stack_name):
+                self.assertTrue(hasattr(api_stack.api.v1_api, 'public_lookup_api'))
+
     def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_beta_stage(self):
         persistent_stack = self.app.beta_backend_pipeline_stack.beta_backend_stage.persistent_stack
         self._when_testing_compact_resource_servers(persistent_stack)
