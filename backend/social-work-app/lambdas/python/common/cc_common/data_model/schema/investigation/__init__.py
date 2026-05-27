@@ -6,6 +6,7 @@ from cc_common.data_model.schema.common import (
     CCDataClass,
     InvestigationAgainstEnum,
     license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.investigation.record import InvestigationRecordSchema
 
@@ -24,7 +25,7 @@ class InvestigationData(CCDataClass):
 
     @staticmethod
     def generate_pk(compact: str, provider_id: UUID):
-        return f'{compact}#PROVIDER#{provider_id}'
+        return provider_pk(compact, provider_id)
 
     @staticmethod
     def generate_sk(

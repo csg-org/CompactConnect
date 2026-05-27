@@ -9,6 +9,7 @@ from cc_common.data_model.schema.common import (
     LicenseScopeEnum,
     ValidatesLicenseTypeMixin,
     license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.fields import (
     Compact,
@@ -48,7 +49,7 @@ class InvestigationRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
 
     @pre_dump
     def generate_pk_sk(self, in_data, **_kwargs):
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         # ensure this is passed in lowercase
         try:
             license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]

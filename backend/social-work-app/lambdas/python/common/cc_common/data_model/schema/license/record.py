@@ -19,6 +19,7 @@ from cc_common.data_model.schema.common import (
     LicenseEncumberedStatusEnum,
     UpdateCategory,
     license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -122,7 +123,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, in_data['licenseScope'])
         in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{suffix}#'
@@ -244,7 +245,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         the most sensitive field in the record. More to the point, we need to be sure that this internal field is never
         served out via API.
         """
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         # This needs to include an iso formatted datetime string and a hash of the changes
         # to the record. We'll use the createDate and the hash of the updatedValues
         # field for this.

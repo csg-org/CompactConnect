@@ -23,6 +23,7 @@ from cc_common.data_model.schema.common import (
     LicenseEncumberedStatusEnum,
     UpdateCategory,
     license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
@@ -75,7 +76,7 @@ class DataClient:
     def get_ssn_by_provider_id(self, *, compact: str, provider_id: str) -> str:
         logger.info('Getting ssn by provider id', compact=compact, provider_id=provider_id)
         resp = self.config.ssn_table.query(
-            KeyConditionExpression=Key('providerIdGSIpk').eq(f'{compact}#PROVIDER#{provider_id}'),
+            KeyConditionExpression=Key('providerIdGSIpk').eq(provider_pk(compact, provider_id)),
             IndexName=self.config.ssn_index_name,
         )['Items']
         if len(resp) == 0:
@@ -149,7 +150,7 @@ class DataClient:
 
         resp = self.config.provider_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
+            KeyConditionExpression=Key('pk').eq(provider_pk(compact, provider_id)) & sk_condition,
             ConsistentRead=consistent_read,
             **dynamo_pagination,
         )
@@ -189,7 +190,7 @@ class DataClient:
 
             query_resp = self.config.provider_table.query(
                 Select='ALL_ATTRIBUTES',
-                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
+                KeyConditionExpression=Key('pk').eq(provider_pk(compact, provider_id)) & sk_condition,
                 ConsistentRead=consistent_read,
                 **pagination,
             )
@@ -302,7 +303,7 @@ class DataClient:
             request_items = {
                 self.config.provider_table.table_name: {
                     'Keys': [
-                        {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'}
+                        {'pk': provider_pk(compact, provider_id), 'sk': f'{compact}#PROVIDER'}
                         for provider_id in batch_ids
                     ],
                     'ConsistentRead': True,
@@ -350,7 +351,7 @@ class DataClient:
         logger.info('Getting top level provider record')
         provider = self.config.provider_table.get_item(
             Key={
-                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'pk': provider_pk(compact, provider_id),
                 'sk': f'{compact}#PROVIDER',
             },
             ConsistentRead=True,
@@ -513,7 +514,7 @@ class DataClient:
         try:
             provider_record = self.config.provider_table.get_item(
                 Key={
-                    'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
+                    'pk': provider_pk(adverse_action.compact, adverse_action.providerId),
                     'sk': f'{adverse_action.compact}#PROVIDER',
                 },
             )['Item']
@@ -638,7 +639,7 @@ class DataClient:
             try:
                 license_record = self.config.provider_table.get_item(
                     Key={
-                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
+                        'pk': provider_pk(adverse_action.compact, adverse_action.providerId),
                         'sk': f'{adverse_action.compact}#PROVIDER#license/'
                         f'{
                             license_sk_suffix(

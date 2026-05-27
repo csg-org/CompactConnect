@@ -9,6 +9,7 @@ from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     LicenseScopeEnum,
     license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.fields import (
     ClinicalPrivilegeActionCategoryField,
@@ -56,7 +57,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         return self.generate_pk_sk(in_data)
 
     def generate_pk_sk(self, in_data, **_kwargs):
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         # ensure this is passed in lowercase
         license_type_abbr = in_data['licenseTypeAbbreviation'].lower()
         suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, in_data['licenseScope'])
