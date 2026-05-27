@@ -407,4 +407,197 @@ describe('Staff User model', () => {
             },
         });
     });
+    it('should prepare a Staff User for server request through serializer (compact readPrivate key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    isReadPrivate: false,
+                    states: [],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    actions: {
+                        readPrivate: false,
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (compact readSSN key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    isReadSsn: false,
+                    states: [],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    actions: {
+                        readSSN: false,
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (compact admin key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    isAdmin: false,
+                    states: [],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    actions: {
+                        admin: false,
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state readPrivate key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isReadPrivate: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                readPrivate: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state readSSN key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isReadSsn: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                readSSN: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state write key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isWrite: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                write: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state admin key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isAdmin: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                admin: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
 });
