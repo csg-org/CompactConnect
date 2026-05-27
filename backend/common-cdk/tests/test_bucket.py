@@ -7,8 +7,8 @@ from aws_cdk.aws_s3 import BucketEncryption, CfnBucket
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 
-
 TEST_BUCKET_LOGICAL_ID = 'Bucket83908E77'
+
 
 class TestBucket(TestCase):
     def setUp(self):
