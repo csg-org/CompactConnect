@@ -33,7 +33,11 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 # for the data model to work.
 os.environ['ENVIRONMENT_NAME'] = 'test'
 
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, LicenseScopeEnum  # noqa: E402
+from cc_common.data_model.schema.common import (  # noqa: E402
+    ActiveInactiveStatus,
+    CompactEligibilityStatus,
+    LicenseScopeEnum,
+)
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema  # noqa: E402
 
 # This will be overridden based on command line arguments

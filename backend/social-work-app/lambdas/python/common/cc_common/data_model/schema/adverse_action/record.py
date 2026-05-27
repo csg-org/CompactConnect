@@ -5,12 +5,17 @@ from marshmallow.validate import OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.common import AdverseActionAgainstEnum
+from cc_common.data_model.schema.common import (
+    AdverseActionAgainstEnum,
+    LicenseScopeEnum,
+    license_sk_suffix,
+)
 from cc_common.data_model.schema.fields import (
     ClinicalPrivilegeActionCategoryField,
     Compact,
     EncumbranceTypeField,
     Jurisdiction,
+    LicenseScopeField,
 )
 
 
@@ -30,6 +35,7 @@ class AdverseActionRecordSchema(BaseRecordSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e.value for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
@@ -53,10 +59,19 @@ class AdverseActionRecordSchema(BaseRecordSchema):
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         # ensure this is passed in lowercase
         license_type_abbr = in_data['licenseTypeAbbreviation'].lower()
+        suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, in_data['licenseScope'])
         in_data['sk'] = (
-            f'{in_data["compact"]}#PROVIDER#{in_data["actionAgainst"]}/{in_data["jurisdiction"]}/{license_type_abbr}#ADVERSE_ACTION#{in_data["adverseActionId"]}'
+            f'{in_data["compact"]}#PROVIDER#{in_data["actionAgainst"]}/{suffix}#ADVERSE_ACTION#{in_data["adverseActionId"]}'
         )
         return in_data
+
+    @validates_schema
+    def validate_license_scope(self, data, **_kwargs):
+        if (
+            data.get('actionAgainst') == AdverseActionAgainstEnum.PRIVILEGE.value
+            and data.get('licenseScope') != LicenseScopeEnum.SINGLE_STATE.value
+        ):
+            raise ValidationError({'licenseScope': ['Privilege adverse actions must have licenseScope single-state.']})
 
     @validates_schema
     def validate_license_type(self, data, **_kwargs):  # noqa: ARG001 unused-argument

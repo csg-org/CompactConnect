@@ -18,6 +18,7 @@ from cc_common.data_model.schema.common import (
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
     UpdateCategory,
+    license_sk_suffix,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -123,7 +124,8 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
-        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}/{license_type_abbr}#'
+        suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, in_data['licenseScope'])
+        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{suffix}#'
         return in_data
 
     @pre_dump
@@ -248,8 +250,10 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # field for this.
         change_hash = self.hash_changes(in_data)
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+        license_scope = in_data['previous']['licenseScope']
+        suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, license_scope)
         in_data['sk'] = (
-            f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_THREE}#license/{in_data["jurisdiction"]}/{license_type_abbr}/{in_data["createDate"]}/{change_hash}'
+            f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_THREE}#license/{suffix}/{in_data["createDate"]}/{change_hash}'
         )
         return in_data
 

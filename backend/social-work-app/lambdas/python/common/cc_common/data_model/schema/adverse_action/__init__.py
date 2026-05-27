@@ -63,6 +63,14 @@ class AdverseActionData(CCDataClass):
         self._data['licenseType'] = value
 
     @property
+    def licenseScope(self) -> str:
+        return self._data['licenseScope']
+
+    @licenseScope.setter
+    def licenseScope(self, value: str) -> None:
+        self._data['licenseScope'] = value
+
+    @property
     def actionAgainst(self) -> str:
         return self._data['actionAgainst']
 

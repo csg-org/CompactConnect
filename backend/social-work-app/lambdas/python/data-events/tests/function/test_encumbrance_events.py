@@ -34,6 +34,7 @@ class TestEncumbranceEvents(TstFunction):
                 'providerId': DEFAULT_PROVIDER_ID,
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'effectiveDate': DEFAULT_EFFECTIVE_DATE,
                 'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
@@ -422,6 +423,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': license_effective_lift_date,
                 'jurisdiction': 'co',
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -496,6 +498,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': license_effective_lift_date,
                 'jurisdiction': 'co',
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -766,6 +769,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -837,6 +841,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -920,6 +925,7 @@ class TestEncumbranceEvents(TstFunction):
                     'actionAgainst': 'license',
                     'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                    'licenseScope': 'single-state',
                     'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                     'licenseType': DEFAULT_LICENSE_TYPE,
                 }

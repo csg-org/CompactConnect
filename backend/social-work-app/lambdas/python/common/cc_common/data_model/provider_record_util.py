@@ -175,19 +175,24 @@ class ProviderUserRecords:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
 
-    def get_specific_license_record(self, jurisdiction: str, license_abbreviation: str) -> LicenseData | None:
+    def get_specific_license_record(
+        self, jurisdiction: str, license_abbreviation: str, license_scope: str
+    ) -> LicenseData | None:
         """
         Get a specific license record from a list of provider records.
 
         :param jurisdiction: The jurisdiction of the license.
         :param license_abbreviation: The abbreviation of the license type.
+        :param license_scope: The license scope (single-state or multi-state).
         :return: The license record if found, else None.
         """
         return next(
             (
                 record
                 for record in self._license_records
-                if record.jurisdiction == jurisdiction and record.licenseTypeAbbreviation == license_abbreviation
+                if record.jurisdiction == jurisdiction
+                and record.licenseTypeAbbreviation == license_abbreviation
+                and record.licenseScope == license_scope
             ),
             None,
         )
@@ -212,6 +217,7 @@ class ProviderUserRecords:
         self,
         license_jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         filter_condition: Callable[[AdverseActionData], bool] | None = None,
     ) -> list[AdverseActionData]:
         """
@@ -223,6 +229,7 @@ class ProviderUserRecords:
             if record.actionAgainst == AdverseActionAgainstEnum.LICENSE
             and record.jurisdiction == license_jurisdiction
             and record.licenseTypeAbbreviation == license_type_abbreviation
+            and record.licenseScope == license_scope
             and (filter_condition is None or filter_condition(record))
         ]
 
@@ -257,18 +264,17 @@ class ProviderUserRecords:
         return latest_effective_lift_date
 
     def get_latest_effective_lift_date_for_license_adverse_actions(
-        self, license_jurisdiction: str, license_type_abbreviation: str
+        self, license_jurisdiction: str, license_type_abbreviation: str, license_scope: str
     ) -> date | None:
         """
         Get the latest effective lift date for a license if all adverse actions have been lifted.
 
         If any of the adverse actions have not been lifted, or there are no adverse actions, None is returned.
         """
-        # Get all adverse action records for this license to determine the correct effective date
-        # for privilege lifting (should be the maximum effective lift date among all lifted encumbrances)
         license_adverse_actions = self.get_adverse_action_records_for_license(
             license_jurisdiction=license_jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            license_scope=license_scope,
         )
         return self._get_latest_effective_lift_date_for_adverse_actions(license_adverse_actions)
 
@@ -338,6 +344,7 @@ class ProviderUserRecords:
         self,
         license_jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         filter_condition: Callable[[InvestigationData], bool] | None = None,
         include_closed: bool = False,
     ) -> list[InvestigationData]:
@@ -346,6 +353,7 @@ class ProviderUserRecords:
 
         :param license_jurisdiction: The jurisdiction of the license
         :param license_type_abbreviation: The license type abbreviation
+        :param license_scope: The license scope (single-state or multi-state)
         :param filter_condition: Optional filter function to apply to records
         :param include_closed: If True, include closed investigations; otherwise only return active ones
         :returns: List of investigation records matching the criteria
@@ -356,6 +364,7 @@ class ProviderUserRecords:
             if record.investigationAgainst == 'license'
             and record.jurisdiction == license_jurisdiction
             and record.licenseTypeAbbreviation == license_type_abbreviation
+            and record.licenseScope == license_scope
             and (
                 include_closed or record.closeDate is None
             )  # Only return active investigations unless include_closed is True
@@ -594,13 +603,17 @@ class ProviderUserRecords:
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
             license_dict['investigations'] = [
                 rec.to_dict()
                 for rec in self.get_investigation_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
             licenses.append(license_dict)
@@ -649,13 +662,17 @@ class ProviderUserRecords:
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
             license_dict['investigations'] = [
                 rec.to_dict()
                 for rec in self.get_investigation_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
 

@@ -130,6 +130,7 @@ class EventBusClient:
         jurisdiction: str,
         adverse_action_id: UUID,
         license_type_abbreviation: str,
+        license_scope: str,
         effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
@@ -151,6 +152,7 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'adverseActionId': adverse_action_id,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': license_scope,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -173,6 +175,7 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
@@ -192,6 +195,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': license_scope,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -299,6 +303,7 @@ class EventBusClient:
         create_date: datetime,
         investigation_against: InvestigationAgainstEnum,
         investigation_id: UUID,
+        license_scope: str | None = None,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -323,6 +328,8 @@ class EventBusClient:
             'investigationId': investigation_id,
             'eventTime': create_date,
         }
+        if license_scope is not None:
+            event_detail['licenseScope'] = license_scope
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)
@@ -348,6 +355,7 @@ class EventBusClient:
         investigation_against: InvestigationAgainstEnum,
         investigation_id: UUID,
         adverse_action_id: UUID | None = None,
+        license_scope: str | None = None,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -377,6 +385,9 @@ class EventBusClient:
         # Include adverseActionId if an encumbrance resulted from the investigation
         if adverse_action_id is not None:
             event_detail['adverseActionId'] = adverse_action_id
+
+        if license_scope is not None:
+            event_detail['licenseScope'] = license_scope
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)

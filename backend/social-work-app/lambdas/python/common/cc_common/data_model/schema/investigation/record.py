@@ -1,14 +1,20 @@
 # ruff: noqa: N801, N815  invalid-name
-from marshmallow import Schema, ValidationError, pre_dump
+from marshmallow import Schema, ValidationError, pre_dump, validates_schema
 from marshmallow.fields import UUID, AwareDateTime, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.common import ValidatesLicenseTypeMixin
+from cc_common.data_model.schema.common import (
+    InvestigationAgainstEnum,
+    LicenseScopeEnum,
+    ValidatesLicenseTypeMixin,
+    license_sk_suffix,
+)
 from cc_common.data_model.schema.fields import (
     Compact,
     InvestigationAgainstField,
     Jurisdiction,
+    LicenseScopeField,
 )
 
 
@@ -27,6 +33,7 @@ class InvestigationRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     providerId = UUID(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     investigationAgainst = InvestigationAgainstField(required=True, allow_none=False)
 
     # Populated on creation
@@ -50,10 +57,19 @@ class InvestigationRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
             # so we might as well raise a ValidationError if we try to dump an invalid license type
             license_types = config.license_types_for_compact(in_data['compact'])
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']}) from e
+        license_suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, in_data['licenseScope'])
         in_data['sk'] = (
-            f'{in_data["compact"]}#PROVIDER#{in_data["investigationAgainst"]}/{in_data["jurisdiction"]}/{license_type_abbr}#INVESTIGATION#{in_data["investigationId"]}'
+            f'{in_data["compact"]}#PROVIDER#{in_data["investigationAgainst"]}/{license_suffix}#INVESTIGATION#{in_data["investigationId"]}'
         )
         return in_data
+
+    @validates_schema
+    def validate_license_scope(self, data, **_kwargs):
+        if (
+            data.get('investigationAgainst') == InvestigationAgainstEnum.PRIVILEGE.value
+            and data.get('licenseScope') != LicenseScopeEnum.SINGLE_STATE.value
+        ):
+            raise ValidationError({'licenseScope': ['Privilege investigations must have licenseScope single-state.']})
 
 
 class InvestigationDetailsSchema(Schema):

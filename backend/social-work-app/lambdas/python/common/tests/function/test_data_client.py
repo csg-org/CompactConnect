@@ -205,6 +205,7 @@ class TestDataClient(TstFunction):
                 'compact': 'socw',
                 'jurisdiction': 'ne',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'privilege',
             }
         )
@@ -227,7 +228,8 @@ class TestDataClient(TstFunction):
         # Verify the complete investigation record structure
         expected_investigation = {
             'pk': f'socw#PROVIDER#{provider_id}',
-            'sk': f'socw#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
+            'sk': f'socw#PROVIDER#privilege/ne/cos/single-state#INVESTIGATION#{investigation.investigationId}',
+            'licenseScope': 'single-state',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -260,6 +262,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -277,6 +280,7 @@ class TestDataClient(TstFunction):
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction='oh',
             license_type_abbreviation='cos',
+            license_scope='single-state',
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -285,12 +289,13 @@ class TestDataClient(TstFunction):
         # Verify the complete investigation record structure
         expected_investigation = {
             'pk': f'socw#PROVIDER#{provider_id}',
-            'sk': f'socw#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
+            'sk': f'socw#PROVIDER#license/oh/cos/single-state#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
+            'licenseScope': 'single-state',
             'investigationAgainst': 'license',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
@@ -381,6 +386,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -413,6 +419,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -429,6 +436,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
+            license_scope='single-state',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -449,7 +457,8 @@ class TestDataClient(TstFunction):
         # Verify the investigation record was updated with close information
         expected_investigation_close = {
             'pk': f'socw#PROVIDER#{provider_id}',
-            'sk': f'socw#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
+            'sk': f'socw#PROVIDER#privilege/ne/cos/single-state#INVESTIGATION#{investigation.investigationId}',
+            'licenseScope': 'single-state',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -484,6 +493,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -501,6 +511,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='cos',
+            license_scope='single-state',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=close_date,
@@ -514,7 +525,10 @@ class TestDataClient(TstFunction):
 
         # Verify investigation record was updated with close information
         investigation_records = provider_user_records.get_investigation_records_for_license(
-            license_jurisdiction='oh', license_type_abbreviation='cos', include_closed=True
+            license_jurisdiction='oh',
+            license_type_abbreviation='cos',
+            license_scope='single-state',
+            include_closed=True,
         )
 
         self.assertEqual(1, len(investigation_records))
@@ -523,12 +537,13 @@ class TestDataClient(TstFunction):
         # Verify the investigation record was updated with close information
         expected_investigation_close = {
             'pk': f'socw#PROVIDER#{provider_id}',
-            'sk': f'socw#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
+            'sk': f'socw#PROVIDER#license/oh/cos/single-state#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
+            'licenseScope': 'single-state',
             'investigationAgainst': 'license',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),
@@ -625,6 +640,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='ne',
                 license_type_abbreviation='cos',
+                license_scope='single-state',
                 investigation_id=uuid4(),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -651,6 +667,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='oh',
                 license_type_abbreviation='cos',
+                license_scope='single-state',
                 investigation_id=uuid4(),
                 closing_user=str(uuid4()),
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -679,6 +696,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -695,6 +713,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
+            license_scope='single-state',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -706,6 +725,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='ne',
                 license_type_abbreviation='cos',
+                license_scope='single-state',
                 investigation_id=investigation.investigationId,
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -734,6 +754,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -750,6 +771,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='cos',
+            license_scope='single-state',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -761,6 +783,7 @@ class TestDataClient(TstFunction):
                 provider_id=provider_id,
                 jurisdiction='oh',
                 license_type_abbreviation='cos',
+                license_scope='single-state',
                 investigation_id=investigation.investigationId,
                 closing_user=closing_user,
                 close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -788,6 +811,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'ne',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'privilege',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -807,6 +831,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='ne',
             license_type_abbreviation='cos',
+            license_scope='single-state',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -817,7 +842,7 @@ class TestDataClient(TstFunction):
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('socw#PROVIDER#privilege/ne/cos#INVESTIGATION#')
+            & Key('sk').begins_with('socw#PROVIDER#privilege/ne/cos/single-state#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -826,7 +851,8 @@ class TestDataClient(TstFunction):
         # Verify the investigation record was updated with close information and encumbrance reference
         expected_investigation_close = {
             'pk': f'socw#PROVIDER#{provider_id}',
-            'sk': f'socw#PROVIDER#privilege/ne/cos#INVESTIGATION#{investigation.investigationId}',
+            'sk': f'socw#PROVIDER#privilege/ne/cos/single-state#INVESTIGATION#{investigation.investigationId}',
+            'licenseScope': 'single-state',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
@@ -864,6 +890,7 @@ class TestDataClient(TstFunction):
                 'jurisdiction': 'oh',
                 'licenseTypeAbbreviation': 'cos',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'investigationAgainst': 'license',
                 'submittingUser': str(uuid4()),
                 'creationDate': datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -883,6 +910,7 @@ class TestDataClient(TstFunction):
             provider_id=provider_id,
             jurisdiction='oh',
             license_type_abbreviation='cos',
+            license_scope='single-state',
             investigation_id=investigation.investigationId,
             closing_user=closing_user,
             close_date=datetime.fromisoformat('2024-11-08T23:59:59+00:00'),
@@ -893,7 +921,7 @@ class TestDataClient(TstFunction):
         # Verify investigation record was updated with close information and encumbrance reference
         investigation_records = self.config.provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('socw#PROVIDER#license/oh/cos#INVESTIGATION#')
+            & Key('sk').begins_with('socw#PROVIDER#license/oh/cos/single-state#INVESTIGATION#')
         )['Items']
 
         self.assertEqual(1, len(investigation_records))
@@ -902,12 +930,13 @@ class TestDataClient(TstFunction):
         # Verify the investigation record was updated with close information and encumbrance reference
         expected_investigation_close = {
             'pk': f'socw#PROVIDER#{provider_id}',
-            'sk': f'socw#PROVIDER#license/oh/cos#INVESTIGATION#{investigation.investigationId}',
+            'sk': f'socw#PROVIDER#license/oh/cos/single-state#INVESTIGATION#{investigation.investigationId}',
             'type': 'investigation',
             'compact': 'socw',
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
+            'licenseScope': 'single-state',
             'investigationAgainst': 'license',
             'investigationId': str(investigation.investigationId),
             'submittingUser': str(investigation.submittingUser),

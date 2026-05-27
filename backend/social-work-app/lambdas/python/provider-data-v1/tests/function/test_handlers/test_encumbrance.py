@@ -121,7 +121,7 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
         # Verify that the encumbrance record was added to the provider data table
         pk = f'{context["compact"]}#PROVIDER#{context["providerId"]}'
-        sk_prefix = f'{context["compact"]}#PROVIDER#privilege/{context["jurisdiction"]}/cos#ADVERSE_ACTION'
+        sk_prefix = f'{context["compact"]}#PROVIDER#privilege/{context["jurisdiction"]}/cos/single-state#ADVERSE_ACTION'
         adverse_action_encumbrances = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
@@ -254,7 +254,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         self.test_data_generator.put_default_provider_record_in_provider_table()
         test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
 
-        body = _generate_test_body()
+        body = {**_generate_test_body(), 'licenseScope': test_license_record.licenseScope}
         if body_overrides:
             body.update(body_overrides)
 
@@ -308,7 +308,8 @@ class TestPostLicenseEncumbrance(TstFunction):
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(test_license_record.serialize_to_database_record()['pk'])
             & Key('sk').begins_with(
-                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/cos#ADVERSE_ACTION'
+                f'{test_license_record.compact}#PROVIDER#license/{test_license_record.jurisdiction}/cos/'
+                f'{test_license_record.licenseScope}#ADVERSE_ACTION'
             ),
         )
         self.assertEqual(1, len(adverse_action_encumbrances['Items']))
@@ -317,6 +318,7 @@ class TestPostLicenseEncumbrance(TstFunction):
         expected_adverse_action_encumbrance = self.test_data_generator.generate_default_adverse_action(
             value_overrides={
                 'actionAgainst': 'license',
+                'licenseScope': test_license_record.licenseScope,
                 'adverseActionId': item['adverseActionId'],
                 'effectiveStartDate': date.fromisoformat(TEST_ENCUMBRANCE_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
@@ -799,6 +801,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
             value_overrides={
                 'actionAgainst': 'license',
                 'jurisdiction': test_license_record.jurisdiction,
+                'licenseScope': test_license_record.licenseScope,
                 **(adverse_action_overrides or {}),
             }
         )
@@ -808,6 +811,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         """Helper method to generate a test event for lifting license encumbrance."""
         body = {
             'effectiveLiftDate': '2024-01-15',
+            'licenseScope': license_record.licenseScope,
             **(body_overrides or {}),
         }
 
@@ -905,7 +909,11 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         # Set up adverse action without corresponding license record
         self.test_data_generator.put_default_provider_record_in_provider_table()
         adverse_action = self.test_data_generator.put_default_adverse_action_record_in_provider_table(
-            value_overrides={'actionAgainst': 'license'}
+            value_overrides={
+                'actionAgainst': 'license',
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseScope': 'single-state',
+            }
         )
 
         event = self.test_data_generator.generate_test_api_event(
@@ -924,6 +932,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
                 'body': json.dumps(
                     {
                         'effectiveLiftDate': '2024-01-15',
+                        'licenseScope': 'single-state',
                     }
                 ),
             },
@@ -977,6 +986,7 @@ class TestPatchLicenseEncumbranceLifting(TstFunction):
         adverse_actions = provider_records.get_adverse_action_records_for_license(
             license_jurisdiction=license_record.jurisdiction,
             license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
+            license_scope=license_record.licenseScope,
         )
 
         self.assertEqual(1, len(adverse_actions))

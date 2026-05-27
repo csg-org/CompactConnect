@@ -143,7 +143,7 @@ class TestProviderUpdateIngest(TstFunction):
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'birthMonthDay': '06-06',
             'adverseActions': [],
-            'documentId': f'{provider_id}#oh#{license_type}',
+            'documentId': f'{provider_id}#oh#{license_type}#single-state',
             'licenses': [
                 {
                     'providerId': provider_id,
@@ -322,8 +322,8 @@ class TestProviderUpdateIngest(TstFunction):
         documents = mock_opensearch_client.bulk_index.call_args.kwargs['documents']
         self.assertEqual(2, len(documents))
         documents_by_id = {doc['documentId']: doc for doc in documents}
-        oh_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#cosmetologist'
-        ky_id = f'{MOCK_SOCW_PROVIDER_ID}#ky#cosmetologist'
+        oh_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#cosmetologist#single-state'
+        ky_id = f'{MOCK_SOCW_PROVIDER_ID}#ky#cosmetologist#single-state'
         self.assertTrue(documents_by_id[oh_id]['licenses'][0]['mostRecentLicenseForType'])
         self.assertFalse(documents_by_id[ky_id]['licenses'][0]['mostRecentLicenseForType'])
 

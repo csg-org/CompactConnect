@@ -387,6 +387,11 @@ class LicenseScopeEnum(CCEnum):
     MULTI_STATE = 'multi-state'
 
 
+def license_sk_suffix(jurisdiction: str, license_type_abbr: str, license_scope: str) -> str:
+    """Return the jurisdiction/type/scope segment used in license-related sort keys."""
+    return f'{jurisdiction}/{license_type_abbr.lower()}/{license_scope}'
+
+
 class ClinicalPrivilegeActionCategory(CCEnum):
     """Enum for adverse action clinical privilege action categories."""
 

@@ -87,6 +87,7 @@ class TestInvestigationDataClass(TstLambdas):
             'compact': investigation_data.compact,
             'creationDate': investigation_data.creationDate,
             'licenseType': investigation_data.licenseType,
+            'licenseScope': investigation_data.licenseScope,
             'type': investigation_data.type,
         }
 
@@ -100,7 +101,7 @@ class TestInvestigationDataClass(TstLambdas):
         investigation = self.test_data_generator.generate_default_investigation()
         investigation_data = investigation.serialize_to_database_record()
         pk = 'socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570'
-        sk = 'socw#PROVIDER#privilege/ne/cos#INVESTIGATION#98765432-9876-9876-9876-987654321098'
+        sk = 'socw#PROVIDER#privilege/ne/cos/single-state#INVESTIGATION#98765432-9876-9876-9876-987654321098'
         # Pop dynamic field
         investigation_data.pop('dateOfUpdate')
 
@@ -112,6 +113,7 @@ class TestInvestigationDataClass(TstLambdas):
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'jurisdiction': 'ne',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'pk': pk,
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'sk': sk,
