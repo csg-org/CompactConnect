@@ -619,7 +619,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the sha here will need to be updated
                         'updatesDeleted': [
-                            'socw#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ecd7b0d5fbe7c32dff89c9864ebb8daf'
+                            'socw#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
                         ],
                     }
                 ],
@@ -924,7 +924,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         ],
                         'providerId': mock_first_provider_id,
                         'updatesDeleted': [
-                            'socw#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ecd7b0d5fbe7c32dff89c9864ebb8daf'
+                            'socw#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
                         ],
                     },
                     {
@@ -937,7 +937,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         ],
                         'providerId': mock_second_provider_id,
                         'updatesDeleted': [
-                            'socw#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ecd7b0d5fbe7c32dff89c9864ebb8daf'
+                            'socw#UPDATE#3#license/oh/cos/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
                         ],
                     },
                 ],

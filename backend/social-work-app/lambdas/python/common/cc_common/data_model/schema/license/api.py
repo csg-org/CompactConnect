@@ -20,6 +20,7 @@ from cc_common.data_model.schema.fields import (
     InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
+    LicenseScopeField,
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
@@ -72,6 +73,7 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     # Note that the two fields below, `licenseStatus` and `compactEligibility`, are stored
     # in the database as `jurisdictionUploadedLicenseStatus` and `jurisdictionUploadedCompactEligibility`.
@@ -132,6 +134,7 @@ class LicenseReportResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -161,6 +164,7 @@ class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -201,6 +205,7 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -264,6 +269,7 @@ class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)

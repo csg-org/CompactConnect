@@ -104,6 +104,7 @@ class TestSearchProviders(TstFunction):
                         'compact': compact,
                         'jurisdiction': 'oh',
                         'licenseType': 'cosmetologist',
+                        'licenseScope': 'single-state',
                         'licenseNumber': 'A0608337260',
                         'givenName': 'John',
                         'familyName': 'Doe',

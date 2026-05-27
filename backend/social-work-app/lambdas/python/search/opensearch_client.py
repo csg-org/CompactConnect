@@ -250,6 +250,7 @@ class OpenSearchClient:
             'compact': {'type': 'keyword'},
             'jurisdiction': {'type': 'keyword'},
             'licenseType': {'type': 'keyword'},
+            'licenseScope': {'type': 'keyword'},
             'licenseStatusName': {'type': 'keyword'},
             'licenseStatus': {'type': 'keyword'},
             'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},

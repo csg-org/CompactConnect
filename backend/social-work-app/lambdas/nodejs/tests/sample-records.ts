@@ -14,6 +14,9 @@ export const SAMPLE_INGEST_SUCCESS_RECORD = {
     'licenseType': {
         'S': 'cosmetologist'
     },
+    'licenseScope': {
+        'S': 'single-state'
+    },
     'status': {
         'S': 'active'
     },

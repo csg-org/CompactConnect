@@ -8,6 +8,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     ITUTE164PhoneNumber,
     Jurisdiction,
+    LicenseScopeField,
 )
 
 
@@ -40,4 +41,5 @@ class LicenseCommonSchema(ForgivingSchema, ValidatesLicenseTypeMixin):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))

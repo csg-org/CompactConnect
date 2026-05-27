@@ -252,6 +252,7 @@ class TestOpenSearchIndexManager(TstFunction):
                                     'jurisdictionUploadedCompactEligibility': {'type': 'keyword'},
                                     'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
                                     'licenseNumber': {'type': 'keyword'},
+                                    'licenseScope': {'type': 'keyword'},
                                     'licenseStatus': {'type': 'keyword'},
                                     'licenseStatusName': {'type': 'keyword'},
                                     'licenseType': {'type': 'keyword'},

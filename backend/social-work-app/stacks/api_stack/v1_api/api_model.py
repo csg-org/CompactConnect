@@ -493,6 +493,7 @@ class ApiModel:
                             'homeAddressState',
                             'homeAddressPostalCode',
                             'licenseType',
+                            'licenseScope',
                             'dateOfIssuance',
                             'dateOfRenewal',
                             'dateOfExpiration',
@@ -871,6 +872,7 @@ class ApiModel:
                 type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
             ),
             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
@@ -1366,6 +1368,7 @@ class ApiModel:
                 'compact',
                 'jurisdiction',
                 'licenseType',
+                'licenseScope',
                 'licenseStatus',
                 'compactEligibility',
                 'dateOfExpiration',
@@ -1379,6 +1382,7 @@ class ApiModel:
                     enum=stack.node.get_context('jurisdictions'),
                 ),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
                 'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
                 'dateOfExpiration': JsonSchema(
@@ -1520,6 +1524,7 @@ class ApiModel:
                 'licenseJurisdiction',
                 'compact',
                 'licenseType',
+                'licenseScope',
                 'licenseNumber',
                 'licenseEligibility',
             ],
@@ -1535,6 +1540,7 @@ class ApiModel:
                     type=JsonSchemaType.STRING,
                     description='License type or profession designation for this license row',
                 ),
+                'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                 'licenseEligibility': JsonSchema(
                     type=JsonSchemaType.STRING,

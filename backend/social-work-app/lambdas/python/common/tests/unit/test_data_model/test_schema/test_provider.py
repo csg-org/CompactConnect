@@ -35,6 +35,7 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
                     'compact': 'socw',
                     'jurisdiction': 'oh',
                     'licenseType': 'cosmetologist',
+                    'licenseScope': 'single-state',
                     'licenseStatus': 'active',
                     'jurisdictionUploadedLicenseStatus': 'active',
                     'compactEligibility': 'eligible',

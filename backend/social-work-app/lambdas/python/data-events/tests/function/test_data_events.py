@@ -68,6 +68,7 @@ class TestHandleDataEvents(TstFunction):
                 'eventType': 'license.ingest',
                 'compact': 'socw',
                 'licenseType': 'cosmetologist',
+                'licenseScope': 'single-state',
                 'jurisdiction': 'oh',
                 'licenseStatus': 'active',
                 'compactEligibility': 'eligible',

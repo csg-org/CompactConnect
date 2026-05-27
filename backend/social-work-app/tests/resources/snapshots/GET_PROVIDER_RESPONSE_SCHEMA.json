@@ -323,6 +323,13 @@
                       ],
                       "type": "string"
                     },
+                    "licenseScope": {
+                      "enum": [
+                        "single-state",
+                        "multi-state"
+                      ],
+                      "type": "string"
+                    },
                     "licenseStatusName": {
                       "maxLength": 100,
                       "minLength": 1,
@@ -453,6 +460,13 @@
                       "enum": [
                         "active",
                         "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "licenseScope": {
+                      "enum": [
+                        "single-state",
+                        "multi-state"
                       ],
                       "type": "string"
                     },
@@ -747,6 +761,13 @@
             "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string"
           },
+          "licenseScope": {
+            "enum": [
+              "single-state",
+              "multi-state"
+            ],
+            "type": "string"
+          },
           "licenseStatusName": {
             "maxLength": 100,
             "minLength": 1,
@@ -782,6 +803,7 @@
           "homeAddressState",
           "homeAddressPostalCode",
           "licenseType",
+          "licenseScope",
           "dateOfIssuance",
           "dateOfRenewal",
           "dateOfExpiration",

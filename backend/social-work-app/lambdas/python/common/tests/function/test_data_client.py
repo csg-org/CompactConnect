@@ -330,6 +330,7 @@ class TestDataClient(TstFunction):
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
                 'licenseNumber': 'A0608337260',
+                'licenseScope': 'single-state',
                 'ssnLastFour': '1234',
                 'givenName': 'Björk',
                 'middleName': 'Gunnar',
@@ -577,6 +578,7 @@ class TestDataClient(TstFunction):
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
                 'licenseNumber': 'A0608337260',
+                'licenseScope': 'single-state',
                 'ssnLastFour': '1234',
                 'givenName': 'Björk',
                 'middleName': 'Gunnar',

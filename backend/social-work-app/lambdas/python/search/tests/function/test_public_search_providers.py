@@ -132,6 +132,7 @@ class TestPublicSearchProviders(TstFunction):
             'compact': compact,
             'jurisdiction': jurisdiction,
             'licenseType': license_type,
+            'licenseScope': 'single-state',
             'licenseStatusName': 'OK',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',
@@ -726,6 +727,7 @@ class TestPublicSearchProviders(TstFunction):
             'licenseJurisdiction',
             'compact',
             'licenseType',
+            'licenseScope',
             'licenseNumber',
             'licenseEligibility',
         }

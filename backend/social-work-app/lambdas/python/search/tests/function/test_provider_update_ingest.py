@@ -152,6 +152,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'compact': compact,
                     'jurisdiction': 'oh',
                     'licenseType': license_type,
+                    'licenseScope': 'single-state',
                     'licenseStatusName': 'DEFINITELY_A_HUMAN',
                     'licenseStatus': 'inactive',
                     'jurisdictionUploadedLicenseStatus': 'active',

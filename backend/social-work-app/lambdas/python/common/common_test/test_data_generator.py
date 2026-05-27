@@ -198,6 +198,7 @@ class TestDataGenerator:
             'type': LICENSE_RECORD_TYPE,
             'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
+            'licenseScope': DEFAULT_LICENSE_SCOPE,
             'licenseNumber': DEFAULT_LICENSE_NUMBER,
             'ssnLastFour': DEFAULT_SSN_LAST_FOUR,
             'givenName': DEFAULT_GIVEN_NAME,

@@ -36,6 +36,48 @@ class TestLicensePostSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
 
+    def test_license_scope_single_state_valid(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseScope'] = 'single-state'
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertEqual('single-state', result['licenseScope'])
+
+    def test_license_scope_multi_state_valid(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseScope'] = 'multi-state'
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertEqual('multi-state', result['licenseScope'])
+
+    def test_license_scope_invalid_value_rejected(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseScope'] = 'multi-state-invalid'
+
+        with self.assertRaises(ValidationError) as ctx:
+            LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertIn('licenseScope', ctx.exception.messages)
+
+    def test_license_scope_missing_raises_validation_error(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data.pop('licenseScope')
+
+        with self.assertRaises(ValidationError) as ctx:
+            LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertIn('licenseScope', ctx.exception.messages)
+
 
 class TestLicenseRecordSchema(TstLambdas):
     def test_serde(self):
@@ -315,6 +357,7 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
             'compact': 'socw',
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
+            'licenseScope': 'single-state',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',
             'compactEligibility': 'eligible',
@@ -406,6 +449,7 @@ class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
             'compact': 'socw',
             'jurisdiction': 'oh',
             'licenseType': 'cosmetologist',
+            'licenseScope': 'single-state',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',
             'compactEligibility': 'eligible',

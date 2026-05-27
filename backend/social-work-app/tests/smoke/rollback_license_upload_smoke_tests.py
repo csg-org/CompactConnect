@@ -83,6 +83,7 @@ def upload_test_license_batch(
             'dateOfIssuance': '2020-01-01',
             'ssn': f'555-50-{i:04d}',  # Incrementing SSN with padded zeros
             'licenseType': LICENSE_TYPE,
+            'licenseScope': 'single-state',
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'AZ',
             'homeAddressCity': 'Phoenix',

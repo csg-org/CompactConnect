@@ -152,8 +152,8 @@ class TestProcessBulkUploadFile(TstLambdas):
         with open('../common/tests/resources/licenses.csv') as f:
             f.seek(0)
             csv_data = [line.split(',') for line in f]
-        # SSN of line 3
-        csv_data[2][7] = '1234'
+        # licenseStatus of line 3 (invalid value triggers validation error)
+        csv_data[2][8] = '1234'
         # License type of line 5
         csv_data[4][2] = ''
 

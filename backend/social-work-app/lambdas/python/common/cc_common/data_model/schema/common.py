@@ -382,6 +382,11 @@ class EncumbranceType(CCEnum):
     SURRENDER_OF_LICENSE = 'surrender of license'
 
 
+class LicenseScopeEnum(CCEnum):
+    SINGLE_STATE = 'single-state'
+    MULTI_STATE = 'multi-state'
+
+
 class ClinicalPrivilegeActionCategory(CCEnum):
     """Enum for adverse action clinical privilege action categories."""
 

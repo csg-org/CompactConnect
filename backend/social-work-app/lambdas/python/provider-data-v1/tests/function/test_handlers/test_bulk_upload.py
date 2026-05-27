@@ -121,7 +121,7 @@ class TestProcessObjects(TstFunction):
             'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
-            ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
+            ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
             '123-45-6789,'
             '  LICENSE123  ,'
             '  John  ,'
@@ -142,6 +142,7 @@ class TestProcessObjects(TstFunction):
             '  test@example.com,'
             '+15551234567,'
             '  cosmetologist  ,'
+            '  single-state  ,'
             '  Active  '
         )
 
@@ -181,6 +182,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('43215', message_data['homeAddressPostalCode'])  # Should be trimmed
         self.assertEqual('test@example.com', message_data['emailAddress'])  # Should be trimmed
         self.assertEqual('cosmetologist', message_data['licenseType'])  # Should be trimmed
+        self.assertEqual('single-state', message_data['licenseScope'])  # Should be trimmed
         self.assertEqual('Active', message_data['licenseStatusName'])  # Should be trimmed
 
         # Verify that other fields remain unchanged
@@ -200,10 +202,10 @@ class TestProcessObjects(TstFunction):
             'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
-            ',emailAddress,phoneNumber,licenseType,licenseStatusName,compact,jurisdiction\n'
+            ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName,compact,jurisdiction\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,Active,'
-            'malicious_compact,malicious_jurisdiction'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,single-state,'
+            'Active,malicious_compact,malicious_jurisdiction'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
@@ -249,6 +251,7 @@ class TestProcessObjects(TstFunction):
                         'recordNumber': 1,
                         'validData': {
                             'licenseType': 'esthetician',
+                            'licenseScope': 'single-state',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
@@ -279,11 +282,13 @@ class TestProcessObjects(TstFunction):
             'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
-            ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
+            ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,Active\n'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,'
+            'single-state,Active\n'
             '123-45-6789,LICENSE456,Jane,Middle,Smith,,1995-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,Active'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,'
+            'single-state,Active'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
@@ -328,6 +333,7 @@ class TestProcessObjects(TstFunction):
                         'recordNumber': 2,
                         'validData': {
                             'licenseType': 'cosmetologist',
+                            'licenseScope': 'single-state',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
                             'compactEligibility': 'eligible',
@@ -362,12 +368,13 @@ class TestProcessObjects(TstFunction):
             'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
             ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
-            ',emailAddress,phoneNumber,licenseType,licenseStatusName\n'
+            ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,Active\n'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,'
+            'single-state,Active\n'
             '123-45-6789,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,'
-            'Active'
+            'single-state,Active'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
@@ -409,10 +416,10 @@ class TestProcessObjects(TstFunction):
 
         # Create CSV content without BOM in the string (BOM will be added during encoding)
         csv_content = (
-            'dateOfIssuance,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,'
+            'dateOfIssuance,licenseNumber,dateOfBirth,licenseType,licenseScope,familyName,homeAddressCity,middleName,'
             'licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,'
             'dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal\n'
-            '2024-06-30,BOM0608337260,2024-06-30,esthetician,TestFamily,Columbus,'
+            '2024-06-30,BOM0608337260,2024-06-30,esthetician,single-state,TestFamily,Columbus,'
             'TestMiddle,active,ACTIVE,eligible,529-31-5413,123 BOM Test St.,Apt 1,2024-06-30,oh,43215,'
             'TestGiven,2024-06-30'
         )

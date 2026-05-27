@@ -27,6 +27,7 @@ from cc_common.data_model.schema.fields import (
     ITUTE164PhoneNumber,
     Jurisdiction,
     LicenseEncumberedStatusField,
+    LicenseScopeField,
     UpdateType,
 )
 from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
@@ -171,6 +172,7 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     """
 
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     ssnLastFour = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))

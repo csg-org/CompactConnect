@@ -82,6 +82,7 @@ def _build_home_state_change_license_post_body(jurisdiction: str, date_of_issuan
             'dateOfIssuance': date_of_issuance,
             'ssn': HOME_STATE_CHANGE_MOCK_SSN,
             'licenseType': HOME_STATE_CHANGE_LICENSE_TYPE,
+            'licenseScope': 'single-state',
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': jurisdiction.upper(),
             'homeAddressCity': 'Omaha',

@@ -6,6 +6,7 @@
     "middleName": "Gunnar",
     "familyName": "Guðmundsdóttir",
     "licenseType": "cosmetologist",
+    "licenseScope": "single-state",
     "licenseStatus": "active",
     "licenseStatusName": "DEFINITELY_A_HUMAN",
     "compactEligibility": "eligible",

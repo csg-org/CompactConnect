@@ -39,6 +39,13 @@
             ],
             "type": "string"
           },
+          "licenseScope": {
+            "enum": [
+              "single-state",
+              "multi-state"
+            ],
+            "type": "string"
+          },
           "licenseStatus": {
             "enum": [
               "active",
@@ -69,6 +76,7 @@
           "compact",
           "jurisdiction",
           "licenseType",
+          "licenseScope",
           "licenseStatus",
           "compactEligibility",
           "dateOfExpiration",
