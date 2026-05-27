@@ -296,7 +296,7 @@ The logs will be stored in an S3 bucket in the Logs account, and the trail itsel
 
 Each compact runs in its own set of application accounts under the existing AWS Organization, in its own dedicated OU under `Workflows`. The Deploy account is **shared** across all compacts, so you do not provision a new Deploy account when onboarding a new compact. You need to create a new compact-level OU (with `PreProd` and `Prod` sub-OUs inside it), provision the compact's application accounts within those OUs, and stand up the compact's pipeline stacks inside the existing Deploy account.
 
-The follow documentation mirrors the process described above for setting up the original JCC compact, but with details specific for new compacts.
+The following documentation mirrors the process described above for setting up the original JCC compact, but with details specific for new compacts.
 
 ### Create email distribution lists for the new compact
 Following the same pattern established for the initial compact (see
