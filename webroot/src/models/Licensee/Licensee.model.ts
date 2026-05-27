@@ -37,6 +37,11 @@ export enum LicenseeStatus {
     INACTIVE = 'inactive',
 }
 
+export enum LicenseeEligibility {
+    ELIGIBLE = 'eligible',
+    INELIGIBLE = 'ineligible',
+}
+
 export interface InterfaceLicensee {
     id?: string | null;
     npi?: string | null;
@@ -61,6 +66,7 @@ export interface InterfaceLicensee {
     adverseActions?: Array<AdverseAction>;
     lastUpdated?: string | null;
     status?: LicenseeStatus;
+    eligibility?: LicenseeEligibility | null;
 }
 
 // ========================================================
@@ -93,6 +99,7 @@ export class Licensee implements InterfaceLicensee {
     public adverseActions? = [];
     public lastUpdated? = null;
     public status? = LicenseeStatus.INACTIVE;
+    public eligibility? = null;
 
     constructor(data?: InterfaceLicensee) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -199,6 +206,14 @@ export class Licensee implements InterfaceLicensee {
 
     public statusDisplay(): string {
         return this.$t(`licensing.statusOptions.${this.status}`);
+    }
+
+    public eligibilityDisplay(): string {
+        return (this.eligibility) ? this.$t(`licensing.restrictionOptions.${this.eligibility}`) : '';
+    }
+
+    public isRestricted(): boolean {
+        return Boolean(this.eligibility && this.eligibility === LicenseeEligibility.INELIGIBLE);
     }
 
     public phoneNumberDisplay(): string {
@@ -444,6 +459,7 @@ export class LicenseeSerializer {
             militaryStatus: json.militaryStatus,
             militaryStatusNote: json.militaryStatusNote,
             status: json.licenseStatus,
+            eligibility: json.licenseEligibility,
             lastUpdated: json.dateOfUpdate,
         };
 
