@@ -97,6 +97,23 @@
                 'desc': isSortOptionDescending('licenseNumber'),
             }"></span>
         </div>
+        <div
+            v-if="isAppModeCosmetology && (isPublicSearch || item.isPublicSearch)"
+            class="cell license-eligibility"
+            :class="{ 'is-sort-enabled': isSortOptionEnabled('licenseEligibility') }"
+            @click="isSortOptionEnabled('licenseEligibility') && handleSortSelect('licenseEligibility')"
+            @keyup.enter="isSortOptionEnabled('licenseEligibility') && handleSortSelect('licenseEligibility')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('licenseEligibility')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
+        >
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.compactRestriction') }}:</span>
+            <span :class="{ alert: item.isRestricted() }">{{ item.eligibilityDisplay() }}</span>
+            <span v-if="isSortOptionEnabled('licenseEligibility')" class="sort-icon" :class="{
+                'is-selected': isSortOptionSelected('licenseEligibility'),
+                'asc': isSortOptionAscending('licenseEligibility'),
+                'desc': isSortOptionDescending('licenseEligibility'),
+            }"></span>
+        </div>
     </div>
 </template>
 

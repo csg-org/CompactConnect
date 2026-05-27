@@ -541,6 +541,7 @@ export const licensees = {
             militaryStatus: 'approved',
             militaryStatusNote: 'All the docs look good!',
             licenseStatus: 'active',
+            licenseEligibility: 'eligible', // COSM list fetch
             licenseJurisdiction: 'co',
             currentHomeJurisdiction: 'co',
             npi: '1234567890',
@@ -682,6 +683,7 @@ export const licensees = {
             militaryStatus: 'declined',
             militaryStatusNote: 'Could not view the required docs. Please upload new copies.',
             licenseStatus: 'active',
+            licenseEligibility: 'ineligible', // COSM list fetch
             licenseJurisdiction: 'co',
             currentHomeJurisdiction: 'co',
             npi: '6441445289',

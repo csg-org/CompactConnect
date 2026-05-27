@@ -242,14 +242,22 @@ class LicenseeList extends Vue {
     }
 
     get headerRecord() {
+        const cosmetologySpecificColumns = {
+            licenseNumber: this.$t('licensing.stateLicenseNumber'),
+            ...(this.isPublicSearch)
+                ? {
+                    isPublicSearch: true,
+                    eligibilityDisplay: () => this.$t('licensing.compactRestriction'),
+                    isRestricted: () => false,
+                }
+                : {}
+        };
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
             homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             ...(this.isAppModeCosmetology
-                ? {
-                    licenseNumber: this.$t('licensing.stateLicenseNumber'),
-                }
+                ? { ...cosmetologySpecificColumns }
                 : {
                     privilegeStatesDisplay: () => this.$t('licensing.privileges'),
                 }
