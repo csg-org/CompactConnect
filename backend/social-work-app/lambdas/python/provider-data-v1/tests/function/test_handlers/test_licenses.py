@@ -154,7 +154,13 @@ class TestLicenses(TstFunction):
         self.assertEqual(
             {
                 'message': 'Invalid license records in request. See errors for more detail.',
-                'errors': {'0': {'licenseType': ['Must be one of: cosmetologist, esthetician.']}},
+                'errors': {
+                    '0': {
+                        'licenseType': [
+                            'Must be one of: licensed clinical social worker, licensed master social worker, licensed bachelor social worker.'
+                        ]
+                    }
+                },
             },
             json.loads(resp['body']),
         )
@@ -416,8 +422,8 @@ class TestLicenses(TstFunction):
 
         # Create second license with same SSN but different license type
         license_data_2 = license_data_1.copy()
-        license_data_1['licenseType'] = 'esthetician'
-        license_data_2['licenseType'] = 'cosmetologist'
+        license_data_1['licenseType'] = 'licensed master social worker'
+        license_data_2['licenseType'] = 'licensed clinical social worker'
 
         event['body'] = json.dumps([license_data_1, license_data_2])
 

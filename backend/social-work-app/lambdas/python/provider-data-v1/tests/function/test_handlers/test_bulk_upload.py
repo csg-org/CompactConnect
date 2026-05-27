@@ -141,7 +141,7 @@ class TestProcessObjects(TstFunction):
             '  43215  ,'
             '  test@example.com,'
             '+15551234567,'
-            '  cosmetologist  ,'
+            '  licensed clinical social worker  ,'
             '  single-state  ,'
             '  Active  '
         )
@@ -181,7 +181,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('OH', message_data['homeAddressState'])  # Should be trimmed
         self.assertEqual('43215', message_data['homeAddressPostalCode'])  # Should be trimmed
         self.assertEqual('test@example.com', message_data['emailAddress'])  # Should be trimmed
-        self.assertEqual('cosmetologist', message_data['licenseType'])  # Should be trimmed
+        self.assertEqual('licensed clinical social worker', message_data['licenseType'])  # Should be trimmed
         self.assertEqual('single-state', message_data['licenseScope'])  # Should be trimmed
         self.assertEqual('Active', message_data['licenseStatusName'])  # Should be trimmed
 
@@ -204,7 +204,7 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName,compact,jurisdiction\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,single-state,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed master social worker,single-state,'
             'Active,malicious_compact,malicious_jurisdiction'
         )
 
@@ -250,7 +250,7 @@ class TestProcessObjects(TstFunction):
                         'jurisdiction': 'oh',
                         'recordNumber': 1,
                         'validData': {
-                            'licenseType': 'esthetician',
+                            'licenseType': 'licensed master social worker',
                             'licenseScope': 'single-state',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
@@ -284,10 +284,10 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed clinical social worker,'
             'single-state,Active\n'
             '123-45-6789,LICENSE456,Jane,Middle,Smith,,1995-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed clinical social worker,'
             'single-state,Active'
         )
 
@@ -332,7 +332,7 @@ class TestProcessObjects(TstFunction):
                         'jurisdiction': 'oh',
                         'recordNumber': 2,
                         'validData': {
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'licenseScope': 'single-state',
                             'licenseStatusName': 'Active',
                             'licenseStatus': 'active',
@@ -347,7 +347,7 @@ class TestProcessObjects(TstFunction):
                         },
                         'errors': {
                             '_schema': [
-                                'Duplicate License SSN detected for license type cosmetologist. '
+                                'Duplicate License SSN detected for license type licensed clinical social worker. '
                                 'SSN matches with record 1. Every record must have a unique SSN per'
                                 ' license type within the same file.'
                             ]
@@ -370,10 +370,10 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,cosmetologist,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed clinical social worker,'
             'single-state,Active\n'
             '123-45-6789,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,esthetician,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed master social worker,'
             'single-state,Active'
         )
 
@@ -404,7 +404,7 @@ class TestProcessObjects(TstFunction):
         # Verify the license types are correct
         # Messages might not be in order, so we check both
         license_types = {message_data_1['licenseType'], message_data_2['licenseType']}
-        self.assertEqual({'esthetician', 'cosmetologist'}, license_types)
+        self.assertEqual({'licensed master social worker', 'licensed clinical social worker'}, license_types)
 
         # Verify SSNs are the same
         self.assertEqual(message_data_1['ssn'], '123-45-6789')
@@ -419,7 +419,7 @@ class TestProcessObjects(TstFunction):
             'dateOfIssuance,licenseNumber,dateOfBirth,licenseType,licenseScope,familyName,homeAddressCity,middleName,'
             'licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,'
             'dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal\n'
-            '2024-06-30,BOM0608337260,2024-06-30,esthetician,single-state,TestFamily,Columbus,'
+            '2024-06-30,BOM0608337260,2024-06-30,licensed master social worker,single-state,TestFamily,Columbus,'
             'TestMiddle,active,ACTIVE,eligible,529-31-5413,123 BOM Test St.,Apt 1,2024-06-30,oh,43215,'
             'TestGiven,2024-06-30'
         )
@@ -457,7 +457,7 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('Apt 1', message_data['homeAddressStreet2'])
         self.assertEqual('oh', message_data['homeAddressState'])
         self.assertEqual('43215', message_data['homeAddressPostalCode'])
-        self.assertEqual('esthetician', message_data['licenseType'])
+        self.assertEqual('licensed master social worker', message_data['licenseType'])
         self.assertEqual('active', message_data['licenseStatus'])
         self.assertEqual('ACTIVE', message_data['licenseStatusName'])
         self.assertEqual('eligible', message_data['compactEligibility'])

@@ -416,7 +416,7 @@ class ProviderUserRecords:
         ProviderRecordUtility.find_best_license (most recently renewed/issued; status and eligibility not considered).
         Sorts LicenseData directly using the shared sort key—no conversion to or from dicts.
         :param jurisdiction: Optional jurisdiction filter
-        :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'cos', 'est')
+        :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'lcsw', 'lmsw')
         :return: The best license record
         """
         if jurisdiction:

@@ -110,7 +110,7 @@ class TestTransformations(TstFunction):
             expected_license['firstUploadDate'] = MOCK_CURRENT_DATETIME_STRING
             expected_license['licenseUploadDateGSIPK'] = 'C#socw#J#oh#D#2024-11'
             expected_license['licenseUploadDateGSISK'] = (
-                'TIME#1731110399#LT#cos#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
+                'TIME#1731110399#LT#lcsw#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
             )
 
         # each record has a dynamic dateOfUpdate field that we'll remove for comparison

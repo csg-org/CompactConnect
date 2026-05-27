@@ -34,7 +34,7 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
                     'dateOfUpdate': '2024-06-06T12:59:59+00:00',
                     'compact': 'socw',
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'licenseScope': 'single-state',
                     'licenseStatus': 'active',
                     'jurisdictionUploadedLicenseStatus': 'active',

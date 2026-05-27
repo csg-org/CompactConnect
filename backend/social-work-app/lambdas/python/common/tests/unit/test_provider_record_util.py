@@ -38,7 +38,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'socw': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        mock_config.license_type_abbreviations = {'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_returns_empty_list_when_no_licenses(self):
@@ -79,7 +79,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 2, 28),
                 }
@@ -99,7 +99,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                     'investigations': [],
                     'jurisdiction': 'al',
                     'licenseJurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'status': 'active',
                     'type': 'privilege',
@@ -112,7 +112,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                     'investigations': [],
                     'jurisdiction': 'ky',
                     'licenseJurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'status': 'active',
                     'type': 'privilege',
@@ -130,14 +130,14 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                     'dateOfIssuance': date(2023, 1, 1),
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                     'dateOfIssuance': date(2024, 6, 1),
@@ -162,7 +162,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                     'dateOfIssuance': date(2020, 1, 1),
@@ -170,7 +170,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': oh_expiration,
                     'dateOfIssuance': date(2020, 1, 1),
@@ -197,14 +197,14 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                     'dateOfIssuance': date(2025, 1, 1),
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                     'dateOfIssuance': date(2024, 6, 1),
@@ -222,7 +222,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             self.assertEqual(p['licenseJurisdiction'], 'al', 'Home should be AL (most recently issued when no renewal)')
 
     def test_multiple_license_types_generate_privileges_for_both(self):
-        """Cosmetologist in al and esthetician in oh: privileges for both types across active jurisdictions."""
+        """Licensed Clinical Social Worker in al and licensed master social worker in oh: privileges for both types across active jurisdictions."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus
 
@@ -230,13 +230,13 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'esthetician',
+                    'licenseType': 'licensed master social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                 },
@@ -245,16 +245,16 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         with self._patch_config_for_privilege_generation():
             provider_user_records = ProviderUserRecords(records)
             result = provider_user_records.generate_privileges_for_provider()
-        # cosmetologist: al is home -> privileges for ky, oh (2).
-        # esthetician: oh is home -> privileges for al, ky (2). Total 4.
+        # licensed clinical social worker: al is home -> privileges for ky, oh (2).
+        # licensed master social worker: oh is home -> privileges for al, ky (2). Total 4.
         self.assertEqual(len(result), 4)
         by_type = {}
         for p in result:
             by_type.setdefault(p['licenseType'], []).append(p)
-        self.assertEqual(len(by_type['cosmetologist']), 2)
-        self.assertEqual(len(by_type['esthetician']), 2)
-        cos_jurisdictions = {p['jurisdiction'] for p in by_type['cosmetologist']}
-        est_jurisdictions = {p['jurisdiction'] for p in by_type['esthetician']}
+        self.assertEqual(len(by_type['licensed clinical social worker']), 2)
+        self.assertEqual(len(by_type['licensed master social worker']), 2)
+        cos_jurisdictions = {p['jurisdiction'] for p in by_type['licensed clinical social worker']}
+        est_jurisdictions = {p['jurisdiction'] for p in by_type['licensed master social worker']}
         self.assertEqual(cos_jurisdictions, {'ky', 'oh'})
         self.assertEqual(est_jurisdictions, {'al', 'ky'})
 
@@ -338,7 +338,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                 }
@@ -347,8 +347,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         open_investigation = self.test_data_generator.generate_default_investigation(
             value_overrides={
                 'jurisdiction': 'al',
-                'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'cosmetologist',
+                'licenseTypeAbbreviation': 'lcsw',
+                'licenseType': 'licensed clinical social worker',
                 'investigationAgainst': 'privilege',
             }
         )
@@ -403,7 +403,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
                     'dateOfExpiration': date(2026, 4, 4),
                 }
@@ -412,8 +412,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         open_investigation = self.test_data_generator.generate_default_investigation(
             value_overrides={
                 'jurisdiction': 'al',
-                'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'cosmetologist',
+                'licenseTypeAbbreviation': 'lcsw',
+                'licenseType': 'licensed clinical social worker',
                 'investigationAgainst': 'privilege',
             }
         )
@@ -454,7 +454,7 @@ class TestProviderRecordUtility(TstLambdas):
             'compact': 'socw',
             'jurisdiction': 'al',
             'licenseJurisdiction': 'ky',
-            'licenseType': 'cosmetologist',
+            'licenseType': 'licensed clinical social worker',
             'dateOfIssuance': '2025-04-23T15:47:14+00:00',
             'dateOfRenewal': '2025-04-23T15:47:14+00:00',
             'dateOfExpiration': '2027-02-12',
@@ -580,7 +580,7 @@ class TestGenerateApiResponseObject(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'socw': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        mock_config.license_type_abbreviations = {'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_generate_api_response_object_returns_adverse_actions_as_a_top_level_field_for_all_adverse_actions(self):
@@ -592,16 +592,16 @@ class TestGenerateApiResponseObject(TstLambdas):
         license_adverse_action = TestDataGenerator.generate_default_adverse_action(
             value_overrides={
                 'jurisdiction': 'oh',
-                'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'cosmetologist',
+                'licenseTypeAbbreviation': 'lcsw',
+                'licenseType': 'licensed clinical social worker',
                 'actionAgainst': 'license',
             }
         )
         privilege_adverse_action = TestDataGenerator.generate_default_adverse_action(
             value_overrides={
                 'jurisdiction': 'al',
-                'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'cosmetologist',
+                'licenseTypeAbbreviation': 'lcsw',
+                'licenseType': 'licensed clinical social worker',
                 'actionAgainst': 'privilege',
                 'effectiveStartDate': date.fromisoformat('2025-05-15'),
             }
@@ -611,7 +611,7 @@ class TestGenerateApiResponseObject(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                 }
             ],
@@ -656,7 +656,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'socw': {'cosmetologist': 'cos', 'esthetician': 'esth'}}
+        mock_config.license_type_abbreviations = {'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}}
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_single_license_returns_one_document(self):
@@ -667,7 +667,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                 }
             ]
@@ -716,7 +716,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseNumber': 'A0608337260',
                             'licenseStatus': 'active',
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'licenseScope': 'single-state',
                             'middleName': 'Gunnar',
                             'mostRecentLicenseForType': True,
@@ -736,7 +736,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'al',
                             'licenseJurisdiction': 'oh',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'active',
                             'type': 'privilege',
@@ -749,7 +749,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'ky',
                             'licenseJurisdiction': 'oh',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'active',
                             'type': 'privilege',
@@ -775,13 +775,13 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'esthetician',
+                    'licenseType': 'licensed master social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     # jurisdictionUploadedCompactEligibility is ineligible, so the privileges should be inactive
                     'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
@@ -832,7 +832,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseNumber': 'A0608337260',
                             'licenseStatus': 'active',
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'licenseScope': 'single-state',
                             'middleName': 'Gunnar',
                             'mostRecentLicenseForType': True,
@@ -852,7 +852,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'ky',
                             'licenseJurisdiction': 'al',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'active',
                             'type': 'privilege',
@@ -865,7 +865,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'oh',
                             'licenseJurisdiction': 'al',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'active',
                             'type': 'privilege',
@@ -914,7 +914,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseNumber': 'A0608337260',
                             'licenseStatus': 'active',
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                            'licenseType': 'esthetician',
+                            'licenseType': 'licensed master social worker',
                             'licenseScope': 'single-state',
                             'middleName': 'Gunnar',
                             'mostRecentLicenseForType': True,
@@ -935,7 +935,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'al',
                             'licenseJurisdiction': 'oh',
-                            'licenseType': 'esthetician',
+                            'licenseType': 'licensed master social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'inactive',
                             'type': 'privilege',
@@ -948,7 +948,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'ky',
                             'licenseJurisdiction': 'oh',
-                            'licenseType': 'esthetician',
+                            'licenseType': 'licensed master social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'inactive',
                             'type': 'privilege',
@@ -964,7 +964,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         )
 
     def test_three_licenses_two_same_type_one_other_sets_most_recent_per_type(self):
-        """Two cosmetologist licenses + one esthetician: each type's most recent license shows
+        """Two licensed clinical social worker licenses + one licensed master social worker: each type's most recent license shows
         mostRecentLicenseForType true."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus
@@ -973,7 +973,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'ky',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'licenseNumber': 'KY-COS-OLDER',
                     'dateOfExpiration': date(2026, 4, 4),
                     'dateOfIssuance': date(2005, 1, 1),
@@ -983,14 +983,14 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
                 },
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'esthetician',
+                    'licenseType': 'licensed master social worker',
                     'licenseNumber': 'AL-EST-ONLY',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
@@ -1009,9 +1009,9 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ]
             for d in docs
         }
-        self.assertFalse(by_jurisdiction_and_type[('ky', 'cosmetologist')])
-        self.assertTrue(by_jurisdiction_and_type[('oh', 'cosmetologist')])
-        self.assertTrue(by_jurisdiction_and_type[('al', 'esthetician')])
+        self.assertFalse(by_jurisdiction_and_type[('ky', 'licensed clinical social worker')])
+        self.assertTrue(by_jurisdiction_and_type[('oh', 'licensed clinical social worker')])
+        self.assertTrue(by_jurisdiction_and_type[('al', 'licensed master social worker')])
 
     def test_privileges_assigned_only_to_home_license_document(self):
         """Privileges are only on the document whose license is the home license for its type."""
@@ -1022,14 +1022,14 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'dateOfIssuance': date(2023, 1, 1),
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     # this license was issued more recently, so it should have the privileges associated with it.
@@ -1081,7 +1081,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseNumber': 'A0608337260',
                             'licenseStatus': 'active',
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'licenseScope': 'single-state',
                             'middleName': 'Gunnar',
                             'mostRecentLicenseForType': False,
@@ -1136,7 +1136,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'licenseNumber': 'A0608337260',
                             'licenseStatus': 'active',
                             'licenseStatusName': 'DEFINITELY_A_HUMAN',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'licenseScope': 'single-state',
                             'middleName': 'Gunnar',
                             'mostRecentLicenseForType': True,
@@ -1156,7 +1156,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'al',
                             'licenseJurisdiction': 'oh',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'active',
                             'type': 'privilege',
@@ -1169,7 +1169,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                             'investigations': [],
                             'jurisdiction': 'ky',
                             'licenseJurisdiction': 'oh',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                             'status': 'active',
                             'type': 'privilege',
@@ -1193,13 +1193,13 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'al',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                 },
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'esthetician',
+                    'licenseType': 'licensed master social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                 },
@@ -1212,11 +1212,11 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         self.assertEqual(2, len(docs))
         al_doc = next(d for d in docs if d['licenses'][0]['jurisdiction'] == 'al')
         oh_doc = next(d for d in docs if d['licenses'][0]['jurisdiction'] == 'oh')
-        # cosmetologist home is al -> al_doc gets cosmetologist privileges
-        cos_privs = [p for p in al_doc['privileges'] if p['licenseType'] == 'cosmetologist']
+        # licensed clinical social worker home is al -> al_doc gets licensed clinical social worker privileges
+        cos_privs = [p for p in al_doc['privileges'] if p['licenseType'] == 'licensed clinical social worker']
         self.assertGreater(len(cos_privs), 0)
-        # esthetician home is oh -> oh_doc gets esthetician privileges
-        esth_privs = [p for p in oh_doc['privileges'] if p['licenseType'] == 'esthetician']
+        # licensed master social worker home is oh -> oh_doc gets licensed master social worker privileges
+        esth_privs = [p for p in oh_doc['privileges'] if p['licenseType'] == 'licensed master social worker']
         self.assertGreater(len(esth_privs), 0)
 
     def test_license_adverse_actions_included(self):
@@ -1228,7 +1228,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                 }
@@ -1238,7 +1238,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     value_overrides={
                         'jurisdiction': 'oh',
                         'actionAgainst': 'license',
-                        'licenseTypeAbbreviation': 'cos',
+                        'licenseTypeAbbreviation': 'lcsw',
                     }
                 ).serialize_to_database_record()
             ],
@@ -1260,8 +1260,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         privilege_aa = TestDataGenerator.generate_default_adverse_action(
             value_overrides={
                 'jurisdiction': 'al',
-                'licenseTypeAbbreviation': 'cos',
-                'licenseType': 'cosmetologist',
+                'licenseTypeAbbreviation': 'lcsw',
+                'licenseType': 'licensed clinical social worker',
                 'actionAgainst': 'privilege',
                 'effectiveStartDate': date(2025, 5, 15),
             }
@@ -1270,7 +1270,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             license_overrides_list=[
                 {
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
                     'dateOfExpiration': date(2026, 4, 4),
                     'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
                 }

@@ -17,7 +17,7 @@ from . import TstFunction
 MOCK_SOCW_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 TEST_LICENSE_TYPE_MAPPING = {
-    'socw': 'cosmetologist',
+    'socw': 'licensed clinical social worker',
 }
 TEST_PROVIDER_ID_MAPPING = {
     'socw': MOCK_SOCW_PROVIDER_ID,
@@ -253,7 +253,7 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
     def _put_provider_with_two_socw_licenses_oh_newer_than_ky(self):
-        """Provider + OH cosmetologist (default dates) + KY cosmetologist (older issuance/renewal)."""
+        """Provider + OH licensed clinical social worker (default dates) + KY licensed clinical social worker (older issuance/renewal)."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
                 'compact': 'socw',
@@ -322,8 +322,8 @@ class TestProviderUpdateIngest(TstFunction):
         documents = mock_opensearch_client.bulk_index.call_args.kwargs['documents']
         self.assertEqual(2, len(documents))
         documents_by_id = {doc['documentId']: doc for doc in documents}
-        oh_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#cosmetologist#single-state'
-        ky_id = f'{MOCK_SOCW_PROVIDER_ID}#ky#cosmetologist#single-state'
+        oh_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#licensed clinical social worker#single-state'
+        ky_id = f'{MOCK_SOCW_PROVIDER_ID}#ky#licensed clinical social worker#single-state'
         self.assertTrue(documents_by_id[oh_id]['licenses'][0]['mostRecentLicenseForType'])
         self.assertFalse(documents_by_id[ky_id]['licenses'][0]['mostRecentLicenseForType'])
 
@@ -430,7 +430,7 @@ class TestProviderUpdateIngest(TstFunction):
         """Test that a record which fails to be indexed by OpenSearch is in batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        document_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#cosmetologist'
+        document_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#licensed clinical social worker'
         mock_opensearch_client.bulk_index.return_value = {
             'errors': True,
             'items': [

@@ -23,7 +23,7 @@ EXPECTED_PROVIDER_RESPONSE = {
             'type': 'license',
             'compact': 'socw',
             'jurisdiction': 'oh',
-            'licenseType': 'cosmetologist',
+            'licenseType': 'licensed clinical social worker',
             'licenseScope': 'single-state',
             'licenseStatus': 'active',
             'compactEligibility': 'eligible',
@@ -38,7 +38,7 @@ EXPECTED_PROVIDER_RESPONSE = {
             'compact': 'socw',
             'jurisdiction': 'ne',
             'licenseJurisdiction': 'oh',
-            'licenseType': 'cosmetologist',
+            'licenseType': 'licensed clinical social worker',
             'dateOfExpiration': '2025-04-04',
             'administratorSetStatus': 'active',
             'status': 'active',
@@ -119,7 +119,7 @@ class TestPublicGetProvider(TstFunction):
         # add two more licenses for another license type
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
-                'licenseType': 'esthetician',
+                'licenseType': 'licensed master social worker',
                 'dateOfIssuance': date(2019, 1, 1),
                 'dateOfRenewal': date(2020, 1, 1),
                 'licenseNumber': 'olderEstLicense',
@@ -128,7 +128,7 @@ class TestPublicGetProvider(TstFunction):
         )
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
-                'licenseType': 'esthetician',
+                'licenseType': 'licensed master social worker',
                 'dateOfIssuance': date(2024, 1, 1),
                 'dateOfRenewal': date(2025, 1, 1),
                 'jurisdiction': 'oh',
@@ -158,7 +158,7 @@ class TestPublicGetProvider(TstFunction):
                 'type': 'license',
                 'compact': 'socw',
                 'jurisdiction': 'oh',
-                'licenseType': 'cosmetologist',
+                'licenseType': 'licensed clinical social worker',
                 'licenseScope': 'single-state',
                 'licenseStatus': 'active',
                 'compactEligibility': 'eligible',
@@ -169,7 +169,7 @@ class TestPublicGetProvider(TstFunction):
                 'type': 'license',
                 'compact': 'socw',
                 'jurisdiction': 'oh',
-                'licenseType': 'esthetician',
+                'licenseType': 'licensed master social worker',
                 'licenseScope': 'single-state',
                 'licenseStatus': 'active',
                 'compactEligibility': 'eligible',

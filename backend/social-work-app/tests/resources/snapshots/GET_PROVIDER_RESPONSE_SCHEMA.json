@@ -139,7 +139,7 @@
           "licenseType": {
             "enum": [
               "licensed clinical social worker",
-              "licensed master social worker,",
+              "licensed master social worker",
               "licensed bachelor social worker"
             ],
             "type": "string"
@@ -226,7 +226,7 @@
                 "licenseType": {
                   "enum": [
                     "licensed clinical social worker",
-                    "licensed master social worker,",
+                    "licensed master social worker",
                     "licensed bachelor social worker"
                   ],
                   "type": "string"
@@ -867,7 +867,7 @@
                 "licenseType": {
                   "enum": [
                     "licensed clinical social worker",
-                    "licensed master social worker,",
+                    "licensed master social worker",
                     "licensed bachelor social worker"
                   ],
                   "type": "string"
@@ -1051,7 +1051,7 @@
           "licenseType": {
             "enum": [
               "licensed clinical social worker",
-              "licensed master social worker,",
+              "licensed master social worker",
               "licensed bachelor social worker"
             ],
             "type": "string"

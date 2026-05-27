@@ -67,7 +67,7 @@ class TestHandleDataEvents(TstFunction):
                 'eventTime': '2024-07-11T19:57:45+00:00',
                 'eventType': 'license.ingest',
                 'compact': 'socw',
-                'licenseType': 'cosmetologist',
+                'licenseType': 'licensed clinical social worker',
                 'licenseScope': 'single-state',
                 'jurisdiction': 'oh',
                 'licenseStatus': 'active',

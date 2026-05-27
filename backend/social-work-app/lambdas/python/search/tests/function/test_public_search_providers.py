@@ -188,8 +188,8 @@ class TestPublicSearchProviders(TstFunction):
             'compact': 'socw',
             'providerId': provider_id,
             'jurisdiction': 'oh',
-            'licenseTypeAbbreviation': 'cos',
-            'licenseType': 'cosmetologist',
+            'licenseTypeAbbreviation': 'lcsw',
+            'licenseType': 'licensed clinical social worker',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
@@ -242,7 +242,7 @@ class TestPublicSearchProviders(TstFunction):
         family_name: str = 'Doe',
         given_name: str = 'John',
         sort_values: list = None,
-        license_type: str = 'cosmetologist',
+        license_type: str = 'licensed clinical social worker',
         license_nested: dict | None = None,
         provider_adverse_actions: list | None = None,
         privileges: list | None = None,
@@ -628,7 +628,7 @@ class TestPublicSearchProviders(TstFunction):
         mock_opensearch_client.search.return_value = {
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
-        last_key_payload = json.dumps({'search_after': ['doe', 'jane', 'uuid-123', 'uuid-123#oh#cosmetologist']})
+        last_key_payload = json.dumps({'search_after': ['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker']})
         last_key_str = b64encode(last_key_payload.encode('utf-8')).decode('utf-8')
         event = self._create_public_api_event(
             'socw',
@@ -646,7 +646,7 @@ class TestPublicSearchProviders(TstFunction):
                     {'match': {'licenses.familyName': 'Doe'}},
                 ],
                 page_size=25,
-                search_after=['doe', 'jane', 'uuid-123', 'uuid-123#oh#cosmetologist'],
+                search_after=['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker'],
             ),
             call_body,
         )
@@ -664,7 +664,7 @@ class TestPublicSearchProviders(TstFunction):
                 'doe',
                 'john',
                 f'00000000-0000-0000-0000-00000000000{i}',
-                f'00000000-0000-0000-0000-00000000000{i}#oh#cosmetologist',
+                f'00000000-0000-0000-0000-00000000000{i}#oh#licensed clinical social worker',
             ]
             mock_hits_full_page.append(
                 self._create_mock_hit(
@@ -733,7 +733,7 @@ class TestPublicSearchProviders(TstFunction):
         }
         self.assertEqual(set(provider.keys()), allowed)
         self.assertEqual(provider['licenseJurisdiction'], 'oh')
-        self.assertEqual(provider['licenseType'], 'cosmetologist')
+        self.assertEqual(provider['licenseType'], 'licensed clinical social worker')
         self.assertEqual(provider['licenseNumber'], 'LN123')
         self.assertEqual(provider['licenseEligibility'], 'eligible')
 
@@ -749,7 +749,7 @@ class TestPublicSearchProviders(TstFunction):
             compact='socw',
             jurisdiction='oh',
             license_number='LN-EXP',
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             given_name='John',
             family_name='Doe',
             date_of_expiration='2020-01-01',
@@ -787,8 +787,8 @@ class TestPublicSearchProviders(TstFunction):
             'compact': 'socw',
             'providerId': pid,
             'jurisdiction': 'oh',
-            'licenseTypeAbbreviation': 'cos',
-            'licenseType': 'esthetician',
+            'licenseTypeAbbreviation': 'lcsw',
+            'licenseType': 'licensed master social worker',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
@@ -827,7 +827,7 @@ class TestPublicSearchProviders(TstFunction):
             compact='socw',
             jurisdiction='oh',
             license_number='LN-LIC-AA',
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             given_name='John',
             family_name='Doe',
             date_of_expiration='2035-01-01',
@@ -864,8 +864,8 @@ class TestPublicSearchProviders(TstFunction):
             'compact': 'socw',
             'providerId': pid,
             'jurisdiction': 'mi',
-            'licenseTypeAbbreviation': 'cos',
-            'licenseType': 'cosmetologist',
+            'licenseTypeAbbreviation': 'lcsw',
+            'licenseType': 'licensed clinical social worker',
             'actionAgainst': 'privilege',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
@@ -880,7 +880,7 @@ class TestPublicSearchProviders(TstFunction):
             compact='socw',
             jurisdiction='oh',
             license_number='LN-PRIV-AA',
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             given_name='John',
             family_name='Doe',
             date_of_expiration='2035-01-01',
@@ -890,7 +890,7 @@ class TestPublicSearchProviders(TstFunction):
             provider_id=pid,
             compact='socw',
             license_jurisdiction='oh',
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             privilege_jurisdiction='mi',
             date_of_expiration='2035-01-01',
             adverse_actions=[unlifted],
@@ -925,7 +925,7 @@ class TestPublicSearchProviders(TstFunction):
             compact='socw',
             jurisdiction='oh',
             license_number='LN-JUR',
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             given_name='John',
             family_name='Doe',
             date_of_expiration='2035-01-01',
@@ -959,8 +959,8 @@ class TestPublicSearchProviders(TstFunction):
             'compact': 'socw',
             'providerId': pid,
             'jurisdiction': 'oh',
-            'licenseTypeAbbreviation': 'cos',
-            'licenseType': 'cosmetologist',
+            'licenseTypeAbbreviation': 'lcsw',
+            'licenseType': 'licensed clinical social worker',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',

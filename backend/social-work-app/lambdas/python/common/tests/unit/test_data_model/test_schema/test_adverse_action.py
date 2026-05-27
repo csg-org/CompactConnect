@@ -58,7 +58,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
 
         # setting to an invalid license type name, with a valid abbreviation
         adverse_action_data.licenseType = 'foobar'
-        adverse_action_data.license_abbreviation = 'cos'
+        adverse_action_data.license_abbreviation = 'lcsw'
 
         with self.assertRaises(ValidationError):
             AdverseActionData.from_database_record(adverse_action_data.serialize_to_database_record())
@@ -69,7 +69,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
         adverse_action_data = self.test_data_generator.generate_default_adverse_action()
 
         # setting to a valid license type name, and an invalid abbreviation
-        adverse_action_data.licenseType = 'cosmetologist'
+        adverse_action_data.licenseType = 'licensed clinical social worker'
         adverse_action_data.licenseTypeAbbreviation = 'foo'
 
         with self.assertRaises(ValidationError):
@@ -116,12 +116,12 @@ class TestAdverseActionDataClass(TstLambdas):
                 'creationDate': '2024-11-08T23:59:59+00:00',
                 'effectiveStartDate': '2024-02-15',
                 'jurisdiction': 'ne',
-                'licenseType': 'cosmetologist',
-                'licenseTypeAbbreviation': 'cos',
+                'licenseType': 'licensed clinical social worker',
+                'licenseTypeAbbreviation': 'lcsw',
                 'pk': 'socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'licenseScope': 'single-state',
-                'sk': 'socw#PROVIDER#privilege/ne/cos/single-state#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
+                'sk': 'socw#PROVIDER#privilege/ne/lcsw/single-state#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
                 'submittingUser': '12a6377e-c3a5-40e5-bca5-317ec854c556',
                 'type': 'adverseAction',
             },

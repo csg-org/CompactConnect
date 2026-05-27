@@ -619,7 +619,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'providerId': self.provider_id,
                         # NOTE: if the test update data is modified, the sha here will need to be updated
                         'updatesDeleted': [
-                            'socw#UPDATE#3#license/oh/cos/single-state/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
+                            'socw#UPDATE#3#license/oh/lcsw/single-state/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
                         ],
                     }
                 ],
@@ -757,7 +757,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             'typeOfUpdate': 'ENCUMBRANCE',
                             'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                             'reason': 'Existing ineligible update reason',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                         }
                     ],
                 }
@@ -774,7 +774,7 @@ class TestRollbackLicenseUpload(TstFunction):
                     'licensesReverted': [
                         {
                             'jurisdiction': 'tx',
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                             'action': 'REVERT',
                         }
                     ],
@@ -807,7 +807,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'typeOfUpdate': 'ENCUMBRANCE',
                                 'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                                 'reason': 'Existing ineligible update reason',
-                                'licenseType': 'cosmetologist',
+                                'licenseType': 'licensed clinical social worker',
                             }
                         ],
                     }
@@ -824,7 +824,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         'licensesReverted': [
                             {
                                 'jurisdiction': 'tx',
-                                'licenseType': 'cosmetologist',
+                                'licenseType': 'licensed clinical social worker',
                                 'action': 'REVERT',
                             }
                         ],
@@ -919,12 +919,12 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
-                                'licenseType': 'cosmetologist',
+                                'licenseType': 'licensed clinical social worker',
                             }
                         ],
                         'providerId': mock_first_provider_id,
                         'updatesDeleted': [
-                            'socw#UPDATE#3#license/oh/cos/single-state/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
+                            'socw#UPDATE#3#license/oh/lcsw/single-state/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
                         ],
                     },
                     {
@@ -932,12 +932,12 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
-                                'licenseType': 'cosmetologist',
+                                'licenseType': 'licensed clinical social worker',
                             }
                         ],
                         'providerId': mock_second_provider_id,
                         'updatesDeleted': [
-                            'socw#UPDATE#3#license/oh/cos/single-state/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
+                            'socw#UPDATE#3#license/oh/lcsw/single-state/2025-10-23T07:15:00+00:00/ab91ad25b3f255dd3e162fc5489684b0'
                         ],
                     },
                 ],

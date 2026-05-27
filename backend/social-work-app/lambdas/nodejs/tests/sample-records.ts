@@ -12,7 +12,7 @@ export const SAMPLE_INGEST_SUCCESS_RECORD = {
         'S': 'oh'
     },
     'licenseType': {
-        'S': 'cosmetologist'
+        'S': 'licensed clinical social worker'
     },
     'licenseScope': {
         'S': 'single-state'

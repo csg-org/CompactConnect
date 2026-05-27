@@ -34,7 +34,7 @@ JURISDICTION = 'az'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 
-LICENSE_TYPE = 'cosmetologist'
+LICENSE_TYPE = 'licensed clinical social worker'
 
 # Test configuration
 NUM_LICENSES_TO_UPLOAD = 100
@@ -391,7 +391,7 @@ def create_encumbrance_update_for_provider(provider_id: str, compact: str, licen
     :param license_jurisdiction: The jurisdiction of the license
     """
 
-    license_type_abbr = 'cos'
+    license_type_abbr = 'lcsw'
     # Use current time or specified time
     now = datetime.now(tz=UTC)
 

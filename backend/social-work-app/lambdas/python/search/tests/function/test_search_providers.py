@@ -77,7 +77,7 @@ class TestSearchProviders(TstFunction):
         sort_values: list = None,
     ) -> dict:
         """Create a mock OpenSearch hit for a one-doc-per-license provider document."""
-        document_id = f'{provider_id}#oh#cosmetologist'
+        document_id = f'{provider_id}#oh#licensed clinical social worker'
         hit = {
             '_index': f'compact_{compact}_providers',
             '_id': document_id,
@@ -103,7 +103,7 @@ class TestSearchProviders(TstFunction):
                         'type': 'license',
                         'compact': compact,
                         'jurisdiction': 'oh',
-                        'licenseType': 'cosmetologist',
+                        'licenseType': 'licensed clinical social worker',
                         'licenseScope': 'single-state',
                         'licenseNumber': 'A0608337260',
                         'givenName': 'John',
@@ -308,7 +308,7 @@ class TestSearchProviders(TstFunction):
         # Verify licenses array with one license is present
         self.assertEqual(1, len(provider['licenses']))
         self.assertEqual('oh', provider['licenses'][0]['jurisdiction'])
-        self.assertEqual('cosmetologist', provider['licenses'][0]['licenseType'])
+        self.assertEqual('licensed clinical social worker', provider['licenses'][0]['licenseType'])
         # Verify private fields were stripped (list/general view must not expose full DOB)
         self.assertNotIn('dateOfBirth', provider)
         self.assertNotIn('dateOfBirth', provider['licenses'][0])

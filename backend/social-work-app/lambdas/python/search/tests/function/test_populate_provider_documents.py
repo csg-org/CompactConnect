@@ -15,7 +15,7 @@ from . import TstFunction
 MOCK_SOCW_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 test_license_type_mapping = {
-    'socw': 'cosmetologist',
+    'socw': 'licensed clinical social worker',
 }
 test_provider_id_mapping = {
     'socw': MOCK_SOCW_PROVIDER_ID,

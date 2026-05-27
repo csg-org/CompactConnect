@@ -124,14 +124,14 @@ class TestInvestigationEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
@@ -187,14 +187,14 @@ class TestInvestigationEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_template_variables_ne = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_LICENSE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
@@ -246,14 +246,14 @@ class TestInvestigationEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [
@@ -307,14 +307,14 @@ class TestInvestigationEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_template_variables_oh = InvestigationNotificationTemplateVariables(
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             investigation_jurisdiction=DEFAULT_PRIVILEGE_JURISDICTION,
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
         expected_state_calls = [

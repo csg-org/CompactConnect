@@ -201,7 +201,7 @@ class TestIngest(TstFunction):
                             'jurisdiction': 'oh',
                             'eventTime': '2024-11-08T23:59:59+00:00',
                             'providerId': provider_id,
-                            'licenseType': 'cosmetologist',
+                            'licenseType': 'licensed clinical social worker',
                         }
                     ),
                     'EventBusName': 'license-data-events',
@@ -511,14 +511,14 @@ class TestIngest(TstFunction):
         Test that multiple license types in the same jurisdiction are handled correctly.
 
         This test:
-        1. Ingests a first active license with licenseType: cosmetologist
-        2. For the same provider, ingests a second active license with licenseType: esthetician and a newer
+        1. Ingests a first active license with licenseType: licensed clinical social worker
+        2. For the same provider, ingests a second active license with licenseType: licensed master social worker and a newer
            dateOfIssuance
-        3. Verifies that both licenses are present and that the provider data was copied from the esthetician license
+        3. Verifies that both licenses are present and that the provider data was copied from the licensed master social worker license
         """
         from handlers.ingest import ingest_license_message
 
-        # First, ingest a cosmetologist license
+        # First, ingest a licensed clinical social worker license
         provider_id = self._with_ingested_license()
 
         # Get the provider data after the first license ingest
@@ -526,7 +526,7 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('cosmetologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -535,11 +535,11 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Update the message to be for an esthetician license with a newer issuance date
+        # Update the message to be for an licensed master social worker license with a newer issuance date
         # and a different givenName to track which license is used for provider data
         message['detail'].update(
             {
-                'licenseType': 'esthetician',
+                'licenseType': 'licensed master social worker',
                 'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
                 'licenseNumber': 'B0608337260',  # Different license number
                 'givenName': 'Audrey',  # Different name to track which license is used
@@ -558,25 +558,25 @@ class TestIngest(TstFunction):
         self.assertEqual(2, len(provider_data['licenses']))
 
         # Find each license by type
-        cos_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'cosmetologist'), None)
-        est_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'esthetician'), None)
+        lcsw_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'licensed clinical social worker'), None)
+        lmsw_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'licensed master social worker'), None)
 
         # Verify both licenses exist
-        self.assertIsNotNone(cos_license, 'cosmetologist license not found')
-        self.assertIsNotNone(est_license, 'esthetician license not found')
+        self.assertIsNotNone(lcsw_license, 'licensed clinical social worker license not found')
+        self.assertIsNotNone(lmsw_license, 'licensed master social worker license not found')
 
         # Verify license details
-        self.assertEqual('A0608337260', cos_license['licenseNumber'])
-        self.assertEqual('2010-06-06', cos_license['dateOfIssuance'])
-        self.assertEqual('oh', cos_license['jurisdiction'])
-        self.assertEqual('Björk', cos_license['givenName'])
+        self.assertEqual('A0608337260', lcsw_license['licenseNumber'])
+        self.assertEqual('2010-06-06', lcsw_license['dateOfIssuance'])
+        self.assertEqual('oh', lcsw_license['jurisdiction'])
+        self.assertEqual('Björk', lcsw_license['givenName'])
 
-        self.assertEqual('B0608337260', est_license['licenseNumber'])
-        self.assertEqual('2020-06-06', est_license['dateOfIssuance'])
-        self.assertEqual('oh', est_license['jurisdiction'])
-        self.assertEqual('Audrey', est_license['givenName'])
+        self.assertEqual('B0608337260', lmsw_license['licenseNumber'])
+        self.assertEqual('2020-06-06', lmsw_license['dateOfIssuance'])
+        self.assertEqual('oh', lmsw_license['jurisdiction'])
+        self.assertEqual('Audrey', lmsw_license['givenName'])
 
-        # Verify that the provider data was copied from the esthetician license (newer issuance date)
+        # Verify that the provider data was copied from the licensed master social worker license (newer issuance date)
         # by checking the givenName
         self.assertEqual('oh', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
@@ -587,13 +587,13 @@ class TestIngest(TstFunction):
         Test that multiple license types in different jurisdictions are handled correctly.
 
         This test:
-        1. Ingests a first active license with licenseType: cosmetologist in 'oh'
-        2. For the same provider, ingests a second active license with licenseType: esthetician in 'ky'
+        1. Ingests a first active license with licenseType: licensed clinical social worker in 'oh'
+        2. For the same provider, ingests a second active license with licenseType: licensed master social worker in 'ky'
         3. Verifies that both licenses are present and the provider data is from the most recently issued license
         """
         from handlers.ingest import ingest_license_message
 
-        # First, ingest a cosmetologist license in 'oh'
+        # First, ingest a licensed clinical social worker license in 'oh'
         provider_id = self._with_ingested_license()
 
         # Get the provider data after the first license ingest
@@ -601,7 +601,7 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('cosmetologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -610,11 +610,11 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Update the message to be for an esthetician license in 'ky' with a newer issuance date
+        # Update the message to be for an licensed master social worker license in 'ky' with a newer issuance date
         # and a different givenName to track which license is used for provider data
         message['detail'].update(
             {
-                'licenseType': 'esthetician',
+                'licenseType': 'licensed master social worker',
                 'jurisdiction': 'ky',
                 'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
                 'licenseNumber': 'B0608337260',  # Different license number
@@ -642,17 +642,17 @@ class TestIngest(TstFunction):
         self.assertIsNotNone(ky_license, 'Kentucky license not found')
 
         # Verify license details
-        self.assertEqual('cosmetologist', oh_license['licenseType'])
+        self.assertEqual('licensed clinical social worker', oh_license['licenseType'])
         self.assertEqual('A0608337260', oh_license['licenseNumber'])
         self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
         self.assertEqual('Björk', oh_license['givenName'])
 
-        self.assertEqual('esthetician', ky_license['licenseType'])
+        self.assertEqual('licensed master social worker', ky_license['licenseType'])
         self.assertEqual('B0608337260', ky_license['licenseNumber'])
         self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
         self.assertEqual('Audrey', ky_license['givenName'])
 
-        # Verify that the provider data was copied from the esthetician license in 'ky'
+        # Verify that the provider data was copied from the licensed master social worker license in 'ky'
         # because it has a newer issuance date. We can verify this by checking the givenName.
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
@@ -662,8 +662,8 @@ class TestIngest(TstFunction):
         self,
     ):
         """
-        Same license type (cosmetologist) in two jurisdictions: a newer issuance from KY replaces OH as the best
-        cosmetologist license and ingest emits ``provider.homeStateChange`` with former OH and new KY.
+        Same license type (licensed clinical social worker) in two jurisdictions: a newer issuance from KY replaces OH as the best
+        licensed clinical social worker license and ingest emits ``provider.homeStateChange`` with former OH and new KY.
         """
         import handlers.ingest as ingest_handler
         from handlers.ingest import ingest_license_message
@@ -673,7 +673,7 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('cosmetologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -683,7 +683,7 @@ class TestIngest(TstFunction):
         # Same license type as OH, but KY upload with a newer issuance date → new “home” license jurisdiction for type
         message['detail'].update(
             {
-                'licenseType': 'cosmetologist',
+                'licenseType': 'licensed clinical social worker',
                 'jurisdiction': 'ky',
                 'dateOfIssuance': '2020-06-06',
                 'licenseNumber': 'B0608337260',
@@ -710,7 +710,7 @@ class TestIngest(TstFunction):
                         'jurisdiction': 'ky',
                         'eventTime': '2024-11-08T23:59:59+00:00',
                         'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
-                        'licenseType': 'cosmetologist',
+                        'licenseType': 'licensed clinical social worker',
                         'formerHomeJurisdiction': 'oh',
                     }
                 ),
@@ -732,12 +732,12 @@ class TestIngest(TstFunction):
         self.assertIsNotNone(ky_license, 'Kentucky license not found')
 
         # Verify license details
-        self.assertEqual('cosmetologist', oh_license['licenseType'])
+        self.assertEqual('licensed clinical social worker', oh_license['licenseType'])
         self.assertEqual('A0608337260', oh_license['licenseNumber'])
         self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
         self.assertEqual('Björk', oh_license['givenName'])
 
-        self.assertEqual('cosmetologist', ky_license['licenseType'])
+        self.assertEqual('licensed clinical social worker', ky_license['licenseType'])
         self.assertEqual('B0608337260', ky_license['licenseNumber'])
         self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
         self.assertEqual('Audrey', ky_license['givenName'])
@@ -762,7 +762,7 @@ class TestIngest(TstFunction):
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
                 'providerId': provider_id,
-                'licenseType': 'esthetician',
+                'licenseType': 'licensed master social worker',
                 'dateOfIssuance': date.fromisoformat('2024-05-06'),
                 'jurisdiction': 'oh',
             }
@@ -771,7 +771,7 @@ class TestIngest(TstFunction):
         self.test_data_generator.put_default_license_record_in_provider_table(
             value_overrides={
                 'providerId': provider_id,
-                'licenseType': 'cosmetologist',
+                'licenseType': 'licensed clinical social worker',
                 'jurisdiction': 'oh',
                 'dateOfRenewal': date.fromisoformat('2026-06-06'),
             }
@@ -784,7 +784,7 @@ class TestIngest(TstFunction):
         # but not the most recent renewal date. No new "home" license jurisdiction event should be issued.
         message['detail'].update(
             {
-                'licenseType': 'esthetician',
+                'licenseType': 'licensed master social worker',
                 'jurisdiction': 'ky',
                 'dateOfIssuance': '2025-06-06',
                 'licenseNumber': 'B0608337260',

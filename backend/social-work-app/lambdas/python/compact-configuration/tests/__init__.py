@@ -22,8 +22,9 @@ class TstLambdas(TestCase):
                 'LICENSE_TYPES': json.dumps(
                     {
                         'socw': [
-                            {'name': 'cosmetologist', 'abbreviation': 'cos'},
-                            {'name': 'esthetician', 'abbreviation': 'esth'},
+                            {'name': 'licensed clinical social worker', 'abbreviation': 'lcsw'},
+                            {'name': 'licensed master social worker', 'abbreviation': 'lmsw'},
+                            {'name': 'licensed bachelor social worker', 'abbreviation': 'lbsw'},
                         ],
                     },
                 ),
