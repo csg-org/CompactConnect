@@ -65,10 +65,14 @@ def _make_api(
     *,
     domain_name: str | None = None,
     construct_id: str = 'Api',
+    stage_name_suffix: str | None = None,
 ) -> CompactConnectApi:
     key = Key(stack, f'{construct_id}Key')
     topic = Topic(stack, f'{construct_id}AlarmTopic', master_key=key)
     user_pool = CdkUserPool(stack, f'{construct_id}StaffUserPool')
+    kwargs = {}
+    if stage_name_suffix is not None:
+        kwargs['stage_name_suffix'] = stage_name_suffix
     api = CompactConnectApi(
         stack,
         construct_id,
@@ -76,8 +80,8 @@ def _make_api(
         alarm_topic=topic,
         staff_users_user_pool=user_pool,
         domain_name=domain_name,
+        **kwargs,
     )
-    # Add a method so CDK validation succeeds
     api.root.add_method('GET')
     return api
 
@@ -89,7 +93,7 @@ class TestCompactConnectApi(TestCase):
 
     # --- stage name ---------------------------------------------------------
 
-    def test_stage_name_includes_environment_and_blue_suffix(self):
+    def test_stage_name_defaults_to_environment_with_blue_suffix(self):
         _make_api(self.stack)
 
         template = Template.from_stack(self.stack)
@@ -97,6 +101,23 @@ class TestCompactConnectApi(TestCase):
             CfnStage.CFN_RESOURCE_TYPE_NAME,
             {'StageName': 'sandbox-blue'},
         )
+
+    def test_stage_name_suffix_override_is_applied(self):
+        _make_api(self.stack, stage_name_suffix='green')
+
+        template = Template.from_stack(self.stack)
+        template.has_resource_properties(
+            CfnStage.CFN_RESOURCE_TYPE_NAME,
+            {'StageName': 'sandbox-green'},
+        )
+
+    def test_empty_stage_name_suffix_raises(self):
+        with self.assertRaises(ValueError):
+            _make_api(self.stack, stage_name_suffix='')
+
+    def test_whitespace_only_stage_name_suffix_raises(self):
+        with self.assertRaises(ValueError):
+            _make_api(self.stack, stage_name_suffix='   ')
 
     def test_tracing_enabled_on_deployment_stage(self):
         _make_api(self.stack)

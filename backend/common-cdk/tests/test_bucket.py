@@ -8,6 +8,8 @@ from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 
 
+TEST_BUCKET_LOGICAL_ID = 'Bucket83908E77'
+
 class TestBucket(TestCase):
     def setUp(self):
         self.app = App()
@@ -32,7 +34,7 @@ class TestBucket(TestCase):
             },
         )
         # Both the bucket and the access logs bucket must block all public access
-        self.assertGreaterEqual(len(buckets), 1)
+        self.assertEqual(len(buckets), 2)
 
     def test_enforces_ssl(self):
         Bucket(self.stack, 'Bucket', server_access_logs_bucket=self.access_logs_bucket)
@@ -40,14 +42,30 @@ class TestBucket(TestCase):
         template = Template.from_stack(self.stack)
         # SSL is enforced via a bucket policy requiring aws:SecureTransport
         policies = template.find_resources('AWS::S3::BucketPolicy')
-        policy_docs = [p['Properties']['PolicyDocument'] for p in policies.values()]
-        ssl_deny_found = any(
-            stmt.get('Condition', {}).get('Bool', {}).get('aws:SecureTransport') == 'false'
-            for doc in policy_docs
-            for stmt in doc.get('Statement', [])
-            if stmt.get('Effect') == 'Deny'
+        self.assertEqual(
+            {
+                'Properties': {
+                    'Bucket': {'Ref': TEST_BUCKET_LOGICAL_ID},
+                    'PolicyDocument': {
+                        'Statement': [
+                            {
+                                'Action': 's3:*',
+                                'Condition': {'Bool': {'aws:SecureTransport': 'false'}},
+                                'Effect': 'Deny',
+                                'Principal': {'AWS': '*'},
+                                'Resource': [
+                                    {'Fn::GetAtt': ['Bucket83908E77', 'Arn']},
+                                    {'Fn::Join': ['', [{'Fn::GetAtt': ['Bucket83908E77', 'Arn']}, '/*']]},
+                                ],
+                            }
+                        ],
+                        'Version': '2012-10-17',
+                    },
+                },
+                'Type': 'AWS::S3::BucketPolicy',
+            },
+            policies['BucketPolicyE9A3008A'],
         )
-        self.assertTrue(ssl_deny_found, 'No SSL-enforcing Deny policy statement found on bucket')
 
     def test_bucket_owner_enforced_object_ownership(self):
         Bucket(self.stack, 'Bucket', server_access_logs_bucket=self.access_logs_bucket)
@@ -57,7 +75,7 @@ class TestBucket(TestCase):
             CfnBucket.CFN_RESOURCE_TYPE_NAME,
             props={'Properties': {'OwnershipControls': {'Rules': [{'ObjectOwnership': 'BucketOwnerEnforced'}]}}},
         )
-        self.assertGreaterEqual(len(buckets), 1)
+        self.assertTrue(TEST_BUCKET_LOGICAL_ID in buckets)
 
     def test_default_encryption_is_s3_managed(self):
         Bucket(self.stack, 'Bucket', server_access_logs_bucket=self.access_logs_bucket)
@@ -75,7 +93,7 @@ class TestBucket(TestCase):
                 }
             },
         )
-        self.assertGreaterEqual(len(buckets), 1)
+        self.assertTrue(TEST_BUCKET_LOGICAL_ID in buckets)
 
     def test_encryption_kwarg_overrides_default(self):
         from aws_cdk.aws_kms import Key
@@ -102,10 +120,10 @@ class TestBucket(TestCase):
                 }
             },
         )
-        self.assertGreaterEqual(len(buckets), 1)
+        self.assertTrue(TEST_BUCKET_LOGICAL_ID in buckets)
 
     def test_server_access_logs_prefix_includes_scope_path_and_construct_id(self):
-        Bucket(self.stack, 'MyBucket', server_access_logs_bucket=self.access_logs_bucket)
+        Bucket(self.stack, 'Bucket', server_access_logs_bucket=self.access_logs_bucket)
 
         template = Template.from_stack(self.stack)
         # The prefix is _logs/<account>/<region>/<scope.node.path>/<construct_id>
@@ -113,8 +131,8 @@ class TestBucket(TestCase):
             CfnBucket.CFN_RESOURCE_TYPE_NAME,
             props={
                 'Properties': {
-                    'LoggingConfiguration': {'LogFilePrefix': '_logs/111122223333/us-east-1/TestStack/MyBucket'}
+                    'LoggingConfiguration': {'LogFilePrefix': '_logs/111122223333/us-east-1/TestStack/Bucket'}
                 }
             },
         )
-        self.assertEqual(1, len(buckets))
+        self.assertTrue(TEST_BUCKET_LOGICAL_ID in buckets)

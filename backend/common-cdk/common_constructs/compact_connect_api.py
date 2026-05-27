@@ -76,8 +76,12 @@ class CompactConnectApi(RestApi):
         alarm_topic: ITopic,
         staff_users_user_pool: IUserPool,
         domain_name: str | None = None,
+        stage_name_suffix: str = 'blue',
         **kwargs,
     ):
+        if not stage_name_suffix or not stage_name_suffix.strip():
+            raise ValueError('stage_name_suffix must be a non-empty string')
+
         stack: AppStack = AppStack.of(scope)
         # add the ENVIRONMENT_NAME to the common lambda environment variables
         self.environment_name = environment_name
@@ -122,11 +126,7 @@ class CompactConnectApi(RestApi):
             cloud_watch_role=True,
             disable_execute_api_endpoint=disable_execute_api_endpoint,
             deploy_options=StageOptions(
-                # NOTE: If we are ever updating our pipeline architecture which requires a change to the pipeline stack
-                # name, the domain base path mapping for the API will fail to deploy unless we change the name of the
-                # stage so that CDK will stand up a new base path mapping resource without conflicting with the
-                # previous one. This will allow the deployment to transition gracefully.
-                stage_name=f'{environment_name}-blue',
+                stage_name=f'{environment_name}-{stage_name_suffix}',
                 logging_level=MethodLoggingLevel.INFO,
                 access_log_destination=LogGroupLogDestination(access_log_group),
                 access_log_format=AccessLogFormat.custom(

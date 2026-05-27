@@ -85,7 +85,7 @@ class TestNodejsFunction(TestCase):
         alarms = template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
         self.assertEqual(1, len(alarms))
         (alarm,) = alarms.values()
-        self.assertGreaterEqual(len(alarm['Properties'].get('AlarmActions', [])), 1)
+        self.assertEqual([{'Ref': 'AlarmTopicD01E77F9'}], alarm['Properties']['AlarmActions'])
 
     def test_no_alarm_when_alarm_topic_omitted(self):
         _make_fn(self.stack)
