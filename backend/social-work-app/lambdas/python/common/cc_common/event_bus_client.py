@@ -5,7 +5,7 @@ from uuid import UUID
 from marshmallow import ValidationError
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import InvestigationAgainstEnum
+from cc_common.data_model.schema.common import InvestigationAgainstEnum, LicenseScopeEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
     HomeJurisdictionChangeEventDetailSchema,
@@ -237,6 +237,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': LicenseScopeEnum.SINGLE_STATE.value,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -278,6 +279,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': LicenseScopeEnum.SINGLE_STATE.value,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -324,12 +326,11 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': license_scope or LicenseScopeEnum.SINGLE_STATE.value,
             'investigationAgainst': investigation_against.value,
             'investigationId': investigation_id,
             'eventTime': create_date,
         }
-        if license_scope is not None:
-            event_detail['licenseScope'] = license_scope
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)
@@ -386,8 +387,7 @@ class EventBusClient:
         if adverse_action_id is not None:
             event_detail['adverseActionId'] = adverse_action_id
 
-        if license_scope is not None:
-            event_detail['licenseScope'] = license_scope
+        event_detail['licenseScope'] = license_scope or LicenseScopeEnum.SINGLE_STATE.value
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)

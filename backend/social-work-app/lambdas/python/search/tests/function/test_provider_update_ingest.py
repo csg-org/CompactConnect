@@ -431,7 +431,7 @@ class TestProviderUpdateIngest(TstFunction):
         """Test that a record which fails to be indexed by OpenSearch is in batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        document_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#licensed clinical social worker'
+        document_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#licensed clinical social worker#single-state'
         mock_opensearch_client.bulk_index.return_value = {
             'errors': True,
             'items': [

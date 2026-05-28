@@ -61,6 +61,7 @@ class TestEncumbranceEvents(TstFunction):
                 'providerId': DEFAULT_PROVIDER_ID,
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'effectiveDate': DEFAULT_EFFECTIVE_DATE,
             }

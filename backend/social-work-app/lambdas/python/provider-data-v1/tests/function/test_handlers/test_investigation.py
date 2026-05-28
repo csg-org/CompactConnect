@@ -179,6 +179,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
                 'providerId': str(test_license_record.providerId),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
                 'investigationId': call_args['detail']['investigationId'],  # Dynamic field
@@ -557,6 +558,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
                 'providerId': str(test_license_record.providerId),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
                 'investigationId': call_args['detail']['investigationId'],  # Dynamic field

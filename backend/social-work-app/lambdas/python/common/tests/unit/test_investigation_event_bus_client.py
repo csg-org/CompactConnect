@@ -60,6 +60,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'lcsw',
+            'licenseScope': 'single-state',
             'investigationAgainst': 'privilege',
         }
 
@@ -117,6 +118,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'lcsw',
+            'licenseScope': 'single-state',
             'investigationAgainst': 'license',
         }
 
@@ -174,6 +176,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'lcsw',
+            'licenseScope': 'single-state',
             'investigationAgainst': 'privilege',
         }
 
@@ -231,6 +234,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'lcsw',
+            'licenseScope': 'single-state',
             'investigationAgainst': 'license',
         }
 

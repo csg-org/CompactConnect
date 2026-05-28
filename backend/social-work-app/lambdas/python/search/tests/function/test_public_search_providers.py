@@ -190,6 +190,7 @@ class TestPublicSearchProviders(TstFunction):
             'jurisdiction': 'oh',
             'licenseTypeAbbreviation': 'lcsw',
             'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
@@ -629,7 +630,7 @@ class TestPublicSearchProviders(TstFunction):
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
         last_key_payload = json.dumps(
-            {'search_after': ['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker']}
+            {'search_after': ['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker#single-state']}
         )
         last_key_str = b64encode(last_key_payload.encode('utf-8')).decode('utf-8')
         event = self._create_public_api_event(
@@ -648,7 +649,7 @@ class TestPublicSearchProviders(TstFunction):
                     {'match': {'licenses.familyName': 'Doe'}},
                 ],
                 page_size=25,
-                search_after=['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker'],
+                search_after=['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker#single-state'],
             ),
             call_body,
         )
@@ -666,7 +667,7 @@ class TestPublicSearchProviders(TstFunction):
                 'doe',
                 'john',
                 f'00000000-0000-0000-0000-00000000000{i}',
-                f'00000000-0000-0000-0000-00000000000{i}#oh#licensed clinical social worker',
+                f'00000000-0000-0000-0000-00000000000{i}#oh#licensed clinical social worker#single-state',
             ]
             mock_hits_full_page.append(
                 self._create_mock_hit(
@@ -789,8 +790,9 @@ class TestPublicSearchProviders(TstFunction):
             'compact': 'socw',
             'providerId': pid,
             'jurisdiction': 'oh',
-            'licenseTypeAbbreviation': 'lcsw',
+            'licenseTypeAbbreviation': 'lmsw',
             'licenseType': 'licensed master social worker',
+            'licenseScope': 'single-state',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
@@ -868,6 +870,7 @@ class TestPublicSearchProviders(TstFunction):
             'jurisdiction': 'mi',
             'licenseTypeAbbreviation': 'lcsw',
             'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
             'actionAgainst': 'privilege',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
@@ -963,6 +966,7 @@ class TestPublicSearchProviders(TstFunction):
             'jurisdiction': 'oh',
             'licenseTypeAbbreviation': 'lcsw',
             'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
             'actionAgainst': 'license',
             'effectiveStartDate': '2024-01-01',
             'creationDate': '2024-01-01T00:00:00+00:00',
