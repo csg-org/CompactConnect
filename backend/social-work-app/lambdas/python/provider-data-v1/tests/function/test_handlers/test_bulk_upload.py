@@ -204,8 +204,8 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName,compact,jurisdiction\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed master social worker,single-state,'
-            'Active,malicious_compact,malicious_jurisdiction'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed master social worker,'
+            'single-state,Active,malicious_compact,malicious_jurisdiction'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
@@ -284,11 +284,11 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed clinical social worker,'
-            'single-state,Active\n'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,'
+            'licensed clinical social worker,single-state,Active\n'
             '123-45-6789,LICENSE456,Jane,Middle,Smith,,1995-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed clinical social worker,'
-            'single-state,Active'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,'
+            'licensed clinical social worker,single-state,Active'
         )
 
         # Upload the CSV content directly to the mock S3 bucket
@@ -370,8 +370,8 @@ class TestProcessObjects(TstFunction):
             ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
             ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
             '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
-            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed clinical social worker,'
-            'single-state,Active\n'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,'
+            'licensed clinical social worker,single-state,Active\n'
             '123-45-6789,LICENSE456,John,Middle,Doe,Jr.,1990-01-01,2023-01-01,2025-01-01,2026-01-01,active,'
             'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,licensed master social worker,'
             'single-state,Active'

@@ -38,7 +38,9 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}}
+        mock_config.license_type_abbreviations = {
+            'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}
+        }
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_returns_empty_list_when_no_licenses(self):
@@ -222,7 +224,8 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             self.assertEqual(p['licenseJurisdiction'], 'al', 'Home should be AL (most recently issued when no renewal)')
 
     def test_multiple_license_types_generate_privileges_for_both(self):
-        """Licensed Clinical Social Worker in al and licensed master social worker in oh: privileges for both types across active jurisdictions."""
+        """Licensed Clinical Social Worker in al and licensed master social worker in oh:
+        privileges for both types across active jurisdictions."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus
 
@@ -580,7 +583,9 @@ class TestGenerateApiResponseObject(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}}
+        mock_config.license_type_abbreviations = {
+            'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}
+        }
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_generate_api_response_object_returns_adverse_actions_as_a_top_level_field_for_all_adverse_actions(self):
@@ -656,7 +661,9 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             live_compact_jurisdictions = {'socw': ['al', 'ky', 'oh']}
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
-        mock_config.license_type_abbreviations = {'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}}
+        mock_config.license_type_abbreviations = {
+            'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}
+        }
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
     def test_single_license_returns_one_document(self):
@@ -964,8 +971,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         )
 
     def test_three_licenses_two_same_type_one_other_sets_most_recent_per_type(self):
-        """Two licensed clinical social worker licenses + one licensed master social worker: each type's most recent license shows
-        mostRecentLicenseForType true."""
+        """Two licensed clinical social worker licenses + one licensed master social worker: each type's most recent
+        license shows mostRecentLicenseForType true."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus
 

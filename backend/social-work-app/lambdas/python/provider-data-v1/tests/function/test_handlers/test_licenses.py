@@ -157,7 +157,8 @@ class TestLicenses(TstFunction):
                 'errors': {
                     '0': {
                         'licenseType': [
-                            'Must be one of: licensed clinical social worker, licensed master social worker, licensed bachelor social worker.'
+                            'Must be one of: licensed clinical social worker, licensed master social worker, '
+                            'licensed bachelor social worker.'
                         ]
                     }
                 },

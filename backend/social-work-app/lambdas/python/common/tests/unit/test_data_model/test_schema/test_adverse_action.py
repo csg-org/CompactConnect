@@ -121,7 +121,7 @@ class TestAdverseActionDataClass(TstLambdas):
                 'pk': 'socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                 'licenseScope': 'single-state',
-                'sk': 'socw#PROVIDER#privilege/ne/lcsw/single-state#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',
+                'sk': 'socw#PROVIDER#privilege/ne/lcsw/single-state#ADVERSE_ACTION#98765432-9876-9876-9876-987654321098',  # noqa: E501
                 'submittingUser': '12a6377e-c3a5-40e5-bca5-317ec854c556',
                 'type': 'adverseAction',
             },

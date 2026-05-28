@@ -253,7 +253,8 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
     def _put_provider_with_two_socw_licenses_oh_newer_than_ky(self):
-        """Provider + OH licensed clinical social worker (default dates) + KY licensed clinical social worker (older issuance/renewal)."""
+        """Provider + OH licensed clinical social worker (default dates) + KY licensed
+        clinical social worker (older issuance/renewal)."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
                 'compact': 'socw',

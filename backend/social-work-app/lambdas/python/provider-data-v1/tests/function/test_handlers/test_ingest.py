@@ -512,9 +512,10 @@ class TestIngest(TstFunction):
 
         This test:
         1. Ingests a first active license with licenseType: licensed clinical social worker
-        2. For the same provider, ingests a second active license with licenseType: licensed master social worker and a newer
-           dateOfIssuance
-        3. Verifies that both licenses are present and that the provider data was copied from the licensed master social worker license
+        2. For the same provider, ingests a second active license with licenseType: licensed master social worker and a
+        newer dateOfIssuance
+        3. Verifies that both licenses are present and that the provider data was copied from the
+        licensed master social worker license
         """
         from handlers.ingest import ingest_license_message
 
@@ -526,7 +527,9 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual(
+            'licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType']
+        )
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -558,8 +561,12 @@ class TestIngest(TstFunction):
         self.assertEqual(2, len(provider_data['licenses']))
 
         # Find each license by type
-        lcsw_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'licensed clinical social worker'), None)
-        lmsw_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'licensed master social worker'), None)
+        lcsw_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseType'] == 'licensed clinical social worker'), None
+        )
+        lmsw_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseType'] == 'licensed master social worker'), None
+        )
 
         # Verify both licenses exist
         self.assertIsNotNone(lcsw_license, 'licensed clinical social worker license not found')
@@ -588,7 +595,7 @@ class TestIngest(TstFunction):
 
         This test:
         1. Ingests a first active license with licenseType: licensed clinical social worker in 'oh'
-        2. For the same provider, ingests a second active license with licenseType: licensed master social worker in 'ky'
+        2. For the same provider, ingests a second active licensed master social worker license  in 'ky'
         3. Verifies that both licenses are present and the provider data is from the most recently issued license
         """
         from handlers.ingest import ingest_license_message
@@ -601,7 +608,9 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual(
+            'licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType']
+        )
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
@@ -662,8 +671,9 @@ class TestIngest(TstFunction):
         self,
     ):
         """
-        Same license type (licensed clinical social worker) in two jurisdictions: a newer issuance from KY replaces OH as the best
-        licensed clinical social worker license and ingest emits ``provider.homeStateChange`` with former OH and new KY.
+        Same license type (licensed clinical social worker) in two jurisdictions: a newer issuance from KY replaces OH
+        as the best licensed clinical social worker license and ingest emits ``provider.homeStateChange``
+        with former OH and new KY.
         """
         import handlers.ingest as ingest_handler
         from handlers.ingest import ingest_license_message
@@ -673,7 +683,9 @@ class TestIngest(TstFunction):
 
         # Verify the first license was ingested correctly
         self.assertEqual(1, len(provider_data_after_first_license['licenses']))
-        self.assertEqual('licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual(
+            'licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType']
+        )
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 

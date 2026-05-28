@@ -121,7 +121,9 @@ class TestPostPrivilegeEncumbrance(TstFunction):
 
         # Verify that the encumbrance record was added to the provider data table
         pk = f'{context["compact"]}#PROVIDER#{context["providerId"]}'
-        sk_prefix = f'{context["compact"]}#PROVIDER#privilege/{context["jurisdiction"]}/lcsw/single-state#ADVERSE_ACTION'
+        sk_prefix = (
+            f'{context["compact"]}#PROVIDER#privilege/{context["jurisdiction"]}/lcsw/single-state#ADVERSE_ACTION'
+        )
         adverse_action_encumbrances = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),

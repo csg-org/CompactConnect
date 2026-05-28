@@ -628,7 +628,9 @@ class TestPublicSearchProviders(TstFunction):
         mock_opensearch_client.search.return_value = {
             'hits': {'total': {'value': 0, 'relation': 'eq'}, 'hits': []},
         }
-        last_key_payload = json.dumps({'search_after': ['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker']})
+        last_key_payload = json.dumps(
+            {'search_after': ['doe', 'jane', 'uuid-123', 'uuid-123#oh#licensed clinical social worker']}
+        )
         last_key_str = b64encode(last_key_payload.encode('utf-8')).decode('utf-8')
         event = self._create_public_api_event(
             'socw',
