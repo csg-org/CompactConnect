@@ -537,15 +537,18 @@ class UserRowEdit extends mixins(MixinForm) {
 
         // Server endpoints may not be idempotent so the frontend needs to handle statefulness;
         // e.g. if the user's server permisson is already false, we may get a server error if we try to send false again.
-        const existingCompactPermission = this.getCompactPermission(this.rowUserCompactPermission);
+        const existingCompactPermission: CompactPermission | null = this.rowUserCompactPermission;
 
-        if (existingCompactPermission !== Permission.READ_PRIVATE && !compactData.isReadPrivate) {
-            delete compactData.isReadPrivate;
-        }
-        if (existingCompactPermission !== Permission.ADMIN && !compactData.isAdmin) {
+        if (!existingCompactPermission?.isAdmin && !compactData.isAdmin) {
             delete compactData.isAdmin;
         }
-        // End: Handle compact statefulness
+        if (!existingCompactPermission?.isReadSsn && !compactData.isReadSsn) {
+            delete compactData.isReadSsn;
+        }
+        if (!existingCompactPermission?.isReadPrivate && !compactData.isReadPrivate) {
+            delete compactData.isReadPrivate;
+        }
+        // End: Handle compact permission statefulness
 
         stateKeys.forEach((stateKey) => {
             const keyNum = stateKey.split('-').pop();
@@ -558,19 +561,22 @@ class UserRowEdit extends mixins(MixinForm) {
 
             // Server endpoints may not be idempotent so the frontend needs to handle statefulness;
             // e.g. if the user's server permisson is already false, we may get a server error if we try to send false again.
-            const existingStatePermission = this.getStatePermission(this.userStatePermissions.find((permission) =>
-                permission.state?.abbrev === stateAbbrev) || null);
+            const existingStatePermission = existingCompactPermission?.states?.find((permission) =>
+                permission.state?.abbrev === stateAbbrev);
 
-            if (existingStatePermission !== Permission.READ_PRIVATE && !stateData.isReadPrivate) {
-                delete stateData.isReadPrivate;
-            }
-            if (existingStatePermission !== Permission.WRITE && !stateData.isWrite) {
-                delete stateData.isWrite;
-            }
-            if (existingStatePermission !== Permission.ADMIN && !stateData.isAdmin) {
+            if (!existingStatePermission?.isAdmin && !stateData.isAdmin) {
                 delete stateData.isAdmin;
             }
-            // End: Handle state statefulness
+            if (!existingStatePermission?.isWrite && !stateData.isWrite) {
+                delete stateData.isWrite;
+            }
+            if (!existingStatePermission?.isReadSsn && !stateData.isReadSsn) {
+                delete stateData.isReadSsn;
+            }
+            if (!existingStatePermission?.isReadPrivate && !stateData.isReadPrivate) {
+                delete stateData.isReadPrivate;
+            }
+            // End: Handle state permission statefulness
 
             compactData.states.push(stateData);
         });
