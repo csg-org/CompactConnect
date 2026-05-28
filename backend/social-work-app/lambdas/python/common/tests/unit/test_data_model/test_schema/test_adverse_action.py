@@ -58,7 +58,7 @@ class TestAdverseActionRecordSchema(TstLambdas):
 
         # setting to an invalid license type name, with a valid abbreviation
         adverse_action_data.licenseType = 'foobar'
-        adverse_action_data.license_abbreviation = 'lcsw'
+        adverse_action_data.licenseTypeAbbreviation = 'lcsw'
 
         with self.assertRaises(ValidationError):
             AdverseActionData.from_database_record(adverse_action_data.serialize_to_database_record())

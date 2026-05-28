@@ -77,7 +77,7 @@ class TestSearchProviders(TstFunction):
         sort_values: list = None,
     ) -> dict:
         """Create a mock OpenSearch hit for a one-doc-per-license provider document."""
-        document_id = f'{provider_id}#oh#licensed clinical social worker'
+        document_id = f'{provider_id}#oh#licensed clinical social worker#single-state'
         hit = {
             '_index': f'compact_{compact}_providers',
             '_id': document_id,

@@ -398,6 +398,7 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
             'compact',
             'jurisdiction',
             'licenseType',
+            'licenseScope',
             'licenseStatus',
             'licenseNumber',
             'givenName',
