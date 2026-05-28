@@ -10,20 +10,20 @@ attrs==25.4.0
     #   jsii
 aws-cdk-asset-awscli-v1==2.2.273
     # via aws-cdk-lib
-aws-cdk-asset-node-proxy-agent-v6==2.1.1
+aws-cdk-asset-node-proxy-agent-v6==2.1.2
     # via aws-cdk-lib
-aws-cdk-aws-lambda-python-alpha==2.250.0a0
+aws-cdk-aws-lambda-python-alpha==2.256.1a0
     # via -r requirements.in
-aws-cdk-cloud-assembly-schema==53.17.0
+aws-cdk-cloud-assembly-schema==53.27.0
     # via aws-cdk-lib
-aws-cdk-lib==2.250.0
+aws-cdk-lib==2.256.1
     # via
     #   -r requirements.in
     #   aws-cdk-aws-lambda-python-alpha
     #   cdk-nag
 cattrs==25.3.0
     # via jsii
-cdk-nag==2.37.55
+cdk-nag==2.38.2
     # via -r requirements.in
 constructs==10.6.0
     # via
@@ -33,7 +33,7 @@ constructs==10.6.0
     #   cdk-nag
 importlib-resources==7.1.0
     # via jsii
-jsii==1.128.0
+jsii==1.131.0
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6

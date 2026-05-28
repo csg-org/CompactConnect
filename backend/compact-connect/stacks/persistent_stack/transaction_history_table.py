@@ -10,9 +10,9 @@ from aws_cdk.aws_dynamodb import (
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.backup_plan import CCBackupPlan
 from constructs import Construct
 
-from common_constructs.backup_plan import CCBackupPlan
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 

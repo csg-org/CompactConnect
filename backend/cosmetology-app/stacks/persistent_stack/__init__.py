@@ -14,13 +14,13 @@ from common_constructs.frontend_app_config_utility import (
     AppId,
     PersistentStackFrontendAppConfigUtility,
 )
+from common_constructs.nodejs_function import NodejsFunction
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from common_constructs.security_profile import SecurityProfile
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.nodejs_function import NodejsFunction
-from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable

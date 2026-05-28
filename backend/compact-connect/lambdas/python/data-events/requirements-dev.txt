@@ -4,57 +4,51 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/data-events/requirements-dev.in
 #
-boto3==1.42.89
+boto3==1.43.12
     # via moto
-botocore==1.42.91
+botocore==1.43.12
     # via
     #   boto3
     #   moto
     #   s3transfer
-certifi==2026.2.25
+certifi==2026.5.20
     # via requests
 cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.7
     # via requests
-cryptography==46.0.7
+cryptography==48.0.0
     # via moto
 docker==7.1.0
     # via moto
-idna==3.11
+idna==3.15
     # via requests
-jinja2==3.1.6
-    # via moto
 jmespath==1.1.0
     # via
     #   boto3
     #   botocore
 markupsafe==3.0.3
-    # via
-    #   jinja2
-    #   werkzeug
-moto[dynamodb,s3]==5.1.22
-    # via -r data-events/requirements-dev.in
+    # via werkzeug
+moto[dynamodb,s3]==5.2.1
+    # via -r lambdas/python/data-events/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
     # via cffi
 python-dateutil==2.9.0.post0
-    # via
-    #   botocore
-    #   moto
+    # via botocore
 pyyaml==6.0.3
     # via
     #   moto
     #   responses
-requests==2.33.1
+requests==2.34.2
     # via
     #   docker
     #   moto
     #   responses
 responses==0.26.0
     # via moto
-s3transfer==0.16.0
+s3transfer==0.17.0
     # via boto3
 six==1.17.0
     # via python-dateutil

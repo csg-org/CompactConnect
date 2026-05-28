@@ -10,10 +10,10 @@ from aws_cdk.aws_lambda import Code, Function, Runtime
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
+from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
 
-from common_constructs.python_function import PythonFunction
 from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack

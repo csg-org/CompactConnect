@@ -1,0 +1,408 @@
+import json
+from dataclasses import dataclass
+from datetime import date
+from typing import Any, Protocol
+from uuid import UUID
+
+import boto3
+from aws_lambda_powertools.logging import Logger
+
+from cc_common.exceptions import CCInternalException
+
+
+@dataclass
+class EncumbranceNotificationTemplateVariables:
+    """
+    Template variables for encumbrance notification emails.
+    """
+
+    provider_first_name: str
+    provider_last_name: str
+    encumbered_jurisdiction: str
+    license_type: str
+    effective_date: date
+    provider_id: UUID | None = None
+
+
+@dataclass
+class InvestigationNotificationTemplateVariables:
+    """
+    Template variables for investigation notification emails.
+    """
+
+    provider_first_name: str
+    provider_last_name: str
+    investigation_jurisdiction: str
+    license_type: str
+    provider_id: UUID
+
+
+@dataclass
+class HomeJurisdictionChangeNotificationTemplateVariables:
+    """
+    Template variables for license home state change notification emails.
+    """
+
+    provider_first_name: str
+    provider_last_name: str
+    former_jurisdiction: str
+    current_jurisdiction: str
+    license_type: str
+    provider_id: UUID
+
+
+class JurisdictionNotificationMethod(Protocol):
+    """Protocol for Jurisdiction encumbrance notification methods."""
+
+    def __call__(
+        self, *, compact: str, jurisdiction: str, template_variables: EncumbranceNotificationTemplateVariables
+    ) -> dict[str, Any]: ...
+
+
+class EmailServiceClient:
+    """
+    Client for sending email notifications through the email notification service lambda.
+    This class abstracts the lambda client and provides a clean interface for sending emails.
+    """
+
+    def __init__(self, lambda_client: boto3.client, email_notification_service_lambda_name: str, logger: Logger):
+        """
+        Initialize the EmailServiceClient.
+
+        :param lambda_client: boto3 lambda client.
+        :param email_notification_service_lambda_name: Name of the email notification service lambda.
+        """
+        self._lambda_client = lambda_client
+        self._email_notification_service_lambda_name = email_notification_service_lambda_name
+        self._logger = logger
+
+    def _invoke_lambda(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Invoke the email notification service lambda with the given payload.
+
+        :param payload: Payload to send to the lambda
+        :return: Response from the lambda
+        :raises CCInternalException: If the lambda invocation fails
+        """
+        if not self._email_notification_service_lambda_name:
+            raise CCInternalException('Email notification service lambda name not set')
+
+        try:
+            response = self._lambda_client.invoke(
+                FunctionName=self._email_notification_service_lambda_name,
+                InvocationType='RequestResponse',
+                Payload=json.dumps(payload),
+            )
+
+            if response.get('FunctionError'):
+                error_message = f'Failed to send email notification: {response.get("FunctionError")}'
+                self._logger.error(error_message, payload=payload)
+                raise CCInternalException(error_message)
+
+            return response
+        except Exception as e:
+            error_message = f'Error invoking email notification service lambda: {str(e)}'
+            self._logger.error(error_message, payload=payload, exception=str(e))
+            raise CCInternalException(error_message) from e
+
+    def send_license_encumbrance_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a license encumbrance notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('Provider ID is required for state notification emails')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'licenseEncumbranceStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_license_encumbrance_lifting_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a license encumbrance lifting notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('Provider ID is required for state notification emails')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'licenseEncumbranceLiftingStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'liftedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_privilege_encumbrance_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a privilege encumbrance notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('Provider ID is required for state notification emails.')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'privilegeEncumbranceStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'encumberedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveStartDate': template_variables.effective_date.strftime('%B %d, %Y'),
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_privilege_encumbrance_lifting_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: EncumbranceNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a privilege encumbrance lifting notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('Provider ID is required for state notification emails.')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'privilegeEncumbranceLiftingStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'liftedJurisdiction': template_variables.encumbered_jurisdiction,
+                'licenseType': template_variables.license_type,
+                'effectiveLiftDate': template_variables.effective_date.strftime('%B %d, %Y'),
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_license_investigation_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: InvestigationNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a license investigation notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('provider_id must be provided for state notifications')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'licenseInvestigationStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'investigationJurisdiction': template_variables.investigation_jurisdiction,
+                'licenseType': template_variables.license_type,
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_license_investigation_closed_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: InvestigationNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a license investigation closed notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('provider_id must be provided for state notifications')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'licenseInvestigationClosedStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'investigationJurisdiction': template_variables.investigation_jurisdiction,
+                'licenseType': template_variables.license_type,
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_privilege_investigation_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: InvestigationNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a privilege investigation notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('provider_id must be provided for state notifications')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'privilegeInvestigationStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'investigationJurisdiction': template_variables.investigation_jurisdiction,
+                'licenseType': template_variables.license_type,
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_privilege_investigation_closed_state_notification_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: InvestigationNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a privilege investigation closed notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('provider_id must be provided for state notifications')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'privilegeInvestigationClosedStateNotification',
+            'recipientType': 'JURISDICTION_ADVERSE_ACTIONS',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'investigationJurisdiction': template_variables.investigation_jurisdiction,
+                'licenseType': template_variables.license_type,
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_provider_home_state_change_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: HomeJurisdictionChangeNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a license home state change notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        if template_variables.provider_id is None:
+            raise ValueError('provider_id must be provided for state notifications')
+
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'homeJurisdictionChangeNotification',
+            'recipientType': 'JURISDICTION_OPERATIONS_TEAM',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'previousJurisdiction': template_variables.former_jurisdiction,
+                'newJurisdiction': template_variables.current_jurisdiction,
+                'licenseType': template_variables.license_type,
+            },
+        }
+        return self._invoke_lambda(payload)

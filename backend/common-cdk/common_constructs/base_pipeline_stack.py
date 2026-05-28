@@ -21,6 +21,7 @@ class CCPipelineType(StrEnum):
     BACKEND = 'Backend'
     FRONTEND = 'Frontend'
     COSMETOLOGY = 'Cosmetology'
+    SOCIAL_WORK = 'SocialWork'
 
 
 class BasePipelineStack(Stack):

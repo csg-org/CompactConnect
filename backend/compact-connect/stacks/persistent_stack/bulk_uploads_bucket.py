@@ -15,11 +15,11 @@ from aws_cdk.aws_sqs import IQueue
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
+from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
 
 import stacks.persistent_stack as ps
-from common_constructs.python_function import PythonFunction
 
 
 class BulkUploadsBucket(Bucket):
@@ -141,21 +141,10 @@ class BulkUploadsBucket(Bucket):
                 },
             ],
         )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/'
-            'Role/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'appliesTo': ['Resource::*'],
-                    'reason': """
-                    The lambda policy is scoped specifically to the PutBucketNotification action, which
-                    suits its purpose.
-                    """,
-                },
-            ],
-        )
+
+        # Per-bucket notification permissions are attached as inline HandlerPolicy on the bucket's
+        # `Notifications` construct as of CDK v2.252.0 (not Role/DefaultPolicy on the stack singleton) so we only
+        # need to suppress the handler role. See https://github.com/aws/aws-cdk/issues/37667.
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{stack.node.path}/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',

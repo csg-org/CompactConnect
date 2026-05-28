@@ -9,11 +9,11 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_secretsmanager import ISecret, Secret
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
+from common_constructs.python_function import PythonFunction
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.python_function import PythonFunction
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 

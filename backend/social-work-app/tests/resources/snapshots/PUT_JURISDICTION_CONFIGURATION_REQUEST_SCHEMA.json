@@ -1,0 +1,38 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "jurisdictionOperationsTeamEmails": {
+      "description": "List of email addresses for operations team notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "jurisdictionAdverseActionsNotificationEmails": {
+      "description": "List of email addresses for adverse actions notifications",
+      "items": {
+        "format": "email",
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "licenseeRegistrationEnabled": {
+      "description": "Denotes whether licensee registration is enabled",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "jurisdictionOperationsTeamEmails",
+    "jurisdictionAdverseActionsNotificationEmails",
+    "licenseeRegistrationEnabled"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

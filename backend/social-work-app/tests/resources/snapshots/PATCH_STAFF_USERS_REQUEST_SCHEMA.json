@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "permissions": {
+      "additionalProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "properties": {
+              "readPrivate": {
+                "type": "boolean"
+              },
+              "admin": {
+                "type": "boolean"
+              }
+            },
+            "type": "object"
+          },
+          "jurisdictions": {
+            "additionalProperties": {
+              "properties": {
+                "actions": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "write": {
+                      "type": "boolean"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    },
+                    "readPrivate": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "type": "object"
+    }
+  },
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}
