@@ -51,6 +51,17 @@ class EventBusClient:
             # If no event batch writer is provided, we'll use the default event bus client
             config.events_client.put_events(Entries=[event_entry])
 
+    @staticmethod
+    def _resolve_investigation_license_scope(
+        investigation_against: InvestigationAgainstEnum,
+        license_scope: str | None,
+    ) -> str:
+        if investigation_against == InvestigationAgainstEnum.LICENSE:
+            if not license_scope:
+                raise ValueError('license_scope is required when investigation_against is LICENSE')
+            return license_scope
+        return license_scope or LicenseScopeEnum.SINGLE_STATE.value
+
     def generate_license_deactivation_event(
         self, source: str, compact: str, jurisdiction: str, provider_id: UUID, license_type: str
     ) -> dict:
@@ -326,7 +337,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
-            'licenseScope': license_scope or LicenseScopeEnum.SINGLE_STATE.value,
+            'licenseScope': self._resolve_investigation_license_scope(investigation_against, license_scope),
             'investigationAgainst': investigation_against.value,
             'investigationId': investigation_id,
             'eventTime': create_date,
@@ -387,7 +398,7 @@ class EventBusClient:
         if adverse_action_id is not None:
             event_detail['adverseActionId'] = adverse_action_id
 
-        event_detail['licenseScope'] = license_scope or LicenseScopeEnum.SINGLE_STATE.value
+        event_detail['licenseScope'] = self._resolve_investigation_license_scope(investigation_against, license_scope)
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)

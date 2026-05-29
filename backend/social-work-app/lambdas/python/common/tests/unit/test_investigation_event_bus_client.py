@@ -92,6 +92,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             create_date=create_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
+            license_scope='multi-state',
         )
 
         # Verify put_events was called
@@ -118,7 +119,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'lcsw',
-            'licenseScope': 'single-state',
+            'licenseScope': 'multi-state',
             'investigationAgainst': 'license',
         }
 
@@ -131,6 +132,24 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Compare event structure and detail separately
         self.assertEqual(expected_event, actual_event)
         self.assertEqual(expected_detail, actual_detail)
+
+    def test_publish_license_investigation_event_requires_license_scope(self):
+        """License investigations must not default licenseScope to single-state."""
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+
+        with self.assertRaises(ValueError):
+            self.client.publish_investigation_event(
+                source='test.source',
+                compact='socw',
+                provider_id=uuid4(),
+                jurisdiction='ne',
+                license_type_abbreviation='lcsw',
+                create_date=datetime.fromisoformat('2024-02-15T12:00:00+00:00'),
+                investigation_against=InvestigationAgainstEnum.LICENSE,
+                investigation_id=uuid4(),
+            )
+
+        self.mock_events_client.put_events.assert_not_called()
 
     def test_publish_privilege_investigation_closed_event(self):
         """Test publishing privilege investigation closed event"""
@@ -208,6 +227,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             close_date=close_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
+            license_scope='multi-state',
         )
 
         # Verify put_events was called
@@ -234,7 +254,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             'investigationId': str(investigation_id),
             'jurisdiction': 'ne',
             'licenseTypeAbbreviation': 'lcsw',
-            'licenseScope': 'single-state',
+            'licenseScope': 'multi-state',
             'investigationAgainst': 'license',
         }
 
@@ -247,6 +267,24 @@ class TestInvestigationEventBusClient(TstLambdas):
         # Compare event structure and detail separately
         self.assertEqual(expected_event, actual_event)
         self.assertEqual(expected_detail, actual_detail)
+
+    def test_publish_license_investigation_closed_event_requires_license_scope(self):
+        """License investigation closed events must not default licenseScope."""
+        from cc_common.data_model.schema.common import InvestigationAgainstEnum
+
+        with self.assertRaises(ValueError):
+            self.client.publish_investigation_closed_event(
+                source='test.source',
+                compact='socw',
+                provider_id=uuid4(),
+                jurisdiction='ne',
+                license_type_abbreviation='lcsw',
+                close_date=datetime.fromisoformat('2024-03-15T12:00:00+00:00'),
+                investigation_against=InvestigationAgainstEnum.LICENSE,
+                investigation_id=uuid4(),
+            )
+
+        self.mock_events_client.put_events.assert_not_called()
 
     def test_publish_privilege_investigation_event_with_batch_writer(self):
         """Test publishing privilege investigation event with batch writer"""
@@ -299,6 +337,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             create_date=create_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
+            license_scope='multi-state',
             event_batch_writer=mock_batch_writer,
         )
 
@@ -359,6 +398,7 @@ class TestInvestigationEventBusClient(TstLambdas):
             close_date=close_date,
             investigation_against=InvestigationAgainstEnum.LICENSE,
             investigation_id=investigation_id,
+            license_scope='multi-state',
             event_batch_writer=mock_batch_writer,
         )
 
