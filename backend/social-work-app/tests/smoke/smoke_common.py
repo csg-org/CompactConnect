@@ -233,8 +233,12 @@ def wait_for_opensearch_sync() -> None:
     time.sleep(seconds)
 
 
-def get_most_recently_issued_or_renewed_license(licenses: list[dict]) -> dict:
-    return ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+def get_most_recently_issued_or_renewed_license(licenses: list[dict]) -> dict | None:
+    from cc_common.data_model.schema.common import LicenseScopeEnum
+
+    return ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+        licenses, LicenseScopeEnum.MULTI_STATE
+    ) or ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses, LicenseScopeEnum.SINGLE_STATE)
 
 
 _PUBLIC_QUERY_INTERNAL_MAX_PAGES = 500

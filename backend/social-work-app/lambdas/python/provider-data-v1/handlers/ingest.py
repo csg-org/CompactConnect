@@ -5,12 +5,12 @@ from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema import LicenseRecordSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
+from cc_common.data_model.schema.common import ActiveInactiveStatus, LicenseScopeEnum, UpdateCategory
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import sqs_handler
 
 license_schema = LicenseIngestSchema()
@@ -179,18 +179,26 @@ def ingest_license_message(message: dict):
             ]
             known_licenses.append(posted_license_record)
 
+            # Find the best license for the provider based on the jurisdiction, license type, and scope.
             best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
-                license_records=known_licenses,
+                known_licenses, LicenseScopeEnum.MULTI_STATE
+            ) or ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+                known_licenses, LicenseScopeEnum.SINGLE_STATE
             )
+            if best_license is None:
+                error_message = 'No best license found for provider'
+                logger.error(error_message, provider_id=provider_id)
+                raise CCInternalException(error_message)
 
             if best_license is posted_license_record:
                 logger.info('Updating provider data')
 
-                # If this posted license is the most recent issued/renewed license for the provider,
-                # and it's from a different jurisdiction, send a home jurisdiction change notification event
-                # to notify the former home jurisdiction.
+                # If this posted license is the best license for the provider, it is a multi-state license, and it
+                # is from a different jurisdiction than the current provider record, send a home jurisdiction change
+                # notification event to notify the former home jurisdiction.
                 if (
                     current_provider_record
+                    and best_license['licenseScope'] == LicenseScopeEnum.MULTI_STATE.value
                     and current_provider_record.licenseJurisdiction != best_license['jurisdiction']
                 ):
                     logger.info(

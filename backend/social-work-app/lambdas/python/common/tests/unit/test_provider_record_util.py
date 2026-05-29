@@ -663,6 +663,7 @@ class TestProviderRecordUtility(TstLambdas):
             'licenseType': 'physician',
             'licenseNumber': '12345',
             'dateOfIssuance': '2024-01-01',
+            'licenseScope': 'single-state',
             'licenseStatus': ActiveInactiveStatus.ACTIVE,
             'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
         }
@@ -690,7 +691,7 @@ class TestProviderRecordUtility(TstLambdas):
     def test_find_best_license_date_of_issuance_preferred_when_no_renewal(self):
         """Test that find_best_license selects by most recent issuance."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
-        from cc_common.data_model.schema.common import CompactEligibilityStatus
+        from cc_common.data_model.schema.common import CompactEligibilityStatus, LicenseScopeEnum
 
         licenses = [
             {
@@ -705,14 +706,16 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+            licenses, LicenseScopeEnum.SINGLE_STATE
+        )
         self.assertEqual(best_license['dateOfIssuance'], '2024-02-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
 
     def test_latest_renewed_license_selected_even_when_inactive(self):
         """Best license is the one renewed/issued most recently; status and eligibility are not considered."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
-        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, LicenseScopeEnum
 
         # Active, compact-eligible but older renewal; inactive, ineligible but renewed most recently
         licenses = [
@@ -732,23 +735,110 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+            licenses, LicenseScopeEnum.SINGLE_STATE
+        )
         self.assertEqual(best_license['dateOfRenewal'], '2024-06-01')
         self.assertEqual(best_license['licenseStatus'], ActiveInactiveStatus.INACTIVE)
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
 
-    def test_find_best_license_raises_exception_when_no_licenses(self):
-        """Test that find_best_license raises an exception when no licenses are provided."""
+    def test_find_most_recent_returns_none_when_no_licenses(self):
+        """Test that find_most_recently_issued_or_renewed_license returns None when no licenses are provided."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
-        from cc_common.exceptions import CCInternalException
+        from cc_common.data_model.schema.common import LicenseScopeEnum
 
-        with self.assertRaises(CCInternalException):
-            ProviderRecordUtility.find_most_recently_issued_or_renewed_license([])
+        self.assertIsNone(
+            ProviderRecordUtility.find_most_recently_issued_or_renewed_license([], LicenseScopeEnum.SINGLE_STATE)
+        )
+
+    def test_find_most_recent_filters_by_multi_state_scope(self):
+        """Only multi-state licenses are considered when filtering by multi-state scope."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        licenses = [
+            {
+                **self.base_license,
+                'licenseScope': 'single-state',
+                'dateOfIssuance': '2026-01-01',
+                'dateOfRenewal': '2026-06-01',
+            },
+            {
+                **self.base_license,
+                'licenseScope': 'multi-state',
+                'dateOfIssuance': '2010-01-01',
+                'dateOfRenewal': '2020-01-01',
+            },
+            {
+                **self.base_license,
+                'licenseScope': 'multi-state',
+                'dateOfIssuance': '2015-01-01',
+                'dateOfRenewal': '2022-01-01',
+            },
+        ]
+
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+            licenses, LicenseScopeEnum.MULTI_STATE
+        )
+        self.assertEqual('multi-state', best_license['licenseScope'])
+        self.assertEqual('2022-01-01', best_license['dateOfRenewal'])
+
+    def test_find_most_recent_filters_by_single_state_scope(self):
+        """Only single-state licenses are considered when filtering by single-state scope."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        licenses = [
+            {
+                **self.base_license,
+                'licenseScope': 'multi-state',
+                'dateOfIssuance': '2026-01-01',
+                'dateOfRenewal': '2026-06-01',
+            },
+            {
+                **self.base_license,
+                'licenseScope': 'single-state',
+                'dateOfIssuance': '2010-01-01',
+                'dateOfRenewal': '2020-01-01',
+            },
+            {
+                **self.base_license,
+                'licenseScope': 'single-state',
+                'dateOfIssuance': '2015-01-01',
+                'dateOfRenewal': '2024-01-01',
+            },
+        ]
+
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+            licenses, LicenseScopeEnum.SINGLE_STATE
+        )
+        self.assertEqual('single-state', best_license['licenseScope'])
+        self.assertEqual('2024-01-01', best_license['dateOfRenewal'])
+
+    def test_find_most_recent_returns_none_when_no_matching_scope(self):
+        """Returns None when no licenses match the requested scope."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        licenses = [{**self.base_license, 'licenseScope': 'single-state'}]
+
+        self.assertIsNone(
+            ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses, LicenseScopeEnum.MULTI_STATE)
+        )
+
+    def test_find_most_recent_returns_none_for_empty_list(self):
+        """Returns None for an empty license list regardless of scope."""
+        from cc_common.data_model.provider_record_util import ProviderRecordUtility
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        self.assertIsNone(
+            ProviderRecordUtility.find_most_recently_issued_or_renewed_license([], LicenseScopeEnum.MULTI_STATE)
+        )
 
     def test_find_best_license_complex_scenario(self):
         """With multiple licenses, the one with the most recent issuance is selected regardless of status."""
         from cc_common.data_model.provider_record_util import ProviderRecordUtility
-        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+        from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, LicenseScopeEnum
 
         licenses = [
             {
@@ -772,9 +862,151 @@ class TestProviderRecordUtility(TstLambdas):
             },
         ]
 
-        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+        best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+            licenses, LicenseScopeEnum.SINGLE_STATE
+        )
         self.assertEqual(best_license['dateOfIssuance'], '2024-03-01')
         self.assertEqual(best_license['compactEligibility'], CompactEligibilityStatus.INELIGIBLE)
+
+
+@patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
+class TestProviderUserRecordsBestLicense(TstLambdas):
+    def _make_provider_records(self, license_overrides_list=None):
+        from common_test.test_data_generator import TestDataGenerator
+
+        provider = TestDataGenerator.generate_default_provider({})
+        records = [provider.serialize_to_database_record()]
+        for overrides in license_overrides_list or []:
+            records.append(TestDataGenerator.generate_default_license(overrides).serialize_to_database_record())
+        return records
+
+    def _license_fixture_with_mixed_scopes(self):
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        lcsw = 'licensed clinical social worker'
+        lmsw = 'licensed master social worker'
+        return [
+            *_license_pair_overrides(
+                'oh',
+                lcsw,
+                single_extra={'dateOfRenewal': date(2026, 1, 1), 'dateOfIssuance': date(2024, 1, 1)},
+                multi_extra={'dateOfRenewal': date(2020, 1, 1), 'dateOfIssuance': date(2010, 1, 1)},
+            ),
+            {
+                'jurisdiction': 'oh',
+                'licenseType': lmsw,
+                'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                'dateOfRenewal': date(2024, 6, 1),
+                'dateOfIssuance': date(2020, 1, 1),
+            },
+        ]
+
+    def test_find_most_recent_licenses_for_each_license_type_filters_by_multi_state_scope(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(self._license_fixture_with_mixed_scopes())
+        )
+
+        licenses = provider_user_records.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
+
+        self.assertEqual(1, len(licenses))
+        self.assertEqual('multi-state', licenses[0].licenseScope)
+        self.assertEqual('licensed clinical social worker', licenses[0].licenseType)
+        self.assertEqual('OH-licensed-cli-MS', licenses[0].licenseNumber)
+
+    def test_find_most_recent_licenses_for_each_license_type_filters_by_single_state_scope(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(self._license_fixture_with_mixed_scopes())
+        )
+
+        licenses = provider_user_records.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.SINGLE_STATE)
+
+        self.assertEqual(2, len(licenses))
+        license_types = {lic.licenseType for lic in licenses}
+        self.assertEqual({'licensed clinical social worker', 'licensed master social worker'}, license_types)
+        lcsw = next(lic for lic in licenses if lic.licenseType == 'licensed clinical social worker')
+        self.assertEqual('single-state', lcsw.licenseScope)
+        self.assertEqual(date(2026, 1, 1), lcsw.dateOfRenewal)
+
+    def test_find_most_recent_licenses_for_each_license_type_returns_empty_for_unmatched_scope(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(
+                [
+                    {
+                        'jurisdiction': 'oh',
+                        'licenseType': 'licensed clinical social worker',
+                        'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                    }
+                ]
+            )
+        )
+
+        self.assertEqual(
+            [],
+            provider_user_records.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE),
+        )
+
+    def test_find_best_license_in_current_known_licenses_prefers_multi_state_over_newer_single_state(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(
+                _license_pair_overrides(
+                    'oh',
+                    'licensed clinical social worker',
+                    single_extra={'dateOfRenewal': date(2026, 1, 1)},
+                    multi_extra={'dateOfRenewal': date(2020, 1, 1)},
+                )
+            )
+        )
+
+        best_license = provider_user_records.find_best_license_in_current_known_licenses()
+
+        self.assertEqual('multi-state', best_license.licenseScope)
+        self.assertEqual('OH-licensed-cli-MS', best_license.licenseNumber)
+
+    def test_find_best_license_in_current_known_licenses_falls_back_to_single_state(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(
+                [
+                    {
+                        'jurisdiction': 'oh',
+                        'licenseType': 'licensed clinical social worker',
+                        'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                        'dateOfRenewal': date(2024, 1, 1),
+                    }
+                ]
+            )
+        )
+
+        best_license = provider_user_records.find_best_license_in_current_known_licenses()
+
+        self.assertEqual('single-state', best_license.licenseScope)
+
+    def test_find_best_license_in_current_known_licenses_respects_type_filter_with_scope_precedence(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(self._license_fixture_with_mixed_scopes())
+        )
+
+        best_license = provider_user_records.find_best_license_in_current_known_licenses(
+            license_type_abbreviation='lcsw'
+        )
+
+        self.assertEqual('multi-state', best_license.licenseScope)
+        self.assertEqual('licensed clinical social worker', best_license.licenseType)
 
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
@@ -851,6 +1083,26 @@ class TestGenerateApiResponseObject(TstLambdas):
             [license_adverse_action.to_dict(), privilege_adverse_action.to_dict()],
             api_response['adverseActions'],
         )
+
+    def test_generate_api_response_object_public_prefers_multi_state_per_license_type(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        license_type = 'licensed clinical social worker'
+        records = self._make_provider_records(
+            license_overrides_list=_license_pair_overrides(
+                'oh',
+                license_type,
+                single_extra={'dateOfRenewal': date(2026, 1, 1), 'dateOfIssuance': date(2024, 1, 1)},
+                multi_extra={'dateOfRenewal': date(2020, 1, 1), 'dateOfIssuance': date(2010, 1, 1)},
+            )
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            api_response = provider_user_records.generate_api_response_object(is_public_response=True)
+
+        self.assertEqual(1, len(api_response['licenses']))
+        self.assertEqual('multi-state', api_response['licenses'][0]['licenseScope'])
+        self.assertEqual('OH-licensed-cli-MS', api_response['licenses'][0]['licenseNumber'])
 
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))

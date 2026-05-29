@@ -674,14 +674,27 @@ class TestIngest(TstFunction):
         self,
     ):
         """
-        Same license type (licensed clinical social worker) in two jurisdictions: a newer issuance from KY replaces OH
-        as the best licensed clinical social worker license and ingest emits ``provider.homeStateChange``
-        with former OH and new KY.
+        Same license type (licensed clinical social worker) in two jurisdictions: a newer multi-state issuance from KY
+        replaces OH as the best multi-state home license and ingest emits ``provider.homeStateChange`` with former OH
+        and new KY.
         """
         import handlers.ingest as ingest_handler
         from handlers.ingest import ingest_license_message
 
-        provider_id = self._with_ingested_license()
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+
+        self._ssn_table.put_item(Item=ssn_record)
+        provider_id = ssn_record['providerId']
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail']['licenseScope'] = 'multi-state'
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
         provider_data_after_first_license = self._get_provider_via_api(provider_id)
 
         # Verify the first license was ingested correctly
@@ -689,16 +702,18 @@ class TestIngest(TstFunction):
         self.assertEqual(
             'licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType']
         )
+        self.assertEqual('multi-state', provider_data_after_first_license['licenses'][0]['licenseScope'])
         self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data_after_first_license['givenName'])
 
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Same license type as OH, but KY upload with a newer issuance date → new “home” license jurisdiction for type
+        # Same license type as OH, but KY multi-state upload with a newer issuance date → new home jurisdiction for type
         message['detail'].update(
             {
                 'licenseType': 'licensed clinical social worker',
+                'licenseScope': 'multi-state',
                 'jurisdiction': 'ky',
                 'dateOfIssuance': '2020-06-06',
                 'licenseNumber': 'B0608337260',
@@ -820,6 +835,81 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
         self.assertEqual('oh', provider_data['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data['givenName'])
+
+    def test_multi_state_license_preferred_over_newer_single_state_for_provider_record(self):
+        """
+        When a practitioner has both single-state and multi-state licenses, the multi-state license is selected as
+        the best license for populating the provider record even when a single-state license was renewed more recently.
+        """
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+
+        self._ssn_table.put_item(Item=ssn_record)
+        provider_id = ssn_record['providerId']
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseScope': 'single-state',
+                'givenName': 'Audrey',
+                'dateOfRenewal': '2026-06-06',
+                'dateOfExpiration': '2030-04-04',
+            }
+        )
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data_after_single_state = self._get_provider_via_api(provider_id)
+        self.assertEqual('Audrey', provider_data_after_single_state['givenName'])
+        self.assertEqual(1, len(provider_data_after_single_state['licenses']))
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'givenName': 'Björk',
+                'dateOfIssuance': '2010-06-06',
+                'dateOfRenewal': '2020-04-04',
+                'dateOfExpiration': '2025-04-04',
+            }
+        )
+
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data = self._get_provider_via_api(provider_id)
+        self.assertEqual(2, len(provider_data['licenses']))
+        self.assertEqual('Björk', provider_data['givenName'])
+        self.assertEqual('oh', provider_data['licenseJurisdiction'])
+
+        single_state_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseScope'] == 'single-state'), None
+        )
+        multi_state_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseScope'] == 'multi-state'), None
+        )
+        self.assertIsNotNone(single_state_license)
+        self.assertIsNotNone(multi_state_license)
+        self.assertEqual('Audrey', single_state_license['givenName'])
+        self.assertEqual('Björk', multi_state_license['givenName'])
+
+        provider_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}'),
+        )['Items']
+        provider_record = next(record for record in provider_records if record['type'] == 'provider')
+        self.assertEqual('Björk', provider_record['givenName'])
+        self.assertEqual('oh', provider_record['licenseJurisdiction'])
 
     def test_multi_state_license_does_not_overwrite_existing_single_state_license(self):
         """

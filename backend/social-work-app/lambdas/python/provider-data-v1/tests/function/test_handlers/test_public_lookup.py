@@ -164,20 +164,37 @@ class TestPublicGetProvider(TstFunction):
                 'compactEligibility': 'eligible',
                 'dateOfExpiration': '2025-04-04',
                 'licenseNumber': 'B0608337260',
-            },
-            {
-                'type': 'license',
-                'compact': 'socw',
-                'jurisdiction': 'oh',
-                'licenseType': 'licensed master social worker',
-                'licenseScope': 'single-state',
-                'licenseStatus': 'active',
-                'compactEligibility': 'eligible',
-                'dateOfExpiration': '2026-01-01',
-                'licenseNumber': 'mostRecentEstLicense',
-            },
+            }
         ]
         self.assertEqual(expected_licenses, provider_data['licenses'])
+
+    def test_public_get_provider_prefers_multi_state_when_single_state_is_newer(self):
+        self._load_provider_data()
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'licenseScope': 'single-state',
+                'licenseNumber': 'A0608337260',
+                'dateOfIssuance': date(2024, 1, 1),
+                'dateOfRenewal': date(2026, 1, 1),
+                'dateOfExpiration': date(2030, 1, 1),
+            }
+        )
+
+        from handlers.public_lookup import public_get_provider
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        del event['requestContext']['authorizer']
+        event['pathParameters'] = {'compact': 'socw', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+        event['queryStringParameters'] = None
+
+        resp = public_get_provider(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        provider_data = json.loads(resp['body'])
+
+        self.assertEqual(EXPECTED_PROVIDER_RESPONSE, provider_data)
 
     def test_public_get_provider_missing_provider_id(self):
         from handlers.public_lookup import public_get_provider
