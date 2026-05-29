@@ -24,11 +24,11 @@ EXPECTED_PROVIDER_RESPONSE = {
             'compact': 'socw',
             'jurisdiction': 'oh',
             'licenseType': 'licensed clinical social worker',
-            'licenseScope': 'single-state',
+            'licenseScope': 'multi-state',
             'licenseStatus': 'active',
             'compactEligibility': 'eligible',
             'dateOfExpiration': '2025-04-04',
-            'licenseNumber': 'A0608337260',
+            'licenseNumber': 'B0608337260',
         }
     ],
     'privileges': [
@@ -159,11 +159,11 @@ class TestPublicGetProvider(TstFunction):
                 'compact': 'socw',
                 'jurisdiction': 'oh',
                 'licenseType': 'licensed clinical social worker',
-                'licenseScope': 'single-state',
+                'licenseScope': 'multi-state',
                 'licenseStatus': 'active',
                 'compactEligibility': 'eligible',
                 'dateOfExpiration': '2025-04-04',
-                'licenseNumber': 'A0608337260',
+                'licenseNumber': 'B0608337260',
             },
             {
                 'type': 'license',

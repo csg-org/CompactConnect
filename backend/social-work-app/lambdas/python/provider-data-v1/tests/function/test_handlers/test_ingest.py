@@ -12,9 +12,14 @@ from .. import TstFunction
 class TestIngest(TstFunction):
     @staticmethod
     def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
-        # The canned response resource assumes that the provider will be given
-        # one license renewal. We didn't do any of that here, so we'll reset that data
+        # Ingest tests upload a single-state OH license only; the canned fixture also
+        # includes a multi-state license used by _load_provider_data() tests.
         expected_provider['privileges'] = []
+        expected_provider['licenses'] = [
+            license_record
+            for license_record in expected_provider['licenses']
+            if license_record.get('licenseScope') == 'single-state'
+        ]
 
         return expected_provider
 
@@ -138,8 +143,8 @@ class TestIngest(TstFunction):
         # The original provider data is preferred over the posted license data in our test case
         self.assertEqual(expected_provider, provider_data)
 
-        # But the second license should now be listed
-        self.assertEqual(2, len(licenses))
+        # OH single-state and multi-state licenses plus the ingested KY license
+        self.assertEqual(3, len(licenses))
 
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_existing_provider_deactivation(self, mock_event_writer):
@@ -160,6 +165,8 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
+
         # The license status and provider should immediately be inactive
         expected_provider['jurisdictionUploadedLicenseStatus'] = 'inactive'
         expected_provider['jurisdictionUploadedCompactEligibility'] = 'ineligible'
@@ -172,9 +179,6 @@ class TestIngest(TstFunction):
         expected_provider['licenses'][0]['compactEligibility'] = 'ineligible'
 
         provider_data = self._get_provider_via_api(provider_id)
-
-        # Reset the expected data to match the canned response
-        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -283,6 +287,8 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
+
         # The license status and provider should immediately reflect the new dates
         expected_provider['dateOfExpiration'] = '2030-03-03'
         expected_provider['licenses'][0]['dateOfExpiration'] = '2030-03-03'
@@ -292,9 +298,6 @@ class TestIngest(TstFunction):
             expected_provider['licenses'][0]['dateOfRenewal'] = '2025-03-03'
 
         provider_data = self._get_provider_via_api(provider_id)
-
-        # Reset the expected data to match the canned response
-        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
@@ -336,14 +339,13 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
+
         # The license status and provider should immediately reflect the new name
         expected_provider['familyName'] = 'VonSmitherton'
         expected_provider['licenses'][0]['familyName'] = 'VonSmitherton'
 
         provider_data = self._get_provider_via_api(provider_id)
-
-        # Reset the expected data to match the canned response
-        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']

@@ -10,6 +10,7 @@ from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
     InvestigationStatusEnum,
+    LicenseScopeEnum,
     UpdateCategory,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
@@ -437,14 +438,79 @@ class ProviderUserRecords:
         sorted_licenses = self._sort_licenses_by_most_recent(license_records)
         return sorted_licenses[0]
 
-    def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
-        """
-        Generate privilege dicts at runtime for each license type this provider holds.
+    def _has_matching_single_state_license(
+        self,
+        multi_state_license: LicenseData,
+        *,
+        require_single_state_compact_eligibility: bool = True,
+    ) -> bool:
+        single_state_license = self.get_specific_license_record(
+            multi_state_license.jurisdiction,
+            multi_state_license.licenseTypeAbbreviation,
+            LicenseScopeEnum.SINGLE_STATE.value,
+        )
+        if single_state_license is None:
+            return False
+        if require_single_state_compact_eligibility:
+            return single_state_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+        return True
 
-        For each license type, the home license is chosen from all licenses of that type: the license renewed
-        most recently (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
-        When the chosen home license is compact-eligible, one privilege is generated per active compact jurisdiction
-        (excluding the home jurisdiction). When the home license is not compact-eligible, a privilege is still
+    def find_multi_state_home_licenses_with_matching_single_state_licenses(
+        self,
+        *,
+        require_single_state_compact_eligibility: bool = True,
+    ) -> list[LicenseData]:
+        """
+        For each license type, return the most recent multi-state license that has a single-state license
+        in the same jurisdiction. If the most recent multi-state license for a type lacks that pairing,
+        no home license is returned for that type (there is no fallback to an older jurisdiction).
+
+        :param require_single_state_compact_eligibility: When True (default), the paired single-state license
+            must be compact-eligible. When False, any existing single-state license record in the same
+            jurisdiction and license type is sufficient (used for OpenSearch document indexing).
+        """
+        by_type: dict[str, list[LicenseData]] = {}
+        for lic in self._license_records:
+            if lic.licenseScope == LicenseScopeEnum.MULTI_STATE.value:
+                by_type.setdefault(lic.licenseType, []).append(lic)
+
+        multi_state_license_with_matching_single_state_license: list[LicenseData] = []
+        for _license_type, multi_state_licenses in by_type.items():
+            sorted_multi_state = sorted(multi_state_licenses, key=_license_sort_key, reverse=True)
+            most_recent_multi_state = sorted_multi_state[0]
+            if self._has_matching_single_state_license(
+                most_recent_multi_state,
+                require_single_state_compact_eligibility=require_single_state_compact_eligibility,
+            ):
+                multi_state_license_with_matching_single_state_license.append(most_recent_multi_state)
+            else:
+                logger.debug(
+                    'Not using multi-state license as home because there is no matching single-state '
+                    'license in the same jurisdiction.',
+                    license_type=most_recent_multi_state.licenseType,
+                    jurisdiction=most_recent_multi_state.jurisdiction,
+                    require_single_state_compact_eligibility=require_single_state_compact_eligibility,
+                )
+
+        return multi_state_license_with_matching_single_state_license
+
+    def generate_privileges_for_provider(
+        self,
+        include_inactive_privileges: bool = False,
+        *,
+        require_single_state_compact_eligibility: bool = True,
+    ) -> list[dict]:
+        """
+        Generate privilege dicts at runtime for each eligible multi-state license type this provider holds.
+
+        For each license type, privileges are associated with the multi-state license renewed most recently
+        (when dateOfRenewal is present), otherwise the multi-state license with the most recent date of issuance.
+        Privileges are only generated when that multi-state license has a single-state license in the same
+        jurisdiction and license type and is compact-eligible. There is no fallback to an older
+        multi-state license in another jurisdiction when the latest multi-state license fails this check.
+
+        When the home multi-state license is compact-eligible, one privilege is generated per active compact
+        jurisdiction (excluding the home jurisdiction). When it is not compact-eligible, a privilege is still
         generated for a jurisdiction if there is a matching privilege adverse action or an open privilege
         investigation for that jurisdiction and license type, so admins can see and resolve those records.
 
@@ -454,6 +520,9 @@ class ProviderUserRecords:
 
         :param include_inactive_privileges: When True, generate privileges for ineligible home licenses
             and mark them inactive instead of omitting them entirely.
+        :param require_single_state_compact_eligibility: When True (default), the paired single-state license
+            must be compact-eligible for the multi-state license to be treated as home. When False, any
+            existing single-state license in the same jurisdiction is sufficient.
         """
         if not self._license_records:
             return []
@@ -466,23 +535,10 @@ class ProviderUserRecords:
             logger.debug('no active jurisdictions found in environment.', compact=compact)
             return []
 
-        # Group licenses by licenseType; for each type pick home license by most recent renewal, then issuance
-        by_type: dict[str, list[LicenseData]] = {}
-        for lic in self._license_records:
-            by_type.setdefault(lic.licenseType, []).append(lic)
-
-        most_recent_licenses_for_each_type: list[LicenseData] = []
-        for _lt, licenses in by_type.items():
-            sorted_licenses = sorted(
-                licenses,
-                key=_license_sort_key,
-                reverse=True,
-            )
-            most_recent_license = sorted_licenses[0]
-            most_recent_licenses_for_each_type.append(most_recent_license)
-
         result: list[dict] = []
-        for most_recent_license in most_recent_licenses_for_each_type:
+        for most_recent_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses(
+            require_single_state_compact_eligibility=require_single_state_compact_eligibility,
+        ):
             is_eligible = most_recent_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
             home_jurisdiction = most_recent_license.jurisdiction.lower()
             license_type_abbr = most_recent_license.licenseTypeAbbreviation
@@ -633,10 +689,12 @@ class ProviderUserRecords:
 
         Each document contains the full provider-level fields (including top-level `adverseActions`
         for the provider), a single license in the `licenses` array, and privileges only if that license
-        is the home license for its type. This enables 1:1 mapping between OpenSearch documents and license
+        is the multi-state home license for its type with a single-state license in the same jurisdiction
+        (compact eligibility of the single-state license is not required). This enables 1:1 mapping between
+        OpenSearch documents and license
         records for native pagination.
 
-        Privileges are always included for home license documents — including when the license is
+        Privileges are always included for multi-state home license documents — including when the license is
         ineligible — so that adverse actions and investigations remain linked to privilege records.
         Privileges for ineligible home licenses carry status 'inactive'.
 
@@ -647,12 +705,20 @@ class ProviderUserRecords:
             return []
 
         provider_dict = self.get_provider_record().to_dict()
-        all_privileges = self.generate_privileges_for_provider(include_inactive_privileges=True)
+        all_privileges = self.generate_privileges_for_provider(
+            include_inactive_privileges=True,
+            require_single_state_compact_eligibility=False,
+        )
 
-        # Determine the most recent (aka home) license for each license type
-        most_recent_licenses = {
-            (most_recent_license_for_type.jurisdiction.lower(), most_recent_license_for_type.licenseType)
-            for most_recent_license_for_type in self.find_most_recent_licenses_for_each_license_type()
+        most_recent_multi_state_home_licenses = {
+            (
+                multi_state_home_license.jurisdiction.lower(),
+                multi_state_home_license.licenseType,
+                multi_state_home_license.licenseScope,
+            )
+            for multi_state_home_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses(
+                require_single_state_compact_eligibility=False,
+            )
         }
 
         documents = []
@@ -679,7 +745,8 @@ class ProviderUserRecords:
             is_most_recent_license_for_type = (
                 license_record.jurisdiction.lower(),
                 license_record.licenseType,
-            ) in most_recent_licenses
+                license_record.licenseScope,
+            ) in most_recent_multi_state_home_licenses
             license_privileges = (
                 [p for p in all_privileges if p['licenseType'] == license_record.licenseType]
                 if is_most_recent_license_for_type

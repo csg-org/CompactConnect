@@ -60,7 +60,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
 
     def _when_testing_privilege_investigation(self):
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        license_record = self.test_data_generator.put_default_license_record_in_provider_table()
+        license_record = self.test_data_generator.put_default_license_pair_in_provider_table()
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
@@ -413,7 +413,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
 
     def _when_testing_privilege_investigation_close(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
+        test_license_record = self.test_data_generator.put_default_license_pair_in_provider_table()
         test_body = {}
         if body_overrides:
             test_body.update(body_overrides)
@@ -615,7 +615,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         """Load privilege test data using test data generator"""
         # Load provider record first
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        return self.test_data_generator.put_default_license_record_in_provider_table()
+        return self.test_data_generator.put_default_license_pair_in_provider_table()
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_closing_one_of_multiple_investigations_maintains_investigation_status(self, mock_publish_event):
