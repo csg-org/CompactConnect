@@ -34,6 +34,15 @@ class V1Api:
         self.api: LicenseApi = root.api
         self.api_model = ApiModel(api=self.api)
         stack: Stack = Stack.of(self.resource)
+        # Beta intentionally omits unauthenticated public provider lookup routes
+        # (GET/POST under /v1/public/compacts/{compact}/providers/...). Test and prod deploy them.
+        #
+        # We normally keep beta and prod behavior aligned, but beta is used for state onboarding: IT staff
+        # may upload full license datasets or create mock privileges for API testing that they do not intend
+        # to be publicly searchable. In prod, states upload records they intend to expose via CompactConnect.
+        # There is no valid use case for public search in beta; omitting these routes follows the principle
+        # of least privilege.
+        deploy_public_lookup_api = stack.environment_name != 'beta'
         _active_compacts = persistent_stack.get_list_of_compact_abbreviations()
 
         # we only pass the API_BASE_URL env var if the API_DOMAIN_NAME is set
@@ -101,12 +110,13 @@ class V1Api:
         self.public_compacts_compact_providers_resource = self.public_compacts_compact_resource.add_resource(
             'providers'
         )
-        self.public_lookup_api = PublicLookupApi(
-            resource=self.public_compacts_compact_providers_resource,
-            api_model=self.api_model,
-            api_lambda_stack=api_lambda_stack,
-            search_persistent_stack=search_persistent_stack,
-        )
+        if deploy_public_lookup_api:
+            self.public_lookup_api = PublicLookupApi(
+                resource=self.public_compacts_compact_providers_resource,
+                api_model=self.api_model,
+                api_lambda_stack=api_lambda_stack,
+                search_persistent_stack=search_persistent_stack,
+            )
 
         # /v1/compacts
         self.compacts_resource = self.resource.add_resource('compacts')
