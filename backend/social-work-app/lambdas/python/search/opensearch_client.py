@@ -221,6 +221,7 @@ class OpenSearchClient:
             'providerId': {'type': 'keyword'},
             'licenseType': {'type': 'keyword'},
             'licenseTypeAbbreviation': {'type': 'keyword'},
+            'licenseScope': {'type': 'keyword'},
             'actionAgainst': {'type': 'keyword'},
             'effectiveStartDate': {'type': 'date'},
             'creationDate': {'type': 'date'},
@@ -239,6 +240,7 @@ class OpenSearchClient:
             'compact': {'type': 'keyword'},
             'jurisdiction': {'type': 'keyword'},
             'licenseType': {'type': 'keyword'},
+            'licenseScope': {'type': 'keyword'},
             'status': {'type': 'keyword'},
             'dateOfUpdate': {'type': 'date'},
         }
