@@ -2,6 +2,13 @@
   "additionalProperties": false,
   "description": "Encumbrance data to create",
   "properties": {
+    "licenseScope": {
+      "enum": [
+        "single-state",
+        "multi-state"
+      ],
+      "type": "string"
+    },
     "encumbranceEffectiveDate": {
       "description": "The effective date of the encumbrance",
       "format": "date",
@@ -31,6 +38,7 @@
     }
   },
   "required": [
+    "licenseScope",
     "encumbranceEffectiveDate",
     "encumbranceType",
     "clinicalPrivilegeActionCategories"

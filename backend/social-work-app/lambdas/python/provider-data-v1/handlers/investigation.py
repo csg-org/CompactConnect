@@ -6,10 +6,13 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.common import (
     CCPermissionsAction,
     InvestigationAgainstEnum,
+    LicenseScopeEnum,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.investigation.api import (
     InvestigationPatchRequestSchema,
+    InvestigationPostRequestSchema,
+    LicenseInvestigationPatchRequestSchema,
 )
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.license_util import LicenseUtility
@@ -56,6 +59,14 @@ def investigation_handler(event: dict, context: LambdaContext) -> dict:
         raise CCInvalidRequestException('Invalid endpoint requested')
 
 
+def _load_license_investigation_patch_body(event: dict) -> dict:
+    body = json.loads(event['body'])
+    try:
+        return LicenseInvestigationPatchRequestSchema().load(body)
+    except ValidationError as e:
+        raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
+
+
 def _load_investigation_patch_body(event: dict) -> dict:
     # Parse and validate request body
     body = json.loads(event['body'])
@@ -72,6 +83,7 @@ def _generate_investigation_for_record_type(
     license_type_abbr: str,
     investigation_against_record_type: InvestigationAgainstEnum,
     cognito_sub: str,
+    license_scope: str,
 ) -> InvestigationData:
     license_type = LicenseUtility.get_license_type_by_abbreviation(compact=compact, abbreviation=license_type_abbr)
 
@@ -89,6 +101,7 @@ def _generate_investigation_for_record_type(
             'providerId': provider_id,
             'investigationId': uuid4(),
             'licenseType': license_type.name,
+            'licenseScope': license_scope,
             'investigationAgainst': investigation_against_record_type,
             'submittingUser': cognito_sub,
             'creationDate': config.current_standard_datetime,
@@ -112,6 +125,7 @@ def handle_privilege_investigation(event: dict) -> dict:
         license_type_abbr=license_type_abbr,
         investigation_against_record_type=InvestigationAgainstEnum.PRIVILEGE,
         cognito_sub=cognito_sub,
+        license_scope=LicenseScopeEnum.SINGLE_STATE.value,
     )
     logger.info('Processing privilege investigation')
     config.data_client.create_investigation(investigation)
@@ -133,12 +147,17 @@ def handle_privilege_investigation(event: dict) -> dict:
 
 def handle_license_investigation(event: dict) -> dict:
     """Public API handler for creating license investigations"""
-    # Parse event parameters
     compact = event['pathParameters']['compact']
     jurisdiction = event['pathParameters']['jurisdiction']
     provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
+
+    body = json.loads(event['body'])
+    try:
+        post_body = InvestigationPostRequestSchema().load(body)
+    except ValidationError as e:
+        raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
     investigation = _generate_investigation_for_record_type(
         compact=compact,
@@ -147,6 +166,7 @@ def handle_license_investigation(event: dict) -> dict:
         license_type_abbr=license_type_abbr,
         investigation_against_record_type=InvestigationAgainstEnum.LICENSE,
         cognito_sub=cognito_sub,
+        license_scope=post_body['licenseScope'],
     )
     logger.info('Processing investigation updates for license record')
     config.data_client.create_investigation(investigation)
@@ -161,6 +181,7 @@ def handle_license_investigation(event: dict) -> dict:
         license_type_abbreviation=investigation.licenseTypeAbbreviation,
         investigation_against=InvestigationAgainstEnum.LICENSE,
         investigation_id=investigation.investigationId,
+        license_scope=investigation.licenseScope,
     )
 
     return {'message': 'OK'}
@@ -200,6 +221,7 @@ def handle_privilege_investigation_close(event: dict) -> dict:
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
+        license_scope=LicenseScopeEnum.SINGLE_STATE.value,
         investigation_id=investigation_id,
         closing_user=cognito_sub,
         close_date=now,
@@ -232,7 +254,8 @@ def handle_license_investigation_close(event: dict) -> dict:
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     investigation_id = to_uuid(event['pathParameters']['investigationId'], 'Invalid investigationId provided')
     cognito_sub = event['requestContext']['authorizer']['claims']['sub']
-    investigation_patch_body = _load_investigation_patch_body(event)
+    investigation_patch_body = _load_license_investigation_patch_body(event)
+    license_scope = investigation_patch_body['licenseScope']
 
     logger.info('Processing license investigation closure')
 
@@ -242,22 +265,22 @@ def handle_license_investigation_close(event: dict) -> dict:
     resulting_encumbrance_id = None
     encumbrance_data = investigation_patch_body.get('encumbrance')
     if encumbrance_data:
-        # Create the encumbrance the same way we do directly via the encumbrance endpoint
+        encumbrance_with_scope = {**encumbrance_data, 'licenseScope': license_scope}
         resulting_encumbrance_id = _create_license_encumbrance_internal(
             compact=compact,
             jurisdiction=jurisdiction,
             provider_id=provider_id,
             license_type_abbr=license_type_abbr,
             submitting_user=cognito_sub,
-            adverse_action_post_body=encumbrance_data,
+            adverse_action_post_body=encumbrance_with_scope,
         )
 
-    # Call the data client method to close the investigation
     config.data_client.close_investigation(
         compact=compact,
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbr,
+        license_scope=license_scope,
         investigation_id=investigation_id,
         closing_user=cognito_sub,
         close_date=now,
@@ -265,7 +288,6 @@ def handle_license_investigation_close(event: dict) -> dict:
         resulting_encumbrance_id=resulting_encumbrance_id,
     )
 
-    # Publish license investigation closure event
     config.event_bus_client.publish_investigation_closed_event(
         source='org.compactconnect.provider-data',
         compact=compact,
@@ -276,6 +298,7 @@ def handle_license_investigation_close(event: dict) -> dict:
         investigation_against=InvestigationAgainstEnum.LICENSE,
         investigation_id=investigation_id,
         adverse_action_id=resulting_encumbrance_id,
+        license_scope=license_scope,
     )
 
     return {'message': 'OK'}

@@ -41,7 +41,7 @@ class TestEmailServiceClient(TstLambdas):
                 provider_last_name='Smith',
                 former_jurisdiction=TEST_FORMER_JURISDICTION,
                 current_jurisdiction=TEST_NEW_JURISDICTION,
-                license_type='Cosmetologist',
+                license_type='Licensed Clinical Social Worker',
                 provider_id=TEST_PROVIDER_ID,
             ),
         )
@@ -61,7 +61,7 @@ class TestEmailServiceClient(TstLambdas):
                         'providerId': str(TEST_PROVIDER_ID),
                         'previousJurisdiction': TEST_FORMER_JURISDICTION,
                         'newJurisdiction': TEST_NEW_JURISDICTION,
-                        'licenseType': 'Cosmetologist',
+                        'licenseType': 'Licensed Clinical Social Worker',
                     },
                 }
             ),

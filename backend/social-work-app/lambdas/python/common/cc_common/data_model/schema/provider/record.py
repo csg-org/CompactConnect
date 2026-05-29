@@ -13,6 +13,7 @@ from cc_common.data_model.schema.common import (
     ChangeHashMixin,
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
+    provider_pk,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -114,7 +115,7 @@ class ProviderRecordSchema(BaseRecordSchema):
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         in_data['sk'] = f'{in_data["compact"]}#PROVIDER'
         return in_data
 
@@ -199,7 +200,7 @@ class ProviderUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         # This needs to include an iso formatted datetime string and a hash of the changes
         # to the record. We'll use the createDate and the hash of the updatedValues
         # field for this.

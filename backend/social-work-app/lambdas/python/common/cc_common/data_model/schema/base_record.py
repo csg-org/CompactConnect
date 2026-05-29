@@ -7,6 +7,7 @@ from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
 from marshmallow.fields import UUID, AwareDateTime, String
 
 from cc_common.config import config
+from cc_common.data_model.schema.common import provider_pk
 from cc_common.data_model.schema.fields import Compact, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
@@ -116,7 +117,7 @@ class SSNIndexRecordSchema(StrictSchema):
     @pre_dump
     def populate_provider_id_gsi_pk(self, in_data, **_kwargs):
         """Populate the providerId GSI pk field before dumping to the database"""
-        in_data['providerIdGSIpk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['providerIdGSIpk'] = provider_pk(in_data['compact'], in_data['providerId'])
         return in_data
 
     @post_load

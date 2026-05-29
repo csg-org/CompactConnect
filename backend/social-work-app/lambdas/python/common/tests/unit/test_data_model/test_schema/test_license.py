@@ -36,6 +36,48 @@ class TestLicensePostSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
 
+    def test_license_scope_single_state_valid(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseScope'] = 'single-state'
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertEqual('single-state', result['licenseScope'])
+
+    def test_license_scope_multi_state_valid(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseScope'] = 'multi-state'
+
+        result = LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertEqual('multi-state', result['licenseScope'])
+
+    def test_license_scope_invalid_value_rejected(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseScope'] = 'multi-state-invalid'
+
+        with self.assertRaises(ValidationError) as ctx:
+            LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertIn('licenseScope', ctx.exception.messages)
+
+    def test_license_scope_missing_raises_validation_error(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data.pop('licenseScope')
+
+        with self.assertRaises(ValidationError) as ctx:
+            LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+        self.assertIn('licenseScope', ctx.exception.messages)
+
 
 class TestLicenseRecordSchema(TstLambdas):
     def test_serde(self):
@@ -206,7 +248,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
                 'providerId': uuid4(),
                 'compact': 'socw',
                 'jurisdiction': 'ky',
-                'licenseType': 'cosmetologist',
+                'licenseType': 'licensed clinical social worker',
                 'updateType': loaded_record['updateType'],
                 'createDate': loaded_record['createDate'],
                 # These two fields should determine the change hash:
@@ -235,7 +277,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             'providerId': uuid4(),
             'compact': 'socw',
             'jurisdiction': 'ky',
-            'licenseType': 'cosmetologist',
+            'licenseType': 'licensed clinical social worker',
             'updateType': loaded_record['updateType'],
             'createDate': loaded_record['createDate'],
             # These two fields should determine the change hash:
@@ -314,7 +356,8 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
             'dateOfUpdate': '2024-01-01T00:00:00+00:00',
             'compact': 'socw',
             'jurisdiction': 'oh',
-            'licenseType': 'cosmetologist',
+            'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',
             'compactEligibility': 'eligible',
@@ -329,7 +372,6 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
             'homeAddressPostalCode': '43215',
             'licenseNumber': 'LIC12345',
             'dateOfBirth': '1985-06-06',
-            'mostRecentLicenseForType': True,
         }
 
     def test_includes_date_of_birth(self):
@@ -355,6 +397,7 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
             'compact',
             'jurisdiction',
             'licenseType',
+            'licenseScope',
             'licenseStatus',
             'licenseNumber',
             'givenName',
@@ -405,7 +448,8 @@ class TestLicenseGeneralResponseSchemaExpirationCheck(TstLambdas):
             'dateOfUpdate': '2024-01-01T00:00:00+00:00',
             'compact': 'socw',
             'jurisdiction': 'oh',
-            'licenseType': 'cosmetologist',
+            'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',
             'compactEligibility': 'eligible',

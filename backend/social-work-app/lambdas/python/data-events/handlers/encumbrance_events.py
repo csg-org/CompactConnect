@@ -344,6 +344,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
         latest_license_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
             license_jurisdiction=license_associated_with_privilege.jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            license_scope=license_associated_with_privilege.licenseScope,
         )
 
         latest_privilege_lift_date = provider_records.get_latest_effective_lift_date_for_privilege_adverse_actions(
@@ -417,6 +418,7 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    license_scope = detail['licenseScope']
     effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
@@ -425,6 +427,7 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        license_scope=license_scope,
         event_time=event_time,
     ):
         logger.info('Processing license encumbrance notification event')
@@ -487,6 +490,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    license_scope = detail['licenseScope']
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -494,6 +498,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        license_scope=license_scope,
         event_time=event_time,
     ):
         logger.info('Processing license encumbrance lifting notification event')
@@ -505,7 +510,9 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
         target_license = provider_records.get_specific_license_record(
-            jurisdiction=jurisdiction, license_abbreviation=license_type_abbreviation
+            jurisdiction=jurisdiction,
+            license_abbreviation=license_type_abbreviation,
+            license_scope=license_scope,
         )
 
         if target_license is None:
@@ -528,6 +535,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         latest_effective_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
             license_jurisdiction=target_license.jurisdiction,
             license_type_abbreviation=target_license.licenseTypeAbbreviation,
+            license_scope=license_scope,
         )
 
         # State Notifications

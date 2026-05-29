@@ -8,7 +8,8 @@ import { TReaderDocument } from '@csg-org/email-builder';
 import {
     SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
     SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
-    SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD
+    SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD,
+    SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD_NO_RECORD_NUMBER
 } from '../../sample-records';
 import { describe, it, beforeEach, beforeAll, afterAll, jest } from '@jest/globals';
 
@@ -127,6 +128,32 @@ describe('IngestEventEmailService', () => {
             'Row 5, 4:47',
             'Row 5, 5:47'
         ]);
+    });
+
+    it('should sort unnumbered errors after numbered errors, then by time', () => {
+        const unnumbered1 = { ...SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD_NO_RECORD_NUMBER, eventTime: '2024-10-30T03:00:00.000000+00:00' };
+        const unnumbered2 = { ...SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD_NO_RECORD_NUMBER, eventTime: '2024-10-30T05:00:00.000000+00:00' };
+        const numbered = { ...SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD, recordNumber: 2 };
+
+        const sorted = emailService['sortValidationErrors']([unnumbered2, numbered, unnumbered1]);
+
+        expect(sorted[0]).toEqual(numbered);
+        expect(sorted[1]).toEqual(unnumbered1);
+        expect(sorted[2]).toEqual(unnumbered2);
+    });
+
+    it('should render a validation error without a "Line N" heading when recordNumber is absent', () => {
+        const html = emailService.generateReport(
+            {
+                ingestFailures: [],
+                validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD_NO_RECORD_NUMBER ]
+            },
+            'Social Work',
+            'Ohio'
+        );
+
+        expect(html).not.toContain('Line ');
+        expect(html).toContain('Validation error');
     });
 
     it('should send an alls well email', async () => {

@@ -10,5 +10,3 @@ class FeatureFlagEnum(StrEnum):
 
     # flag used by internal testing
     TEST_FLAG = 'test-flag'
-    # runtime flags
-    DUPLICATE_SSN_UPLOAD_CHECK_FLAG = 'duplicate-ssn-upload-check-flag'

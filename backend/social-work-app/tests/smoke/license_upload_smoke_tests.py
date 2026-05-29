@@ -42,7 +42,7 @@ TEST_APP_CLIENT_NAME = 'test-license-upload-smoke-client'
 HOME_STATE_CHANGE_MOCK_SSN = '999-88-8888'
 HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME = 'Jane'
 HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME = 'TestSmith'
-HOME_STATE_CHANGE_LICENSE_TYPE = 'cosmetologist'
+HOME_STATE_CHANGE_LICENSE_TYPE = 'licensed clinical social worker'
 HOME_STATE_CHANGE_FORMER_JURISDICTION = 'az'
 HOME_STATE_CHANGE_NEW_JURISDICTION = 'oh'
 
@@ -82,6 +82,7 @@ def _build_home_state_change_license_post_body(jurisdiction: str, date_of_issuan
             'dateOfIssuance': date_of_issuance,
             'ssn': HOME_STATE_CHANGE_MOCK_SSN,
             'licenseType': HOME_STATE_CHANGE_LICENSE_TYPE,
+            'licenseScope': 'single-state',
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': jurisdiction.upper(),
             'homeAddressCity': 'Omaha',

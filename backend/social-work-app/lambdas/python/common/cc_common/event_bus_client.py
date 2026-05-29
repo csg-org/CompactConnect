@@ -5,7 +5,7 @@ from uuid import UUID
 from marshmallow import ValidationError
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import InvestigationAgainstEnum
+from cc_common.data_model.schema.common import InvestigationAgainstEnum, LicenseScopeEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
     HomeJurisdictionChangeEventDetailSchema,
@@ -13,8 +13,11 @@ from cc_common.data_model.schema.data_event.api import (
     LicenseDeactivationDetailSchema,
     LicenseRevertDetailSchema,
 )
+from cc_common.data_model.schema.license.api import LicenseReportResponseSchema
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.utils import ResponseEncoder
+
+_license_report_schema = LicenseReportResponseSchema()
 
 
 class EventBusClient:
@@ -50,6 +53,70 @@ class EventBusClient:
         else:
             # If no event batch writer is provided, we'll use the default event bus client
             config.events_client.put_events(Entries=[event_entry])
+
+    @staticmethod
+    def _resolve_investigation_license_scope(
+        investigation_against: InvestigationAgainstEnum,
+        license_scope: str | None,
+    ) -> str:
+        if investigation_against == InvestigationAgainstEnum.LICENSE:
+            if not license_scope:
+                raise ValueError('license_scope is required when investigation_against is LICENSE')
+            return license_scope
+        return license_scope or LicenseScopeEnum.SINGLE_STATE.value
+
+    @staticmethod
+    def _build_license_validation_report_data(
+        license_record: dict,
+    ) -> dict:
+        """
+        Extract staff-report fields from a license dict for license.validation-error events.
+
+        Uses LicenseReportResponseSchema so ingest and bulk upload share the same validData shape.
+        """
+        try:
+            return _license_report_schema.load({**license_record})
+        except ValidationError as exc:
+            return exc.valid_data or {}
+
+    def generate_license_validation_error_event(
+        self,
+        source: str,
+        *,
+        compact: str,
+        jurisdiction: str,
+        license_record: dict,
+        errors: dict | list[str],
+        record_number: int | None = None,
+        event_time: datetime | None = None,
+    ) -> dict:
+        """
+        Generate a license validation error event entry for use with batch writers.
+
+        :param source: The source of the event
+        :param compact: The compact abbreviation
+        :param jurisdiction: The jurisdiction that uploaded the license
+        :param license_record: License data to include in validData (filtered via LicenseReportResponseSchema)
+        :param errors: Marshmallow e.messages (dict or list), passed through unchanged
+        :param record_number: The row number within the upload batch. Omit for single-license event-driven ingest.
+        :param event_time: Optional event timestamp (defaults to config.current_standard_datetime)
+        :returns: Event entry dict that can be used with EventBatchWriter
+        """
+        event_detail = {
+            'eventTime': (event_time or config.current_standard_datetime).isoformat(),
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            **(({'recordNumber': record_number}) if record_number is not None else {}),
+            'validData': self._build_license_validation_report_data(license_record),
+            'errors': errors,
+        }
+
+        return {
+            'Source': source,
+            'DetailType': 'license.validation-error',
+            'Detail': json.dumps(event_detail, cls=ResponseEncoder),
+            'EventBusName': config.event_bus_name,
+        }
 
     def generate_license_deactivation_event(
         self, source: str, compact: str, jurisdiction: str, provider_id: UUID, license_type: str
@@ -130,6 +197,7 @@ class EventBusClient:
         jurisdiction: str,
         adverse_action_id: UUID,
         license_type_abbreviation: str,
+        license_scope: str,
         effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
@@ -151,6 +219,7 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'adverseActionId': adverse_action_id,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': license_scope,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -173,6 +242,7 @@ class EventBusClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         effective_date: date,
         event_batch_writer: EventBatchWriter | None = None,
     ):
@@ -192,6 +262,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': license_scope,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -233,6 +304,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': LicenseScopeEnum.SINGLE_STATE.value,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -274,6 +346,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': LicenseScopeEnum.SINGLE_STATE.value,
             'effectiveDate': effective_date,
             'eventTime': config.current_standard_datetime,
         }
@@ -299,6 +372,7 @@ class EventBusClient:
         create_date: datetime,
         investigation_against: InvestigationAgainstEnum,
         investigation_id: UUID,
+        license_scope: str | None = None,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -319,6 +393,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseTypeAbbreviation': license_type_abbreviation,
+            'licenseScope': self._resolve_investigation_license_scope(investigation_against, license_scope),
             'investigationAgainst': investigation_against.value,
             'investigationId': investigation_id,
             'eventTime': create_date,
@@ -348,6 +423,7 @@ class EventBusClient:
         investigation_against: InvestigationAgainstEnum,
         investigation_id: UUID,
         adverse_action_id: UUID | None = None,
+        license_scope: str | None = None,
         event_batch_writer: EventBatchWriter | None = None,
     ):
         """
@@ -377,6 +453,8 @@ class EventBusClient:
         # Include adverseActionId if an encumbrance resulted from the investigation
         if adverse_action_id is not None:
             event_detail['adverseActionId'] = adverse_action_id
+
+        event_detail['licenseScope'] = self._resolve_investigation_license_scope(investigation_against, license_scope)
 
         investigation_detail_schema = InvestigationEventDetailSchema()
         deserialized_detail = investigation_detail_schema.dump(event_detail)

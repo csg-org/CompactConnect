@@ -261,9 +261,7 @@ def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict 
 
     search_after = cursor.get('search_after') if cursor else None
 
-    # For public search, we only match against licenses that are most recent
-    # for its license type. This value is set when the document is indexed into OpenSearch.
-    nested_must: list[dict] = [{'term': {'licenses.mostRecentLicenseForType': True}}]
+    nested_must: list[dict] = []
     if query_obj.get('licenseNumber'):
         nested_must.append({'term': {'licenses.licenseNumber': query_obj['licenseNumber']}})
     if query_obj.get('jurisdiction'):

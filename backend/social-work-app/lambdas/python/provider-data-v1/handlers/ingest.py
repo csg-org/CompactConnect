@@ -3,19 +3,29 @@ from copy import deepcopy
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
+from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema import LicenseRecordSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    CompactEligibilityStatus,
+    LicenseScopeEnum,
+    UpdateCategory,
+)
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
-from cc_common.data_model.schema.provider import ProviderData
 from cc_common.event_batch_writer import EventBatchWriter
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import sqs_handler
+from marshmallow.exceptions import SCHEMA
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
+
+MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE = (
+    'Multi-state license uploaded as compact eligible but the associated single-state license '
+    'in the same jurisdiction is ineligible.'
+)
 
 
 @sqs_handler
@@ -118,37 +128,41 @@ def ingest_license_message(message: dict):
             dynamo_transactions = []
 
             try:
-                provider_data = config.data_client.get_provider(
+                provider_user_records = config.data_client.get_provider_user_records(
                     compact=compact,
                     provider_id=provider_id,
-                    detail=True,
                     consistent_read=True,
                 )
-                provider_records = provider_data['items']
-
-                license_records = ProviderRecordUtility.get_records_of_type(
-                    provider_records,
-                    ProviderRecordType.LICENSE,
-                )
-                licenses_organized = {}
-                for record in license_records:
-                    licenses_organized.setdefault(record['jurisdiction'], {})
-                    licenses_organized[record['jurisdiction']][record['licenseType']] = record
-
-                # Parse the top level provider record into a data class instance
-                current_provider_record = ProviderData.create_new(
-                    ProviderRecordUtility.get_provider_record(provider_records)
-                )
-
+                existing_license_records = provider_user_records.get_license_records()
+                current_provider_record = provider_user_records.get_provider_record()
             except CCNotFoundException:
-                licenses_organized = {}
+                provider_user_records = None
+                existing_license_records = []
                 current_provider_record = None
 
-            # Set (or replace) the posted license for its jurisdiction
-            existing_license = licenses_organized.get(posted_license_record['jurisdiction'], {}).get(
-                posted_license_record['licenseType']
+            _check_for_multi_state_single_state_eligibility_validation_error(
+                posted_license_record=posted_license_record,
+                provider_user_records=provider_user_records,
+                data_events=data_events,
             )
-            if existing_license is not None:
+
+            # A license is uniquely identified for a provider by its jurisdiction, license type, and scope. This
+            # means a single-state and a multi-state license of the same type in the same jurisdiction are treated as
+            # two distinct records, rather than one overwriting the other.
+            def _matches_posted_license(license_record: LicenseData) -> bool:
+                return (
+                    license_record.jurisdiction == posted_license_record['jurisdiction']
+                    and license_record.licenseType == posted_license_record['licenseType']
+                    and license_record.licenseScope == posted_license_record['licenseScope']
+                )
+
+            # Set (or replace) the posted license for its jurisdiction, license type, and scope
+            existing_license_data = next(
+                (record for record in existing_license_records if _matches_posted_license(record)),
+                None,
+            )
+            if existing_license_data is not None:
+                existing_license = existing_license_data.to_dict()
                 _process_license_update(
                     existing_license=existing_license,
                     new_license=posted_license_record,
@@ -175,28 +189,34 @@ def ingest_license_message(message: dict):
                 }
             )
 
-            licenses_organized.setdefault(posted_license_record['jurisdiction'], {})
-            licenses_organized[posted_license_record['jurisdiction']][posted_license_record['licenseType']] = (
-                posted_license_record
-            )
-            licenses_flattened = [
-                license_record
-                for jurisdiction_licenses in licenses_organized.values()
-                for license_record in jurisdiction_licenses.values()
+            # Build the full set of the provider's known licenses, with this upload applied (the matching existing
+            # record, if any, is replaced by the posted record), so we can determine the most recently
+            # issued/renewed license.
+            known_licenses = [
+                record.to_dict() for record in existing_license_records if not _matches_posted_license(record)
             ]
+            known_licenses.append(posted_license_record)
 
+            # Find the best license for the provider based on the jurisdiction, license type, and scope.
             best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
-                license_records=licenses_flattened,
+                known_licenses, LicenseScopeEnum.MULTI_STATE
+            ) or ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+                known_licenses, LicenseScopeEnum.SINGLE_STATE
             )
+            if best_license is None:
+                error_message = 'No best license found for provider'
+                logger.error(error_message, provider_id=provider_id)
+                raise CCInternalException(error_message)
 
             if best_license is posted_license_record:
                 logger.info('Updating provider data')
 
-                # If this posted license is the most recent issued/renewed license for the provider,
-                # and it's from a different jurisdiction, send a home jurisdiction change notification event
-                # to notify the former home jurisdiction.
+                # If this posted license is the best license for the provider, it is a multi-state license, and it
+                # is from a different jurisdiction than the current provider record, send a home jurisdiction change
+                # notification event to notify the former home jurisdiction.
                 if (
                     current_provider_record
+                    and best_license['licenseScope'] == LicenseScopeEnum.MULTI_STATE.value
                     and current_provider_record.licenseJurisdiction != best_license['jurisdiction']
                 ):
                     logger.info(
@@ -235,6 +255,54 @@ def ingest_license_message(message: dict):
             with EventBatchWriter(config.events_client) as event_writer:
                 for event in data_events:
                     event_writer.put_event(Entry=event)
+
+
+def _check_for_multi_state_single_state_eligibility_validation_error(
+    *,
+    posted_license_record: dict,
+    provider_user_records: ProviderUserRecords | None,
+    data_events: list,
+):
+    """
+    Notify the uploading jurisdiction when a multi-state license is uploaded as compact-eligible but the
+    paired single-state license in the same jurisdiction is ineligible. The license is still persisted.
+    """
+    if posted_license_record['licenseScope'] != LicenseScopeEnum.MULTI_STATE.value:
+        return
+    if posted_license_record['jurisdictionUploadedCompactEligibility'] != CompactEligibilityStatus.ELIGIBLE:
+        return
+    if provider_user_records is None:
+        return
+
+    license_type_abbr = config.license_type_abbreviations[posted_license_record['compact']][
+        posted_license_record['licenseType']
+    ]
+    associated_single_state_license = provider_user_records.get_specific_license_record(
+        posted_license_record['jurisdiction'],
+        license_type_abbr,
+        LicenseScopeEnum.SINGLE_STATE.value,
+    )
+    if associated_single_state_license is None:
+        return
+    if associated_single_state_license.compactEligibility != CompactEligibilityStatus.INELIGIBLE:
+        return
+
+    logger.info(
+        'Multi-state license uploaded as eligible but associated single-state license is ineligible. '
+        'Publishing license validation error event.',
+        provider_id=posted_license_record['providerId'],
+        jurisdiction=posted_license_record['jurisdiction'],
+        license_type=posted_license_record['licenseType'],
+    )
+    data_events.append(
+        config.event_bus_client.generate_license_validation_error_event(
+            'org.compactconnect.provider-data',
+            compact=posted_license_record['compact'],
+            jurisdiction=posted_license_record['jurisdiction'],
+            license_record=posted_license_record,
+            errors={SCHEMA: [MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE]},
+        )
+    )
 
 
 def _process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list, data_events: list):

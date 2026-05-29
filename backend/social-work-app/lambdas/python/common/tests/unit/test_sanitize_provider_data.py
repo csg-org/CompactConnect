@@ -57,9 +57,10 @@ class TestSanitizeProviderData(TstLambdas):
         # now create expected provider record with the ssn and dob removed
         del expected_provider['ssnLastFour']
         del expected_provider['dateOfBirth']
-        # also remove the ssn from the license record
-        del expected_provider['licenses'][0]['ssnLastFour']
-        del expected_provider['licenses'][0]['dateOfBirth']
+        # also remove the ssn from the license records
+        for license_record in expected_provider['licenses']:
+            del license_record['ssnLastFour']
+            del license_record['dateOfBirth']
 
         self.assertEqual(expected_provider, resp)
 

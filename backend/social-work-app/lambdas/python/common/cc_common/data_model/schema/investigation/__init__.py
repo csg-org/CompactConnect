@@ -5,6 +5,8 @@ from uuid import UUID
 from cc_common.data_model.schema.common import (
     CCDataClass,
     InvestigationAgainstEnum,
+    license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.investigation.record import InvestigationRecordSchema
 
@@ -23,7 +25,7 @@ class InvestigationData(CCDataClass):
 
     @staticmethod
     def generate_pk(compact: str, provider_id: UUID):
-        return f'{compact}#PROVIDER#{provider_id}'
+        return provider_pk(compact, provider_id)
 
     @staticmethod
     def generate_sk(
@@ -31,12 +33,11 @@ class InvestigationData(CCDataClass):
         investigation_against: InvestigationAgainstEnum,
         jurisdiction: str,
         license_type_abbr: str,
+        license_scope: str,
         investigation_id: UUID,
     ):
-        return (
-            f'{compact}#PROVIDER#{investigation_against}/{jurisdiction}/{license_type_abbr}#'
-            f'INVESTIGATION#{investigation_id}'
-        )
+        suffix = license_sk_suffix(jurisdiction, license_type_abbr, license_scope)
+        return f'{compact}#PROVIDER#{investigation_against}/{suffix}#INVESTIGATION#{investigation_id}'
 
     @property
     def pk(self):
@@ -57,6 +58,8 @@ class InvestigationData(CCDataClass):
             raise ValueError('Cannot calculate sk if jurisdiction is not set')
         if self.licenseTypeAbbreviation is None:
             raise ValueError('Cannot calculate sk if licenseType is not set')
+        if self.licenseScope is None:
+            raise ValueError('Cannot calculate sk if licenseScope is not set')
         if self.investigationId is None:
             raise ValueError('Cannot calculate sk if investigationId is not set')
         return self.generate_sk(
@@ -64,6 +67,7 @@ class InvestigationData(CCDataClass):
             investigation_against=self.investigationAgainst,
             jurisdiction=self.jurisdiction,
             license_type_abbr=self.licenseTypeAbbreviation,
+            license_scope=self.licenseScope,
             investigation_id=self.investigationId,
         )
 
@@ -98,6 +102,14 @@ class InvestigationData(CCDataClass):
     @licenseType.setter
     def licenseType(self, value: str) -> None:
         self._data['licenseType'] = value
+
+    @property
+    def licenseScope(self) -> str:
+        return self._data['licenseScope']
+
+    @licenseScope.setter
+    def licenseScope(self, value: str) -> None:
+        self._data['licenseScope'] = value
 
     @property
     def investigationAgainst(self) -> str:

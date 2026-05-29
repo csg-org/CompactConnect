@@ -137,6 +137,7 @@ class TestDataGenerator:
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
             'licenseType': DEFAULT_LICENSE_TYPE,
+            'licenseScope': 'single-state',
             'actionAgainst': DEFAULT_ACTION_AGAINST_PRIVILEGE,
             'encumbranceType': DEFAULT_ENCUMBRANCE_TYPE,
             'clinicalPrivilegeActionCategories': [DEFAULT_CLINICAL_PRIVILEGE_ACTION_CATEGORY],
@@ -160,6 +161,7 @@ class TestDataGenerator:
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
             'licenseType': DEFAULT_LICENSE_TYPE,
+            'licenseScope': 'single-state',
             'investigationAgainst': DEFAULT_INVESTIGATION_AGAINST_PRIVILEGE,
             'createDate': date.fromisoformat(DEFAULT_INVESTIGATION_START_DATE),
             'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
@@ -198,6 +200,7 @@ class TestDataGenerator:
             'type': LICENSE_RECORD_TYPE,
             'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
+            'licenseScope': DEFAULT_LICENSE_SCOPE,
             'licenseNumber': DEFAULT_LICENSE_NUMBER,
             'ssnLastFour': DEFAULT_SSN_LAST_FOUR,
             'givenName': DEFAULT_GIVEN_NAME,
@@ -236,6 +239,49 @@ class TestDataGenerator:
         TestDataGenerator.store_record_in_provider_table(license_record)
 
         return license_data
+
+    @staticmethod
+    def put_default_license_pair_in_provider_table(
+        value_overrides: dict | None = None,
+        *,
+        single_extra: dict | None = None,
+        multi_extra: dict | None = None,
+        date_of_update_override: str | None = None,
+    ) -> LicenseData:
+        """
+        Store active single-state and multi-state licenses in the same jurisdiction.
+
+        Returns the multi-state license, which is the privilege home when pairing requirements are met.
+
+        :param value_overrides: Optional overrides for the license record
+        :param single_extra: Optional overrides for the single-state license
+        :param multi_extra: Optional overrides for the multi-state license
+        :param date_of_update_override: Optional date of update to be shown on the license record
+        :return: The multi-state license that was stored
+        """
+        base = dict(value_overrides or {})
+        license_number = base.pop('licenseNumber', DEFAULT_LICENSE_NUMBER)
+        single_overrides = {
+            **base,
+            'licenseScope': 'single-state',
+            'licenseNumber': f'{license_number}-SS',
+        }
+        multi_overrides = {
+            **base,
+            'licenseScope': 'multi-state',
+            'licenseNumber': f'{license_number}-MS',
+        }
+        if single_extra:
+            single_overrides.update(single_extra)
+        if multi_extra:
+            multi_overrides.update(multi_extra)
+
+        TestDataGenerator.put_default_license_record_in_provider_table(
+            single_overrides, date_of_update_override=date_of_update_override
+        )
+        return TestDataGenerator.put_default_license_record_in_provider_table(
+            multi_overrides, date_of_update_override=date_of_update_override
+        )
 
     @staticmethod
     def generate_default_license_update(

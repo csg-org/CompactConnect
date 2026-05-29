@@ -17,7 +17,7 @@ from . import TstFunction
 MOCK_SOCW_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 TEST_LICENSE_TYPE_MAPPING = {
-    'socw': 'cosmetologist',
+    'socw': 'licensed clinical social worker',
 }
 TEST_PROVIDER_ID_MAPPING = {
     'socw': MOCK_SOCW_PROVIDER_ID,
@@ -143,7 +143,7 @@ class TestProviderUpdateIngest(TstFunction):
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'birthMonthDay': '06-06',
             'adverseActions': [],
-            'documentId': f'{provider_id}#oh#{license_type}',
+            'documentId': f'{provider_id}#oh#{license_type}#single-state',
             'licenses': [
                 {
                     'providerId': provider_id,
@@ -152,6 +152,7 @@ class TestProviderUpdateIngest(TstFunction):
                     'compact': compact,
                     'jurisdiction': 'oh',
                     'licenseType': license_type,
+                    'licenseScope': 'single-state',
                     'licenseStatusName': 'DEFINITELY_A_HUMAN',
                     'licenseStatus': 'inactive',
                     'jurisdictionUploadedLicenseStatus': 'active',
@@ -160,7 +161,6 @@ class TestProviderUpdateIngest(TstFunction):
                     'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
-                    'mostRecentLicenseForType': True,
                     'familyName': f'test{compact}FamilyName',
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
@@ -252,7 +252,8 @@ class TestProviderUpdateIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, result)
 
     def _put_provider_with_two_socw_licenses_oh_newer_than_ky(self):
-        """Provider + OH cosmetologist (default dates) + KY cosmetologist (older issuance/renewal)."""
+        """Provider + OH licensed clinical social worker (default dates) + KY licensed
+        clinical social worker (older issuance/renewal)."""
         self.test_data_generator.put_default_provider_record_in_provider_table(
             value_overrides={
                 'compact': 'socw',
@@ -288,43 +289,6 @@ class TestProviderUpdateIngest(TstFunction):
             },
             date_of_update_override=DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
         )
-
-    @patch('handlers.provider_update_ingest.opensearch_client')
-    def test_home_state_license_is_set_as_most_recent(self, mock_opensearch_client):
-        """Documents for providers with multiple licenses have the home state license indexed with
-        mostRecentLicenseForType set to true. All other licenses have mostRecentLicenseForType set to false."""
-        from handlers.provider_update_ingest import provider_update_ingest_handler
-
-        self._when_testing_mock_opensearch_client(mock_opensearch_client)
-        self._put_provider_with_two_socw_licenses_oh_newer_than_ky()
-
-        event = {
-            'Records': [
-                {
-                    'messageId': '12345',
-                    'body': json.dumps(
-                        self._create_dynamodb_stream_record(
-                            compact='socw',
-                            provider_id=MOCK_SOCW_PROVIDER_ID,
-                            sequence_number='some-sequence-number',
-                        )
-                    ),
-                }
-            ]
-        }
-
-        mock_context = MagicMock()
-        result = provider_update_ingest_handler(event, mock_context)
-
-        self.assertEqual({'batchItemFailures': []}, result)
-        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
-        documents = mock_opensearch_client.bulk_index.call_args.kwargs['documents']
-        self.assertEqual(2, len(documents))
-        documents_by_id = {doc['documentId']: doc for doc in documents}
-        oh_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#cosmetologist'
-        ky_id = f'{MOCK_SOCW_PROVIDER_ID}#ky#cosmetologist'
-        self.assertTrue(documents_by_id[oh_id]['licenses'][0]['mostRecentLicenseForType'])
-        self.assertFalse(documents_by_id[ky_id]['licenses'][0]['mostRecentLicenseForType'])
 
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_provider_ids_are_deduped_only_one_document_indexed(self, mock_opensearch_client):
@@ -429,7 +393,7 @@ class TestProviderUpdateIngest(TstFunction):
         """Test that a record which fails to be indexed by OpenSearch is in batchItemFailures."""
         from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        document_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#cosmetologist'
+        document_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#licensed clinical social worker#single-state'
         mock_opensearch_client.bulk_index.return_value = {
             'errors': True,
             'items': [

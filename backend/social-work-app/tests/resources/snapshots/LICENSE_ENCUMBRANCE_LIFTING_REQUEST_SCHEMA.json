@@ -6,10 +6,18 @@
       "format": "date",
       "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
       "type": "string"
+    },
+    "licenseScope": {
+      "enum": [
+        "single-state",
+        "multi-state"
+      ],
+      "type": "string"
     }
   },
   "required": [
-    "effectiveLiftDate"
+    "effectiveLiftDate",
+    "licenseScope"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

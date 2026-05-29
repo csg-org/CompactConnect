@@ -10,6 +10,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     Jurisdiction,
+    LicenseScopeField,
 )
 from cc_common.data_model.schema.license.common import LicenseCommonSchema
 
@@ -77,6 +78,7 @@ class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     dateOfIssuance = Date(required=True, allow_none=False)

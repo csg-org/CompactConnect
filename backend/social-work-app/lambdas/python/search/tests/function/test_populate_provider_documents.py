@@ -15,7 +15,7 @@ from . import TstFunction
 MOCK_SOCW_PROVIDER_ID = '00000000-0000-0000-0000-000000000001'
 
 test_license_type_mapping = {
-    'socw': 'cosmetologist',
+    'socw': 'licensed clinical social worker',
 }
 test_provider_id_mapping = {
     'socw': MOCK_SOCW_PROVIDER_ID,
@@ -100,7 +100,7 @@ class TestPopulateProviderDocuments(TstFunction):
             'jurisdictionUploadedCompactEligibility': 'eligible',
             'birthMonthDay': '06-06',
             'adverseActions': [],
-            'documentId': f'{provider_id}#oh#{license_type}',
+            'documentId': f'{provider_id}#oh#{license_type}#single-state',
             'licenses': [
                 {
                     'providerId': provider_id,
@@ -109,6 +109,7 @@ class TestPopulateProviderDocuments(TstFunction):
                     'compact': compact,
                     'jurisdiction': 'oh',
                     'licenseType': license_type,
+                    'licenseScope': 'single-state',
                     'licenseStatusName': 'DEFINITELY_A_HUMAN',
                     'licenseStatus': 'inactive',
                     'jurisdictionUploadedLicenseStatus': 'active',
@@ -117,7 +118,6 @@ class TestPopulateProviderDocuments(TstFunction):
                     'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
-                    'mostRecentLicenseForType': True,
                     'familyName': f'test{compact}FamilyName',
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,

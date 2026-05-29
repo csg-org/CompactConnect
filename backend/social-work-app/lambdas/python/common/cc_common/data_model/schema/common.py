@@ -382,6 +382,21 @@ class EncumbranceType(CCEnum):
     SURRENDER_OF_LICENSE = 'surrender of license'
 
 
+class LicenseScopeEnum(CCEnum):
+    SINGLE_STATE = 'single-state'
+    MULTI_STATE = 'multi-state'
+
+
+def provider_pk(compact: str, provider_id) -> str:
+    """Return the partition key shared by provider-scoped records in the provider data table."""
+    return f'{compact}#PROVIDER#{provider_id}'
+
+
+def license_sk_suffix(jurisdiction: str, license_type_abbr: str, license_scope: str) -> str:
+    """Return the jurisdiction/type/scope segment used in license-related sort keys."""
+    return f'{jurisdiction}/{license_type_abbr.lower()}/{license_scope}'
+
+
 class ClinicalPrivilegeActionCategory(CCEnum):
     """Enum for adverse action clinical privilege action categories."""
 

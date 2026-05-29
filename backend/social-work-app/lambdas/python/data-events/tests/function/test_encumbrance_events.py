@@ -34,6 +34,7 @@ class TestEncumbranceEvents(TstFunction):
                 'providerId': DEFAULT_PROVIDER_ID,
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'effectiveDate': DEFAULT_EFFECTIVE_DATE,
                 'adverseActionId': DEFAULT_ADVERSE_ACTION_ID,
@@ -60,6 +61,7 @@ class TestEncumbranceEvents(TstFunction):
                 'providerId': DEFAULT_PROVIDER_ID,
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'effectiveDate': DEFAULT_EFFECTIVE_DATE,
             }
@@ -96,7 +98,7 @@ class TestEncumbranceEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
@@ -104,7 +106,7 @@ class TestEncumbranceEvents(TstFunction):
             provider_first_name='Björk',
             provider_last_name='Guðmundsdóttir',
             encumbered_jurisdiction='ne',
-            license_type='cosmetologist',
+            license_type='licensed clinical social worker',
             effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
             provider_id=UUID(DEFAULT_PROVIDER_ID),
         )
@@ -167,7 +169,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -223,7 +225,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -264,7 +266,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -317,7 +319,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -374,7 +376,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -422,6 +424,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': license_effective_lift_date,
                 'jurisdiction': 'co',
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -460,7 +463,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=license_effective_lift_date,
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -496,6 +499,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': license_effective_lift_date,
                 'jurisdiction': 'co',
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -534,7 +538,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='ne',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=license_effective_lift_date,
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -592,7 +596,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -636,7 +640,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -696,7 +700,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -741,7 +745,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -766,6 +770,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -796,7 +801,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -837,6 +842,7 @@ class TestEncumbranceEvents(TstFunction):
                 'actionAgainst': 'license',
                 'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                 'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseScope': 'single-state',
                 'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                 'licenseType': DEFAULT_LICENSE_TYPE,
             }
@@ -867,7 +873,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -920,6 +926,7 @@ class TestEncumbranceEvents(TstFunction):
                     'actionAgainst': 'license',
                     'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                    'licenseScope': 'single-state',
                     'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
                     'licenseType': DEFAULT_LICENSE_TYPE,
                 }
@@ -951,7 +958,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -965,7 +972,7 @@ class TestEncumbranceEvents(TstFunction):
                     provider_first_name='Björk',
                     provider_last_name='Guðmundsdóttir',
                     encumbered_jurisdiction='oh',
-                    license_type='cosmetologist',
+                    license_type='licensed clinical social worker',
                     effective_date=date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
                     provider_id=UUID(DEFAULT_PROVIDER_ID),
                 ),
@@ -1046,6 +1053,50 @@ class TestEncumbranceEvents(TstFunction):
         self._when_testing_privilege_lift_handler_with_encumbered_privilege(
             PrivilegeEncumberedStatusEnum.LICENSE_ENCUMBERED, mock_state_email
         )
+
+    @patch(
+        'cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_lifting_state_notification_email'
+    )
+    def test_privilege_encumbrance_lifting_skips_when_multi_state_home_license_encumbered(self, mock_state_email):
+        """Privilege lift skips notifications when the multi-state home license is encumbered, even if single-state is
+        more recent and clear of encumbrances."""
+        from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener
+
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'dateOfIssuance': date(2010, 1, 1),
+                'dateOfRenewal': date(2020, 1, 1),
+                'encumberedStatus': 'encumbered',
+            }
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'licenseScope': 'single-state',
+                'licenseNumber': 'A0608337260',
+                'dateOfIssuance': date(2024, 1, 1),
+                'dateOfRenewal': date(2026, 1, 1),
+            }
+        )
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            value_overrides={
+                'actionAgainst': 'privilege',
+                'effectiveLiftDate': date.fromisoformat(DEFAULT_EFFECTIVE_DATE),
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'licenseTypeAbbreviation': DEFAULT_LICENSE_TYPE_ABBREVIATION,
+                'licenseType': DEFAULT_LICENSE_TYPE,
+            }
+        )
+
+        message = self._generate_privilege_encumbrance_lifting_message()
+        event = self._create_sqs_event(message)
+
+        result = privilege_encumbrance_lifting_notification_listener(event, self.mock_context)
+
+        self.assertEqual({'batchItemFailures': []}, result)
+        mock_state_email.assert_not_called()
 
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_lifting_state_notification_email'
