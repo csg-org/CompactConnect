@@ -752,7 +752,6 @@ class ProviderUserRecords:
                 if is_most_recent_license_for_type
                 else []
             )
-            license_dict['mostRecentLicenseForType'] = is_most_recent_license_for_type
 
             doc = dict(provider_dict)
             doc['licenses'] = [license_dict]

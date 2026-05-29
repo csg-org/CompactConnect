@@ -78,7 +78,6 @@ def _opensearch_license_snippets(docs: list[dict]) -> list[dict]:
                 'jurisdiction': doc['licenses'][0]['jurisdiction'],
                 'licenseScope': doc['licenses'][0]['licenseScope'],
                 'licenseType': doc['licenses'][0]['licenseType'],
-                'mostRecentLicenseForType': doc['licenses'][0]['mostRecentLicenseForType'],
                 'privileges': doc['privileges'],
             }
             for doc in docs
@@ -915,14 +914,12 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'oh',
                     'licenseScope': 'multi-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': True,
                     'privileges': expected_privileges,
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'single-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
             ],
@@ -970,28 +967,24 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'al',
                     'licenseScope': 'multi-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': True,
                     'privileges': lcsw_privileges,
                 },
                 {
                     'jurisdiction': 'al',
                     'licenseScope': 'single-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'multi-state',
                     'licenseType': lmsw,
-                    'mostRecentLicenseForType': True,
                     'privileges': lmsw_privileges,
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'single-state',
                     'licenseType': lmsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
             ],
@@ -1000,7 +993,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
 
     def test_three_licenses_two_same_type_one_other_sets_most_recent_per_type(self):
         """Two licensed clinical social worker licenses + one licensed master social worker: each type's most recent
-        license shows mostRecentLicenseForType true."""
+        license shows privileges on the multi-state home document."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus
 
@@ -1044,21 +1037,18 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'ky',
                     'licenseScope': 'multi-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
                 {
                     'jurisdiction': 'ky',
                     'licenseScope': 'single-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'multi-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': True,
                     'privileges': [
                         _privilege_row('al', 'oh', lcsw),
                         _privilege_row('ky', 'oh', lcsw),
@@ -1068,14 +1058,12 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'oh',
                     'licenseScope': 'single-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
                 {
                     'jurisdiction': 'al',
                     'licenseScope': 'multi-state',
                     'licenseType': lmsw,
-                    'mostRecentLicenseForType': True,
                     'privileges': [
                         _privilege_row('ky', 'al', lmsw),
                         _privilege_row('oh', 'al', lmsw),
@@ -1085,7 +1073,6 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'al',
                     'licenseScope': 'single-state',
                     'licenseType': lmsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
             ],
@@ -1093,7 +1080,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         )
 
     def test_opensearch_privileges_only_on_multi_state_privilege_home(self):
-        """Privileges and mostRecentLicenseForType apply only to the multi-state privilege-home document."""
+        """Privileges apply only to the multi-state privilege-home document."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus, LicenseScopeEnum
 
@@ -1149,28 +1136,24 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'al',
                     'licenseScope': 'multi-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
                 {
                     'jurisdiction': 'al',
                     'licenseScope': 'single-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'multi-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': True,
                     'privileges': oh_privileges,
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'single-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
             ],
@@ -1218,14 +1201,12 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'oh',
                     'licenseScope': 'multi-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': True,
                     'privileges': expected_privileges,
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'single-state',
                     'licenseType': license_type,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
             ],
@@ -1254,7 +1235,6 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'al',
                     'licenseScope': 'multi-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': True,
                     'privileges': [
                         _privilege_row('ky', 'al', lcsw),
                         _privilege_row('oh', 'al', lcsw),
@@ -1264,14 +1244,12 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'al',
                     'licenseScope': 'single-state',
                     'licenseType': lcsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
                 {
                     'jurisdiction': 'oh',
                     'licenseScope': 'multi-state',
                     'licenseType': lmsw,
-                    'mostRecentLicenseForType': True,
                     'privileges': [
                         _privilege_row('al', 'oh', lmsw),
                         _privilege_row('ky', 'oh', lmsw),
@@ -1281,7 +1259,6 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
                     'jurisdiction': 'oh',
                     'licenseScope': 'single-state',
                     'licenseType': lmsw,
-                    'mostRecentLicenseForType': False,
                     'privileges': [],
                 },
             ],

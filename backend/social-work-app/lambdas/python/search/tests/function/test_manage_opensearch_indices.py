@@ -261,7 +261,6 @@ class TestOpenSearchIndexManager(TstFunction):
                                         'fields': {'keyword': {'ignore_above': 256, 'type': 'keyword'}},
                                         'type': 'text',
                                     },
-                                    'mostRecentLicenseForType': {'type': 'boolean'},
                                     'phoneNumber': {'type': 'keyword'},
                                     'providerId': {'type': 'keyword'},
                                     'suffix': {'type': 'keyword'},

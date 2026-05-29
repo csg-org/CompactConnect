@@ -11,9 +11,6 @@ from moto import mock_aws
 
 from . import TstFunction
 
-# Public search always scopes nested license clauses to the per-type "home" indexed row.
-_MOST_RECENT_LICENSE_FOR_TYPE_TERM = {'term': {'licenses.mostRecentLicenseForType': True}}
-
 _DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_ASC = [
     {'licenses.familyName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
     {'licenses.givenName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
@@ -151,7 +148,6 @@ class TestPublicSearchProviders(TstFunction):
             'homeAddressCity': 'Columbus',
             'homeAddressState': 'oh',
             'homeAddressPostalCode': '43004',
-            'mostRecentLicenseForType': True,
             'adverseActions': adverse_actions if adverse_actions is not None else [],
             'investigations': [],
         }
@@ -295,7 +291,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'term': {'licenses.licenseNumber': 'LN999'}},
                 ],
             ),
@@ -322,7 +317,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'term': {'licenses.jurisdiction': 'oh'}},
                     {'match': {'licenses.familyName': 'Smith'}},
                 ],
@@ -347,7 +341,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'match': {'licenses.familyName': 'Jones'}},
                 ],
             ),
@@ -371,7 +364,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'match': {'licenses.familyName': 'Doe'}},
                 ],
             ),
@@ -398,7 +390,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'match': {'licenses.familyName': 'Doe'}},
                 ],
             ),
@@ -431,7 +422,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'match': {'licenses.familyName': 'Doe'}},
                 ],
                 sort=_DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_DESC,
@@ -465,7 +455,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'term': {'licenses.licenseNumber': 'LN999'}},
                 ],
                 sort=_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_ASC,
@@ -499,7 +488,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'term': {'licenses.licenseNumber': 'LN999'}},
                 ],
                 sort=_PUBLIC_SEARCH_SORT_DATE_OF_UPDATE_DESC,
@@ -525,7 +513,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'term': {'licenses.jurisdiction': 'oh'}},
                 ],
             ),
@@ -586,7 +573,7 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(200, response['statusCode'])
         call_body = mock_opensearch_client.search.call_args.kwargs['body']
         self.assertEqual(
-            self._expected_public_search_request_body(licenses_nested_must=[_MOST_RECENT_LICENSE_FOR_TYPE_TERM]),
+            self._expected_public_search_request_body(licenses_nested_must=[]),
             call_body,
         )
         body = json.loads(response['body'])
@@ -645,7 +632,6 @@ class TestPublicSearchProviders(TstFunction):
         self.assertEqual(
             self._expected_public_search_request_body(
                 licenses_nested_must=[
-                    _MOST_RECENT_LICENSE_FOR_TYPE_TERM,
                     {'match': {'licenses.familyName': 'Doe'}},
                 ],
                 page_size=25,

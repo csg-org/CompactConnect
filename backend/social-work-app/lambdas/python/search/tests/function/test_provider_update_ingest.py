@@ -161,7 +161,6 @@ class TestProviderUpdateIngest(TstFunction):
                     'licenseNumber': 'A0608337260',
                     'givenName': f'test{compact}GivenName',
                     'middleName': 'Gunnar',
-                    'mostRecentLicenseForType': True,
                     'familyName': f'test{compact}FamilyName',
                     'dateOfIssuance': DEFAULT_LICENSE_ISSUANCE_DATE,
                     'dateOfRenewal': DEFAULT_LICENSE_RENEWAL_DATE,
@@ -291,42 +290,7 @@ class TestProviderUpdateIngest(TstFunction):
             date_of_update_override=DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
         )
 
-    @patch('handlers.provider_update_ingest.opensearch_client')
-    def test_home_state_license_is_set_as_most_recent(self, mock_opensearch_client):
-        """Documents for providers with multiple licenses have the home state license indexed with
-        mostRecentLicenseForType set to true. All other licenses have mostRecentLicenseForType set to false."""
-        from handlers.provider_update_ingest import provider_update_ingest_handler
 
-        self._when_testing_mock_opensearch_client(mock_opensearch_client)
-        self._put_provider_with_two_socw_licenses_oh_newer_than_ky()
-
-        event = {
-            'Records': [
-                {
-                    'messageId': '12345',
-                    'body': json.dumps(
-                        self._create_dynamodb_stream_record(
-                            compact='socw',
-                            provider_id=MOCK_SOCW_PROVIDER_ID,
-                            sequence_number='some-sequence-number',
-                        )
-                    ),
-                }
-            ]
-        }
-
-        mock_context = MagicMock()
-        result = provider_update_ingest_handler(event, mock_context)
-
-        self.assertEqual({'batchItemFailures': []}, result)
-        self.assertEqual(1, mock_opensearch_client.bulk_index.call_count)
-        documents = mock_opensearch_client.bulk_index.call_args.kwargs['documents']
-        self.assertEqual(2, len(documents))
-        documents_by_id = {doc['documentId']: doc for doc in documents}
-        oh_id = f'{MOCK_SOCW_PROVIDER_ID}#oh#licensed clinical social worker#single-state'
-        ky_id = f'{MOCK_SOCW_PROVIDER_ID}#ky#licensed clinical social worker#single-state'
-        self.assertTrue(documents_by_id[oh_id]['licenses'][0]['mostRecentLicenseForType'])
-        self.assertFalse(documents_by_id[ky_id]['licenses'][0]['mostRecentLicenseForType'])
 
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_provider_ids_are_deduped_only_one_document_indexed(self, mock_opensearch_client):

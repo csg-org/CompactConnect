@@ -244,17 +244,11 @@ class LicenseOpenSearchDocumentSchema(LicenseGeneralResponseSchema):
     authorized staff users to search providers by date of birth. This schema
     is used only for indexing into OpenSearch, not for API responses.
 
-    Additionally, this schema includes the mostRecentLicenseForType field to indicate
-    the most recent license for the provider for a specific license type. This
-    allows for filtering public search results by the most recent licenses for
-    the provider.
-
     Serialization direction:
     Python -> load() -> OpenSearch document
     """
 
     dateOfBirth = Raw(required=False, allow_none=False)
-    mostRecentLicenseForType = Boolean(required=False, allow_none=False, load_default=False)
 
 
 class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
