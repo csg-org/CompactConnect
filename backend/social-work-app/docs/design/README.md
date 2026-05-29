@@ -336,18 +336,14 @@ Because the list of privilege records for practitioners is dynamically determine
 
 ### Privilege Runtime Generation for Multi-State Licenses
 
-When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the user to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that license has an **eligible single-state** license in the same jurisdiction and license type. Privileges are then generated from that multi-state home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license lacks a paired active single-state license in the same jurisdiction, no privileges are generated for that license type (there is no fallback to an older jurisdiction). 
-
-This means that if a practitioner has two licenses from two different states, if one is eligible for privileges and the other is not, the system will only generate privileges for that practitioner if the most recently issued/renewed license is eligible for privileges.
+When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the practitioner to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that multi-state license has an active and eligible single-state license in the same jurisdiction and license type. Privileges are then generated from that multi-state home license only when that pairing exists: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license lacks an active and eligible single-state license in the same jurisdiction and license type, no privileges are generated for that license type (there is no fallback to an older jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is the one with the pairing.
 
 The following flow describes how the home state license is assigned.
 
 ([Social Work Practitioner License Assignment Flow](./practitioner-home-state-license-assignment.pdf))
 
-
-Licenses are **grouped by license type**. For each type, the system picks the **most recently renewed license** as the effective “home” license for that type. If date of renewal cannot be determined for either license, it falls back to use the most recent date of issuance.
-
-For each such home license (per type), the system generates **one privilege per live compact jurisdiction** except the home jurisdiction. Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for that jurisdiction and license type.
+Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for 
+that jurisdiction and license type.
 
 ### Overview of Privilege System
 
