@@ -13,7 +13,6 @@ from cc_common.data_model.schema.license.api import (
 )
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException
-
 from cc_common.utils import (
     ResponseEncoder,
     api_handler,
@@ -23,7 +22,6 @@ from cc_common.utils import (
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
 from marshmallow.exceptions import SCHEMA
-
 
 
 @api_handler

@@ -10,6 +10,7 @@ from marshmallow import ValidationError
 
 schema = LicensePostRequestSchema()
 
+
 @api_handler
 @optional_signature_auth
 @authorize_compact_jurisdiction(action='write')

@@ -6,7 +6,7 @@ Schema for API objects.
 from datetime import date
 
 from marshmallow import ValidationError, pre_load, validates_schema
-from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config

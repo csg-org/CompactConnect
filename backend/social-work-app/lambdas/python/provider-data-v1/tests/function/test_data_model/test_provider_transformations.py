@@ -34,13 +34,13 @@ class TestTransformations(TstFunction):
             multi_state_license_post = json.load(f)
         license_ssn = license_post['ssn']
 
-        for license_post in (license_post, multi_state_license_post):
+        for license_record in (license_post, multi_state_license_post):
             # The API Gateway event, as it is presented to the API lambda
             with open('../common/tests/resources/api-event.json') as f:
                 event = json.load(f)
 
             # Pack an array of one license into the request body
-            event['body'] = json.dumps([license_post])
+            event['body'] = json.dumps([license_record])
 
             # Compact and jurisdiction are provided via path parameters
             event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}

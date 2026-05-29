@@ -290,8 +290,6 @@ class TestProviderUpdateIngest(TstFunction):
             date_of_update_override=DEFAULT_LICENSE_UPDATE_DATE_OF_UPDATE,
         )
 
-
-
     @patch('handlers.provider_update_ingest.opensearch_client')
     def test_provider_ids_are_deduped_only_one_document_indexed(self, mock_opensearch_client):
         """Test that duplicate provider IDs in the batch are deduplicated."""
