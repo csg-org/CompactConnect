@@ -401,8 +401,8 @@ class TestLicenses(TstFunction):
             {
                 'message': 'Invalid license records in request. See errors for more detail.',
                 'errors': {
-                    'SSN': 'Same SSN for the same license type detected on multiple rows. '
-                    'Every record must have a unique SSN per license type within the same request.',
+                    'SSN': 'Same SSN, license type, and license scope detected on multiple rows. '
+                    'Every record must have a unique SSN per license type and scope within the same request.',
                 },
             },
             json.loads(resp['body']),

@@ -2,6 +2,7 @@ import json
 from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
+from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
 from .. import TstFunction
@@ -819,3 +820,70 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
         self.assertEqual('oh', provider_data['licenseJurisdiction'])
         self.assertEqual('Björk', provider_data['givenName'])
+
+    def test_multi_state_license_does_not_overwrite_existing_single_state_license(self):
+        """
+        Test that ingesting a multi-state license creates a distinct record when the provider already has a
+        single-state license of the same license type in the same jurisdiction.
+
+        A single-state and a multi-state license are uniquely different records (a multi-state license grants a
+        practitioner privileges across the compact, while a single-state license does not). Ingesting the
+        multi-state license must therefore NOT overwrite or update the existing single-state license - both must be
+        persisted as separate records.
+        """
+        from handlers.ingest import ingest_license_message
+
+        # First, ingest a single-state licensed clinical social worker license in 'oh'
+        provider_id = self._with_ingested_license()
+
+        provider_data_after_first_license = self._get_provider_via_api(provider_id)
+        self.assertEqual(1, len(provider_data_after_first_license['licenses']))
+        self.assertEqual('single-state', provider_data_after_first_license['licenses'][0]['licenseScope'])
+
+        # Now ingest a multi-state license for the same provider, same license type and jurisdiction
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',  # Different license number than the single-state license
+            }
+        )
+
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Both the single-state and multi-state licenses should be present as distinct records
+        provider_data = self._get_provider_via_api(provider_id)
+        self.assertEqual(2, len(provider_data['licenses']))
+
+        single_state_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseScope'] == 'single-state'), None
+        )
+        multi_state_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseScope'] == 'multi-state'), None
+        )
+        self.assertIsNotNone(single_state_license, 'single-state license not found')
+        self.assertIsNotNone(multi_state_license, 'multi-state license not found')
+
+        # Both licenses share the same type and jurisdiction, but are distinguished by scope and license number
+        for license_record in (single_state_license, multi_state_license):
+            self.assertEqual('licensed clinical social worker', license_record['licenseType'])
+            self.assertEqual('oh', license_record['jurisdiction'])
+
+        # The original single-state license must be untouched by the multi-state ingest
+        self.assertEqual('A0608337260', single_state_license['licenseNumber'])
+        self.assertEqual('B0608337260', multi_state_license['licenseNumber'])
+
+        # Ingesting the multi-state license creates a new license record rather than updating the existing
+        # single-state license, so exactly two license records exist and no licenseUpdate record was written.
+        provider_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}'),
+        )['Items']
+        license_records = [record for record in provider_records if record['type'] == 'license']
+        license_update_records = [record for record in provider_records if record['type'] == 'licenseUpdate']
+        self.assertEqual(2, len(license_records))
+        self.assertEqual(0, len(license_update_records))

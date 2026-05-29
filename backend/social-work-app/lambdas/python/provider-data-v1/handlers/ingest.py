@@ -9,7 +9,6 @@ from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCateg
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
-from cc_common.data_model.schema.provider import ProviderData
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
@@ -118,37 +117,34 @@ def ingest_license_message(message: dict):
             dynamo_transactions = []
 
             try:
-                provider_data = config.data_client.get_provider(
+                provider_user_records = config.data_client.get_provider_user_records(
                     compact=compact,
                     provider_id=provider_id,
-                    detail=True,
                     consistent_read=True,
                 )
-                provider_records = provider_data['items']
-
-                license_records = ProviderRecordUtility.get_records_of_type(
-                    provider_records,
-                    ProviderRecordType.LICENSE,
-                )
-                licenses_organized = {}
-                for record in license_records:
-                    licenses_organized.setdefault(record['jurisdiction'], {})
-                    licenses_organized[record['jurisdiction']][record['licenseType']] = record
-
-                # Parse the top level provider record into a data class instance
-                current_provider_record = ProviderData.create_new(
-                    ProviderRecordUtility.get_provider_record(provider_records)
-                )
-
+                existing_license_records = provider_user_records.get_license_records()
+                current_provider_record = provider_user_records.get_provider_record()
             except CCNotFoundException:
-                licenses_organized = {}
+                existing_license_records = []
                 current_provider_record = None
 
-            # Set (or replace) the posted license for its jurisdiction
-            existing_license = licenses_organized.get(posted_license_record['jurisdiction'], {}).get(
-                posted_license_record['licenseType']
+            # A license is uniquely identified for a provider by its jurisdiction, license type, and scope. This
+            # means a single-state and a multi-state license of the same type in the same jurisdiction are treated as
+            # two distinct records, rather than one overwriting the other.
+            def _matches_posted_license(license_record: LicenseData) -> bool:
+                return (
+                    license_record.jurisdiction == posted_license_record['jurisdiction']
+                    and license_record.licenseType == posted_license_record['licenseType']
+                    and license_record.licenseScope == posted_license_record['licenseScope']
+                )
+
+            # Set (or replace) the posted license for its jurisdiction, license type, and scope
+            existing_license_data = next(
+                (record for record in existing_license_records if _matches_posted_license(record)),
+                None,
             )
-            if existing_license is not None:
+            if existing_license_data is not None:
+                existing_license = existing_license_data.to_dict()
                 _process_license_update(
                     existing_license=existing_license,
                     new_license=posted_license_record,
@@ -175,18 +171,16 @@ def ingest_license_message(message: dict):
                 }
             )
 
-            licenses_organized.setdefault(posted_license_record['jurisdiction'], {})
-            licenses_organized[posted_license_record['jurisdiction']][posted_license_record['licenseType']] = (
-                posted_license_record
-            )
-            licenses_flattened = [
-                license_record
-                for jurisdiction_licenses in licenses_organized.values()
-                for license_record in jurisdiction_licenses.values()
+            # Build the full set of the provider's known licenses, with this upload applied (the matching existing
+            # record, if any, is replaced by the posted record), so we can determine the most recently
+            # issued/renewed license.
+            known_licenses = [
+                record.to_dict() for record in existing_license_records if not _matches_posted_license(record)
             ]
+            known_licenses.append(posted_license_record)
 
             best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
-                license_records=licenses_flattened,
+                license_records=known_licenses,
             )
 
             if best_license is posted_license_record:

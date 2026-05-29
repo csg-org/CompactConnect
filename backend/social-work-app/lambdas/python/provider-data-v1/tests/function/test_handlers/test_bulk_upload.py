@@ -347,9 +347,9 @@ class TestProcessObjects(TstFunction):
                         },
                         'errors': {
                             '_schema': [
-                                'Duplicate License SSN detected for license type licensed clinical social worker. '
-                                'SSN matches with record 1. Every record must have a unique SSN per'
-                                ' license type within the same file.'
+                                'Duplicate License SSN detected for license type licensed clinical social worker '
+                                'and scope single-state. SSN matches with record 1. Every record must have a unique '
+                                'SSN per license type and scope within the same file.'
                             ]
                         },
                     }

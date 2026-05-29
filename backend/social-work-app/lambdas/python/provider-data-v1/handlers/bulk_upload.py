@@ -142,7 +142,7 @@ def process_bulk_upload_file(
     failed_validation_count = 0
     # track which ssns were included in this file to detect duplicates,
     # which are not allowed within the same file upload
-    # We track by (ssn, licenseType) tuple to allow same SSN for different license types
+    # We track by (ssn, licenseType, licenseScope) tuple to allow same SSN for different license types or scopes
     ssns_in_file_upload = {}
 
     with EventBatchWriter(config.events_client) as event_writer:
@@ -153,8 +153,13 @@ def process_bulk_upload_file(
                     # dict() here, because it prevents `compact` and `jurisdiction` from being allowed in the
                     # raw_license
                     validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
-                    # verify that this ssn/licenseType combination has not been used previously in the same batch
-                    ssn_key = (validated_license['ssn'], validated_license['licenseType'])
+                    # verify that this ssn/licenseType/licenseScope combination has not been used previously
+                    # in the same batch
+                    ssn_key = (
+                        validated_license['ssn'],
+                        validated_license['licenseType'],
+                        validated_license['licenseScope'],
+                    )
                     matched_ssn_index = ssns_in_file_upload.get(ssn_key)
                     if matched_ssn_index:
                         # format the validation error as dict so it can be processed by email handler downstream
@@ -162,9 +167,10 @@ def process_bulk_upload_file(
                             {
                                 SCHEMA: [
                                     f'Duplicate License SSN detected for license type '
-                                    f'{validated_license["licenseType"]}. SSN matches with record '
+                                    f'{validated_license["licenseType"]} and scope '
+                                    f'{validated_license["licenseScope"]}. SSN matches with record '
                                     f'{matched_ssn_index}. Every record must have a unique SSN per license type '
-                                    f'within the same file.'
+                                    f'and scope within the same file.'
                                 ]
                             }
                         )
