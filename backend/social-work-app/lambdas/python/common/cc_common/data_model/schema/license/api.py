@@ -129,8 +129,6 @@ class LicenseReportResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
-    providerId = Raw(required=True, allow_none=False)
-    type = String(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)

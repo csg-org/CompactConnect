@@ -13,8 +13,11 @@ from cc_common.data_model.schema.data_event.api import (
     LicenseDeactivationDetailSchema,
     LicenseRevertDetailSchema,
 )
+from cc_common.data_model.schema.license.api import LicenseReportResponseSchema
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.utils import ResponseEncoder
+
+_license_report_schema = LicenseReportResponseSchema()
 
 
 class EventBusClient:
@@ -61,6 +64,59 @@ class EventBusClient:
                 raise ValueError('license_scope is required when investigation_against is LICENSE')
             return license_scope
         return license_scope or LicenseScopeEnum.SINGLE_STATE.value
+
+    @staticmethod
+    def _build_license_validation_report_data(
+        license_record: dict,
+    ) -> dict:
+        """
+        Extract staff-report fields from a license dict for license.validation-error events.
+
+        Uses LicenseReportResponseSchema so ingest and bulk upload share the same validData shape.
+        """
+        try:
+            return _license_report_schema.load({**license_record})
+        except ValidationError as exc:
+            return exc.valid_data or {}
+
+    def generate_license_validation_error_event(
+        self,
+        source: str,
+        *,
+        compact: str,
+        jurisdiction: str,
+        license_record: dict,
+        errors: dict | list[str],
+        record_number: int | None = None,
+        event_time: datetime | None = None,
+    ) -> dict:
+        """
+        Generate a license validation error event entry for use with batch writers.
+
+        :param source: The source of the event
+        :param compact: The compact abbreviation
+        :param jurisdiction: The jurisdiction that uploaded the license
+        :param license_record: License data to include in validData (filtered via LicenseReportResponseSchema)
+        :param errors: Marshmallow e.messages (dict or list), passed through unchanged
+        :param record_number: The row number within the upload batch. Omit for single-license event-driven ingest.
+        :param event_time: Optional event timestamp (defaults to config.current_standard_datetime)
+        :returns: Event entry dict that can be used with EventBatchWriter
+        """
+        event_detail = {
+            'eventTime': (event_time or config.current_standard_datetime).isoformat(),
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            **(({'recordNumber': record_number}) if record_number is not None else {}),
+            'validData': self._build_license_validation_report_data(license_record),
+            'errors': errors,
+        }
+
+        return {
+            'Source': source,
+            'DetailType': 'license.validation-error',
+            'Detail': json.dumps(event_detail, cls=ResponseEncoder),
+            'EventBusName': config.event_bus_name,
+        }
 
     def generate_license_deactivation_event(
         self, source: str, compact: str, jurisdiction: str, provider_id: UUID, license_type: str

@@ -3,18 +3,29 @@ from copy import deepcopy
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
-from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
+from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility, ProviderUserRecords
 from cc_common.data_model.schema import LicenseRecordSchema
-from cc_common.data_model.schema.common import ActiveInactiveStatus, LicenseScopeEnum, UpdateCategory
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    CompactEligibilityStatus,
+    LicenseScopeEnum,
+    UpdateCategory,
+)
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import sqs_handler
+from marshmallow.exceptions import SCHEMA
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
+
+MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE = (
+    'Multi-state license uploaded as compact eligible but the associated single-state license '
+    'in the same jurisdiction is ineligible.'
+)
 
 
 @sqs_handler
@@ -125,8 +136,15 @@ def ingest_license_message(message: dict):
                 existing_license_records = provider_user_records.get_license_records()
                 current_provider_record = provider_user_records.get_provider_record()
             except CCNotFoundException:
+                provider_user_records = None
                 existing_license_records = []
                 current_provider_record = None
+
+            _check_for_multi_state_single_state_eligibility_validation_error(
+                posted_license_record=posted_license_record,
+                provider_user_records=provider_user_records,
+                data_events=data_events,
+            )
 
             # A license is uniquely identified for a provider by its jurisdiction, license type, and scope. This
             # means a single-state and a multi-state license of the same type in the same jurisdiction are treated as
@@ -237,6 +255,54 @@ def ingest_license_message(message: dict):
             with EventBatchWriter(config.events_client) as event_writer:
                 for event in data_events:
                     event_writer.put_event(Entry=event)
+
+
+def _check_for_multi_state_single_state_eligibility_validation_error(
+    *,
+    posted_license_record: dict,
+    provider_user_records: ProviderUserRecords | None,
+    data_events: list,
+):
+    """
+    Notify the uploading jurisdiction when a multi-state license is uploaded as compact-eligible but the
+    paired single-state license in the same jurisdiction is ineligible. The license is still persisted.
+    """
+    if posted_license_record['licenseScope'] != LicenseScopeEnum.MULTI_STATE.value:
+        return
+    if posted_license_record['jurisdictionUploadedCompactEligibility'] != CompactEligibilityStatus.ELIGIBLE:
+        return
+    if provider_user_records is None:
+        return
+
+    license_type_abbr = config.license_type_abbreviations[posted_license_record['compact']][
+        posted_license_record['licenseType']
+    ]
+    associated_single_state_license = provider_user_records.get_specific_license_record(
+        posted_license_record['jurisdiction'],
+        license_type_abbr,
+        LicenseScopeEnum.SINGLE_STATE.value,
+    )
+    if associated_single_state_license is None:
+        return
+    if associated_single_state_license.compactEligibility != CompactEligibilityStatus.INELIGIBLE:
+        return
+
+    logger.info(
+        'Multi-state license uploaded as eligible but associated single-state license is ineligible. '
+        'Publishing license validation error event.',
+        provider_id=posted_license_record['providerId'],
+        jurisdiction=posted_license_record['jurisdiction'],
+        license_type=posted_license_record['licenseType'],
+    )
+    data_events.append(
+        config.event_bus_client.generate_license_validation_error_event(
+            'org.compactconnect.provider-data',
+            compact=posted_license_record['compact'],
+            jurisdiction=posted_license_record['jurisdiction'],
+            license_record=posted_license_record,
+            errors={SCHEMA: [MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE]},
+        )
+    )
 
 
 def _process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list, data_events: list):

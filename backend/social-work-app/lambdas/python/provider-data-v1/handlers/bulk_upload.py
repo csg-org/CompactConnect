@@ -7,14 +7,10 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from cc_common.config import config, logger
-from cc_common.data_model.schema.license.api import (
-    LicensePostRequestSchema,
-    LicenseReportResponseSchema,
-)
+from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException
 from cc_common.utils import (
-    ResponseEncoder,
     api_handler,
     authorize_compact_jurisdiction,
     send_licenses_to_preprocessing_queue,
@@ -128,7 +124,6 @@ def process_bulk_upload_file(
     Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
     Process licenses in batches to avoid loading the entire file into memory.
     """
-    report_schema = LicenseReportResponseSchema()
     schema = LicensePostRequestSchema()
     reader = LicenseCSVReader()
 
@@ -189,37 +184,22 @@ def process_bulk_upload_file(
 
             except ValidationError as e:
                 failed_validation_count += 1
-                # This CSV line has failed validation. We will carefully collect what information we can
-                # and publish it as a failure event. Because this data may eventually be sent back over
-                # an email, we will only include the generally available values that we can still validate.
-                try:
-                    report_license_data = report_schema.load(raw_license)
-                except ValidationError as exc_second_try:
-                    report_license_data = exc_second_try.valid_data
                 logger.info(
                     'Invalid license in line %s uploaded: %s',
                     i + 1,
                     str(e),
-                    valid_data=report_license_data,
                     exc_info=e,
                 )
                 event_writer.put_event(
-                    Entry={
-                        'Source': f'org.compactconnect.bulk-ingest.{object_key}',
-                        'DetailType': 'license.validation-error',
-                        'Detail': json.dumps(
-                            {
-                                'eventTime': event_time.isoformat(),
-                                'compact': compact,
-                                'jurisdiction': jurisdiction,
-                                'recordNumber': i + 1,
-                                'validData': report_license_data,
-                                'errors': e.messages,
-                            },
-                            cls=ResponseEncoder,
-                        ),
-                        'EventBusName': config.event_bus_name,
-                    }
+                    Entry=config.event_bus_client.generate_license_validation_error_event(
+                        f'org.compactconnect.bulk-ingest.{object_key}',
+                        compact=compact,
+                        jurisdiction=jurisdiction,
+                        record_number=i + 1,
+                        license_record=raw_license,
+                        errors=e.messages,
+                        event_time=event_time,
+                    )
                 )
                 continue
 

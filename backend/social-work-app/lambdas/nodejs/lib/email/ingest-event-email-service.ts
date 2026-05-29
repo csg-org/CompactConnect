@@ -106,11 +106,18 @@ export class IngestEventEmailService extends BaseEmailService {
 
     protected sortValidationErrors(validationErrors: IValidationErrorEventRecord[]) {
         validationErrors.sort((a, b) => {
-            if (a.recordNumber != b.recordNumber) {
-                return a.recordNumber - b.recordNumber;
-            } else {
-                return new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime();
+            const aHasNum = a.recordNumber != null;
+            const bHasNum = b.recordNumber != null;
+            // Numbered rows come before unnumbered rows
+            if (aHasNum !== bHasNum) {
+                return aHasNum ? -1 : 1;
             }
+            // Both numbered: sort by line number, then by time
+            if (aHasNum && bHasNum && a.recordNumber !== b.recordNumber) {
+                return a.recordNumber! - b.recordNumber!;
+            }
+            // Same line number (or both unnumbered): sort by event time
+            return new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime();
         });
         return validationErrors;
     }
@@ -242,12 +249,16 @@ export class IngestEventEmailService extends BaseEmailService {
     private insertValidationError(report: TReaderDocument, validationError: IValidationErrorEventRecord) {
         const blockAId = `block-${crypto.randomUUID()}`;
 
+        const headingText = validationError.recordNumber != null
+            ? `Line ${validationError.recordNumber}`
+            : 'Validation error';
+
         // Insert the new blocks into the report
         report[blockAId] = {
             'type': 'Heading',
             'data': {
                 'props': {
-                    'text': `Line ${validationError.recordNumber}`,
+                    'text': headingText,
                     'level': 'h3'
                 },
                 'style': {

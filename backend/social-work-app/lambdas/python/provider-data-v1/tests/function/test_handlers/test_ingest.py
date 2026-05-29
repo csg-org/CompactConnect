@@ -977,3 +977,138 @@ class TestIngest(TstFunction):
         license_update_records = [record for record in provider_records if record['type'] == 'licenseUpdate']
         self.assertEqual(2, len(license_records))
         self.assertEqual(0, len(license_update_records))
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestMultiStateSingleStateValidationError(TstFunction):
+    """license.validation-error when multi-state upload is eligible but paired single-state is ineligible."""
+
+    def _ingest_license(self, detail_overrides: dict | None = None, *, message_id: str = '123') -> dict:
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        if detail_overrides:
+            message['detail'].update(detail_overrides)
+        event = {'Records': [{'messageId': message_id, 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+        return message
+
+    def _setup_provider_ssn(self) -> str:
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+        self._ssn_table.put_item(Item=ssn_record)
+        return ssn_record['providerId']
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_eligible_multi_state_with_ineligible_single_state_emits_validation_error(self, mock_event_writer):
+        from handlers.ingest import ingest_license_message
+
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {
+                'licenseScope': 'single-state',
+                'licenseStatus': 'inactive',
+                'compactEligibility': 'ineligible',
+            },
+            message_id='100',
+        )
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+        message['detail'].update(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+            }
+        )
+        event = {'Records': [{'messageId': '101', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
+        entry = mock_event_writer.return_value.__enter__.return_value.put_event.call_args.kwargs['Entry']
+        self.assertEqual('license.validation-error', entry['DetailType'])
+        self.assertEqual('org.compactconnect.provider-data', entry['Source'])
+        self.assertEqual('license-data-events', entry['EventBusName'])
+
+        detail = json.loads(entry['Detail'])
+        self.assertEqual('socw', detail['compact'])
+        self.assertEqual('oh', detail['jurisdiction'])
+        self.assertEqual('2024-11-08T23:59:59+00:00', detail['eventTime'])
+        self.assertNotIn('recordNumber', detail)
+        self.assertIn('validData', detail)
+        self.assertIn('errors', detail)
+        self.assertEqual('multi-state', detail['validData']['licenseScope'])
+        self.assertEqual('eligible', detail['validData']['compactEligibility'])
+
+        provider_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{message["detail"]["providerId"]}'),
+        )['Items']
+        multi_state_license = next(
+            record
+            for record in provider_records
+            if record['type'] == 'license' and record['licenseScope'] == 'multi-state'
+        )
+        self.assertEqual('B0608337260', multi_state_license['licenseNumber'])
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_eligible_multi_state_with_eligible_single_state_does_not_emit_validation_error(self, mock_event_writer):
+        self._setup_provider_ssn()
+
+        self._ingest_license(
+            {
+                'licenseScope': 'single-state',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+            },
+            message_id='200',
+        )
+
+        self._ingest_license(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+            },
+            message_id='201',
+        )
+
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_eligible_multi_state_without_single_state_does_not_emit_validation_error(self, mock_event_writer):
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'licenseStatus': 'active',
+                'compactEligibility': 'eligible',
+            }
+        )
+
+        event = {'Records': [{'messageId': '300', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_not_called()
+
+        provider_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{message["detail"]["providerId"]}'),
+        )['Items']
+        license_records = [record for record in provider_records if record['type'] == 'license']
+        self.assertEqual(1, len(license_records))
+        self.assertEqual('multi-state', license_records[0]['licenseScope'])

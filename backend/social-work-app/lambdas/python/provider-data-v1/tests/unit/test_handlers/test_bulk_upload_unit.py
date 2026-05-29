@@ -141,7 +141,10 @@ class TestProcessBulkUploadFile(TstLambdas):
     @patch('handlers.bulk_upload.config', autospec=False)
     @patch('handlers.bulk_upload.send_licenses_to_preprocessing_queue')
     def test_bad_data(self, mock_send_licenses_to_preprocessing_queue, mock_config):
+        from cc_common.event_bus_client import EventBusClient
         from handlers.bulk_upload import process_bulk_upload_file
+
+        mock_config.event_bus_client = EventBusClient()
 
         # mock static response for the events client when we put messages on the event bus
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
