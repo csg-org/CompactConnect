@@ -723,6 +723,168 @@ class TestIngest(TstFunction):
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
 
+    def test_home_jurisdiction_change_triggered_by_multi_state_licenses_when_single_and_multi_state_licenses_uploaded(
+        self,
+    ):
+        """
+        Test that home jurisdiction changes are only triggered by multi-state license upload after single-state
+        license has been uploaded.
+
+        This test:
+        1. Ingests a first active single-state license with licenseType: licensed clinical social worker in 'oh'
+        2. For the same provider, ingests a second active multi-state licensed master social worker license  in 'ky'
+        3. Verifies that both licenses are present and the provider data is NOT updated to the most recently issued
+        license.
+        4. Ingest an active single-state licensed master social worker license  in 'ky'
+        5. Verifies that all licenses are present and the provider data is still not updated.
+        6. Ingest multi-state license from ky again.
+        7. Verifies that provider data updated to the data from the new jurisdiction
+         since both single and multi state licenses have been uploaded.
+        """
+        from handlers.ingest import ingest_license_message
+
+        # First, ingest a licensed clinical social worker license in 'oh'
+        provider_id = self._with_ingested_license()
+
+        # Get the provider data after the first license ingest
+        provider_data_after_first_license = self._get_provider_via_api(provider_id)
+
+        # Verify the first license was ingested correctly
+        self.assertEqual(1, len(provider_data_after_first_license['licenses']))
+        self.assertEqual(
+            'licensed clinical social worker', provider_data_after_first_license['licenses'][0]['licenseType']
+        )
+        self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_first_license['givenName'])
+
+        # Now ingest a second license for the same provider but with a different license type
+        # in a different jurisdiction and a newer issuance date
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Update the message to be for an licensed master social worker multi-state license in 'ky'
+        # with a newer issuance date and a different givenName to track which license is used for provider data
+        message['detail'].update(
+            {
+                'licenseType': 'licensed master social worker',
+                'licenseScope': 'multi-state',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2020-06-06',
+                'licenseNumber': 'B0608337260',
+                'givenName': 'Audrey',
+            }
+        )
+
+        # Ingest the second license
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Get the updated provider data
+        provider_data_after_ky_single_state = self._get_provider_via_api(provider_id)
+
+        # Verify that both licenses are present
+        self.assertEqual(2, len(provider_data_after_ky_single_state['licenses']))
+
+        # Find each license by jurisdiction and type
+        oh_license = next(
+            (lic for lic in provider_data_after_ky_single_state['licenses'] if lic['jurisdiction'] == 'oh'), None
+        )
+        ky_license = next(
+            (lic for lic in provider_data_after_ky_single_state['licenses'] if lic['jurisdiction'] == 'ky'), None
+        )
+
+        # Verify both licenses exist
+        self.assertIsNotNone(oh_license, 'Ohio license not found')
+        self.assertIsNotNone(ky_license, 'Kentucky license not found')
+
+        # Verify license details
+        self.assertEqual('licensed clinical social worker', oh_license['licenseType'])
+        self.assertEqual('A0608337260', oh_license['licenseNumber'])
+        self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
+        self.assertEqual('Björk', oh_license['givenName'])
+
+        self.assertEqual('licensed master social worker', ky_license['licenseType'])
+        self.assertEqual('multi-state', ky_license['licenseScope'])
+        self.assertEqual('B0608337260', ky_license['licenseNumber'])
+        self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
+        self.assertEqual('Audrey', ky_license['givenName'])
+
+        # verify that the provider data is not updated to the Kentucky license
+        self.assertEqual('oh', provider_data_after_ky_single_state['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_ky_single_state['givenName'])
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseType': 'licensed master social worker',
+                'licenseScope': 'single-state',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2021-06-06',
+                'licenseNumber': 'C0608337260',
+                'givenName': 'Audrey',
+            }
+        )
+
+        event = {'Records': [{'messageId': '789', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data = self._get_provider_via_api(provider_id)
+
+        self.assertEqual(3, len(provider_data['licenses']))
+        ky_single_state = next(
+            (
+                lic
+                for lic in provider_data['licenses']
+                if lic['jurisdiction'] == 'ky' and lic['licenseScope'] == 'single-state'
+            ),
+            None,
+        )
+
+        self.assertIsNotNone(ky_single_state, 'Kentucky single-state license not found')
+        self.assertEqual('licensed master social worker', ky_single_state['licenseType'])
+        self.assertEqual('C0608337260', ky_single_state['licenseNumber'])
+        self.assertEqual('2021-06-06', ky_single_state['dateOfIssuance'])
+        self.assertEqual('Audrey', ky_single_state['givenName'])
+
+        # verify that the provider data is not updated to the Kentucky license yet
+        # (only multi-state uploads trigger change)
+        self.assertEqual('oh', provider_data_after_ky_single_state['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_ky_single_state['givenName'])
+
+        # re-upload multi-state license in ky, which should trigger the home-state change
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseType': 'licensed master social worker',
+                'licenseScope': 'multi-state',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2020-06-06',
+                'licenseNumber': 'B0608337260',
+                'givenName': 'Audrey',
+            }
+        )
+
+        event = {'Records': [{'messageId': '789', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data = self._get_provider_via_api(provider_id)
+
+        self.assertEqual(3, len(provider_data['licenses']))
+
+        # Verify that the provider data was updated from the multi-state licensed master social worker
+        # license in 'ky' because it has a newer issuance date and there is a paired single-state license.
+        # We verify this by checking the givenName and jurisdiction.
+        self.assertEqual('ky', provider_data['licenseJurisdiction'])
+        self.assertEqual('Audrey', provider_data['givenName'])
+        self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
+
     def test_same_license_types_different_jurisdictions_triggers_home_jurisdiction_change_event_bridge_notification(
         self,
     ):
