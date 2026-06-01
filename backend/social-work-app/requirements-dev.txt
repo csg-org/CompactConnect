@@ -26,7 +26,7 @@ cyclonedx-python-lib==11.7.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-faker==40.15.0
+faker==40.19.1
     # via -r requirements-dev.in
 filelock==3.29.0
     # via cachecontrol
@@ -83,13 +83,13 @@ pytest==9.0.3
     #   pytest-cov
 pytest-cov==7.1.0
     # via -r requirements-dev.in
-requests==2.34.1
+requests==2.34.2
     # via
     #   cachecontrol
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.15.13
+ruff==0.15.14
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
