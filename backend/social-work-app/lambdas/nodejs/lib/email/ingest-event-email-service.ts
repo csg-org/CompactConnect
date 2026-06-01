@@ -108,6 +108,7 @@ export class IngestEventEmailService extends BaseEmailService {
         validationErrors.sort((a, b) => {
             const aHasNum = a.recordNumber != null;
             const bHasNum = b.recordNumber != null;
+
             // Numbered rows come before unnumbered rows
             if (aHasNum !== bHasNum) {
                 return aHasNum ? -1 : 1;
