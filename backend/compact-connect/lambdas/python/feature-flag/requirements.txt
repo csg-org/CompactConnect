@@ -10,9 +10,9 @@ charset-normalizer==3.4.3
     # via requests
 idna==3.10
     # via requests
-requests==2.33.1
+requests==2.34.2
     # via statsig-python-core
-statsig-python-core==0.19.1
+statsig-python-core==0.19.3
     # via -r requirements.in
 typing-extensions==4.15.0
     # via statsig-python-core
