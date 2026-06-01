@@ -118,8 +118,11 @@ class TestDataGenerator:
         serialized_record = license_data.serialize_to_database_record()
         from cc_common.config import config
 
+        from cc_common.data_model.schema.common import license_sk_suffix
+
         license_type_abbr = config.license_type_abbreviations[license_data.compact][license_data.licenseType]
-        sk_prefix = f'{license_data.compact}#UPDATE#3#license/{license_data.jurisdiction}/{license_type_abbr}/'
+        suffix = license_sk_suffix(license_data.jurisdiction, license_type_abbr, license_data.licenseScope)
+        sk_prefix = f'{license_data.compact}#UPDATE#3#license/{suffix}/'
 
         license_update_records = TestDataGenerator._query_records_by_pk_and_sk_prefix(
             serialized_record['pk'], sk_prefix
@@ -298,6 +301,7 @@ class TestDataGenerator:
             'type': LICENSE_UPDATE_RECORD_TYPE,
             'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
             'licenseType': DEFAULT_LICENSE_TYPE,
+            'licenseScope': DEFAULT_LICENSE_SCOPE,
             'createDate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_CREATE_DATE),
             'effectiveDate': datetime.fromisoformat(DEFAULT_LICENSE_UPDATE_EFFECTIVE_DATETIME),
             'previous': previous_license.to_dict(),

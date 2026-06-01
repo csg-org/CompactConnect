@@ -646,12 +646,14 @@ class ProviderUserRecords:
         self,
         jurisdiction: str,
         license_type: str,
+        license_scope: str,
         filter_condition: Callable[[LicenseUpdateData], bool] | None = None,
     ) -> list[LicenseUpdateData]:
         """
         Get all license update records for a specific license.
         :param jurisdiction: The jurisdiction of the license.
         :param license_type: The license type.
+        :param license_scope: The license scope (single-state or multi-state).
         :param filter_condition: An optional filter to apply to the update records
         :return: List of LicenseUpdateData records
         """
@@ -660,6 +662,7 @@ class ProviderUserRecords:
             for record in self._license_update_records
             if record.jurisdiction == jurisdiction
             and record.licenseType == license_type
+            and record.licenseScope == license_scope
             and (filter_condition is None or filter_condition(record))
         ]
 

@@ -119,7 +119,13 @@ class EventBusClient:
         }
 
     def generate_license_deactivation_event(
-        self, source: str, compact: str, jurisdiction: str, provider_id: UUID, license_type: str
+        self,
+        source: str,
+        compact: str,
+        jurisdiction: str,
+        provider_id: UUID,
+        license_type: str,
+        license_scope: str,
     ) -> dict:
         """
         Generate a license deactivation event entry for use with batch writers.
@@ -129,6 +135,7 @@ class EventBusClient:
         :param jurisdiction: The jurisdiction where the license was deactivated
         :param provider_id: The provider's unique identifier
         :param license_type: The type of license that was deactivated
+        :param license_scope: The scope of the license that was deactivated (single-state or multi-state)
         :returns: Event entry dict that can be used with EventBatchWriter
         """
         event_detail = {
@@ -137,6 +144,7 @@ class EventBusClient:
             'jurisdiction': jurisdiction,
             'providerId': str(provider_id),
             'licenseType': license_type,
+            'licenseScope': license_scope,
         }
 
         # Validate the event detail using the schema

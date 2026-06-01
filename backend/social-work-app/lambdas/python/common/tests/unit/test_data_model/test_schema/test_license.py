@@ -249,8 +249,10 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
                 'compact': 'socw',
                 'jurisdiction': 'ky',
                 'licenseType': 'licensed clinical social worker',
+                'licenseScope': loaded_record['licenseScope'],
                 'updateType': loaded_record['updateType'],
                 'createDate': loaded_record['createDate'],
+                'effectiveDate': loaded_record['effectiveDate'],
                 # These two fields should determine the change hash:
                 'previous': loaded_record['previous'].copy(),
                 'updatedValues': loaded_record['updatedValues'].copy(),
@@ -278,8 +280,10 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             'compact': 'socw',
             'jurisdiction': 'ky',
             'licenseType': 'licensed clinical social worker',
+            'licenseScope': loaded_record['licenseScope'],
             'updateType': loaded_record['updateType'],
             'createDate': loaded_record['createDate'],
+            'effectiveDate': loaded_record['effectiveDate'],
             # These two fields should determine the change hash:
             'previous': loaded_record['previous'].copy(),
             'updatedValues': loaded_record['updatedValues'].copy(),

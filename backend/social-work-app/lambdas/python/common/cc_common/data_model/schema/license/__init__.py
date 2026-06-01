@@ -181,6 +181,10 @@ class LicenseUpdateData(CCDataClass):
         return self._data['licenseType']
 
     @property
+    def licenseScope(self) -> str:
+        return self._data['licenseScope']
+
+    @property
     def createDate(self) -> datetime:
         return self._data['createDate']
 

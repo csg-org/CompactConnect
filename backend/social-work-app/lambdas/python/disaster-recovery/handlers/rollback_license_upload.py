@@ -667,6 +667,7 @@ def _build_and_execute_revert_transactions(
         license_updates_after_start = provider_records.get_update_records_for_license(
             jurisdiction=license_record.jurisdiction,
             license_type=license_record.licenseType,
+            license_scope=license_record.licenseScope,
             filter_condition=lambda x: x.createDate >= upload_window_start_datetime,
         )
 

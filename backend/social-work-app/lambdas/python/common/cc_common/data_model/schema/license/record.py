@@ -218,6 +218,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     previous = Nested(LicenseUpdateRecordPreviousSchema, required=True, allow_none=False)
     # this tracks when the update record was created
     createDate = AwareDateTime(required=True, allow_none=False)
@@ -251,7 +252,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # field for this.
         change_hash = self.hash_changes(in_data)
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
-        license_scope = in_data['previous']['licenseScope']
+        license_scope = in_data['licenseScope']
         suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, license_scope)
         in_data['sk'] = (
             f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_THREE}#license/{suffix}/{in_data["createDate"]}/{change_hash}'

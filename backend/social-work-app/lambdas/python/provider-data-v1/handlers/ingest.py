@@ -402,6 +402,7 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
                 jurisdiction=existing_license['jurisdiction'],
                 provider_id=existing_license['providerId'],
                 license_type=existing_license['licenseType'],
+                license_scope=existing_license['licenseScope'],
             )
             data_events.append(license_deactivation_event)
         else:
@@ -458,6 +459,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             'compact': existing_license['compact'],
             'jurisdiction': existing_license['jurisdiction'],
             'licenseType': existing_license['licenseType'],
+            'licenseScope': existing_license['licenseScope'],
             'createDate': now,
             'effectiveDate': now,
             'uploadDate': now,  # Track when this update was created during upload

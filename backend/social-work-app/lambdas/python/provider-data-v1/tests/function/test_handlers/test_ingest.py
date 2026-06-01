@@ -207,6 +207,7 @@ class TestIngest(TstFunction):
                             'eventTime': '2024-11-08T23:59:59+00:00',
                             'providerId': provider_id,
                             'licenseType': 'licensed clinical social worker',
+                            'licenseScope': 'single-state',
                         }
                     ),
                     'EventBusName': 'license-data-events',
@@ -1225,6 +1226,140 @@ class TestIngest(TstFunction):
         license_update_records = [record for record in provider_records if record['type'] == 'licenseUpdate']
         self.assertEqual(2, len(license_records))
         self.assertEqual(0, len(license_update_records))
+
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_license_update_and_deactivation_records_disambiguate_license_scope(self, mock_event_writer):
+        """
+        When the same license type exists in both scopes, licenseUpdate rows and deactivation events must be
+        scoped by licenseScope so single-state and multi-state changes do not collide.
+        """
+        from cc_common.data_model.schema.common import UpdateCategory
+        from cc_common.data_model.schema.license import LicenseData
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            multi_state_message = json.load(f)
+
+        multi_state_message['detail'].update(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+            }
+        )
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(multi_state_message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            single_state_update_message = json.load(f)
+
+        single_state_update_message['detail'].update(
+            {
+                'licenseScope': 'single-state',
+                'familyName': 'VonSmitherton',
+            }
+        )
+        event = {'Records': [{'messageId': '789', 'body': json.dumps(single_state_update_message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_records = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}'),
+        )['Items']
+        single_state_license_record = next(
+            record
+            for record in provider_records
+            if record['type'] == 'license' and record['licenseScope'] == 'single-state'
+        )
+        single_state_license = LicenseData.from_database_record(single_state_license_record)
+
+        single_state_updates = self.test_data_generator.query_license_update_records_for_given_record_from_database(
+            single_state_license
+        )
+        self.assertEqual(1, len(single_state_updates))
+        single_state_update = single_state_updates[0].serialize_to_database_record()
+
+        expected_pk = f'socw#PROVIDER#{provider_id}'
+        expected_sk_prefix = 'socw#UPDATE#3#license/oh/lcsw/single-state/'
+        self.assertEqual(expected_pk, single_state_update['pk'])
+        self.assertTrue(single_state_update['sk'].startswith(expected_sk_prefix))
+        self.assertEqual(UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER.value, single_state_update['updateType'])
+        self.assertEqual('oh', single_state_update['jurisdiction'])
+        self.assertEqual('licensed clinical social worker', single_state_update['licenseType'])
+        self.assertEqual('single-state', single_state_update['licenseScope'])
+        self.assertEqual('single-state', single_state_update['previous']['licenseScope'])
+        self.assertEqual('Guðmundsdóttir', single_state_update['previous']['familyName'])
+        self.assertEqual('VonSmitherton', single_state_update['updatedValues']['familyName'])
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            multi_state_deactivation_message = json.load(f)
+
+        multi_state_deactivation_message['detail'].update(
+            {
+                'licenseScope': 'multi-state',
+                'licenseNumber': 'B0608337260',
+                'licenseStatus': 'inactive',
+                'compactEligibility': 'ineligible',
+            }
+        )
+        event = {'Records': [{'messageId': '101112', 'body': json.dumps(multi_state_deactivation_message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_records_after_deactivation = self._provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'socw#PROVIDER#{provider_id}'),
+        )['Items']
+        multi_state_license_record = next(
+            record
+            for record in provider_records_after_deactivation
+            if record['type'] == 'license' and record['licenseScope'] == 'multi-state'
+        )
+        multi_state_license = LicenseData.from_database_record(multi_state_license_record)
+        multi_state_updates = self.test_data_generator.query_license_update_records_for_given_record_from_database(
+            multi_state_license
+        )
+        self.assertEqual(1, len(multi_state_updates))
+        multi_state_update = multi_state_updates[0].serialize_to_database_record()
+        self.assertEqual(expected_pk, multi_state_update['pk'])
+        self.assertTrue(multi_state_update['sk'].startswith('socw#UPDATE#3#license/oh/lcsw/multi-state/'))
+        self.assertEqual(UpdateCategory.DEACTIVATION.value, multi_state_update['updateType'])
+        self.assertEqual('multi-state', multi_state_update['licenseScope'])
+        self.assertEqual('multi-state', multi_state_update['previous']['licenseScope'])
+
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
+        call_kwargs = mock_event_writer.return_value.__enter__.return_value.put_event.call_args.kwargs
+        self.assertEqual(
+            {
+                'Entry': {
+                    'Source': 'org.compactconnect.provider-data',
+                    'DetailType': 'license.deactivation',
+                    'Detail': json.dumps(
+                        {
+                            'compact': 'socw',
+                            'jurisdiction': 'oh',
+                            'eventTime': '2024-11-08T23:59:59+00:00',
+                            'providerId': provider_id,
+                            'licenseType': 'licensed clinical social worker',
+                            'licenseScope': 'multi-state',
+                        }
+                    ),
+                    'EventBusName': 'license-data-events',
+                }
+            },
+            call_kwargs,
+        )
+
+        single_state_license_record_after_deactivation = next(
+            record
+            for record in provider_records_after_deactivation
+            if record['type'] == 'license' and record['licenseScope'] == 'single-state'
+        )
+        self.assertEqual('VonSmitherton', single_state_license_record_after_deactivation['familyName'])
+        self.assertEqual('inactive', multi_state_license_record['jurisdictionUploadedLicenseStatus'])
 
 
 @mock_aws

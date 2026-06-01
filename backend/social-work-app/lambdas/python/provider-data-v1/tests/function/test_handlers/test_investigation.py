@@ -1164,7 +1164,9 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
             include_update_tier=UpdateTierEnum.TIER_THREE,
         )
         update_records = provider_user_records.get_update_records_for_license(
-            jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
+            jurisdiction=test_license_record.jurisdiction,
+            license_type=test_license_record.licenseType,
+            license_scope=test_license_record.licenseScope,
         )
 
         investigation_update_records = [
@@ -1231,7 +1233,9 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
             include_update_tier=UpdateTierEnum.TIER_THREE,
         )
         update_records = provider_user_records.get_update_records_for_license(
-            jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
+            jurisdiction=test_license_record.jurisdiction,
+            license_type=test_license_record.licenseType,
+            license_scope=test_license_record.licenseScope,
         )
 
         investigation_update_records = [

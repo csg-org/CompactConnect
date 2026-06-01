@@ -686,6 +686,7 @@ class DataClient:
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': license_data.licenseType,
+                    'licenseScope': license_data.licenseScope,
                     'createDate': now,
                     'effectiveDate': effective_date_time,
                     'previous': {
@@ -783,6 +784,7 @@ class DataClient:
                         'createDate': investigation.creationDate,
                         'effectiveDate': investigation.creationDate,
                         'licenseType': investigation.licenseType,
+                        'licenseScope': investigation.licenseScope,
                         'previous': record.to_dict(),
                         'updatedValues': {
                             'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
@@ -963,6 +965,7 @@ class DataClient:
                         'createDate': close_date,
                         'effectiveDate': close_date,
                         'licenseType': record.licenseType,
+                        'licenseScope': record.licenseScope,
                         'previous': record.to_dict(),
                         'updatedValues': {},
                         'removedValues': ['investigationStatus'],
@@ -1185,6 +1188,7 @@ class DataClient:
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': license_data.licenseType,
+                        'licenseScope': license_data.licenseScope,
                         'createDate': now,
                         'effectiveDate': effective_date_time,
                         'previous': license_data.to_dict(),

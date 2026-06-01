@@ -424,6 +424,7 @@ def create_encumbrance_update_for_provider(provider_id: str, compact: str, licen
             'compact': compact,
             'jurisdiction': license_jurisdiction,
             'licenseType': LICENSE_TYPE,
+            'licenseScope': license_record.licenseScope,
             'createDate': now,
             'effectiveDate': now,
             'previous': license_record.to_dict(),

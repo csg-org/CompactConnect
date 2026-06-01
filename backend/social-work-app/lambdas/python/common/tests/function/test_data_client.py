@@ -316,6 +316,7 @@ class TestDataClient(TstFunction):
         update_records = provider_user_records.get_update_records_for_license(
             jurisdiction=license_record.jurisdiction,
             license_type=license_record.licenseType,
+            license_scope=license_record.licenseScope,
         )
 
         self.assertEqual(1, len(update_records))
@@ -331,6 +332,7 @@ class TestDataClient(TstFunction):
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {
@@ -564,7 +566,9 @@ class TestDataClient(TstFunction):
 
         # Verify update record was created for closure
         update_records = provider_user_records.get_update_records_for_license(
-            jurisdiction=license_record.jurisdiction, license_type=license_record.licenseType
+            jurisdiction=license_record.jurisdiction,
+            license_type=license_record.licenseType,
+            license_scope=license_record.licenseScope,
         )
 
         # Should have 2 update records: one for creation, one for closure
@@ -589,6 +593,7 @@ class TestDataClient(TstFunction):
             'providerId': str(provider_id),
             'jurisdiction': 'oh',
             'licenseType': 'licensed clinical social worker',
+            'licenseScope': 'single-state',
             'createDate': investigation.creationDate.isoformat(),
             'effectiveDate': investigation.creationDate.isoformat(),
             'previous': {

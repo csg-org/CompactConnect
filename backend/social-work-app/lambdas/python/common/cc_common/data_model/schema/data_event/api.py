@@ -36,6 +36,7 @@ class InvestigationEventDetailSchema(DataEventDetailBaseSchema):
 class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
 
 
 class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
