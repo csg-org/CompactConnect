@@ -14,6 +14,7 @@ from cc_common.data_model.schema.common import (
 from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
+from cc_common.data_model.schema.provider import ProviderData
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 from cc_common.utils import sqs_handler
@@ -214,39 +215,53 @@ def ingest_license_message(message: dict):
                 # If this posted license is the best license for the provider, it is a multi-state license, and it
                 # is from a different jurisdiction than the current provider record, send a home jurisdiction change
                 # notification event to notify the former home jurisdiction.
-                if (
-                    current_provider_record
-                    and best_license['licenseScope'] == LicenseScopeEnum.MULTI_STATE.value
-                    and current_provider_record.licenseJurisdiction != best_license['jurisdiction']
-                ):
+                home_jurisdiction_changed = _home_jurisdiction_changed(
+                    current_provider_record=current_provider_record,
+                    best_license=best_license,
+                    provider_user_records=provider_user_records,
+                )
+
+                if home_jurisdiction_changed:
                     logger.info(
                         'New home state license detected. Sending home state change notification.',
                         previous_home_jurisdiction=current_provider_record.licenseJurisdiction,
-                        new_home_jurisdiction=jurisdiction,
+                        new_home_jurisdiction=best_license['jurisdiction'],
                     )
+
                     home_jurisdiction_change_event = config.event_bus_client.generate_home_jurisdiction_change_event(
                         source='org.compactconnect.provider-data',
-                        compact=compact,
-                        jurisdiction=jurisdiction,
+                        compact=best_license['compact'],
+                        jurisdiction=best_license['jurisdiction'],
                         provider_id=current_provider_record.providerId,
-                        license_type=posted_license_record['licenseType'],
+                        license_type=best_license['licenseType'],
                         former_home_jurisdiction=current_provider_record.licenseJurisdiction,
                     )
                     data_events.append(home_jurisdiction_change_event)
 
-                # Update our top level provider record with data from the posted license
-                provider_record = ProviderRecordUtility.populate_provider_record(
-                    current_provider_record=current_provider_record, license_record=posted_license_record
-                )
+                # Update our top level provider record with data from the posted license if
+                # this is the first license being posted, the home jurisdiction has changed,
+                # or if the license is from the same jurisdiction as the current provider record.
+                # We have to make this check so that we don't update the provider record if the
+                # home jurisdiction has not changed but the posted license is from a different
+                # jurisdiction (ie a multi-state license was uploaded without a paired single-state license).
+                if (
+                    not current_provider_record
+                    or home_jurisdiction_changed
+                    or current_provider_record.licenseJurisdiction == best_license['jurisdiction']
+                ):
+                    logger.info('Updating top level provider record')
+                    provider_record = ProviderRecordUtility.populate_provider_record(
+                        current_provider_record=current_provider_record, license_record=posted_license_record
+                    )
 
-                dynamo_transactions.append(
-                    {
-                        'Put': {
-                            'TableName': config.provider_table_name,
-                            'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                    dynamo_transactions.append(
+                        {
+                            'Put': {
+                                'TableName': config.provider_table_name,
+                                'Item': TypeSerializer().serialize(provider_record.serialize_to_database_record())['M'],
+                            }
                         }
-                    }
-                )
+                    )
 
             # Write the records together as a transaction that succeeds or fails as one, to ensure consistency
             config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
@@ -303,6 +318,43 @@ def _check_for_multi_state_single_state_eligibility_validation_error(
             errors={SCHEMA: [MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE]},
         )
     )
+
+
+def _home_jurisdiction_changed(
+    *,
+    current_provider_record: ProviderData | None,
+    best_license: dict,
+    provider_user_records: ProviderUserRecords | None,
+) -> bool:
+    """Check if this license upload results in a home jurisdiction change for the provider.
+
+    If this posted license is the most recent license for the provider, it is a multi-state license, it has an
+    associated single-state license, and it is from a different jurisdiction than the current provider record,
+    send a home jurisdiction change notification event to notify the former home jurisdiction.
+
+    :param current_provider_record: The current provider record
+    :param best_license: The best license for the provider
+    :param provider_user_records: The provider user records
+    """
+    if provider_user_records is None:
+        return False
+
+    license_type_abbr = config.license_type_abbreviations[best_license['compact']][best_license['licenseType']]
+    associated_single_state_license = provider_user_records.get_specific_license_record(
+        best_license['jurisdiction'],
+        license_type_abbr,
+        LicenseScopeEnum.SINGLE_STATE.value,
+    )
+
+    if (
+        current_provider_record
+        and best_license['licenseScope'] == LicenseScopeEnum.MULTI_STATE.value
+        and current_provider_record.licenseJurisdiction != best_license['jurisdiction']
+        and associated_single_state_license is not None
+    ):
+        return True
+
+    return False
 
 
 def _process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list, data_events: list):

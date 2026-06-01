@@ -522,15 +522,7 @@ class ProviderUserRecords:
         for _license_type, multi_state_licenses in by_type.items():
             sorted_multi_state = sorted(multi_state_licenses, key=_license_sort_key, reverse=True)
             most_recent_multi_state = sorted_multi_state[0]
-            if self.find_matching_single_state_license_for_multi_state_license(most_recent_multi_state) is not None:
-                multi_state_licenses_with_matching_single_state_license.append(most_recent_multi_state)
-            else:
-                logger.debug(
-                    'Not using multi-state license as home because there is no matching single-state '
-                    'license in the same jurisdiction.',
-                    license_type=most_recent_multi_state.licenseType,
-                    jurisdiction=most_recent_multi_state.jurisdiction,
-                )
+            multi_state_licenses_with_matching_single_state_license.append(most_recent_multi_state)
 
         return multi_state_licenses_with_matching_single_state_license
 

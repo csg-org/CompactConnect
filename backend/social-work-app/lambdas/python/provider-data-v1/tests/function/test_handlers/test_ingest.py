@@ -592,14 +592,20 @@ class TestIngest(TstFunction):
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
 
-    def test_multiple_license_types_different_jurisdictions(self):
+    def test_licenses_with_different_jurisdictions_updates_provider_data_when_single_and_multi_state_licenses_uploaded(
+        self,
+    ):
         """
         Test that multiple license types in different jurisdictions are handled correctly.
 
         This test:
-        1. Ingests a first active license with licenseType: licensed clinical social worker in 'oh'
-        2. For the same provider, ingests a second active licensed master social worker license  in 'ky'
-        3. Verifies that both licenses are present and the provider data is from the most recently issued license
+        1. Ingests a first active single-state license with licenseType: licensed clinical social worker in 'oh'
+        2. For the same provider, ingests a second active single-state licensed master social worker license  in 'ky'
+        3. Verifies that both licenses are present and the provider data is NOT updated to the most recently issued
+        license.
+        4. ingest an active multi-state licensed master social worker license  in 'ky'
+        5. Verifies that all licenses are present and the provider data is updated to the data from the new jurisdiction
+         since both single and multi state licenses have been uploaded.
         """
         from handlers.ingest import ingest_license_message
 
@@ -627,10 +633,11 @@ class TestIngest(TstFunction):
         message['detail'].update(
             {
                 'licenseType': 'licensed master social worker',
+                'licenseScope': 'single-state',
                 'jurisdiction': 'ky',
-                'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
-                'licenseNumber': 'B0608337260',  # Different license number
-                'givenName': 'Audrey',  # Different name to track which license is used
+                'dateOfIssuance': '2020-06-06',
+                'licenseNumber': 'B0608337260',
+                'givenName': 'Audrey',
             }
         )
 
@@ -640,14 +647,18 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         # Get the updated provider data
-        provider_data = self._get_provider_via_api(provider_id)
+        provider_data_after_ky_single_state = self._get_provider_via_api(provider_id)
 
         # Verify that both licenses are present
-        self.assertEqual(2, len(provider_data['licenses']))
+        self.assertEqual(2, len(provider_data_after_ky_single_state['licenses']))
 
         # Find each license by jurisdiction and type
-        oh_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'oh'), None)
-        ky_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'ky'), None)
+        oh_license = next(
+            (lic for lic in provider_data_after_ky_single_state['licenses'] if lic['jurisdiction'] == 'oh'), None
+        )
+        ky_license = next(
+            (lic for lic in provider_data_after_ky_single_state['licenses'] if lic['jurisdiction'] == 'ky'), None
+        )
 
         # Verify both licenses exist
         self.assertIsNotNone(oh_license, 'Ohio license not found')
@@ -660,12 +671,54 @@ class TestIngest(TstFunction):
         self.assertEqual('Björk', oh_license['givenName'])
 
         self.assertEqual('licensed master social worker', ky_license['licenseType'])
+        self.assertEqual('single-state', ky_license['licenseScope'])
         self.assertEqual('B0608337260', ky_license['licenseNumber'])
         self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
         self.assertEqual('Audrey', ky_license['givenName'])
 
-        # Verify that the provider data was copied from the licensed master social worker license in 'ky'
-        # because it has a newer issuance date. We can verify this by checking the givenName.
+        # verify that the provider data is not updated to the Kentucky license
+        self.assertEqual('oh', provider_data_after_ky_single_state['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_ky_single_state['givenName'])
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseType': 'licensed master social worker',
+                'licenseScope': 'multi-state',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2021-06-06',
+                'licenseNumber': 'C0608337260',
+                'givenName': 'Audrey',
+            }
+        )
+
+        event = {'Records': [{'messageId': '789', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data = self._get_provider_via_api(provider_id)
+
+        self.assertEqual(3, len(provider_data['licenses']))
+        ky_multi_state = next(
+            (
+                lic
+                for lic in provider_data['licenses']
+                if lic['jurisdiction'] == 'ky' and lic['licenseScope'] == 'multi-state'
+            ),
+            None,
+        )
+
+        self.assertIsNotNone(ky_multi_state, 'Kentucky multi-state license not found')
+        self.assertEqual('licensed master social worker', ky_multi_state['licenseType'])
+        self.assertEqual('C0608337260', ky_multi_state['licenseNumber'])
+        self.assertEqual('2021-06-06', ky_multi_state['dateOfIssuance'])
+        self.assertEqual('Audrey', ky_multi_state['givenName'])
+
+        # Verify that the provider data was updated from the multi-state licensed master social worker
+        # license in 'ky' because it has a newer issuance date and there is a paired single-state license.
+        # We verify this by checking the givenName and jurisdiction.
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
@@ -675,8 +728,9 @@ class TestIngest(TstFunction):
     ):
         """
         Same license type (licensed clinical social worker) in two jurisdictions: a newer multi-state issuance from KY
-        replaces OH as the best multi-state home license and ingest emits ``provider.homeStateChange`` with former OH
-        and new KY.
+        replaces OH as the best license and ingest emits ``provider.homeStateChange`` with former OH and new KY.
+        A KY single-state license of the same type must exist before the KY multi-state upload so the pairing rule
+        is satisfied.
         """
         import handlers.ingest as ingest_handler
         from handlers.ingest import ingest_license_message
@@ -709,7 +763,18 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Same license type as OH, but KY multi-state upload with a newer issuance date → new home jurisdiction for type
+        # Paired single-state in KY is required before a KY multi-state upload can trigger home jurisdiction change.
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_id,
+                'licenseType': 'licensed clinical social worker',
+                'licenseScope': 'single-state',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': date.fromisoformat('2019-06-06'),
+            }
+        )
+
+        # Same license type as OH, but KY multi-state upload with a newer issuance date → new home jurisdiction
         message['detail'].update(
             {
                 'licenseType': 'licensed clinical social worker',
@@ -753,13 +818,35 @@ class TestIngest(TstFunction):
 
         provider_data = self._get_provider_via_api(provider_id)
 
-        self.assertEqual(2, len(provider_data['licenses']))
-        oh_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'oh'), None)
-        ky_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'ky'), None)
+        self.assertEqual(3, len(provider_data['licenses']))
+        oh_license = next(
+            (
+                lic
+                for lic in provider_data['licenses']
+                if lic['jurisdiction'] == 'oh' and lic['licenseScope'] == 'multi-state'
+            ),
+            None,
+        )
+        ky_single_state = next(
+            (
+                lic
+                for lic in provider_data['licenses']
+                if lic['jurisdiction'] == 'ky' and lic['licenseScope'] == 'single-state'
+            ),
+            None,
+        )
+        ky_multi_state = next(
+            (
+                lic
+                for lic in provider_data['licenses']
+                if lic['jurisdiction'] == 'ky' and lic['licenseScope'] == 'multi-state'
+            ),
+            None,
+        )
 
-        # Verify both licenses exist
-        self.assertIsNotNone(oh_license, 'Ohio license not found')
-        self.assertIsNotNone(ky_license, 'Kentucky license not found')
+        self.assertIsNotNone(oh_license, 'Ohio multi-state license not found')
+        self.assertIsNotNone(ky_single_state, 'Kentucky single-state license not found')
+        self.assertIsNotNone(ky_multi_state, 'Kentucky multi-state license not found')
 
         # Verify license details
         self.assertEqual('licensed clinical social worker', oh_license['licenseType'])
@@ -767,10 +854,10 @@ class TestIngest(TstFunction):
         self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
         self.assertEqual('Björk', oh_license['givenName'])
 
-        self.assertEqual('licensed clinical social worker', ky_license['licenseType'])
-        self.assertEqual('B0608337260', ky_license['licenseNumber'])
-        self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
-        self.assertEqual('Audrey', ky_license['givenName'])
+        self.assertEqual('licensed clinical social worker', ky_multi_state['licenseType'])
+        self.assertEqual('B0608337260', ky_multi_state['licenseNumber'])
+        self.assertEqual('2020-06-06', ky_multi_state['dateOfIssuance'])
+        self.assertEqual('Audrey', ky_multi_state['givenName'])
 
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
@@ -779,10 +866,9 @@ class TestIngest(TstFunction):
         self,
     ):
         """
-        In this case, we have a practitioner with two existing license types in a jurisdiction. A new license is added
-        from jurisdiction that is more recent than the corresponding license type in the original jurisdiction, but not
-        the most recent license. The home state should be determined solely by the most recently issued/renewed license,
-        regardless of the license type.
+        Practitioner has two license types in OH (no multi-state/single-state pairs). A KY licensed master social
+        worker single-state upload is ingested without a paired KY multi-state license. Even though KY lmsw is newer
+        than the OH lmsw of the same type, home jurisdiction change must not fire because the pairing rule is not met.
         """
         import handlers.ingest as ingest_handler
         from handlers.ingest import ingest_license_message
@@ -810,11 +896,11 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Same license type in KY, with a newer issuance date then the same license in OH,
-        # but not the most recent renewal date. No new "home" license jurisdiction event should be issued.
+        # KY lmsw single-state only (default scope from event-bridge-message.json); no KY multi-state pair exists.
         message['detail'].update(
             {
                 'licenseType': 'licensed master social worker',
+                'licenseScope': 'single-state',
                 'jurisdiction': 'ky',
                 'dateOfIssuance': '2025-06-06',
                 'licenseNumber': 'B0608337260',
