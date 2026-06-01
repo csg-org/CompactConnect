@@ -1444,8 +1444,8 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             docs = provider_user_records.generate_opensearch_documents()
 
         expected_privileges = [
-            _privilege_row('al', 'oh', license_type, status='active'),
-            _privilege_row('ky', 'oh', license_type, status='active'),
+            _privilege_row('al', 'oh', license_type, status='inactive'),
+            _privilege_row('ky', 'oh', license_type, status='inactive'),
         ]
         self.assertEqual(
             [

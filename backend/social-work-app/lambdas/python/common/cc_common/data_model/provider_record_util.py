@@ -465,68 +465,46 @@ class ProviderUserRecords:
 
         return best_license
 
-    def _has_matching_single_state_license(
+    def _find_matching_single_state_license(
         self,
         multi_state_license: LicenseData,
-        *,
-        require_single_state_compact_eligibility: bool = True,
-    ) -> bool:
-        single_state_license = self.get_specific_license_record(
+    ) -> LicenseData | None:
+        return self.get_specific_license_record(
             multi_state_license.jurisdiction,
             multi_state_license.licenseTypeAbbreviation,
             LicenseScopeEnum.SINGLE_STATE.value,
         )
-        if single_state_license is None:
-            return False
-        if require_single_state_compact_eligibility:
-            return single_state_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
-        return True
 
     def find_multi_state_home_licenses_with_matching_single_state_licenses(
         self,
-        *,
-        require_single_state_compact_eligibility: bool = True,
     ) -> list[LicenseData]:
         """
         For each license type, return the most recent multi-state license that has a single-state license
         in the same jurisdiction. If the most recent multi-state license for a type lacks that pairing,
         no home license is returned for that type (there is no fallback to an older jurisdiction).
-
-        :param require_single_state_compact_eligibility: When True (default), the paired single-state license
-            must be compact-eligible. When False, any existing single-state license record in the same
-            jurisdiction and license type is sufficient (used for OpenSearch document indexing).
         """
         by_type: dict[str, list[LicenseData]] = {}
         for lic in self._license_records:
             if lic.licenseScope == LicenseScopeEnum.MULTI_STATE.value:
                 by_type.setdefault(lic.licenseType, []).append(lic)
 
-        multi_state_license_with_matching_single_state_license: list[LicenseData] = []
+        multi_state_licenses_with_matching_single_state_license: list[LicenseData] = []
         for _license_type, multi_state_licenses in by_type.items():
             sorted_multi_state = sorted(multi_state_licenses, key=_license_sort_key, reverse=True)
             most_recent_multi_state = sorted_multi_state[0]
-            if self._has_matching_single_state_license(
-                most_recent_multi_state,
-                require_single_state_compact_eligibility=require_single_state_compact_eligibility,
-            ):
-                multi_state_license_with_matching_single_state_license.append(most_recent_multi_state)
+            if self._find_matching_single_state_license(most_recent_multi_state) is not None:
+                multi_state_licenses_with_matching_single_state_license.append(most_recent_multi_state)
             else:
                 logger.debug(
                     'Not using multi-state license as home because there is no matching single-state '
                     'license in the same jurisdiction.',
                     license_type=most_recent_multi_state.licenseType,
                     jurisdiction=most_recent_multi_state.jurisdiction,
-                    require_single_state_compact_eligibility=require_single_state_compact_eligibility,
                 )
 
-        return multi_state_license_with_matching_single_state_license
+        return multi_state_licenses_with_matching_single_state_license
 
-    def generate_privileges_for_provider(
-        self,
-        include_inactive_privileges: bool = False,
-        *,
-        require_single_state_compact_eligibility: bool = True,
-    ) -> list[dict]:
+    def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
         """
         Generate privilege dicts at runtime for each eligible multi-state license type this provider holds.
 
@@ -563,10 +541,13 @@ class ProviderUserRecords:
             return []
 
         result: list[dict] = []
-        for most_recent_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses(
-            require_single_state_compact_eligibility=require_single_state_compact_eligibility,
-        ):
-            is_eligible = most_recent_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+        for most_recent_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses():
+            matching_single_state_license = self._find_matching_single_state_license(most_recent_license)
+            # both the multi-state license and the associated single-state license must be eligible
+            is_eligible = (
+                most_recent_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+                and matching_single_state_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+            )
             home_jurisdiction = most_recent_license.jurisdiction.lower()
             license_type_abbr = most_recent_license.licenseTypeAbbreviation
 
@@ -730,10 +711,7 @@ class ProviderUserRecords:
             return []
 
         provider_dict = self.get_provider_record().to_dict()
-        all_privileges = self.generate_privileges_for_provider(
-            include_inactive_privileges=True,
-            require_single_state_compact_eligibility=False,
-        )
+        all_privileges = self.generate_privileges_for_provider(include_inactive_privileges=True)
 
         most_recent_multi_state_home_licenses = {
             (
@@ -741,9 +719,7 @@ class ProviderUserRecords:
                 multi_state_home_license.licenseType,
                 multi_state_home_license.licenseScope,
             )
-            for multi_state_home_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses(
-                require_single_state_compact_eligibility=False,
-            )
+            for multi_state_home_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses()
         }
 
         documents = []
