@@ -113,6 +113,15 @@ class SearchPersistentStack(AppStack):
             export_results_bucket=self.export_results_bucket,
         )
 
+        # The public query providers route (POST /v1/public/.../providers/query) is wired to this
+        # public_handler and is not deployed in the beta environment (see api_stack/v1_api/api.py).
+        # Removing that route removes the API stack's cross-stack import of this lambda ARN, which
+        # would otherwise delete the auto-generated CloudFormation export here. CloudFormation refuses
+        # to delete an export while another stack still imports it during the same deployment ("deadly
+        # embrace"), so we retain the export explicitly to safely break the relationship.
+        # TODO: remove this export once the API stack no longer imports it in every environment.  # noqa: FIX002
+        self.export_value(self.search_handler.public_handler.function_arn)
+
         # Create the populate provider documents handler for manual invocation
         # This handler is used to bulk index provider documents from DynamoDB into OpenSearch
         self.populate_provider_documents_handler = PopulateProviderDocumentsHandler(
