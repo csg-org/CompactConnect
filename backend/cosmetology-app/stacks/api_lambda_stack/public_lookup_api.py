@@ -43,7 +43,7 @@ class PublicLookupApiLambdas:
         )
         api_lambda_stack.log_groups.append(self.get_provider_handler.log_group)
 
-        # the public query providers endpoint now uses SearchPersistentStack.public_handler;
+        # the public query providers endpoint now uses SearchPersistentStack.search_handler.public_handler;
         # this lambda is no longer wired to the API.
         # TODO: remove this lambda after the stack is deployed to all envs  # noqa: FIX002
         self.query_providers_handler = self._query_providers_handler(
