@@ -610,8 +610,11 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             privileges,
         )
 
-    def test_privileges_not_assigned_if_home_multi_state_license_does_not_have_single_state_license(self):
-        """No privileges when the most recent multi-state license lacks a paired active single-state license."""
+    def test_privileges_not_assigned_to_most_recent_multi_state_license_if_associated_single_state_license_ineligible(
+        self,
+    ):
+        """Privileges should not be generated when the most recent multi-state license has a paired ineligible
+        single-state license."""
         from cc_common.data_model.provider_record_util import ProviderUserRecords
         from cc_common.data_model.schema.common import CompactEligibilityStatus, LicenseScopeEnum
 
@@ -622,7 +625,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                     'jurisdiction': 'al',
                     'licenseType': license_type,
                     'dateOfExpiration': date(2026, 4, 4),
-                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
                     'licenseScope': LicenseScopeEnum.SINGLE_STATE,
                     'dateOfIssuance': date(2023, 1, 1),
                 },
@@ -630,10 +633,55 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                     'jurisdiction': 'al',
                     'licenseType': license_type,
                     'dateOfExpiration': date(2026, 4, 4),
-                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
                     'licenseScope': LicenseScopeEnum.MULTI_STATE,
                     'dateOfIssuance': date(2023, 1, 1),
                 },
+                # this multi-state license is more recent, but does not have an associated single-state license
+                # so it is not considered a home state license
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': license_type,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                    'dateOfIssuance': date(2024, 6, 1),
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            privileges = provider_user_records.generate_privileges_for_provider()
+
+        self.assertEqual([], privileges)
+
+    def test_privileges_only_associated_with_most_recent_multi_state_license_with_active_single_state_license(self):
+        """Privileges should be associated with the most recent multi-state license that has a paired
+        active single-state license."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus, LicenseScopeEnum
+
+        license_type = 'licensed clinical social worker'
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': license_type,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                    'dateOfIssuance': date(2023, 1, 1),
+                },
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': license_type,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                    'dateOfIssuance': date(2023, 1, 1),
+                },
+                # this multi-state license is more recent, but does not have an associated single-state license
+                # so it is not considered a home state license
                 {
                     'jurisdiction': 'oh',
                     'licenseType': license_type,
@@ -648,7 +696,83 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
             provider_user_records = ProviderUserRecords(records)
             privileges = provider_user_records.generate_privileges_for_provider()
 
-        self.assertEqual([], privileges)
+        self.assertEqual(
+            [
+                {
+                    'administratorSetStatus': 'active',
+                    'adverseActions': [],
+                    'compact': 'socw',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'investigations': [],
+                    'jurisdiction': 'ky',
+                    'licenseJurisdiction': 'al',
+                    'licenseType': 'licensed clinical social worker',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'status': 'active',
+                    'type': 'privilege',
+                },
+                {
+                    'administratorSetStatus': 'active',
+                    'adverseActions': [],
+                    'compact': 'socw',
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'investigations': [],
+                    'jurisdiction': 'oh',
+                    'licenseJurisdiction': 'al',
+                    'licenseType': 'licensed clinical social worker',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'status': 'active',
+                    'type': 'privilege',
+                },
+            ],
+            privileges,
+        )
+
+    def test_privileges_not_associated_with_home_multi_state_license_if_ineligible(self):
+        """Privileges should not be returned if the most recent multi-state license that has a paired
+        active single-state license is ineligible."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus, LicenseScopeEnum
+
+        license_type = 'licensed clinical social worker'
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': license_type,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                    'dateOfIssuance': date(2023, 1, 1),
+                },
+                {
+                    'jurisdiction': 'al',
+                    'licenseType': license_type,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                    'dateOfIssuance': date(2023, 1, 1),
+                },
+                # this multi-state license is more recent, but does not have an associated single-state license
+                # so it is not considered a home state license
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': license_type,
+                    'dateOfExpiration': date(2026, 4, 4),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                    'dateOfIssuance': date(2024, 6, 1),
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            privileges = provider_user_records.generate_privileges_for_provider()
+
+        self.assertEqual(
+            [],
+            privileges,
+        )
 
 
 class TestProviderRecordUtility(TstLambdas):
@@ -1104,6 +1228,37 @@ class TestGenerateApiResponseObject(TstLambdas):
         self.assertEqual('multi-state', api_response['licenses'][0]['licenseScope'])
         self.assertEqual('OH-licensed-cli-MS', api_response['licenses'][0]['licenseNumber'])
 
+    @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
+    def test_generate_api_response_object_marks_multi_state_ineligible_when_single_state_ineligible(self):
+        """Displayed multi-state compactEligibility follows the paired single-state license."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        lcsw = 'licensed clinical social worker'
+        lmsw = 'licensed master social worker'
+        records = self._make_provider_records(
+            license_overrides_list=[
+                *_license_pair_overrides(
+                    'oh',
+                    lcsw,
+                    single_extra={
+                        'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    },
+                ),
+                *_license_pair_overrides('al', lmsw),
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            api_response = provider_user_records.generate_api_response_object()
+
+        eligibility_by_scope = {
+            (lic['jurisdiction'], lic['licenseScope']): lic['compactEligibility'] for lic in api_response['licenses']
+        }
+        self.assertEqual('ineligible', eligibility_by_scope[('oh', 'multi-state')])
+        self.assertEqual('ineligible', eligibility_by_scope[('oh', 'single-state')])
+        self.assertEqual('eligible', eligibility_by_scope[('al', 'multi-state')])
+
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
 class TestGenerateOpenSearchDocuments(TstLambdas):
@@ -1464,6 +1619,39 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             ],
             _opensearch_license_snippets(docs),
         )
+
+    def test_opensearch_marks_multi_state_ineligible_when_single_state_ineligible(self):
+        """OpenSearch multi-state license doc shows ineligible when paired single-state is ineligible."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus
+
+        lcsw = 'licensed clinical social worker'
+        lmsw = 'licensed master social worker'
+        records = self._make_provider_records(
+            license_overrides_list=[
+                *_license_pair_overrides(
+                    'oh',
+                    lcsw,
+                    single_extra={
+                        'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.INELIGIBLE,
+                    },
+                ),
+                *_license_pair_overrides('al', lmsw),
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
+
+        eligibility_by_scope = {
+            (doc['licenses'][0]['jurisdiction'], doc['licenses'][0]['licenseScope']): doc['licenses'][0][
+                'compactEligibility'
+            ]
+            for doc in docs
+        }
+        self.assertEqual('ineligible', eligibility_by_scope[('oh', 'multi-state')])
+        self.assertEqual('ineligible', eligibility_by_scope[('oh', 'single-state')])
+        self.assertEqual('eligible', eligibility_by_scope[('al', 'multi-state')])
 
     def test_multiple_types_privileges_on_correct_home_licenses(self):
         """Each license type's privileges attach only to that type's multi-state privilege-home document."""
