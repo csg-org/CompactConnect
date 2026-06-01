@@ -117,7 +117,6 @@ class TestDataGenerator:
         """
         serialized_record = license_data.serialize_to_database_record()
         from cc_common.config import config
-
         from cc_common.data_model.schema.common import license_sk_suffix
 
         license_type_abbr = config.license_type_abbreviations[license_data.compact][license_data.licenseType]
