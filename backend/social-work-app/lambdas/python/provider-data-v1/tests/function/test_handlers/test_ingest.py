@@ -1025,6 +1025,159 @@ class TestIngest(TstFunction):
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
 
+    def test_home_jurisdiction_change_when_multi_state_ingested_before_paired_single_state(
+        self,
+    ):
+        """
+        OH multi-state may be processed before OH single-state when uploads are close together.
+        Home jurisdiction change must still fire when the single-state license completes the pair.
+        """
+        import handlers.ingest as ingest_handler
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+
+        self._ssn_table.put_item(Item=ssn_record)
+        provider_id = ssn_record['providerId']
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'jurisdiction': 'az',
+                'licenseScope': 'single-state',
+                'dateOfIssuance': '2024-01-15',
+                'licenseNumber': 'AZ-SS-HOME-STATE-TEST',
+                'givenName': 'Jane',
+                'familyName': 'TestSmith',
+            }
+        )
+        event = {'Records': [{'messageId': '100', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'jurisdiction': 'oh',
+                'licenseScope': 'multi-state',
+                'dateOfIssuance': '2025-06-15',
+                'licenseNumber': 'OH-MS-HOME-STATE-TEST',
+                'givenName': 'Jane',
+                'familyName': 'TestSmith',
+            }
+        )
+        event = {'Records': [{'messageId': '101', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_before_single = self._get_provider_via_api(provider_id)
+        self.assertEqual('az', provider_before_single['licenseJurisdiction'])
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'jurisdiction': 'oh',
+                'licenseScope': 'single-state',
+                'dateOfIssuance': '2025-06-01',
+                'licenseNumber': 'OH-SS-HOME-STATE-TEST',
+                'givenName': 'Jane',
+                'familyName': 'TestSmith',
+            }
+        )
+
+        mock_put_events = MagicMock(return_value={'FailedEntryCount': 0, 'Entries': [{'EventId': 'evt-1'}]})
+        with patch.object(ingest_handler.config.events_client, 'put_events', mock_put_events):
+            event = {'Records': [{'messageId': '102', 'body': json.dumps(message)}]}
+            resp = ingest_license_message(event, self.mock_context)
+            self.assertEqual({'batchItemFailures': []}, resp)
+
+        mock_put_events.assert_called_once()
+        home_change_entry = mock_put_events.call_args.kwargs['Entries'][0]
+        self.assertEqual('provider.homeStateChange', home_change_entry['DetailType'])
+        self.assertEqual(
+            {
+                'compact': 'socw',
+                'jurisdiction': 'oh',
+                'eventTime': '2024-11-08T23:59:59+00:00',
+                'providerId': provider_id,
+                'licenseType': 'licensed clinical social worker',
+                'formerHomeJurisdiction': 'az',
+            },
+            json.loads(home_change_entry['Detail']),
+        )
+
+        provider_data = self._get_provider_via_api(provider_id)
+        self.assertEqual('oh', provider_data['licenseJurisdiction'])
+
+    def test_older_license_in_home_jurisdiction_does_not_update_provider_data(self):
+        """
+        Uploading a license in the provider's home jurisdiction that is NOT the best license for that jurisdiction
+        (here, an older single-state license of a different type than the most recent one) must not overwrite the
+        top-level provider record with the older license's data.
+        """
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+
+        self._ssn_table.put_item(Item=ssn_record)
+        provider_id = ssn_record['providerId']
+
+        # Ingest the newer OH single-state license first; the provider record should reflect this license.
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseType': 'licensed clinical social worker',
+                'licenseScope': 'single-state',
+                'jurisdiction': 'oh',
+                'dateOfIssuance': '2020-06-06',
+                'licenseNumber': 'NEWER-OH-LICENSE',
+                'givenName': 'Newer',
+            }
+        )
+        event = {'Records': [{'messageId': '201', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_after_newer = self._get_provider_via_api(provider_id)
+        self.assertEqual('oh', provider_after_newer['licenseJurisdiction'])
+        self.assertEqual('Newer', provider_after_newer['givenName'])
+
+        # Ingest an OLDER OH single-state license of a different type (a distinct record). Because the newer license
+        # is still the best license for OH, the provider record must not be overwritten with this older license.
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail'].update(
+            {
+                'licenseType': 'licensed master social worker',
+                'licenseScope': 'single-state',
+                'jurisdiction': 'oh',
+                'dateOfIssuance': '2010-06-06',
+                'licenseNumber': 'OLDER-OH-LICENSE',
+                'givenName': 'Older',
+            }
+        )
+        event = {'Records': [{'messageId': '202', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_after_older = self._get_provider_via_api(provider_id)
+
+        # Both licenses are persisted, but provider demographics still reflect the newer license.
+        self.assertEqual(2, len(provider_after_older['licenses']))
+        self.assertEqual('oh', provider_after_older['licenseJurisdiction'])
+        self.assertEqual('Newer', provider_after_older['givenName'])
+
     def test_multiple_license_types_different_jurisdictions_does_not_trigger_home_jurisdiction_change(
         self,
     ):
