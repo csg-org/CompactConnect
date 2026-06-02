@@ -18,7 +18,7 @@
     "@statsig/web-analytics": "^3.32.6",
     "@vue/compat": "3.4.21",
     "@vuepic/vue-datepicker": "^11.0.3",
-    "axios": "^1.15.1",
+    "axios": "^1.16.1",
     "caniuse-lite": "^1.0.30001788",
     "click-outside-vue3": "^4.0.1",
     "core-js": "^3.49.0",
