@@ -43,6 +43,9 @@ class PublicLookupApiLambdas:
         )
         api_lambda_stack.log_groups.append(self.get_provider_handler.log_group)
 
+        # the public query providers endpoint now uses SearchPersistentStack.search_handler.public_handler;
+        # this lambda is no longer wired to the API.
+        # TODO: remove this lambda after the stack is deployed to all envs  # noqa: FIX002
         self.query_providers_handler = self._query_providers_handler(
             scope=scope,
             env_vars=lambda_environment,
@@ -53,10 +56,6 @@ class PublicLookupApiLambdas:
         )
         api_lambda_stack.log_groups.append(self.query_providers_handler.log_group)
 
-        # Dummy export to avoid CDK deadly embrace: public query providers now uses
-        # SearchPersistentStack.public_handler; this lambda is no longer wired to the API.
-        # TODO: remove this export (and the lambda above) after the stack is deployed to all envs  # noqa: FIX002
-        stack.export_value(self.query_providers_handler.function_arn)
 
     def _get_provider_handler(
         self,
