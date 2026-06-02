@@ -70,10 +70,13 @@ def _cleanup_test_generated_records(provider_id: str, license_ingest_record_resp
     logger.info('Successfully deleted license ingest record from data events table')
 
 
-def _build_home_state_change_license_post_body(jurisdiction: str, date_of_issuance: str):
+def _build_home_state_change_license_post_body(
+    jurisdiction: str, date_of_issuance: str, license_scope: str = 'single-state'
+):
+    license_number_suffix = 'SS' if license_scope == 'single-state' else 'MS'
     return [
         {
-            'licenseNumber': f'{jurisdiction.upper()}-HOME-STATE-TEST',
+            'licenseNumber': f'{jurisdiction.upper()}-{license_number_suffix}-HOME-STATE-TEST',
             'homeAddressPostalCode': '68001',
             'givenName': HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME,
             'familyName': HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME,
@@ -82,7 +85,7 @@ def _build_home_state_change_license_post_body(jurisdiction: str, date_of_issuan
             'dateOfIssuance': date_of_issuance,
             'ssn': HOME_STATE_CHANGE_MOCK_SSN,
             'licenseType': HOME_STATE_CHANGE_LICENSE_TYPE,
-            'licenseScope': 'single-state',
+            'licenseScope': license_scope,
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': jurisdiction.upper(),
             'homeAddressCity': 'Omaha',
@@ -107,7 +110,46 @@ def _post_license_to_state_api(client_id: str, client_secret: str, jurisdiction:
             f'Failed to POST home state change license record for {jurisdiction}. Response: {post_response.json()}'
         )
 
-    logger.info(f'Home state change license record successfully uploaded for {jurisdiction}: {post_response.json()}')
+    logger.info(
+        f'Home state change license record successfully uploaded for {jurisdiction} '
+        f'and scope {post_body[0].get("licenseScope")}: {post_response.json()}'
+    )
+
+
+def _wait_for_oh_license_scope(
+    provider_id: str,
+    license_scope: str,
+    max_wait_seconds: int = 720,
+    poll_interval_seconds: int = 60,
+):
+    """Wait until OH lcsw license with the given scope is visible before uploading the paired scope."""
+    max_attempts = max_wait_seconds // poll_interval_seconds
+    for attempt in range(1, max_attempts + 1):
+        staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+        provider_details = call_provider_details_endpoint(
+            headers=staff_headers, compact=COMPACT, provider_id=provider_id
+        )
+        matching_licenses = [
+            license_record
+            for license_record in provider_details.get('licenses', [])
+            if license_record.get('jurisdiction') == HOME_STATE_CHANGE_NEW_JURISDICTION
+            and license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
+            and license_record.get('licenseScope') == license_scope
+        ]
+        if matching_licenses:
+            logger.info(f'Found OH {HOME_STATE_CHANGE_LICENSE_TYPE} {license_scope} license for provider {provider_id}')
+            return
+
+        if attempt < max_attempts:
+            logger.info(
+                f'OH {license_scope} license not visible yet for provider {provider_id}. '
+                f'Attempt {attempt}/{max_attempts}. Retrying in {poll_interval_seconds} seconds.'
+            )
+            time.sleep(poll_interval_seconds)
+
+    raise SmokeTestFailureException(
+        f'Timed out waiting for OH {license_scope} {HOME_STATE_CHANGE_LICENSE_TYPE} license for provider {provider_id}'
+    )
 
 
 def _wait_for_home_state_change_event(provider_id: str, max_wait_seconds: int = 720, poll_interval_seconds: int = 60):
@@ -208,14 +250,39 @@ def test_home_state_change_notification(staff_headers: dict, client_id: str, cli
                 f'found {az_provider_details.get("licenseJurisdiction")}'
             )
 
+        # Social-work home jurisdiction change requires a paired OH single-state before OH multi-state.
         _post_license_to_state_api(
             client_id=client_id,
             client_secret=client_secret,
             jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
             post_body=_build_home_state_change_license_post_body(
-                # upload license that was issued at a later date to trigger home state change
+                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+                date_of_issuance='2025-06-01',
+                license_scope='single-state',
+            ),
+        )
+
+        _wait_for_oh_license_scope(
+            provider_id=provider_id,
+            license_scope='single-state',
+            max_wait_seconds=750,
+            poll_interval_seconds=60,
+        )
+
+        if _query_home_state_change_events_for_provider(provider_id):
+            raise SmokeTestFailureException(
+                'provider.homeStateChange must not fire after OH single-state upload without '
+                'a paired multi-state license.'
+            )
+
+        _post_license_to_state_api(
+            client_id=client_id,
+            client_secret=client_secret,
+            jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+            post_body=_build_home_state_change_license_post_body(
                 jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
                 date_of_issuance='2025-06-15',
+                license_scope='multi-state',
             ),
         )
 
@@ -239,8 +306,24 @@ def test_home_state_change_notification(staff_headers: dict, client_id: str, cli
         updated_jurisdictions = {license_record.get('jurisdiction') for license_record in updated_social_work_licenses}
         if updated_jurisdictions != {HOME_STATE_CHANGE_FORMER_JURISDICTION, HOME_STATE_CHANGE_NEW_JURISDICTION}:
             raise SmokeTestFailureException(
-                f'ExpectedSocial Worklicenses for both {HOME_STATE_CHANGE_FORMER_JURISDICTION} and '
+                f'Expected Social Work licenses for both {HOME_STATE_CHANGE_FORMER_JURISDICTION} and '
                 f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {sorted(updated_jurisdictions)}'
+            )
+
+        if len(updated_social_work_licenses) != 3:
+            raise SmokeTestFailureException(
+                f'Expected three {HOME_STATE_CHANGE_LICENSE_TYPE} licenses (AZ single-state, OH single-state, '
+                f'OH multi-state), found {len(updated_social_work_licenses)}'
+            )
+
+        oh_license_scopes = {
+            license_record.get('licenseScope')
+            for license_record in updated_social_work_licenses
+            if license_record.get('jurisdiction') == HOME_STATE_CHANGE_NEW_JURISDICTION
+        }
+        if oh_license_scopes != {'single-state', 'multi-state'}:
+            raise SmokeTestFailureException(
+                f'Expected OH licenses in both single-state and multi-state scopes, found {sorted(oh_license_scopes)}'
             )
 
         if updated_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_NEW_JURISDICTION:
