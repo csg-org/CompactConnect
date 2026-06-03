@@ -156,8 +156,9 @@ def _get_license_investigation_target(provider_data: dict) -> dict:
     """
     jurisdiction = provider_data['licenseJurisdiction']
     home_multi_state_licenses = [
-        lic for lic in provider_data['licenses'] if lic['jurisdiction'] == jurisdiction
-        and lic['licenseScope'] == LICENSE_INVESTIGATION_LICENSE_SCOPE
+        lic
+        for lic in provider_data['licenses']
+        if lic['jurisdiction'] == jurisdiction and lic['licenseScope'] == LICENSE_INVESTIGATION_LICENSE_SCOPE
     ]
     if not home_multi_state_licenses:
         raise SmokeTestFailureException(
@@ -219,9 +220,7 @@ def _verify_no_investigation_exists(
     if record_type == 'privilege':
         record_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
     else:
-        record_data = _get_license_data_from_provider_response(
-            provider_data, jurisdiction, license_type, license_scope
-        )
+        record_data = _get_license_data_from_provider_response(provider_data, jurisdiction, license_type, license_scope)
 
     if not record_data:
         raise SmokeTestFailureException(f'{record_type.title()} not found before investigation creation')
@@ -275,9 +274,7 @@ def _verify_investigation_exists(
     if record_type == 'privilege':
         record_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
     else:
-        record_data = _get_license_data_from_provider_response(
-            provider_data, jurisdiction, license_type, license_scope
-        )
+        record_data = _get_license_data_from_provider_response(provider_data, jurisdiction, license_type, license_scope)
 
     if not record_data:
         raise SmokeTestFailureException(f'{record_type.title()} not found before investigation closing')
