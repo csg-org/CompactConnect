@@ -152,11 +152,7 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
             true
         );
         this.insertSubHeading(template, codeParameter);
-        this.insertBody(template,
-            `**Important:** If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead: ${environmentVariableService.getUiBasePathUrl()}/mfarecoverystart`,
-            'center',
-            true
-        );
+
         this.insertFooter(template);
 
         return {

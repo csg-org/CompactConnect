@@ -116,17 +116,55 @@ describe('CognitoEmailService', () => {
             });
         });
 
-        it('should generate ForgotPassword message', () => {
-            const { subject, htmlContent } = emailService.generateCognitoMessage(
-                'CustomMessage_ForgotPassword',
-                '{####}'
-            );
+        describe('ForgotPassword template', () => {
+            const mfaRecoveryText = 'If you have lost access to your multi-factor authentication (MFA)';
+            const mfaResetUrl = 'https://app.test.compactconnect.org/MfaResetStart';
 
-            expect(subject).toBe('Reset your password');
-            expect(htmlContent).toContain('You requested to reset your password');
-            expect(htmlContent).toContain('{####}');
-            expect(htmlContent).toContain('<strong>Important:</strong> If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead:');
-            expect(htmlContent).toContain('https://app.test.compactconnect.org/mfarecoverystart');
+            it('should include MFA recovery instructions for provider user pool', () => {
+                process.env.USER_POOL_TYPE = 'provider';
+
+                const { subject, htmlContent } = emailService.generateCognitoMessage(
+                    'CustomMessage_ForgotPassword',
+                    '{####}'
+                );
+
+                expect(subject).toBe('Reset your password');
+                expect(htmlContent).toContain('You requested to reset your password');
+                expect(htmlContent).toContain('{####}');
+                expect(htmlContent).toContain('<strong>Important:</strong>');
+                expect(htmlContent).toContain(mfaRecoveryText);
+                expect(htmlContent).toContain(mfaResetUrl);
+            });
+
+            it('should not include MFA recovery instructions for staff user pool', () => {
+                process.env.USER_POOL_TYPE = 'staff';
+
+                const { subject, htmlContent } = emailService.generateCognitoMessage(
+                    'CustomMessage_ForgotPassword',
+                    '{####}'
+                );
+
+                expect(subject).toBe('Reset your password');
+                expect(htmlContent).toContain('You requested to reset your password');
+                expect(htmlContent).toContain('{####}');
+                expect(htmlContent).not.toContain(mfaRecoveryText);
+                expect(htmlContent).not.toContain(mfaResetUrl);
+            });
+
+            it('should not include MFA recovery instructions for unknown user pool type', () => {
+                process.env.USER_POOL_TYPE = 'unknown';
+
+                const { subject, htmlContent } = emailService.generateCognitoMessage(
+                    'CustomMessage_ForgotPassword',
+                    '{####}'
+                );
+
+                expect(subject).toBe('Reset your password');
+                expect(htmlContent).toContain('You requested to reset your password');
+                expect(htmlContent).toContain('{####}');
+                expect(htmlContent).not.toContain(mfaRecoveryText);
+                expect(htmlContent).not.toContain(mfaResetUrl);
+            });
         });
 
         it('should generate UpdateUserAttribute message', () => {

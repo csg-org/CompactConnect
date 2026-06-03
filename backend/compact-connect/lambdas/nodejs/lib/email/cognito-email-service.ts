@@ -152,6 +152,7 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
      */
     private generateForgotPasswordTemplate(codeParameter: string): { subject: string; htmlContent: string } {
         const subject = 'Reset your password';
+        const userPoolType = environmentVariableService.getUserPoolType();
         // Make a deep copy of the template so we can modify it without affecting the original
         const template = this.getNewEmailTemplate();
 
@@ -162,11 +163,13 @@ An authenticator app generates time-based codes that change every 30 seconds. Yo
             true
         );
         this.insertSubHeading(template, codeParameter);
-        this.insertBody(template,
-            `**Important:** If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead: ${environmentVariableService.getUiBasePathUrl()}/mfarecoverystart`,
-            'center',
-            true
-        );
+        if (userPoolType === 'provider') {
+            this.insertBody(template,
+                `**Important:** If you have lost access to your multi-factor authentication (MFA), you will need to recover your account by visiting the following link instead: ${environmentVariableService.getUiBasePathUrl()}/MfaResetStart`,
+                'center',
+                true
+            );
+        }
         this.insertFooter(template);
 
         return {
