@@ -380,6 +380,7 @@ class EncumbranceType(CCEnum):
     SUSPENSION = 'suspension'
     REVOCATION = 'revocation'
     SURRENDER_OF_LICENSE = 'surrender of license'
+    SURRENDER_OF_PRIVILEGE = 'surrender of privilege'
 
 
 class ClinicalPrivilegeActionCategory(CCEnum):

@@ -2334,7 +2334,8 @@
                 "enum": [
                   "suspension",
                   "revocation",
-                  "surrender of license"
+                  "surrender of license",
+                  "surrender of privilege"
                 ]
               }
             },
@@ -4008,7 +4009,8 @@
                 "enum": [
                   "suspension",
                   "revocation",
-                  "surrender of license"
+                  "surrender of license",
+                  "surrender of privilege"
                 ]
               }
             },
@@ -4735,7 +4737,8 @@
             "enum": [
               "suspension",
               "revocation",
-              "surrender of license"
+              "surrender of license",
+              "surrender of privilege"
             ]
           }
         },
@@ -4774,7 +4777,8 @@
             "enum": [
               "suspension",
               "revocation",
-              "surrender of license"
+              "surrender of license",
+              "surrender of privilege"
             ]
           }
         },
