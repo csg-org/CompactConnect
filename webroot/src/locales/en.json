@@ -896,6 +896,10 @@
                 "key": "surrender of license"
             },
             {
+                "name": "Surrender of privilege",
+                "key": "surrender of privilege"
+            },
+            {
                 "name": "Modification of previous action-extension",
                 "key": "modification of previous action-extension"
             },

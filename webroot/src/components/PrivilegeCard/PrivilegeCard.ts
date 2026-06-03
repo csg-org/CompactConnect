@@ -229,7 +229,7 @@ class PrivilegeCard extends mixins(MixinForm) {
         }));
 
         if (this.isAppModeCosmetology) {
-            const includeList = ['suspension', 'revocation', 'surrender of license'];
+            const includeList = ['suspension', 'revocation', 'surrender of privilege'];
 
             options = options.filter((option) => includeList.includes(option.value));
         }
