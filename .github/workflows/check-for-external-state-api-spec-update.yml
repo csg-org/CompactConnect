@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - backend/compact-connect/stacks/state_api_stack/v1_api/**
+      - backend/cosmetology-app/stacks/state_api_stack/v1_api/**
+      - backend/social-work-app/stacks/state_api_stack/v1_api/**
 
 env:
   AWS_REGION : "us-east-1"
