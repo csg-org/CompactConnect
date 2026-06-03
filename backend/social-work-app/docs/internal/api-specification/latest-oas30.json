@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2026-05-11T21:56:12Z"
+    "version": "2026-06-01T19:40:20Z"
   },
   "servers": [
     {
@@ -39,7 +39,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicen8DOCd2kFNKVr"
+                  "$ref": "#/components/schemas/TestALicenz60E9GxgxvRT"
                 }
               }
             }
@@ -47,7 +47,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/readGeneral"
             ]
           }
@@ -76,7 +76,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenVIb0TY3sud8L"
+                "$ref": "#/components/schemas/TestALicenyPPmB5QK4Mwi"
               }
             }
           },
@@ -88,7 +88,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -96,7 +96,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -139,7 +139,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicen5TOdmxJJNjOc"
+                  "$ref": "#/components/schemas/TestALicenT0BWB0XcccEO"
                 }
               }
             }
@@ -147,7 +147,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/readGeneral"
             ]
           }
@@ -188,7 +188,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenieqYQgLPF3Oc"
+                  "$ref": "#/components/schemas/TestALicen49toJAATzdfY"
                 }
               }
             }
@@ -196,7 +196,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/readGeneral"
             ]
           }
@@ -233,7 +233,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenqjE3z9YbfyHD"
+                "$ref": "#/components/schemas/TestALicenmi91EHypaiFi"
               }
             }
           },
@@ -245,7 +245,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -253,7 +253,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -304,7 +304,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenvVMLbSK5KTv8"
+                  "$ref": "#/components/schemas/TestALicent8Cwee4tcVEF"
                 }
               }
             }
@@ -312,7 +312,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/write",
               "al/socw.write",
               "az/socw.write",
@@ -353,7 +353,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenvEBZtPTBPy5K"
+                "$ref": "#/components/schemas/TestALicen4oBA2oRHRolJ"
               }
             }
           },
@@ -365,7 +365,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenfgNnVzLTxob0"
+                  "$ref": "#/components/schemas/TestALicenNEZjECY0EIXB"
                 }
               }
             }
@@ -373,7 +373,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/readGeneral"
             ]
           }
@@ -414,7 +414,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicen0ZuYY62aEHDO"
+                  "$ref": "#/components/schemas/TestALicenEuuJ2hePr1dE"
                 }
               }
             }
@@ -422,7 +422,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/readGeneral"
             ]
           }
@@ -477,7 +477,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenSwxDyLtD7O9E"
+                "$ref": "#/components/schemas/TestALicennkQ1XbRgr9l0"
               }
             }
           },
@@ -489,7 +489,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -497,7 +497,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -570,7 +570,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicen87UzEO8FByN3"
+                "$ref": "#/components/schemas/TestALicenpht9Tj1tkyAU"
               }
             }
           },
@@ -582,7 +582,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -590,7 +590,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -655,7 +655,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenABDlpIbmGvpt"
+                "$ref": "#/components/schemas/TestALicenmyF8U9gFO2mb"
               }
             }
           },
@@ -667,7 +667,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -675,7 +675,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -748,7 +748,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenDiO5FBTVQqnN"
+                "$ref": "#/components/schemas/TestALicenbkno2SNuWuvY"
               }
             }
           },
@@ -760,7 +760,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -768,7 +768,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -833,7 +833,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicena35BrLR78TH0"
+                "$ref": "#/components/schemas/TestALicenssEUeQmNqrM6"
               }
             }
           },
@@ -845,7 +845,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -853,7 +853,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -926,7 +926,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenT5k0UMd0IQFY"
+                "$ref": "#/components/schemas/TestALicenYxu8vMXnF28M"
               }
             }
           },
@@ -938,7 +938,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -946,7 +946,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1011,7 +1011,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenwsC6m1RPaBTa"
+                "$ref": "#/components/schemas/TestALicenEVsrIP1Cbe0h"
               }
             }
           },
@@ -1023,7 +1023,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1031,7 +1031,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1104,7 +1104,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenrTInrGJ5VcWA"
+                "$ref": "#/components/schemas/TestALicenPU78UBpLgMaP"
               }
             }
           },
@@ -1116,7 +1116,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1124,7 +1124,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1166,7 +1166,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenGuFBFkHjgyWP"
+                  "$ref": "#/components/schemas/TestALicenSnbehaHnpXHv"
                 }
               }
             }
@@ -1174,7 +1174,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1205,7 +1205,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenTM26Tw0Xfojy"
+                "$ref": "#/components/schemas/TestALicenAxFmX05QrlLj"
               }
             }
           },
@@ -1224,7 +1224,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALiceneDjMMCLsTfYg"
+                  "$ref": "#/components/schemas/TestALicenwtaAzkUzgvMz"
                 }
               }
             }
@@ -1232,7 +1232,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1275,7 +1275,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1292,7 +1292,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALiceneDjMMCLsTfYg"
+                  "$ref": "#/components/schemas/TestALicenwtaAzkUzgvMz"
                 }
               }
             }
@@ -1300,7 +1300,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1341,7 +1341,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1351,7 +1351,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1359,7 +1359,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1398,7 +1398,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicen7VPWeACUXNxW"
+                "$ref": "#/components/schemas/TestALicen9OmWyHE3jPYa"
               }
             }
           },
@@ -1410,7 +1410,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1427,7 +1427,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALiceneDjMMCLsTfYg"
+                  "$ref": "#/components/schemas/TestALicenwtaAzkUzgvMz"
                 }
               }
             }
@@ -1435,7 +1435,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1478,7 +1478,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1488,7 +1488,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1496,7 +1496,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "socw/admin",
               "al/socw.admin",
               "az/socw.admin",
@@ -1529,7 +1529,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenrTKXWeGlJdSm"
+                "$ref": "#/components/schemas/TestALicenuf1t1AOWtbEj"
               }
             }
           },
@@ -1541,7 +1541,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenBPNgHHOEfrMN"
+                  "$ref": "#/components/schemas/TestALicenTcO3YVaPklzG"
                 }
               }
             }
@@ -1567,7 +1567,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicen5TOdmxJJNjOc"
+                  "$ref": "#/components/schemas/TestALicenT0BWB0XcccEO"
                 }
               }
             }
@@ -1591,7 +1591,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenvEBZtPTBPy5K"
+                "$ref": "#/components/schemas/TestALicen4oBA2oRHRolJ"
               }
             }
           },
@@ -1603,7 +1603,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenecMeKurmg8eG"
+                  "$ref": "#/components/schemas/TestALicengf4L1EygQw9V"
                 }
               }
             }
@@ -1637,7 +1637,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenf1LpawbsV02z"
+                  "$ref": "#/components/schemas/TestALicenI8ObIK8aJtpE"
                 }
               }
             }
@@ -1662,7 +1662,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenxSsVtZvGSYkW"
+                  "$ref": "#/components/schemas/TestALicenhSWRXn61vgaB"
                 }
               }
             }
@@ -1678,7 +1678,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1695,7 +1695,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALiceneDjMMCLsTfYg"
+                  "$ref": "#/components/schemas/TestALicenwtaAzkUzgvMz"
                 }
               }
             }
@@ -1703,7 +1703,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "profile"
             ]
           }
@@ -1714,7 +1714,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestALicenDec5g8dycU8V"
+                "$ref": "#/components/schemas/TestALicenJRLZQUqRJlZW"
               }
             }
           },
@@ -1726,7 +1726,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALicenkb3YpptFJlFD"
+                  "$ref": "#/components/schemas/TestALicennE6IeKjO4KkD"
                 }
               }
             }
@@ -1743,7 +1743,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestALiceneDjMMCLsTfYg"
+                  "$ref": "#/components/schemas/TestALicenwtaAzkUzgvMz"
                 }
               }
             }
@@ -1751,7 +1751,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": [
+            "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": [
               "profile"
             ]
           }
@@ -1761,431 +1761,7 @@
   },
   "components": {
     "schemas": {
-      "TestALicenVIb0TY3sud8L": {
-        "required": [
-          "compactAdverseActionsNotificationEmails",
-          "compactOperationsTeamEmails",
-          "configuredStates",
-          "licenseeRegistrationEnabled"
-        ],
-        "type": "object",
-        "properties": {
-          "configuredStates": {
-            "type": "array",
-            "description": "List of states that have submitted configurations and their live status",
-            "items": {
-              "required": [
-                "isLive",
-                "postalAbbreviation"
-              ],
-              "type": "object",
-              "properties": {
-                "postalAbbreviation": {
-                  "type": "string",
-                  "description": "The postal abbreviation of the jurisdiction",
-                  "enum": [
-                    "al",
-                    "az",
-                    "co",
-                    "ks",
-                    "ky",
-                    "md",
-                    "oh",
-                    "tn",
-                    "va",
-                    "wa"
-                  ]
-                },
-                "isLive": {
-                  "type": "boolean",
-                  "description": "Whether the state is live and available for registrations."
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "compactAdverseActionsNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "compactOperationsTeamEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicenvEBZtPTBPy5K": {
-        "required": [
-          "query"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "type": "object",
-            "properties": {
-              "lastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "string"
-              },
-              "pageSize": {
-                "maximum": 100,
-                "minimum": 5,
-                "type": "integer"
-              }
-            },
-            "additionalProperties": false
-          },
-          "query": {
-            "type": "object",
-            "properties": {
-              "providerId": {
-                "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                "type": "string",
-                "description": "Internal UUID for the provider"
-              },
-              "jurisdiction": {
-                "type": "string",
-                "description": "Filter for providers with license in a jurisdiction",
-                "enum": [
-                  "al",
-                  "az",
-                  "co",
-                  "ks",
-                  "ky",
-                  "md",
-                  "oh",
-                  "tn",
-                  "va",
-                  "wa"
-                ]
-              },
-              "givenName": {
-                "maxLength": 100,
-                "type": "string",
-                "description": "Filter for providers with a given name (familyName is required if givenName is provided)"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "type": "string",
-                "description": "Filter for providers with a family name"
-              },
-              "licenseNumber": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string",
-                "description": "Filter for licenses with a specific license number"
-              }
-            },
-            "additionalProperties": false,
-            "description": "The query parameters"
-          },
-          "sorting": {
-            "required": [
-              "key"
-            ],
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string",
-                "description": "The key to sort results by",
-                "enum": [
-                  "dateOfUpdate",
-                  "familyName"
-                ]
-              },
-              "direction": {
-                "type": "string",
-                "description": "Direction to sort results by",
-                "enum": [
-                  "ascending",
-                  "descending"
-                ]
-              }
-            },
-            "description": "How to sort results"
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicenxSsVtZvGSYkW": {
-        "type": "object",
-        "additionalProperties": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": [
-              "al",
-              "az",
-              "co",
-              "ks",
-              "ky",
-              "md",
-              "oh",
-              "tn",
-              "va",
-              "wa"
-            ]
-          }
-        }
-      },
-      "TestALicenf1LpawbsV02z": {
-        "required": [
-          "compact",
-          "dateOfUpdate",
-          "familyName",
-          "givenName",
-          "licenseJurisdiction",
-          "providerId",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "privileges": {
-            "type": "array",
-            "items": {
-              "required": [
-                "administratorSetStatus",
-                "compact",
-                "dateOfExpiration",
-                "jurisdiction",
-                "licenseJurisdiction",
-                "licenseType",
-                "providerId",
-                "status",
-                "type"
-              ],
-              "type": "object",
-              "properties": {
-                "licenseType": {
-                  "type": "string",
-                  "enum": [
-                    "cosmetologist",
-                    "esthetician"
-                  ]
-                },
-                "administratorSetStatus": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
-                },
-                "licenseJurisdiction": {
-                  "type": "string",
-                  "enum": [
-                    "al",
-                    "az",
-                    "co",
-                    "ks",
-                    "ky",
-                    "md",
-                    "oh",
-                    "tn",
-                    "va",
-                    "wa"
-                  ]
-                },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "compact": {
-                  "type": "string",
-                  "enum": [
-                    "socw"
-                  ]
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
-                },
-                "jurisdiction": {
-                  "type": "string",
-                  "enum": [
-                    "al",
-                    "az",
-                    "co",
-                    "ks",
-                    "ky",
-                    "md",
-                    "oh",
-                    "tn",
-                    "va",
-                    "wa"
-                  ]
-                },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "privilege"
-                  ]
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
-                }
-              }
-            }
-          },
-          "licenses": {
-            "type": "array",
-            "description": "Sanitized home-state license rows (LicensePublicResponseSchema)",
-            "items": {
-              "required": [
-                "compact",
-                "compactEligibility",
-                "dateOfExpiration",
-                "jurisdiction",
-                "licenseNumber",
-                "licenseStatus",
-                "licenseType",
-                "type"
-              ],
-              "type": "object",
-              "properties": {
-                "licenseType": {
-                  "type": "string",
-                  "enum": [
-                    "cosmetologist",
-                    "esthetician"
-                  ]
-                },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "compact": {
-                  "type": "string",
-                  "enum": [
-                    "socw"
-                  ]
-                },
-                "licenseStatus": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
-                },
-                "jurisdiction": {
-                  "type": "string",
-                  "enum": [
-                    "al",
-                    "az",
-                    "co",
-                    "ks",
-                    "ky",
-                    "md",
-                    "oh",
-                    "tn",
-                    "va",
-                    "wa"
-                  ]
-                },
-                "compactEligibility": {
-                  "type": "string",
-                  "enum": [
-                    "eligible",
-                    "ineligible"
-                  ]
-                },
-                "licenseNumber": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "license"
-                  ]
-                }
-              }
-            }
-          },
-          "licenseJurisdiction": {
-            "type": "string",
-            "enum": [
-              "al",
-              "az",
-              "co",
-              "ks",
-              "ky",
-              "md",
-              "oh",
-              "tn",
-              "va",
-              "wa"
-            ]
-          },
-          "compact": {
-            "type": "string",
-            "enum": [
-              "socw"
-            ]
-          },
-          "providerId": {
-            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-            "type": "string"
-          },
-          "givenName": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "familyName": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "middleName": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "provider"
-            ]
-          },
-          "suffix": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "dateOfUpdate": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "TestALicenTM26Tw0Xfojy": {
+      "TestALicenAxFmX05QrlLj": {
         "required": [
           "attributes",
           "permissions"
@@ -2264,159 +1840,289 @@
         },
         "additionalProperties": false
       },
-      "TestALicenvVMLbSK5KTv8": {
-        "required": [
-          "upload"
-        ],
+      "TestALicen9OmWyHE3jPYa": {
         "type": "object",
         "properties": {
-          "upload": {
-            "required": [
-              "fields",
-              "url"
-            ],
+          "permissions": {
             "type": "object",
-            "properties": {
-              "fields": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "actions": {
+                  "type": "object",
+                  "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "jurisdictions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "object",
+                        "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
+                          "admin": {
+                            "type": "boolean"
+                          },
+                          "write": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
                 }
               },
-              "url": {
-                "type": "string"
-              }
+              "additionalProperties": false
             }
-          }
-        }
-      },
-      "TestALicenrTInrGJ5VcWA": {
-        "required": [
-          "action"
-        ],
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "close"
-            ]
-          },
-          "encumbrance": {
-            "required": [
-              "clinicalPrivilegeActionCategories",
-              "encumbranceEffectiveDate",
-              "encumbranceType"
-            ],
-            "type": "object",
-            "properties": {
-              "encumbranceEffectiveDate": {
-                "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                "type": "string",
-                "description": "The effective date of the encumbrance",
-                "format": "date"
-              },
-              "clinicalPrivilegeActionCategories": {
-                "type": "array",
-                "description": "The categories of clinical privilege action",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "fraud",
-                    "consumer harm",
-                    "other"
-                  ]
-                }
-              },
-              "encumbranceType": {
-                "type": "string",
-                "description": "The type of encumbrance",
-                "enum": [
-                  "suspension",
-                  "revocation",
-                  "surrender of license"
-                ]
-              }
-            },
-            "additionalProperties": false,
-            "description": "Encumbrance data to create"
-          }
-        }
-      },
-      "TestALicenkb3YpptFJlFD": {
-        "required": [
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "A message about the request"
-          }
-        }
-      },
-      "TestALicenqjE3z9YbfyHD": {
-        "required": [
-          "jurisdictionAdverseActionsNotificationEmails",
-          "jurisdictionOperationsTeamEmails",
-          "licenseeRegistrationEnabled"
-        ],
-        "type": "object",
-        "properties": {
-          "jurisdictionAdverseActionsNotificationEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "jurisdictionOperationsTeamEmails": {
-            "maxItems": 10,
-            "minItems": 1,
-            "uniqueItems": true,
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
           }
         },
         "additionalProperties": false
       },
-      "TestALicen5TOdmxJJNjOc": {
-        "type": "array",
-        "items": {
-          "required": [
-            "compact",
-            "jurisdictionName",
-            "postalAbbreviation"
-          ],
-          "type": "object",
-          "properties": {
-            "postalAbbreviation": {
-              "type": "string",
-              "description": "The postal abbreviation of the jurisdiction"
+      "TestALicenJRLZQUqRJlZW": {
+        "type": "object",
+        "properties": {
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "givenName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              }
             },
-            "compact": {
-              "type": "string"
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestALicengf4L1EygQw9V": {
+        "required": [
+          "pagination",
+          "providers"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "prevLastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "lastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "pageSize": {
+                "maximum": 100,
+                "minimum": 5,
+                "type": "integer"
+              }
+            }
+          },
+          "query": {
+            "type": "object",
+            "properties": {
+              "providerId": {
+                "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                "type": "string",
+                "description": "Internal UUID for the provider"
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "Filter for providers with privilege/license in a jurisdiction",
+                "enum": [
+                  "al",
+                  "az",
+                  "co",
+                  "ks",
+                  "ky",
+                  "md",
+                  "oh",
+                  "tn",
+                  "va",
+                  "wa"
+                ]
+              },
+              "givenName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a given name"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a family name"
+              },
+              "licenseNumber": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string",
+                "description": "Filter for licenses with a specific license number"
+              }
+            }
+          },
+          "sorting": {
+            "required": [
+              "key"
+            ],
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "The key to sort results by",
+                "enum": [
+                  "dateOfUpdate",
+                  "familyName"
+                ]
+              },
+              "direction": {
+                "type": "string",
+                "description": "Direction to sort results by",
+                "enum": [
+                  "ascending",
+                  "descending"
+                ]
+              }
             },
-            "jurisdictionName": {
-              "type": "string",
-              "description": "The name of the jurisdiction"
+            "description": "How to sort results"
+          },
+          "providers": {
+            "maxLength": 100,
+            "type": "array",
+            "items": {
+              "required": [
+                "compact",
+                "familyName",
+                "givenName",
+                "licenseEligibility",
+                "licenseJurisdiction",
+                "licenseNumber",
+                "licenseScope",
+                "licenseType",
+                "providerId"
+              ],
+              "type": "object",
+              "properties": {
+                "licenseType": {
+                  "type": "string",
+                  "description": "License type or profession designation for this license row"
+                },
+                "licenseEligibility": {
+                  "type": "string",
+                  "description": "Whether the license is eligible for compact participation in public search results",
+                  "enum": [
+                    "eligible",
+                    "ineligible"
+                  ]
+                },
+                "licenseJurisdiction": {
+                  "type": "string",
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ]
+                },
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "socw"
+                  ]
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "givenName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "familyName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "licenseScope": {
+                  "type": "string",
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ]
+                }
+              }
             }
           }
         }
       },
-      "TestALicen0ZuYY62aEHDO": {
+      "TestALicenhSWRXn61vgaB": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ]
+          }
+        }
+      },
+      "TestALicenYxu8vMXnF28M": {
+        "required": [
+          "effectiveLiftDate"
+        ],
+        "type": "object",
+        "properties": {
+          "effectiveLiftDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date when the encumbrance will be lifted",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestALicenEuuJ2hePr1dE": {
         "required": [
           "adverseActions",
           "birthMonthDay",
@@ -2503,6 +2209,7 @@
                       "dateOfUpdate",
                       "investigationId",
                       "jurisdiction",
+                      "licenseScope",
                       "licenseType",
                       "providerId",
                       "submittingUser",
@@ -2554,6 +2261,13 @@
                         "type": "string",
                         "format": "date-time"
                       },
+                      "licenseScope": {
+                        "type": "string",
+                        "enum": [
+                          "single-state",
+                          "multi-state"
+                        ]
+                      },
                       "dateOfUpdate": {
                         "type": "string",
                         "format": "date-time"
@@ -2584,8 +2298,9 @@
                       "licenseType": {
                         "type": "string",
                         "enum": [
-                          "cosmetologist",
-                          "esthetician"
+                          "licensed clinical social worker",
+                          "licensed master social worker",
+                          "licensed bachelor social worker"
                         ]
                       },
                       "compact": {
@@ -2799,8 +2514,9 @@
                 "licenseType": {
                   "type": "string",
                   "enum": [
-                    "cosmetologist",
-                    "esthetician"
+                    "licensed clinical social worker",
+                    "licensed master social worker",
+                    "licensed bachelor social worker"
                   ]
                 },
                 "administratorSetStatus": {
@@ -2831,6 +2547,7 @@
                       "effectiveStartDate",
                       "encumbranceType",
                       "jurisdiction",
+                      "licenseScope",
                       "licenseType",
                       "licenseTypeAbbreviation",
                       "providerId",
@@ -2913,6 +2630,13 @@
                       },
                       "liftingUser": {
                         "type": "string"
+                      },
+                      "licenseScope": {
+                        "type": "string",
+                        "enum": [
+                          "single-state",
+                          "multi-state"
+                        ]
                       },
                       "dateOfUpdate": {
                         "type": "string",
@@ -3014,6 +2738,7 @@
                 "jurisdiction",
                 "jurisdictionUploadedCompactEligibility",
                 "jurisdictionUploadedLicenseStatus",
+                "licenseScope",
                 "licenseStatus",
                 "licenseType",
                 "middleName",
@@ -3062,6 +2787,7 @@
                       "dateOfUpdate",
                       "investigationId",
                       "jurisdiction",
+                      "licenseScope",
                       "licenseType",
                       "providerId",
                       "submittingUser",
@@ -3113,6 +2839,13 @@
                         "type": "string",
                         "format": "date-time"
                       },
+                      "licenseScope": {
+                        "type": "string",
+                        "enum": [
+                          "single-state",
+                          "multi-state"
+                        ]
+                      },
                       "dateOfUpdate": {
                         "type": "string",
                         "format": "date-time"
@@ -3139,8 +2872,9 @@
                 "licenseType": {
                   "type": "string",
                   "enum": [
-                    "cosmetologist",
-                    "esthetician"
+                    "licensed clinical social worker",
+                    "licensed master social worker",
+                    "licensed bachelor social worker"
                   ]
                 },
                 "emailAddress": {
@@ -3249,8 +2983,9 @@
                       "licenseType": {
                         "type": "string",
                         "enum": [
-                          "cosmetologist",
-                          "esthetician"
+                          "licensed clinical social worker",
+                          "licensed master social worker",
+                          "licensed bachelor social worker"
                         ]
                       },
                       "compact": {
@@ -3388,6 +3123,13 @@
                             "maxLength": 100,
                             "minLength": 1,
                             "type": "string"
+                          },
+                          "licenseScope": {
+                            "type": "string",
+                            "enum": [
+                              "single-state",
+                              "multi-state"
+                            ]
                           }
                         }
                       },
@@ -3521,6 +3263,13 @@
                             "maxLength": 100,
                             "minLength": 1,
                             "type": "string"
+                          },
+                          "licenseScope": {
+                            "type": "string",
+                            "enum": [
+                              "single-state",
+                              "multi-state"
+                            ]
                           }
                         }
                       },
@@ -3587,6 +3336,7 @@
                       "effectiveStartDate",
                       "encumbranceType",
                       "jurisdiction",
+                      "licenseScope",
                       "licenseType",
                       "licenseTypeAbbreviation",
                       "providerId",
@@ -3670,6 +3420,13 @@
                       "liftingUser": {
                         "type": "string"
                       },
+                      "licenseScope": {
+                        "type": "string",
+                        "enum": [
+                          "single-state",
+                          "multi-state"
+                        ]
+                      },
                       "dateOfUpdate": {
                         "type": "string",
                         "format": "date-time"
@@ -3680,6 +3437,13 @@
                 "dateOfUpdate": {
                   "type": "string",
                   "format": "date-time"
+                },
+                "licenseScope": {
+                  "type": "string",
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ]
                 }
               }
             }
@@ -3731,6 +3495,7 @@
                 "effectiveStartDate",
                 "encumbranceType",
                 "jurisdiction",
+                "licenseScope",
                 "licenseType",
                 "licenseTypeAbbreviation",
                 "providerId",
@@ -3814,6 +3579,13 @@
                 "liftingUser": {
                   "type": "string"
                 },
+                "licenseScope": {
+                  "type": "string",
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ]
+                },
                 "dateOfUpdate": {
                   "type": "string",
                   "format": "date-time"
@@ -3827,197 +3599,7 @@
           }
         }
       },
-      "TestALicen87UzEO8FByN3": {
-        "required": [
-          "effectiveLiftDate"
-        ],
-        "type": "object",
-        "properties": {
-          "effectiveLiftDate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The effective date when the encumbrance will be lifted",
-            "format": "date"
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicen8DOCd2kFNKVr": {
-        "required": [
-          "compactAbbr",
-          "compactAdverseActionsNotificationEmails",
-          "compactName",
-          "compactOperationsTeamEmails",
-          "configuredStates",
-          "licenseeRegistrationEnabled"
-        ],
-        "type": "object",
-        "properties": {
-          "configuredStates": {
-            "type": "array",
-            "description": "List of states that have submitted configurations and their live status",
-            "items": {
-              "required": [
-                "isLive",
-                "postalAbbreviation"
-              ],
-              "type": "object",
-              "properties": {
-                "postalAbbreviation": {
-                  "type": "string",
-                  "description": "The postal abbreviation of the jurisdiction",
-                  "enum": [
-                    "al",
-                    "az",
-                    "co",
-                    "ks",
-                    "ky",
-                    "md",
-                    "oh",
-                    "tn",
-                    "va",
-                    "wa"
-                  ]
-                },
-                "isLive": {
-                  "type": "boolean",
-                  "description": "Whether the state is live and available for registrations."
-                }
-              }
-            }
-          },
-          "compactAdverseActionsNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "compactAbbr": {
-            "type": "string",
-            "description": "The abbreviation of the compact"
-          },
-          "compactName": {
-            "type": "string",
-            "description": "The full name of the compact"
-          },
-          "compactOperationsTeamEmails": {
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          }
-        }
-      },
-      "TestALicenieqYQgLPF3Oc": {
-        "required": [
-          "compact",
-          "jurisdictionAdverseActionsNotificationEmails",
-          "jurisdictionName",
-          "jurisdictionOperationsTeamEmails",
-          "licenseeRegistrationEnabled",
-          "postalAbbreviation"
-        ],
-        "type": "object",
-        "properties": {
-          "postalAbbreviation": {
-            "type": "string",
-            "description": "The postal abbreviation of the jurisdiction"
-          },
-          "jurisdictionAdverseActionsNotificationEmails": {
-            "type": "array",
-            "description": "List of email addresses for adverse actions notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "jurisdictionOperationsTeamEmails": {
-            "type": "array",
-            "description": "List of email addresses for operations team notifications",
-            "items": {
-              "type": "string",
-              "format": "email"
-            }
-          },
-          "compact": {
-            "type": "string",
-            "description": "The compact this jurisdiction configuration belongs to",
-            "enum": [
-              "socw"
-            ]
-          },
-          "licenseeRegistrationEnabled": {
-            "type": "boolean",
-            "description": "Denotes whether licensee registration is enabled"
-          },
-          "jurisdictionName": {
-            "type": "string",
-            "description": "The name of the jurisdiction"
-          }
-        }
-      },
-      "TestALicenDiO5FBTVQqnN": {
-        "required": [
-          "action"
-        ],
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "close"
-            ]
-          },
-          "encumbrance": {
-            "required": [
-              "clinicalPrivilegeActionCategories",
-              "encumbranceEffectiveDate",
-              "encumbranceType"
-            ],
-            "type": "object",
-            "properties": {
-              "encumbranceEffectiveDate": {
-                "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-                "type": "string",
-                "description": "The effective date of the encumbrance",
-                "format": "date"
-              },
-              "clinicalPrivilegeActionCategories": {
-                "type": "array",
-                "description": "The categories of clinical privilege action",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "fraud",
-                    "consumer harm",
-                    "other"
-                  ]
-                }
-              },
-              "encumbranceType": {
-                "type": "string",
-                "description": "The type of encumbrance",
-                "enum": [
-                  "suspension",
-                  "revocation",
-                  "surrender of license"
-                ]
-              }
-            },
-            "additionalProperties": false,
-            "description": "Encumbrance data to create"
-          }
-        }
-      },
-      "TestALicenrTKXWeGlJdSm": {
+      "TestALicenuf1t1AOWtbEj": {
         "type": "object",
         "properties": {
           "context": {
@@ -4043,56 +3625,7 @@
         },
         "additionalProperties": false
       },
-      "TestALicen7VPWeACUXNxW": {
-        "type": "object",
-        "properties": {
-          "permissions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "actions": {
-                  "type": "object",
-                  "properties": {
-                    "readPrivate": {
-                      "type": "boolean"
-                    },
-                    "admin": {
-                      "type": "boolean"
-                    }
-                  }
-                },
-                "jurisdictions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "actions": {
-                        "type": "object",
-                        "properties": {
-                          "readPrivate": {
-                            "type": "boolean"
-                          },
-                          "admin": {
-                            "type": "boolean"
-                          },
-                          "write": {
-                            "type": "boolean"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicenBPNgHHOEfrMN": {
+      "TestALicenTcO3YVaPklzG": {
         "required": [
           "enabled"
         ],
@@ -4104,426 +3637,33 @@
           }
         }
       },
-      "TestALicenDec5g8dycU8V": {
-        "type": "object",
-        "properties": {
-          "attributes": {
-            "type": "object",
-            "properties": {
-              "givenName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicenT5k0UMd0IQFY": {
+      "TestALicent8Cwee4tcVEF": {
         "required": [
-          "effectiveLiftDate"
+          "upload"
         ],
         "type": "object",
         "properties": {
-          "effectiveLiftDate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The effective date when the encumbrance will be lifted",
-            "format": "date"
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicenABDlpIbmGvpt": {
-        "type": "object",
-        "properties": {}
-      },
-      "TestALiceneDjMMCLsTfYg": {
-        "required": [
-          "attributes",
-          "permissions",
-          "status",
-          "userId"
-        ],
-        "type": "object",
-        "properties": {
-          "permissions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "actions": {
-                  "type": "object",
-                  "properties": {
-                    "readPrivate": {
-                      "type": "boolean"
-                    },
-                    "admin": {
-                      "type": "boolean"
-                    }
-                  }
-                },
-                "jurisdictions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "actions": {
-                        "type": "object",
-                        "properties": {
-                          "readPrivate": {
-                            "type": "boolean"
-                          },
-                          "admin": {
-                            "type": "boolean"
-                          },
-                          "write": {
-                            "type": "boolean"
-                          }
-                        },
-                        "additionalProperties": false
-                      }
-                    }
-                  }
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "attributes": {
+          "upload": {
             "required": [
-              "email",
-              "familyName",
-              "givenName"
+              "fields",
+              "url"
             ],
             "type": "object",
             "properties": {
-              "givenName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string"
-              },
-              "email": {
-                "maxLength": 100,
-                "minLength": 5,
-                "type": "string"
-              }
-            },
-            "additionalProperties": false
-          },
-          "userId": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "active",
-              "inactive"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicenecMeKurmg8eG": {
-        "required": [
-          "pagination",
-          "providers"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "type": "object",
-            "properties": {
-              "prevLastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "lastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "pageSize": {
-                "maximum": 100,
-                "minimum": 5,
-                "type": "integer"
-              }
-            }
-          },
-          "query": {
-            "type": "object",
-            "properties": {
-              "providerId": {
-                "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                "type": "string",
-                "description": "Internal UUID for the provider"
-              },
-              "jurisdiction": {
-                "type": "string",
-                "description": "Filter for providers with privilege/license in a jurisdiction",
-                "enum": [
-                  "al",
-                  "az",
-                  "co",
-                  "ks",
-                  "ky",
-                  "md",
-                  "oh",
-                  "tn",
-                  "va",
-                  "wa"
-                ]
-              },
-              "givenName": {
-                "maxLength": 100,
-                "type": "string",
-                "description": "Filter for providers with a given name"
-              },
-              "familyName": {
-                "maxLength": 100,
-                "type": "string",
-                "description": "Filter for providers with a family name"
-              },
-              "licenseNumber": {
-                "maxLength": 100,
-                "minLength": 1,
-                "type": "string",
-                "description": "Filter for licenses with a specific license number"
-              }
-            }
-          },
-          "sorting": {
-            "required": [
-              "key"
-            ],
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string",
-                "description": "The key to sort results by",
-                "enum": [
-                  "dateOfUpdate",
-                  "familyName"
-                ]
-              },
-              "direction": {
-                "type": "string",
-                "description": "Direction to sort results by",
-                "enum": [
-                  "ascending",
-                  "descending"
-                ]
-              }
-            },
-            "description": "How to sort results"
-          },
-          "providers": {
-            "maxLength": 100,
-            "type": "array",
-            "items": {
-              "required": [
-                "compact",
-                "familyName",
-                "givenName",
-                "licenseEligibility",
-                "licenseJurisdiction",
-                "licenseNumber",
-                "licenseType",
-                "providerId"
-              ],
-              "type": "object",
-              "properties": {
-                "licenseType": {
-                  "type": "string",
-                  "description": "License type or profession designation for this license row"
-                },
-                "licenseEligibility": {
-                  "type": "string",
-                  "description": "Whether the license is eligible for compact participation in public search results",
-                  "enum": [
-                    "eligible",
-                    "ineligible"
-                  ]
-                },
-                "licenseJurisdiction": {
-                  "type": "string",
-                  "enum": [
-                    "al",
-                    "az",
-                    "co",
-                    "ks",
-                    "ky",
-                    "md",
-                    "oh",
-                    "tn",
-                    "va",
-                    "wa"
-                  ]
-                },
-                "compact": {
-                  "type": "string",
-                  "enum": [
-                    "socw"
-                  ]
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
-                },
-                "givenName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "familyName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "licenseNumber": {
-                  "maxLength": 100,
-                  "minLength": 1,
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "url": {
+                "type": "string"
               }
             }
           }
         }
       },
-      "TestALicenGuFBFkHjgyWP": {
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "type": "object",
-            "properties": {
-              "prevLastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "lastKey": {
-                "maxLength": 1024,
-                "minLength": 1,
-                "type": "object"
-              },
-              "pageSize": {
-                "maximum": 100,
-                "minimum": 5,
-                "type": "integer"
-              }
-            }
-          },
-          "users": {
-            "type": "array",
-            "items": {
-              "required": [
-                "attributes",
-                "permissions",
-                "status",
-                "userId"
-              ],
-              "type": "object",
-              "properties": {
-                "permissions": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "actions": {
-                        "type": "object",
-                        "properties": {
-                          "readPrivate": {
-                            "type": "boolean"
-                          },
-                          "admin": {
-                            "type": "boolean"
-                          }
-                        }
-                      },
-                      "jurisdictions": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "actions": {
-                              "type": "object",
-                              "properties": {
-                                "readPrivate": {
-                                  "type": "boolean"
-                                },
-                                "admin": {
-                                  "type": "boolean"
-                                },
-                                "write": {
-                                  "type": "boolean"
-                                }
-                              },
-                              "additionalProperties": false
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "attributes": {
-                  "required": [
-                    "email",
-                    "familyName",
-                    "givenName"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "givenName": {
-                      "maxLength": 100,
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "familyName": {
-                      "maxLength": 100,
-                      "minLength": 1,
-                      "type": "string"
-                    },
-                    "email": {
-                      "maxLength": 100,
-                      "minLength": 5,
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "userId": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "string",
-                  "enum": [
-                    "active",
-                    "inactive"
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "TestALicenfgNnVzLTxob0": {
+      "TestALicenNEZjECY0EIXB": {
         "required": [
           "pagination",
           "providers"
@@ -4703,91 +3843,1079 @@
           }
         }
       },
-      "TestALicenSwxDyLtD7O9E": {
+      "TestALicenwtaAzkUzgvMz": {
         "required": [
-          "clinicalPrivilegeActionCategories",
-          "encumbranceEffectiveDate",
-          "encumbranceType"
+          "attributes",
+          "permissions",
+          "status",
+          "userId"
         ],
         "type": "object",
         "properties": {
-          "encumbranceEffectiveDate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The effective date of the encumbrance",
-            "format": "date"
-          },
-          "clinicalPrivilegeActionCategories": {
-            "type": "array",
-            "description": "The categories of clinical privilege action",
-            "items": {
-              "type": "string",
-              "enum": [
-                "fraud",
-                "consumer harm",
-                "other"
-              ]
+          "permissions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "actions": {
+                  "type": "object",
+                  "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
+                    "admin": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "jurisdictions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "object",
+                        "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
+                          "admin": {
+                            "type": "boolean"
+                          },
+                          "write": {
+                            "type": "boolean"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
             }
           },
-          "encumbranceType": {
+          "attributes": {
+            "required": [
+              "email",
+              "familyName",
+              "givenName"
+            ],
+            "type": "object",
+            "properties": {
+              "givenName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              "email": {
+                "maxLength": 100,
+                "minLength": 5,
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "userId": {
+            "type": "string"
+          },
+          "status": {
             "type": "string",
-            "description": "The type of encumbrance",
             "enum": [
-              "suspension",
-              "revocation",
-              "surrender of license"
+              "active",
+              "inactive"
             ]
           }
         },
-        "additionalProperties": false,
-        "description": "Encumbrance data to create"
+        "additionalProperties": false
       },
-      "TestALicena35BrLR78TH0": {
+      "TestALicenz60E9GxgxvRT": {
         "required": [
-          "clinicalPrivilegeActionCategories",
-          "encumbranceEffectiveDate",
-          "encumbranceType"
+          "compactAbbr",
+          "compactAdverseActionsNotificationEmails",
+          "compactName",
+          "compactOperationsTeamEmails",
+          "configuredStates",
+          "licenseeRegistrationEnabled"
         ],
         "type": "object",
         "properties": {
-          "encumbranceEffectiveDate": {
-            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
-            "type": "string",
-            "description": "The effective date of the encumbrance",
-            "format": "date"
-          },
-          "clinicalPrivilegeActionCategories": {
+          "configuredStates": {
             "type": "array",
-            "description": "The categories of clinical privilege action",
+            "description": "List of states that have submitted configurations and their live status",
             "items": {
-              "type": "string",
-              "enum": [
-                "fraud",
-                "consumer harm",
-                "other"
-              ]
+              "required": [
+                "isLive",
+                "postalAbbreviation"
+              ],
+              "type": "object",
+              "properties": {
+                "postalAbbreviation": {
+                  "type": "string",
+                  "description": "The postal abbreviation of the jurisdiction",
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ]
+                },
+                "isLive": {
+                  "type": "boolean",
+                  "description": "Whether the state is live and available for registrations."
+                }
+              }
             }
           },
-          "encumbranceType": {
+          "compactAdverseActionsNotificationEmails": {
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "compactAbbr": {
             "type": "string",
-            "description": "The type of encumbrance",
+            "description": "The abbreviation of the compact"
+          },
+          "compactName": {
+            "type": "string",
+            "description": "The full name of the compact"
+          },
+          "compactOperationsTeamEmails": {
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        }
+      },
+      "TestALicenpht9Tj1tkyAU": {
+        "required": [
+          "effectiveLiftDate",
+          "licenseScope"
+        ],
+        "type": "object",
+        "properties": {
+          "effectiveLiftDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date when the encumbrance will be lifted",
+            "format": "date"
+          },
+          "licenseScope": {
+            "type": "string",
             "enum": [
-              "suspension",
-              "revocation",
-              "surrender of license"
+              "single-state",
+              "multi-state"
             ]
           }
         },
-        "additionalProperties": false,
-        "description": "Encumbrance data to create"
+        "additionalProperties": false
       },
-      "TestALicenwsC6m1RPaBTa": {
+      "TestALicenPU78UBpLgMaP": {
+        "required": [
+          "action"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "close"
+            ]
+          },
+          "encumbrance": {
+            "required": [
+              "clinicalPrivilegeActionCategories",
+              "encumbranceEffectiveDate",
+              "encumbranceType"
+            ],
+            "type": "object",
+            "properties": {
+              "encumbranceEffectiveDate": {
+                "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                "type": "string",
+                "description": "The effective date of the encumbrance",
+                "format": "date"
+              },
+              "clinicalPrivilegeActionCategories": {
+                "type": "array",
+                "description": "The categories of clinical privilege action",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "fraud",
+                    "consumer harm",
+                    "other"
+                  ]
+                }
+              },
+              "encumbranceType": {
+                "type": "string",
+                "description": "The type of encumbrance",
+                "enum": [
+                  "suspension",
+                  "revocation",
+                  "surrender of license"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "description": "Encumbrance data to create"
+          }
+        }
+      },
+      "TestALicenEVsrIP1Cbe0h": {
         "type": "object",
         "properties": {}
+      },
+      "TestALicenT0BWB0XcccEO": {
+        "type": "array",
+        "items": {
+          "required": [
+            "compact",
+            "jurisdictionName",
+            "postalAbbreviation"
+          ],
+          "type": "object",
+          "properties": {
+            "postalAbbreviation": {
+              "type": "string",
+              "description": "The postal abbreviation of the jurisdiction"
+            },
+            "compact": {
+              "type": "string"
+            },
+            "jurisdictionName": {
+              "type": "string",
+              "description": "The name of the jurisdiction"
+            }
+          }
+        }
+      },
+      "TestALicenmi91EHypaiFi": {
+        "required": [
+          "jurisdictionAdverseActionsNotificationEmails",
+          "jurisdictionOperationsTeamEmails",
+          "licenseeRegistrationEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "jurisdictionAdverseActionsNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "jurisdictionOperationsTeamEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestALicennE6IeKjO4KkD": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "A message about the request"
+          }
+        }
+      },
+      "TestALicennkQ1XbRgr9l0": {
+        "required": [
+          "clinicalPrivilegeActionCategories",
+          "encumbranceEffectiveDate",
+          "encumbranceType",
+          "licenseScope"
+        ],
+        "type": "object",
+        "properties": {
+          "encumbranceEffectiveDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date of the encumbrance",
+            "format": "date"
+          },
+          "clinicalPrivilegeActionCategories": {
+            "type": "array",
+            "description": "The categories of clinical privilege action",
+            "items": {
+              "type": "string",
+              "enum": [
+                "fraud",
+                "consumer harm",
+                "other"
+              ]
+            }
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "suspension",
+              "revocation",
+              "surrender of license"
+            ]
+          },
+          "licenseScope": {
+            "type": "string",
+            "enum": [
+              "single-state",
+              "multi-state"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "Encumbrance data to create"
+      },
+      "TestALicenyPPmB5QK4Mwi": {
+        "required": [
+          "compactAdverseActionsNotificationEmails",
+          "compactOperationsTeamEmails",
+          "configuredStates",
+          "licenseeRegistrationEnabled"
+        ],
+        "type": "object",
+        "properties": {
+          "configuredStates": {
+            "type": "array",
+            "description": "List of states that have submitted configurations and their live status",
+            "items": {
+              "required": [
+                "isLive",
+                "postalAbbreviation"
+              ],
+              "type": "object",
+              "properties": {
+                "postalAbbreviation": {
+                  "type": "string",
+                  "description": "The postal abbreviation of the jurisdiction",
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ]
+                },
+                "isLive": {
+                  "type": "boolean",
+                  "description": "Whether the state is live and available for registrations."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "compactAdverseActionsNotificationEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "compactOperationsTeamEmails": {
+            "maxItems": 10,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestALicenbkno2SNuWuvY": {
+        "required": [
+          "action",
+          "licenseScope"
+        ],
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "close"
+            ]
+          },
+          "licenseScope": {
+            "type": "string",
+            "enum": [
+              "single-state",
+              "multi-state"
+            ]
+          },
+          "encumbrance": {
+            "required": [
+              "clinicalPrivilegeActionCategories",
+              "encumbranceEffectiveDate",
+              "encumbranceType",
+              "licenseScope"
+            ],
+            "type": "object",
+            "properties": {
+              "encumbranceEffectiveDate": {
+                "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                "type": "string",
+                "description": "The effective date of the encumbrance",
+                "format": "date"
+              },
+              "clinicalPrivilegeActionCategories": {
+                "type": "array",
+                "description": "The categories of clinical privilege action",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "fraud",
+                    "consumer harm",
+                    "other"
+                  ]
+                }
+              },
+              "encumbranceType": {
+                "type": "string",
+                "description": "The type of encumbrance",
+                "enum": [
+                  "suspension",
+                  "revocation",
+                  "surrender of license"
+                ]
+              },
+              "licenseScope": {
+                "type": "string",
+                "enum": [
+                  "single-state",
+                  "multi-state"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "description": "Encumbrance data to create"
+          }
+        }
+      },
+      "TestALicenssEUeQmNqrM6": {
+        "required": [
+          "clinicalPrivilegeActionCategories",
+          "encumbranceEffectiveDate",
+          "encumbranceType"
+        ],
+        "type": "object",
+        "properties": {
+          "encumbranceEffectiveDate": {
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "The effective date of the encumbrance",
+            "format": "date"
+          },
+          "clinicalPrivilegeActionCategories": {
+            "type": "array",
+            "description": "The categories of clinical privilege action",
+            "items": {
+              "type": "string",
+              "enum": [
+                "fraud",
+                "consumer harm",
+                "other"
+              ]
+            }
+          },
+          "encumbranceType": {
+            "type": "string",
+            "description": "The type of encumbrance",
+            "enum": [
+              "suspension",
+              "revocation",
+              "surrender of license"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "Encumbrance data to create"
+      },
+      "TestALicen4oBA2oRHRolJ": {
+        "required": [
+          "query"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "lastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "string"
+              },
+              "pageSize": {
+                "maximum": 100,
+                "minimum": 5,
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "query": {
+            "type": "object",
+            "properties": {
+              "providerId": {
+                "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                "type": "string",
+                "description": "Internal UUID for the provider"
+              },
+              "jurisdiction": {
+                "type": "string",
+                "description": "Filter for providers with license in a jurisdiction",
+                "enum": [
+                  "al",
+                  "az",
+                  "co",
+                  "ks",
+                  "ky",
+                  "md",
+                  "oh",
+                  "tn",
+                  "va",
+                  "wa"
+                ]
+              },
+              "givenName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a given name (familyName is required if givenName is provided)"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a family name"
+              },
+              "licenseNumber": {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string",
+                "description": "Filter for licenses with a specific license number"
+              }
+            },
+            "additionalProperties": false,
+            "description": "The query parameters"
+          },
+          "sorting": {
+            "required": [
+              "key"
+            ],
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "The key to sort results by",
+                "enum": [
+                  "dateOfUpdate",
+                  "familyName"
+                ]
+              },
+              "direction": {
+                "type": "string",
+                "description": "Direction to sort results by",
+                "enum": [
+                  "ascending",
+                  "descending"
+                ]
+              }
+            },
+            "description": "How to sort results"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestALicenSnbehaHnpXHv": {
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "prevLastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "lastKey": {
+                "maxLength": 1024,
+                "minLength": 1,
+                "type": "object"
+              },
+              "pageSize": {
+                "maximum": 100,
+                "minimum": 5,
+                "type": "integer"
+              }
+            }
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "required": [
+                "attributes",
+                "permissions",
+                "status",
+                "userId"
+              ],
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "actions": {
+                        "type": "object",
+                        "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
+                          "admin": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "jurisdictions": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "actions": {
+                              "type": "object",
+                              "properties": {
+                                "readPrivate": {
+                                  "type": "boolean"
+                                },
+                                "admin": {
+                                  "type": "boolean"
+                                },
+                                "write": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "attributes": {
+                  "required": [
+                    "email",
+                    "familyName",
+                    "givenName"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "givenName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "familyName": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "email": {
+                      "maxLength": 100,
+                      "minLength": 5,
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "userId": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestALicen49toJAATzdfY": {
+        "required": [
+          "compact",
+          "jurisdictionAdverseActionsNotificationEmails",
+          "jurisdictionName",
+          "jurisdictionOperationsTeamEmails",
+          "licenseeRegistrationEnabled",
+          "postalAbbreviation"
+        ],
+        "type": "object",
+        "properties": {
+          "postalAbbreviation": {
+            "type": "string",
+            "description": "The postal abbreviation of the jurisdiction"
+          },
+          "jurisdictionAdverseActionsNotificationEmails": {
+            "type": "array",
+            "description": "List of email addresses for adverse actions notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "jurisdictionOperationsTeamEmails": {
+            "type": "array",
+            "description": "List of email addresses for operations team notifications",
+            "items": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "compact": {
+            "type": "string",
+            "description": "The compact this jurisdiction configuration belongs to",
+            "enum": [
+              "socw"
+            ]
+          },
+          "licenseeRegistrationEnabled": {
+            "type": "boolean",
+            "description": "Denotes whether licensee registration is enabled"
+          },
+          "jurisdictionName": {
+            "type": "string",
+            "description": "The name of the jurisdiction"
+          }
+        }
+      },
+      "TestALicenmyF8U9gFO2mb": {
+        "required": [
+          "licenseScope"
+        ],
+        "type": "object",
+        "properties": {
+          "licenseScope": {
+            "type": "string",
+            "enum": [
+              "single-state",
+              "multi-state"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestALicenI8ObIK8aJtpE": {
+        "required": [
+          "compact",
+          "dateOfUpdate",
+          "familyName",
+          "givenName",
+          "licenseJurisdiction",
+          "providerId",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "privileges": {
+            "type": "array",
+            "items": {
+              "required": [
+                "administratorSetStatus",
+                "compact",
+                "dateOfExpiration",
+                "jurisdiction",
+                "licenseJurisdiction",
+                "licenseType",
+                "providerId",
+                "status",
+                "type"
+              ],
+              "type": "object",
+              "properties": {
+                "licenseType": {
+                  "type": "string",
+                  "enum": [
+                    "licensed clinical social worker",
+                    "licensed master social worker",
+                    "licensed bachelor social worker"
+                  ]
+                },
+                "administratorSetStatus": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                },
+                "licenseJurisdiction": {
+                  "type": "string",
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ]
+                },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "socw"
+                  ]
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "jurisdiction": {
+                  "type": "string",
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ]
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "privilege"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                }
+              }
+            }
+          },
+          "licenses": {
+            "type": "array",
+            "description": "Sanitized home-state license rows (LicensePublicResponseSchema)",
+            "items": {
+              "required": [
+                "compact",
+                "compactEligibility",
+                "dateOfExpiration",
+                "jurisdiction",
+                "licenseNumber",
+                "licenseScope",
+                "licenseStatus",
+                "licenseType",
+                "type"
+              ],
+              "type": "object",
+              "properties": {
+                "licenseType": {
+                  "type": "string",
+                  "enum": [
+                    "licensed clinical social worker",
+                    "licensed master social worker",
+                    "licensed bachelor social worker"
+                  ]
+                },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "socw"
+                  ]
+                },
+                "licenseStatus": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                },
+                "jurisdiction": {
+                  "type": "string",
+                  "enum": [
+                    "al",
+                    "az",
+                    "co",
+                    "ks",
+                    "ky",
+                    "md",
+                    "oh",
+                    "tn",
+                    "va",
+                    "wa"
+                  ]
+                },
+                "compactEligibility": {
+                  "type": "string",
+                  "enum": [
+                    "eligible",
+                    "ineligible"
+                  ]
+                },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "license"
+                  ]
+                },
+                "licenseScope": {
+                  "type": "string",
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ]
+                }
+              }
+            }
+          },
+          "licenseJurisdiction": {
+            "type": "string",
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ]
+          },
+          "compact": {
+            "type": "string",
+            "enum": [
+              "socw"
+            ]
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "givenName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "familyName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "middleName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "provider"
+            ]
+          },
+          "suffix": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "dateOfUpdate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     },
     "securitySchemes": {
-      "TestBackendCosmetologyTestAPIStackLicenseApiStaffUsersPoolAuthorizerF1C101C2": {
+      "TestBackendSocialWorkTestAPIStackLicenseApiStaffUsersPoolAuthorizer3D7855A2": {
         "type": "apiKey",
         "name": "Authorization",
         "in": "header",
