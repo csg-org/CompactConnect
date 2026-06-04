@@ -232,6 +232,10 @@ class PrivilegeCard extends mixins(MixinForm) {
             const includeList = ['suspension', 'revocation', 'surrender of privilege'];
 
             options = options.filter((option) => includeList.includes(option.value));
+        } else {
+            const excludeList = ['surrender of license'];
+
+            options = options.filter((option) => !excludeList.includes(option.value));
         }
 
         options.unshift({
