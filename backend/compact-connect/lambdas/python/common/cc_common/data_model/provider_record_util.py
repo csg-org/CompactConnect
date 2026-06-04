@@ -412,9 +412,9 @@ class ProviderUserRecords:
 
     Cross-record business rules belong here so they are not duplicated elsewhere.
     That includes how privileges are derived, how OpenSearch index documents are
-    built, and other provider-wide behavior (i.e. API response shaping). Do not 
-    reimplement that logic in handlers, Lambdas, or background jobs; extend this 
-    class when those rules change so APIs, search indexing, and downstream consumers 
+    built, and other provider-wide behavior (i.e. API response shaping). Do not
+    reimplement that logic in handlers, Lambdas, or background jobs; extend this
+    class when those rules change so APIs, search indexing, and downstream consumers
     stay consistent.
 
     Any code that needs to read or derive provider-scoped data should use
