@@ -12,11 +12,11 @@ aws-lambda-powertools==3.29.0
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.43.12
+boto3==1.43.14
     # via
     #   -r requirements-dev.in
     #   moto
-botocore==1.43.12
+botocore==1.43.18
     # via
     #   boto3
     #   moto
@@ -51,7 +51,7 @@ defusedxml==0.7.1
     # via py-serializable
 docker==7.1.0
     # via moto
-faker==40.18.0
+faker==40.19.1
     # via -r requirements-dev.in
 filelock==3.29.0
     # via cachecontrol
