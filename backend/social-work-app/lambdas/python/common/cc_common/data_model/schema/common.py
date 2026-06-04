@@ -306,6 +306,8 @@ class UpdateCategory(CCEnum):
     # NOTE: this value should explicitly be used for license upload updates, not anywhere else
     # it is referenced in the event that an invalid license upload needs to be reverted.
     LICENSE_UPLOAD_UPDATE_OTHER = 'other'
+    # Provider top-level home jurisdiction changed as a result of a license upload.
+    HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
 
 
 # License upload related update categories
@@ -313,6 +315,7 @@ LICENSE_UPLOAD_UPDATE_CATEGORIES = {
     UpdateCategory.DEACTIVATION,
     UpdateCategory.RENEWAL,
     UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER,
+    UpdateCategory.HOME_JURISDICTION_CHANGE,
 }
 
 

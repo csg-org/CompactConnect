@@ -4,12 +4,12 @@ from datetime import date, datetime
 
 from boto3.dynamodb.conditions import Key
 from cc_common.data_model.schema.adverse_action import AdverseActionData
-from cc_common.data_model.schema.common import CCDataClass
+from cc_common.data_model.schema.common import CCDataClass, UpdateCategory
 from cc_common.data_model.schema.compact import CompactConfigurationData
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.jurisdiction import JurisdictionConfigurationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
-from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.utils import ResponseEncoder
 
 from common_test.test_constants import *
@@ -326,6 +326,37 @@ class TestDataGenerator:
 
         TestDataGenerator.store_record_in_provider_table(update_record)
 
+        return update_data
+
+    @staticmethod
+    def generate_default_provider_update(
+        value_overrides: dict | None = None, previous_provider: ProviderData | None = None
+    ) -> ProviderUpdateData:
+        """Generate a default provider update record."""
+        if previous_provider is None:
+            previous_provider = TestDataGenerator.generate_default_provider()
+
+        provider_update = {
+            'type': PROVIDER_UPDATE_RECORD_TYPE,
+            'updateType': UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER.value,
+            'providerId': previous_provider.providerId,
+            'compact': previous_provider.compact,
+            'createDate': datetime.fromisoformat(DEFAULT_PROVIDER_UPDATE_DATETIME),
+            'previous': previous_provider.to_dict(),
+            'updatedValues': {},
+        }
+        if value_overrides:
+            provider_update.update(value_overrides)
+
+        return ProviderUpdateData.create_new(provider_update)
+
+    @staticmethod
+    def put_default_provider_update_record_in_provider_table(
+        value_overrides: dict | None = None,
+    ) -> ProviderUpdateData:
+        """Creates a default provider update and stores it in the provider table."""
+        update_data = TestDataGenerator.generate_default_provider_update(value_overrides)
+        TestDataGenerator.store_record_in_provider_table(update_data.serialize_to_database_record())
         return update_data
 
     @staticmethod

@@ -745,6 +745,40 @@ def _build_and_execute_revert_transactions(
                 )
             )
 
+    # Gather provider update records created during the window. These capture top-level provider
+    # changes (e.g. home jurisdiction) caused by the upload and let us restore the exact prior state
+    # instead of recomputing it from the best remaining license.
+    provider_revert_target: ProviderData | None = None
+    provider_updates_in_window = provider_records.get_all_provider_update_records(
+        filter_condition=lambda x: x.createDate >= upload_window_start_datetime
+    )
+
+    eligible_provider_updates_in_window = []
+    for provider_update in provider_updates_in_window:
+        if (
+            provider_update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES
+            or provider_update.createDate > upload_window_end_datetime
+        ):
+            ineligible_updates.append(
+                IneligibleUpdate(
+                    record_type='providerUpdate',
+                    type_of_update=provider_update.updateType,
+                    update_time=provider_update.createDate.isoformat(),
+                    reason='Provider record was updated with a change unrelated to license upload or the '
+                    'update occurred after rollback end time. Manual review required.',
+                )
+            )
+        else:
+            eligible_provider_updates_in_window.append(provider_update)
+            serialized_provider_update = provider_update.serialize_to_database_record()
+            add_delete(serialized_provider_update['pk'], serialized_provider_update['sk'], update_record=True)
+            updates_deleted_sks.append(serialized_provider_update['sk'])
+
+    if eligible_provider_updates_in_window:
+        eligible_provider_updates_in_window.sort(key=lambda x: x.createDate)
+        earliest_provider_update = eligible_provider_updates_in_window[0]
+        provider_revert_target = ProviderData.create_new(earliest_provider_update.previous)
+
     # Check if provider is ineligible for rollback
     if ineligible_updates:
         logger.info(
@@ -797,12 +831,16 @@ def _build_and_execute_revert_transactions(
     primary_record_transaction_items.clear()
 
     try:
-        best_license = provider_records_after_rollback.find_best_license_in_current_known_licenses()
-        updated_provider_record = ProviderRecordUtility.populate_provider_record(
-            current_provider_record=top_level_provider_record,
-            license_record=best_license.to_dict(),
-        )
-        add_put(updated_provider_record.serialize_to_database_record(), update_record=False)
+        if provider_revert_target is not None:
+            logger.info('Reverting top-level provider record to pre-upload state from provider update history')
+            add_put(provider_revert_target.serialize_to_database_record(), update_record=False)
+        else:
+            best_license = provider_records_after_rollback.find_best_license_in_current_known_licenses()
+            updated_provider_record = ProviderRecordUtility.populate_provider_record(
+                current_provider_record=top_level_provider_record,
+                license_record=best_license.to_dict(),
+            )
+            add_put(updated_provider_record.serialize_to_database_record(), update_record=False)
     except CCNotFoundException:
         # All licenses for the provider were removed as part of the rollback, meaning the provider
         # needs to be removed as well. We first check to make sure there are no other record types

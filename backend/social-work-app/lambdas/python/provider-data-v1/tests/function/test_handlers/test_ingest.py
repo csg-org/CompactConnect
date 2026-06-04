@@ -64,6 +64,57 @@ class TestIngest(TstFunction):
         self.assertEqual(resp['statusCode'], 200)
         return json.loads(resp['body'])
 
+    def _assert_provider_update_home_jurisdiction_change(
+        self,
+        provider_id: str,
+        *,
+        former_home_jurisdiction: str,
+        new_home_jurisdiction: str,
+    ):
+        from cc_common.data_model.schema.common import UpdateCategory
+        from cc_common.data_model.update_tier_enum import UpdateTierEnum
+
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact='socw',
+            provider_id=provider_id,
+            include_update_tier=UpdateTierEnum.TIER_TWO,
+        )
+        home_jurisdiction_updates = [
+            update
+            for update in provider_records.get_all_provider_update_records()
+            if update.updateType == UpdateCategory.HOME_JURISDICTION_CHANGE.value
+        ]
+        self.assertEqual(1, len(home_jurisdiction_updates), home_jurisdiction_updates)
+        provider_update = home_jurisdiction_updates[0]
+        self.assertEqual(former_home_jurisdiction, provider_update.previous['licenseJurisdiction'])
+        self.assertEqual(new_home_jurisdiction, provider_update.updatedValues['licenseJurisdiction'])
+
+    def _assert_provider_update_license_upload_other(
+        self,
+        provider_id: str,
+        *,
+        expected_previous_given_name: str,
+        expected_updated_given_name: str,
+    ):
+        from cc_common.data_model.schema.common import UpdateCategory
+        from cc_common.data_model.update_tier_enum import UpdateTierEnum
+
+        provider_records = self.config.data_client.get_provider_user_records(
+            compact='socw',
+            provider_id=provider_id,
+            include_update_tier=UpdateTierEnum.TIER_TWO,
+        )
+        other_provider_updates = [
+            update
+            for update in provider_records.get_all_provider_update_records()
+            if update.updateType == UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER.value
+        ]
+        self.assertEqual(1, len(other_provider_updates), other_provider_updates)
+        provider_update = other_provider_updates[0]
+        self.assertEqual(expected_previous_given_name, provider_update.previous['givenName'])
+        self.assertEqual(expected_updated_given_name, provider_update.updatedValues['givenName'])
+        self.assertNotIn('licenseJurisdiction', provider_update.updatedValues)
+
     def test_new_provider_ingest(self):
         from handlers.ingest import ingest_license_message
 
@@ -593,6 +644,12 @@ class TestIngest(TstFunction):
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
 
+        self._assert_provider_update_license_upload_other(
+            provider_id,
+            expected_previous_given_name='Björk',
+            expected_updated_given_name='Audrey',
+        )
+
     def test_licenses_with_different_jurisdictions_updates_provider_data_when_single_and_multi_state_licenses_uploaded(
         self,
     ):
@@ -886,6 +943,12 @@ class TestIngest(TstFunction):
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
 
+        self._assert_provider_update_home_jurisdiction_change(
+            provider_id,
+            former_home_jurisdiction='oh',
+            new_home_jurisdiction='ky',
+        )
+
     def test_same_license_types_different_jurisdictions_triggers_home_jurisdiction_change_event_bridge_notification(
         self,
     ):
@@ -1025,6 +1088,70 @@ class TestIngest(TstFunction):
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
 
+        self._assert_provider_update_home_jurisdiction_change(
+            provider_id,
+            former_home_jurisdiction='oh',
+            new_home_jurisdiction='ky',
+        )
+
+    def test_ingest_writes_provider_update_record_when_home_jurisdiction_changes(self):
+        """
+        When an upload changes the provider's home jurisdiction, ingest writes a providerUpdate record
+        capturing the prior home state for disaster-recovery rollback.
+        """
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            ssn_record = json.load(f)
+
+        self._ssn_table.put_item(Item=ssn_record)
+        provider_id = ssn_record['providerId']
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail']['licenseScope'] = 'multi-state'
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data_after_first_license = self._get_provider_via_api(provider_id)
+        self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            value_overrides={
+                'providerId': provider_id,
+                'licenseType': 'licensed clinical social worker',
+                'licenseScope': 'single-state',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': date.fromisoformat('2019-06-06'),
+            }
+        )
+
+        message['detail'].update(
+            {
+                'licenseType': 'licensed clinical social worker',
+                'licenseScope': 'multi-state',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2020-06-06',
+                'licenseNumber': 'B0608337260',
+                'givenName': 'Audrey',
+            }
+        )
+
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        self._assert_provider_update_home_jurisdiction_change(
+            provider_id,
+            former_home_jurisdiction='oh',
+            new_home_jurisdiction='ky',
+        )
+
     def test_home_jurisdiction_change_when_multi_state_ingested_before_paired_single_state(
         self,
     ):
@@ -1115,6 +1242,12 @@ class TestIngest(TstFunction):
 
         provider_data = self._get_provider_via_api(provider_id)
         self.assertEqual('oh', provider_data['licenseJurisdiction'])
+
+        self._assert_provider_update_home_jurisdiction_change(
+            provider_id,
+            former_home_jurisdiction='az',
+            new_home_jurisdiction='oh',
+        )
 
     def test_older_license_in_home_jurisdiction_does_not_update_provider_data(self):
         """

@@ -15,6 +15,7 @@ from cc_common.data_model.schema.license import LicenseData
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.data_model.schema.provider import ProviderData
+from cc_common.data_model.schema.provider.record import ProviderUpdateRecordSchema
 from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
@@ -22,6 +23,23 @@ from marshmallow.exceptions import SCHEMA
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
+provider_update_schema = ProviderUpdateRecordSchema()
+
+# Fields tracked on the provider update "previous" snapshot (ProviderUpdatePreviousRecordSchema).
+# Calculated/derived fields (licenseStatus, compactEligibility, birthMonthDay, status) are excluded.
+PROVIDER_UPDATE_TRACKED_FIELDS = {
+    'licenseJurisdiction',
+    'jurisdictionUploadedLicenseStatus',
+    'jurisdictionUploadedCompactEligibility',
+    'encumberedStatus',
+    'ssnLastFour',
+    'givenName',
+    'middleName',
+    'familyName',
+    'suffix',
+    'dateOfExpiration',
+    'dateOfBirth',
+}
 
 MULTI_STATE_SINGLE_STATE_ELIGIBILITY_MISMATCH_MESSAGE = (
     'Multi-state license uploaded as compact eligible but the associated single-state license '
@@ -256,6 +274,16 @@ def ingest_license_message(message: dict):
                     }
                 )
 
+                # If this is an update to an existing provider record (not a first-upload create), capture the
+                # delta as a providerUpdate history record so an upload-driven change (e.g. home jurisdiction)
+                # can be reverted by the disaster-recovery rollback flow.
+                if current_provider_record is not None:
+                    _process_provider_update(
+                        existing_provider=current_provider_record.to_dict(),
+                        new_provider=provider_record.to_dict(),
+                        dynamo_transactions=dynamo_transactions,
+                    )
+
             # Write the records together as a transaction that succeeds or fails as one, to ensure consistency
             config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
 
@@ -370,6 +398,43 @@ def _find_best_license_for_jurisdiction(known_licenses: list[dict], jurisdiction
         jurisdiction_licenses, LicenseScopeEnum.MULTI_STATE
     ) or ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
         jurisdiction_licenses, LicenseScopeEnum.SINGLE_STATE
+    )
+
+
+def _process_provider_update(*, existing_provider: dict, new_provider: dict, dynamo_transactions: list):
+    """
+    Diff the existing vs new top-level provider record and, if any tracked fields changed, append a
+    providerUpdate record to the transaction. Uses HOME_JURISDICTION_CHANGE when licenseJurisdiction
+    changed; otherwise LICENSE_UPLOAD_UPDATE_OTHER.
+    """
+    updated_values = {
+        key: new_provider[key]
+        for key in PROVIDER_UPDATE_TRACKED_FIELDS
+        if key in new_provider and new_provider.get(key) != existing_provider.get(key)
+    }
+    if not updated_values:
+        logger.info('No top-level provider changes detected; skipping provider update record.')
+        return
+
+    if 'licenseJurisdiction' in updated_values:
+        update_type = UpdateCategory.HOME_JURISDICTION_CHANGE
+    else:
+        update_type = UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER
+
+    now = config.current_standard_datetime
+    update_record = provider_update_schema.dump(
+        {
+            'type': ProviderRecordType.PROVIDER_UPDATE,
+            'updateType': update_type,
+            'providerId': existing_provider['providerId'],
+            'compact': existing_provider['compact'],
+            'createDate': now,
+            'previous': existing_provider,
+            'updatedValues': updated_values,
+        }
+    )
+    dynamo_transactions.append(
+        {'Put': {'TableName': config.provider_table_name, 'Item': TypeSerializer().serialize(update_record)['M']}}
     )
 
 
