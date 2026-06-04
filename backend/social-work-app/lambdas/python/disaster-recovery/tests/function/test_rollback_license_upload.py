@@ -591,9 +591,42 @@ class TestRollbackLicenseUpload(TstFunction):
         is also deleted when reverting upload."""
         from handlers.rollback_license_upload import rollback_license_upload
 
-        # Setup:
-        # License and provider records were created during upload
+        # Setup: license and provider created during the upload window; a later re-upload only
+        # leaves in-window providerUpdate history (no pre-window provider updates).
         self._when_provider_had_license_created_from_upload()
+        provider_after_first_upload = self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'givenName': MOCK_ORIGINAL_GIVEN_NAME,
+                'familyName': MOCK_ORIGINAL_FAMILY_NAME,
+                'dateOfUpdate': self.default_upload_datetime - timedelta(minutes=15),
+            }
+        )
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'givenName': MOCK_UPDATED_GIVEN_NAME,
+                'familyName': MOCK_UPDATED_FAMILY_NAME,
+                'dateOfUpdate': self.default_upload_datetime,
+            }
+        )
+        self.test_data_generator.put_default_provider_update_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'updateType': self.update_categories.LICENSE_UPLOAD_UPDATE_OTHER.value,
+                'createDate': self.default_upload_datetime,
+                'previous': provider_after_first_upload.to_dict(),
+                'updatedValues': {
+                    'givenName': MOCK_UPDATED_GIVEN_NAME,
+                    'familyName': MOCK_UPDATED_FAMILY_NAME,
+                },
+            }
+        )
 
         # Execute: Perform rollback
         event = self._generate_test_event()

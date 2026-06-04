@@ -774,7 +774,15 @@ def _build_and_execute_revert_transactions(
             add_delete(serialized_provider_update['pk'], serialized_provider_update['sk'], update_record=True)
             updates_deleted_sks.append(serialized_provider_update['sk'])
 
-    if eligible_provider_updates_in_window:
+    has_license_uploaded_before_window = any(
+        license_record.firstUploadDate is not None and license_record.firstUploadDate < upload_window_start_datetime
+        for license_record in provider_records.get_license_records()
+    )
+    if eligible_provider_updates_in_window and has_license_uploaded_before_window:
+        # Only restore from provider update history when the provider had at least one
+        # license before the rollback window. Otherwise (provider created entirely from in-window
+        # uploads) leave provider_revert_target unset so the provider row is deleted when all
+        # licenses from the rollback are removed.
         eligible_provider_updates_in_window.sort(key=lambda x: x.createDate)
         earliest_provider_update = eligible_provider_updates_in_window[0]
         provider_revert_target = ProviderData.create_new(earliest_provider_update.previous)
