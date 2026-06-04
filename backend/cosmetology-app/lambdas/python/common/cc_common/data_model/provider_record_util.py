@@ -139,8 +139,35 @@ class ProviderRecordUtility:
 
 class ProviderUserRecords:
     """
-    A collection of provider records for a single provider.
-    This class is used to get all records for a single provider and provide utilities for getting specific records
+    Canonical read-side abstraction for how a single provider's data is stored in DynamoDB.
+
+    In storage, a provider is represented by many separate DynamoDB items (provider
+    profile, licenses, updates, adverse actions, investigations, and related types).
+    This class treats those items as one logical collection for a single provider and
+    exposes a simplified, provider-centric interface for querying and deriving views
+    of that data.
+
+    Cross-record business rules belong here so they are not duplicated elsewhere.
+    That includes how privileges are derived, how OpenSearch index documents are
+    built, and other provider-wide behavior (i.e. API response shaping). Do not 
+    reimplement that logic in handlers, Lambdas, or background jobs; extend this 
+    class when those rules change so APIs, search indexing, and downstream consumers 
+    stay consistent.
+
+    Any code that needs to read or derive provider-scoped data should use
+    this class rather than querying individual DynamoDB records directly.
+    Obtain instances via ``DataClient.get_provider_user_records`` in
+    ``data_client.py``: it queries the provider's DynamoDB partition, paginates
+    until all matching items are collected, and passes them to ``ProviderUserRecords``.
+    By default only main records are loaded (``sk`` values beginning with
+    ``{compact}#PROVIDER``); pass ``include_update_tier`` when update or history
+    records up to a given tier are required. Raises ``CCNotFoundException`` when the
+    provider has no items.
+
+    On initialization, raw dict records are categorized by type and converted to
+    typed data classes for efficient access. The ``provider_records`` attribute
+    retains the original dicts for code paths that have not migrated to the
+    data-class pattern.
     """
 
     def __init__(self, provider_records: Iterable[dict]):
