@@ -406,14 +406,18 @@ class TestRollbackLicenseUpload(TstFunction):
         if home_license is None:
             raise ValueError(f'existing_licenses must include a license in home jurisdiction {home_jurisdiction}')
 
+        provider_before_overrides = {
+            'providerId': self.provider_id,
+            'compact': self.compact,
+            'licenseJurisdiction': home_jurisdiction,
+            'dateOfExpiration': home_license.dateOfExpiration,
+            'dateOfUpdate': pre_window_upload_datetime,
+            'givenName': MOCK_ORIGINAL_GIVEN_NAME,
+            'familyName': MOCK_ORIGINAL_FAMILY_NAME,
+        }
+
         provider_before_upload = self.test_data_generator.put_default_provider_record_in_provider_table(
-            {
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                'licenseJurisdiction': home_jurisdiction,
-                'dateOfExpiration': home_license.dateOfExpiration,
-                'dateOfUpdate': pre_window_upload_datetime,
-            }
+            provider_before_overrides
         )
 
         upload_base = {
@@ -440,19 +444,29 @@ class TestRollbackLicenseUpload(TstFunction):
             if post_upload_date_of_expiration is None:
                 post_upload_date_of_expiration = licenses_uploaded_during_window.dateOfExpiration
 
-        self.test_data_generator.put_default_provider_record_in_provider_table(
-            {
-                'providerId': self.provider_id,
-                'compact': self.compact,
-                'licenseJurisdiction': post_upload_home_jurisdiction,
-                'dateOfExpiration': post_upload_date_of_expiration,
-                'dateOfUpdate': self.default_upload_datetime,
-            }
-        )
+        post_upload_provider_overrides = {
+            'providerId': self.provider_id,
+            'compact': self.compact,
+            'licenseJurisdiction': post_upload_home_jurisdiction,
+            'dateOfExpiration': post_upload_date_of_expiration,
+            'dateOfUpdate': self.default_upload_datetime,
+            'givenName': licenses_uploaded_during_window.givenName,
+            'familyName': licenses_uploaded_during_window.familyName,
+        }
+        self.test_data_generator.put_default_provider_record_in_provider_table(post_upload_provider_overrides)
 
-        # Simulate the providerUpdate history record that ingest writes when an upload changes the
-        # top-level provider record (home jurisdiction delta). This is what rollback uses to restore
-        # the prior home state.
+        provider_update_values = {
+            'licenseJurisdiction': post_upload_home_jurisdiction,
+            'dateOfExpiration': post_upload_date_of_expiration,
+        }
+        if licenses_uploaded_during_window.givenName != provider_before_upload.givenName:
+            provider_update_values['givenName'] = licenses_uploaded_during_window.givenName
+        if licenses_uploaded_during_window.familyName != provider_before_upload.familyName:
+            provider_update_values['familyName'] = licenses_uploaded_during_window.familyName
+
+        # Ingest only writes a providerUpdate when the top-level provider record changes. OK single-state
+        # alone does not qualify (posted license is not best for current home IN). Home change happens on
+        # the ingest message where OK multi-state pairs with OK single and becomes the new home license.
         self.test_data_generator.put_default_provider_update_record_in_provider_table(
             {
                 'providerId': self.provider_id,
@@ -460,10 +474,7 @@ class TestRollbackLicenseUpload(TstFunction):
                 'updateType': self.update_categories.HOME_JURISDICTION_CHANGE.value,
                 'createDate': self.default_upload_datetime,
                 'previous': provider_before_upload.to_dict(),
-                'updatedValues': {
-                    'licenseJurisdiction': post_upload_home_jurisdiction,
-                    'dateOfExpiration': post_upload_date_of_expiration,
-                },
+                'updatedValues': provider_update_values,
             }
         )
 
@@ -500,11 +511,15 @@ class TestRollbackLicenseUpload(TstFunction):
                 'dateOfExpiration': date(2025, 12, 31),
                 'dateOfRenewal': date(2025, 6, 1),
                 'dateOfIssuance': date(2025, 1, 1),
+                'givenName': MOCK_UPDATED_GIVEN_NAME,
+                'familyName': MOCK_UPDATED_FAMILY_NAME,
             },
             upload_multi_extra={
                 'dateOfExpiration': date(2025, 12, 31),
                 'dateOfRenewal': date(2025, 6, 1),
                 'dateOfIssuance': date(2025, 1, 1),
+                'givenName': MOCK_UPDATED_GIVEN_NAME,
+                'familyName': MOCK_UPDATED_FAMILY_NAME,
             },
             pre_window_upload_datetime=pre_window_upload_datetime,
         )
@@ -531,10 +546,19 @@ class TestRollbackLicenseUpload(TstFunction):
             'Home state should remain IN after OK rollback, not switch to OH best license',
         )
         self.assertEqual(provider_before_ok_upload.dateOfExpiration, provider_record.dateOfExpiration)
+        self.assertEqual(provider_before_ok_upload.givenName, provider_record.givenName)
+        self.assertEqual(provider_before_ok_upload.familyName, provider_record.familyName)
 
         ok_licenses = [lic for lic in licenses if lic.jurisdiction == 'ok']
         self.assertEqual([], ok_licenses, 'OK licenses from the bad upload should be removed')
         self.assertEqual(2, len(licenses), 'IN and OH licenses should remain after rollback')
+
+        provider_updates_after_rollback = provider_records.get_all_provider_update_records()
+        self.assertEqual(
+            [],
+            provider_updates_after_rollback,
+            'In-window provider update history records should be deleted by rollback',
+        )
 
     def test_provider_top_level_record_reset_to_prior_values_when_upload_reverted(self):
         """Test that provider top-level record is reset to values before upload."""
