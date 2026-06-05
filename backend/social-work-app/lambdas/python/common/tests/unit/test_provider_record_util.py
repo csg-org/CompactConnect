@@ -121,7 +121,11 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
         mock_config.license_type_abbreviations = {
-            'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}
+            'socw': {
+                'licensed clinical social worker': 'lcsw',
+                'licensed master social worker': 'lmsw',
+                'licensed bachelor social worker': 'lbsw',
+            }
         }
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
@@ -176,6 +180,35 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
                 _privilege_row('ky', 'oh', license_type, date_of_expiration=expiration),
             ],
             result,
+        )
+
+    def test_generated_privileges_exclude_jurisdictions_that_do_not_recognize_license_type(self):
+        """Several jurisdictions do not recognize certain license types. The privilege generation
+        should exclude jurisdictions that do not recognize the license type."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        expiration = date(2026, 2, 28)
+        # WA and CO do not recognize the bachelors license type
+        live_jurisdictions = {'socw': ['al', 'co', 'wa', 'oh']}
+        lbsw_type = 'licensed bachelor social worker'
+
+        lbsw_records = self._make_provider_records(
+            license_overrides_list=_license_pair_overrides(
+                'al',
+                lbsw_type,
+                date_of_expiration=expiration,
+            )
+        )
+        with self._patch_config_for_privilege_generation(live_jurisdictions):
+            lbsw_result = ProviderUserRecords(lbsw_records).generate_privileges_for_provider()
+
+        self.assertEqual(
+            [_privilege_row('oh', 'al', lbsw_type, date_of_expiration=expiration)],
+            lbsw_result,
+        )
+        self.assertEqual(
+            {'oh'},
+            {privilege['jurisdiction'] for privilege in lbsw_result},
         )
 
     def test_same_license_type_in_two_states_uses_most_recently_issued(self):
@@ -1296,7 +1329,11 @@ class TestGenerateApiResponseObject(TstLambdas):
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
         mock_config.license_type_abbreviations = {
-            'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}
+            'socw': {
+                'licensed clinical social worker': 'lcsw',
+                'licensed master social worker': 'lmsw',
+                'licensed bachelor social worker': 'lbsw',
+            }
         }
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
@@ -1425,7 +1462,11 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         mock_config = MagicMock()
         mock_config.live_compact_jurisdictions = live_compact_jurisdictions
         mock_config.license_type_abbreviations = {
-            'socw': {'licensed clinical social worker': 'lcsw', 'licensed master social worker': 'lmsw'}
+            'socw': {
+                'licensed clinical social worker': 'lcsw',
+                'licensed master social worker': 'lmsw',
+                'licensed bachelor social worker': 'lbsw',
+            }
         }
         return patch('cc_common.data_model.provider_record_util.config', mock_config)
 
