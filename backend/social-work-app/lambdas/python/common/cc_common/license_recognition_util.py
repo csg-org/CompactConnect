@@ -15,7 +15,7 @@ from cc_common.exceptions import CCInternalException
 # SOCW License type abbreviations — must match values in cdk.json
 LCSW = 'lcsw'  # licensed clinical social worker
 LMSW = 'lmsw'  # licensed master social worker
-LBSW = 'lbsw'  # licensed bachelor social worker
+LBSW = 'lbsw'  # licensed bachelors social worker
 
 _LICENSE_TYPE_JURISDICTION_MAPPING: dict[str, dict[str, set[str]]] = {
     'socw': {
@@ -31,7 +31,7 @@ _LICENSE_TYPE_JURISDICTION_MAPPING: dict[str, dict[str, set[str]]] = {
         'fl': {LCSW, LMSW},
         'ga': {LCSW, LMSW},
         'gu': {LCSW, LMSW, LBSW},
-        'hi': [LCSW, LMSW, LBSW],
+        'hi': {LCSW, LMSW, LBSW},
         'id': {LCSW, LMSW, LBSW},
         'il': {LCSW, LMSW, LBSW},
         'in': {LCSW, LMSW, LBSW},
