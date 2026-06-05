@@ -784,11 +784,19 @@ class TestRollbackLicenseUpload(TstFunction):
         license_updates = provider_records.get_all_license_update_records()
         self.assertEqual(2, len(license_updates), 'License updates should still exist')
 
-    def test_provider_skipped_when_other_jurisdiction_had_upload_activity_during_window(self):
-        """Providers with in-window license activity outside the rollback jurisdiction are skipped."""
+    def test_provider_skipped_when_other_jurisdiction_home_changed_during_window(self):
+        """Providers with an in-window home jurisdiction change outside the rollback jurisdiction are skipped."""
         from handlers.rollback_license_upload import rollback_license_upload
 
         self._when_provider_had_license_created_from_upload()
+        provider_before_ky_upload = self.test_data_generator.put_default_provider_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'licenseJurisdiction': self.license_jurisdiction,
+                'dateOfUpdate': self.default_upload_datetime,
+            }
+        )
         self.test_data_generator.put_default_license_record_in_provider_table(
             {
                 'providerId': self.provider_id,
@@ -796,6 +804,16 @@ class TestRollbackLicenseUpload(TstFunction):
                 'jurisdiction': 'ky',
                 'firstUploadDate': self.default_upload_datetime,
                 'dateOfUpdate': self.default_upload_datetime,
+            }
+        )
+        self.test_data_generator.put_default_provider_update_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'updateType': self.update_categories.HOME_JURISDICTION_CHANGE.value,
+                'createDate': self.default_upload_datetime,
+                'previous': provider_before_ky_upload.to_dict(),
+                'updatedValues': {'licenseJurisdiction': 'ky'},
             }
         )
 

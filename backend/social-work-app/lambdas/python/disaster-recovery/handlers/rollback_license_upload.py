@@ -588,54 +588,6 @@ def _check_for_orphaned_update_records(
     return None
 
 
-def _check_for_other_jurisdiction_upload_activity_in_window(
-    provider_records: ProviderUserRecords, jurisdiction: str, upload_window_start_datetime: datetime
-) -> IneligibleUpdate | None:
-    """
-    Skip rollback when the provider had license or license-update activity from another jurisdiction
-    during or after the upload window (manual review required to avoid cross-jurisdiction home state side effects).
-    """
-    jurisdiction_lower = jurisdiction.lower()
-    alternative_jurisdiction_licenses = provider_records.get_license_records(
-        filter_condition=lambda x: x.jurisdiction.lower() != jurisdiction_lower
-    )
-
-    for license_record in alternative_jurisdiction_licenses:
-        if upload_window_start_datetime <= license_record.dateOfUpdate:
-            return IneligibleUpdate(
-                record_type='license',
-                type_of_update='FirstUpload',
-                update_time=license_record.firstUploadDate.isoformat(),
-                license_type=license_record.licenseType,
-                license_scope=license_record.licenseScope,
-                reason=(
-                    f'License in jurisdiction {license_record.jurisdiction} was uploaded during or after the '
-                    f'rollback window. Manual review required.'
-                ),
-            )
-        license_updates_after_start = provider_records.get_update_records_for_license(
-            jurisdiction=license_record.jurisdiction,
-            license_type=license_record.licenseType,
-            license_scope=license_record.licenseScope,
-            filter_condition=lambda x: x.createDate >= upload_window_start_datetime,
-        )
-        for license_update in license_updates_after_start:
-            if license_update.updateType in LICENSE_UPLOAD_UPDATE_CATEGORIES:
-                return IneligibleUpdate(
-                    record_type='licenseUpdate',
-                    type_of_update=license_update.updateType,
-                    update_time=license_update.createDate.isoformat(),
-                    license_type=license_update.licenseType,
-                    license_scope=license_update.licenseScope,
-                    reason=(
-                        f'License update in jurisdiction {license_record.jurisdiction} occurred during or after the '
-                        f'rollback window. Manual review required.'
-                    ),
-                )
-
-    return None
-
-
 def _build_and_execute_revert_transactions(
     upload_window_start_datetime: datetime,
     upload_window_end_datetime: datetime,
@@ -716,12 +668,6 @@ def _build_and_execute_revert_transactions(
     orphaned_update_check = _check_for_orphaned_update_records(provider_records)
     if orphaned_update_check is not None:
         ineligible_updates.append(orphaned_update_check)
-
-    other_jurisdiction_activity = _check_for_other_jurisdiction_upload_activity_in_window(
-        provider_records, jurisdiction, upload_window_start_datetime
-    )
-    if other_jurisdiction_activity is not None:
-        ineligible_updates.append(other_jurisdiction_activity)
 
     # Step 2: Process each license record for the jurisdiction
     license_records = provider_records.get_license_records(filter_condition=lambda x: x.jurisdiction == jurisdiction)
@@ -822,17 +768,20 @@ def _build_and_execute_revert_transactions(
 
     eligible_provider_updates_in_window = []
     for provider_update in provider_updates_in_window:
+        updated_home_jurisdiction = provider_update.updatedValues.get('licenseJurisdiction')
         if (
             provider_update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES
             or provider_update.createDate > upload_window_end_datetime
+            or (updated_home_jurisdiction is not None and updated_home_jurisdiction.lower() != jurisdiction.lower())
         ):
             ineligible_updates.append(
                 IneligibleUpdate(
                     record_type='providerUpdate',
                     type_of_update=provider_update.updateType,
                     update_time=provider_update.createDate.isoformat(),
-                    reason='Provider record was updated with a change unrelated to license upload or the '
-                    'update occurred after rollback end time. Manual review required.',
+                    reason='Provider record was updated with a change unrelated to license upload, '
+                    'change was for a different jurisdiction, or the update occurred after rollback end time. '
+                    'Manual review required.',
                 )
             )
         else:
