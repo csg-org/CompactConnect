@@ -36,7 +36,7 @@ Before beginning this procedure, ensure you have:
    - Click on "Explore table items"
    - Search for an item where:
      - `pk` = `USER#{user_sub}` (where `user_sub` is the sub value from Cognito)
-     - `sk` = `COMPACT#{compact}` (where `compact` is the user's compact, e.g., "aslp", "coun", "octp")
+     - `sk` = `COMPACT#{compact}` (where `compact` is the user's compact, e.g., "cosm")
    - Click on the item to view its full contents
 
 ### Step 2: Archive the DynamoDB Record
