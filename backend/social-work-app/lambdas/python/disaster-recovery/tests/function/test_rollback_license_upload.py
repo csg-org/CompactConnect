@@ -398,7 +398,8 @@ class TestRollbackLicenseUpload(TstFunction):
                     'firstUploadDate': pre_window_upload_datetime,
                     'dateOfUpdate': pre_window_upload_datetime,
                     **license_overrides,
-                }
+                },
+                date_of_update_override=pre_window_upload_datetime.isoformat(),
             )
             if license_overrides.get('jurisdiction', '').lower() == home_jurisdiction.lower():
                 home_license = license_data
@@ -783,6 +784,28 @@ class TestRollbackLicenseUpload(TstFunction):
         license_updates = provider_records.get_all_license_update_records()
         self.assertEqual(2, len(license_updates), 'License updates should still exist')
 
+    def test_provider_skipped_when_other_jurisdiction_had_upload_activity_during_window(self):
+        """Providers with in-window license activity outside the rollback jurisdiction are skipped."""
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        self._when_provider_had_license_created_from_upload()
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            {
+                'providerId': self.provider_id,
+                'compact': self.compact,
+                'jurisdiction': 'ky',
+                'firstUploadDate': self.default_upload_datetime,
+                'dateOfUpdate': self.default_upload_datetime,
+            }
+        )
+
+        event = self._generate_test_event()
+        result = rollback_license_upload(event, Mock())
+
+        self.assertEqual('COMPLETE', result['rollbackStatus'])
+        self.assertEqual(0, result['providersReverted'])
+        self.assertEqual(1, result['providersSkipped'])
+
     # Validation tests
     def test_rollback_validates_datetime_format(self):
         from handlers.rollback_license_upload import rollback_license_upload
@@ -856,6 +879,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': original_license.jurisdiction,
                                 'licenseType': original_license.licenseType,
+                                'licenseScope': original_license.licenseScope,
                             }
                         ],
                         'providerId': self.provider_id,
@@ -888,6 +912,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'DELETE',
                                 'jurisdiction': new_license.jurisdiction,
                                 'licenseType': new_license.licenseType,
+                                'licenseScope': new_license.licenseScope,
                             }
                         ],
                         'providerId': self.provider_id,
@@ -925,6 +950,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'updateTime': encumbrance_update.createDate.isoformat(),
                                 'licenseType': original_license.licenseType,
+                                'licenseScope': original_license.licenseScope,
                                 'reason': expected_reason_message,
                                 'recordType': 'licenseUpdate',
                                 'typeOfUpdate': encumbrance_update.updateType,
@@ -1000,6 +1026,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                             'reason': 'Existing ineligible update reason',
                             'licenseType': 'licensed clinical social worker',
+                            'licenseScope': 'single-state',
                         }
                     ],
                 }
@@ -1017,6 +1044,7 @@ class TestRollbackLicenseUpload(TstFunction):
                         {
                             'jurisdiction': 'tx',
                             'licenseType': 'licensed clinical social worker',
+                            'licenseScope': 'single-state',
                             'action': 'REVERT',
                         }
                     ],
@@ -1050,6 +1078,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'updateTime': (self.default_start_datetime - timedelta(days=2)).isoformat(),
                                 'reason': 'Existing ineligible update reason',
                                 'licenseType': 'licensed clinical social worker',
+                                'licenseScope': 'single-state',
                             }
                         ],
                     }
@@ -1067,6 +1096,7 @@ class TestRollbackLicenseUpload(TstFunction):
                             {
                                 'jurisdiction': 'tx',
                                 'licenseType': 'licensed clinical social worker',
+                                'licenseScope': 'single-state',
                                 'action': 'REVERT',
                             }
                         ],
@@ -1079,6 +1109,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': self.license_jurisdiction,
                                 'licenseType': ANY,
+                                'licenseScope': ANY,
                             }
                         ],
                         'updatesDeleted': ANY,
@@ -1162,6 +1193,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
                                 'licenseType': 'licensed clinical social worker',
+                                'licenseScope': 'single-state',
                             }
                         ],
                         'providerId': mock_first_provider_id,
@@ -1175,6 +1207,7 @@ class TestRollbackLicenseUpload(TstFunction):
                                 'action': 'REVERT',
                                 'jurisdiction': 'oh',
                                 'licenseType': 'licensed clinical social worker',
+                                'licenseScope': 'single-state',
                             }
                         ],
                         'providerId': mock_second_provider_id,
@@ -1214,6 +1247,7 @@ class TestRollbackLicenseUpload(TstFunction):
             'provider_id': self.provider_id,
             'jurisdiction': self.license_jurisdiction,
             'license_type': original_license.licenseType,
+            'license_scope': original_license.licenseScope,
             'rollback_reason': 'Test rollback',
             'start_time': self.default_start_datetime,
             'end_time': self.default_end_datetime,
@@ -1252,6 +1286,40 @@ class TestRollbackLicenseUpload(TstFunction):
             # Verify: No providers were reverted or skipped
             self.assertEqual(0, len(results_data['revertedProviderSummaries']))
             self.assertEqual(0, len(results_data['skippedProviderDetails']))
+
+    def test_orphaned_license_update_skipped_when_only_other_scope_license_exists(self):
+        """License updates must match jurisdiction, type, and scope; another scope is not sufficient."""
+        from uuid import uuid4
+
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        provider_id = str(uuid4())
+
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'licenseScope': 'multi-state',
+            }
+        )
+        self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {
+                'providerId': provider_id,
+                'compact': self.compact,
+                'jurisdiction': self.license_jurisdiction,
+                'licenseScope': 'single-state',
+                'updateType': self.update_categories.DEACTIVATION,
+                'createDate': self.default_upload_datetime,
+                'effectiveDate': self.default_upload_datetime,
+            }
+        )
+
+        result = rollback_license_upload(self._generate_test_event(), Mock())
+
+        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(0, result['providersReverted'])
+        self.assertEqual(1, result['providersSkipped'])
 
     def test_orphaned_license_updates_cause_provider_to_be_skipped(self):
         """Test that orphaned license update records (without top-level license records)
@@ -1312,9 +1380,9 @@ class TestRollbackLicenseUpload(TstFunction):
         # Verify the structure of the results
         expected_reason = (
             f'License update record(s) exist for license in jurisdiction '
-            f'{self.license_jurisdiction} with type {orphaned_license_update.licenseType}, '
-            f'but no corresponding top-level license record was found. '
-            f'This indicates data inconsistency. Manual review required.'
+            f'{self.license_jurisdiction} with type {orphaned_license_update.licenseType} '
+            f'and scope {orphaned_license_update.licenseScope}, but no corresponding top-level '
+            f'license record was found. This indicates data inconsistency. Manual review required.'
         )
 
         self.assertEqual(1, len(results_data['skippedProviderDetails']))
@@ -1330,6 +1398,7 @@ class TestRollbackLicenseUpload(TstFunction):
         self.assertEqual('licenseUpdate', ineligible_update['recordType'])
         self.assertEqual('Orphaned', ineligible_update['typeOfUpdate'])
         self.assertEqual(orphaned_license_update.licenseType, ineligible_update['licenseType'])
+        self.assertEqual(orphaned_license_update.licenseScope, ineligible_update['licenseScope'])
         self.assertEqual(expected_reason, ineligible_update['reason'])
 
         # Verify no providers were reverted or failed

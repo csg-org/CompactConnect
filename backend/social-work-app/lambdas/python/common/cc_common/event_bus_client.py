@@ -484,6 +484,7 @@ class EventBusClient:
         provider_id: str,
         jurisdiction: str,
         license_type: str,
+        license_scope: str,
         rollback_reason: str,
         start_time: datetime,
         end_time: datetime,
@@ -498,6 +499,7 @@ class EventBusClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction of the license.
         :param license_type: The license type.
+        :param license_scope: The license scope (single-state or multi-state).
         :param rollback_reason: The reason for the rollback
         :param start_time: The start time of the rollback window
         :param end_time: The end time of the rollback window
@@ -509,6 +511,7 @@ class EventBusClient:
             'providerId': provider_id,
             'jurisdiction': jurisdiction,
             'licenseType': license_type,
+            'licenseScope': license_scope,
             'rollbackReason': rollback_reason,
             'startTime': start_time,
             'endTime': end_time,

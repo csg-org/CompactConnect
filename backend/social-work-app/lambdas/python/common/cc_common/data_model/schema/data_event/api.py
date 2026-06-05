@@ -42,6 +42,7 @@ class LicenseDeactivationDetailSchema(DataEventDetailBaseSchema):
 class LicenseRevertDetailSchema(DataEventDetailBaseSchema):
     providerId = UUID(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     rollbackReason = String(required=True, allow_none=False)
     startTime = AwareDateTime(required=True, allow_none=False)
     endTime = AwareDateTime(required=True, allow_none=False)
