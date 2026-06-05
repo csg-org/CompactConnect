@@ -880,6 +880,10 @@
                 "key": "surrender of license"
             },
             {
+                "name": "Renuncia de privilegio",
+                "key": "surrender of privilege"
+            },
+            {
                 "name": "Modificación de la acción-extensión anterior",
                 "key": "modification of previous action-extension"
             },

@@ -13,7 +13,8 @@
       "enum": [
         "suspension",
         "revocation",
-        "surrender of license"
+        "surrender of license",
+        "surrender of privilege"
       ],
       "type": "string"
     },

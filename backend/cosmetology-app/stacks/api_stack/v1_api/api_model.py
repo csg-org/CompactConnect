@@ -807,6 +807,7 @@ class ApiModel:
                 'suspension',
                 'revocation',
                 'surrender of license',
+                'surrender of privilege',
             ],
         )
 
