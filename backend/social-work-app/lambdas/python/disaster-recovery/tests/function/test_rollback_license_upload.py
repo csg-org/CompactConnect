@@ -784,8 +784,8 @@ class TestRollbackLicenseUpload(TstFunction):
         license_updates = provider_records.get_all_license_update_records()
         self.assertEqual(2, len(license_updates), 'License updates should still exist')
 
-    def test_provider_skipped_when_other_jurisdiction_home_changed_during_window(self):
-        """Providers with an in-window home jurisdiction change outside the rollback jurisdiction are skipped."""
+    def test_provider_not_rolled_back_when_other_jurisdiction_home_changed_during_window(self):
+        """Verify providers with a home jurisdiction change outside the rollback jurisdiction are not rolled back."""
         from handlers.rollback_license_upload import rollback_license_upload
 
         self._when_provider_had_license_created_from_upload()
@@ -1305,8 +1305,15 @@ class TestRollbackLicenseUpload(TstFunction):
             self.assertEqual(0, len(results_data['revertedProviderSummaries']))
             self.assertEqual(0, len(results_data['skippedProviderDetails']))
 
-    def test_orphaned_license_update_skipped_when_only_other_scope_license_exists(self):
-        """License updates must match jurisdiction, type, and scope; another scope is not sufficient."""
+    def test_provider_skipped_when_license_update_has_no_matching_scope_license(self):
+        """
+        Skip rollback when a license update references a scope with no top-level license, even if another
+        scope exists for the same jurisdiction and type.
+
+        Setup: multi-state LCSW license exists; single-state deactivation update exists; no single-state license.
+        The orphan check requires jurisdiction + licenseType + licenseScope to match. A multi-state license must
+        not satisfy a single-state update record. Provider is skipped for manual review.
+        """
         from uuid import uuid4
 
         from handlers.rollback_license_upload import rollback_license_upload

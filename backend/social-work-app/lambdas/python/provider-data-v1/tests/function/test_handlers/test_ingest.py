@@ -89,7 +89,7 @@ class TestIngest(TstFunction):
         self.assertEqual(former_home_jurisdiction, provider_update.previous['licenseJurisdiction'])
         self.assertEqual(new_home_jurisdiction, provider_update.updatedValues['licenseJurisdiction'])
 
-    def _assert_provider_update_license_upload_other(
+    def _assert_provider_update_license_upload_name_change(
         self,
         provider_id: str,
         *,
@@ -644,7 +644,7 @@ class TestIngest(TstFunction):
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
 
-        self._assert_provider_update_license_upload_other(
+        self._assert_provider_update_license_upload_name_change(
             provider_id,
             expected_previous_given_name='Björk',
             expected_updated_given_name='Audrey',
@@ -686,7 +686,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
-        # Update the message to be for an licensed master social worker license in 'ky' with a newer issuance date
+        # Update the message to be for a licensed master social worker license in 'ky' with a newer issuance date
         # and a different givenName to track which license is used for provider data
         message['detail'].update(
             {
@@ -1156,8 +1156,9 @@ class TestIngest(TstFunction):
         self,
     ):
         """
-        OH multi-state may be processed before OH single-state when uploads are close together.
-        Home jurisdiction change must still fire when the single-state license completes the pair.
+        OH multi-state may be processed before OH single-state.
+        Home jurisdiction change must still fire when both the single-state and multi-state license are uploaded and
+        the multi-state license was issued or renewed most recently, regardless of which license is uploaded first.
         """
         import handlers.ingest as ingest_handler
         from handlers.ingest import ingest_license_message
