@@ -90,7 +90,7 @@
     "flush-promises": "^1.0.2",
     "inquirer": "^8.0.0",
     "less": "^3.0.4",
-    "less-loader": "^5.0.0",
+    "less-loader": "^12.3.2",
     "lint-staged": "^16.4.0",
     "moment-timezone": "^0.6.1",
     "nyc": "^15.1.0",
