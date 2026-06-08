@@ -12,7 +12,7 @@ aws-lambda-powertools==3.29.0
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.43.14
+boto3==1.43.18
     # via
     #   -r requirements-dev.in
     #   moto
@@ -37,7 +37,7 @@ charset-normalizer==3.4.7
     # via requests
 click==8.4.0
     # via pip-tools
-coverage[toml]==7.14.0
+coverage[toml]==7.14.1
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -141,9 +141,9 @@ responses==0.26.0
     # via moto
 rich==15.0.0
     # via pip-audit
-ruff==0.15.14
+ruff==0.15.15
     # via -r requirements-dev.in
-s3transfer==0.17.0
+s3transfer==0.18.0
     # via boto3
 six==1.17.0
     # via python-dateutil
