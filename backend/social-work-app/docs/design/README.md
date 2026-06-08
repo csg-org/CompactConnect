@@ -330,9 +330,22 @@ operational needs and audit requirements for healthcare provider licensing acros
 ## Multi-State License Model / Privilege Generation
 [Back to top](#backend-design)
 
-Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. TheSocial WorkCompact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for theSocial WorkCompact.
+Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The Social Work Compact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for theSocial WorkCompact.
 
-Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, theSocial Workbackend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
+Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, the Social Work backend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
+
+### License Scopes
+
+Every license uploaded to Social Work CompactConnect includes a required **`licenseScope`** field with one of two
+values: `single-state` or `multi-state`. A **single-state** license is the provider's conventional home-jurisdiction license, and is a prerequisite for holding an associated multi-state license, which is what grants authorization to practice in other compact member states. A provider can hold **both** scopes for the same jurisdiction and license type (for example, an Ohio LCSW single-state license and an Ohio LCSW multi-state license). Those are stored as **separate top-level license records** with distinct sort keys:
+
+```
+{compact}#PROVIDER#license/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#
+```
+
+License update records, investigations, and encumbrances against a license all reference the same
+**jurisdiction + license type + licenseScope** compact identifier in their respective sort keys.
+
 
 ### Privilege Runtime Generation for Multi-State Licenses
 
