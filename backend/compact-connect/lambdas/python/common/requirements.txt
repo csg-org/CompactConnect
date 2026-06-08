@@ -10,7 +10,7 @@ argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 aws-lambda-powertools==3.29.0
     # via -r requirements.in
-boto3==1.43.14
+boto3==1.43.18
     # via -r requirements.in
 botocore==1.43.18
     # via
@@ -41,7 +41,7 @@ python-dateutil==2.9.0.post0
     # via botocore
 requests==2.34.2
     # via -r requirements.in
-s3transfer==0.17.0
+s3transfer==0.18.0
     # via boto3
 six==1.17.0
     # via python-dateutil
