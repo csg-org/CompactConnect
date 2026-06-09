@@ -455,6 +455,8 @@ class ProviderUserRecords:
 
     def find_best_license_in_current_known_licenses(
         self,
+        *,
+        license_type_abbreviation: str | None = None,
     ) -> LicenseData:
         """
         Find the best license from this provider's known licenses. The 'best' license is the multi-state license
@@ -467,9 +469,17 @@ class ProviderUserRecords:
         This method is primarily used by the license upload rollback feature to determine the best license to base
         the top level provider record information on when the provider record is rolled back to a previous state.
 
+        :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'lcsw', 'lmsw')
         :return: The best license record according to the above criteria.
         """
         license_records = self.get_license_records()
+
+        if license_type_abbreviation:
+            license_records = [
+                lic
+                for lic in license_records
+                if lic.licenseTypeAbbreviation.lower() == license_type_abbreviation.lower()
+            ]
 
         if not license_records:
             raise CCNotFoundException('No licenses found')

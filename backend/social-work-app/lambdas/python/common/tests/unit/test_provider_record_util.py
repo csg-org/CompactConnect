@@ -1078,6 +1078,36 @@ class TestProviderUserRecordsBestLicense(TstLambdas):
             provider_user_records.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE),
         )
 
+    def test_find_best_license_filters_by_license_type_abbreviation(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        lcsw = 'licensed clinical social worker'
+        lmsw = 'licensed master social worker'
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(
+                [
+                    *_license_pair_overrides(
+                        'oh',
+                        lcsw,
+                        multi_extra={'dateOfRenewal': date(2026, 1, 1)},
+                    ),
+                    *_license_pair_overrides(
+                        'oh',
+                        lmsw,
+                        multi_extra={'dateOfRenewal': date(2020, 1, 1)},
+                    ),
+                ]
+            )
+        )
+
+        best_license = provider_user_records.find_best_license_in_current_known_licenses(
+            license_type_abbreviation='lmsw'
+        )
+
+        self.assertEqual('lmsw', best_license.licenseTypeAbbreviation)
+        self.assertEqual(lmsw, best_license.licenseType)
+        self.assertEqual('OH-licensed-mas-MS', best_license.licenseNumber)
+
     def test_find_best_license_in_current_known_licenses_prefers_multi_state_over_newer_single_state(self):
         from cc_common.data_model.provider_record_util import ProviderUserRecords
 

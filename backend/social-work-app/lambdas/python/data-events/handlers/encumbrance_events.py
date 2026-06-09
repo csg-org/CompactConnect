@@ -331,13 +331,16 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
 
         # Get latest effective lift date for all adverse actions related to privilege/license
         # and determine the actual effective date when privilege was effectively unencumbered.
-        multi_state_license_associated_with_privilege = provider_records.get_specific_license_record(
-            jurisdiction=provider_record.licenseJurisdiction,
-            license_abbreviation=license_type_abbreviation,
-            license_scope=LicenseScopeEnum.MULTI_STATE,
+        multi_state_license_associated_with_privilege = provider_records.find_best_license_in_current_known_licenses(
+            license_type_abbreviation=license_type_abbreviation,
         )
 
-        if multi_state_license_associated_with_privilege is None:
+        # If the 'best' license associated with the license type is not found or is not a multi-state license,
+        # this is an unexpected state and results in an error.
+        if (
+            multi_state_license_associated_with_privilege is None
+            or multi_state_license_associated_with_privilege.licenseScope != LicenseScopeEnum.MULTI_STATE
+        ):
             logger.error(
                 'No multi-state license associated with privilege.',
                 provider_home_jurisdiction=provider_record.licenseJurisdiction,
