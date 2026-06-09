@@ -423,7 +423,7 @@ class ProviderUserRecords:
             reverse=True,
         )
 
-    def find_most_recent_licenses_for_each_license_type(
+    def _find_most_recent_licenses_for_each_license_type(
         self,
         license_scope: LicenseScopeEnum,
     ) -> list[LicenseData]:
@@ -565,7 +565,7 @@ class ProviderUserRecords:
         if single_state is not None and single_state.compactEligibility == CompactEligibilityStatus.INELIGIBLE:
             license_dict['compactEligibility'] = CompactEligibilityStatus.INELIGIBLE.value
 
-    def find_multi_state_home_licenses_with_matching_single_state_licenses(
+    def _find_multi_state_home_licenses_with_matching_single_state_licenses(
         self,
     ) -> list[LicenseData]:
         """
@@ -591,7 +591,7 @@ class ProviderUserRecords:
 
     def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
         """
-        Generate privilege dicts at runtime for each eligible multi-state license type this provider holds.
+        Generate privilege dicts at runtime for each eligible home multi-state license type this provider holds.
 
         For each license type, privileges are associated with the home state multi-state license, which is the license
         that has been renewed most recently and has an associated single-state license. Privileges are only generated
@@ -622,7 +622,7 @@ class ProviderUserRecords:
             return []
 
         result: list[dict] = []
-        for most_recent_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses():
+        for most_recent_license in self._find_multi_state_home_licenses_with_matching_single_state_licenses():
             matching_single_state_license = self.find_matching_single_state_license_for_multi_state_license(
                 most_recent_license
             )
@@ -743,7 +743,7 @@ class ProviderUserRecords:
 
         if is_public_response:
             # only include the most recent multi-state license for each license type in the public response
-            license_records = self.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
+            license_records = self._find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
         else:
             license_records = self.get_license_records()
 
@@ -806,7 +806,7 @@ class ProviderUserRecords:
                 multi_state_home_license.licenseType,
                 multi_state_home_license.licenseScope,
             )
-            for multi_state_home_license in self.find_multi_state_home_licenses_with_matching_single_state_licenses()
+            for multi_state_home_license in self._find_multi_state_home_licenses_with_matching_single_state_licenses()
         }
 
         documents = []

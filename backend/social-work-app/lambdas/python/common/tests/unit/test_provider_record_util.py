@@ -1,3 +1,4 @@
+# ruff: noqa: SLF001 private-member
 from datetime import date
 from unittest.mock import MagicMock, patch
 
@@ -1033,7 +1034,7 @@ class TestProviderUserRecordsBestLicense(TstLambdas):
             self._make_provider_records(self._license_fixture_with_mixed_scopes())
         )
 
-        licenses = provider_user_records.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
+        licenses = provider_user_records._find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
 
         self.assertEqual(1, len(licenses))
         self.assertEqual('multi-state', licenses[0].licenseScope)
@@ -1048,7 +1049,7 @@ class TestProviderUserRecordsBestLicense(TstLambdas):
             self._make_provider_records(self._license_fixture_with_mixed_scopes())
         )
 
-        licenses = provider_user_records.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.SINGLE_STATE)
+        licenses = provider_user_records._find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.SINGLE_STATE)
 
         self.assertEqual(2, len(licenses))
         license_types = {lic.licenseType for lic in licenses}
@@ -1075,7 +1076,7 @@ class TestProviderUserRecordsBestLicense(TstLambdas):
 
         self.assertEqual(
             [],
-            provider_user_records.find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE),
+            provider_user_records._find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE),
         )
 
     def test_find_best_license_filters_by_license_type_abbreviation(self):
