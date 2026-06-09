@@ -45,8 +45,7 @@ DEACTIVATION_EVENT_TYPES: list[UpdateCategory] = [
 def _license_sort_key(license_record: dict | LicenseData) -> tuple:
     """
     Sort key for license records: by date of renewal if present, else date of issuance;
-    use date of issuance as tiebreaker. Works with both dict and LicenseData so the same
-    ordering is used in find_best_license (dicts) and find_best_license_in_current_known_licenses (LicenseData).
+    use date of issuance as tiebreaker. Works with both dict and LicenseData data class.
     """
     if isinstance(license_record, dict):
         effective_date = license_record.get('dateOfRenewal') or license_record['dateOfIssuance']
@@ -456,41 +455,68 @@ class ProviderUserRecords:
 
     def find_best_license_in_current_known_licenses(
         self,
-        jurisdiction: str | None = None,
-        license_type_abbreviation: str | None = None,
     ) -> LicenseData:
         """
-        Find the best license from this provider's known licenses. Uses the same ordering as
-        ProviderRecordUtility.find_best_license (most recently renewed/issued; status and eligibility not considered).
-        Prefers multi-state licenses over single-state when both exist. Sorts LicenseData directly using the shared
-        sort key—no conversion to or from dicts.
-        :param jurisdiction: Optional jurisdiction filter
-        :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'lcsw', 'lmsw')
-        :return: The best license record
-        """
-        if jurisdiction:
-            license_records = self.get_license_records(
-                filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
-            )
-        else:
-            license_records = self.get_license_records()
+        Find the best license from this provider's known licenses. The 'best' license is the multi-state license
+        most recently renewed/issued that also has an associated single-state license.
 
-        if license_type_abbreviation:
-            license_records = [
-                lic for lic in license_records if lic.licenseTypeAbbreviation == license_type_abbreviation
-            ]
+        If there is no multi-state/single-state license pairing, we select the most recent multi-state license in
+        the jurisdiction recorded on the top level provider record. If there is no multi-state license for
+        that jurisdiction, we select the most recent single-state license in that home state.
+
+        This method is primarily used by the license upload rollback feature to determine the best license to base
+        the top level provider record information on when the provider record is rolled back to a previous state.
+
+        :return: The best license record according to the above criteria.
+        """
+        license_records = self.get_license_records()
 
         if not license_records:
             raise CCNotFoundException('No licenses found')
 
-        best_license = self._best_license_for_scope(
-            license_records, LicenseScopeEnum.MULTI_STATE
-        ) or self._best_license_for_scope(license_records, LicenseScopeEnum.SINGLE_STATE)
+        multi_state_licenses_sorted_by_most_recent = self._sort_licenses_by_most_recent(
+            [lic for lic in license_records if lic.licenseScope == LicenseScopeEnum.MULTI_STATE]
+        )
+        single_state_licenses_sorted_by_most_recent = self._sort_licenses_by_most_recent(
+            [lic for lic in license_records if lic.licenseScope == LicenseScopeEnum.SINGLE_STATE]
+        )
 
-        if best_license is None:
-            raise CCNotFoundException('No licenses found')
+        for multi_state_license in multi_state_licenses_sorted_by_most_recent:
+            if self.find_matching_single_state_license_for_multi_state_license(multi_state_license) is not None:
+                return multi_state_license
 
-        return best_license
+        # If we get to this point, then none of the multi-state licenses have a matching single-state license
+        # check for any multi-state licenses in the provider's current home jurisdiction
+        current_home_jurisdiction_multi_state_licenses = [
+            lic
+            for lic in multi_state_licenses_sorted_by_most_recent
+            if lic.jurisdiction == self.get_provider_record().licenseJurisdiction
+        ]
+        if current_home_jurisdiction_multi_state_licenses:
+            return current_home_jurisdiction_multi_state_licenses[0]
+
+        # if we get to this point, then there are no multi-state licenses in the provider's current home jurisdiction
+        # check for any single-state licenses in the provider's current home jurisdiction
+        current_home_jurisdiction_single_state_licenses = [
+            lic
+            for lic in single_state_licenses_sorted_by_most_recent
+            if lic.jurisdiction == self.get_provider_record().licenseJurisdiction
+        ]
+        if current_home_jurisdiction_single_state_licenses:
+            return current_home_jurisdiction_single_state_licenses[0]
+
+        # if we get to this point, then there are no multi-state or single-state licenses
+        # in the provider's current home jurisdiction. Return the most recent multi-state license.
+        if multi_state_licenses_sorted_by_most_recent:
+            return multi_state_licenses_sorted_by_most_recent[0]
+
+        # if we get to this point, then there are no multi-state licenses. Return the most recent single-state license.
+        if single_state_licenses_sorted_by_most_recent:
+            return single_state_licenses_sorted_by_most_recent[0]
+
+        # if we get to this point, then there are no multi-state or single-state licenses.
+        # this is an unexpected state and results in an error.
+        raise CCInternalException('No multi-state or single-state licenses found after checking all licenses.')
 
     def find_matching_single_state_license_for_multi_state_license(
         self,

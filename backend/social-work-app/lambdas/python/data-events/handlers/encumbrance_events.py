@@ -2,7 +2,7 @@ from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
-from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum, LicenseScopeEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
@@ -331,20 +331,30 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
 
         # Get latest effective lift date for all adverse actions related to privilege/license
         # and determine the actual effective date when privilege was effectively unencumbered.
-        license_associated_with_privilege = provider_records.find_best_license_in_current_known_licenses(
-            license_type_abbreviation=license_type_abbreviation
+        multi_state_license_associated_with_privilege = provider_records.get_specific_license_record(
+            jurisdiction=provider_record.licenseJurisdiction,
+            license_abbreviation=license_type_abbreviation,
+            license_scope=LicenseScopeEnum.MULTI_STATE,
         )
-        if license_associated_with_privilege.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+
+        if multi_state_license_associated_with_privilege is None:
+            logger.error(
+                'No multi-state license associated with privilege.',
+                provider_home_jurisdiction=provider_record.licenseJurisdiction,
+            )
+            raise CCInternalException('No multi-state license associated with privilege.')
+
+        if multi_state_license_associated_with_privilege.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
             logger.info(
                 'License is still encumbered. Not sending privilege encumbrance lift notifications.',
-                jurisdiction=license_associated_with_privilege.jurisdiction,
+                jurisdiction=multi_state_license_associated_with_privilege.jurisdiction,
             )
             return
 
         latest_license_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
-            license_jurisdiction=license_associated_with_privilege.jurisdiction,
+            license_jurisdiction=multi_state_license_associated_with_privilege.jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
-            license_scope=license_associated_with_privilege.licenseScope,
+            license_scope=multi_state_license_associated_with_privilege.licenseScope,
         )
 
         latest_privilege_lift_date = provider_records.get_latest_effective_lift_date_for_privilege_adverse_actions(

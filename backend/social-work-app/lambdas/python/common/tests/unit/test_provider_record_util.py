@@ -97,7 +97,7 @@ class TestGeneratePrivilegesForProvider(TstLambdas):
         if license_overrides_list is None:
             license_overrides_list = []
 
-        provider = TestDataGenerator.generate_default_provider(provider_overrides or {})
+        provider = TestDataGenerator.generate_default_provider(provider_overrides)
         provider_record = provider.serialize_to_database_record()
         records = [provider_record]
         for overrides in license_overrides_list:
@@ -995,10 +995,10 @@ class TestProviderRecordUtility(TstLambdas):
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
 class TestProviderUserRecordsBestLicense(TstLambdas):
-    def _make_provider_records(self, license_overrides_list=None):
+    def _make_provider_records(self, license_overrides_list=None, provider_overrides=None):
         from common_test.test_data_generator import TestDataGenerator
 
-        provider = TestDataGenerator.generate_default_provider({})
+        provider = TestDataGenerator.generate_default_provider(provider_overrides)
         records = [provider.serialize_to_database_record()]
         for overrides in license_overrides_list or []:
             records.append(TestDataGenerator.generate_default_license(overrides).serialize_to_database_record())
@@ -1118,19 +1118,126 @@ class TestProviderUserRecordsBestLicense(TstLambdas):
 
         self.assertEqual('single-state', best_license.licenseScope)
 
-    def test_find_best_license_in_current_known_licenses_respects_type_filter_with_scope_precedence(self):
+    def test_find_best_license_raises_when_no_licenses(self):
         from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.exceptions import CCNotFoundException
 
+        provider_user_records = ProviderUserRecords(self._make_provider_records([]))
+
+        with self.assertRaises(CCNotFoundException):
+            provider_user_records.find_best_license_in_current_known_licenses()
+
+    def test_find_best_license_skips_unpaired_multi_state_and_returns_paired_one(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        license_type = 'licensed clinical social worker'
         provider_user_records = ProviderUserRecords(
-            self._make_provider_records(self._license_fixture_with_mixed_scopes())
+            self._make_provider_records(
+                [
+                    {
+                        'jurisdiction': 'ky',
+                        'licenseType': license_type,
+                        'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                        'dateOfRenewal': date(2026, 1, 1),
+                    },
+                    *_license_pair_overrides(
+                        'oh',
+                        license_type,
+                        multi_extra={'dateOfRenewal': date(2020, 1, 1)},
+                    ),
+                ]
+            )
         )
 
-        best_license = provider_user_records.find_best_license_in_current_known_licenses(
-            license_type_abbreviation='lcsw'
-        )
+        best_license = provider_user_records.find_best_license_in_current_known_licenses()
 
         self.assertEqual('multi-state', best_license.licenseScope)
-        self.assertEqual('licensed clinical social worker', best_license.licenseType)
+        self.assertEqual('oh', best_license.jurisdiction)
+        self.assertEqual('OH-licensed-cli-MS', best_license.licenseNumber)
+
+    def test_find_best_license_returns_home_multi_state_when_no_pair_exists(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        license_type = 'licensed clinical social worker'
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(
+                [
+                    {
+                        'jurisdiction': 'oh',
+                        'licenseType': license_type,
+                        'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                        'dateOfRenewal': date(2024, 1, 1),
+                    },
+                    {
+                        'jurisdiction': 'ky',
+                        'licenseType': license_type,
+                        'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                        'dateOfRenewal': date(2020, 1, 1),
+                    },
+                ]
+            )
+        )
+
+        best_license = provider_user_records.find_best_license_in_current_known_licenses()
+
+        self.assertEqual('multi-state', best_license.licenseScope)
+        self.assertEqual('oh', best_license.jurisdiction)
+        self.assertEqual(date(2024, 1, 1), best_license.dateOfRenewal)
+
+    def test_find_best_license_returns_most_recent_multi_state_outside_home_when_no_home_licenses(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        license_type = 'licensed clinical social worker'
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(
+                [
+                    {
+                        'jurisdiction': 'ky',
+                        'licenseType': license_type,
+                        'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                        'dateOfRenewal': date(2026, 1, 1),
+                    },
+                    {
+                        'jurisdiction': 'co',
+                        'licenseType': license_type,
+                        'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                        'dateOfRenewal': date(2020, 1, 1),
+                    },
+                ]
+            )
+        )
+
+        best_license = provider_user_records.find_best_license_in_current_known_licenses()
+
+        self.assertEqual('multi-state', best_license.licenseScope)
+        self.assertEqual('ky', best_license.jurisdiction)
+        self.assertEqual(date(2026, 1, 1), best_license.dateOfRenewal)
+
+    def test_find_best_license_returns_most_recent_single_state_outside_home_when_no_multi_state(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+
+        license_type = 'licensed clinical social worker'
+        provider_user_records = ProviderUserRecords(
+            self._make_provider_records(
+                [
+                    {
+                        'jurisdiction': 'ky',
+                        'licenseType': license_type,
+                        'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                        'dateOfRenewal': date(2024, 1, 1),
+                    }
+                ]
+            )
+        )
+
+        best_license = provider_user_records.find_best_license_in_current_known_licenses()
+
+        self.assertEqual('single-state', best_license.licenseScope)
+        self.assertEqual('ky', best_license.jurisdiction)
 
 
 @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
@@ -1142,7 +1249,7 @@ class TestGenerateApiResponseObject(TstLambdas):
         if license_overrides_list is None:
             license_overrides_list = []
 
-        provider = TestDataGenerator.generate_default_provider(provider_overrides or {})
+        provider = TestDataGenerator.generate_default_provider(provider_overrides)
         provider_record = provider.serialize_to_database_record()
         records = [provider_record]
         for overrides in license_overrides_list:
@@ -1271,7 +1378,7 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
         if license_overrides_list is None:
             license_overrides_list = []
 
-        provider = TestDataGenerator.generate_default_provider(provider_overrides or {})
+        provider = TestDataGenerator.generate_default_provider(provider_overrides)
         provider_record = provider.serialize_to_database_record()
         records = [provider_record]
         for overrides in license_overrides_list:

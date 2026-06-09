@@ -330,7 +330,7 @@ operational needs and audit requirements for healthcare provider licensing acros
 ## Multi-State License Model / Privilege Generation
 [Back to top](#backend-design)
 
-Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The Social Work Compact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for theSocial WorkCompact.
+Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The Social Work Compact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for the Social Work Compact.
 
 Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, the Social Work backend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
 
