@@ -86,8 +86,11 @@ jobs:
   parameters:
     context: test
     # Hard time-box: the active scan is stopped at this limit even if it has
-    # not finished exploring every node, so coverage on large runs is partial.
-    maxScanDurationInMins: 45
+    # not finished exploring every node. Set generously so the scan can run to
+    # completion; capped below the GitHub-hosted runner's 6h (360 min) job limit
+    # to leave headroom for the auth/spider/passive/report steps. Lower once we
+    # see how long a full scan actually needs.
+    maxScanDurationInMins: 330
 - type: report
   parameters:
     template: risk-confidence-html
