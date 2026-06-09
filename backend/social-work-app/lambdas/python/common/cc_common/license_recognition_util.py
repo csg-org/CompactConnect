@@ -73,9 +73,9 @@ _LICENSE_TYPE_JURISDICTION_MAPPING: dict[str, dict[str, set[str]]] = {
         'wv': {LCSW, LMSW, LBSW},
         'wi': {LCSW, LMSW, LBSW},
         'wy': {LCSW, LBSW},
-
     },
 }
+
 
 class LicenseRecognitionUtil:
     """Utility for checking whether a license type is recognized in a jurisdiction."""
