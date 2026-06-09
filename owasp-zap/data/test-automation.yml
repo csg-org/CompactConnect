@@ -85,6 +85,8 @@ jobs:
 - type: activeScan
   parameters:
     context: test
+    # Hard time-box: the active scan is stopped at this limit even if it has
+    # not finished exploring every node, so coverage on large runs is partial.
     maxScanDurationInMins: 45
 - type: report
   parameters:
