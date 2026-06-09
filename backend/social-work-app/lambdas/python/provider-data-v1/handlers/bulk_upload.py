@@ -198,7 +198,6 @@ def process_bulk_upload_file(
                         record_number=i + 1,
                         license_record=raw_license,
                         errors=e.messages,
-                        event_time=event_time,
                     )
                 )
                 continue

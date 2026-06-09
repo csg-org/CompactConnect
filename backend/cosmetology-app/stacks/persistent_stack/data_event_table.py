@@ -104,7 +104,7 @@ class DataEventTable(Table):
             process_function=self.event_handler,
             visibility_timeout=Duration.minutes(1),
             retention_period=Duration.hours(1),
-            max_batching_window=Duration.minutes(5),
+            max_batching_window=Duration.seconds(5),
             max_receive_count=3,
             batch_size=10,
             encryption_key=encryption_key,
