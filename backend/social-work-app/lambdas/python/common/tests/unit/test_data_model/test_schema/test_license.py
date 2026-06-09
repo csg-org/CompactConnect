@@ -78,6 +78,29 @@ class TestLicensePostSchema(TstLambdas):
             LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
         self.assertIn('licenseScope', ctx.exception.messages)
 
+    def test_license_type_not_recognized_in_jurisdiction_raises_validation_error(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseType'] = 'licensed bachelors social worker'
+
+        with self.assertRaises(ValidationError) as ctx:
+            LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'co', **license_data})
+        self.assertEqual(
+            {'licenseType': ['License type licensed bachelors social worker is not recognized in jurisdiction co.']},
+            ctx.exception.messages,
+        )
+
+    def test_license_type_recognized_in_jurisdiction_passes_validation(self):
+        from cc_common.data_model.schema.license.api import LicensePostRequestSchema
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseType'] = 'licensed bachelors social worker'
+
+        LicensePostRequestSchema().load({'compact': 'socw', 'jurisdiction': 'oh', **license_data})
+
 
 class TestLicenseRecordSchema(TstLambdas):
     def test_serde(self):

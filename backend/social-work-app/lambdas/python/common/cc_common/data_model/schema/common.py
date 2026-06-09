@@ -10,6 +10,7 @@ from marshmallow import Schema, ValidationError, pre_load, validates_schema
 from marshmallow.fields import Dict, String, Url
 
 from cc_common.config import config
+from cc_common.license_recognition_util import LicenseRecognitionUtil
 
 
 class CCRequestSchema(Schema):
@@ -444,3 +445,15 @@ class ValidatesLicenseTypeMixin:
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+
+        license_type_abbr = config.license_type_abbreviations[data['compact']][data['licenseType']]
+        if not LicenseRecognitionUtil.license_type_is_recognized_in_jurisdiction(
+            data['compact'], data['jurisdiction'], license_type_abbr
+        ):
+            raise ValidationError(
+                {
+                    'licenseType': [
+                        f'License type {data["licenseType"]} is not recognized in jurisdiction {data["jurisdiction"]}.'
+                    ]
+                }
+            )
