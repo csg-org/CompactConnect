@@ -7,11 +7,14 @@ from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.adverse_action.api import (
     AdverseActionPatchRequestSchema,
     AdverseActionPostRequestSchema,
+    LicenseEncumbrancePatchRequestSchema,
+    LicenseEncumbrancePostRequestSchema,
 )
 from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CCPermissionsAction,
     EncumbranceType,
+    LicenseScopeEnum,
 )
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.license_util import LicenseUtility
@@ -68,6 +71,13 @@ def _load_adverse_action_post_body(event: dict) -> dict:
         raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
 
+def _load_license_encumbrance_post_body(event: dict) -> dict:
+    try:
+        return LicenseEncumbrancePostRequestSchema().loads(event['body'])
+    except ValidationError as e:
+        raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
+
+
 def _get_submitting_user_id(event: dict) -> str:
     return event['requestContext']['authorizer']['claims']['sub']
 
@@ -80,6 +90,7 @@ def _generate_adverse_action_for_record_type(
     submitting_user: str,
     adverse_action_post_body: dict,
     adverse_action_against_record_type: AdverseActionAgainstEnum,
+    license_scope: str,
 ) -> AdverseActionData:
     current_date = config.expiration_resolution_date
     encumbrance_effective_date = adverse_action_post_body['encumbranceEffectiveDate']
@@ -103,6 +114,7 @@ def _generate_adverse_action_for_record_type(
 
     adverse_action.licenseTypeAbbreviation = license_type.abbreviation
     adverse_action.licenseType = license_type.name
+    adverse_action.licenseScope = license_scope
     adverse_action.actionAgainst = adverse_action_against_record_type
     adverse_action.encumbranceType = EncumbranceType(adverse_action_post_body['encumbranceType'])
     adverse_action.clinicalPrivilegeActionCategories = adverse_action_post_body['clinicalPrivilegeActionCategories']
@@ -132,6 +144,7 @@ def _create_privilege_encumbrance_internal(
         adverse_action_post_body=adverse_action_post_body,
         adverse_action_against_record_type=AdverseActionAgainstEnum.PRIVILEGE,
         submitting_user=submitting_user,
+        license_scope=LicenseScopeEnum.SINGLE_STATE.value,
     )
     config.data_client.encumber_privilege(adverse_action)
 
@@ -188,6 +201,7 @@ def _create_license_encumbrance_internal(
         adverse_action_post_body=adverse_action_post_body,
         adverse_action_against_record_type=AdverseActionAgainstEnum.LICENSE,
         submitting_user=submitting_user,
+        license_scope=adverse_action_post_body['licenseScope'],
     )
     config.data_client.encumber_license(adverse_action)
 
@@ -199,6 +213,7 @@ def _create_license_encumbrance_internal(
         adverse_action_id=adverse_action.adverseActionId,
         jurisdiction=adverse_action.jurisdiction,
         license_type_abbreviation=adverse_action.licenseTypeAbbreviation,
+        license_scope=adverse_action.licenseScope,
         effective_date=adverse_action.effectiveStartDate,
     )
 
@@ -214,7 +229,7 @@ def handle_license_encumbrance(event: dict) -> dict:
     provider_id = to_uuid(event['pathParameters']['providerId'], 'Invalid providerId provided')
     license_type_abbr = event['pathParameters']['licenseType'].lower()
     submitting_user = _get_submitting_user_id(event)
-    adverse_action_post_body = _load_adverse_action_post_body(event)
+    adverse_action_post_body = _load_license_encumbrance_post_body(event)
 
     _create_license_encumbrance_internal(
         compact=compact,
@@ -299,8 +314,9 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
         # Parse and validate request body
         body = json.loads(event['body'])
         try:
-            validated_body = AdverseActionPatchRequestSchema().load(body)
+            validated_body = LicenseEncumbrancePatchRequestSchema().load(body)
             lift_date = validated_body['effectiveLiftDate']
+            license_scope = validated_body['licenseScope']
         except ValidationError as e:
             raise CCInvalidRequestException(f'Invalid request body: {e.messages}') from e
 
@@ -315,6 +331,7 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            license_scope=license_scope,
             adverse_action_id=encumbrance_id,
             effective_lift_date=lift_date,
             lifting_user=cognito_sub,
@@ -327,6 +344,7 @@ def handle_license_encumbrance_lifting(event: dict) -> dict:
             provider_id=provider_id,
             jurisdiction=jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            license_scope=license_scope,
             effective_date=lift_date,
         )
 

@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "SearchApi",
-    "version": "2026-04-17T19:42:45Z"
+    "version": "2026-06-01T19:39:25Z"
   },
   "servers": [
     {
@@ -37,7 +37,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestSSearch7KTSu0MG6ez"
+                "$ref": "#/components/schemas/TestSSearcJnrX6LLHKFCY"
               }
             }
           },
@@ -49,7 +49,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestSSearcCrqH7R9Q0ysc"
+                  "$ref": "#/components/schemas/TestSSearcK2HOYHlEWsa8"
                 }
               }
             }
@@ -57,7 +57,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer02E7F51B": [
+            "TestBackendSocialWorkTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer53E15718": [
               "socw/readGeneral"
             ]
           }
@@ -67,7 +67,42 @@
   },
   "components": {
     "schemas": {
-      "TestSSearcCrqH7R9Q0ysc": {
+      "TestSSearcJnrX6LLHKFCY": {
+        "required": [
+          "query"
+        ],
+        "type": "object",
+        "properties": {
+          "search_after": {
+            "type": "array",
+            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
+          },
+          "size": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "description": "Number of results to return"
+          },
+          "query": {
+            "type": "object",
+            "description": "The OpenSearch query body"
+          },
+          "from": {
+            "minimum": 0,
+            "type": "integer",
+            "description": "Starting document offset for pagination"
+          },
+          "sort": {
+            "type": "array",
+            "description": "Sort order for results (required for search_after pagination)",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestSSearcK2HOYHlEWsa8": {
         "required": [
           "providers",
           "total"
@@ -476,6 +511,7 @@
                       "jurisdictionUploadedCompactEligibility",
                       "jurisdictionUploadedLicenseStatus",
                       "licenseNumber",
+                      "licenseScope",
                       "licenseStatus",
                       "licenseType",
                       "providerId",
@@ -803,6 +839,13 @@
                       "dateOfUpdate": {
                         "type": "string",
                         "format": "date-time"
+                      },
+                      "licenseScope": {
+                        "type": "string",
+                        "enum": [
+                          "single-state",
+                          "multi-state"
+                        ]
                       }
                     }
                   }
@@ -846,45 +889,10 @@
             }
           }
         }
-      },
-      "TestSSearch7KTSu0MG6ez": {
-        "required": [
-          "query"
-        ],
-        "type": "object",
-        "properties": {
-          "search_after": {
-            "type": "array",
-            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
-          },
-          "size": {
-            "maximum": 100,
-            "minimum": 1,
-            "type": "integer",
-            "description": "Number of results to return"
-          },
-          "query": {
-            "type": "object",
-            "description": "The OpenSearch query body"
-          },
-          "from": {
-            "minimum": 0,
-            "type": "integer",
-            "description": "Starting document offset for pagination"
-          },
-          "sort": {
-            "type": "array",
-            "description": "Sort order for results (required for search_after pagination)",
-            "items": {
-              "type": "object"
-            }
-          }
-        },
-        "additionalProperties": false
       }
     },
     "securitySchemes": {
-      "TestBackendCosmetologyTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer02E7F51B": {
+      "TestBackendSocialWorkTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer53E15718": {
         "type": "apiKey",
         "name": "Authorization",
         "in": "header",

@@ -60,7 +60,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
 
     def _when_testing_privilege_investigation(self):
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        license_record = self.test_data_generator.put_default_license_record_in_provider_table()
+        license_record = self.test_data_generator.put_default_license_pair_in_provider_table()
 
         test_event = self.test_data_generator.generate_test_api_event(
             sub_override=DEFAULT_AA_SUBMITTING_USER_ID,
@@ -115,6 +115,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
             'providerId': test_license_record.providerId,
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseType': test_license_record.licenseType,
+            'licenseScope': 'single-state',
             'investigationAgainst': 'privilege',
             'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
             'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
@@ -154,6 +155,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
                     'providerId': str(test_license_record.providerId),
                     'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                     'licenseType': test_license_record.licenseType,
+                    'licenseScope': 'single-state',
                     'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
                     'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                     'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
@@ -177,6 +179,7 @@ class TestPostPrivilegeInvestigation(TstFunction):
                 'providerId': str(test_license_record.providerId),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
                 'investigationId': call_args['detail']['investigationId'],  # Dynamic field
@@ -230,7 +233,7 @@ class TestPostLicenseInvestigation(TstFunction):
 
     def _when_testing_valid_license_investigation(self, body_overrides: dict | None = None):
         test_license_record = self._load_license_data()
-        test_body = {}
+        test_body = {'licenseScope': test_license_record.licenseScope}
         if body_overrides:
             test_body.update(body_overrides)
 
@@ -279,6 +282,7 @@ class TestPostLicenseInvestigation(TstFunction):
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
             license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            license_scope=test_license_record.licenseScope,
         )
         self.assertEqual(1, len(investigation_records))
         investigation = investigation_records[0]
@@ -290,6 +294,7 @@ class TestPostLicenseInvestigation(TstFunction):
             'providerId': test_license_record.providerId,
             'jurisdiction': test_license_record.jurisdiction,
             'licenseType': test_license_record.licenseType,
+            'licenseScope': test_license_record.licenseScope,
             'investigationAgainst': 'license',
             'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
             'creationDate': datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP),
@@ -335,6 +340,7 @@ class TestPostLicenseInvestigation(TstFunction):
                     'providerId': str(test_license_record.providerId),
                     'jurisdiction': test_license_record.jurisdiction,
                     'licenseType': test_license_record.licenseType,
+                    'licenseScope': test_license_record.licenseScope,
                     'submittingUser': DEFAULT_AA_SUBMITTING_USER_ID,
                     'creationDate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                     'dateOfUpdate': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
@@ -358,6 +364,7 @@ class TestPostLicenseInvestigation(TstFunction):
                 'providerId': str(test_license_record.providerId),
                 'jurisdiction': test_license_record.jurisdiction,
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
+                'licenseScope': test_license_record.licenseScope,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'license',
                 'investigationId': call_args['detail']['investigationId'],  # Dynamic field
@@ -406,7 +413,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
 
     def _when_testing_privilege_investigation_close(self, body_overrides: dict | None = None):
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        test_license_record = self.test_data_generator.put_default_license_record_in_provider_table()
+        test_license_record = self.test_data_generator.put_default_license_pair_in_provider_table()
         test_body = {}
         if body_overrides:
             test_body.update(body_overrides)
@@ -500,6 +507,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
             'providerId': test_license_record.providerId,
             'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
             'licenseType': test_license_record.licenseType,
+            'licenseScope': 'single-state',
             'investigationAgainst': 'privilege',
             'investigationId': investigation_id,
             'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
@@ -550,6 +558,7 @@ class TestPatchPrivilegeInvestigationClose(TstFunction):
                 'providerId': str(test_license_record.providerId),
                 'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
+                'licenseScope': 'single-state',
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'privilege',
                 'investigationId': call_args['detail']['investigationId'],  # Dynamic field
@@ -606,7 +615,7 @@ class TestMultipleSimultaneousPrivilegeInvestigations(TstFunction):
         """Load privilege test data using test data generator"""
         # Load provider record first
         self.test_data_generator.put_default_provider_record_in_provider_table()
-        return self.test_data_generator.put_default_license_record_in_provider_table()
+        return self.test_data_generator.put_default_license_pair_in_provider_table()
 
     @patch('cc_common.event_bus_client.EventBusClient._publish_event')
     def test_closing_one_of_multiple_investigations_maintains_investigation_status(self, mock_publish_event):
@@ -804,7 +813,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
 
     def _when_testing_license_investigation_close(self, body_overrides: dict | None = None):
         test_license_record = self._load_license_data()
-        test_body = {}
+        test_body = {'action': 'close', 'licenseScope': test_license_record.licenseScope}
         if body_overrides:
             test_body.update(body_overrides)
 
@@ -821,6 +830,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
                     'jurisdiction': test_license_record.jurisdiction,
                     'licenseType': test_license_record.licenseTypeAbbreviation,
                 },
+                'body': json.dumps({'licenseScope': test_license_record.licenseScope}),
             },
         )
 
@@ -836,6 +846,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
             license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            license_scope=test_license_record.licenseScope,
         )
         self.assertEqual(1, len(investigation_records))
         investigation_id = investigation_records[0].investigationId
@@ -885,6 +896,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         all_investigations = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
             license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            license_scope=test_license_record.licenseScope,
             filter_condition=lambda inv: inv.investigationId == investigation_id,
             include_closed=True,
         )
@@ -897,6 +909,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
             'providerId': test_license_record.providerId,
             'jurisdiction': test_license_record.jurisdiction,
             'licenseType': test_license_record.licenseType,
+            'licenseScope': test_license_record.licenseScope,
             'investigationAgainst': 'license',
             'investigationId': investigation_id,
             'submittingUser': UUID(DEFAULT_AA_SUBMITTING_USER_ID),
@@ -952,6 +965,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
                 'providerId': str(test_license_record.providerId),
                 'jurisdiction': test_license_record.jurisdiction,
                 'licenseTypeAbbreviation': test_license_record.licenseTypeAbbreviation,
+                'licenseScope': test_license_record.licenseScope,
                 'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                 'investigationAgainst': 'license',
                 'investigationId': call_args['detail']['investigationId'],  # Dynamic field
@@ -977,6 +991,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         encumbrance_records = provider_user_records.get_adverse_action_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
             license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            license_scope=test_license_record.licenseScope,
         )
         self.assertEqual(1, len(encumbrance_records))
 
@@ -984,6 +999,7 @@ class TestPatchLicenseInvestigationClose(TstFunction):
         all_investigations = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
             license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            license_scope=test_license_record.licenseScope,
             filter_condition=lambda inv: inv.investigationId == investigation_id,
             include_closed=True,
         )
@@ -1028,6 +1044,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
                     'jurisdiction': test_license_record.jurisdiction,
                     'licenseType': test_license_record.licenseTypeAbbreviation,
                 },
+                'body': json.dumps({'licenseScope': test_license_record.licenseScope}),
             },
         )
 
@@ -1043,6 +1060,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
             license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            license_scope=test_license_record.licenseScope,
         )
         self.assertEqual(1, len(investigation_records))
         first_investigation_id = investigation_records[0].investigationId
@@ -1060,6 +1078,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
                     'jurisdiction': test_license_record.jurisdiction,
                     'licenseType': test_license_record.licenseTypeAbbreviation,
                 },
+                'body': json.dumps({'licenseScope': test_license_record.licenseScope}),
             },
         )
 
@@ -1075,6 +1094,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
         investigation_records = provider_user_records.get_investigation_records_for_license(
             license_jurisdiction=test_license_record.jurisdiction,
             license_type_abbreviation=test_license_record.licenseTypeAbbreviation,
+            license_scope=test_license_record.licenseScope,
         )
         self.assertEqual(2, len(investigation_records))
         second_investigation_id = [
@@ -1095,7 +1115,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
                     'licenseType': test_license_record.licenseTypeAbbreviation,
                     'investigationId': str(second_investigation_id),
                 },
-                'body': json.dumps({}),
+                'body': json.dumps({'licenseScope': test_license_record.licenseScope}),
             },
         )
 
@@ -1144,7 +1164,9 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
             include_update_tier=UpdateTierEnum.TIER_THREE,
         )
         update_records = provider_user_records.get_update_records_for_license(
-            jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
+            jurisdiction=test_license_record.jurisdiction,
+            license_type=test_license_record.licenseType,
+            license_scope=test_license_record.licenseScope,
         )
 
         investigation_update_records = [
@@ -1178,7 +1200,7 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
                     'licenseType': test_license_record.licenseTypeAbbreviation,
                     'investigationId': str(first_investigation_id),
                 },
-                'body': json.dumps({}),
+                'body': json.dumps({'licenseScope': test_license_record.licenseScope}),
             },
         )
 
@@ -1211,7 +1233,9 @@ class TestMultipleSimultaneousLicenseInvestigations(TstFunction):
             include_update_tier=UpdateTierEnum.TIER_THREE,
         )
         update_records = provider_user_records.get_update_records_for_license(
-            jurisdiction=test_license_record.jurisdiction, license_type=test_license_record.licenseType
+            jurisdiction=test_license_record.jurisdiction,
+            license_type=test_license_record.licenseType,
+            license_scope=test_license_record.licenseScope,
         )
 
         investigation_update_records = [

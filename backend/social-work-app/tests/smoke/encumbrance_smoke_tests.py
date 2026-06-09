@@ -112,6 +112,7 @@ class EncumbranceTestHelper:
         self.license_jurisdiction = provider_license.jurisdiction
         self.license_type = provider_license.licenseType
         self.license_type_abbreviation = provider_license.licenseTypeAbbreviation
+        self.license_scope = provider_license.licenseScope
 
         # Track created users for cleanup
         self.created_staff_users = []
@@ -245,7 +246,7 @@ class EncumbranceTestHelper:
 
         # Get the specific license record
         license_record = provider_user_records.get_specific_license_record(
-            self.license_jurisdiction, self.license_type_abbreviation
+            self.license_jurisdiction, self.license_type_abbreviation, self.license_scope
         )
 
         if not license_record:
@@ -277,7 +278,7 @@ class EncumbranceTestHelper:
 
         # Get adverse actions for this specific license
         adverse_actions = provider_user_records.get_adverse_action_records_for_license(
-            self.license_jurisdiction, self.license_type_abbreviation
+            self.license_jurisdiction, self.license_type_abbreviation, self.license_scope
         )
 
         # Convert to dict format for compatibility with existing code
@@ -455,6 +456,7 @@ def test_license_encumbrance_workflow():
         logger.info('Step 1: Encumbering license two times...')
 
         encumbrance_body = {
+            'licenseScope': helper.license_scope,
             'encumbranceEffectiveDate': '2024-11-11',
             'encumbranceType': 'surrender of license',
             'clinicalPrivilegeActionCategories': ['fraud'],
@@ -467,7 +469,7 @@ def test_license_encumbrance_workflow():
         # Verify provider state after first encumbrance
         provider_user_records = get_provider_user_records(helper.compact, helper.provider_id)
         updated_license = provider_user_records.get_specific_license_record(
-            helper.license_jurisdiction, helper.license_type_abbreviation
+            helper.license_jurisdiction, helper.license_type_abbreviation, helper.license_scope
         )
         if not updated_license:
             raise SmokeTestFailureException('License not found after encumbrance')
@@ -512,6 +514,7 @@ def test_license_encumbrance_workflow():
 
         # Second encumbrance
         second_encumbrance_body = {
+            'licenseScope': helper.license_scope,
             'encumbranceEffectiveDate': '2025-01-01',
             'encumbranceType': 'suspension',
             'clinicalPrivilegeActionCategories': ['consumer harm'],
@@ -553,6 +556,7 @@ def test_license_encumbrance_workflow():
 
         lift_body = {
             'effectiveLiftDate': '2025-05-05',
+            'licenseScope': helper.license_scope,
         }
 
         helper.lift_license_encumbrance(lift_body, first_adverse_action_id)
@@ -577,6 +581,7 @@ def test_license_encumbrance_workflow():
 
         lift_body = {
             'effectiveLiftDate': '2025-05-25',
+            'licenseScope': helper.license_scope,
         }
 
         helper.lift_license_encumbrance(lift_body, second_adverse_action_id)

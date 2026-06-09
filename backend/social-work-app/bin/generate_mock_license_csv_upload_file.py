@@ -33,7 +33,11 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 # for the data model to work.
 os.environ['ENVIRONMENT_NAME'] = 'test'
 
-from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus  # noqa: E402
+from cc_common.data_model.schema.common import (  # noqa: E402
+    ActiveInactiveStatus,
+    CompactEligibilityStatus,
+    LicenseScopeEnum,
+)
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema  # noqa: E402
 
 # This will be overridden based on command line arguments
@@ -46,6 +50,7 @@ FIELDS = (
     'ssn',
     'licenseNumber',
     'licenseType',
+    'licenseScope',
     'licenseStatus',
     'licenseStatusName',
     'compactEligibility',
@@ -148,6 +153,7 @@ def get_mock_license(
         # licenseNumber is required
         'licenseNumber': generate_mock_license_number(),
         'licenseType': choice(LICENSE_TYPES[compact]),
+        'licenseScope': choice([e.value for e in LicenseScopeEnum]),
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),
         'familyName': name_faker.last_name(),

@@ -24,7 +24,7 @@ export interface IValidationErrorEventRecord {
     eventTime: string,
     compact: string,
     jurisdiction: string,
-    recordNumber: number,
+    recordNumber?: number,
     validData: object,
     errors: IValidationErrorEventErrors
 }

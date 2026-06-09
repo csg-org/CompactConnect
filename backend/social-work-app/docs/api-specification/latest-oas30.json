@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "StateApi",
-    "version": "2026-02-16T16:53:09Z"
+    "version": "2026-06-01T19:36:46Z"
   },
   "servers": [
     {
@@ -45,7 +45,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestSStateGpk4PxFv8Eew"
+                "$ref": "#/components/schemas/TestSStateCPw8sfiL9gnl"
               }
             }
           },
@@ -57,7 +57,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestSStatevE5TiToQrRwN"
+                  "$ref": "#/components/schemas/TestSStatelWsya8Pu7Kyh"
                 }
               }
             }
@@ -67,7 +67,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestSState2d1wqb3JR6OX"
+                  "$ref": "#/components/schemas/TestSStatefr5UI9JwWzWw"
                 }
               }
             }
@@ -75,7 +75,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": [
+            "TestBackendSocialWorkTestStateAPIStackStateApiStateAuthAuthorizerD3C7A18B": [
               "socw/write",
               "al/socw.write",
               "az/socw.write",
@@ -126,7 +126,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestSState4LF6rLqTTc6G"
+                  "$ref": "#/components/schemas/TestSStateCyeZsc8k41H1"
                 }
               }
             }
@@ -134,7 +134,7 @@
         },
         "security": [
           {
-            "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": [
+            "TestBackendSocialWorkTestStateAPIStackStateApiStateAuthAuthorizerD3C7A18B": [
               "socw/write",
               "al/socw.write",
               "az/socw.write",
@@ -154,45 +154,7 @@
   },
   "components": {
     "schemas": {
-      "TestSState4LF6rLqTTc6G": {
-        "required": [
-          "upload"
-        ],
-        "type": "object",
-        "properties": {
-          "upload": {
-            "required": [
-              "fields",
-              "url"
-            ],
-            "type": "object",
-            "properties": {
-              "fields": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                }
-              },
-              "url": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      },
-      "TestSState2d1wqb3JR6OX": {
-        "required": [
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "A message about the request"
-          }
-        }
-      },
-      "TestSStateGpk4PxFv8Eew": {
+      "TestSStateCPw8sfiL9gnl": {
         "maxItems": 100,
         "type": "array",
         "items": {
@@ -208,6 +170,7 @@
             "homeAddressState",
             "homeAddressStreet1",
             "licenseNumber",
+            "licenseScope",
             "licenseStatus",
             "licenseType",
             "ssn"
@@ -264,8 +227,9 @@
             "licenseType": {
               "type": "string",
               "enum": [
-                "cosmetologist",
-                "esthetician"
+                "licensed clinical social worker",
+                "licensed master social worker",
+                "licensed bachelor social worker"
               ]
             },
             "emailAddress": {
@@ -324,12 +288,57 @@
               "maxLength": 100,
               "minLength": 1,
               "type": "string"
+            },
+            "licenseScope": {
+              "type": "string",
+              "enum": [
+                "single-state",
+                "multi-state"
+              ]
             }
           },
           "additionalProperties": false
         }
       },
-      "TestSStatevE5TiToQrRwN": {
+      "TestSStateCyeZsc8k41H1": {
+        "required": [
+          "upload"
+        ],
+        "type": "object",
+        "properties": {
+          "upload": {
+            "required": [
+              "fields",
+              "url"
+            ],
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "TestSStatefr5UI9JwWzWw": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "A message about the request"
+          }
+        }
+      },
+      "TestSStatelWsya8Pu7Kyh": {
         "type": "object",
         "properties": {
           "message": {
@@ -355,7 +364,7 @@
       }
     },
     "securitySchemes": {
-      "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": {
+      "TestBackendSocialWorkTestStateAPIStackStateApiStateAuthAuthorizerD3C7A18B": {
         "type": "apiKey",
         "name": "Authorization",
         "in": "header",

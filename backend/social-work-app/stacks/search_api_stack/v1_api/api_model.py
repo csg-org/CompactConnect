@@ -226,6 +226,7 @@ class ApiModel:
                 'compact',
                 'jurisdiction',
                 'licenseType',
+                'licenseScope',
                 'licenseStatus',
                 'jurisdictionUploadedLicenseStatus',
                 'compactEligibility',
@@ -247,6 +248,7 @@ class ApiModel:
                 'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
                 'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
+                'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
                 'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
                 'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'jurisdictionUploadedLicenseStatus': JsonSchema(

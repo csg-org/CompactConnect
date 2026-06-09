@@ -330,24 +330,33 @@ operational needs and audit requirements for healthcare provider licensing acros
 ## Multi-State License Model / Privilege Generation
 [Back to top](#backend-design)
 
-Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. TheSocial WorkCompact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for theSocial WorkCompact.
+Privileges are authorizations that allow licensed providers to practice their profession in jurisdictions other than their home state. The Social Work Compact follows a multi-state licensure model, where privileges are automatically granted to a licensee as a result of having a multi-state license in their home state. The list of jurisdictions where privileges are granted is determined by which states have onboarded into the CompactConnect system for the Social Work Compact.
 
-Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, theSocial Workbackend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
+Because the list of privilege records for practitioners is dynamically determined by the number of states that have onboarded into the system, the Social Work backend does **not** store privilege records in the database; privileges are **generated at API runtime** by referencing other stored values in the database such as license records, adverse actions, and investigations. 
+
+### License Scopes
+
+Every license uploaded to Social Work CompactConnect includes a required **`licenseScope`** field with one of two
+values: `single-state` or `multi-state`. A **single-state** license is the provider's conventional home-jurisdiction license, and is a prerequisite for holding an associated multi-state license, which is what grants authorization to practice in other compact member states. A provider can hold **both** scopes for the same jurisdiction and license type (for example, an Ohio LCSW single-state license and an Ohio LCSW multi-state license). Those are stored as **separate top-level license records** with distinct sort keys:
+
+```
+{compact}#PROVIDER#license/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#
+```
+
+License update records, investigations, and encumbrances against a license all reference the same
+**jurisdiction + license type + licenseScope** compact identifier in their respective sort keys.
+
 
 ### Privilege Runtime Generation for Multi-State Licenses
 
-When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type. Unlike the JCC model, where practitioners register under a specific home state, thisSocial Worksystem does not currently allow the user to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which license was issued or renewed most recently. Privileges are then generated from that home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. 
-
-This means that if a practitioner has two licenses from two different states, if one is eligible for privileges and the other is not, the system will only generate privileges for that practitioner if the most recently issued/renewed license is eligible for privileges.
+When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type to determine what other jurisdictions a practitioner is authorized to practice in. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the practitioner to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that multi-state license has an active and eligible single-state license in the same jurisdiction and license type. Privileges are then generated from that multi-state home license only when that pairing exists: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license is ineligible or its associated single-state license is ineligible, no privileges are generated for that license type (there is no fallback to an older jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is the one with the pairing.
 
 The following flow describes how the home state license is assigned.
 
-([Social Work Practitioner License Assignment Flow](./practitioner-home-state-license-assignment.pdf))
+([Social Work Practitioner License Assignment Flow](./practitioner-home-state-assignment.pdf))
 
-
-Licenses are **grouped by license type**. For each type, the system picks the **most recently renewed license** as the effective “home” license for that type. If date of renewal cannot be determined for either license, it falls back to use the most recent date of issuance.
-
-For each such home license (per type), the system generates **one privilege per live compact jurisdiction** except the home jurisdiction. Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for that jurisdiction and license type.
+Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for 
+that jurisdiction and license type.
 
 ### Overview of Privilege System
 

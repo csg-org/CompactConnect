@@ -306,6 +306,8 @@ class UpdateCategory(CCEnum):
     # NOTE: this value should explicitly be used for license upload updates, not anywhere else
     # it is referenced in the event that an invalid license upload needs to be reverted.
     LICENSE_UPLOAD_UPDATE_OTHER = 'other'
+    # Provider top-level home jurisdiction changed as a result of a license upload.
+    HOME_JURISDICTION_CHANGE = 'homeJurisdictionChange'
 
 
 # License upload related update categories
@@ -313,6 +315,7 @@ LICENSE_UPLOAD_UPDATE_CATEGORIES = {
     UpdateCategory.DEACTIVATION,
     UpdateCategory.RENEWAL,
     UpdateCategory.LICENSE_UPLOAD_UPDATE_OTHER,
+    UpdateCategory.HOME_JURISDICTION_CHANGE,
 }
 
 
@@ -380,6 +383,21 @@ class EncumbranceType(CCEnum):
     SUSPENSION = 'suspension'
     REVOCATION = 'revocation'
     SURRENDER_OF_LICENSE = 'surrender of license'
+
+
+class LicenseScopeEnum(CCEnum):
+    SINGLE_STATE = 'single-state'
+    MULTI_STATE = 'multi-state'
+
+
+def provider_pk(compact: str, provider_id) -> str:
+    """Return the partition key shared by provider-scoped records in the provider data table."""
+    return f'{compact}#PROVIDER#{provider_id}'
+
+
+def license_sk_suffix(jurisdiction: str, license_type_abbr: str, license_scope: str) -> str:
+    """Return the jurisdiction/type/scope segment used in license-related sort keys."""
+    return f'{jurisdiction}/{license_type_abbr.lower()}/{license_scope}'
 
 
 class ClinicalPrivilegeActionCategory(CCEnum):

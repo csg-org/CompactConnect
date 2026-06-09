@@ -6,7 +6,7 @@ Schema for API objects.
 from datetime import date
 
 from marshmallow import ValidationError, pre_load, validates_schema
-from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -20,6 +20,7 @@ from cc_common.data_model.schema.fields import (
     InvestigationStatusField,
     ITUTE164PhoneNumber,
     Jurisdiction,
+    LicenseScopeField,
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.investigation.api import InvestigationGeneralResponseSchema
@@ -72,6 +73,7 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     # Note that the two fields below, `licenseStatus` and `compactEligibility`, are stored
     # in the database as `jurisdictionUploadedLicenseStatus` and `jurisdictionUploadedCompactEligibility`.
@@ -127,11 +129,10 @@ class LicenseReportResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
-    providerId = Raw(required=True, allow_none=False)
-    type = String(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -161,6 +162,7 @@ class LicenseGeneralResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -201,6 +203,7 @@ class LicenseReadPrivateResponseSchema(LicenseExpirationStatusMixin, ForgivingSc
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     jurisdictionUploadedLicenseStatus = ActiveInactive(required=True, allow_none=False)
@@ -239,17 +242,11 @@ class LicenseOpenSearchDocumentSchema(LicenseGeneralResponseSchema):
     authorized staff users to search providers by date of birth. This schema
     is used only for indexing into OpenSearch, not for API responses.
 
-    Additionally, this schema includes the mostRecentLicenseForType field to indicate
-    the most recent license for the provider for a specific license type. This
-    allows for filtering public search results by the most recent licenses for
-    the provider.
-
     Serialization direction:
     Python -> load() -> OpenSearch document
     """
 
     dateOfBirth = Raw(required=False, allow_none=False)
-    mostRecentLicenseForType = Boolean(required=False, allow_none=False, load_default=False)
 
 
 class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):
@@ -264,6 +261,7 @@ class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseStatus = ActiveInactive(required=True, allow_none=False)
     compactEligibility = CompactEligibility(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)

@@ -4,6 +4,9 @@ Smoke tests for investigation functionality.
 
 This script tests the end-to-end investigation workflow for both licenses and privileges,
 including creating investigations and closing them through the API endpoints.
+
+This test assumes the test provider has both single-state and multi-state license records in the home jurisdiction
+(licenseJurisdiction).
 """
 
 import time
@@ -24,6 +27,10 @@ from smoke_common import (
 )
 
 INVESTIGATION_SMOKE_COMPACT = 'socw'
+# Privilege investigations always use single-state scope (see investigation.py handler).
+PRIVILEGE_INVESTIGATION_LICENSE_SCOPE = 'single-state'
+# License investigations must identify scope; test provider is expected to have multi-state in home jurisdiction.
+LICENSE_INVESTIGATION_LICENSE_SCOPE = 'multi-state'
 
 
 def _fetch_provider_details(auth_headers: dict) -> dict:
@@ -125,16 +132,48 @@ def setup_test_environment():
     logger.info('Test environment setup complete')
 
 
-def _get_license_data_from_provider_response(provider_data: dict, jurisdiction: str, license_type: str):
-    """Get license data from provider response."""
+def _get_license_data_from_provider_response(
+    provider_data: dict, jurisdiction: str, license_type: str, license_scope: str
+):
+    """Get license data from provider response for the given jurisdiction, type, and licenseScope."""
     return next(
         (
             lic
             for lic in provider_data['licenses']
-            if lic['jurisdiction'] == jurisdiction and lic['licenseType'] == license_type
+            if lic['jurisdiction'] == jurisdiction
+            and lic['licenseType'] == license_type
+            and lic.get('licenseScope') == license_scope
         ),
         None,
     )
+
+
+def _get_license_investigation_target(provider_data: dict) -> dict:
+    """
+    Return the multi-state license in the provider's home jurisdiction for license investigation tests.
+
+    Requires the test provider to have a multi-state license in its home jurisdiction.
+    """
+    jurisdiction = provider_data['licenseJurisdiction']
+    home_multi_state_licenses = [
+        lic
+        for lic in provider_data['licenses']
+        if lic['jurisdiction'] == jurisdiction and lic['licenseScope'] == LICENSE_INVESTIGATION_LICENSE_SCOPE
+    ]
+    if not home_multi_state_licenses:
+        raise SmokeTestFailureException(
+            f'Test provider must have a {LICENSE_INVESTIGATION_LICENSE_SCOPE} license in home '
+            f'jurisdiction {jurisdiction}.'
+        )
+
+    # Sort by license type for consistency
+    home_multi_state_licenses.sort(key=lambda lic: lic.get('licenseType') or '')
+    license_record = home_multi_state_licenses[0]
+    logger.info(
+        f'Using {LICENSE_INVESTIGATION_LICENSE_SCOPE} license for investigation tests: '
+        f'jurisdiction={license_record["jurisdiction"]}, licenseType={license_record["licenseType"]}'
+    )
+    return license_record
 
 
 def _get_privilege_data_from_provider_response(provider_data: dict, jurisdiction: str, license_type: str):
@@ -149,7 +188,13 @@ def _get_privilege_data_from_provider_response(provider_data: dict, jurisdiction
     )
 
 
-def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license_type: str, auth_headers: dict):
+def _verify_no_investigation_exists(
+    record_type: str,
+    jurisdiction: str,
+    license_type: str,
+    license_scope: str,
+    auth_headers: dict,
+):
     """
     Verify that no open investigation records exist in the database and no investigation status or objects on the
     record.
@@ -157,6 +202,7 @@ def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license
     :param record_type: 'privilege' or 'license'
     :param jurisdiction: The jurisdiction of the record
     :param license_type: The license type of the record
+    :param license_scope: the target license's scope
     :param auth_headers: Staff user auth headers
     """
     # Check database for open investigation records
@@ -174,7 +220,7 @@ def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license
     if record_type == 'privilege':
         record_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
     else:
-        record_data = _get_license_data_from_provider_response(provider_data, jurisdiction, license_type)
+        record_data = _get_license_data_from_provider_response(provider_data, jurisdiction, license_type, license_scope)
 
     if not record_data:
         raise SmokeTestFailureException(f'{record_type.title()} not found before investigation creation')
@@ -189,13 +235,20 @@ def _verify_no_investigation_exists(record_type: str, jurisdiction: str, license
         raise SmokeTestFailureException('Investigation objects still exist in API response')
 
 
-def _verify_investigation_exists(record_type: str, jurisdiction: str, license_type: str, auth_headers: dict):
+def _verify_investigation_exists(
+    record_type: str,
+    jurisdiction: str,
+    license_type: str,
+    license_scope: str,
+    auth_headers: dict,
+):
     """
     Verify that an open investigation exists and the record has investigation status.
 
     :param record_type: 'privilege' or 'license'
     :param jurisdiction: The jurisdiction of the record
     :param license_type: The license type of the record
+    :param license_scope: the target license's scope for licenses
     :param auth_headers: Staff Bearer auth headers
     :return: The investigation ID
     """
@@ -208,6 +261,7 @@ def _verify_investigation_exists(record_type: str, jurisdiction: str, license_ty
         and record.get('investigationAgainst') == record_type
         and record.get('jurisdiction') == jurisdiction
         and record.get('licenseType') == license_type
+        and record.get('licenseScope') == license_scope
         and record.get('closeDate') is None
     ]
 
@@ -220,7 +274,7 @@ def _verify_investigation_exists(record_type: str, jurisdiction: str, license_ty
     if record_type == 'privilege':
         record_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
     else:
-        record_data = _get_license_data_from_provider_response(provider_data, jurisdiction, license_type)
+        record_data = _get_license_data_from_provider_response(provider_data, jurisdiction, license_type, license_scope)
 
     if not record_data:
         raise SmokeTestFailureException(f'{record_type.title()} not found before investigation closing')
@@ -248,7 +302,9 @@ def test_create_privilege_investigation(auth_headers):
     license_type = provider_data['privileges'][0]['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    _verify_no_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
+    _verify_no_investigation_exists(
+        'privilege', jurisdiction, license_type, PRIVILEGE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
     # Create investigation (empty body required)
     response = requests.post(
@@ -269,7 +325,9 @@ def test_create_privilege_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
+    _verify_investigation_exists(
+        'privilege', jurisdiction, license_type, PRIVILEGE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
 
 def test_create_license_investigation(auth_headers):
@@ -279,17 +337,19 @@ def test_create_license_investigation(auth_headers):
     provider_data = _fetch_provider_details(auth_headers)
     provider_id = provider_data['providerId']
     compact = provider_data['compact']
-    jurisdiction = provider_data['licenseJurisdiction']
-    license_type = provider_data['licenses'][0]['licenseType']
+    license_record = _get_license_investigation_target(provider_data)
+    jurisdiction = license_record['jurisdiction']
+    license_type = license_record['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    _verify_no_investigation_exists('license', jurisdiction, license_type, auth_headers)
+    _verify_no_investigation_exists(
+        'license', jurisdiction, license_type, LICENSE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
-    # Create investigation (empty body required)
     response = requests.post(
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}/licenses/jurisdiction/{jurisdiction}'
         f'/licenseType/{license_type_abbreviation}/investigation',
-        json={},
+        json={'licenseScope': LICENSE_INVESTIGATION_LICENSE_SCOPE},
         headers=auth_headers,
         timeout=30,
     )
@@ -304,7 +364,9 @@ def test_create_license_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_investigation_exists('license', jurisdiction, license_type, auth_headers)
+    _verify_investigation_exists(
+        'license', jurisdiction, license_type, LICENSE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
 
 def test_close_privilege_investigation(auth_headers):
@@ -318,7 +380,9 @@ def test_close_privilege_investigation(auth_headers):
     license_type = provider_data['privileges'][0]['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    investigation_id = _verify_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
+    investigation_id = _verify_investigation_exists(
+        'privilege', jurisdiction, license_type, PRIVILEGE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
     # Close investigation (no encumbrance)
     response = requests.patch(
@@ -339,7 +403,9 @@ def test_close_privilege_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_no_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
+    _verify_no_investigation_exists(
+        'privilege', jurisdiction, license_type, PRIVILEGE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
 
 def test_close_license_investigation(auth_headers):
@@ -349,18 +415,21 @@ def test_close_license_investigation(auth_headers):
     provider_data = _fetch_provider_details(auth_headers)
     provider_id = provider_data['providerId']
     compact = provider_data['compact']
-    jurisdiction = provider_data['licenseJurisdiction']
-    license_type = provider_data['licenses'][0]['licenseType']
+    license_record = _get_license_investigation_target(provider_data)
+    jurisdiction = license_record['jurisdiction']
+    license_type = license_record['licenseType']
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
-    investigation_id = _verify_investigation_exists('license', jurisdiction, license_type, auth_headers)
+    investigation_id = _verify_investigation_exists(
+        'license', jurisdiction, license_type, LICENSE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
     # Close investigation (no encumbrance)
     response = requests.patch(
         f'{config.api_base_url}/v1/compacts/{compact}/providers/{provider_id}/licenses/jurisdiction/{jurisdiction}'
         f'/licenseType/{license_type_abbreviation}/investigation/{investigation_id}',
         headers=auth_headers,
-        json={'action': 'close'},
+        json={'licenseScope': LICENSE_INVESTIGATION_LICENSE_SCOPE, 'action': 'close'},
         timeout=30,
     )
 
@@ -374,7 +443,9 @@ def test_close_license_investigation(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_no_investigation_exists('license', jurisdiction, license_type, auth_headers)
+    _verify_no_investigation_exists(
+        'license', jurisdiction, license_type, LICENSE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
 
 def test_close_privilege_investigation_with_encumbrance(auth_headers):
@@ -389,7 +460,9 @@ def test_close_privilege_investigation_with_encumbrance(auth_headers):
     license_type_abbreviation = get_license_type_abbreviation(license_type)
 
     # Verify initial state: an open investigation should exist
-    investigation_id = _verify_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
+    investigation_id = _verify_investigation_exists(
+        'privilege', jurisdiction, license_type, PRIVILEGE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
 
     # Verify privilege is not already encumbered (no adverse actions)
     privilege_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
@@ -427,7 +500,9 @@ def test_close_privilege_investigation_with_encumbrance(auth_headers):
     # Wait for the investigation to be processed and DynamoDB eventual consistency
     time.sleep(5)
 
-    _verify_no_investigation_exists('privilege', jurisdiction, license_type, auth_headers)
+    _verify_no_investigation_exists(
+        'privilege', jurisdiction, license_type, PRIVILEGE_INVESTIGATION_LICENSE_SCOPE, auth_headers
+    )
     # Verify encumbrance was created (adverse action exists)
     provider_data = _fetch_provider_details(auth_headers)
     privilege_data = _get_privilege_data_from_provider_response(provider_data, jurisdiction, license_type)
@@ -464,7 +539,7 @@ def main():
             jurisdiction='az',
             permissions={
                 'actions': {'admin'},
-                'jurisdictions': {'al': {'admin'}, 'az': {'admin'}, 'co': {'admin'}, 'ky': {'admin'}},
+                'jurisdictions': {'oh': {'admin'}, 'az': {'admin'}, 'co': {'admin'}, 'ky': {'admin'}},
             },
         )
 

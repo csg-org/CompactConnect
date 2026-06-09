@@ -342,8 +342,9 @@ class TestGetProvider(TstFunction):
             expected_provider.pop('ssnLastFour')
             expected_provider.pop('dateOfBirth')
 
-            del expected_provider['licenses'][0]['ssnLastFour']
-            del expected_provider['licenses'][0]['dateOfBirth']
+            for license_record in expected_provider['licenses']:
+                license_record.pop('ssnLastFour', None)
+                license_record.pop('dateOfBirth', None)
 
         self._when_testing_get_provider_response_based_on_read_access(
             scopes='openid email socw/readGeneral', expected_provider=expected_provider

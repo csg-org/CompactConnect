@@ -376,7 +376,7 @@ class ApiModel:
         self.api._v1_post_license_encumbrance_request_model = self.api.add_model(
             'V1PostLicenseEncumbranceRequestModel',
             description='Post license encumbrance request model',
-            schema=self._encumbrance_request_schema,
+            schema=self._license_encumbrance_request_schema,
         )
 
         return self.api._v1_post_license_encumbrance_request_model
@@ -419,13 +419,17 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['effectiveLiftDate'],
+                required=['effectiveLiftDate', 'licenseScope'],
                 properties={
                     'effectiveLiftDate': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The effective date when the encumbrance will be lifted',
                         format='date',
                         pattern=compact_connect_api.YMD_FORMAT,
+                    ),
+                    'licenseScope': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=['single-state', 'multi-state'],
                     ),
                 },
             ),
@@ -493,6 +497,7 @@ class ApiModel:
                             'homeAddressState',
                             'homeAddressPostalCode',
                             'licenseType',
+                            'licenseScope',
                             'dateOfIssuance',
                             'dateOfRenewal',
                             'dateOfExpiration',
@@ -717,6 +722,7 @@ class ApiModel:
                     'jurisdiction',
                     'licenseTypeAbbreviation',
                     'licenseType',
+                    'licenseScope',
                     'actionAgainst',
                     'effectiveStartDate',
                     'creationDate',
@@ -734,6 +740,7 @@ class ApiModel:
                     ),
                     'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
                     'licenseType': JsonSchema(type=JsonSchemaType.STRING),
+                    'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
                     'actionAgainst': JsonSchema(type=JsonSchemaType.STRING),
                     'effectiveStartDate': JsonSchema(
                         type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
@@ -783,13 +790,42 @@ class ApiModel:
 
     @property
     def _encumbrance_request_schema(self) -> JsonSchema:
-        """Common schema for encumbrance request data used in both POST and PATCH investigation endpoints"""
+        """Common schema for encumbrance request data used in privilege POST/PATCH investigation endpoints"""
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             description='Encumbrance data to create',
             additional_properties=False,
             required=['encumbranceEffectiveDate', 'encumbranceType', 'clinicalPrivilegeActionCategories'],
             properties={
+                'encumbranceEffectiveDate': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='The effective date of the encumbrance',
+                    format='date',
+                    pattern=compact_connect_api.YMD_FORMAT,
+                ),
+                'encumbranceType': self._encumbrance_type_schema,
+                'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,
+            },
+        )
+
+    @property
+    def _license_encumbrance_request_schema(self) -> JsonSchema:
+        """Schema for license encumbrance request data (POST encumbrance and nested PATCH investigation encumbrance)"""
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            description='Encumbrance data to create',
+            additional_properties=False,
+            required=[
+                'licenseScope',
+                'encumbranceEffectiveDate',
+                'encumbranceType',
+                'clinicalPrivilegeActionCategories',
+            ],
+            properties={
+                'licenseScope': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=['single-state', 'multi-state'],
+                ),
                 'encumbranceEffectiveDate': JsonSchema(
                     type=JsonSchemaType.STRING,
                     description='The effective date of the encumbrance',
@@ -826,6 +862,7 @@ class ApiModel:
                 'investigationId',
                 'jurisdiction',
                 'licenseType',
+                'licenseScope',
                 'dateOfUpdate',
                 'creationDate',
                 'submittingUser',
@@ -840,6 +877,7 @@ class ApiModel:
                     enum=self.stack.node.get_context('jurisdictions'),
                 ),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING),
+                'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
                 'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                 'submittingUser': JsonSchema(type=JsonSchemaType.STRING),
@@ -871,6 +909,7 @@ class ApiModel:
                 type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
             ),
             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
@@ -1366,6 +1405,7 @@ class ApiModel:
                 'compact',
                 'jurisdiction',
                 'licenseType',
+                'licenseScope',
                 'licenseStatus',
                 'compactEligibility',
                 'dateOfExpiration',
@@ -1379,6 +1419,7 @@ class ApiModel:
                     enum=stack.node.get_context('jurisdictions'),
                 ),
                 'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
                 'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                 'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
                 'dateOfExpiration': JsonSchema(
@@ -1520,6 +1561,7 @@ class ApiModel:
                 'licenseJurisdiction',
                 'compact',
                 'licenseType',
+                'licenseScope',
                 'licenseNumber',
                 'licenseEligibility',
             ],
@@ -1535,6 +1577,7 @@ class ApiModel:
                     type=JsonSchemaType.STRING,
                     description='License type or profession designation for this license row',
                 ),
+                'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                 'licenseEligibility': JsonSchema(
                     type=JsonSchemaType.STRING,
@@ -1656,7 +1699,14 @@ class ApiModel:
                 description='Post license investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
-                    properties={},
+                    additional_properties=False,
+                    required=['licenseScope'],
+                    properties={
+                        'licenseScope': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            enum=['single-state', 'multi-state'],
+                        ),
+                    },
                 ),
             )
         return self.api._v1_post_license_investigation_request_model
@@ -1688,10 +1738,14 @@ class ApiModel:
                 description='Patch license investigation request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
-                    required=['action'],
+                    required=['action', 'licenseScope'],
                     properties={
                         'action': JsonSchema(type=JsonSchemaType.STRING, enum=['close']),
-                        'encumbrance': self._encumbrance_request_schema,
+                        'licenseScope': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            enum=['single-state', 'multi-state'],
+                        ),
+                        'encumbrance': self._license_encumbrance_request_schema,
                     },
                 ),
             )

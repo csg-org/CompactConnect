@@ -42,6 +42,13 @@
             "description": "License type or profession designation for this license row",
             "type": "string"
           },
+          "licenseScope": {
+            "enum": [
+              "single-state",
+              "multi-state"
+            ],
+            "type": "string"
+          },
           "licenseNumber": {
             "maxLength": 100,
             "minLength": 1,
@@ -63,6 +70,7 @@
           "licenseJurisdiction",
           "compact",
           "licenseType",
+          "licenseScope",
           "licenseNumber",
           "licenseEligibility"
         ],

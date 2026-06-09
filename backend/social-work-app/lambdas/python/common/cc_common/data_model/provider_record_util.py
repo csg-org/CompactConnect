@@ -10,6 +10,7 @@ from cc_common.data_model.schema.common import (
     AdverseActionAgainstEnum,
     CompactEligibilityStatus,
     InvestigationStatusEnum,
+    LicenseScopeEnum,
     UpdateCategory,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
@@ -44,8 +45,7 @@ DEACTIVATION_EVENT_TYPES: list[UpdateCategory] = [
 def _license_sort_key(license_record: dict | LicenseData) -> tuple:
     """
     Sort key for license records: by date of renewal if present, else date of issuance;
-    use date of issuance as tiebreaker. Works with both dict and LicenseData so the same
-    ordering is used in find_best_license (dicts) and find_best_license_in_current_known_licenses (LicenseData).
+    use date of issuance as tiebreaker. Works with both dict and LicenseData data class.
     """
     if isinstance(license_record, dict):
         effective_date = license_record.get('dateOfRenewal') or license_record['dateOfIssuance']
@@ -90,19 +90,25 @@ class ProviderRecordUtility:
         return provider_records[0] if provider_records else None
 
     @classmethod
-    def find_most_recently_issued_or_renewed_license(cls, license_records: Iterable[dict]) -> dict:
+    def find_most_recently_issued_or_renewed_license(
+        cls,
+        license_records: Iterable[dict],
+        license_scope: LicenseScopeEnum,
+    ) -> dict | None:
         """
-        This selects the license renewed or issued most recently. Sort by date of renewal
-        if present, otherwise date of issuance; use date of issuance as tiebreaker. Compact
-        eligibility and active status are not considered.
+        Select the license renewed or issued most recently within the given scope. Sort by date of renewal
+        if present, otherwise date of issuance; use date of issuance as tiebreaker. Compact eligibility and
+        active status are not considered.
 
         :param license_records: An iterable of license records
-        :return: The best license record
+        :param license_scope: The license scope to filter by before sorting
+        :return: The best license record for the scope, or None if no matching licenses exist
         """
-        latest_licenses = sorted(license_records, key=_license_sort_key, reverse=True)
-        if not latest_licenses:
-            raise CCInternalException('No licenses found')
+        scoped_licenses = [record for record in license_records if record['licenseScope'] == license_scope.value]
+        if not scoped_licenses:
+            return None
 
+        latest_licenses = sorted(scoped_licenses, key=_license_sort_key, reverse=True)
         return latest_licenses[0]
 
     @staticmethod
@@ -139,8 +145,35 @@ class ProviderRecordUtility:
 
 class ProviderUserRecords:
     """
-    A collection of provider records for a single provider.
-    This class is used to get all records for a single provider and provide utilities for getting specific records
+    Canonical read-side abstraction for how a single provider's data is stored in DynamoDB.
+
+    In storage, a provider is represented by many separate DynamoDB items (provider
+    profile, licenses, updates, adverse actions, investigations, and related types).
+    This class treats those items as one logical collection for a single provider and
+    exposes a simplified, provider-centric interface for querying and deriving views
+    of that data.
+
+    Cross-record business rules belong here so they are not duplicated elsewhere.
+    That includes how privileges are derived, how OpenSearch index documents are
+    built, and other provider-wide behavior (i.e. API response shaping). Do not
+    reimplement that logic in handlers, Lambdas, or background jobs; extend this
+    class when those rules change so APIs, search indexing, and downstream consumers
+    stay consistent.
+
+    Any code that needs to read or derive provider-scoped data should use
+    this class rather than querying individual DynamoDB records directly.
+    Obtain instances via ``DataClient.get_provider_user_records`` in
+    ``data_client.py``: it queries the provider's DynamoDB partition, paginates
+    until all matching items are collected, and passes them to ``ProviderUserRecords``.
+    By default only main records are loaded (``sk`` values beginning with
+    ``{compact}#PROVIDER``); pass ``include_update_tier`` when update or history
+    records up to a given tier are required. Raises ``CCNotFoundException`` when the
+    provider has no items.
+
+    On initialization, raw dict records are categorized by type and converted to
+    typed data classes for efficient access. The ``provider_records`` attribute
+    retains the original dicts for code paths that have not migrated to the
+    data-class pattern.
     """
 
     def __init__(self, provider_records: Iterable[dict]):
@@ -175,19 +208,24 @@ class ProviderUserRecords:
                 # log the warning, but continue with initialization
                 logger.warning('Unrecognized record type found.', record_type=record_type)
 
-    def get_specific_license_record(self, jurisdiction: str, license_abbreviation: str) -> LicenseData | None:
+    def get_specific_license_record(
+        self, jurisdiction: str, license_abbreviation: str, license_scope: str
+    ) -> LicenseData | None:
         """
         Get a specific license record from a list of provider records.
 
         :param jurisdiction: The jurisdiction of the license.
         :param license_abbreviation: The abbreviation of the license type.
+        :param license_scope: The license scope (single-state or multi-state).
         :return: The license record if found, else None.
         """
         return next(
             (
                 record
                 for record in self._license_records
-                if record.jurisdiction == jurisdiction and record.licenseTypeAbbreviation == license_abbreviation
+                if record.jurisdiction == jurisdiction
+                and record.licenseTypeAbbreviation == license_abbreviation
+                and record.licenseScope == license_scope
             ),
             None,
         )
@@ -212,6 +250,7 @@ class ProviderUserRecords:
         self,
         license_jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         filter_condition: Callable[[AdverseActionData], bool] | None = None,
     ) -> list[AdverseActionData]:
         """
@@ -223,6 +262,7 @@ class ProviderUserRecords:
             if record.actionAgainst == AdverseActionAgainstEnum.LICENSE
             and record.jurisdiction == license_jurisdiction
             and record.licenseTypeAbbreviation == license_type_abbreviation
+            and record.licenseScope == license_scope
             and (filter_condition is None or filter_condition(record))
         ]
 
@@ -257,18 +297,17 @@ class ProviderUserRecords:
         return latest_effective_lift_date
 
     def get_latest_effective_lift_date_for_license_adverse_actions(
-        self, license_jurisdiction: str, license_type_abbreviation: str
+        self, license_jurisdiction: str, license_type_abbreviation: str, license_scope: str
     ) -> date | None:
         """
         Get the latest effective lift date for a license if all adverse actions have been lifted.
 
         If any of the adverse actions have not been lifted, or there are no adverse actions, None is returned.
         """
-        # Get all adverse action records for this license to determine the correct effective date
-        # for privilege lifting (should be the maximum effective lift date among all lifted encumbrances)
         license_adverse_actions = self.get_adverse_action_records_for_license(
             license_jurisdiction=license_jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            license_scope=license_scope,
         )
         return self._get_latest_effective_lift_date_for_adverse_actions(license_adverse_actions)
 
@@ -338,6 +377,7 @@ class ProviderUserRecords:
         self,
         license_jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         filter_condition: Callable[[InvestigationData], bool] | None = None,
         include_closed: bool = False,
     ) -> list[InvestigationData]:
@@ -346,6 +386,7 @@ class ProviderUserRecords:
 
         :param license_jurisdiction: The jurisdiction of the license
         :param license_type_abbreviation: The license type abbreviation
+        :param license_scope: The license scope (single-state or multi-state)
         :param filter_condition: Optional filter function to apply to records
         :param include_closed: If True, include closed investigations; otherwise only return active ones
         :returns: List of investigation records matching the criteria
@@ -356,6 +397,7 @@ class ProviderUserRecords:
             if record.investigationAgainst == 'license'
             and record.jurisdiction == license_jurisdiction
             and record.licenseTypeAbbreviation == license_type_abbreviation
+            and record.licenseScope == license_scope
             and (
                 include_closed or record.closeDate is None
             )  # Only return active investigations unless include_closed is True
@@ -381,61 +423,183 @@ class ProviderUserRecords:
             reverse=True,
         )
 
-    def find_most_recent_licenses_for_each_license_type(self) -> list[LicenseData]:
+    def _find_most_recent_licenses_for_each_license_type(
+        self,
+        license_scope: LicenseScopeEnum,
+    ) -> list[LicenseData]:
         """
-        For each license type, find the most recent license for the provider.
+        For each license type, find the most recent license for the provider within the given scope.
 
-        :return: A list of LicenseData objects, one for each license type the provider holds.
+        :param license_scope: The license scope to filter by before grouping by license type
+        :return: A list of LicenseData objects, one for each license type within the scope
         """
-        most_recent_licenses: list[LicenseData] = []
-        by_type: dict[str, list] = {}
+        by_type: dict[str, list[LicenseData]] = {}
         for lic in self._license_records:
             by_type.setdefault(lic.licenseType, []).append(lic)
-        for _lt, licenses in by_type.items():
-            sorted_licenses = self._sort_licenses_by_most_recent(licenses)
-            most_recent_licenses.append(sorted_licenses[0])
 
-        return most_recent_licenses
+        return [
+            best
+            for licenses in by_type.values()
+            if (best := self._best_license_for_scope(licenses, license_scope)) is not None
+        ]
+
+    def _best_license_for_scope(
+        self,
+        licenses: list[LicenseData],
+        license_scope: LicenseScopeEnum,
+    ) -> LicenseData | None:
+        scoped_licenses = [lic for lic in licenses if lic.licenseScope == license_scope.value]
+        if not scoped_licenses:
+            return None
+        return self._sort_licenses_by_most_recent(scoped_licenses)[0]
 
     def find_best_license_in_current_known_licenses(
         self,
-        jurisdiction: str | None = None,
+        *,
         license_type_abbreviation: str | None = None,
     ) -> LicenseData:
         """
-        Find the best license from this provider's known licenses. Uses the same ordering as
-        ProviderRecordUtility.find_best_license (most recently renewed/issued; status and eligibility not considered).
-        Sorts LicenseData directly using the shared sort key—no conversion to or from dicts.
-        :param jurisdiction: Optional jurisdiction filter
-        :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'cos', 'est')
-        :return: The best license record
+        Find the best license from this provider's known licenses. The 'best' license is the multi-state license
+        most recently renewed/issued that also has an associated single-state license.
+
+        If there is no multi-state/single-state license pairing, we select the most recent multi-state license in
+        the jurisdiction recorded on the top level provider record. If there is no multi-state license for
+        that jurisdiction, we select the most recent single-state license in that home state.
+
+        This method is primarily used by the license upload rollback feature to determine the best license to base
+        the top level provider record information on when the provider record is rolled back to a previous state.
+
+        :param license_type_abbreviation: Optional license type abbreviation filter (e.g. 'lcsw', 'lmsw')
+        :return: The best license record according to the above criteria.
         """
-        if jurisdiction:
-            license_records = self.get_license_records(
-                filter_condition=lambda license_data: license_data.jurisdiction == jurisdiction
-            )
-        else:
-            license_records = self.get_license_records()
+        license_records = self.get_license_records()
 
         if license_type_abbreviation:
             license_records = [
-                lic for lic in license_records if lic.licenseTypeAbbreviation == license_type_abbreviation
+                lic
+                for lic in license_records
+                if lic.licenseTypeAbbreviation.lower() == license_type_abbreviation.lower()
             ]
 
         if not license_records:
             raise CCNotFoundException('No licenses found')
 
-        sorted_licenses = self._sort_licenses_by_most_recent(license_records)
-        return sorted_licenses[0]
+        multi_state_licenses_sorted_by_most_recent = self._sort_licenses_by_most_recent(
+            [lic for lic in license_records if lic.licenseScope == LicenseScopeEnum.MULTI_STATE]
+        )
+        single_state_licenses_sorted_by_most_recent = self._sort_licenses_by_most_recent(
+            [lic for lic in license_records if lic.licenseScope == LicenseScopeEnum.SINGLE_STATE]
+        )
+
+        for multi_state_license in multi_state_licenses_sorted_by_most_recent:
+            if self.find_matching_single_state_license_for_multi_state_license(multi_state_license) is not None:
+                return multi_state_license
+
+        # If we get to this point, then none of the multi-state licenses have a matching single-state license
+        # check for any multi-state licenses in the provider's current home jurisdiction
+        current_home_jurisdiction_multi_state_licenses = [
+            lic
+            for lic in multi_state_licenses_sorted_by_most_recent
+            if lic.jurisdiction == self.get_provider_record().licenseJurisdiction
+        ]
+        if current_home_jurisdiction_multi_state_licenses:
+            return current_home_jurisdiction_multi_state_licenses[0]
+
+        # if we get to this point, then there are no multi-state licenses in the provider's current home jurisdiction
+        # check for any single-state licenses in the provider's current home jurisdiction
+        current_home_jurisdiction_single_state_licenses = [
+            lic
+            for lic in single_state_licenses_sorted_by_most_recent
+            if lic.jurisdiction == self.get_provider_record().licenseJurisdiction
+        ]
+        if current_home_jurisdiction_single_state_licenses:
+            return current_home_jurisdiction_single_state_licenses[0]
+
+        # if we get to this point, then there are no multi-state or single-state licenses
+        # in the provider's current home jurisdiction. Return the most recent multi-state license.
+        if multi_state_licenses_sorted_by_most_recent:
+            return multi_state_licenses_sorted_by_most_recent[0]
+
+        # if we get to this point, then there are no multi-state licenses. Return the most recent single-state license.
+        if single_state_licenses_sorted_by_most_recent:
+            return single_state_licenses_sorted_by_most_recent[0]
+
+        # if we get to this point, then there are no multi-state or single-state licenses.
+        # this is an unexpected state and results in an error.
+        raise CCInternalException('No multi-state or single-state licenses found after checking all licenses.')
+
+    def find_matching_single_state_license_for_multi_state_license(
+        self,
+        multi_state_license: LicenseData,
+    ) -> LicenseData | None:
+        """
+        Find the paired single-state license for a multi-state license.
+
+        If a single-state license is passed in, the method will raise an exception.
+
+        :param multi_state_license: The multi-state license to find a paired single-state license for.
+        :return: The paired single-state license, or None if no matching single-state license is found.
+        """
+        if multi_state_license.licenseScope == LicenseScopeEnum.SINGLE_STATE.value:
+            raise ValueError('A multi-state license must be passed in, not a single-state license.')
+
+        return self.get_specific_license_record(
+            multi_state_license.jurisdiction,
+            multi_state_license.licenseTypeAbbreviation,
+            LicenseScopeEnum.SINGLE_STATE.value,
+        )
+
+    def _apply_associated_single_state_eligibility_if_multi_state_license(
+        self,
+        license_record: LicenseData,
+        license_dict: dict,
+    ) -> None:
+        """
+        A displayed multi-state license is only as eligible as its paired single-state license
+        (same jurisdiction and license type). If that single-state license is ineligible, show the
+        multi-state license as ineligible too.
+        """
+        if license_record.licenseScope != LicenseScopeEnum.MULTI_STATE.value:
+            return
+        single_state = self.find_matching_single_state_license_for_multi_state_license(license_record)
+        if single_state is not None and single_state.compactEligibility == CompactEligibilityStatus.INELIGIBLE:
+            license_dict['compactEligibility'] = CompactEligibilityStatus.INELIGIBLE.value
+
+    def _find_multi_state_home_licenses_with_matching_single_state_licenses(
+        self,
+    ) -> list[LicenseData]:
+        """
+        For each license type, return the most recent multi-state license that has a single-state license
+        in the same jurisdiction. If any multi-state license for a type lacks an associated single state license
+        pairing, no home license is returned for that type.
+        """
+        by_type: dict[str, list[LicenseData]] = {}
+        for lic in self._license_records:
+            if (
+                lic.licenseScope == LicenseScopeEnum.MULTI_STATE.value
+                and self.find_matching_single_state_license_for_multi_state_license(lic) is not None
+            ):
+                by_type.setdefault(lic.licenseType, []).append(lic)
+
+        multi_state_licenses_with_matching_single_state_license: list[LicenseData] = []
+        for _license_type, multi_state_licenses in by_type.items():
+            sorted_multi_state = sorted(multi_state_licenses, key=_license_sort_key, reverse=True)
+            most_recent_multi_state = sorted_multi_state[0]
+            multi_state_licenses_with_matching_single_state_license.append(most_recent_multi_state)
+
+        return multi_state_licenses_with_matching_single_state_license
 
     def generate_privileges_for_provider(self, include_inactive_privileges: bool = False) -> list[dict]:
         """
-        Generate privilege dicts at runtime for each license type this provider holds.
+        Generate privilege dicts at runtime for each eligible home multi-state license type this provider holds.
 
-        For each license type, the home license is chosen from all licenses of that type: the license renewed
-        most recently (when dateOfRenewal is present), otherwise the license with the most recent date of issuance.
-        When the chosen home license is compact-eligible, one privilege is generated per active compact jurisdiction
-        (excluding the home jurisdiction). When the home license is not compact-eligible, a privilege is still
+        For each license type, privileges are associated with the home state multi-state license, which is the license
+        that has been renewed most recently and has an associated single-state license. Privileges are only generated
+        when that multi-state license has a single-state license in the same jurisdiction and license type and is
+        compact-eligible.
+
+        When the home multi-state license is compact-eligible, one privilege is generated per active compact
+        jurisdiction (excluding the home jurisdiction). When it is not compact-eligible, a privilege is still
         generated for a jurisdiction if there is a matching privilege adverse action or an open privilege
         investigation for that jurisdiction and license type, so admins can see and resolve those records.
 
@@ -457,24 +621,16 @@ class ProviderUserRecords:
             logger.debug('no active jurisdictions found in environment.', compact=compact)
             return []
 
-        # Group licenses by licenseType; for each type pick home license by most recent renewal, then issuance
-        by_type: dict[str, list[LicenseData]] = {}
-        for lic in self._license_records:
-            by_type.setdefault(lic.licenseType, []).append(lic)
-
-        most_recent_licenses_for_each_type: list[LicenseData] = []
-        for _lt, licenses in by_type.items():
-            sorted_licenses = sorted(
-                licenses,
-                key=_license_sort_key,
-                reverse=True,
-            )
-            most_recent_license = sorted_licenses[0]
-            most_recent_licenses_for_each_type.append(most_recent_license)
-
         result: list[dict] = []
-        for most_recent_license in most_recent_licenses_for_each_type:
-            is_eligible = most_recent_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+        for most_recent_license in self._find_multi_state_home_licenses_with_matching_single_state_licenses():
+            matching_single_state_license = self.find_matching_single_state_license_for_multi_state_license(
+                most_recent_license
+            )
+            # both the multi-state license and the associated single-state license must be eligible
+            is_eligible = (
+                most_recent_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+                and matching_single_state_license.compactEligibility == CompactEligibilityStatus.ELIGIBLE
+            )
             home_jurisdiction = most_recent_license.jurisdiction.lower()
             license_type_abbr = most_recent_license.licenseTypeAbbreviation
 
@@ -553,12 +709,14 @@ class ProviderUserRecords:
         self,
         jurisdiction: str,
         license_type: str,
+        license_scope: str,
         filter_condition: Callable[[LicenseUpdateData], bool] | None = None,
     ) -> list[LicenseUpdateData]:
         """
         Get all license update records for a specific license.
         :param jurisdiction: The jurisdiction of the license.
         :param license_type: The license type.
+        :param license_scope: The license scope (single-state or multi-state).
         :param filter_condition: An optional filter to apply to the update records
         :return: List of LicenseUpdateData records
         """
@@ -567,6 +725,7 @@ class ProviderUserRecords:
             for record in self._license_update_records
             if record.jurisdiction == jurisdiction
             and record.licenseType == license_type
+            and record.licenseScope == license_scope
             and (filter_condition is None or filter_condition(record))
         ]
 
@@ -574,8 +733,8 @@ class ProviderUserRecords:
         """
         Assemble a list of provider records into a single object used by the provider details api.
 
-        :param is_public_response: If True, licenses that are not the most recent license for a type
-        will not be included in the response.
+        :param is_public_response: If True, only the most recent license per license type is included,
+            preferring multi-state over single-state when both exist for a type.
         :return: A single provider record matching our provider details api schema.
         """
         provider = self.get_provider_record().to_dict()
@@ -583,24 +742,29 @@ class ProviderUserRecords:
         privileges = []
 
         if is_public_response:
-            # only include the most recent license for each license type in the public response
-            license_records = self.find_most_recent_licenses_for_each_license_type()
+            # only include the most recent multi-state license for each license type in the public response
+            license_records = self._find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
         else:
             license_records = self.get_license_records()
 
         # Build licenses dict with investigations and adverseActions
         for license_record in license_records:
             license_dict = license_record.to_dict()
+            self._apply_associated_single_state_eligibility_if_multi_state_license(license_record, license_dict)
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
             license_dict['investigations'] = [
                 rec.to_dict()
                 for rec in self.get_investigation_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
             licenses.append(license_dict)
@@ -620,10 +784,10 @@ class ProviderUserRecords:
 
         Each document contains the full provider-level fields (including top-level `adverseActions`
         for the provider), a single license in the `licenses` array, and privileges only if that license
-        is the home license for its type. This enables 1:1 mapping between OpenSearch documents and license
-        records for native pagination.
+        is the multi-state home license for its type with a single-state license in the same jurisdiction.
+        This enables 1:1 mapping between OpenSearch documents and license records for native pagination.
 
-        Privileges are always included for home license documents — including when the license is
+        Privileges are always included for multi-state home license documents — including when the license is
         ineligible — so that adverse actions and investigations remain linked to privilege records.
         Privileges for ineligible home licenses carry status 'inactive'.
 
@@ -636,39 +800,47 @@ class ProviderUserRecords:
         provider_dict = self.get_provider_record().to_dict()
         all_privileges = self.generate_privileges_for_provider(include_inactive_privileges=True)
 
-        # Determine the most recent (aka home) license for each license type
-        most_recent_licenses = {
-            (most_recent_license_for_type.jurisdiction.lower(), most_recent_license_for_type.licenseType)
-            for most_recent_license_for_type in self.find_most_recent_licenses_for_each_license_type()
+        most_recent_multi_state_home_licenses = {
+            (
+                multi_state_home_license.jurisdiction.lower(),
+                multi_state_home_license.licenseType,
+                multi_state_home_license.licenseScope,
+            )
+            for multi_state_home_license in self._find_multi_state_home_licenses_with_matching_single_state_licenses()
         }
 
         documents = []
         adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
         for license_record in self.get_license_records():
             license_dict = license_record.to_dict()
+            self._apply_associated_single_state_eligibility_if_multi_state_license(license_record, license_dict)
             license_dict['adverseActions'] = [
                 rec.to_dict()
                 for rec in self.get_adverse_action_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
             license_dict['investigations'] = [
                 rec.to_dict()
                 for rec in self.get_investigation_records_for_license(
-                    license_record.jurisdiction, license_record.licenseTypeAbbreviation
+                    license_record.jurisdiction,
+                    license_record.licenseTypeAbbreviation,
+                    license_record.licenseScope,
                 )
             ]
 
             is_most_recent_license_for_type = (
                 license_record.jurisdiction.lower(),
                 license_record.licenseType,
-            ) in most_recent_licenses
+                license_record.licenseScope,
+            ) in most_recent_multi_state_home_licenses
             license_privileges = (
                 [p for p in all_privileges if p['licenseType'] == license_record.licenseType]
                 if is_most_recent_license_for_type
                 else []
             )
-            license_dict['mostRecentLicenseForType'] = is_most_recent_license_for_type
 
             doc = dict(provider_dict)
             doc['licenses'] = [license_dict]

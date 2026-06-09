@@ -233,8 +233,12 @@ def wait_for_opensearch_sync() -> None:
     time.sleep(seconds)
 
 
-def get_most_recently_issued_or_renewed_license(licenses: list[dict]) -> dict:
-    return ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+def get_most_recently_issued_or_renewed_license(licenses: list[dict]) -> dict | None:
+    from cc_common.data_model.schema.common import LicenseScopeEnum
+
+    return ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+        licenses, LicenseScopeEnum.MULTI_STATE
+    ) or ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses, LicenseScopeEnum.SINGLE_STATE)
 
 
 _PUBLIC_QUERY_INTERNAL_MAX_PAGES = 500
@@ -368,7 +372,8 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
         'dateOfBirth': '1985-01-01',
         'dateOfIssuance': '2020-01-01',
         'ssn': '999-99-9999',
-        'licenseType': 'cosmetologist',
+        'licenseType': 'licensed clinical social worker',
+        'licenseScope': 'single-state',
         'dateOfExpiration': '2050-01-01',
         'homeAddressState': 'AZ',
         'homeAddressCity': 'Omaha',

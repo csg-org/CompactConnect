@@ -11,6 +11,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     CompactEligibility,
     Jurisdiction,
+    LicenseScopeField,
 )
 from cc_common.data_model.schema.license.api import (
     LicenseGeneralResponseSchema,
@@ -210,6 +211,7 @@ class PublicLicenseSearchResponseSchema(ForgivingSchema):
     licenseJurisdiction = String(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
     licenseEligibility = CompactEligibility(required=True, allow_none=False)
 

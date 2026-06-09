@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - backend/compact-connect/stacks/state_api_stack/v1_api/**
+      - backend/cosmetology-app/stacks/state_api_stack/v1_api/**
+      - backend/social-work-app/stacks/state_api_stack/v1_api/**
 
 env:
   AWS_REGION : "us-east-1"
@@ -30,30 +32,61 @@ jobs:
 
       - name: Check for API spec update
         run: |
-          echo "Checking if OpenAPI specification has been updated..."
-          echo "Since API stack files were modified (trigger condition), verifying spec file was also updated."
+          set -euo pipefail
 
-          # Get the base branch from GitHub context
+          echo "Checking if state OpenAPI specification has been updated..."
+          echo "Verifying each project whose state API stack changed also updated its spec file."
+
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           echo "Base branch: $BASE_BRANCH"
 
-          # Check if the OpenAPI spec file was updated using the suggested git diff command
-          SPEC_FILE_PATH="backend/compact-connect/docs/api-specification/latest-oas30.json"
-          echo "Checking for changes to: $SPEC_FILE_PATH"
+          PROJECTS=(
+            compact-connect
+            cosmetology-app
+            social-work-app
+          )
 
-          CHANGED_SPEC_FILE=$(git diff origin/$BASE_BRANCH..HEAD --name-only -- '**/docs/api-specification/latest-oas30.json')
+          FAILED=0
+          CHECKED=0
 
-          if [ -n "$CHANGED_SPEC_FILE" ]; then
-            echo "✅ SUCCESS: State OpenAPI spec file was updated: $SPEC_FILE_PATH"
-          else
+          check_project() {
+            local project="$1"
+            local api_path="backend/${project}/stacks/state_api_stack/v1_api"
+            local spec_path="backend/${project}/docs/api-specification/latest-oas30.json"
+
+            if ! git diff "origin/${BASE_BRANCH}..HEAD" --name-only -- "$api_path" | grep -q .; then
+              return 0
+            fi
+
+            CHECKED=$((CHECKED + 1))
             echo ""
-            echo "🚨 ERROR: State API stack files were modified but the State OpenAPI specification was not updated!"
+            echo "Detected changes under: ${api_path}"
+
+            if git diff "origin/${BASE_BRANCH}..HEAD" --name-only -- "$spec_path" | grep -q .; then
+              echo "✅ ${project}: state OpenAPI spec updated at ${spec_path}"
+            else
+              echo "🚨 ${project}: state API stack changed but state OpenAPI spec was not updated!"
+              echo "   Update: ${spec_path}"
+              FAILED=1
+            fi
+          }
+
+          for project in "${PROJECTS[@]}"; do
+            check_project "$project"
+          done
+
+          if [ "$CHECKED" -eq 0 ]; then
             echo ""
-            echo "When you modify API stack files, you must also update the OpenAPI specification at:"
-            echo "  $SPEC_FILE_PATH"
+            echo "No state API stack changes detected for monitored projects; nothing to verify."
+            exit 0
+          fi
+
+          if [ "$FAILED" -ne 0 ]; then
             echo ""
-            echo "This ensures that the API documentation stays in sync with the implementation."
-            echo ""
-            echo "Please update the OpenAPI spec file and commit it to this PR."
+            echo "When you modify state API stack files, you must also update that project's OpenAPI specification."
+            echo "This ensures API documentation stays in sync with the implementation."
             exit 1
           fi
+
+          echo ""
+          echo "✅ SUCCESS: All projects with state API stack changes also updated their OpenAPI spec."
