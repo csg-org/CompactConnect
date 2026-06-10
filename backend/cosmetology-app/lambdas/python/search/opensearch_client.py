@@ -290,6 +290,11 @@ class OpenSearchClient:
             'adverseActions': {'type': 'nested', 'properties': adverse_action_properties},
             'investigations': {'type': 'nested', 'properties': investigation_properties},
             'investigationStatus': {'type': 'keyword'},
+            # This field is not in the original license record, but is added
+            # by the provider_record_util.generate_opensearch_documents method
+            # and is used to indicate the most recent license for filtering
+            # public search results
+            'mostRecentLicenseForType': {'type': 'boolean'},
         }
 
         privilege_properties = {
@@ -362,6 +367,7 @@ class OpenSearchClient:
                     'providerFamGivMid': {'type': 'keyword'},
                     'providerDateOfUpdate': {'type': 'date'},
                     'birthMonthDay': {'type': 'keyword'},
+                    'adverseActions': {'type': 'nested', 'properties': adverse_action_properties},
                     'licenses': {'type': 'nested', 'properties': license_properties},
                     'privileges': {'type': 'nested', 'properties': privilege_properties},
                 }

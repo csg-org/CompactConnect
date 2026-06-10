@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import UUID, Date, DateTime, Email, Integer, List, Nested, Raw, String
+from marshmallow.fields import UUID, AwareDateTime, Date, Email, Integer, List, Nested, Raw, String
 from marshmallow.validate import Length, OneOf, Range, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -305,8 +305,8 @@ class QueryJurisdictionProvidersRequestSchema(CCRequestSchema):
         Nested schema for the query object within the request.
         """
 
-        startDateTime = DateTime(required=True, allow_none=False)
-        endDateTime = DateTime(required=True, allow_none=False)
+        startDateTime = AwareDateTime(required=True, allow_none=False)
+        endDateTime = AwareDateTime(required=True, allow_none=False)
 
     class PaginationSchema(ForgivingSchema):
         """

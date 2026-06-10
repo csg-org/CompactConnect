@@ -9,7 +9,9 @@ boolean-py==5.0
 build==1.4.2
     # via pip-tools
 cachecontrol[filecache]==0.14.4
-    # via pip-audit
+    # via
+    #   cachecontrol
+    #   pip-audit
 certifi==2026.2.25
     # via requests
 charset-normalizer==3.4.7
@@ -85,7 +87,7 @@ requests==2.33.1
     #   pip-audit
 rich==14.3.3
     # via pip-audit
-ruff==0.15.9
+ruff==0.15.10
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib

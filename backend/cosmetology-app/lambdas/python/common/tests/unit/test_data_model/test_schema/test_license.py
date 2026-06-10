@@ -329,6 +329,7 @@ class TestLicenseOpenSearchDocumentSchema(TstLambdas):
             'homeAddressPostalCode': '43215',
             'licenseNumber': 'LIC12345',
             'dateOfBirth': '1985-06-06',
+            'mostRecentLicenseForType': True,
         }
 
     def test_includes_date_of_birth(self):

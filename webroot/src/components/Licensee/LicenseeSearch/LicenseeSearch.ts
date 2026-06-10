@@ -433,7 +433,6 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.firstName.value = 'Test';
         this.formData.lastName.value = 'User';
         this.formData.homeState.value = 'co';
-        this.formData.investigationStatus.value = 'underInvestigation';
         this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
 
@@ -442,6 +441,7 @@ class LicenseeSearch extends mixins(MixinForm) {
             this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
             this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
             this.formData.militaryStatus.value = 'approved';
+            this.formData.investigationStatus.value = 'underInvestigation';
             this.formData.npi.value = 'ABC123';
         } else if (this.isAppModeCosmetology) {
             this.formData.licenseNumber.value = 'ABC123';

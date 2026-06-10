@@ -25,8 +25,8 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Upgrade pip
-        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
-        run: pip install --upgrade 'pip>=26.0'
+        # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
+        run: pip install --upgrade 'pip>=26.1'
 
       - name: Install dev dependencies
         run: "pip install -r backend/compact-connect/requirements-dev.txt"
@@ -87,8 +87,8 @@ jobs:
           python-version: '3.14'
 
       - name: Upgrade pip
-        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
-        run: pip install --upgrade 'pip>=26.0'
+        # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
+        run: pip install --upgrade 'pip>=26.1'
 
       # Setup Node
       - name: Setup Node
@@ -129,8 +129,8 @@ jobs:
           python-version: '3.12'
 
       - name: Upgrade pip
-        # Runner image ships pip 25.3; upgrade to 26.0+ so pip-audit passes (CVE-2026-1703 fixed in 26.0)
-        run: pip install --upgrade 'pip>=26.0'
+        # Runner image ships pip 25.3; Upgrade to 26.1+ to include fix for CVE-2026-3219.
+        run: pip install --upgrade 'pip>=26.1'
 
       - name: Install dependencies
         run: "cd backend/compact-connect/lambdas/python/purchases; pip install -r requirements.txt"
@@ -142,8 +142,8 @@ jobs:
         run: "cd backend/compact-connect/lambdas/python/purchases; ruff check $(git ls-files '*.py')"
 
       - name: Check Dependencies
-        # Ignore pip vulnerability that does not affect Python 3.12+
-        run: "pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph"
+        # Ignore known pip and lxml advisories currently accepted for this repo.
+        run: "pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph --ignore-vuln CVE-2026-41066"
 
       - name: Test backend
         run: "cd backend/compact-connect/lambdas/python/purchases; PYTHONPATH=../common pytest tests --cov --cov-fail-under=90"

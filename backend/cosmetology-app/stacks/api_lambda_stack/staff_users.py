@@ -16,10 +16,10 @@ from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
+from constructs import Construct
+
 from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 

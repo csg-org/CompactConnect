@@ -37,6 +37,20 @@ class InvestigationNotificationTemplateVariables:
     provider_id: UUID
 
 
+@dataclass
+class HomeJurisdictionChangeNotificationTemplateVariables:
+    """
+    Template variables for license home state change notification emails.
+    """
+
+    provider_first_name: str
+    provider_last_name: str
+    former_jurisdiction: str
+    current_jurisdiction: str
+    license_type: str
+    provider_id: UUID
+
+
 class JurisdictionNotificationMethod(Protocol):
     """Protocol for Jurisdiction encumbrance notification methods."""
 
@@ -354,6 +368,37 @@ class EmailServiceClient:
                 'providerLastName': template_variables.provider_last_name,
                 'providerId': str(template_variables.provider_id),
                 'investigationJurisdiction': template_variables.investigation_jurisdiction,
+                'licenseType': template_variables.license_type,
+            },
+        }
+        return self._invoke_lambda(payload)
+
+    def send_provider_home_state_change_email(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        template_variables: HomeJurisdictionChangeNotificationTemplateVariables,
+    ) -> dict[str, str]:
+        """
+        Send a license home state change notification email to a state.
+
+        :param compact: Compact name
+        :param jurisdiction: Jurisdiction to notify
+        :param template_variables: Template variables for the email
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'jurisdiction': jurisdiction,
+            'template': 'homeJurisdictionChangeNotification',
+            'recipientType': 'JURISDICTION_OPERATIONS_TEAM',
+            'templateVariables': {
+                'providerFirstName': template_variables.provider_first_name,
+                'providerLastName': template_variables.provider_last_name,
+                'providerId': str(template_variables.provider_id),
+                'previousJurisdiction': template_variables.former_jurisdiction,
+                'newJurisdiction': template_variables.current_jurisdiction,
                 'licenseType': template_variables.license_type,
             },
         }

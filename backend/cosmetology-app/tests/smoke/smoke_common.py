@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 
 import boto3
 import requests
@@ -32,7 +33,7 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 os.environ['LICENSE_TYPES'] = json.dumps(LICENSE_TYPES)
 
 # We have to import this after we've added the common lib to our path and environment
-from cc_common.data_model.provider_record_util import ProviderUserRecords  # noqa: E402 F401
+from cc_common.data_model.provider_record_util import ProviderRecordUtility, ProviderUserRecords  # noqa: E402 F401
 
 # importing this here so it can be easily referenced in the rollback upload tests
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData  # noqa: E402 F401
@@ -201,10 +202,6 @@ def get_data_events_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME'])
 
 
-def get_provider_ssn_lambda_name():
-    return os.environ['CC_TEST_GET_PROVIDER_SSN_LAMBDA_NAME']
-
-
 def get_lambda_client():
     return boto3.client('lambda')
 
@@ -229,11 +226,83 @@ def call_provider_details_endpoint(headers: dict, compact: str, provider_id: str
     return response.json()
 
 
+def wait_for_opensearch_sync() -> None:
+    """Wait for provider table changes to propagate into OpenSearch (best-effort fixed delay)."""
+    seconds = 30
+    logger.info(f'Waiting {seconds}s for changes to propagate in OpenSearch...')
+    time.sleep(seconds)
+
+
+def get_most_recently_issued_or_renewed_license(licenses: list[dict]) -> dict:
+    return ProviderRecordUtility.find_most_recently_issued_or_renewed_license(licenses)
+
+
+_PUBLIC_QUERY_INTERNAL_MAX_PAGES = 500
+
+
+def call_public_query_providers(
+    compact: str,
+    *,
+    provider_id_filter: str,
+    first_name_filter: str | None = None,
+    last_name_filter: str | None = None,
+    license_number_filter: str | None = None,
+    page_size: int = 100,
+    timeout: int = 30,
+) -> list[dict]:
+    """
+    POST /v1/public/compacts/{compact}/providers/query (no auth).
+
+    Builds query body from provided filters
+    """
+    url = f'{config.api_base_url}/v1/public/compacts/{compact}/providers/query'
+    headers = {'Content-Type': 'application/json'}
+    query_parameters: dict = {}
+    if first_name_filter:
+        query_parameters['givenName'] = first_name_filter
+    if last_name_filter:
+        query_parameters['familyName'] = last_name_filter
+    if license_number_filter:
+        query_parameters['licenseNumber'] = license_number_filter
+
+    pagination_state: dict = {'pageSize': page_size}
+    matching_license_rows: list[dict] = []
+
+    for _page_index in range(_PUBLIC_QUERY_INTERNAL_MAX_PAGES):
+        request_body = {'query': query_parameters, 'pagination': pagination_state}
+        response = requests.post(url=url, headers=headers, json=request_body, timeout=timeout)
+        if response.status_code != 200:
+            raise SmokeTestFailureException(f'Failed POST public query providers. Response: {response.json()}')
+        page_response_body = response.json()
+
+        for provider_license_row in page_response_body.get('providers') or []:
+            if provider_id_filter and provider_license_row.get('providerId') == provider_id_filter:
+                matching_license_rows.append(provider_license_row)
+
+        last_pagination_key = (page_response_body.get('pagination') or {}).get('lastKey')
+        if not last_pagination_key:
+            break
+        pagination_state = {**pagination_state, 'lastKey': last_pagination_key}
+
+    return matching_license_rows
+
+
+def call_public_get_provider(compact: str, provider_id: str, *, timeout: int = 30) -> dict:
+    """GET /v1/public/compacts/{compact}/providers/{provider_id} (no auth)."""
+    url = f'{config.api_base_url}/v1/public/compacts/{compact}/providers/{provider_id}'
+    response = requests.get(url=url, timeout=timeout)
+
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed GET public provider. Response: {response.json()}')
+    return response.json()
+
+
 def get_all_provider_database_records(compact: str = 'cosm', provider_id: str = None):
 
     if provider_id is None:
         provider_id = config.test_provider_id
 
+    logger.info('Querying records for provider', provider_id=provider_id)
     items: list = []
     last_evaluated_key = None
     while True:
@@ -364,7 +433,13 @@ def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, f
 
 
 def wait_for_provider_creation(
-    staff_headers: dict, compact: str, given_name: str, family_name: str, max_wait_time: int = 300
+    staff_headers: dict,
+    compact: str,
+    given_name: str,
+    family_name: str,
+    max_wait_time: int = 300,
+    staff_user_email: str | None = None,
+    poll_interval_seconds: int = 30,
 ):
     """Poll for provider creation after license upload.
 
@@ -373,6 +448,8 @@ def wait_for_provider_creation(
     :param given_name: Provider's given name
     :param family_name: Provider's family name
     :param max_wait_time: Maximum time to wait in seconds (default: 300 = 5 minutes)
+    :param staff_user_email: Optional staff email; if provided, refresh auth headers on every poll attempt
+    :param poll_interval_seconds: Poll interval in seconds (default: 30)
     :return: The provider ID when found
     :raises SmokeTestFailureException: If provider not found within max_wait_time
     """
@@ -381,14 +458,14 @@ def wait_for_provider_creation(
     logger.info(f'Waiting for provider creation for {given_name} {family_name}...')
 
     start_time = time.time()
-    check_interval = 30  # Check every 30 seconds
     attempts = 0
-    max_attempts = max_wait_time // check_interval
+    max_attempts = max_wait_time // poll_interval_seconds
 
     while attempts < max_attempts:
         attempts += 1
 
-        provider_id = query_provider_by_name(staff_headers, compact, given_name, family_name)
+        headers = get_staff_user_auth_headers(staff_user_email) if staff_user_email else staff_headers
+        provider_id = query_provider_by_name(headers, compact, given_name, family_name)
         if provider_id:
             elapsed_time = time.time() - start_time
             logger.info(f'✅ Provider found after {elapsed_time:.1f} seconds. Provider ID: {provider_id}')
@@ -396,9 +473,9 @@ def wait_for_provider_creation(
 
         if attempts < max_attempts:
             logger.info(
-                f'Attempt {attempts}/{max_attempts}: Provider not found yet. Waiting {check_interval} seconds...'
+                f'Attempt {attempts}/{max_attempts}: Provider not found yet. Waiting {poll_interval_seconds} seconds...'
             )
-            time.sleep(check_interval)
+            time.sleep(poll_interval_seconds)
 
     elapsed_time = time.time() - start_time
     raise SmokeTestFailureException(
@@ -431,19 +508,33 @@ def cleanup_test_provider_records(provider_id: str, compact: str):
         logger.warning(f'Error during cleanup: {str(e)}')
 
 
-def create_test_app_client(client_name: str, compact: str, jurisdiction: str):
+def create_test_app_client(
+    client_name: str,
+    compact: str,
+    jurisdiction: str | None = None,
+    jurisdictions: list[str] | None = None,
+):
     """
     Create a test app client in Cognito for authentication testing.
 
     :param client_name: Name for the test app client
     :param compact: Compact abbreviation
-    :param jurisdiction: Jurisdiction abbreviation
+    :param jurisdiction: Jurisdiction abbreviation (backward-compatible single value)
+    :param jurisdictions: Optional list of jurisdiction abbreviations for write scopes
     :return: Dictionary containing client_id and client_secret
     """
     logger.info(f'Creating test app client: {client_name}')
 
     try:
         cognito_client = boto3.client('cognito-idp')
+        jurisdiction_list = jurisdictions if jurisdictions else ([jurisdiction] if jurisdiction else [])
+        if not jurisdiction_list:
+            raise SmokeTestFailureException('At least one jurisdiction is required to create a test app client')
+
+        allowed_scopes = [
+            f'{compact}/readGeneral',
+            *[f'{jurisdiction}/{compact}.write' for jurisdiction in jurisdiction_list],
+        ]
 
         # Create the user pool client
         response = cognito_client.create_user_pool_client(
@@ -455,7 +546,7 @@ def create_test_app_client(client_name: str, compact: str, jurisdiction: str):
             AccessTokenValidity=15,
             AllowedOAuthFlowsUserPoolClient=True,
             AllowedOAuthFlows=['client_credentials'],
-            AllowedOAuthScopes=[f'{compact}/readGeneral', f'{jurisdiction}/{compact}.write'],
+            AllowedOAuthScopes=allowed_scopes,
         )
 
         user_pool_client = response.get('UserPoolClient', {})

@@ -315,7 +315,6 @@ class ApiModel:
                         properties={
                             'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                            'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -330,7 +329,6 @@ class ApiModel:
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                        'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
                                 ),
                             },
@@ -473,8 +471,10 @@ class ApiModel:
                 'birthMonthDay',
                 'licenses',
                 'privileges',
+                'adverseActions',
             ],
             properties={
+                'adverseActions': self._adverse_action_schema,
                 'licenses': JsonSchema(
                     type=JsonSchemaType.ARRAY,
                     items=JsonSchema(
@@ -603,56 +603,7 @@ class ApiModel:
                                     },
                                 ),
                             ),
-                            'adverseActions': JsonSchema(
-                                type=JsonSchemaType.ARRAY,
-                                items=JsonSchema(
-                                    type=JsonSchemaType.OBJECT,
-                                    required=[
-                                        'type',
-                                        'compact',
-                                        'providerId',
-                                        'jurisdiction',
-                                        'licenseTypeAbbreviation',
-                                        'licenseType',
-                                        'actionAgainst',
-                                        'effectiveStartDate',
-                                        'creationDate',
-                                        'adverseActionId',
-                                        'dateOfUpdate',
-                                        'encumbranceType',
-                                    ],
-                                    properties={
-                                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
-                                        'compact': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
-                                        ),
-                                        'providerId': JsonSchema(
-                                            type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT
-                                        ),
-                                        'jurisdiction': JsonSchema(
-                                            type=JsonSchemaType.STRING,
-                                            enum=self.stack.node.get_context('jurisdictions'),
-                                        ),
-                                        'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
-                                        'licenseType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'actionAgainst': JsonSchema(type=JsonSchemaType.STRING),
-                                        'effectiveStartDate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
-                                        'creationDate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
-                                        'adverseActionId': JsonSchema(type=JsonSchemaType.STRING),
-                                        'effectiveLiftDate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
-                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                                        'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,  # noqa: E501
-                                        'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
-                                    },
-                                ),
-                            ),
+                            'adverseActions': self._adverse_action_schema,
                             'investigations': JsonSchema(
                                 type=JsonSchemaType.ARRAY,
                                 items=self._investigation_schema,
@@ -733,56 +684,7 @@ class ApiModel:
                                 ),
                             ),
                             'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
-                            'adverseActions': JsonSchema(
-                                type=JsonSchemaType.ARRAY,
-                                items=JsonSchema(
-                                    type=JsonSchemaType.OBJECT,
-                                    required=[
-                                        'type',
-                                        'compact',
-                                        'providerId',
-                                        'jurisdiction',
-                                        'licenseTypeAbbreviation',
-                                        'licenseType',
-                                        'actionAgainst',
-                                        'effectiveStartDate',
-                                        'creationDate',
-                                        'adverseActionId',
-                                        'dateOfUpdate',
-                                        'encumbranceType',
-                                    ],
-                                    properties={
-                                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
-                                        'compact': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
-                                        ),
-                                        'providerId': JsonSchema(
-                                            type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT
-                                        ),
-                                        'jurisdiction': JsonSchema(
-                                            type=JsonSchemaType.STRING,
-                                            enum=self.stack.node.get_context('jurisdictions'),
-                                        ),
-                                        'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
-                                        'licenseType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'actionAgainst': JsonSchema(type=JsonSchemaType.STRING),
-                                        'effectiveStartDate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
-                                        'creationDate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
-                                        'adverseActionId': JsonSchema(type=JsonSchemaType.STRING),
-                                        'effectiveLiftDate': JsonSchema(
-                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                                        ),
-                                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                                        'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
-                                        'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,  # noqa: E501
-                                        'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
-                                    },
-                                ),
-                            ),
+                            'adverseActions': self._adverse_action_schema,
                             'investigations': JsonSchema(
                                 type=JsonSchemaType.ARRAY,
                                 items=self._investigation_schema,
@@ -798,6 +700,53 @@ class ApiModel:
                 ),
                 **self._common_provider_properties,
             },
+        )
+
+    @property
+    def _adverse_action_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.ARRAY,
+            items=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'type',
+                    'compact',
+                    'providerId',
+                    'jurisdiction',
+                    'licenseTypeAbbreviation',
+                    'licenseType',
+                    'actionAgainst',
+                    'effectiveStartDate',
+                    'creationDate',
+                    'adverseActionId',
+                    'dateOfUpdate',
+                    'encumbranceType',
+                ],
+                properties={
+                    'type': JsonSchema(type=JsonSchemaType.STRING, enum=['adverseAction']),
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
+                    'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        enum=self.stack.node.get_context('jurisdictions'),
+                    ),
+                    'licenseTypeAbbreviation': JsonSchema(type=JsonSchemaType.STRING),
+                    'licenseType': JsonSchema(type=JsonSchemaType.STRING),
+                    'actionAgainst': JsonSchema(type=JsonSchemaType.STRING),
+                    'effectiveStartDate': JsonSchema(
+                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                    ),
+                    'creationDate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                    'adverseActionId': JsonSchema(type=JsonSchemaType.STRING),
+                    'effectiveLiftDate': JsonSchema(
+                        type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                    ),
+                    'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                    'encumbranceType': JsonSchema(type=JsonSchemaType.STRING),
+                    'clinicalPrivilegeActionCategories': self._clinical_privilege_action_categories_schema,  # noqa: E501
+                    'liftingUser': JsonSchema(type=JsonSchemaType.STRING),
+                },
+            ),
         )
 
     @property
@@ -858,6 +807,7 @@ class ApiModel:
                 'suspension',
                 'revocation',
                 'surrender of license',
+                'surrender of privilege',
             ],
         )
 
@@ -1266,29 +1216,6 @@ class ApiModel:
         return self.api._v1_put_jurisdiction_request_model
 
     @property
-    def get_provider_ssn_response_model(self) -> Model:
-        """Return the provider SSN response model, which should only be created once per API"""
-        if hasattr(self.api, '_v1_get_provider_ssn_response_model'):
-            return self.api._v1_get_provider_ssn_response_model
-
-        self.api._v1_get_provider_ssn_response_model = self.api.add_model(
-            'V1GetProviderSSNResponseModel',
-            description='Get provider SSN response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['ssn'],
-                properties={
-                    'ssn': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description="The provider's social security number",
-                        pattern=cc_api.SSN_FORMAT,
-                    ),
-                },
-            ),
-        )
-        return self.api._v1_get_provider_ssn_response_model
-
-    @property
     def public_query_providers_response_model(self) -> Model:
         """Return the public query providers response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_public_query_providers_response_model'):
@@ -1571,6 +1498,7 @@ class ApiModel:
                 'compact',
                 'licenseType',
                 'licenseNumber',
+                'licenseEligibility',
             ],
             properties={
                 'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
@@ -1585,6 +1513,11 @@ class ApiModel:
                     description='License type or profession designation for this license row',
                 ),
                 'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'licenseEligibility': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    description='Whether the license is eligible for compact participation in public search results',
+                    enum=['eligible', 'ineligible'],
+                ),
             },
         )
 

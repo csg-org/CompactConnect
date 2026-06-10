@@ -14,13 +14,13 @@ from common_constructs.frontend_app_config_utility import (
     AppId,
     PersistentStackFrontendAppConfigUtility,
 )
+from common_constructs.nodejs_function import NodejsFunction
+from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
 from common_constructs.security_profile import SecurityProfile
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.nodejs_function import NodejsFunction
-from common_constructs.python_common_layer_versions import PythonCommonLayerVersions
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
@@ -239,22 +239,6 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             backup_infrastructure_stack=backup_infrastructure_stack,
             environment_context=self.environment_context,
-        )
-
-        # The api query role needs access to the provider table to associate a provider with
-        # its jurisdictions, so it can make authorization decisions for the requester.
-        self.provider_table.grant_read_data(self.ssn_table.api_query_role)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{self.ssn_table.api_query_role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
-                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
-                              """,
-                },
-            ],
         )
 
         self.data_event_table = DataEventTable(

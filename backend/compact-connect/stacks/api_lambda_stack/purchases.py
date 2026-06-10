@@ -8,10 +8,10 @@ from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_secretsmanager import ISecret
 from cdk_nag import NagSuppressions
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
 
-from common_constructs.python_function import PythonFunction
 from stacks import api_lambda_stack as als
 from stacks.persistent_stack import CompactConfigurationTable, PersistentStack, ProviderTable, TransactionHistoryTable
 

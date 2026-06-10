@@ -239,6 +239,7 @@ export class DataApi {
         licenseState,
         licenseType,
         encumbranceType,
+        npdbCategory,
         npdbCategories,
         startDate
     ) {

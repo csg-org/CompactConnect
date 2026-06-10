@@ -4,7 +4,7 @@
 from abc import ABC
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
-from marshmallow.fields import UUID, DateTime, String
+from marshmallow.fields import UUID, AwareDateTime, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.fields import Compact, SocialSecurityNumber
@@ -39,7 +39,7 @@ class BaseRecordSchema(ForgivingSchema, ABC):
     # Generated fields
     pk = String(required=True, allow_none=False)
     sk = String(required=True, allow_none=False)
-    dateOfUpdate = DateTime(required=True, allow_none=False)
+    dateOfUpdate = AwareDateTime(required=True, allow_none=False)
 
     # Provided fields
     type = String(required=True, allow_none=False)

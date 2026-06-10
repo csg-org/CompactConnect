@@ -94,6 +94,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.selectedPurchaseLicense?.licenseTypeAbbreviation()?.toLowerCase() || '';
     }
 
+    get licenseExpirySelected(): string {
+        return this.selectedPurchaseLicense?.expireDateDisplay() || '';
+    }
+
     get selectionText(): string {
         return `${this.licenseTypeSelected.toLocaleUpperCase()} ${this.$t('licensing.privilege')} ${this.$t('common.selection')}`;
     }
@@ -257,7 +261,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get isSubmitEnabled(): boolean {
-        return this.isFormValid && this.formData.noRefunds.value && !this.isFormLoading;
+        const { noRefunds, purchaseExpiry } = this.formData;
+        const hasAcknowledgements = noRefunds.value && purchaseExpiry.value;
+
+        return this.isFormValid && hasAcknowledgements && !this.isFormLoading;
     }
 
     get isMockPopulateEnabled(): boolean {
@@ -269,6 +276,13 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         this.formData = reactive({
+            purchaseExpiry: new FormInput({
+                id: 'purchase-expiry-check',
+                name: 'purchase-expiry-check',
+                label: this.$t('licensing.purchaseExpirationMessage', { date: this.licenseExpirySelected }),
+                validation: Joi.boolean().invalid(false).required().messages(this.joiMessages.boolean),
+                value: false,
+            }),
             noRefunds: new FormInput({
                 id: 'no-refunds-check',
                 name: 'no-refunds-check',
@@ -349,7 +363,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             }
         } else {
             this.isFormError = true;
-            this.formErrorMessage = this.$t('common.formValidationErrorMessage');
+            this.formErrorMessage = this.$t('licensing.purchaseFormErrorMessage');
         }
     }
 
@@ -382,6 +396,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         // navigator.clipboard.writeText(`Test`); // Test CC first name
         // navigator.clipboard.writeText(`User`); // Test CC last name
         // navigator.clipboard.writeText(`46214`); // Test CC zip code
+        this.formData.purchaseExpiry.value = true;
         this.formData.noRefunds.value = true;
         this.validateAll({ asTouched: true });
         await nextTick();

@@ -46,6 +46,14 @@
             "maxLength": 100,
             "minLength": 1,
             "type": "string"
+          },
+          "licenseEligibility": {
+            "description": "Whether the license is eligible for compact participation in public search results",
+            "enum": [
+              "eligible",
+              "ineligible"
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -55,7 +63,8 @@
           "licenseJurisdiction",
           "compact",
           "licenseType",
-          "licenseNumber"
+          "licenseNumber",
+          "licenseEligibility"
         ],
         "type": "object"
       },

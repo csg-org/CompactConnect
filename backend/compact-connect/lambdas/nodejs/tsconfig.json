@@ -5,12 +5,11 @@
         "strict": true,
         "jsx": "preserve",
         "importHelpers": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "experimentalDecorators": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "sourceMap": true,
-        "baseUrl": ".",
         "noImplicitAny": false,
         "lib": [
             "esnext",
@@ -18,6 +17,10 @@
         ],
         "typeRoots": [
           "./node_modules/@types"
+        ],
+        "types": [
+            "node",
+            "jest"
         ]
     },
     "include": [

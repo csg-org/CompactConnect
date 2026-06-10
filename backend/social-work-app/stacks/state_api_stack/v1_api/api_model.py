@@ -1,0 +1,180 @@
+# ruff: noqa: SLF001
+# This class initializes the api models for the root api, which we then want to set as protected
+# so other classes won't modify it. This is a valid use case for protected access to work with cdk.
+from __future__ import annotations
+
+from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
+from common_constructs.stack import AppStack
+
+# Importing module level to allow lazy loading for typing
+from common_constructs import compact_connect_api
+
+
+class ApiModel:
+    """This class is responsible for defining the model definitions used in the API endpoints."""
+
+    def __init__(self, api: compact_connect_api.CompactConnectApi):
+        self.stack: AppStack = AppStack.of(api)
+        self.api = api
+
+    @property
+    def message_response_model(self) -> Model:
+        """Basic response that returns a string message"""
+        if hasattr(self.api, '_v1_message_response_model'):
+            return self.api._v1_message_response_model
+        self.api._v1_message_response_model = self.api.add_model(
+            'V1MessageResponseModel',
+            description='Simple message response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['message'],
+                properties={
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='A message about the request',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_message_response_model
+
+    @property
+    def post_licenses_error_response_model(self) -> Model:
+        """Response model for POST licenses which specifies error responses"""
+        if hasattr(self.api, '_v1_post_licenses_response_model'):
+            return self.api._v1_post_licenses_response_model
+        self.api._v1_post_licenses_response_model = self.api.add_model(
+            'V1PostLicensesResponseModel',
+            description='POST licenses response model supporting both success and error responses',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                properties={
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Message indicating success or failure',
+                    ),
+                    'errors': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        description='Validation errors by record index',
+                        additional_properties=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            description='Errors for a specific record',
+                            additional_properties=JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(type=JsonSchemaType.STRING),
+                                description='List of error messages for a field',
+                            ),
+                        ),
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_licenses_response_model
+
+    @property
+    def bulk_upload_response_model(self) -> Model:
+        """Return the Bulk Upload Response Model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_bulk_upload_response_model'):
+            return self.api._v1_bulk_upload_response_model
+
+        self.api._v1_bulk_upload_response_model = self.api.add_model(
+            'BulkUploadResponseModel',
+            description='Bulk upload url response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['upload'],
+                properties={
+                    'upload': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['url', 'fields'],
+                        properties={
+                            'url': JsonSchema(type=JsonSchemaType.STRING),
+                            'fields': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                        },
+                    )
+                },
+            ),
+        )
+        return self.api._v1_bulk_upload_response_model
+
+    @property
+    def post_license_model(self) -> Model:
+        """Return the Post License Model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_license_model'):
+            return self.api._v1_post_license_model
+
+        self.api._v1_post_license_model = self.api.add_model(
+            'V1PostLicenseModel',
+            description='POST licenses request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.ARRAY,
+                max_items=100,
+                items=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    required=[
+                        'ssn',
+                        'licenseNumber',
+                        'givenName',
+                        'familyName',
+                        'dateOfBirth',
+                        'homeAddressStreet1',
+                        'homeAddressCity',
+                        'homeAddressState',
+                        'homeAddressPostalCode',
+                        'licenseType',
+                        'licenseScope',
+                        'dateOfIssuance',
+                        'dateOfExpiration',
+                        'licenseStatus',
+                        'compactEligibility',
+                    ],
+                    additional_properties=False,
+                    properties={
+                        'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_type_names),
+                        'ssn': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description="The provider's social security number",
+                            pattern=compact_connect_api.SSN_FORMAT,
+                        ),
+                        **self._common_license_properties,
+                    },
+                ),
+            ),
+        )
+        return self.api._v1_post_license_model
+
+    @property
+    def _common_license_properties(self) -> dict:
+        return {
+            'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'dateOfBirth': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
+            'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+            'dateOfIssuance': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
+            'dateOfRenewal': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
+            'dateOfExpiration': JsonSchema(
+                type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
+            ),
+            'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
+            'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
+            'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=compact_connect_api.PHONE_NUMBER_FORMAT),
+            'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+        }

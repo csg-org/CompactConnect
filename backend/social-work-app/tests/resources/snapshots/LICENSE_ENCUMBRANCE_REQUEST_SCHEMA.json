@@ -1,0 +1,48 @@
+{
+  "additionalProperties": false,
+  "description": "Encumbrance data to create",
+  "properties": {
+    "licenseScope": {
+      "enum": [
+        "single-state",
+        "multi-state"
+      ],
+      "type": "string"
+    },
+    "encumbranceEffectiveDate": {
+      "description": "The effective date of the encumbrance",
+      "format": "date",
+      "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+      "type": "string"
+    },
+    "encumbranceType": {
+      "description": "The type of encumbrance",
+      "enum": [
+        "suspension",
+        "revocation",
+        "surrender of license"
+      ],
+      "type": "string"
+    },
+    "clinicalPrivilegeActionCategories": {
+      "description": "The categories of clinical privilege action",
+      "items": {
+        "enum": [
+          "fraud",
+          "consumer harm",
+          "other"
+        ],
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "licenseScope",
+    "encumbranceEffectiveDate",
+    "encumbranceType",
+    "clinicalPrivilegeActionCategories"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

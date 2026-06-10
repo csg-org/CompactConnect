@@ -231,7 +231,6 @@ class CCPermissionsAction(StrEnum):
     ADMIN = 'admin'
     READ_GENERAL = 'readGeneral'
     READ_PRIVATE = 'readPrivate'
-    READ_SSN = 'readSSN'
 
 
 class S3PresignedPostSchema(Schema):
@@ -381,6 +380,7 @@ class EncumbranceType(CCEnum):
     SUSPENSION = 'suspension'
     REVOCATION = 'revocation'
     SURRENDER_OF_LICENSE = 'surrender of license'
+    SURRENDER_OF_PRIVILEGE = 'surrender of privilege'
 
 
 class ClinicalPrivilegeActionCategory(CCEnum):

@@ -13,10 +13,10 @@ from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_lambda import CfnEventSourceMapping
 from aws_cdk.aws_sqs import CfnQueue
+from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.stack import Stack
 
 from app import CompactConnectApp
-from common_constructs.backup_plan import CCBackupPlan
 from pipeline import BackendStage
 from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack
@@ -188,9 +188,6 @@ class TstAppABC(ABC):
         license_upload_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.license_upload_role.node.default_child
         )
-        api_query_role_logical_id = persistent_stack.get_logical_id(
-            persistent_stack.ssn_table.api_query_role.node.default_child
-        )
         disaster_recovery_lambda_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.disaster_recovery_lambda_role.node.default_child
         )
@@ -198,12 +195,11 @@ class TstAppABC(ABC):
             persistent_stack.ssn_table.disaster_recovery_step_function_role.node.default_child
         )
 
-        # Build the expected PrincipalArn array - always includes 5 roles, plus optional backup role
+        # Build the expected PrincipalArn array - always includes 4 roles, plus optional backup role
         # Note: SSN backup role reference may be a nested stack output, so we use Match.any_value() for flexibility
         principal_arn_array = [
             {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
             {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
-            {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
             {'Fn::GetAtt': [disaster_recovery_lambda_role_logical_id, 'Arn']},
             {'Fn::GetAtt': [disaster_recovery_step_function_role_logical_id, 'Arn']},
         ]
@@ -516,7 +512,6 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.api_lambda_stack)
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.disaster_recovery_stack)
-        self._check_no_stack_annotations(stage.event_listener_stack)
         self._check_no_stack_annotations(stage.feature_flag_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.managed_login_stack)
@@ -556,7 +551,6 @@ class TstAppABC(ABC):
             ('api_stack', stage.api_stack),
             ('backup_infrastructure_stack', stage.backup_infrastructure_stack),
             ('disaster_recovery_stack', stage.disaster_recovery_stack),
-            ('event_listener_stack', stage.event_listener_stack),
             ('feature_flag_stack', stage.feature_flag_stack),
             ('ingest_stack', stage.ingest_stack),
             ('managed_login_stack', stage.managed_login_stack),

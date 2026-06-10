@@ -17,6 +17,7 @@ import {
     EligibilityStatus
 } from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
+import { AdverseAction, AdverseActionSerializer } from '@models/AdverseAction/AdverseAction.model';
 import { Investigation } from '@models/Investigation/Investigation.model';
 import { State } from '@models/State/State.model';
 import moment from 'moment';
@@ -34,6 +35,11 @@ import { StatsigClient } from '@statsig/js-client';
 export enum LicenseeStatus {
     ACTIVE = 'active',
     INACTIVE = 'inactive',
+}
+
+export enum LicenseeEligibility {
+    ELIGIBLE = 'eligible',
+    INELIGIBLE = 'ineligible',
 }
 
 export interface InterfaceLicensee {
@@ -57,8 +63,10 @@ export interface InterfaceLicensee {
     licenses?: Array<License>;
     privilegeStates?: Array<State>;
     privileges?: Array<License>;
+    adverseActions?: Array<AdverseAction>;
     lastUpdated?: string | null;
     status?: LicenseeStatus;
+    eligibility?: LicenseeEligibility | null;
 }
 
 // ========================================================
@@ -88,8 +96,10 @@ export class Licensee implements InterfaceLicensee {
     public militaryStatus? = null;
     public militaryStatusNote? = null;
     public privileges? = [];
+    public adverseActions? = [];
     public lastUpdated? = null;
     public status? = LicenseeStatus.INACTIVE;
+    public eligibility? = null;
 
     constructor(data?: InterfaceLicensee) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -196,6 +206,14 @@ export class Licensee implements InterfaceLicensee {
 
     public statusDisplay(): string {
         return this.$t(`licensing.statusOptions.${this.status}`);
+    }
+
+    public eligibilityDisplay(): string {
+        return (this.eligibility) ? this.$t(`licensing.restrictionOptions.${this.eligibility}`) : '';
+    }
+
+    public isRestricted(): boolean {
+        return Boolean(this.eligibility && this.eligibility === LicenseeEligibility.INELIGIBLE);
     }
 
     public phoneNumberDisplay(): string {
@@ -436,10 +454,12 @@ export class LicenseeSerializer {
             licenses: [] as Array<License>,
             privilegeStates: [] as Array<State>,
             privileges: [] as Array<License>,
+            adverseActions: [] as Array<AdverseAction>,
             militaryAffiliations: [] as Array<MilitaryAffiliation>,
             militaryStatus: json.militaryStatus,
             militaryStatusNote: json.militaryStatusNote,
             status: json.licenseStatus,
+            eligibility: json.licenseEligibility,
             lastUpdated: json.dateOfUpdate,
         };
 
@@ -473,6 +493,13 @@ export class LicenseeSerializer {
         if (Array.isArray(json.militaryAffiliations)) {
             json.militaryAffiliations.forEach((serverAffiliation) => {
                 licenseeData.militaryAffiliations.push(MilitaryAffiliationSerializer.fromServer(serverAffiliation));
+            });
+        }
+
+        // In get-one responses, server returns adverse action ojects at top level for some compacts, does not in get-all
+        if (Array.isArray(json.adverseActions)) {
+            json.adverseActions.forEach((serverAdverseAction) => {
+                licenseeData.adverseActions.push(AdverseActionSerializer.fromServer(serverAdverseAction));
             });
         }
 

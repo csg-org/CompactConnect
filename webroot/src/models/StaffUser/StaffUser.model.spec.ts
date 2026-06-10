@@ -156,6 +156,7 @@ describe('Staff User model', () => {
                         {
                             state: new State({ abbrev: 'co' }),
                             isReadPrivate: true,
+                            isReadSsn: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -166,9 +167,9 @@ describe('Staff User model', () => {
         const user = new StaffUser(data);
 
         expect(user).to.be.an.instanceof(StaffUser);
-        expect(user.permissionsShortDisplay(CompactType.ASLP)).to.equal('Read Private, Write, Admin');
+        expect(user.permissionsShortDisplay(CompactType.ASLP)).to.equal('Read Private, Read SSN, Write, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'Colorado: Read Private, Write, Admin',
+            'Colorado: Read Private, Read SSN, Write, Admin',
         ]);
         expect(user.affiliationDisplay(CompactType.ASLP)).to.equal('Colorado');
         expect(user.statesDisplay(CompactType.ASLP)).to.equal('Colorado');
@@ -404,6 +405,199 @@ describe('Staff User model', () => {
                 givenName: data.attributes.firstName,
                 familyName: data.attributes.lastName,
             },
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (compact readPrivate key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    isReadPrivate: false,
+                    states: [],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    actions: {
+                        readPrivate: false,
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (compact readSSN key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    isReadSsn: false,
+                    states: [],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    actions: {
+                        readSSN: false,
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (compact admin key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    isAdmin: false,
+                    states: [],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    actions: {
+                        admin: false,
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state readPrivate key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isReadPrivate: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                readPrivate: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state readSSN key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isReadSsn: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                readSSN: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state write key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isWrite: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                write: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
+        });
+    });
+    it('should prepare a Staff User for server request through serializer (state admin key only)', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isAdmin: false,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                admin: false,
+                            },
+                        },
+                    },
+                },
+            },
+            '...': '',
         });
     });
 });

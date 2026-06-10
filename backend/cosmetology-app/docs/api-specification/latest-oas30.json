@@ -2,11 +2,14 @@
   "openapi": "3.0.1",
   "info": {
     "title": "StateApi",
-    "version": "2026-03-13T17:32:08Z"
+    "version": "2026-02-16T16:53:09Z"
   },
   "servers": [
     {
-      "url": "https://state-api.beta.compactconnect.org"
+      "url": "https://state-api.beta.compactconnect.org",
+      "x-amazon-apigateway-endpoint-configuration": {
+        "disableExecuteApiEndpoint": true
+      }
     }
   ],
   "paths": {
@@ -42,7 +45,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboStateLyTv9k6jxTZK"
+                "$ref": "#/components/schemas/TestSStateGpk4PxFv8Eew"
               }
             }
           },
@@ -54,7 +57,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboStateDr9HAH5blAWv"
+                  "$ref": "#/components/schemas/TestSStatevE5TiToQrRwN"
                 }
               }
             }
@@ -64,7 +67,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboStatexWoPOpVnKEI9"
+                  "$ref": "#/components/schemas/TestSState2d1wqb3JR6OX"
                 }
               }
             }
@@ -72,7 +75,7 @@
         },
         "security": [
           {
-            "SandboxStateAPIStackStateApiStateAuthAuthorizer7F83A6D3": [
+            "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": [
               "cosm/write",
               "al/cosm.write",
               "az/cosm.write",
@@ -123,7 +126,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboStateMW9czXwgYk67"
+                  "$ref": "#/components/schemas/TestSState4LF6rLqTTc6G"
                 }
               }
             }
@@ -131,7 +134,7 @@
         },
         "security": [
           {
-            "SandboxStateAPIStackStateApiStateAuthAuthorizer7F83A6D3": [
+            "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": [
               "cosm/write",
               "al/cosm.write",
               "az/cosm.write",
@@ -151,31 +154,45 @@
   },
   "components": {
     "schemas": {
-      "SandboStateDr9HAH5blAWv": {
+      "TestSState4LF6rLqTTc6G": {
+        "required": [
+          "upload"
+        ],
+        "type": "object",
+        "properties": {
+          "upload": {
+            "required": [
+              "fields",
+              "url"
+            ],
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "TestSState2d1wqb3JR6OX": {
+        "required": [
+          "message"
+        ],
         "type": "object",
         "properties": {
           "message": {
             "type": "string",
-            "description": "Message indicating success or failure"
-          },
-          "errors": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "array",
-                "description": "List of error messages for a field",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "description": "Errors for a specific record"
-            },
-            "description": "Validation errors by record index"
+            "description": "A message about the request"
           }
         }
       },
-      "SandboStateLyTv9k6jxTZK": {
+      "TestSStateGpk4PxFv8Eew": {
         "maxItems": 100,
         "type": "array",
         "items": {
@@ -312,47 +329,33 @@
           "additionalProperties": false
         }
       },
-      "SandboStateMW9czXwgYk67": {
-        "required": [
-          "upload"
-        ],
-        "type": "object",
-        "properties": {
-          "upload": {
-            "required": [
-              "fields",
-              "url"
-            ],
-            "type": "object",
-            "properties": {
-              "fields": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                }
-              },
-              "url": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      },
-      "SandboStatexWoPOpVnKEI9": {
-        "required": [
-          "message"
-        ],
+      "TestSStatevE5TiToQrRwN": {
         "type": "object",
         "properties": {
           "message": {
             "type": "string",
-            "description": "A message about the request"
+            "description": "Message indicating success or failure"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "description": "List of error messages for a field",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "Errors for a specific record"
+            },
+            "description": "Validation errors by record index"
           }
         }
       }
     },
     "securitySchemes": {
-      "SandboxStateAPIStackStateApiStateAuthAuthorizer7F83A6D3": {
+      "TestBackendCosmetologyTestStateAPIStackStateApiStateAuthAuthorizerBD69FBB7": {
         "type": "apiKey",
         "name": "Authorization",
         "in": "header",

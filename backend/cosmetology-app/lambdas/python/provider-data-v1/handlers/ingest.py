@@ -125,6 +125,7 @@ def ingest_license_message(message: dict):
                     consistent_read=True,
                 )
                 provider_records = provider_data['items']
+
                 license_records = ProviderRecordUtility.get_records_of_type(
                     provider_records,
                     ProviderRecordType.LICENSE,
@@ -134,7 +135,7 @@ def ingest_license_message(message: dict):
                     licenses_organized.setdefault(record['jurisdiction'], {})
                     licenses_organized[record['jurisdiction']][record['licenseType']] = record
 
-                # Get the home jurisdiction selection, if it exists
+                # Parse the top level provider record into a data class instance
                 current_provider_record = ProviderData.create_new(
                     ProviderRecordUtility.get_provider_record(provider_records)
                 )
@@ -184,17 +185,40 @@ def ingest_license_message(message: dict):
                 for license_record in jurisdiction_licenses.values()
             ]
 
-            best_license = ProviderRecordUtility.find_best_license(
+            best_license = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
                 license_records=licenses_flattened,
             )
 
             if best_license is posted_license_record:
                 logger.info('Updating provider data')
 
+                # If this posted license is the most recent issued/renewed license for the provider,
+                # and it's from a different jurisdiction, send a home jurisdiction change notification event
+                # to notify the former home jurisdiction.
+                if (
+                    current_provider_record
+                    and current_provider_record.licenseJurisdiction != best_license['jurisdiction']
+                ):
+                    logger.info(
+                        'New home state license detected. Sending home state change notification.',
+                        previous_home_jurisdiction=current_provider_record.licenseJurisdiction,
+                        new_home_jurisdiction=jurisdiction,
+                    )
+                    home_jurisdiction_change_event = config.event_bus_client.generate_home_jurisdiction_change_event(
+                        source='org.compactconnect.provider-data',
+                        compact=compact,
+                        jurisdiction=jurisdiction,
+                        provider_id=current_provider_record.providerId,
+                        license_type=posted_license_record['licenseType'],
+                        former_home_jurisdiction=current_provider_record.licenseJurisdiction,
+                    )
+                    data_events.append(home_jurisdiction_change_event)
+
+                # Update our top level provider record with data from the posted license
                 provider_record = ProviderRecordUtility.populate_provider_record(
                     current_provider_record=current_provider_record, license_record=posted_license_record
                 )
-                # Update our provider data
+
                 dynamo_transactions.append(
                     {
                         'Put': {
@@ -206,6 +230,7 @@ def ingest_license_message(message: dict):
 
             # Write the records together as a transaction that succeeds or fails as one, to ensure consistency
             config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
+
             # We'll save our events until after the transaction is written, to ensure consistency
             with EventBatchWriter(config.events_client) as event_writer:
                 for event in data_events:

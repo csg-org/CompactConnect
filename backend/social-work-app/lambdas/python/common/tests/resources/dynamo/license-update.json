@@ -1,0 +1,43 @@
+{
+  "pk": "socw#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "sk": "socw#UPDATE#3#license/oh/lcsw/single-state/2024-11-08T23:59:59+00:00/2c79d4d536609ec0ae5f1a54c3398baa",
+  "licenseUploadDateGSIPK": "C#socw#J#oh#D#2024-11",
+  "licenseUploadDateGSISK": "TIME#1731110399#LT#lcsw#PID#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "type": "licenseUpdate",
+  "updateType": "renewal",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "compact": "socw",
+  "jurisdiction": "oh",
+  "createDate": "2024-11-08T23:59:59+00:00",
+  "effectiveDate": "2024-11-08T23:59:59+00:00",
+  "licenseType": "licensed clinical social worker",
+  "licenseScope": "single-state",
+  "dateOfUpdate": "2020-04-07T12:59:59+00:00",
+  "previous": {
+    "licenseNumber": "A0608337260",
+    "licenseScope": "single-state",
+    "ssnLastFour": "1234",
+    "givenName": "Björk",
+    "middleName": "Gunnar",
+    "familyName": "Guðmundsdóttir",
+    "dateOfIssuance": "2010-06-06",
+    "dateOfRenewal": "2015-06-06",
+    "dateOfExpiration": "2020-06-06",
+    "dateOfBirth": "1985-06-06",
+    "dateOfUpdate": "2020-06-06T12:59:59+00:00",
+    "homeAddressStreet1": "123 A St.",
+    "homeAddressStreet2": "Apt 321",
+    "homeAddressCity": "Columbus",
+    "homeAddressState": "oh",
+    "homeAddressPostalCode": "43004",
+    "emailAddress": "björk@example.com",
+    "phoneNumber": "+13213214321",
+    "jurisdictionUploadedLicenseStatus": "active",
+    "licenseStatusName": "DEFINITELY_A_HUMAN",
+    "jurisdictionUploadedCompactEligibility": "eligible"
+  },
+  "updatedValues": {
+    "dateOfRenewal": "2020-04-04",
+    "dateOfExpiration": "2025-04-04"
+  }
+}

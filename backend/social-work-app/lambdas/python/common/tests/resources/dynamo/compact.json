@@ -1,0 +1,25 @@
+{
+  "pk": "socw#CONFIGURATION",
+  "sk": "socw#CONFIGURATION",
+  "type": "compact",
+  "compactAbbr": "socw",
+  "compactName": "Social Work",
+  "compactOperationsTeamEmails": ["<email address>"],
+  "compactAdverseActionsNotificationEmails": ["<email address>"],
+  "licenseeRegistrationEnabled": true,
+  "configuredStates": [
+    {
+      "postalAbbreviation": "ky",
+      "isLive": true
+    },
+    {
+      "postalAbbreviation": "oh",
+      "isLive": true
+    },
+        {
+      "postalAbbreviation": "ne",
+      "isLive": true
+    }
+  ],
+  "dateOfUpdate": "2024-10-04T12:34:56+00:00"
+}

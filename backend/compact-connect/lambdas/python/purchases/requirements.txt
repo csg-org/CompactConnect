@@ -6,19 +6,19 @@
 #
 authorizenet==1.1.6
     # via -r requirements.in
-certifi==2026.2.25
+certifi==2026.5.20
     # via requests
 charset-normalizer==3.4.7
     # via requests
-idna==3.11
+idna==3.15
     # via requests
 lxml==4.9.4
     # via authorizenet
 pyxb-x==1.2.6.3
     # via authorizenet
-requests==2.33.1
+requests==2.34.2
     # via authorizenet
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   -r requirements.in
     #   requests

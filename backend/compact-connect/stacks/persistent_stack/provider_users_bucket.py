@@ -13,12 +13,12 @@ from aws_cdk.aws_s3 import BucketEncryption, CorsRule, EventType, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
+from common_constructs.backup_plan import CCBackupPlan
 from common_constructs.bucket import Bucket
+from common_constructs.python_function import PythonFunction
 from constructs import Construct
 
 import stacks.persistent_stack as ps
-from common_constructs.backup_plan import CCBackupPlan
-from common_constructs.python_function import PythonFunction
 from stacks.backup_infrastructure_stack import BackupInfrastructureStack
 
 
@@ -143,21 +143,6 @@ class ProviderUsersBucket(Bucket):
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions and resource have wildcards but are still scoped to this bucket and'
                     'the table as needed to perform its function',
-                },
-            ],
-        )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/'
-            'Role/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'appliesTo': ['Resource::*'],
-                    'reason': """
-                    The lambda policy is scoped specifically to the PutBucketNotification action, which
-                    suits its purpose.
-                    """,
                 },
             ],
         )

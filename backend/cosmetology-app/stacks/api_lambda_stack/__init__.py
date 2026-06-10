@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from aws_cdk.aws_logs import QueryDefinition, QueryString
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 
 from .bulk_upload_url import BulkUploadUrlLambdas
@@ -86,6 +86,20 @@ class ApiLambdaStack(AppStack):
             persistent_stack=persistent_stack,
             api_lambda_stack=self,
         )
+
+        # The public GET provider route is wired to get_provider_handler and is not deployed in the
+        # beta environment (see api_stack/v1_api/api.py). Removing that route removes the API stack's
+        # cross-stack import of this lambda ARN, which would otherwise delete the auto-generated
+        # CloudFormation export created here. CloudFormation refuses to delete an export while another
+        # stack still imports it during the same deployment ("deadly embrace"), so we retain it.
+        # TODO: remove this export once the API stack no longer imports it in every environment.  # noqa: FIX002
+        self.export_value(self.public_lookup_lambdas.get_provider_handler.function_arn)
+
+        # query_providers_handler is no longer wired to the API (the public query providers route now
+        # uses SearchPersistentStack.search_handler.public_handler). We retain its export to avoid the
+        # same deadly embrace while the old cross-stack import is removed from already-deployed stacks.
+        # TODO: remove this export (and the unused lambda) once it is deployed to all environments.  # noqa: FIX002
+        self.export_value(self.public_lookup_lambdas.query_providers_handler.function_arn)
 
         # Staff user lambdas
         self.staff_users_lambdas = StaffUsersLambdas(

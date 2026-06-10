@@ -81,6 +81,14 @@ class UserRowEdit extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get isAppModeJcc(): boolean {
+        return this.$store.getters.isAppModeJcc;
+    }
+
+    get isAppModeCosmetology(): boolean {
+        return this.$store.getters.isAppModeCosmetology;
+    }
+
     get currentUser(): StaffUser {
         return this.userStore.model;
     }
@@ -142,12 +150,24 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     get userPermissionOptionsCompact(): Array<PermissionOption> {
-        return [
-            { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
-            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
-            { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
-            { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
-        ];
+        let permissionOptions: Array<PermissionOption> = [];
+
+        if (this.isAppModeCosmetology) {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        } else {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        }
+
+        return permissionOptions;
     }
 
     get currentUserStatePermissions(): Array<StatePermission> {
@@ -161,13 +181,26 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     get userPermissionOptionsState(): Array<PermissionOption> {
-        return [
-            { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
-            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
-            { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
-            { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
-            { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
-        ];
+        let permissionOptions: Array<PermissionOption> = [];
+
+        if (this.isAppModeCosmetology) {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        } else {
+            permissionOptions = [
+                { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+                { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
+                { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
+                { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
+            ];
+        }
+
+        return permissionOptions;
     }
 
     get userOptionsState(): Array<PermissionOption> {
@@ -389,6 +422,10 @@ class UserRowEdit extends mixins(MixinForm) {
             }
         }
 
+        if (this.isAppModeCosmetology) {
+            delete response.isReadSsn;
+        }
+
         return response;
     }
 
@@ -448,6 +485,10 @@ class UserRowEdit extends mixins(MixinForm) {
             break;
         }
 
+        if (this.isAppModeCosmetology) {
+            delete response.isReadSsn;
+        }
+
         return response;
     }
 
@@ -496,15 +537,18 @@ class UserRowEdit extends mixins(MixinForm) {
 
         // Server endpoints may not be idempotent so the frontend needs to handle statefulness;
         // e.g. if the user's server permisson is already false, we may get a server error if we try to send false again.
-        const existingCompactPermission = this.getCompactPermission(this.rowUserCompactPermission);
+        const existingCompactPermission: CompactPermission | null = this.rowUserCompactPermission;
 
-        if (existingCompactPermission !== Permission.READ_PRIVATE && !compactData.isReadPrivate) {
-            delete compactData.isReadPrivate;
-        }
-        if (existingCompactPermission !== Permission.ADMIN && !compactData.isAdmin) {
+        if (!existingCompactPermission?.isAdmin && !compactData.isAdmin) {
             delete compactData.isAdmin;
         }
-        // End: Handle compact statefulness
+        if (!existingCompactPermission?.isReadSsn && !compactData.isReadSsn) {
+            delete compactData.isReadSsn;
+        }
+        if (!existingCompactPermission?.isReadPrivate && !compactData.isReadPrivate) {
+            delete compactData.isReadPrivate;
+        }
+        // End: Handle compact permission statefulness
 
         stateKeys.forEach((stateKey) => {
             const keyNum = stateKey.split('-').pop();
@@ -517,19 +561,22 @@ class UserRowEdit extends mixins(MixinForm) {
 
             // Server endpoints may not be idempotent so the frontend needs to handle statefulness;
             // e.g. if the user's server permisson is already false, we may get a server error if we try to send false again.
-            const existingStatePermission = this.getStatePermission(this.userStatePermissions.find((permission) =>
-                permission.state?.abbrev === stateAbbrev) || null);
+            const existingStatePermission = existingCompactPermission?.states?.find((permission) =>
+                permission.state?.abbrev === stateAbbrev);
 
-            if (existingStatePermission !== Permission.READ_PRIVATE && !stateData.isReadPrivate) {
-                delete stateData.isReadPrivate;
-            }
-            if (existingStatePermission !== Permission.WRITE && !stateData.isWrite) {
-                delete stateData.isWrite;
-            }
-            if (existingStatePermission !== Permission.ADMIN && !stateData.isAdmin) {
+            if (!existingStatePermission?.isAdmin && !stateData.isAdmin) {
                 delete stateData.isAdmin;
             }
-            // End: Handle state statefulness
+            if (!existingStatePermission?.isWrite && !stateData.isWrite) {
+                delete stateData.isWrite;
+            }
+            if (!existingStatePermission?.isReadSsn && !stateData.isReadSsn) {
+                delete stateData.isReadSsn;
+            }
+            if (!existingStatePermission?.isReadPrivate && !stateData.isReadPrivate) {
+                delete stateData.isReadPrivate;
+            }
+            // End: Handle state permission statefulness
 
             compactData.states.push(stateData);
         });

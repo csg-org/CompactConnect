@@ -1,0 +1,248 @@
+{
+  "properties": {
+    "licenses": {
+      "description": "Sanitized home-state license rows (LicensePublicResponseSchema)",
+      "items": {
+        "properties": {
+          "type": {
+            "enum": [
+              "license"
+            ],
+            "type": "string"
+          },
+          "compact": {
+            "enum": [
+              "socw"
+            ],
+            "type": "string"
+          },
+          "jurisdiction": {
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ],
+            "type": "string"
+          },
+          "licenseType": {
+            "enum": [
+              "licensed clinical social worker",
+              "licensed master social worker",
+              "licensed bachelor social worker"
+            ],
+            "type": "string"
+          },
+          "licenseScope": {
+            "enum": [
+              "single-state",
+              "multi-state"
+            ],
+            "type": "string"
+          },
+          "licenseStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "compactEligibility": {
+            "enum": [
+              "eligible",
+              "ineligible"
+            ],
+            "type": "string"
+          },
+          "dateOfExpiration": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "licenseNumber": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "compact",
+          "jurisdiction",
+          "licenseType",
+          "licenseScope",
+          "licenseStatus",
+          "compactEligibility",
+          "dateOfExpiration",
+          "licenseNumber"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "privileges": {
+      "items": {
+        "properties": {
+          "type": {
+            "enum": [
+              "privilege"
+            ],
+            "type": "string"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "compact": {
+            "enum": [
+              "socw"
+            ],
+            "type": "string"
+          },
+          "jurisdiction": {
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ],
+            "type": "string"
+          },
+          "licenseJurisdiction": {
+            "enum": [
+              "al",
+              "az",
+              "co",
+              "ks",
+              "ky",
+              "md",
+              "oh",
+              "tn",
+              "va",
+              "wa"
+            ],
+            "type": "string"
+          },
+          "licenseType": {
+            "enum": [
+              "licensed clinical social worker",
+              "licensed master social worker",
+              "licensed bachelor social worker"
+            ],
+            "type": "string"
+          },
+          "dateOfExpiration": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string"
+          },
+          "administratorSetStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "providerId",
+          "compact",
+          "jurisdiction",
+          "licenseJurisdiction",
+          "licenseType",
+          "dateOfExpiration",
+          "administratorSetStatus",
+          "status"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "type": {
+      "enum": [
+        "provider"
+      ],
+      "type": "string"
+    },
+    "providerId": {
+      "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+      "type": "string"
+    },
+    "givenName": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "middleName": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "familyName": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "suffix": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "compact": {
+      "enum": [
+        "socw"
+      ],
+      "type": "string"
+    },
+    "licenseJurisdiction": {
+      "enum": [
+        "al",
+        "az",
+        "co",
+        "ks",
+        "ky",
+        "md",
+        "oh",
+        "tn",
+        "va",
+        "wa"
+      ],
+      "type": "string"
+    },
+    "dateOfUpdate": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "providerId",
+    "dateOfUpdate",
+    "compact",
+    "licenseJurisdiction",
+    "givenName",
+    "familyName"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

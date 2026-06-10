@@ -85,7 +85,6 @@
         "all": "All",
         "any": "Any",
         "cannotBeUndone": "This action cannot be undone.",
-        "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Monday",
@@ -543,8 +542,10 @@
         "licenseRegistrationTitle": "Live status",
         "licenseRegistrationEnabled": "Is license registration enabled?",
         "licenseRegistrationEnabledSubtext": "This enables live status for purchasing privileges, and <em>this action is irreversible.</em>",
+        "licenseRegistrationEnabledSubtextCosm": "This action grants all eligible licensees the ability to work in other compact states that are also live. <em>This action is irreversible.</em>",
         "privilegePurchaseEnabled": "State is live for compact privilege purchase",
         "privilegePurchaseEnabledSubtext": "This enables live status for purchasing privileges, and <em>this action is irreversible.</em>",
+        "privilegePurchaseEnabledSubtextCosm": "This action grants all eligible licensees in your state the ability to work in other compact states that are also live. Licensees from other live compact states will be automatically granted the ability to work in your state. <em>This action is irreversible.</em>",
         "confirmSaveCompactTitle": "Are you sure you want to mark this state as live?",
         "confirmSaveCompactYes": "Yes, mark as live",
         "saveSuccessfulCompact": "Compact changes saved successfully",
@@ -587,6 +588,7 @@
         "license": "License",
         "licensingListTitle": "Licensing Data",
         "licensingListDescription": "Click on a licensee to view the status of their privilege(s). The “Privileges” column includes both past and active privileges.",
+        "licensingListDescriptionCosm": "Click on a licensee to view details about where they can work under the Compact.",
         "attestation": "Attestation",
         "stateProvidedEmail": "State-provided email",
         "stateEmail": "State email",
@@ -632,7 +634,9 @@
         "selectLicense": "Select a license",
         "personalInformation": "Personal information",
         "licenseExpired": "License expired",
+        "purchaseExpirationMessage": "If purchased, these privileges will expire on {date}.",
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
+        "purchaseFormErrorMessage": "Please correct the errors on the form shown in red",
         "ssn": "SSN",
         "ssnLastFour": "Last 4 of SSN",
         "revealFullSsn": "Reveal full SSN",
@@ -660,6 +664,7 @@
         "iUnderstand": "I understand",
         "jurisprudenceConfirmation": "Jurisprudence Confirmation",
         "lastUpdate": "Latest upload",
+        "disciplineTitle": "Disciplinary information",
         "disciplineStatus": "Discipline status",
         "noDiscipline": "No discipline",
         "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
@@ -690,6 +695,10 @@
             "inactive": "Inactive",
             "initializing": "Initializing"
         },
+        "restrictionOptions": {
+            "eligible": "No restrictions",
+            "ineligible": "Alert: Restricted"
+        },
         "licenseActions": "License actions",
         "privilegeActions": "Privilege actions",
         "privilegeActionsNone": "No available actions",
@@ -705,6 +714,7 @@
         "encumber": "Encumber",
         "encumbered": "Encumbered",
         "encumberAction": "Disciplinary action",
+        "encumberBasisLabel": "Basis for action",
         "npdbCategoryLabel": "Basis for action / NPDB category",
         "encumberStartDate": "Start of encumbrance",
         "confirmLicenseEncumberTitle": "Are you sure you want to encumber this license?",
@@ -886,6 +896,10 @@
                 "key": "surrender of license"
             },
             {
+                "name": "Surrender of privilege",
+                "key": "surrender of privilege"
+            },
+            {
                 "name": "Modification of previous action-extension",
                 "key": "modification of previous action-extension"
             },
@@ -932,6 +946,10 @@
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
             },
             {
+                "name": "Consumer harm",
+                "key": "Consumer Harm"
+            },
+            {
                 "name": "Other",
                 "key": "Other"
             }
@@ -940,6 +958,7 @@
         "personalInfoTitle": "Personal information",
         "eventNodeLabel": "Event: {eventNameDisplay} on {eventDate}",
         "statusBlockLabel": "{status} status block",
+        "compactRestriction": "Restriction",
         "compactEligible": "Compact Eligible",
         "notCompactEligible": "Not Compact Eligible",
         "privilegeVerification": "Privilege Verification",
@@ -1172,7 +1191,6 @@
         "formSubtext": "If you have changed your state of residence or otherwise need to update your home state, please do so here. Your old and new home states, if they are compact members, will be notified of the change.",
         "currentHomeJurisdictionLabel": "Current home state",
         "newHomeJurisdictionLabel": "New home state",
-        "inputSubtext": "This selection means your current compact privileges will be deactivated and you will no longer be able to practice under them.",
         "updateButton": "Update home state",
         "modalTitle": "Are you sure you want to change {newState} to your new home state?",
         "modalSubtext": "Changing your home state may affect your privileges. If you already have a compact-eligible license in your new home state, your privileges will transfer. If you do not have a license in your new home state, or your license is not eligible, your privileges will be deactivated.",

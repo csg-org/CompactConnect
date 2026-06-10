@@ -49,7 +49,10 @@
                             <div class="info-row-amount total">${{totalPurchasePriceDisplay}}</div>
                         </div>
                     </div>
-                    <InputCheckbox :formInput="formData.noRefunds" class="no-refunds-checkbox" />
+                    <div class="purchase-acknowledgements">
+                        <InputCheckbox :formInput="formData.purchaseExpiry" />
+                        <InputCheckbox :formInput="formData.noRefunds" />
+                    </div>
                 </div>
             </div>
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>

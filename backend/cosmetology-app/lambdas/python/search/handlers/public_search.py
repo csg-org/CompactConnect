@@ -3,7 +3,9 @@ from base64 import b64decode, b64encode
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.common import CompactEligibilityStatus
 from cc_common.data_model.schema.provider.api import (
+    ProviderOpenSearchDocumentSchema,
     PublicLicenseSearchResponseSchema,
     PublicQueryProvidersRequestSchema,
 )
@@ -32,6 +34,65 @@ def public_search_api_handler(event: dict, context: LambdaContext):  # noqa: ARG
         raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
 
     return _public_query_licenses(event, context)
+
+
+def _unlifted_adverse_action_found(adverse_actions: list[dict]) -> bool:
+    for aa in adverse_actions:
+        if not aa.get('effectiveLiftDate'):
+            return True
+    return False
+
+
+def _provider_has_unlifted_adverse_actions_associated_with_license(
+    license_row: dict, license_privileges: list[dict]
+) -> bool:
+    # A home state license is determined to be restricted
+    # if there is an unlifted encumbrance on the license or
+    # any of the privileges associated with the license
+    if _unlifted_adverse_action_found(license_row.get('adverseActions')):
+        return True
+    for privilege in license_privileges:
+        if _unlifted_adverse_action_found(privilege.get('adverseActions')):
+            return True
+    return False
+
+
+def _determine_license_eligibility(*, provider_source: dict) -> str:
+    """
+    Derive public licenseEligibility from the full provider OpenSearch document.
+
+    Each indexed document contains exactly one license. Ineligible if that license's compactEligibility is
+    ineligible, or if any adverse action on that license or on a privilege in the same document lacks
+    effectiveLiftDate.
+    """
+    schema = ProviderOpenSearchDocumentSchema()
+    try:
+        loaded_provider = schema.load(provider_source)
+    except ValidationError as e:
+        logger.error(
+            'Failed to load provider document for eligibility',
+            provider_id=provider_source.get('providerId'),
+            errors=e.messages,
+        )
+        return CompactEligibilityStatus.INELIGIBLE.value
+
+    licenses_list = loaded_provider.get('licenses') or []
+    if not licenses_list:
+        logger.warning(
+            'Loaded provider has no licenses for eligibility',
+            provider_id=loaded_provider.get('providerId'),
+        )
+        return CompactEligibilityStatus.INELIGIBLE.value
+    # The Cosmetology OpenSearch documents only include one license per document
+    # Here we extract that single record and check its eligibility status
+    license_row = licenses_list[0]
+    if license_row.get('compactEligibility') == CompactEligibilityStatus.INELIGIBLE.value:
+        return CompactEligibilityStatus.INELIGIBLE.value
+
+    if _provider_has_unlifted_adverse_actions_associated_with_license(license_row, loaded_provider['privileges']):
+        return CompactEligibilityStatus.INELIGIBLE.value
+
+    return CompactEligibilityStatus.ELIGIBLE.value
 
 
 def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -65,16 +126,20 @@ def _public_query_licenses(event: dict, context: LambdaContext):  # noqa: ARG001
                 path_compact=compact,
             )
             continue
-        licenses = source.get('licenses') or []
-        if not licenses:
-            logger.warning('OpenSearch hit has no licenses array', provider_id=provider_id)
-            continue
-        license_fields = licenses[0].copy()
-        license_fields['providerId'] = source['providerId']
-        license_fields['compact'] = source['compact']
-        license_fields['givenName'] = source['givenName']
-        license_fields['familyName'] = source['familyName']
+
         try:
+            licenses = source.get('licenses') or []
+            if not licenses:
+                logger.warning('OpenSearch hit has no licenses array', provider_id=provider_id)
+                continue
+
+            license_fields = licenses[0].copy()
+            license_fields['providerId'] = source['providerId']
+            license_fields['compact'] = source['compact']
+            license_fields['givenName'] = source['givenName']
+            license_fields['familyName'] = source['familyName']
+            license_fields['licenseEligibility'] = _determine_license_eligibility(provider_source=source)
+
             # home state is stored under the 'jurisdiction' field on the license record, but
             # the frontend expects this to be labeled 'licenseJurisdiction' for parity with other
             # public search response schemas.
@@ -197,7 +262,9 @@ def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict 
 
     search_after = cursor.get('search_after') if cursor else None
 
-    nested_must = []
+    # For public search, we only match against licenses that are most recent
+    # for its license type. This value is set when the document is indexed into OpenSearch.
+    nested_must: list[dict] = [{'term': {'licenses.mostRecentLicenseForType': True}}]
     if query_obj.get('licenseNumber'):
         nested_must.append({'term': {'licenses.licenseNumber': query_obj['licenseNumber']}})
     if query_obj.get('jurisdiction'):

@@ -9,11 +9,11 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_secretsmanager import ISecret, Secret
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
+from common_constructs.python_function import PythonFunction
+from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from common_constructs.python_function import PythonFunction
-from common_constructs.ssm_parameter_utility import SSMParameterUtility
 from stacks import persistent_stack as ps
 from stacks.provider_users import ProviderUsersStack
 
@@ -133,6 +133,17 @@ class ApiLambdaStack(AppStack):
             persistent_stack=persistent_stack,
             api_lambda_stack=self,
         )
+
+        # The public lookup API routes are not deployed in the beta environment (see
+        # api_stack/v1_api/api.py). Removing those routes removes the API stack's cross-stack
+        # imports of these lambda ARNs, which would otherwise delete the auto-generated
+        # CloudFormation exports created here. CloudFormation refuses to delete an export while
+        # another stack still imports it during the same deployment ("deadly embrace"), so we
+        # retain the exports explicitly to safely break the relationship.
+        # TODO: remove these exports once the API stack no longer imports them in every  # noqa: FIX002
+        #  environment.
+        self.export_value(self.public_lookup_lambdas.get_provider_handler.function_arn)
+        self.export_value(self.public_lookup_lambdas.query_providers_handler.function_arn)
 
         # Purchases lambdas
         self.purchases_lambdas = PurchasesLambdas(

@@ -758,12 +758,6 @@ def _user_has_read_private_access_for_provider(compact: str, provider_informatio
     )
 
 
-def user_has_read_ssn_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
-    return _user_has_permission_for_action_on_user(
-        action=CCPermissionsAction.READ_SSN, compact=compact, provider_information=provider_information, scopes=scopes
-    )
-
-
 def _user_has_permission_for_action_on_user(
     action: str, compact: str, provider_information: dict, scopes: set[str]
 ) -> bool:

@@ -83,6 +83,19 @@ export class AdverseAction implements InterfaceAdverseActionCreate {
         return typeName;
     }
 
+    public npdbTypeName(npdbTypeKey: string): string {
+        const npdbTypes = this.$tm('licensing.npdbTypes') || [];
+        const npdbType = npdbTypes.find((translate) => translate.key === npdbTypeKey);
+        const typeName = npdbType?.name || '';
+
+        return typeName;
+    }
+
+    public npdbTypeNames(): Array<string> {
+        return this.npdbTypes?.map((npdbTypeKey) => this.npdbTypeName(npdbTypeKey))
+            .filter((npdbTypeName) => npdbTypeName.length) || [];
+    }
+
     public isActive(): boolean {
         // Determine whether the adverse action is currently in effect
         const { startDate, endDate } = this;

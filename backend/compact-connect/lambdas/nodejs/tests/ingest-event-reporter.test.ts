@@ -86,6 +86,7 @@ describe('Frequent runs', () => {
 
         // Get the mocked client instances
         mockSESClient = mockClient(SESv2Client);
+        mockS3Client = mockClient(S3Client);
     });
 
     beforeEach(() => {

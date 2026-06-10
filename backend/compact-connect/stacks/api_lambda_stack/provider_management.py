@@ -8,9 +8,9 @@ from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import Policy, PolicyStatement
 from cdk_nag import NagSuppressions
+from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
-from common_constructs.python_function import PythonFunction
 from stacks import api_lambda_stack as als
 from stacks import persistent_stack as ps
 

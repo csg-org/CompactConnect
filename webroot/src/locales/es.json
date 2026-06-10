@@ -69,7 +69,6 @@
         "phoneNumber": "Número de teléfono",
         "address": "Dirección",
         "welcome": "Bienvenido",
-        "formValidationErrorMessage": "Corrija los errores en el formulario que se muestra en rojo y marque la casilla que reconoce que no hay reembolsos.",
         "city": "Ciudad",
         "state": "Estado",
         "statesMultiple": "Estados",
@@ -526,9 +525,11 @@
         "summaryReportEmailsSubtext": "Ingrese todos los destinatarios que recibirán informes resumidos periódicos.",
         "licenseRegistrationTitle": "Estado en vivo",
         "licenseRegistrationEnabled": "¿Está habilitado el registro de licencia?",
-        "licenseRegistrationEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>",
+        "licenseRegistrationEnabledSubtext": "Esto habilita el estado en tiempo real para los privilegios de compra, y <em>esta acción es irreversible.</em>",
+        "licenseRegistrationEnabledSubtextCosm": "Esta medida otorga a todos los licenciatarios elegibles la capacidad de trabajar en otros estados miembros del pacto que también estén vigentes. <em>Esta medida es irreversible.</em>",
         "privilegePurchaseEnabled": "El estado está en línea para la compra de privilegios compactos",
-        "privilegePurchaseEnabledSubtext": "Esto habilita el estado en vivo para los privilegios de compra, y <em>esta acción es irreversible.</em>",
+        "privilegePurchaseEnabledSubtext": "Esto habilita el estado en tiempo real para los privilegios de compra, y <em>esta acción es irreversible.</em>",
+        "privilegePurchaseEnabledSubtextCosm": "Esta acción otorga a todos los licenciatarios elegibles de su estado la capacidad de trabajar en otros estados miembros del acuerdo que también estén activos. Los licenciatarios de otros estados miembros del acuerdo que estén activos obtendrán automáticamente la capacidad de trabajar en su estado. <em>Esta acción es irreversible.</em>",
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
@@ -570,6 +571,7 @@
     "licensing": {
         "licensingListTitle": "Datos de licencia",
         "licensingListDescription": "Haga clic en un licenciatario para ver el estado de sus privilegios. La columna “Privilegios” incluye tanto los privilegios anteriores como los vigentes.",
+        "licensingListDescriptionCosm": "Haz clic en un licenciatario para ver detalles sobre dónde puede trabajar en virtud del Acuerdo.",
         "searchTitle": "Iniciar una búsqueda",
         "searchTitlePublic": "Verificar un privilegio compacto",
         "attestation": "Atestación",
@@ -609,7 +611,9 @@
         "ssnLastFour": "Últimos 4 números del SSN",
         "revealFullSsn": "Revelar el SSN completo",
         "incorrectInfoDisclaimer": "La información en esta página fue proporcionada por su estado de origen. Si la información es incorrecta, debe comunicarse con ese estado y pedirles que la corrijan. Consulte la página compacta de Preguntas Frecuentes para obtener más información.",
+        "purchaseExpirationMessage": "Si se adquieren, estos privilegios caducarán el {date}.",
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
+        "purchaseFormErrorMessage": "Por favor, corrija los errores del formulario que se muestran en rojo.",
         "licenseTypeSearch": "Tipo de profesión",
         "licenseType": "Tipo de licencia",
         "adverseActions": "Acciones adversas",
@@ -644,6 +648,7 @@
         "adminFee": "Tarifa Administrativa",
         "jurisdictionFee": "Tarifa Estatal",
         "jurisdictionFeeMilitary": "Tarifa Estatal (militar)",
+        "disciplineTitle": "Información disciplinaria",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Certifico que he completado con éxito un examen de jurisprudencia para este estado, si es necesario.",
         "scopeAttestTitle": "Alcance de la certificación de práctica",
@@ -674,6 +679,10 @@
             "inactive": "Inactivo",
             "initializing": "Inicializando"
         },
+        "restrictionOptions": {
+            "eligible": "Sin restricciones",
+            "ineligible": "Alerta: Restringido"
+        },
         "licenseActions": "Acciones de licencia",
         "privilegeActions": "Acciones de privilegio",
         "privilegeActionsNone": "No hay acciones disponibles",
@@ -689,6 +698,7 @@
         "encumber": "Cargar",
         "encumbered": "Gravado",
         "encumberAction": "Acción disciplinaria",
+        "encumberBasisLabel": "Base para la acción",
         "npdbCategoryLabel": "Base para la acción / Categoría NPDB",
         "encumberStartDate": "Inicio del gravamen",
         "confirmLicenseEncumberTitle": "¿Estás seguro de que quieres gravar esta licencia?",
@@ -870,6 +880,10 @@
                 "key": "surrender of license"
             },
             {
+                "name": "Renuncia de privilegio",
+                "key": "surrender of privilege"
+            },
+            {
                 "name": "Modificación de la acción-extensión anterior",
                 "key": "modification of previous action-extension"
             },
@@ -916,6 +930,10 @@
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
             },
             {
+                "name": "Daños al consumidor",
+                "key": "Consumer Harm"
+            },
+            {
                 "name": "Otro",
                 "key": "Other"
             }
@@ -924,6 +942,7 @@
         "personalInfoTitle": "Información personal",
         "eventNodeLabel": "Evento: {eventNameDisplay} en {eventDate}",
         "statusBlockLabel": "{status} bloque de estado",
+        "compactRestriction": "Restricción",
         "compactEligible": "Elegible Compacto",
         "notCompactEligible": "No Compacto Elegible",
         "privilegeVerification": "Verificación de privilegios",
@@ -1171,7 +1190,6 @@
         "formSubtext": "Cambiar de estado de residencia puede afectar a sus atribuciones. Si ya tiene una licencia apta para el convenio en su nuevo estado de residencia, sus atribuciones se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus atribuciones se desactivarán.",
         "currentHomeJurisdictionLabel": "Estado de residencia actual",
         "newHomeJurisdictionLabel": "Nuevo estado de residencia",
-        "inputSubtext": "Esta selección significa que sus privilegios compactos actuales serán desactivados y ya no podrá ejercer bajo ellos.",
         "updateButton": "Actualizar estado de residencia",
         "modalTitle": "¿Está seguro de que desea cambiar {newState} como su nuevo estado de residencia?",
         "modalSubtext": "Cambiar su estado de residencia puede afectar sus privilegios. Si ya tiene una licencia elegible para el compacto en su nuevo estado de residencia, sus privilegios se transferirán. Si no tiene una licencia en su nuevo estado de residencia, o su licencia no es elegible, sus privilegios serán desactivados.",

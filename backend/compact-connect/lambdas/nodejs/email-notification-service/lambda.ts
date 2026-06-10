@@ -1,4 +1,4 @@
-import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/types';
+import type { LambdaInterface } from '@aws-lambda-powertools/commons/types';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESv2Client } from '@aws-sdk/client-sesv2';

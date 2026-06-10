@@ -1,0 +1,344 @@
+export const SAMPLE_INGEST_SUCCESS_RECORD = {
+    'pk': {
+        'S': 'COMPACT#socw#JURISDICTION#oh'
+    },
+    'sk': {
+        'S': 'TYPE#license.ingest#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03e1234'
+    },
+    'compact': {
+        'S': 'socw'
+    },
+    'jurisdiction': {
+        'S': 'oh'
+    },
+    'licenseType': {
+        'S': 'licensed clinical social worker'
+    },
+    'licenseScope': {
+        'S': 'single-state'
+    },
+    'status': {
+        'S': 'active'
+    },
+    'dateOfIssuance': {
+        'S': '2023-01-01'
+    },
+    'dateOfRenewal': {
+        'S': '2024-01-01'
+    },
+    'dateOfExpiration': {
+        'S': '2025-01-01'
+    },
+    'eventTime': {
+        'S': '2024-11-14T21:00:12.382000+00:00'
+    }
+};
+
+export const SAMPLE_INGEST_FAILURE_ERROR_RECORD = {
+    'pk': {
+        'S': 'COMPACT#socw#JURISDICTION#oh'
+    },
+    'sk': {
+        'S': 'TYPE#license.ingest-failure#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03ee984'
+    },
+    'compact': {
+        'S': 'socw'
+    },
+    'errors': {
+        'L': [
+            {
+                'S': '\'utf-8\' codec can\'t decode byte 0x83 in position 0: invalid start byte'
+            }
+        ]
+    },
+    'eventExpiry': {
+        'N': '1739394328'
+    },
+    'eventTime': {
+        'S': '2024-11-14T21:00:12.382000+00:00'
+    },
+    'eventType': {
+        'S': 'license.ingest-failure'
+    },
+    'jurisdiction': {
+        'S': 'oh'
+    }
+};
+
+export const SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD = {
+    'pk': 'COMPACT#socw#JURISDICTION#oh',
+    'sk': 'TYPE#license.ingest-failure#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03ee984',
+    'compact': 'socw',
+    'errors': [ '\'utf-8\' codec can\'t decode byte 0x83 in position 0: invalid start byte' ],
+    'eventExpiry': '1739394328',
+    'eventTime': '2024-11-14T21:00:12.382000+00:00',
+    'eventType': 'license.ingest-failure',
+    'jurisdiction': 'oh'
+};
+
+export const SAMPLE_VALIDATION_ERROR_RECORD = {
+    'pk': {
+        'S': 'COMPACT#socw#JURISDICTION#oh'
+    },
+    'sk': {
+        'S': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c'
+    },
+    'eventType': {
+        'S': 'license.validation-error'
+    },
+    'eventTime': {
+        'S': '2024-10-30T04:47:55.843000+00:00'
+    },
+    'compact': {
+        'S': 'socw'
+    },
+    'jurisdiction': {
+        'S': 'oh'
+    },
+    'errors': {
+        'M': {
+            'dateOfRenewal': {
+                'L': [
+                    {
+                        'S': 'Not a valid date.'
+                    }
+                ]
+            }
+        }
+    },
+    'recordNumber': {
+        'N': '5'
+    },
+    'validData': {
+        'M': {
+            'dateOfExpiration': {
+                'S': '2024-06-30'
+            },
+            'dateOfIssuance': {
+                'S': '2024-06-30'
+            },
+            'familyName': {
+                'S': 'Carreño Quiñones'
+            },
+            'givenName': {
+                'S': 'María'
+            },
+            'licenseType': {
+                'S': 'occupational therapist'
+            },
+            'middleName': {
+                'S': 'José'
+            },
+            'status': {
+                'S': 'active'
+            }
+        }
+    }
+};
+
+export const SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD_NO_RECORD_NUMBER = {
+    'pk': 'COMPACT#socw#JURISDICTION#oh',
+    'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#aabbccdd-0000-0000-0000-000000000001',
+    'eventType': 'license.validation-error',
+    'eventTime': '2024-10-30T04:47:55.843000+00:00',
+    'compact': 'socw',
+    'jurisdiction': 'oh',
+    'errors': {
+        '_schema': [
+            'Multi-state license uploaded as compact eligible but the associated single-state license in the same jurisdiction is ineligible.'
+        ]
+    },
+    'validData': {
+        'licenseScope': 'multi-state',
+        'compactEligibility': 'eligible',
+        'licenseType': 'licensed clinical social worker',
+        'familyName': 'Carreño Quiñones',
+        'givenName': 'María',
+    }
+};
+
+export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
+    {
+        'pk': 'COMPACT#socw#JURISDICTION#oh',
+        'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
+        'eventType': 'license.validation-error',
+        'eventTime': '2024-10-30T04:47:55.843000+00:00',
+        'compact': 'socw',
+        'jurisdiction': 'oh',
+        'errors': {
+            'dateOfRenewal': [
+                'Row 5, 4:47'
+            ]
+        },
+        'recordNumber': 5,
+        'validData': {
+            'dateOfExpiration': '2024-06-30',
+            'dateOfIssuance': '2024-06-30',
+            'familyName': 'Carreño Quiñones',
+            'givenName': 'María',
+            'licenseType': 'occupational therapist',
+            'middleName': 'José',
+            'status': 'active'
+        }
+    },
+    {
+        'pk': 'COMPACT#socw#JURISDICTION#oh',
+        'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
+        'eventType': 'license.validation-error',
+        'eventTime': '2024-10-30T05:47:55.843000+00:00',
+        'compact': 'socw',
+        'jurisdiction': 'oh',
+        'errors': {
+            'dateOfRenewal': [
+                'Row 4, 5:47'
+            ]
+        },
+        'recordNumber': 4,
+        'validData': {
+            'dateOfExpiration': '2024-06-30',
+            'dateOfIssuance': '2024-06-30',
+            'familyName': 'Carreño Quiñones',
+            'givenName': 'María',
+            'licenseType': 'occupational therapist',
+            'middleName': 'José',
+            'status': 'active'
+        }
+    },
+    {
+        'pk': 'COMPACT#socw#JURISDICTION#oh',
+        'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
+        'eventType': 'license.validation-error',
+        'eventTime': '2024-10-30T05:47:55.843000+00:00',
+        'compact': 'socw',
+        'jurisdiction': 'oh',
+        'errors': {
+            'dateOfRenewal': [
+                'Row 5, 5:47'
+            ]
+        },
+        'recordNumber': 5,
+        'validData': {
+            'dateOfExpiration': '2024-06-30',
+            'dateOfIssuance': '2024-06-30',
+            'familyName': 'Carreño Quiñones',
+            'givenName': 'María',
+            'licenseType': 'occupational therapist',
+            'middleName': 'José',
+            'status': 'active'
+        }
+    }
+];
+
+export const SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD = {
+    'pk': 'COMPACT#socw#JURISDICTION#oh',
+    'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
+    'eventType': 'license.validation-error',
+    'eventTime': '2024-10-30T04:47:55.843000+00:00',
+    'compact': 'socw',
+    'jurisdiction': 'oh',
+    'errors': {
+        'dateOfRenewal': [
+            'Not a valid date.'
+        ]
+    },
+    'recordNumber': 5,
+    'validData': {
+        'dateOfExpiration': '2024-06-30',
+        'dateOfIssuance': '2024-06-30',
+        'familyName': 'Carreño Quiñones',
+        'givenName': 'María',
+        'licenseType': 'occupational therapist',
+        'middleName': 'José',
+        'status': 'active'
+    }
+};
+
+export const SAMPLE_JURISDICTION_CONFIGURATION = {
+    'pk': {
+        'S': 'socw#CONFIGURATION'
+    },
+    'sk': {
+        'S': 'socw#JURISDICTION#oh'
+    },
+    'compact': {
+        'S': 'socw'
+    },
+    'dateOfUpdate': {
+        'S': '2024-11-14'
+    },
+    'jurisdictionAdverseActionsNotificationEmails': {
+        'L': []
+    },
+
+    'jurisdictionName': {
+        'S': 'Ohio'
+    },
+    'jurisdictionOperationsTeamEmails': {
+        'L': [
+            {
+                'S': 'justin@inspiringapps.com'
+            }
+        ]
+    },
+    'jurisprudenceRequirements': {
+        'M': {
+            'required': {
+                'BOOL': true
+            }
+        }
+    },
+    'postalAbbreviation': {
+        'S': 'oh'
+    },
+    'type': {
+        'S': 'jurisdiction'
+    }
+};
+
+export const SAMPLE_UNMARSHALLED_JURISDICTION_CONFIGURATION = {
+    'pk': 'socw#CONFIGURATION',
+    'sk': 'socw#JURISDICTION#oh',
+    'compact': 'socw',
+    'dateOfUpdate': '2024-11-14',
+    'jurisdictionAdverseActionsNotificationEmails': [],
+
+    'jurisdictionName': 'Ohio',
+    'jurisdictionOperationsTeamEmails': [ 'justin@inspiringapps.com' ],
+    'jurisprudenceRequirements': {
+        'required': true
+    },
+    'postalAbbreviation': 'oh',
+    'type': 'jurisdiction',
+};
+
+export const SAMPLE_COMPACT_CONFIGURATION = {
+    'pk': { 'S': 'socw#CONFIGURATION' },
+    'sk': { 'S': 'socw#CONFIGURATION' },
+    'compactAdverseActionsNotificationEmails': { 'L': [{ 'S': 'adverse@example.com' }]},
+    'compactCommissionFee': {
+        'M': {
+            'feeAmount': { 'N': '3.5' },
+            'feeType': { 'S': 'FLAT_RATE' }
+        }
+    },
+    'compactAbbr': { 'S': 'socw' },
+    'compactName': { 'S': 'Audiology and Speech Language Pathology' },
+    'compactOperationsTeamEmails': { 'L': [{ 'S': 'compact-ops@example.com' }]},
+    'dateOfUpdate': { 'S': '2024-12-10T19:27:28+00:00' },
+    'type': { 'S': 'compact' }
+};
+
+export const SAMPLE_UNMARSHALLED_COMPACT_CONFIGURATION = {
+    'pk': 'socw#CONFIGURATION',
+    'sk': 'socw#CONFIGURATION',
+    'compactAdverseActionsNotificationEmails': ['adverse@example.com'],
+    'compactCommissionFee': {
+        'feeAmount': 3.5,
+        'feeType': 'FLAT_RATE'
+    },
+    'compactAbbr': 'socw',
+    'compactName': 'Audiology and Speech Language Pathology',
+    'compactOperationsTeamEmails': ['compact-ops@example.com'],
+    'dateOfUpdate': '2024-12-10T19:27:28+00:00',
+    'type': 'compact'
+};

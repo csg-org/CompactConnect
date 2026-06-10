@@ -1,0 +1,182 @@
+[
+  {
+    "Identifier": "al",
+    "Name": "al",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "az",
+    "Name": "az",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "co",
+    "Name": "co",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "ks",
+    "Name": "ks",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "ky",
+    "Name": "ky",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "md",
+    "Name": "md",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "oh",
+    "Name": "oh",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "tn",
+    "Name": "tn",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "va",
+    "Name": "va",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  },
+  {
+    "Identifier": "wa",
+    "Name": "wa",
+    "Scopes": [
+      {
+        "ScopeDescription": "Admin access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.admin"
+      },
+      {
+        "ScopeDescription": "Read access for SSNs in the socw compact within the jurisdiction",
+        "ScopeName": "socw.readPrivate"
+      },
+      {
+        "ScopeDescription": "Write access for the socw compact within the jurisdiction",
+        "ScopeName": "socw.write"
+      }
+    ]
+  }
+]
