@@ -45,6 +45,9 @@ HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME = 'TestSmith'
 HOME_STATE_CHANGE_LICENSE_TYPE = 'licensed clinical social worker'
 HOME_STATE_CHANGE_FORMER_JURISDICTION = 'az'
 HOME_STATE_CHANGE_NEW_JURISDICTION = 'oh'
+INVALID_LICENSE_TYPE_JURISDICTION = 'co'
+INVALID_LICENSE_TYPE_FOR_JURISDICTION = 'licensed bachelors social worker'
+INVALID_LICENSE_TYPE_MOCK_SSN = '999-77-7777'
 
 
 def _cleanup_test_generated_records(provider_id: str, license_ingest_record_response: dict):
@@ -113,6 +116,73 @@ def _post_license_to_state_api(client_id: str, client_secret: str, jurisdiction:
     logger.info(
         f'Home state change license record successfully uploaded for {jurisdiction} '
         f'and scope {post_body[0].get("licenseScope")}: {post_response.json()}'
+    )
+
+
+def _build_invalid_license_type_post_body():
+    return [
+        {
+            'licenseNumber': 'CO-INVALID-LICENSE-TYPE-TEST',
+            'homeAddressPostalCode': '80202',
+            'givenName': 'InvalidLicenseType',
+            'familyName': 'SmokeTest',
+            'homeAddressStreet1': '123 Invalid License Type Street',
+            'dateOfBirth': '1990-01-01',
+            'dateOfIssuance': '2024-01-01',
+            'ssn': INVALID_LICENSE_TYPE_MOCK_SSN,
+            'licenseType': INVALID_LICENSE_TYPE_FOR_JURISDICTION,
+            'licenseScope': 'single-state',
+            'dateOfExpiration': '2050-12-10',
+            'homeAddressState': INVALID_LICENSE_TYPE_JURISDICTION.upper(),
+            'homeAddressCity': 'Denver',
+            'compactEligibility': 'eligible',
+            'licenseStatus': 'active',
+        }
+    ]
+
+
+def test_license_type_not_recognized_in_jurisdiction_rejected(client_id: str, client_secret: str):
+    """Verify POST rejects license types that the uploading jurisdiction does not recognize."""
+    post_body = _build_invalid_license_type_post_body()
+    auth_headers = get_client_auth_headers(
+        client_id, client_secret, COMPACT, INVALID_LICENSE_TYPE_JURISDICTION
+    )
+    post_response = requests.post(
+        url=(
+            f'{config.state_api_base_url}/v1/compacts/{COMPACT}/jurisdictions/'
+            f'{INVALID_LICENSE_TYPE_JURISDICTION}/licenses'
+        ),
+        headers=auth_headers,
+        json=post_body,
+        timeout=60,
+    )
+
+    if post_response.status_code != 400:
+        raise SmokeTestFailureException(
+            'Expected 400 when posting an unrecognized license type for the jurisdiction. '
+            f'Response status: {post_response.status_code}, body: {post_response.json()}'
+        )
+
+    expected_response = {
+        'message': 'Invalid license records in request. See errors for more detail.',
+        'errors': {
+            '0': {
+                'licenseType': [
+                    f'License type {INVALID_LICENSE_TYPE_FOR_JURISDICTION} is not recognized in '
+                    f'jurisdiction {INVALID_LICENSE_TYPE_JURISDICTION}.'
+                ]
+            }
+        },
+    }
+    if post_response.json() != expected_response:
+        raise SmokeTestFailureException(
+            'Unexpected validation error response for unrecognized license type. '
+            f'Expected: {expected_response}, got: {post_response.json()}'
+        )
+
+    logger.info(
+        f'Successfully rejected {INVALID_LICENSE_TYPE_FOR_JURISDICTION} license upload '
+        f'for jurisdiction {INVALID_LICENSE_TYPE_JURISDICTION}'
     )
 
 
@@ -416,6 +486,7 @@ if __name__ == '__main__':
                 'jurisdictions': {
                     HOME_STATE_CHANGE_FORMER_JURISDICTION: {'write', 'admin'},
                     HOME_STATE_CHANGE_NEW_JURISDICTION: {'write', 'admin'},
+                    INVALID_LICENSE_TYPE_JURISDICTION: {'write', 'admin'},
                 },
             },
         )
@@ -423,10 +494,19 @@ if __name__ == '__main__':
         client_credentials = create_test_app_client(
             TEST_APP_CLIENT_NAME,
             COMPACT,
-            jurisdictions=[HOME_STATE_CHANGE_FORMER_JURISDICTION, HOME_STATE_CHANGE_NEW_JURISDICTION],
+            jurisdictions=[
+                HOME_STATE_CHANGE_FORMER_JURISDICTION,
+                HOME_STATE_CHANGE_NEW_JURISDICTION,
+                INVALID_LICENSE_TYPE_JURISDICTION,
+            ],
         )
         client_id = client_credentials['client_id']
         client_secret = client_credentials['client_secret']
+        test_license_type_not_recognized_in_jurisdiction_rejected(
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+        logger.info('Invalid license type jurisdiction validation smoke test passed')
         home_state_change_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
         test_home_state_change_notification(
             staff_headers=home_state_change_staff_headers,
