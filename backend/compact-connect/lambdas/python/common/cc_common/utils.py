@@ -681,6 +681,8 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
             raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
         if action == CCPermissionsAction.READ_PRIVATE and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes:
             raise CCAccessDeniedException('Only compact admins can affect compact-level access to private information')
+        if action == CCPermissionsAction.READ_SSN and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes:
+            raise CCAccessDeniedException('Only compact admins can affect compact-level access to SSN information')
 
         # dropping the read action as this is now implicitly granted to all users
         if action == CCPermissionsAction.READ:
