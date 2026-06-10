@@ -1,7 +1,7 @@
 # ruff: noqa: T201  we use print statements for smoke testing
 #!/usr/bin/env python3
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import requests
 from boto3.dynamodb.conditions import Key
@@ -37,17 +37,26 @@ COMPACT = 'socw'
 # Note that by design, developers do not have the ability to delete records from the SSN DynamoDB table,
 # so this script does not delete the created SSN records as part of cleanup.
 
-TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@smokeTestFakeEmail.com'
+TEST_STAFF_USER_EMAIL = 'testStaffUserSocwLicenseUploader@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-upload-smoke-client'
 HOME_STATE_CHANGE_MOCK_SSN = '999-88-8888'
 HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME = 'Jane'
 HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME = 'TestSmith'
-HOME_STATE_CHANGE_LICENSE_TYPE = 'licensed clinical social worker'
+HOME_STATE_CHANGE_LICENSE_TYPE = 'licensed bachelors social worker'
 HOME_STATE_CHANGE_FORMER_JURISDICTION = 'az'
 HOME_STATE_CHANGE_NEW_JURISDICTION = 'oh'
-INVALID_LICENSE_TYPE_JURISDICTION = 'co'
-INVALID_LICENSE_TYPE_FOR_JURISDICTION = 'licensed bachelors social worker'
-INVALID_LICENSE_TYPE_MOCK_SSN = '999-77-7777'
+UNRECOGNIZED_LICENSE_TYPE_JURISDICTION = 'co'
+UNRECOGNIZED_LICENSE_TYPE_MOCK_SSN = '999-77-7777'
+# three states, co does not recognize license type, oh is home state, so only az should be returned in
+# list of privileges
+EXPECTED_PRIVILEGE_JURISDICTIONS = {'az'}
+
+
+class PractitionerTestState:
+    """Mutable holder so callers can clean up practitioner records even if the test fails mid-run."""
+
+    provider_id: str | None = None
+    start_time: datetime | None = None
 
 
 def _cleanup_test_generated_records(provider_id: str, license_ingest_record_response: dict):
@@ -74,7 +83,9 @@ def _cleanup_test_generated_records(provider_id: str, license_ingest_record_resp
 
 
 def _build_home_state_change_license_post_body(
-    jurisdiction: str, date_of_issuance: str, license_scope: str = 'single-state'
+    jurisdiction: str,
+    date_of_issuance: str,
+    license_scope: str = 'single-state',
 ):
     license_number_suffix = 'SS' if license_scope == 'single-state' else 'MS'
     return [
@@ -129,11 +140,11 @@ def _build_invalid_license_type_post_body():
             'homeAddressStreet1': '123 Invalid License Type Street',
             'dateOfBirth': '1990-01-01',
             'dateOfIssuance': '2024-01-01',
-            'ssn': INVALID_LICENSE_TYPE_MOCK_SSN,
-            'licenseType': INVALID_LICENSE_TYPE_FOR_JURISDICTION,
+            'ssn': UNRECOGNIZED_LICENSE_TYPE_MOCK_SSN,
+            'licenseType': HOME_STATE_CHANGE_LICENSE_TYPE,
             'licenseScope': 'single-state',
             'dateOfExpiration': '2050-12-10',
-            'homeAddressState': INVALID_LICENSE_TYPE_JURISDICTION.upper(),
+            'homeAddressState': UNRECOGNIZED_LICENSE_TYPE_JURISDICTION.upper(),
             'homeAddressCity': 'Denver',
             'compactEligibility': 'eligible',
             'licenseStatus': 'active',
@@ -144,13 +155,11 @@ def _build_invalid_license_type_post_body():
 def test_license_type_not_recognized_in_jurisdiction_rejected(client_id: str, client_secret: str):
     """Verify POST rejects license types that the uploading jurisdiction does not recognize."""
     post_body = _build_invalid_license_type_post_body()
-    auth_headers = get_client_auth_headers(
-        client_id, client_secret, COMPACT, INVALID_LICENSE_TYPE_JURISDICTION
-    )
+    auth_headers = get_client_auth_headers(client_id, client_secret, COMPACT, UNRECOGNIZED_LICENSE_TYPE_JURISDICTION)
     post_response = requests.post(
         url=(
             f'{config.state_api_base_url}/v1/compacts/{COMPACT}/jurisdictions/'
-            f'{INVALID_LICENSE_TYPE_JURISDICTION}/licenses'
+            f'{UNRECOGNIZED_LICENSE_TYPE_JURISDICTION}/licenses'
         ),
         headers=auth_headers,
         json=post_body,
@@ -168,8 +177,8 @@ def test_license_type_not_recognized_in_jurisdiction_rejected(client_id: str, cl
         'errors': {
             '0': {
                 'licenseType': [
-                    f'License type {INVALID_LICENSE_TYPE_FOR_JURISDICTION} is not recognized in '
-                    f'jurisdiction {INVALID_LICENSE_TYPE_JURISDICTION}.'
+                    f'License type {HOME_STATE_CHANGE_LICENSE_TYPE} is not recognized in '
+                    f'jurisdiction {UNRECOGNIZED_LICENSE_TYPE_JURISDICTION}.'
                 ]
             }
         },
@@ -181,18 +190,19 @@ def test_license_type_not_recognized_in_jurisdiction_rejected(client_id: str, cl
         )
 
     logger.info(
-        f'Successfully rejected {INVALID_LICENSE_TYPE_FOR_JURISDICTION} license upload '
-        f'for jurisdiction {INVALID_LICENSE_TYPE_JURISDICTION}'
+        f'Successfully rejected {HOME_STATE_CHANGE_LICENSE_TYPE} license upload '
+        f'for jurisdiction {UNRECOGNIZED_LICENSE_TYPE_JURISDICTION}'
     )
 
 
 def _wait_for_oh_license_scope(
     provider_id: str,
     license_scope: str,
+    *,
     max_wait_seconds: int = 720,
     poll_interval_seconds: int = 60,
 ):
-    """Wait until OH lcsw license with the given scope is visible before uploading the paired scope."""
+    """Wait until OH license with the given scope is visible before uploading the paired scope."""
     max_attempts = max_wait_seconds // poll_interval_seconds
     for attempt in range(1, max_attempts + 1):
         staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
@@ -267,176 +277,155 @@ def _query_license_ingest_events_for_jurisdiction(
     )
 
 
-def test_home_state_change_notification(staff_headers: dict, client_id: str, client_secret: str):
-    start_time = datetime.now(tz=UTC) - timedelta(minutes=2)
-    provider_id = None
-    try:
-        _post_license_to_state_api(
-            client_id=client_id,
-            client_secret=client_secret,
+def test_home_state_change_notification(
+    staff_headers: dict,
+    client_id: str,
+    client_secret: str,
+    practitioner_state: PractitionerTestState,
+) -> None:
+    practitioner_state.start_time = datetime.now(tz=UTC)
+    _post_license_to_state_api(
+        client_id=client_id,
+        client_secret=client_secret,
+        jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
+        post_body=_build_home_state_change_license_post_body(
             jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
-            post_body=_build_home_state_change_license_post_body(
-                jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION, date_of_issuance='2024-01-15'
-            ),
+            date_of_issuance='2024-01-15',
+        ),
+    )
+
+    practitioner_state.provider_id = wait_for_provider_creation(
+        staff_headers=staff_headers,
+        compact=COMPACT,
+        given_name=HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME,
+        family_name=HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME,
+        max_wait_time=750,
+        staff_user_email=TEST_STAFF_USER_EMAIL,
+        poll_interval_seconds=60,
+    )
+    provider_id = practitioner_state.provider_id
+    logger.info(f'Found home state change test provider id {provider_id}')
+
+    refreshed_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+    az_provider_details = call_provider_details_endpoint(
+        headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
+    )
+    az_social_work_licenses = [
+        license_record
+        for license_record in az_provider_details.get('licenses', [])
+        if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
+    ]
+
+    if len(az_social_work_licenses) != 1:
+        raise SmokeTestFailureException(
+            f'Expected one {HOME_STATE_CHANGE_LICENSE_TYPE} license after AZ upload, '
+            f'found {len(az_social_work_licenses)}'
         )
 
-        provider_id = wait_for_provider_creation(
-            staff_headers=staff_headers,
-            compact=COMPACT,
-            given_name=HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME,
-            family_name=HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME,
-            max_wait_time=750,
-            staff_user_email=TEST_STAFF_USER_EMAIL,
-            poll_interval_seconds=60,
+    if az_social_work_licenses[0].get('jurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
+        raise SmokeTestFailureException(
+            'Expected first home state license jurisdiction to be '
+            f'{HOME_STATE_CHANGE_FORMER_JURISDICTION}, found {az_social_work_licenses[0].get("jurisdiction")}'
         )
-        logger.info(f'Found home state change test provider id {provider_id}')
 
-        refreshed_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
-        az_provider_details = call_provider_details_endpoint(
-            headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
+    if az_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
+        raise SmokeTestFailureException(
+            'Expected licenseJurisdiction to be '
+            f'{HOME_STATE_CHANGE_FORMER_JURISDICTION} after first upload, '
+            f'found {az_provider_details.get("licenseJurisdiction")}'
         )
-        az_social_work_licenses = [
-            license_record
-            for license_record in az_provider_details.get('licenses', [])
-            if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
-        ]
 
-        if len(az_social_work_licenses) != 1:
-            raise SmokeTestFailureException(
-                f'Expected one {HOME_STATE_CHANGE_LICENSE_TYPE} license after AZ upload, '
-                f'found {len(az_social_work_licenses)}'
-            )
-
-        if az_social_work_licenses[0].get('jurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
-            raise SmokeTestFailureException(
-                'Expected first home state license jurisdiction to be '
-                f'{HOME_STATE_CHANGE_FORMER_JURISDICTION}, found {az_social_work_licenses[0].get("jurisdiction")}'
-            )
-
-        if az_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_FORMER_JURISDICTION:
-            raise SmokeTestFailureException(
-                'Expected licenseJurisdiction to be '
-                f'{HOME_STATE_CHANGE_FORMER_JURISDICTION} after first upload, '
-                f'found {az_provider_details.get("licenseJurisdiction")}'
-            )
-
-        # Social-work home jurisdiction change requires a paired OH single-state before OH multi-state.
-        _post_license_to_state_api(
-            client_id=client_id,
-            client_secret=client_secret,
+    # Social-work home jurisdiction change requires a paired OH single-state before OH multi-state.
+    _post_license_to_state_api(
+        client_id=client_id,
+        client_secret=client_secret,
+        jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+        post_body=_build_home_state_change_license_post_body(
             jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
-            post_body=_build_home_state_change_license_post_body(
-                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
-                date_of_issuance='2025-06-01',
-                license_scope='single-state',
-            ),
-        )
-
-        _wait_for_oh_license_scope(
-            provider_id=provider_id,
+            date_of_issuance='2025-06-01',
             license_scope='single-state',
-            max_wait_seconds=750,
-            poll_interval_seconds=60,
+        ),
+    )
+
+    _wait_for_oh_license_scope(
+        provider_id=provider_id,
+        license_scope='single-state',
+        max_wait_seconds=750,
+        poll_interval_seconds=60,
+    )
+
+    if _query_home_state_change_events_for_provider(provider_id):
+        raise SmokeTestFailureException(
+            'provider.homeStateChange must not fire after OH single-state upload without a paired multi-state license.'
         )
 
-        if _query_home_state_change_events_for_provider(provider_id):
-            raise SmokeTestFailureException(
-                'provider.homeStateChange must not fire after OH single-state upload without '
-                'a paired multi-state license.'
-            )
-
-        _post_license_to_state_api(
-            client_id=client_id,
-            client_secret=client_secret,
+    _post_license_to_state_api(
+        client_id=client_id,
+        client_secret=client_secret,
+        jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+        post_body=_build_home_state_change_license_post_body(
             jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
-            post_body=_build_home_state_change_license_post_body(
-                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
-                date_of_issuance='2025-06-15',
-                license_scope='multi-state',
-            ),
+            date_of_issuance='2025-06-15',
+            license_scope='multi-state',
+        ),
+    )
+
+    home_state_change_event = _wait_for_home_state_change_event(
+        provider_id=provider_id, max_wait_seconds=750, poll_interval_seconds=60
+    )
+    if not home_state_change_event:
+        raise SmokeTestFailureException(
+            'Failed to find provider.homeStateChange data event for the home state change smoke test.'
         )
 
-        home_state_change_event = _wait_for_home_state_change_event(
-            provider_id=provider_id, max_wait_seconds=750, poll_interval_seconds=60
+    refreshed_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+    updated_provider_details = call_provider_details_endpoint(
+        headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
+    )
+    updated_social_work_licenses = [
+        license_record
+        for license_record in updated_provider_details.get('licenses', [])
+        if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
+    ]
+    updated_jurisdictions = {license_record.get('jurisdiction') for license_record in updated_social_work_licenses}
+    if updated_jurisdictions != {HOME_STATE_CHANGE_FORMER_JURISDICTION, HOME_STATE_CHANGE_NEW_JURISDICTION}:
+        raise SmokeTestFailureException(
+            f'Expected Social Work licenses for both {HOME_STATE_CHANGE_FORMER_JURISDICTION} and '
+            f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {sorted(updated_jurisdictions)}'
         )
-        if not home_state_change_event:
-            raise SmokeTestFailureException(
-                'Failed to find provider.homeStateChange data event for the home state change smoke test.'
-            )
 
-        refreshed_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
-        updated_provider_details = call_provider_details_endpoint(
-            headers=refreshed_staff_headers, compact=COMPACT, provider_id=provider_id
+    if len(updated_social_work_licenses) != 3:
+        raise SmokeTestFailureException(
+            f'Expected three {HOME_STATE_CHANGE_LICENSE_TYPE} licenses (AZ single-state, OH single-state, '
+            f'OH multi-state), found {len(updated_social_work_licenses)}'
         )
-        updated_social_work_licenses = [
-            license_record
-            for license_record in updated_provider_details.get('licenses', [])
-            if license_record.get('licenseType') == HOME_STATE_CHANGE_LICENSE_TYPE
-        ]
-        updated_jurisdictions = {license_record.get('jurisdiction') for license_record in updated_social_work_licenses}
-        if updated_jurisdictions != {HOME_STATE_CHANGE_FORMER_JURISDICTION, HOME_STATE_CHANGE_NEW_JURISDICTION}:
-            raise SmokeTestFailureException(
-                f'Expected Social Work licenses for both {HOME_STATE_CHANGE_FORMER_JURISDICTION} and '
-                f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {sorted(updated_jurisdictions)}'
-            )
 
-        if len(updated_social_work_licenses) != 3:
-            raise SmokeTestFailureException(
-                f'Expected three {HOME_STATE_CHANGE_LICENSE_TYPE} licenses (AZ single-state, OH single-state, '
-                f'OH multi-state), found {len(updated_social_work_licenses)}'
-            )
-
-        oh_license_scopes = {
-            license_record.get('licenseScope')
-            for license_record in updated_social_work_licenses
-            if license_record.get('jurisdiction') == HOME_STATE_CHANGE_NEW_JURISDICTION
-        }
-        if oh_license_scopes != {'single-state', 'multi-state'}:
-            raise SmokeTestFailureException(
-                f'Expected OH licenses in both single-state and multi-state scopes, found {sorted(oh_license_scopes)}'
-            )
-
-        if updated_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_NEW_JURISDICTION:
-            raise SmokeTestFailureException(
-                'Expected licenseJurisdiction to change to '
-                f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {updated_provider_details.get("licenseJurisdiction")}'
-            )
-
-        logger.info(
-            'MANUAL VERIFICATION REQUIRED: check inbox for '
-            f'{config.smoke_test_notification_email}. Verify a provider home state change email was sent to '
-            f'the former home jurisdiction {HOME_STATE_CHANGE_FORMER_JURISDICTION.upper()} after upload from '
-            f'{HOME_STATE_CHANGE_NEW_JURISDICTION.upper()} for provider '
-            f'{HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME} {HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME} ({provider_id}).'
+    oh_license_scopes = {
+        license_record.get('licenseScope')
+        for license_record in updated_social_work_licenses
+        if license_record.get('jurisdiction') == HOME_STATE_CHANGE_NEW_JURISDICTION
+    }
+    if oh_license_scopes != {'single-state', 'multi-state'}:
+        raise SmokeTestFailureException(
+            f'Expected OH licenses in both single-state and multi-state scopes, found {sorted(oh_license_scopes)}'
         )
-    finally:
-        if provider_id:
-            logger.info('cleaning up test provider records', provider_id=provider_id)
-            end_time = datetime.now(tz=UTC)
-            az_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
-                jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
-                provider_id=provider_id,
-                start_time=start_time,
-                end_time=end_time,
-            )
-            oh_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
-                jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
-                provider_id=provider_id,
-                start_time=start_time,
-                end_time=end_time,
-            )
-            home_state_change_events = _query_home_state_change_events_for_provider(provider_id)
-            _cleanup_home_state_change_generated_records(
-                provider_id=provider_id,
-                az_license_ingest_events=az_license_ingest_events,
-                oh_license_ingest_events=oh_license_ingest_events,
-                home_state_change_events=home_state_change_events,
-            )
-        else:
-            logger.info('Skipping provider cleanup because provider id was never discovered.')
+
+    if updated_provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_NEW_JURISDICTION:
+        raise SmokeTestFailureException(
+            'Expected licenseJurisdiction to change to '
+            f'{HOME_STATE_CHANGE_NEW_JURISDICTION}, found {updated_provider_details.get("licenseJurisdiction")}'
+        )
+
+    logger.info(
+        'MANUAL VERIFICATION REQUIRED: check inbox for '
+        f'{config.smoke_test_notification_email}. Verify a provider home state change email was sent to '
+        f'the former home jurisdiction {HOME_STATE_CHANGE_FORMER_JURISDICTION.upper()} after upload from '
+        f'{HOME_STATE_CHANGE_NEW_JURISDICTION.upper()} for provider '
+        f'{HOME_STATE_CHANGE_PROVIDER_GIVEN_NAME} {HOME_STATE_CHANGE_PROVIDER_FAMILY_NAME} ({provider_id}).'
+    )
 
 
-def _cleanup_home_state_change_generated_records(
+def cleanup_home_state_change_generated_records(
     provider_id: str,
     az_license_ingest_events: dict,
     oh_license_ingest_events: dict,
@@ -457,6 +446,75 @@ def _cleanup_home_state_change_generated_records(
         logger.info('Successfully deleted provider.homeStateChange event(s) from data events table')
 
 
+def cleanup_practitioner_records(provider_id: str, start_time: datetime):
+    end_time = datetime.now(tz=UTC)
+    az_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
+        jurisdiction=HOME_STATE_CHANGE_FORMER_JURISDICTION,
+        provider_id=provider_id,
+        start_time=start_time,
+        end_time=end_time,
+    )
+    oh_license_ingest_events = _query_license_ingest_events_for_jurisdiction(
+        jurisdiction=HOME_STATE_CHANGE_NEW_JURISDICTION,
+        provider_id=provider_id,
+        start_time=start_time,
+        end_time=end_time,
+    )
+    home_state_change_events = _query_home_state_change_events_for_provider(provider_id)
+    cleanup_home_state_change_generated_records(
+        provider_id=provider_id,
+        az_license_ingest_events=az_license_ingest_events,
+        oh_license_ingest_events=oh_license_ingest_events,
+        home_state_change_events=home_state_change_events,
+    )
+
+
+def test_provider_privileges_exclude_unrecognized_license_type_jurisdictions(provider_id: str | None):
+    """Verify GET provider privileges exclude live jurisdictions that do not recognize the license type."""
+    if not provider_id:
+        raise SmokeTestFailureException('Provider id was not returned from practitioner setup.')
+
+    staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+    provider_details = call_provider_details_endpoint(headers=staff_headers, compact=COMPACT, provider_id=provider_id)
+
+    privileges = provider_details.get('privileges', [])
+    privilege_jurisdictions = {privilege.get('jurisdiction') for privilege in privileges}
+
+    if len(privileges) != 1:
+        raise SmokeTestFailureException(
+            f'Expected exactly one privilege, found {len(privileges)}: {privilege_jurisdictions}'
+        )
+
+    if privilege_jurisdictions != EXPECTED_PRIVILEGE_JURISDICTIONS:
+        raise SmokeTestFailureException(
+            f'Expected privilege jurisdictions {sorted(EXPECTED_PRIVILEGE_JURISDICTIONS)}, '
+            f'found {sorted(privilege_jurisdictions)}'
+        )
+
+    if UNRECOGNIZED_LICENSE_TYPE_JURISDICTION in privilege_jurisdictions:
+        raise SmokeTestFailureException(
+            f'Expected no privilege in {UNRECOGNIZED_LICENSE_TYPE_JURISDICTION}, '
+            f'but found jurisdictions {sorted(privilege_jurisdictions)}'
+        )
+
+    privilege = privileges[0]
+    if privilege.get('licenseType') != HOME_STATE_CHANGE_LICENSE_TYPE:
+        raise SmokeTestFailureException(
+            f'Expected privilege licenseType {HOME_STATE_CHANGE_LICENSE_TYPE}, found {privilege.get("licenseType")}'
+        )
+
+    if provider_details.get('licenseJurisdiction') != HOME_STATE_CHANGE_NEW_JURISDICTION:
+        raise SmokeTestFailureException(
+            f'Expected licenseJurisdiction {HOME_STATE_CHANGE_NEW_JURISDICTION}, '
+            f'found {provider_details.get("licenseJurisdiction")}'
+        )
+
+    logger.info(
+        f'Successfully verified privileges for provider {provider_id}: '
+        f'{sorted(privilege_jurisdictions)} (excludes {UNRECOGNIZED_LICENSE_TYPE_JURISDICTION})'
+    )
+
+
 def _query_home_state_change_events_for_provider(provider_id: str):
     data_events_table = get_data_events_dynamodb_table()
     event_pk = f'COMPACT#{COMPACT}#JURISDICTION#{HOME_STATE_CHANGE_NEW_JURISDICTION}'
@@ -472,9 +530,11 @@ if __name__ == '__main__':
 
     test_jurisdiction_configuration(HOME_STATE_CHANGE_FORMER_JURISDICTION, recreate_compact_config=True)
     test_jurisdiction_configuration(HOME_STATE_CHANGE_NEW_JURISDICTION)
+    test_jurisdiction_configuration(UNRECOGNIZED_LICENSE_TYPE_JURISDICTION)
 
     test_user_sub = None
     client_id = None
+    practitioner_state = PractitionerTestState()
     try:
         # Create staff user with permission to query providers (internal API)
         test_user_sub = create_test_staff_user(
@@ -486,7 +546,7 @@ if __name__ == '__main__':
                 'jurisdictions': {
                     HOME_STATE_CHANGE_FORMER_JURISDICTION: {'write', 'admin'},
                     HOME_STATE_CHANGE_NEW_JURISDICTION: {'write', 'admin'},
-                    INVALID_LICENSE_TYPE_JURISDICTION: {'write', 'admin'},
+                    UNRECOGNIZED_LICENSE_TYPE_JURISDICTION: {'write', 'admin'},
                 },
             },
         )
@@ -497,7 +557,7 @@ if __name__ == '__main__':
             jurisdictions=[
                 HOME_STATE_CHANGE_FORMER_JURISDICTION,
                 HOME_STATE_CHANGE_NEW_JURISDICTION,
-                INVALID_LICENSE_TYPE_JURISDICTION,
+                UNRECOGNIZED_LICENSE_TYPE_JURISDICTION,
             ],
         )
         client_id = client_credentials['client_id']
@@ -507,16 +567,24 @@ if __name__ == '__main__':
             client_secret=client_secret,
         )
         logger.info('Invalid license type jurisdiction validation smoke test passed')
-        home_state_change_staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+        staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
         test_home_state_change_notification(
-            staff_headers=home_state_change_staff_headers,
+            staff_headers=staff_headers,
             client_id=client_id,
             client_secret=client_secret,
+            practitioner_state=practitioner_state,
         )
-        logger.info('Home state change notification smoke test passed')
+        test_provider_privileges_exclude_unrecognized_license_type_jurisdictions(practitioner_state.provider_id)
+        logger.info('License upload smoke tests passed')
     except SmokeTestFailureException as e:
         logger.error(f'License record upload smoke test failed: {str(e)}')
     finally:
+        if practitioner_state.provider_id and practitioner_state.start_time:
+            logger.info(
+                'Cleaning up license upload smoke test records',
+                provider_id=practitioner_state.provider_id,
+            )
+            cleanup_practitioner_records(practitioner_state.provider_id, practitioner_state.start_time)
         if client_id:
             delete_test_app_client(client_id)
         if test_user_sub:
