@@ -30,6 +30,12 @@ const ChronoUnit = Java.type('java.time.temporal.ChronoUnit');
 const StandardCharsets = Java.type('java.nio.charset.StandardCharsets');
 const URLEncoder = Java.type('java.net.URLEncoder');
 
+// Tokens are fetched once at scan start and not refreshed. The state M2M token is
+// minted with 60-minute validity and the active scan was measured at ~58 min, so
+// there is little headroom: if the scan cap (maxScanDurationInMins) is raised or
+// scope grows past ~55 min, the state token can expire mid-scan and state-api
+// requests will start returning 401. If that happens, lengthen the token validity
+// on the ZAP M2M client (see owasp-zap/README.md) or add token refresh here.
 const TOKENS = {
     staff: System.getenv('ZAP_AUTH_STAFF_TOKEN'),
     provider: System.getenv('ZAP_AUTH_PROVIDER_TOKEN'),

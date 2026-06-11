@@ -120,6 +120,17 @@ jobs:
             ZAP_STATE_SIGNATURE_PRIVATE_KEY
             ZAP_STATE_SIGNATURE_KEY_ID
 
+      - name: Post summary to Slack
+        # Distill the ZAP JSON report into a single Slack message so the findings
+        # are actually seen. No-op if the channel secret isn't set.
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.IA_SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.ZAP_SLACK_CHANNEL_ID }}
+          ZAP_JSON: report/zap-report.json
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 owasp-zap/notify/slack_summary.py
+
       - name: Upload Report
         if: always()
         uses: actions/upload-artifact@v4

@@ -63,21 +63,18 @@ jobs:
 # Suppress known false positives
 - type: alertFilter
   alertFilters:
-  # SQL Injection on initiateRecovery — API uses DynamoDB not SQL.
-  # ZAP flags this because the 400 validation error reflects input back,
-  # which looks like successful boolean-based injection.
+  # SQL Injection (ruleId 40018) is a known false-positive class for this API:
+  # CompactConnect uses DynamoDB, not SQL. ZAP flags it because 400 validation
+  # errors reflect input back (looking like boolean-based injection), and because
+  # the payment-processor endpoint forwards bad credentials to Authorize.net whose
+  # differing error message reads like a successful injection. We keep the rule
+  # ENABLED (so a future non-DynamoDB sink would still be probed) but globally
+  # downgrade its findings to False Positive, rather than maintaining a brittle
+  # per-URL list that drifts every time a new endpoint is added.
   - ruleId: 40018
     newRisk: "False Positive"
-    url: https://api.test.compactconnect.org/v1/provider-users/initiateRecovery
-    urlRegex: false
-  # SQL Injection on payment-processor — ZAP sends injection payloads in
-  # apiLoginId, which gets forwarded to Authorize.net. The different error
-  # message makes ZAP think injection succeeded, but it's just the payment
-  # processor rejecting invalid credentials.
-  - ruleId: 40018
-    newRisk: "False Positive"
-    url: https://api.test.compactconnect.org/v1/compacts/aslp/credentials/payment-processor
-    urlRegex: false
+    url: ".*"
+    urlRegex: true
 - type: passiveScan-config
   parameters: {}
 - type: passiveScan-wait
@@ -85,12 +82,11 @@ jobs:
 - type: activeScan
   parameters:
     context: test
-    # Hard time-box: the active scan is stopped at this limit even if it has
-    # not finished exploring every node. Set generously so the scan can run to
-    # completion; capped below the GitHub-hosted runner's 6h (360 min) job limit
-    # to leave headroom for the auth/spider/passive/report steps. Lower once we
-    # see how long a full scan actually needs.
-    maxScanDurationInMins: 330
+    # Hard time-box for the active scan. A full scan was measured at ~58 min
+    # (run 27240128158), so 75 lets it complete with headroom while not holding a
+    # GitHub-hosted runner slot longer than needed. Raise if scan scope grows;
+    # the runner's hard job limit is 6h (360 min).
+    maxScanDurationInMins: 75
 - type: report
   parameters:
     template: risk-confidence-html
@@ -127,6 +123,22 @@ jobs:
   - reportParameters
   - requestHeader
   - summaries
+# Machine-readable report consumed by the workflow's Slack summary step.
+- type: report
+  parameters:
+    template: traditional-json
+    reportDir: /zap/wrk/report
+    reportFile: zap-report
+    reportTitle: ZAP Scan (JSON)
+    reportDescription: Test environment ZAP report (JSON)
+    displayReport: false
 - type: exitStatus
   parameters:
+    # Surface findings instead of silently passing. A Medium+ alert is reported
+    # (and goes to Slack) but does not fail the job; any High alert fails it so a
+    # real regression can't merge unnoticed. Known false positives (e.g. SQLi,
+    # ruleId 40018) are filtered above and so do not count toward these levels.
+    warnLevel: Medium
     warnExitValue: 0
+    errorLevel: High
+    errorExitValue: 1

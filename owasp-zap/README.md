@@ -13,6 +13,17 @@ The [authenticator](./authenticator) directory contains helpers for obtaining be
 
 The [data](./data) folder contains configuration and automation data files that are used to control ZAP's scan. This includes an HttpSender script and an automation YML file. The HttpSender script (`bearer-token.js`) routes requests to the correct bearer token based on hostname + path: requests to the state API host get the M2M token, requests under `/v1/provider-users/*`, `/v1/purchases/*`, and `GET /v1/compacts/{compact}/attestations/{attestationId}` get the provider token, everything else gets the staff token. State API requests additionally get ECDSA-SHA256 request signatures (`X-Algorithm`, `X-Timestamp`, `X-Nonce`, `X-Key-Id`, `X-Signature`) computed per-request against the signing private key — see [client_signature_auth.md](../backend/compact-connect/docs/client_signature_auth.md). The YML file defines the ZAP automation plan.
 
+# Scan results & notifications
+
+The scan no longer fails silently. The `exitStatus` job **fails the build on any High-risk alert** and reports Medium+ (Mediums do not fail the job — known false positives like SQL injection, ruleId 40018, are filtered globally and do not count). A `traditional-json` report is emitted alongside the HTML, and [`notify/slack_summary.py`](./notify/slack_summary.py) distills the ZAP alert counts into a single Slack message.
+
+Slack delivery requires two secrets; if the channel secret is absent the step is a harmless no-op:
+
+```
+IA_SLACK_BOT_TOKEN       (existing) Slack bot token with chat:write
+ZAP_SLACK_CHANNEL_ID     channel id (or name) to post the summary to
+```
+
 # Set up
 
 In order for the scan to run successfully, the target environment needs some set-up:
