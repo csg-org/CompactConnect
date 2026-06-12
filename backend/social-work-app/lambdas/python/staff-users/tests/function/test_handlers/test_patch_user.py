@@ -238,7 +238,7 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for oh/cosm not ne/cosm
+        # The user has admin permission for oh/socw not ne/socw
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin'
@@ -257,7 +257,7 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The caller has admin permission for oh/cosm not ne/cosm
+        # The caller has admin permission for oh/socw not ne/socw
         caller_id = self._when_testing_with_valid_caller()
         event['requestContext']['authorizer']['claims']['sub'] = caller_id
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.admin'

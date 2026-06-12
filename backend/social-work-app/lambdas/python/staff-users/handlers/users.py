@@ -73,8 +73,8 @@ def patch_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argu
 
     Example: This body would be requesting to:
       - add socw/admin permission
-      - add oh/cosm admin permission
-      - remove oh/cosm write permission
+      - add oh/socw admin permission
+      - remove oh/socw write permission
     ```json
     {
       "permissions": {
