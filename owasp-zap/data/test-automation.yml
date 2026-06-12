@@ -123,7 +123,8 @@ jobs:
   - reportParameters
   - requestHeader
   - summaries
-# Machine-readable report consumed by the workflow's Slack summary step.
+# Machine-readable report, uploaded alongside the HTML for review and any
+# downstream parsing.
 - type: report
   parameters:
     template: traditional-json
@@ -135,9 +136,9 @@ jobs:
 - type: exitStatus
   parameters:
     # Surface findings instead of silently passing. A Medium+ alert is reported
-    # (and goes to Slack) but does not fail the job; any High alert fails it so a
-    # real regression can't merge unnoticed. Known false positives (e.g. SQLi,
-    # ruleId 40018) are filtered above and so do not count toward these levels.
+    # but does not fail the job; any High alert fails it so a real regression
+    # can't merge unnoticed. Known false positives (e.g. SQLi, ruleId 40018) are
+    # filtered above and so do not count toward these levels.
     warnLevel: Medium
     warnExitValue: 0
     errorLevel: High

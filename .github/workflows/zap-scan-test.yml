@@ -1,9 +1,6 @@
 name: ZAP-Scan-Test
 
 on:
-  # TEMP: trigger on PR pushes so we can validate the scan end-to-end. Revert before merge.
-  pull_request:
-
   # Weekly scheduled scan of the deployed test environment
   schedule:
     - cron: '0 6 * * 1'  # Every Monday at 06:00 UTC
@@ -119,17 +116,6 @@ jobs:
             ZAP_AUTH_STATE_TOKEN
             ZAP_STATE_SIGNATURE_PRIVATE_KEY
             ZAP_STATE_SIGNATURE_KEY_ID
-
-      - name: Post summary to Slack
-        # Distill the ZAP JSON report into a single Slack message so the findings
-        # are actually seen. No-op if the channel secret isn't set.
-        if: always()
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.IA_SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.ZAP_SLACK_CHANNEL_ID }}
-          ZAP_JSON: report/zap-report.json
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: python3 owasp-zap/notify/slack_summary.py
 
       - name: Upload Report
         if: always()
