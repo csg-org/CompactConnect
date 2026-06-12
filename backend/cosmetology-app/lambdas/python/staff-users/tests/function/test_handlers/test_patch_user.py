@@ -208,6 +208,27 @@ class TestPatchUser(TstFunction):
         api_user['permissions'] = {'cosm': {'jurisdictions': {}}}
         self.assertEqual(api_user, user)
 
+    def test_patch_user_outside_jurisdiction_returns_404(self):
+        self._load_user_data()
+        self._when_testing_with_valid_jurisdiction(compact='cosm')
+
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # NE admin cannot patch a user who only has OH permissions
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/cosm.admin'
+        event['pathParameters'] = {'compact': 'cosm', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'cosm': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(404, resp['statusCode'])
+        self.assertEqual({'message': 'User not found'}, json.loads(resp['body']))
+
     def test_patch_user_forbidden(self):
         self._load_user_data()
         self._when_testing_with_valid_jurisdiction(compact='cosm')
