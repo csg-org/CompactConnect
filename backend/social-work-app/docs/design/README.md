@@ -48,20 +48,16 @@ The system implements strict controls for SSN access:
 
 1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and
    customer-managed KMS encryption.
-2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN`
-   scope.
-3. **Comprehensive Audit Logging**:
+2. **Comprehensive Audit Logging**:
    - All SSN data access through the application is logged with user identity, timestamp, and access context
    - Direct database access is independently tracked through our secure audit logging system (see
      [Audit Logging](#audit-logging))
-4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
+3. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
 
 #### SSN Role-Based Access
 Three specialized IAM roles control access to SSN data:
    - `license_upload_role`: Used by upload handlers to encrypt SSN data for the preprocessing queue.
    - `ingest_role`: Used by the license preprocessor to create and update SSN records in the SSN table.
-   - `api_query_role`: Used by the Get SSN API endpoint to allow staff users to read the SSN for an individual provider
-     per request (staff user must have the readSSN permission).
 
 ### Ingest Flow
 
@@ -152,10 +148,7 @@ Board ED level staff may be granted the following permissions at a jurisdiction 
 their permissions.
 - `write` - grants access to write data for their particular jurisdiction (ie uploading license information).
 - `readPrivate` - grants access to view all information for any licensee that has either a license or privilege within
-  their jurisdiction (except the full SSN, see `readSSN` permission below. This permission allows viewing the last 4
-  digits of the SSN).
-- `readSSN` - grants access to view the full SSN for any licensee that has either a license or privilege within their
-  jurisdiction.
+  their jurisdiction (except the full SSN. This permission allows viewing the last 4 digits of the SSN).
 
 #### Implementation of Scopes
 
@@ -176,15 +169,10 @@ different compacts. For example, the Kentucky (KY) resource server would have sc
 ky/socw.admin
 ky/socw.write
 ky/socw.readPrivate
-ky/socw.readSSN
-ky/octp.admin
-ky/octp.write
-ky/octp.readPrivate
-ky/octp.readSSN
 ```
 
-If a user has the `ky/aslp.admin` scope, for example, they will be able to perform any admin action within the Kentucky
-jurisdiction within the ASLP compact.
+If a user has the `ky/socw.admin` scope, for example, they will be able to perform any admin action within the Kentucky
+jurisdiction within the socw compact.
 
 Each compact also has its own resource server with compact-wide scopes, which are used to control access to data across
 all jurisdictions within a compact:
@@ -193,10 +181,9 @@ all jurisdictions within a compact:
 socw/admin
 socw/readGeneral
 socw/readPrivate
-socw/readSSN
 ```
 
-If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
+If a user has the `socw/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
 within the compact.
 
 Staff users in a compact will also be implicitly granted the `readGeneral` scope for the associated compact,
@@ -241,57 +228,85 @@ pattern. This approach optimizes for:
 The data model comprises the following stored record types (note: Privileges are not stored in the DB; they are generated at API
 runtime from licenses, adverse actions, and investigations, see [Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)).
 
-1. **Provider Record** (`provider`): The core record containing a provider's foundational information:
-   - Personal details (name, DOB, contact information)
-   - Home address
-   - License jurisdiction of record
-   - SSN last four digits (full SSN is stored separately for security)
-   - National Provider Identifier (NPI)
-   - Set of privilege jurisdictions
-   - Status (calculated based on expiration date and jurisdiction status)
+#### License identity (`jurisdiction` + `licenseType` + `licenseScope`)
 
-2. **License Record** (`license`): Represents professional licenses held by the provider:
-   - License number and type
+Each stored license is uniquely identified within a provider partition by its **jurisdiction**, **license type**, and
+**license scope** (`single-state` or `multi-state`). A provider may hold both scopes for the same jurisdiction and
+license type; those are stored as **separate top-level license records** with distinct sort keys. License update
+records, license-targeted adverse actions, and license-targeted investigations all reference the same three-part
+identifier in their sort keys. See [License Scopes](#license-scopes) for how scopes affect privilege generation.
+
+License-related sort keys use a shared suffix of the form
+`{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}` (for example, `oh/lcsw/single-state`).
+
+1. **Provider Record** (`provider`): A denormalized summary of the provider's current home-jurisdiction license state.
+   The home jurisdiction is selected automatically from multi-state license uploads (see [Privilege Runtime Generation](#privilege-runtime-generation-for-multi-state-licenses)). The top-level provider record is primarily used to track the provider's determined home state based on the defined ruleset. 
+   Sort key: `{compact}#PROVIDER`
+   - Personal details (name, date of birth)
+   - Home jurisdiction of record (`licenseJurisdiction`)
+   - SSN last four digits (full SSN is stored separately for security)
+   - Jurisdiction-reported license status and compact eligibility (`jurisdictionUploadedLicenseStatus`,
+     `jurisdictionUploadedCompactEligibility`)
+   - Calculated license status and compact eligibility (`licenseStatus`, `compactEligibility`; derived at load time from
+     expiration date, jurisdiction-reported status, and encumbrance state)
+   - Optional encumbrance status (`encumberedStatus`)
+   - License expiration date (`dateOfExpiration`)
+
+   Contact information and home address live on individual **license** records, not on the provider record.
+
+2. **License Record** (`license`): Represents a single professional license held by the provider. Sort key:
+   `{compact}#PROVIDER#license/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#`
+   - License number, type, and scope (`licenseScope`: `single-state` or `multi-state`)
    - Issuing jurisdiction
    - Issuance, renewal, and expiration dates
-   - License status (active/inactive, calculated at load time, based on current time, expiry, and other factors)
-   - Provider's name and contact details at time of issuance
+   - Jurisdiction-reported license status and compact eligibility
+   - Calculated license status and compact eligibility (derived at load time)
+   - Optional encumbrance and investigation status (`encumberedStatus`, `investigationStatus`)
+   - Provider's name, contact details, and home address at time of upload
+   - Optional `firstUploadDate` for tracking when the license record was first created
 
-3. **License Update Record** (`licenseUpdate`): Tracks historical changes to licenses:
-   - Update type (renewal, deactivation, or other)
+3. **License Update Record** (`licenseUpdate`): Tracks historical changes to a specific license (scoped by jurisdiction,
+   license type, and license scope). Sort key:
+   `{compact}#UPDATE#3#license/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}/{createDate}/{changeHash}`
+   - Update type (renewal, deactivation, encumbrance, investigation, home jurisdiction change, or other)
+   - `licenseScope` identifying which license record was updated
    - Previous values before the update
    - Updated values that changed
    - List of values that were removed
-   - Timestamp of the update
+   - Create and effective timestamps
    - Change hash for uniqueness
 
 4. **Provider Update Record** (`providerUpdate`): Tracks historical changes to the provider record (e.g. demographics,
-   home address).
+   home jurisdiction). Sort key: `{compact}#UPDATE#2#provider/{createDate}/{changeHash}`
 
-5. **Adverse Action Record** (`adverseAction`): Encumbrances and related actions against a license or privilege
-   (jurisdiction + license type). Used when generating privilege status at runtime.
+5. **Adverse Action Record** (`adverseAction`): Encumbrances and related actions against a license or privilege.
+   Sort key:
+   `{compact}#PROVIDER#{license|privilege}/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#ADVERSE_ACTION#{adverseActionId}`
+   - `licenseScope` identifies the target license when `actionAgainst` is `license`
+   - Privilege-targeted adverse actions always use `licenseScope` `single-state`, since privileges are scoped to a particular state.
 
-6. **Investigation Record** (`investigation`): Open or closed investigations against a license or privilege. Used when
-   generating privilege status at runtime.
-
-A single query for a provider's partition with a sort key starting with `{compact}#PROVIDER` retrieves all stored
-records needed to construct a complete view of the provider. Privileges are then derived at read time from licenses,
-adverse actions, and investigations.
+6. **Investigation Record** (`investigation`): Open or closed investigations against a license or privilege. Sort key:
+   `{compact}#PROVIDER#{license|privilege}/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#INVESTIGATION#{investigationId}`
+   - `licenseScope` identifies the target license when `investigationAgainst` is `license`
+   - Privilege-targeted investigations always use `licenseScope` `single-state`, since privileges are scoped to a particular state.
 
 ### Historical Tracking
 
 CompactConnect maintains a comprehensive historical record of each provider from their first addition to the system.
 Any change to a provider's status, dates, or demographic information creates a supporting record that tracks the change.
 
-For license changes, records use sort keys like `socw#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
-contains:
-- The jurisdiction (e.g., "oh")
-- "UPDATE" indicator
-- POSIX timestamp of the change
-- A hash of the previous and updated values for uniqueness
+Update record sort keys are tiered to allow the system to query update records within certain tiers. By default,
+provider reads load only primary records (sort keys beginning with `{compact}#PROVIDER`); update history is excluded
+unless a caller explicitly requests it, using a tier limit to include provider updates (tier 2) or license updates
+(tier 3) as needed. This sort pattern was adapted from the original JCC model,
+which uses tier 1 for tracking privilege updates.
 
-This historical tracking allows authorized users to determine a provider's practice eligibility status in any member
-state for any point in time since they entered the system.
+For license changes, records use sort keys like
+`socw#UPDATE#3#license/oh/lcsw/single-state/2024-06-06T12:59:59+00:00/1a812bc8f`. This key contains:
+- Update tier (`3` for license updates, allows for querying specific update record types)
+- The jurisdiction, license type abbreviation, and license scope (e.g., `oh/lcsw/single-state`)
+- ISO timestamp of the change (`createDate`)
+- A hash of the previous and updated values for uniqueness
 
 ### Global Secondary Indexes (GSIs)
 
@@ -309,6 +324,10 @@ The provider table includes several GSIs to support different access patterns:
    - Facilitates finding licenses by jurisdiction and provider name
    - Supports compact and jurisdiction-specific queries
 
+4. **License Upload Date Index** (`licenseUploadDateGSI`):
+   - Supports querying licenses and license upload updates by compact, jurisdiction, and upload month
+   - Populated when a license record includes `firstUploadDate` or when a license update is tied to an upload event
+
 ### Security and Status Calculation
 
 The model incorporates several security and operational features:
@@ -316,10 +335,12 @@ The model incorporates several security and operational features:
 1. **SSN Protection**: Only the last four digits of SSNs are stored in the provider table. Full SSNs are stored in a
    separate, highly secured table with strict access controls.
 
-2. **Status Calculation**: Rather than storing a simple status flag, the system calculates status at read time based on:
-   - The jurisdiction's reported status (active/inactive)
+2. **Status Calculation**: Rather than storing a simple status flag, the system calculates `licenseStatus` and
+   `compactEligibility` at load time for provider and license records based on:
+   - The jurisdiction's reported status and compact eligibility
    - The current date compared to the expiration date
-   - This ensures accurate representation of a provider's current status without requiring updates
+   - Encumbrance state (`encumberedStatus`)
+   - This ensures accurate representation of a provider's current status without requiring frequent writes
 
 3. **Historical Tracking**: All changes are preserved as separate records, allowing point-in-time deduction of a
    provider's status for any historical date.
@@ -337,14 +358,13 @@ Because the list of privilege records for practitioners is dynamically determine
 ### License Scopes
 
 Every license uploaded to Social Work CompactConnect includes a required **`licenseScope`** field with one of two
-values: `single-state` or `multi-state`. A **single-state** license is the provider's conventional home-jurisdiction license, and is a prerequisite for holding an associated multi-state license, which is what grants authorization to practice in other compact member states. A provider can hold **both** scopes for the same jurisdiction and license type (for example, an Ohio LCSW single-state license and an Ohio LCSW multi-state license). Those are stored as **separate top-level license records** with distinct sort keys:
+values: `single-state` or `multi-state`. A **single-state** license is the provider's conventional home-jurisdiction
+license and is a prerequisite for holding an associated multi-state license, which is what grants authorization to
+practice in other compact member states. A provider can hold **both** scopes for the same jurisdiction and license
+type (for example, an Ohio LCSW single-state license and an Ohio LCSW multi-state license).
 
-```
-{compact}#PROVIDER#license/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#
-```
-
-License update records, investigations, and encumbrances against a license all reference the same
-**jurisdiction + license type + licenseScope** compact identifier in their respective sort keys.
+How scopes are represented in DynamoDB sort keys and related record types is documented under
+[License identity](#license-identity-jurisdiction--licensetype--licensescope) in the Data Model section.
 
 
 ### Privilege Runtime Generation for Multi-State Licenses
@@ -355,8 +375,9 @@ The following flow describes how the home state license is assigned.
 
 ([Social Work Practitioner License Assignment Flow](./practitioner-home-state-assignment.pdf))
 
-Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for 
-that jurisdiction and license type.
+Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for
+that privilege jurisdiction and license type. License-targeted adverse actions and investigations additionally specify
+which `licenseScope` they apply to.
 
 ### Overview of Privilege System
 
@@ -368,8 +389,8 @@ The privilege system is built around several core concepts:
 
 #### Adverse Actions and Encumbrance
 The system supports encumbering privileges via **stored adverse action records**:
-- **Privilege-specific encumbrance**: An adverse action specifies a jurisdiction and license type; the generated privilege for that jurisdiction/type shows as encumbered until the action is lifted.
-- **License-based encumbrance**: If the home-state license is encumbered, it is ineligible for privileges so none are generated at runtime.
+- **Privilege-specific encumbrance**: An adverse action targets a privilege (jurisdiction + license type). The generated privilege for that jurisdiction/type shows as encumbered until the action is lifted.
+- **License-based encumbrance**: An adverse action targets a specific stored license (jurisdiction + license type + `licenseScope`). If the home-state multi-state license or its paired single-state license in the same jurisdiction is encumbered, that license is ineligible and privileges are not generated from it at runtime.
 
 ## Advanced Data Search
 [Back to top](#backend-design)
@@ -393,7 +414,7 @@ The search infrastructure consists of several key components:
 
 ### Document model (Social Work vs. JCC)
 
-Unlike the JCC CompactConnect model, which indexes **one OpenSearch document per provider** (with that provider’s licenses nested in a single document),Social Work indexes **one document per license**. Each document repeats the same top-level provider fields you would see on a provider detail response, while the `licenses` array contains **only the license represented by that document** (effectively one license entry per document).
+Unlike the JCC CompactConnect model, which indexes **one OpenSearch document per provider** (with that provider’s licenses nested in a single document), Social Work indexes **one document per license**. Each document repeats the same top-level provider fields you would see on a provider detail response, while the `licenses` array contains **only the license represented by that document** (effectively one license entry per document).
 
 Social Work needs to support searching and listing **rows of license records** by license number in the search UI. OpenSearch pagination (`from`/`size`, `search_after`, etc.) applies to **documents**, not to entries inside a nested array. Splitting each license into its own document lets the UI paginate natively at license granularity. It also keeps the search API response model consistent across the compacts.
 
@@ -487,7 +508,7 @@ usage metrics to determine if the Domain needs to be scaled up:
 ## CI/CD Pipelines
 
 This project leverages AWS CodePipeline to deploy the backend and frontend infrastructure. See the
-[pipeline architecture docs](./pipeline-architecture.md) for detailed discussion.
+[pipeline architecture docs](../../../../docs/pipeline-architecture.md) for detailed discussion.
 
 ## Audit Logging
 [Back to top](#backend-design)

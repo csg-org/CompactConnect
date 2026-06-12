@@ -794,7 +794,7 @@ usage metrics to determine if the Domain needs to be scaled up:
 ## CI/CD Pipelines
 
 This project leverages AWS CodePipeline to deploy the backend and frontend infrastructure. See the
-[pipeline architecture docs](./pipeline-architecture.md) for detailed discussion.
+[pipeline architecture docs](../../../../docs/pipeline-architecture.md) for detailed discussion.
 
 ## Audit Logging
 [Back to top](#backend-design)
