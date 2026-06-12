@@ -223,12 +223,17 @@ pattern. This approach optimizes for:
 2) **Query Efficiency**: Access patterns are optimized so most data needs can be satisfied in a single query, leveraging
    DynamoDB's single-digit-millisecond latency at any scale.
 
+All provider records are partitioned under a specific partition key (pk): {compact}#PROVIDER#{providerId}. Individual
+records belonging to a provider are distinguished by their respective sort keys (sk)
+
 ### Record Types in Detail
 
 The data model comprises the following stored record types (note: Privileges are not stored in the DB; they are generated at API
 runtime from licenses, adverse actions, and investigations, see [Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)).
 
-#### License identity (`jurisdiction` + `licenseType` + `licenseScope`)
+The relationships between the record types are illustrated in the following entity relationship diagram:
+
+![Provider Data Model ERD](./provider-data-model-erd.png)
 
 Each stored license is uniquely identified within a provider partition by its **jurisdiction**, **license type**, and
 **license scope** (`single-state` or `multi-state`). A provider may hold both scopes for the same jurisdiction and
