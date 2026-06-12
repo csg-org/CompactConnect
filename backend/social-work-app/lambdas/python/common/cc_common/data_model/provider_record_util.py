@@ -17,6 +17,7 @@ from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
 from cc_common.data_model.schema.provider import ProviderData, ProviderUpdateData
 from cc_common.exceptions import CCInternalException, CCNotFoundException
+from cc_common.license_recognition_util import LicenseRecognitionUtil
 
 
 class ProviderRecordType(StrEnum):
@@ -636,6 +637,15 @@ class ProviderUserRecords:
 
             for jurisdiction in live_jurisdictions_for_compact:
                 if jurisdiction == home_jurisdiction:
+                    continue
+                if not LicenseRecognitionUtil.license_type_is_recognized_in_jurisdiction(
+                    compact, jurisdiction, license_type_abbr
+                ):
+                    logger.debug(
+                        'Skipping privilege; license type not recognized in jurisdiction',
+                        jurisdiction=jurisdiction,
+                        license_type_abbr=license_type_abbr,
+                    )
                     continue
                 privilege_aa = self.get_adverse_action_records_for_privilege(jurisdiction, license_type_abbr)
                 privilege_unlifted = any(aa.effectiveLiftDate is None for aa in privilege_aa)

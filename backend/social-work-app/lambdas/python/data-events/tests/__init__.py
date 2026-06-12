@@ -48,7 +48,7 @@ class TstLambdas(TestCase):
                         'socw': [
                             {'name': 'licensed clinical social worker', 'abbreviation': 'lcsw'},
                             {'name': 'licensed master social worker', 'abbreviation': 'lmsw'},
-                            {'name': 'licensed bachelor social worker', 'abbreviation': 'lbsw'},
+                            {'name': 'licensed bachelors social worker', 'abbreviation': 'lbsw'},
                         ],
                     },
                 ),

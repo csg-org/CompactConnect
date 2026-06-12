@@ -229,7 +229,7 @@
               "enum": [
                 "licensed clinical social worker",
                 "licensed master social worker",
-                "licensed bachelor social worker"
+                "licensed bachelors social worker"
               ]
             },
             "emailAddress": {

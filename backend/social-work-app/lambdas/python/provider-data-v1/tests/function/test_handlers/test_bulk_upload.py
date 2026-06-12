@@ -370,6 +370,81 @@ class TestProcessObjects(TstFunction):
 
             self.assertEqual(expected_entry, call_args)
 
+    def test_bulk_upload_rejects_license_type_not_recognized_in_jurisdiction(self):
+        """Test that bulk upload rejects license types not recognized by the uploading jurisdiction."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        csv_content = (
+            'ssn,licenseNumber,givenName,middleName,familyName,suffix,dateOfBirth,dateOfIssuance'
+            ',dateOfRenewal,dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
+            ',homeAddressStreet2,homeAddressCity,homeAddressState,homeAddressPostalCode'
+            ',emailAddress,phoneNumber,licenseType,licenseScope,licenseStatusName\n'
+            '123-45-6789,LICENSE123,John,Middle,Doe,Jr.,1990-01-01,2020-01-01,2021-01-01,2023-01-01,active,'
+            'eligible,123 Main St,Apt 1,Columbus,OH,43215,test@example.com,+15551234567,'
+            'licensed bachelors social worker,single-state,Active'
+        )
+
+        object_key = f'socw/co/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        with patch('handlers.bulk_upload.EventBatchWriter') as mock_event_writer_class:
+            mock_event_writer = mock_event_writer_class.return_value.__enter__.return_value
+            mock_event_writer.failed_entry_count = 0
+
+            parse_bulk_upload_file(event, self.mock_context)
+
+            mock_event_writer.put_event.assert_called_once()
+            call_args = mock_event_writer.put_event.call_args[1]['Entry']
+
+            expected_entry = {
+                'Source': f'org.compactconnect.bulk-ingest.{object_key}',
+                'DetailType': 'license.validation-error',
+                'Detail': json.dumps(
+                    {
+                        'eventTime': '1970-01-01T00:00:00+00:00',
+                        'compact': 'socw',
+                        'jurisdiction': 'co',
+                        'recordNumber': 1,
+                        'validData': {
+                            'licenseType': 'licensed bachelors social worker',
+                            'licenseScope': 'single-state',
+                            'licenseStatusName': 'Active',
+                            'licenseStatus': 'active',
+                            'compactEligibility': 'eligible',
+                            'licenseNumber': 'LICENSE123',
+                            'givenName': 'John',
+                            'middleName': 'Middle',
+                            'familyName': 'Doe',
+                            'suffix': 'Jr.',
+                            'dateOfIssuance': '2020-01-01',
+                            'dateOfRenewal': '2021-01-01',
+                            'dateOfExpiration': '2023-01-01',
+                        },
+                        'errors': {
+                            'licenseType': [
+                                'License type licensed bachelors social worker is not recognized in jurisdiction co.'
+                            ]
+                        },
+                    }
+                ),
+                'EventBusName': 'license-data-events',
+            }
+
+            self.assertEqual(expected_entry, call_args)
+
+        messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(0, len(messages))
+
     def test_bulk_upload_allows_repeated_ssns_for_different_license_types(self):
         """Test that duplicate SSNs within a CSV upload are allowed if the license types are different."""
         from handlers.bulk_upload import parse_bulk_upload_file
