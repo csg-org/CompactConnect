@@ -5,7 +5,7 @@ from tests import TstLambdas
 
 
 class TestUtils(TstLambdas):
-    @patch('cc_common.config._Config.license_preprocessing_queue')
+    @patch('cc_common.utils.config.license_preprocessing_queue')
     def test_send_licenses_to_preprocessing_queue_handles_failures(self, mock_preprocessing_queue):
         from cc_common.utils import send_licenses_to_preprocessing_queue
 

@@ -211,7 +211,7 @@ def process_bulk_upload_file(
                         'DetailType': 'license.validation-error',
                         'Detail': json.dumps(
                             {
-                                'eventTime': event_time.isoformat(),
+                                'eventTime': config.current_standard_datetime.isoformat(),
                                 'compact': compact,
                                 'jurisdiction': jurisdiction,
                                 'recordNumber': i + 1,
