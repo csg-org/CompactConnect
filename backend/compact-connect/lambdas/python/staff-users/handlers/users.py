@@ -98,9 +98,16 @@ def patch_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argu
     user_id = event['pathParameters']['userId']
     scopes = get_event_scopes(event)
     path_compact = event['pathParameters']['compact']
+    allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
     # this will raise an exception if the caller was disabled
     _verify_caller_is_active(event)
+
+    target_user = config.user_client.get_user_in_compact(compact=compact, user_id=user_id)
+    if allowed_jurisdictions is not None:
+        allowed_jurisdictions = set(allowed_jurisdictions)
+        if not allowed_jurisdictions.intersection(target_user['permissions']['jurisdictions'].keys()):
+            raise CCNotFoundException('User not found')
 
     permission_changes = json.loads(event['body']).get('permissions', {}).get(compact, {})
     logger.debug('Requested changes', permission_changes=permission_changes)
