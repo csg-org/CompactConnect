@@ -31,7 +31,7 @@ In order for the scan to run successfully, the target environment needs some set
 
 2. **Staff Users pool** — create a dedicated test user with broad scope coverage (e.g. `aslp/admin` plus full `oh` and `ky` jurisdiction permissions). Define these GitHub secrets:
 
-   ```
+   ```text
    TEST_COGNITO_USER_POOL_ID_STAFF
    TEST_WEBROOT_COGNITO_CLIENT_ID_STAFF
    TEST_ZAP_USERNAME_STAFF
@@ -40,7 +40,7 @@ In order for the scan to run successfully, the target environment needs some set
 
 3. **Provider Users pool** — create a dedicated test provider user. The user needs a backing provider record in DynamoDB with a license in a covered jurisdiction (e.g. `ky` or `oh` within ASLP) so the `/v1/provider-users/me/*` endpoints resolve. ZAP only needs handlers to execute — response codes don't matter for vulnerability scanning, so POST endpoints (`/v1/purchases/privileges`, `/v1/provider-users/me/military-affiliation`) returning 4xx on repeat runs because records already exist is fine; no cleanup is required between scans. Define these GitHub secrets:
 
-   ```
+   ```text
    TEST_COGNITO_USER_POOL_ID_PROVIDER
    TEST_COGNITO_CLIENT_ID_PROVIDER
    TEST_ZAP_USERNAME_PROVIDER
@@ -49,7 +49,7 @@ In order for the scan to run successfully, the target environment needs some set
 
 4. **State Auth M2M pool** — provision an app client dedicated to ZAP scanning. This client needs two things that differ from a standard state onboarding client:
 
-   - A 60-minute access token validity (vs. the 15-minute default) so one token covers a scan run under the 45-minute active scan cap.
+   - A 60-minute access token validity (vs. the 15-minute default) so one token covers a full scan run (the active scan takes ~57 min; see the expiry note in `data/bearer-token.js`).
    - Scopes to exercise all four state API endpoints: `{compact}/readGeneral` plus `{state}/{compact}.write` for each covered jurisdiction.
 
    Rather than creating with defaults and patching after (`update-user-pool-client` is a full-replacement API — any attribute omitted is reset to its default, which is easy to get wrong), temporarily bump the validity in the creation script:
@@ -57,7 +57,7 @@ In order for the scan to run successfully, the target environment needs some set
    1. In `backend/compact-connect/app_clients/bin/create_app_client.py`, change `BASE_CLIENT_CONFIG['AccessTokenValidity']` from `15` to `60`. **Do not commit this change** — it's a one-shot override for this ZAP client.
    2. Run the script against the test StateAuthUsers pool:
 
-      ```
+      ```bash
       python3 backend/compact-connect/app_clients/bin/create_app_client.py -u <state-auth-pool-id>
       ```
 
@@ -67,7 +67,7 @@ In order for the scan to run successfully, the target environment needs some set
 
    Then define these GitHub secrets:
 
-   ```
+   ```text
    TEST_COGNITO_STATE_AUTH_DOMAIN         (e.g. compact-connect-state-auth-test.auth.us-east-1.amazoncognito.com)
    TEST_ZAP_STATE_AUTH_CLIENT_ID
    TEST_ZAP_STATE_AUTH_CLIENT_SECRET
@@ -99,7 +99,7 @@ In order for the scan to run successfully, the target environment needs some set
 
    3. **Define these GitHub secrets**:
 
-      ```
+      ```text
       TEST_ZAP_STATE_SIGNATURE_KEY_ID        (e.g. zap-test-v1)
       TEST_ZAP_STATE_SIGNATURE_PRIVATE_KEY   (paste the full PKCS#8 PEM contents, including the BEGIN/END lines)
       ```

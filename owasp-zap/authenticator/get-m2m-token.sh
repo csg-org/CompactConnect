@@ -16,16 +16,19 @@ set -euo pipefail
 : "${STATE_AUTH_CLIENT_SECRET:?STATE_AUTH_CLIENT_SECRET is required}"
 : "${STATE_AUTH_SCOPES:?STATE_AUTH_SCOPES is required}"
 
+# Capture curl's exit status without letting `set -e` abort here on an HTTP
+# error — otherwise the diagnostic response body below would never print.
+curl_rc=0
 response=$(curl -sS --fail-with-body \
     -X POST "https://${COGNITO_STATE_AUTH_DOMAIN}/oauth2/token" \
     -u "${STATE_AUTH_CLIENT_ID}:${STATE_AUTH_CLIENT_SECRET}" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     --data-urlencode "grant_type=client_credentials" \
-    --data-urlencode "scope=${STATE_AUTH_SCOPES}")
+    --data-urlencode "scope=${STATE_AUTH_SCOPES}") || curl_rc=$?
 
 token=$(jq -r '.access_token // empty' <<<"$response")
-if [[ -z "$token" ]]; then
-    echo "Failed to obtain M2M token. Response: $response" >&2
+if [[ "$curl_rc" -ne 0 || -z "$token" ]]; then
+    echo "Failed to obtain M2M token (curl exit $curl_rc). Response: $response" >&2
     exit 1
 fi
 printf '%s' "$token"

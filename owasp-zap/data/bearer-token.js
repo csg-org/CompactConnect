@@ -48,10 +48,12 @@ const SIGNATURE_PRIVATE_KEY = loadSignaturePrivateKey(System.getenv('ZAP_STATE_S
 const PROVIDER_PATH_PREFIX = /^\/v1\/(provider-users|purchases)(\/|$)/;
 const PROVIDER_ATTESTATION_PATH = /^\/v1\/compacts\/[^\/]+\/attestations\/[^\/]+$/;
 
-function classifyRequest(host, path) {
+function classifyRequest(host, path, method) {
     if (host.indexOf('state-api.') === 0) return 'state';
     if (PROVIDER_PATH_PREFIX.test(path)) return 'provider';
-    if (PROVIDER_ATTESTATION_PATH.test(path)) return 'provider';
+    // Only GET attestations-by-id is provider-accessible; other methods on that
+    // path (e.g. staff-managed config writes) must use the staff token.
+    if (method === 'GET' && PROVIDER_ATTESTATION_PATH.test(path)) return 'provider';
     return 'staff';
 }
 
@@ -121,7 +123,8 @@ function sendingRequest(msg, initiator, helper) {
     const uri = msg.getRequestHeader().getURI();
     const host = String(uri.getHost());
     const path = String(uri.getPath());
-    const kind = classifyRequest(host, path);
+    const method = String(msg.getRequestHeader().getMethod());
+    const kind = classifyRequest(host, path, method);
     const token = TOKENS[kind];
 
     if (!token) {
@@ -133,7 +136,6 @@ function sendingRequest(msg, initiator, helper) {
     // State API requires ECDSA signature headers in addition to the bearer token.
     // See backend/compact-connect/docs/client_signature_auth.md and owasp-zap/README.md.
     if (kind === 'state') {
-        const method = String(msg.getRequestHeader().getMethod());
         const rawQuery = uri.getQuery();
         const sigHeaders = signStateRequest(method, path, rawQuery == null ? '' : String(rawQuery));
         if (sigHeaders) {

@@ -7,8 +7,8 @@ dotenv.config();
 // --mode=staff reads STAFF_COGNITO_*, --mode=provider reads PROVIDER_COGNITO_*.
 const modeArg = process.argv.find((arg) => arg.startsWith('--mode='));
 const mode = modeArg ? modeArg.split('=')[1] : '';
-if (!mode) {
-    console.error('Missing --mode=staff|provider');
+if (!['staff', 'provider'].includes(mode)) {
+    console.error(`Invalid --mode value '${mode}': must be 'staff' or 'provider'`);
     process.exit(1);
 }
 const prefix = `${mode.toUpperCase()}_`;

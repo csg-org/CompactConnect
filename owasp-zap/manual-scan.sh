@@ -35,7 +35,9 @@ fetch_user_token() {
     if [[ "$mode" == 'provider' ]]; then
         token_field='.idToken'
     fi
-    (cd "$authenticator_dir" && node main.js --mode="$mode") | jq -r "$token_field"
+    # `// empty` so a missing field yields an empty string rather than the
+    # literal "null", which would defeat the -z check on the combined tokens.
+    (cd "$authenticator_dir" && node main.js --mode="$mode") | jq -r "${token_field} // empty"
 }
 
 fetch_m2m_token() {
