@@ -109,7 +109,8 @@
     "stylelint-config-rational-order/stylelint": "^13.3.0",
     "@vue/cli-plugin-unit-mocha/mocha/minimatch": "^3.0.5",
     "@vue/cli-plugin-unit-mocha/mocha/nanoid": "^3.1.31",
-    "@vue/cli-plugin-eslint/**/cross-spawn": "^6.0.6"
+    "@vue/cli-plugin-eslint/**/cross-spawn": "^6.0.6",
+    "joi-password/joi": "^18.0.1"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"
