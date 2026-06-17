@@ -235,6 +235,8 @@ The relationships between the record types are illustrated in the following enti
 
 ![Provider Data Model ERD](./provider-data-model-erd.png)
 
+#### License Composite Identifier
+
 Each stored license is uniquely identified within a provider partition by its **jurisdiction**, **license type**, and
 **license scope** (`single-state` or `multi-state`). A provider may hold both scopes for the same jurisdiction and
 license type; those are stored as **separate top-level license records** with distinct sort keys. License update
@@ -369,7 +371,7 @@ practice in other compact member states. A provider can hold **both** scopes for
 type (for example, an Ohio LCSW single-state license and an Ohio LCSW multi-state license).
 
 How scopes are represented in DynamoDB sort keys and related record types is documented under
-[License identity](#license-identity-jurisdiction--licensetype--licensescope) in the Data Model section.
+[License Composite Identifier](#license-composite-identifier) in the Data Model section.
 
 
 ### Privilege Runtime Generation for Multi-State Licenses
