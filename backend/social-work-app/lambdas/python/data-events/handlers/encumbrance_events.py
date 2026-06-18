@@ -12,6 +12,7 @@ from cc_common.email_service_client import (
 )
 from cc_common.event_state_client import EventType, NotificationTracker, RecipientType
 from cc_common.exceptions import CCInternalException
+from cc_common.license_recognition_util import LicenseRecognitionUtil
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler_with_notification_tracking
 
@@ -129,11 +130,15 @@ def _send_additional_state_notifications(
     event_time: str,
     tracker: NotificationTracker,
     provider_id: UUID,
+    license_type_abbreviation: str,
     **notification_kwargs,
 ) -> None:
     """
-    Send notifications to all other states that are live in the compact, if not already sent.
-    Uses config live compact jurisdictions.
+    Send notifications to other live compact jurisdictions that recognize the impacted license type,
+    if not already sent.
+
+    Uses config live compact jurisdictions. The excluded (primary) jurisdiction is always notified
+    separately and is not included here.
 
     :param notification_method: The email service method to call
     :param notification_type: Type of notification for logging
@@ -144,6 +149,7 @@ def _send_additional_state_notifications(
     :param event_type: Event type (e.g., 'license.encumbrance')
     :param event_time: Event timestamp
     :param tracker: NotificationTracker instance for idempotency
+    :param license_type_abbreviation: Abbreviation of the impacted license type
     :param notification_kwargs: Additional arguments for the notification method
     """
     notification_jurisdictions = set()
@@ -154,7 +160,12 @@ def _send_additional_state_notifications(
         raise CCInternalException(message)
 
     for live_jurisdiction in config.live_compact_jurisdictions.get(compact, []):
-        if live_jurisdiction.lower() != excluded_jurisdiction.lower():
+        if (
+            live_jurisdiction.lower() != excluded_jurisdiction.lower()
+            and LicenseRecognitionUtil.license_type_is_recognized_in_jurisdiction(
+                compact, live_jurisdiction, license_type_abbreviation
+            )
+        ):
             notification_jurisdictions.add(live_jurisdiction)
 
     # Send notifications to all other live states
@@ -273,6 +284,7 @@ def privilege_encumbrance_notification_listener(message: dict, tracker: Notifica
             event_type=EventType.PRIVILEGE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
+            license_type_abbreviation=license_type_abbreviation,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -407,6 +419,7 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
             event_type=EventType.PRIVILEGE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
+            license_type_abbreviation=license_type_abbreviation,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,
@@ -479,6 +492,7 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
             event_type=EventType.LICENSE_ENCUMBRANCE,
             event_time=event_time,
             tracker=tracker,
+            license_type_abbreviation=license_type_abbreviation,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=effective_date,
@@ -579,6 +593,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
             event_type=EventType.LICENSE_ENCUMBRANCE_LIFTED,
             event_time=event_time,
             tracker=tracker,
+            license_type_abbreviation=license_type_abbreviation,
             encumbered_jurisdiction=jurisdiction,
             license_type=license_type_name,
             effective_date=latest_effective_lift_date,

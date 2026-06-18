@@ -48,7 +48,7 @@ Install the required Python packages. The smoke tests use the same dependencies 
 
 ### 4. Upload Test License Record
 
-You must have a test license record uploaded in your sandbox environment to generate a provider record. This license/provider will be used by the smoke tests to perform various tests. Once you have uploaded the license record into your environment, you will need to look up the provider id generated for that record in the Provider DynamoDB table and set it in your environment variables (see Environment Variables Setup below).
+Some smoke tests create their own practitioner data via the state API (for example `license_upload_smoke_tests.py`). Other tests may still require a pre-existing provider; if so, upload a license record in your sandbox, look up the provider id in the Provider DynamoDB table, and set `CC_TEST_PROVIDER_ID` in `smoke_tests_env.json` (see Environment Variables Setup below).
 
 
 ## Environment Variables Setup
@@ -96,11 +96,24 @@ cd backend/social-work-app
 python3 tests/smoke/encumbrance_smoke_tests.py
 ```
 
+### License Upload Smoke Tests (`license_upload_smoke_tests.py`)
+
+This test validates license upload, home state change notification, jurisdiction validation, and privilege generation:
+
+1. Configures **AZ**, **OH**, and **CO** as live compact jurisdictions
+2. Rejects a **LBSW** upload to **CO** (CO does not recognize that license type)
+3. Runs the shared 3-upload home state change flow with **LBSW** (Jane TestSmith / SSN `999-88-8888`)
+4. Asserts GET provider privileges include **AZ** only (CO is live but excluded; OH is home and excluded)
+
+Expect long runtimes (up to ~15 minutes) due to SQS batching windows during license ingest. Do not run this test concurrently with other smoke tests that use the same shared practitioner identity against the same sandbox.
+
 ## Special Test Requirements
 
 ### Tests Creating Test Data
 
 Many tests create temporary test data (staff users, configurations, etc.) and clean it up automatically. However, if a test fails partway through, you may need to manually clean up test data.
+
+These smoke tests should not be run against a production environment. They are only intended for sandbox and test environments
 
 ## Troubleshooting
 

@@ -158,13 +158,50 @@ class TestLicenses(TstFunction):
                     '0': {
                         'licenseType': [
                             'Must be one of: licensed clinical social worker, licensed master social worker, '
-                            'licensed bachelor social worker.'
+                            'licensed bachelors social worker.'
                         ]
                     }
                 },
             },
             json.loads(resp['body']),
         )
+
+    def test_post_licenses_license_type_not_recognized_in_jurisdiction_returns_400(self):
+        from handlers.licenses import post_licenses
+
+        self._load_signature_public_key('socw', 'co', 'test-key-001', self.public_key_pem)
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email socw/readGeneral co/socw.write'
+        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'co'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['licenseType'] = 'licensed bachelors social worker'
+        event['body'] = json.dumps([license_data])
+
+        event = self._create_signed_event(event)
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual(
+            {
+                'message': 'Invalid license records in request. See errors for more detail.',
+                'errors': {
+                    '0': {
+                        'licenseType': [
+                            'License type licensed bachelors social worker is not recognized in jurisdiction co.'
+                        ]
+                    }
+                },
+            },
+            json.loads(resp['body']),
+        )
+
+        queue_messages = self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+        self.assertEqual(0, len(queue_messages))
 
     def test_post_licenses_handles_invalid_json_request_body(self):
         from handlers.licenses import post_licenses

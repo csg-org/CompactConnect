@@ -2300,7 +2300,7 @@
                         "enum": [
                           "licensed clinical social worker",
                           "licensed master social worker",
-                          "licensed bachelor social worker"
+                          "licensed bachelors social worker"
                         ]
                       },
                       "compact": {
@@ -2516,7 +2516,7 @@
                   "enum": [
                     "licensed clinical social worker",
                     "licensed master social worker",
-                    "licensed bachelor social worker"
+                    "licensed bachelors social worker"
                   ]
                 },
                 "administratorSetStatus": {
@@ -2874,7 +2874,7 @@
                   "enum": [
                     "licensed clinical social worker",
                     "licensed master social worker",
-                    "licensed bachelor social worker"
+                    "licensed bachelors social worker"
                   ]
                 },
                 "emailAddress": {
@@ -2985,7 +2985,7 @@
                         "enum": [
                           "licensed clinical social worker",
                           "licensed master social worker",
-                          "licensed bachelor social worker"
+                          "licensed bachelors social worker"
                         ]
                       },
                       "compact": {
@@ -4699,7 +4699,7 @@
                   "enum": [
                     "licensed clinical social worker",
                     "licensed master social worker",
-                    "licensed bachelor social worker"
+                    "licensed bachelors social worker"
                   ]
                 },
                 "administratorSetStatus": {
@@ -4792,7 +4792,7 @@
                   "enum": [
                     "licensed clinical social worker",
                     "licensed master social worker",
-                    "licensed bachelor social worker"
+                    "licensed bachelors social worker"
                   ]
                 },
                 "dateOfExpiration": {

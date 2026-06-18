@@ -954,6 +954,58 @@ class TestEncumbranceEvents(TstFunction):
         finally:
             config.__dict__.pop('live_compact_jurisdictions', None)
 
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_encumbrance_state_notification_email')
+    def test_license_encumbrance_listener_excludes_additional_notifications_for_unrecognized_license_type(
+        self, mock_state_email
+    ):
+        """Additional state notifications skip live jurisdictions that do not recognize the license type."""
+        from cc_common.config import config
+        from handlers.encumbrance_events import license_encumbrance_notification_listener
+
+        config.__dict__['live_compact_jurisdictions'] = {DEFAULT_COMPACT: ['al', 'co', 'oh']}
+        try:
+            self.test_data_generator.put_default_provider_record_in_provider_table()
+            self.test_data_generator.put_default_license_record_in_provider_table()
+
+            message = self._generate_license_encumbrance_message(
+                {'jurisdiction': 'al', 'licenseTypeAbbreviation': 'lbsw'}
+            )
+            event = self._create_sqs_event(message)
+            result = license_encumbrance_notification_listener(event, self.mock_context)
+
+            self.assertEqual({'batchItemFailures': []}, result)
+            self.assertEqual(2, mock_state_email.call_count)
+            call_jurisdictions = sorted(call.kwargs['jurisdiction'] for call in mock_state_email.call_args_list)
+            self.assertEqual(['al', 'oh'], call_jurisdictions)
+        finally:
+            config.__dict__.pop('live_compact_jurisdictions', None)
+
+    @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_encumbrance_state_notification_email')
+    def test_privilege_encumbrance_listener_excludes_additional_notifications_for_unrecognized_license_type(
+        self, mock_state_email
+    ):
+        """Additional state notifications skip live jurisdictions that do not recognize the license type."""
+        from cc_common.config import config
+        from handlers.encumbrance_events import privilege_encumbrance_notification_listener
+
+        config.__dict__['live_compact_jurisdictions'] = {DEFAULT_COMPACT: ['al', 'co', 'oh']}
+        try:
+            self.test_data_generator.put_default_provider_record_in_provider_table()
+            self.test_data_generator.put_default_license_record_in_provider_table()
+
+            message = self._generate_privilege_encumbrance_message(
+                {'jurisdiction': 'al', 'licenseTypeAbbreviation': 'lbsw'}
+            )
+            event = self._create_sqs_event(message)
+            result = privilege_encumbrance_notification_listener(event, self.mock_context)
+
+            self.assertEqual({'batchItemFailures': []}, result)
+            self.assertEqual(2, mock_state_email.call_count)
+            call_jurisdictions = sorted(call.kwargs['jurisdiction'] for call in mock_state_email.call_args_list)
+            self.assertEqual(['al', 'oh'], call_jurisdictions)
+        finally:
+            config.__dict__.pop('live_compact_jurisdictions', None)
+
     def _when_testing_privilege_lift_handler_with_encumbered_privilege(self, encumbered_status, mock_state_email):
         from cc_common.data_model.schema.common import PrivilegeEncumberedStatusEnum
         from handlers.encumbrance_events import privilege_encumbrance_lifting_notification_listener

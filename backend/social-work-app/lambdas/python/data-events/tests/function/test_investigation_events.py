@@ -159,6 +159,32 @@ class TestInvestigationEvents(TstFunction):
 
         self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
 
+    @patch('cc_common.email_service_client.EmailServiceClient.send_license_investigation_state_notification_email')
+    def test_license_investigation_listener_excludes_additional_notifications_for_unrecognized_license_type(
+        self, mock_state_email
+    ):
+        """Additional state notifications skip live jurisdictions that do not recognize the license type."""
+        from cc_common.config import config
+        from handlers.investigation_events import license_investigation_notification_listener
+
+        config.__dict__['live_compact_jurisdictions'] = {DEFAULT_COMPACT: ['al', 'co', 'oh']}
+        try:
+            self.test_data_generator.put_default_provider_record_in_provider_table()
+            self.test_data_generator.put_default_license_record_in_provider_table()
+
+            message = self._generate_license_investigation_message(
+                {'jurisdiction': 'al', 'licenseTypeAbbreviation': 'lbsw'}
+            )
+            event = self._create_sqs_event(message)
+            result = license_investigation_notification_listener(event, self.mock_context)
+
+            self.assertEqual({'batchItemFailures': []}, result)
+            self.assertEqual(2, mock_state_email.call_count)
+            call_jurisdictions = sorted(call.kwargs['jurisdiction'] for call in mock_state_email.call_args_list)
+            self.assertEqual(['al', 'oh'], call_jurisdictions)
+        finally:
+            config.__dict__.pop('live_compact_jurisdictions', None)
+
     @patch(
         'cc_common.email_service_client.EmailServiceClient.send_license_investigation_closed_state_notification_email'
     )
@@ -221,6 +247,32 @@ class TestInvestigationEvents(TstFunction):
         actual_state_calls_sorted = sorted(actual_state_calls, key=lambda x: x['jurisdiction'])
 
         self.assertEqual(expected_state_calls_sorted, actual_state_calls_sorted)
+
+    @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_state_notification_email')
+    def test_privilege_investigation_listener_excludes_additional_notifications_for_unrecognized_license_type(
+        self, mock_state_email
+    ):
+        """Additional state notifications skip live jurisdictions that do not recognize the license type."""
+        from cc_common.config import config
+        from handlers.investigation_events import privilege_investigation_notification_listener
+
+        config.__dict__['live_compact_jurisdictions'] = {DEFAULT_COMPACT: ['al', 'co', 'oh']}
+        try:
+            self.test_data_generator.put_default_provider_record_in_provider_table()
+            self.test_data_generator.put_default_license_record_in_provider_table()
+
+            message = self._generate_privilege_investigation_message(
+                {'jurisdiction': 'al', 'licenseTypeAbbreviation': 'lbsw'}
+            )
+            event = self._create_sqs_event(message)
+            result = privilege_investigation_notification_listener(event, self.mock_context)
+
+            self.assertEqual({'batchItemFailures': []}, result)
+            self.assertEqual(2, mock_state_email.call_count)
+            call_jurisdictions = sorted(call.kwargs['jurisdiction'] for call in mock_state_email.call_args_list)
+            self.assertEqual(['al', 'oh'], call_jurisdictions)
+        finally:
+            config.__dict__.pop('live_compact_jurisdictions', None)
 
     @patch('cc_common.email_service_client.EmailServiceClient.send_privilege_investigation_state_notification_email')
     def test_privilege_investigation_listener_processes_event_with_provider(self, mock_state_email):

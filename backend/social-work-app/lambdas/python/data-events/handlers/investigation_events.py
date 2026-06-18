@@ -6,6 +6,7 @@ from cc_common.data_model.schema.data_event.api import InvestigationEventDetailS
 from cc_common.data_model.schema.provider import ProviderData
 from cc_common.email_service_client import InvestigationNotificationTemplateVariables
 from cc_common.exceptions import CCInternalException
+from cc_common.license_recognition_util import LicenseRecognitionUtil
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import sqs_handler
 
@@ -61,11 +62,14 @@ def _send_additional_state_notifications(
     provider_id: UUID,
     excluded_jurisdiction: str,
     compact: str,
+    license_type_abbreviation: str,
     **notification_kwargs,
 ) -> None:
     """
-    Send notifications to all other states that are live in the compact.
-    Uses config live compact jurisdictions.
+    Send notifications to other live compact jurisdictions that recognize the impacted license type.
+
+    Uses config live compact jurisdictions. The excluded (primary) jurisdiction is always notified
+    separately and is not included here.
 
     :param notification_method: The email service method to call
     :param notification_type: Type of notification for logging
@@ -73,6 +77,7 @@ def _send_additional_state_notifications(
     :param provider_id: The provider ID
     :param excluded_jurisdiction: Jurisdiction to exclude from notifications
     :param compact: The compact identifier
+    :param license_type_abbreviation: Abbreviation of the impacted license type
     :param notification_kwargs: Additional arguments for the notification method
     """
     notification_jurisdictions = set()
@@ -83,7 +88,12 @@ def _send_additional_state_notifications(
         raise CCInternalException(message)
 
     for live_jurisdiction in config.live_compact_jurisdictions.get(compact, []):
-        if live_jurisdiction.lower() != excluded_jurisdiction.lower():
+        if (
+            live_jurisdiction.lower() != excluded_jurisdiction.lower()
+            and LicenseRecognitionUtil.license_type_is_recognized_in_jurisdiction(
+                compact, live_jurisdiction, license_type_abbreviation
+            )
+        ):
             notification_jurisdictions.add(live_jurisdiction)
 
     # Send notifications to all other live states
@@ -169,6 +179,7 @@ def license_investigation_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            license_type_abbreviation=license_type_abbreviation,
             investigation_jurisdiction=jurisdiction,
             license_type=license_type_name,
         )
@@ -238,6 +249,7 @@ def license_investigation_closed_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            license_type_abbreviation=license_type_abbreviation,
             investigation_jurisdiction=jurisdiction,
             license_type=license_type_name,
         )
@@ -299,6 +311,7 @@ def privilege_investigation_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            license_type_abbreviation=license_type_abbreviation,
             investigation_jurisdiction=jurisdiction,
             license_type=license_type_name,
         )
@@ -365,6 +378,7 @@ def privilege_investigation_closed_notification_listener(message: dict):
             provider_id=provider_id,
             excluded_jurisdiction=jurisdiction,
             compact=compact,
+            license_type_abbreviation=license_type_abbreviation,
             investigation_jurisdiction=jurisdiction,
             license_type=license_type_name,
         )

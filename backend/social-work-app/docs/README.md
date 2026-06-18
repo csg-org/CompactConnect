@@ -50,7 +50,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
 | licenseNumber* | License number | String (max 100 chars) | OT12345 |
-| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `licensed clinical social worker`, `licensed master social worker`, `licensed bachelor social worker` | licensed clinical social worker |
+| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `licensed clinical social worker`, `licensed master social worker`, `licensed bachelors social worker` | licensed clinical social worker |
 | licenseScope* | Whether the license is a single-state or multi-state license under the compact. Multi-state licenses in a provider's home jurisdiction can generate privileges to practice in other compact member states. | One of: `single-state`, `multi-state` | single-state |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
