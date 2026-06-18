@@ -12,7 +12,10 @@ export const SAMPLE_INGEST_SUCCESS_RECORD = {
         'S': 'oh'
     },
     'licenseType': {
-        'S': 'cosmetologist'
+        'S': 'licensed clinical social worker'
+    },
+    'licenseScope': {
+        'S': 'single-state'
     },
     'status': {
         'S': 'active'
@@ -130,6 +133,27 @@ export const SAMPLE_VALIDATION_ERROR_RECORD = {
                 'S': 'active'
             }
         }
+    }
+};
+
+export const SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD_NO_RECORD_NUMBER = {
+    'pk': 'COMPACT#socw#JURISDICTION#oh',
+    'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#aabbccdd-0000-0000-0000-000000000001',
+    'eventType': 'license.validation-error',
+    'eventTime': '2024-10-30T04:47:55.843000+00:00',
+    'compact': 'socw',
+    'jurisdiction': 'oh',
+    'errors': {
+        '_schema': [
+            'Multi-state license uploaded as compact eligible but the associated single-state license in the same jurisdiction is ineligible.'
+        ]
+    },
+    'validData': {
+        'licenseScope': 'multi-state',
+        'compactEligibility': 'eligible',
+        'licenseType': 'licensed clinical social worker',
+        'familyName': 'Carreño Quiñones',
+        'givenName': 'María',
     }
 };
 

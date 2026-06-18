@@ -145,6 +145,7 @@ class TestProcessBulkUploadFile(TstLambdas):
 
         # mock static response for the events client when we put messages on the event bus
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
+        mock_config.current_standard_datetime = datetime.now(tz=UTC)
         # this method returns a list of any message ids that failed to send, in this test case, there are no failures
         mock_send_licenses_to_preprocessing_queue.return_value = []
 

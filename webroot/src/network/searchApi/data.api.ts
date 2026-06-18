@@ -226,7 +226,7 @@ export class SearchDataApi implements DataApiInterface {
                 const privilegeConditionBool = privilegeCondition.nested.query.bool;
 
                 if (isForPrivileges) {
-                    privilegeCondition.nested.inner_hits = {};
+                    privilegeCondition.nested.inner_hits = { size: 100 }; // OpenSerch default inner_hits.size is 3
                 }
 
                 if (privilegeState) {

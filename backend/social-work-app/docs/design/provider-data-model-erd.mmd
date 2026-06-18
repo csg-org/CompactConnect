@@ -1,0 +1,161 @@
+---
+title: Social Work Provider Table - DynamoDB Record Types (all share partition key pattern = {compact}#PROVIDER#{providerId})
+config:
+  theme: neutral
+---
+erDiagram
+    PROVIDER {
+        string sk "{compact}#PROVIDER"
+        string type "provider"
+        datetime dateOfUpdate
+        string providerId
+        string compact
+        string licenseJurisdiction "home jurisdiction"
+        string jurisdictionUploadedLicenseStatus
+        string jurisdictionUploadedCompactEligibility
+        string encumberedStatus "optional"
+        string ssnLastFour
+        string givenName
+        string middleName "optional"
+        string familyName
+        string suffix "optional"
+        date dateOfExpiration "from home jurisdiction license"
+        date dateOfBirth
+        string birthMonthDay "GSI, MM-DD for date-of-birth search"
+        string providerFamGivMid "GSI, composite name for search"
+        datetime providerDateOfUpdate "GSI, mirrors dateOfUpdate"
+    }
+
+    LICENSE {
+        string sk "{compact}#PROVIDER#license/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#"
+        string type "license"
+        datetime dateOfUpdate
+        string providerId
+        string compact
+        string jurisdiction
+        string licenseType
+        string licenseScope "single-state | multi-state"
+        string licenseNumber
+        string ssnLastFour
+        string jurisdictionUploadedLicenseStatus "jurisdiction-reported license status: active/inactive"
+        string jurisdictionUploadedCompactEligibility "jurisdiction-reported compact eligibility: eligible/ineligible"
+        string licenseStatusName "optional, jurisdiction-provided label"
+        string encumberedStatus "optional, encumbered or unencumbered"
+        string investigationStatus "optional, under investigation or not"
+        string givenName 
+        string middleName
+        string familyName 
+        string suffix "optional"
+        date dateOfIssuance
+        date dateOfRenewal "optional"
+        date dateOfExpiration
+        date dateOfBirth
+        string homeAddressStreet1
+        string homeAddressStreet2 "optional"
+        string homeAddressCity
+        string homeAddressState
+        string homeAddressPostalCode
+        string emailAddress "optional"
+        string phoneNumber "optional"
+        datetime firstUploadDate "optional, first ingest that created record"
+        string licenseGSIPK "GSI, enables search by compact and jurisdiction"
+        string licenseGSISK "GSI, enables license search by provider name"
+        string licenseUploadDateGSIPK "optional GSI, enables license search by upload month"
+        string licenseUploadDateGSISK "optional GSI, enables license search by upload timestamp"
+    }
+
+    LICENSE_UPDATE {
+        string sk "{compact}#UPDATE#3#license/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}/{createDate}/{changeHash}"
+        string type "licenseUpdate"
+        datetime dateOfUpdate
+        string updateType
+        string providerId
+        string compact
+        string jurisdiction
+        string licenseType
+        string licenseScope
+        object previous "license data before change"
+        datetime createDate "when update record was written"
+        datetime effectiveDate "when change took effect"
+        object updatedValues "fields that changed"
+        object investigationDetails "optional, if updateType is investigation"
+        list removedValues "optional, field names that were removed"
+        string licenseUploadDateGSIPK "optional GSI, upload month"
+        string licenseUploadDateGSISK "optional GSI, upload timestamp"
+    }
+
+    PROVIDER_UPDATE {
+        string sk "{compact}#UPDATE#2#provider/{createDate}/{changeHash}"
+        string type "providerUpdate"
+        datetime dateOfUpdate
+        string updateType
+        string providerId
+        string compact
+        object previous "provider data before change"
+        datetime createDate "when update record was written"
+        object updatedValues "fields that changed"
+        list removedValues "optional, field names that were removed"
+    }
+
+    ADVERSE_ACTION["ADVERSE_ACTION (Encumbrance)"] {
+        string sk "{compact}#PROVIDER#{license|privilege}/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#ADVERSE_ACTION#{adverseActionId}"
+        string type "adverseAction"
+        datetime dateOfUpdate
+        string compact
+        string providerId
+        string jurisdiction
+        string licenseTypeAbbreviation
+        string licenseType
+        string licenseScope
+        string actionAgainst "license | privilege"
+        string encumbranceType
+        list clinicalPrivilegeActionCategories
+        date effectiveStartDate "when encumbrance began"
+        uuid submittingUser "staff user who created action"
+        datetime creationDate "when record was created"
+        uuid adverseActionId
+        date effectiveLiftDate "optional, when encumbrance was lifted"
+        uuid liftingUser "optional, staff user who lifted action"
+    }
+
+    INVESTIGATION {
+        string sk "{compact}#PROVIDER#{license|privilege}/{jurisdiction}/{licenseTypeAbbreviation}/{licenseScope}#INVESTIGATION#{investigationId}"
+        string type "investigation"
+        datetime dateOfUpdate
+        string compact
+        string providerId
+        string jurisdiction
+        string licenseType
+        string licenseScope
+        string investigationAgainst "license | privilege"
+        uuid investigationId
+        uuid submittingUser "staff user who opened investigation"
+        datetime creationDate "when investigation was opened"
+        datetime closeDate "optional, when investigation was closed"
+        uuid closingUser "optional, staff user who closed investigation"
+        uuid resultingEncumbranceId "optional, encumbrance created on close"
+    }
+
+    PRIVILEGE["PRIVILEGE (Authorization to practice in a compact member state) - generated at read"] {
+        string type "privilege"
+        string providerId
+        string compact
+        string jurisdiction "compact member state where provider may practice"
+        string licenseJurisdiction "home jurisdiction of multi-state license"
+        string licenseType "from home multi-state license"
+        date dateOfExpiration "from home multi-state license"
+        string administratorSetStatus "always active in current model"
+        string status "derived active/inactive from license eligibility and encumbrances"
+        string investigationStatus "optional, set when open investigations exist"
+        list adverseActions "privilege-targeted encumbrances"
+        list investigations "open privilege investigations"
+    }
+
+    PROVIDER ||--|{ LICENSE : "holds"
+    PROVIDER ||--o{ PROVIDER_UPDATE : "one provider can have zero to many updates"
+    LICENSE ||--o{ LICENSE_UPDATE : "one license can have zero to many updates"
+    LICENSE ||--o{ ADVERSE_ACTION : "one license can have zero to many adverse actions"
+    LICENSE ||--o{ INVESTIGATION : "one license can have zero to many investigations"
+    LICENSE ||..o{ PRIVILEGE : "multi-state home license generates zero to many privileges"
+    PRIVILEGE ||..o{ ADVERSE_ACTION : "one privilege can have zero to many adverse actions"
+    PRIVILEGE ||..o{ INVESTIGATION : "one privilege can have zero to many investigations"

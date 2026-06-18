@@ -113,6 +113,30 @@ class TestPostUser(TstFunction):
 
         self.assertEqual(403, resp['statusCode'])
 
+    def test_post_user_forbidden_compact_read_ssn(self):
+        from handlers.users import post_user
+
+        self._when_testing_with_valid_jurisdiction()
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json') as f:
+            api_user = json.load(f)
+
+        api_user['permissions'] = {'aslp': {'actions': {'readSSN': True}, 'jurisdictions': {'oh': {'actions': {}}}}}
+        event['body'] = json.dumps(api_user)
+
+        # The user has admin permission for oh/aslp, not compact-level admin
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp'}
+
+        resp = post_user(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])
+
     def test_post_user_returns_400_if_invalid_jurisdiction_permission_set(self):
         from handlers.users import post_user
 

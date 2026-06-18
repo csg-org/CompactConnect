@@ -125,6 +125,7 @@ class ApiModel:
                         'homeAddressState',
                         'homeAddressPostalCode',
                         'licenseType',
+                        'licenseScope',
                         'dateOfIssuance',
                         'dateOfExpiration',
                         'licenseStatus',
@@ -170,6 +171,7 @@ class ApiModel:
                 type=JsonSchemaType.STRING, format='date', pattern=compact_connect_api.YMD_FORMAT
             ),
             'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'licenseScope': JsonSchema(type=JsonSchemaType.STRING, enum=['single-state', 'multi-state']),
             'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),

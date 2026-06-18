@@ -34,7 +34,8 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
                     'dateOfUpdate': '2024-06-06T12:59:59+00:00',
                     'compact': 'socw',
                     'jurisdiction': 'oh',
-                    'licenseType': 'cosmetologist',
+                    'licenseType': 'licensed clinical social worker',
+                    'licenseScope': 'single-state',
                     'licenseStatus': 'active',
                     'jurisdictionUploadedLicenseStatus': 'active',
                     'compactEligibility': 'eligible',
@@ -49,7 +50,6 @@ class TestProviderOpenSearchDocumentSchema(TstLambdas):
                     'homeAddressState': 'OH',
                     'homeAddressPostalCode': '43215',
                     'dateOfBirth': '1985-06-06',
-                    'mostRecentLicenseForType': True,
                 }
             ],
             'privileges': [],

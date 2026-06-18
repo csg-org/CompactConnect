@@ -18,6 +18,8 @@ from cc_common.data_model.schema.common import (
     CompactEligibilityStatus,
     LicenseEncumberedStatusEnum,
     UpdateCategory,
+    license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -27,6 +29,7 @@ from cc_common.data_model.schema.fields import (
     ITUTE164PhoneNumber,
     Jurisdiction,
     LicenseEncumberedStatusField,
+    LicenseScopeField,
     UpdateType,
 )
 from cc_common.data_model.schema.investigation.record import InvestigationDetailsSchema
@@ -120,9 +123,10 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseCommonSchema):
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
-        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}/{license_type_abbr}#'
+        suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, in_data['licenseScope'])
+        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{suffix}#'
         return in_data
 
     @pre_dump
@@ -171,6 +175,7 @@ class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
     """
 
     licenseNumber = String(required=True, allow_none=False, validate=Length(1, 100))
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     ssnLastFour = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -213,6 +218,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     previous = Nested(LicenseUpdateRecordPreviousSchema, required=True, allow_none=False)
     # this tracks when the update record was created
     createDate = AwareDateTime(required=True, allow_none=False)
@@ -240,14 +246,16 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         the most sensitive field in the record. More to the point, we need to be sure that this internal field is never
         served out via API.
         """
-        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['pk'] = provider_pk(in_data['compact'], in_data['providerId'])
         # This needs to include an iso formatted datetime string and a hash of the changes
         # to the record. We'll use the createDate and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
         license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+        license_scope = in_data['licenseScope']
+        suffix = license_sk_suffix(in_data['jurisdiction'], license_type_abbr, license_scope)
         in_data['sk'] = (
-            f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_THREE}#license/{in_data["jurisdiction"]}/{license_type_abbr}/{in_data["createDate"]}/{change_hash}'
+            f'{in_data["compact"]}#UPDATE#{UpdateTierEnum.TIER_THREE}#license/{suffix}/{in_data["createDate"]}/{change_hash}'
         )
         return in_data
 

@@ -147,13 +147,18 @@ class _Config:
         The new format is:
         {
             "socw": [
-                {"abbreviation": "cos", "name": "cosmetologist"},
-                {"abbreviation": "esth", "name": "esthetician"}
+                {"abbreviation": "lcsw", "name": "licensed clinical social worker"},
+                {"abbreviation": "lmsw", "name": "licensed master social worker"},
+                {"abbreviation": "lbsw", "name": "licensed bachelor social worker"}
             ]
         }
         The returned format is:
         {
-            "socw": ["cosmetologist", "esthetician"]
+            "socw": [
+                "licensed clinical social worker",
+                "licensed master social worker",
+                "licensed bachelor social worker"
+            ]
         }
         """
         raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
@@ -166,8 +171,9 @@ class _Config:
         Returns a structure like:
         {
             "socw": {
-                "cosmetologist": "cos",
-                "esthetician": "esth"
+                "licensed clinical social worker": "lcsw",
+                "licensed master social worker": "lmsw",
+                "licensed bachelor social worker": "lbsw"
             }
         }
         """

@@ -40,6 +40,13 @@
           "licenseType": {
             "type": "string"
           },
+          "licenseScope": {
+            "enum": [
+              "single-state",
+              "multi-state"
+            ],
+            "type": "string"
+          },
           "actionAgainst": {
             "type": "string"
           },
@@ -91,6 +98,7 @@
           "jurisdiction",
           "licenseTypeAbbreviation",
           "licenseType",
+          "licenseScope",
           "actionAgainst",
           "effectiveStartDate",
           "creationDate",
@@ -139,7 +147,7 @@
           "licenseType": {
             "enum": [
               "licensed clinical social worker",
-              "licensed master social worker,",
+              "licensed master social worker",
               "licensed bachelor social worker"
             ],
             "type": "string"
@@ -226,7 +234,7 @@
                 "licenseType": {
                   "enum": [
                     "licensed clinical social worker",
-                    "licensed master social worker,",
+                    "licensed master social worker",
                     "licensed bachelor social worker"
                   ],
                   "type": "string"
@@ -320,6 +328,13 @@
                       "enum": [
                         "active",
                         "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "licenseScope": {
+                      "enum": [
+                        "single-state",
+                        "multi-state"
                       ],
                       "type": "string"
                     },
@@ -456,6 +471,13 @@
                       ],
                       "type": "string"
                     },
+                    "licenseScope": {
+                      "enum": [
+                        "single-state",
+                        "multi-state"
+                      ],
+                      "type": "string"
+                    },
                     "licenseStatusName": {
                       "maxLength": 100,
                       "minLength": 1,
@@ -546,6 +568,13 @@
                 "licenseType": {
                   "type": "string"
                 },
+                "licenseScope": {
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ],
+                  "type": "string"
+                },
                 "actionAgainst": {
                   "type": "string"
                 },
@@ -597,6 +626,7 @@
                 "jurisdiction",
                 "licenseTypeAbbreviation",
                 "licenseType",
+                "licenseScope",
                 "actionAgainst",
                 "effectiveStartDate",
                 "creationDate",
@@ -648,6 +678,13 @@
                 "licenseType": {
                   "type": "string"
                 },
+                "licenseScope": {
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ],
+                  "type": "string"
+                },
                 "dateOfUpdate": {
                   "format": "date-time",
                   "type": "string"
@@ -667,6 +704,7 @@
                 "investigationId",
                 "jurisdiction",
                 "licenseType",
+                "licenseScope",
                 "dateOfUpdate",
                 "creationDate",
                 "submittingUser"
@@ -747,6 +785,13 @@
             "pattern": "^[12]{1}[0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$",
             "type": "string"
           },
+          "licenseScope": {
+            "enum": [
+              "single-state",
+              "multi-state"
+            ],
+            "type": "string"
+          },
           "licenseStatusName": {
             "maxLength": 100,
             "minLength": 1,
@@ -782,6 +827,7 @@
           "homeAddressState",
           "homeAddressPostalCode",
           "licenseType",
+          "licenseScope",
           "dateOfIssuance",
           "dateOfRenewal",
           "dateOfExpiration",
@@ -845,7 +891,7 @@
                 "licenseType": {
                   "enum": [
                     "licensed clinical social worker",
-                    "licensed master social worker,",
+                    "licensed master social worker",
                     "licensed bachelor social worker"
                   ],
                   "type": "string"
@@ -1029,7 +1075,7 @@
           "licenseType": {
             "enum": [
               "licensed clinical social worker",
-              "licensed master social worker,",
+              "licensed master social worker",
               "licensed bachelor social worker"
             ],
             "type": "string"
@@ -1072,6 +1118,13 @@
                   "type": "string"
                 },
                 "licenseType": {
+                  "type": "string"
+                },
+                "licenseScope": {
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ],
                   "type": "string"
                 },
                 "actionAgainst": {
@@ -1125,6 +1178,7 @@
                 "jurisdiction",
                 "licenseTypeAbbreviation",
                 "licenseType",
+                "licenseScope",
                 "actionAgainst",
                 "effectiveStartDate",
                 "creationDate",
@@ -1176,6 +1230,13 @@
                 "licenseType": {
                   "type": "string"
                 },
+                "licenseScope": {
+                  "enum": [
+                    "single-state",
+                    "multi-state"
+                  ],
+                  "type": "string"
+                },
                 "dateOfUpdate": {
                   "format": "date-time",
                   "type": "string"
@@ -1195,6 +1256,7 @@
                 "investigationId",
                 "jurisdiction",
                 "licenseType",
+                "licenseScope",
                 "dateOfUpdate",
                 "creationDate",
                 "submittingUser"

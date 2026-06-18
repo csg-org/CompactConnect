@@ -40,6 +40,7 @@ class IneligibleUpdate:
     update_time: str
     reason: str
     license_type: str | None = None  # License type if applicable
+    license_scope: str | None = None  # License scope if applicable
 
 
 @dataclass
@@ -65,6 +66,7 @@ class RevertedLicense:
 
     jurisdiction: str
     license_type: str
+    license_scope: str
     action: str
 
 
@@ -101,6 +103,7 @@ class RollbackResults:
                             'updateTime': update.update_time,
                             'reason': update.reason,
                             'licenseType': update.license_type,
+                            'licenseScope': update.license_scope,
                         }
                         for update in detail.ineligible_updates
                     ],
@@ -121,6 +124,7 @@ class RollbackResults:
                         {
                             'jurisdiction': license_record.jurisdiction,
                             'licenseType': license_record.license_type,
+                            'licenseScope': license_record.license_scope,
                             'action': license_record.action,
                         }
                         for license_record in summary.licenses_reverted
@@ -146,7 +150,8 @@ class RollbackResults:
                             type_of_update=update['typeOfUpdate'],
                             update_time=update['updateTime'],
                             reason=update['reason'],
-                            license_type=update['licenseType'],
+                            license_type=update.get('licenseType'),
+                            license_scope=update.get('licenseScope'),
                         )
                         for update in detail.get('ineligibleUpdates', [])
                     ],
@@ -167,6 +172,7 @@ class RollbackResults:
                         RevertedLicense(
                             jurisdiction=reverted_license['jurisdiction'],
                             license_type=reverted_license['licenseType'],
+                            license_scope=reverted_license['licenseScope'],
                             action=reverted_license['action'],
                         )
                         for reverted_license in summary.get('licensesReverted', [])
@@ -545,20 +551,21 @@ def _check_for_orphaned_update_records(
     # Get all license update records
     all_license_updates = provider_records.get_all_license_update_records()
 
-    # Extract unique (jurisdiction, license_type) pairs from update records
-    license_keys_from_updates: set[tuple[str, str]] = set()
+    # Extract unique (jurisdiction, license_type, license_scope) tuples from update records
+    license_keys_from_updates: set[tuple[str, str, str]] = set()
 
     for update in all_license_updates:
-        license_keys_from_updates.add((update.jurisdiction, update.licenseType))
+        license_keys_from_updates.add((update.jurisdiction, update.licenseType, update.licenseScope))
 
     # Check if each license key has a corresponding top-level license record
-    for license_jurisdiction, license_type in license_keys_from_updates:
-        # Try to find the license record
+    for license_jurisdiction, license_type, license_scope in license_keys_from_updates:
         license_record = next(
             (
                 record
                 for record in provider_records.get_license_records()
-                if record.jurisdiction == license_jurisdiction and record.licenseType == license_type
+                if record.jurisdiction == license_jurisdiction
+                and record.licenseType == license_type
+                and record.licenseScope == license_scope
             ),
             None,
         )
@@ -570,9 +577,12 @@ def _check_for_orphaned_update_records(
                 type_of_update='Orphaned',
                 update_time='N/A',
                 license_type=license_type,
-                reason=f'License update record(s) exist for license in jurisdiction '
-                f'{license_jurisdiction} with type {license_type}, but no corresponding top-level '
-                f'license record was found. This indicates data inconsistency. Manual review required.',
+                license_scope=license_scope,
+                reason=(
+                    f'License update record(s) exist for license in jurisdiction {license_jurisdiction} '
+                    f'with type {license_type} and scope {license_scope}, but no corresponding top-level '
+                    f'license record was found. This indicates data inconsistency. Manual review required.'
+                ),
             )
 
     return None
@@ -667,6 +677,7 @@ def _build_and_execute_revert_transactions(
         license_updates_after_start = provider_records.get_update_records_for_license(
             jurisdiction=license_record.jurisdiction,
             license_type=license_record.licenseType,
+            license_scope=license_record.licenseScope,
             filter_condition=lambda x: x.createDate >= upload_window_start_datetime,
         )
 
@@ -684,6 +695,7 @@ def _build_and_execute_revert_transactions(
                         type_of_update=license_update.updateType,
                         update_time=license_update.createDate.isoformat(),
                         license_type=license_update.licenseType,
+                        license_scope=license_update.licenseScope,
                         reason='License was updated with a change unrelated to license upload or the update '
                         'occurred after rollback end time. Manual review required.',
                     )
@@ -712,6 +724,7 @@ def _build_and_execute_revert_transactions(
                 RevertedLicense(
                     jurisdiction=license_record.jurisdiction,
                     license_type=license_record.licenseType,
+                    license_scope=license_record.licenseScope,
                     action='DELETE',
                 )
             )
@@ -740,9 +753,55 @@ def _build_and_execute_revert_transactions(
                 RevertedLicense(
                     jurisdiction=license_record.jurisdiction,
                     license_type=license_record.licenseType,
+                    license_scope=license_record.licenseScope,
                     action='REVERT',
                 )
             )
+
+    # Gather provider update records created during the window. These capture top-level provider
+    # changes (e.g. home jurisdiction) caused by the upload and let us restore the exact prior state
+    # instead of recomputing it from the best remaining license.
+    provider_revert_target: ProviderData | None = None
+    provider_updates_in_window = provider_records.get_all_provider_update_records(
+        filter_condition=lambda x: x.createDate >= upload_window_start_datetime
+    )
+
+    eligible_provider_updates_in_window = []
+    for provider_update in provider_updates_in_window:
+        updated_home_jurisdiction = provider_update.updatedValues.get('licenseJurisdiction')
+        if (
+            provider_update.updateType not in LICENSE_UPLOAD_UPDATE_CATEGORIES
+            or provider_update.createDate > upload_window_end_datetime
+            or (updated_home_jurisdiction is not None and updated_home_jurisdiction.lower() != jurisdiction.lower())
+        ):
+            ineligible_updates.append(
+                IneligibleUpdate(
+                    record_type='providerUpdate',
+                    type_of_update=provider_update.updateType,
+                    update_time=provider_update.createDate.isoformat(),
+                    reason='Provider record was updated with a change unrelated to license upload, '
+                    'change was for a different jurisdiction, or the update occurred after rollback end time. '
+                    'Manual review required.',
+                )
+            )
+        else:
+            eligible_provider_updates_in_window.append(provider_update)
+            serialized_provider_update = provider_update.serialize_to_database_record()
+            add_delete(serialized_provider_update['pk'], serialized_provider_update['sk'], update_record=True)
+            updates_deleted_sks.append(serialized_provider_update['sk'])
+
+    has_license_uploaded_before_window = any(
+        license_record.firstUploadDate is not None and license_record.firstUploadDate < upload_window_start_datetime
+        for license_record in provider_records.get_license_records()
+    )
+    if eligible_provider_updates_in_window and has_license_uploaded_before_window:
+        # Only restore from provider update history when the provider had at least one
+        # license before the rollback window. Otherwise (provider created entirely from in-window
+        # uploads) leave provider_revert_target unset so the provider row is deleted when all
+        # licenses from the rollback are removed.
+        eligible_provider_updates_in_window.sort(key=lambda x: x.createDate)
+        earliest_provider_update = eligible_provider_updates_in_window[0]
+        provider_revert_target = ProviderData.create_new(earliest_provider_update.previous)
 
     # Check if provider is ineligible for rollback
     if ineligible_updates:
@@ -796,12 +855,16 @@ def _build_and_execute_revert_transactions(
     primary_record_transaction_items.clear()
 
     try:
-        best_license = provider_records_after_rollback.find_best_license_in_current_known_licenses()
-        updated_provider_record = ProviderRecordUtility.populate_provider_record(
-            current_provider_record=top_level_provider_record,
-            license_record=best_license.to_dict(),
-        )
-        add_put(updated_provider_record.serialize_to_database_record(), update_record=False)
+        if provider_revert_target is not None:
+            logger.info('Reverting top-level provider record to pre-upload state from provider update history')
+            add_put(provider_revert_target.serialize_to_database_record(), update_record=False)
+        else:
+            best_license = provider_records_after_rollback.find_best_license_in_current_known_licenses()
+            updated_provider_record = ProviderRecordUtility.populate_provider_record(
+                current_provider_record=top_level_provider_record,
+                license_record=best_license.to_dict(),
+            )
+            add_put(updated_provider_record.serialize_to_database_record(), update_record=False)
     except CCNotFoundException:
         # All licenses for the provider were removed as part of the rollback, meaning the provider
         # needs to be removed as well. We first check to make sure there are no other record types
@@ -863,6 +926,7 @@ def _publish_revert_events(
                     provider_id=revert_summary.provider_id,
                     jurisdiction=reverted_license.jurisdiction,
                     license_type=reverted_license.license_type,
+                    license_scope=reverted_license.license_scope,
                     rollback_reason=rollback_reason,
                     start_time=start_datetime,
                     end_time=end_datetime,
@@ -877,6 +941,7 @@ def _publish_revert_events(
                     provider_id=revert_summary.provider_id,
                     jurisdiction=reverted_license.jurisdiction,
                     license_type=reverted_license.license_type,
+                    license_scope=reverted_license.license_scope,
                     rollback_reason=rollback_reason,
                     start_time=start_datetime,
                     end_time=end_datetime,

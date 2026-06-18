@@ -70,6 +70,17 @@ class TestCollectChanges(TstLambdas):
                 compact_changes={'actions': {'admin': True}, 'jurisdictions': {}},
             )
 
+    def test_jurisdiction_admin_disallowed_compact_read_ssn_changes(self):
+        from cc_common.exceptions import CCAccessDeniedException
+        from cc_common.utils import collect_and_authorize_changes
+
+        with self.assertRaises(CCAccessDeniedException):
+            collect_and_authorize_changes(
+                path_compact='aslp',
+                scopes={'openid', 'email', 'oh/aslp.admin'},
+                compact_changes={'actions': {'readSSN': True}, 'jurisdictions': {}},
+            )
+
     @patch('cc_common.utils.config.compact_configuration_client')
     def test_compact_and_jurisdiction_changes(self, mock_compact_configuration_client):
         from cc_common.utils import collect_and_authorize_changes

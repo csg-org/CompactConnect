@@ -208,6 +208,27 @@ class TestPatchUser(TstFunction):
         api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
         self.assertEqual(api_user, user)
 
+    def test_patch_user_outside_jurisdiction_returns_404(self):
+        self._load_user_data()
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
+
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # NE admin cannot patch a user who only has OH permissions
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ne/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(404, resp['statusCode'])
+        self.assertEqual({'message': 'User not found'}, json.loads(resp['body']))
+
     def test_patch_user_forbidden(self):
         self._load_user_data()
         self._when_testing_with_valid_jurisdiction(compact='aslp')
@@ -223,6 +244,26 @@ class TestPatchUser(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])
+
+    def test_patch_user_forbidden_compact_read_ssn(self):
+        self._load_user_data()
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
+
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has admin permission for oh/aslp, not compact-level admin
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'aslp': {'actions': {'readSSN': True}}}})
 
         resp = patch_user(event, self.mock_context)
 
@@ -248,6 +289,57 @@ class TestPatchUser(TstFunction):
 
         self.assertEqual(404, resp['statusCode'])
         self.assertEqual({'message': 'User not found'}, json.loads(resp['body']))
+
+    def test_patch_user_allows_adding_read_ssn_permission(self):
+        self._load_user_data()
+        self._when_testing_with_valid_jurisdiction(compact='aslp')
+
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has admin permission for compact and oh
+        caller_id = self._when_testing_with_valid_caller()
+        event['requestContext']['authorizer']['claims']['sub'] = caller_id
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin aslp/admin'
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps(
+            {
+                'permissions': {
+                    'aslp': {
+                        'actions': {
+                            'readSSN': True,
+                        },
+                        'jurisdictions': {'oh': {'actions': {'readSSN': True}}},
+                    }
+                }
+            }
+        )
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+        self.assertEqual(
+            {
+                'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
+                'dateOfUpdate': '2024-09-12T23:59:59+00:00',
+                'status': StaffUserStatus.INACTIVE.value,
+                'permissions': {
+                    'aslp': {
+                        # test user starts with compact readPrivate, which should still be there
+                        'actions': {'readPrivate': True, 'readSSN': True},
+                        # test user starts with the write permission, so it should still be there
+                        'jurisdictions': {'oh': {'actions': {'write': True, 'readSSN': True}}},
+                    },
+                },
+                'type': 'user',
+                'userId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+            },
+            user,
+        )
 
     def test_patch_user_allows_adding_read_private_permission(self):
         self._load_user_data()

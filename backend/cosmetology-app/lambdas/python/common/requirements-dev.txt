@@ -17,11 +17,11 @@ aws-sam-translator==1.109.0
     # via cfn-lint
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.43.14
+boto3==1.43.18
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.43.14
+boto3-stubs[full]==1.43.18
     # via -r requirements-dev.in
 boto3-stubs-full==1.43.7
     # via boto3-stubs
@@ -145,7 +145,7 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-s3transfer==0.17.0
+s3transfer==0.18.0
     # via boto3
 six==1.17.0
     # via

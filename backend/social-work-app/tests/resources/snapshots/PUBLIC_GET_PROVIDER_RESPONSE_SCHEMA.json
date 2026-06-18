@@ -34,8 +34,15 @@
           "licenseType": {
             "enum": [
               "licensed clinical social worker",
-              "licensed master social worker,",
+              "licensed master social worker",
               "licensed bachelor social worker"
+            ],
+            "type": "string"
+          },
+          "licenseScope": {
+            "enum": [
+              "single-state",
+              "multi-state"
             ],
             "type": "string"
           },
@@ -69,6 +76,7 @@
           "compact",
           "jurisdiction",
           "licenseType",
+          "licenseScope",
           "licenseStatus",
           "compactEligibility",
           "dateOfExpiration",
@@ -130,7 +138,7 @@
           "licenseType": {
             "enum": [
               "licensed clinical social worker",
-              "licensed master social worker,",
+              "licensed master social worker",
               "licensed bachelor social worker"
             ],
             "type": "string"

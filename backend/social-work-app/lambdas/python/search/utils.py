@@ -47,7 +47,8 @@ def generate_provider_opensearch_documents(compact: str, provider_id: str) -> li
         license_info = serializable['licenses'][0]
         jurisdiction = license_info['jurisdiction']
         license_type = license_info['licenseType']
-        serializable['documentId'] = f'{provider_id}#{jurisdiction}#{license_type}'
+        license_scope = license_info['licenseScope']
+        serializable['documentId'] = f'{provider_id}#{jurisdiction}#{license_type}#{license_scope}'
 
         result.append(serializable)
 

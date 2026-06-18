@@ -123,7 +123,8 @@ curl --location --request POST 'https://state-api.beta.compactconnect.org/v1/com
     "licenseStatusName":"Active",
     "licenseStatus":"active",
     "compactEligibility":"eligible",
-    "licenseType":"cosmetologist",
+    "licenseType":"licensed clinical social worker",
+    "licenseScope":"single-state",
     "givenName":"Jane",
     "middleName":"Marie",
     "familyName":"Smith",
@@ -235,6 +236,7 @@ For your convenience, use of this feature is included in the [Postman Collection
 **Important Notes**:
 - If `licenseStatus` is "inactive", `compactEligibility` cannot be "eligible"
 - `licenseType` must match exactly with one of the valid types for the specified compact
+- `licenseScope` must be exactly `single-state` or `multi-state`
 - All date fields must use the `YYYY-MM-DD` format
 - The API does not accept `null` values. For optional fields with no value, omit the field or leave it empty in CSV.
 - For CSV uploads, SSNs must be unique within a single file. Do not include multiple rows with the same `ssn` in one upload. If duplicate SSNs are sent within the same file, the first row will be processed, but all other duplicate rows will be rejected.

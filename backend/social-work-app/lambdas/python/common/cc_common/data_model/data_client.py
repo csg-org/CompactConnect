@@ -22,6 +22,8 @@ from cc_common.data_model.schema.common import (
     InvestigationStatusEnum,
     LicenseEncumberedStatusEnum,
     UpdateCategory,
+    license_sk_suffix,
+    provider_pk,
 )
 from cc_common.data_model.schema.investigation import InvestigationData
 from cc_common.data_model.schema.license import LicenseData, LicenseUpdateData
@@ -74,7 +76,7 @@ class DataClient:
     def get_ssn_by_provider_id(self, *, compact: str, provider_id: str) -> str:
         logger.info('Getting ssn by provider id', compact=compact, provider_id=provider_id)
         resp = self.config.ssn_table.query(
-            KeyConditionExpression=Key('providerIdGSIpk').eq(f'{compact}#PROVIDER#{provider_id}'),
+            KeyConditionExpression=Key('providerIdGSIpk').eq(provider_pk(compact, provider_id)),
             IndexName=self.config.ssn_index_name,
         )['Items']
         if len(resp) == 0:
@@ -148,7 +150,7 @@ class DataClient:
 
         resp = self.config.provider_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
+            KeyConditionExpression=Key('pk').eq(provider_pk(compact, provider_id)) & sk_condition,
             ConsistentRead=consistent_read,
             **dynamo_pagination,
         )
@@ -188,7 +190,7 @@ class DataClient:
 
             query_resp = self.config.provider_table.query(
                 Select='ALL_ATTRIBUTES',
-                KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
+                KeyConditionExpression=Key('pk').eq(provider_pk(compact, provider_id)) & sk_condition,
                 ConsistentRead=consistent_read,
                 **pagination,
             )
@@ -301,7 +303,7 @@ class DataClient:
             request_items = {
                 self.config.provider_table.table_name: {
                     'Keys': [
-                        {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'}
+                        {'pk': provider_pk(compact, provider_id), 'sk': f'{compact}#PROVIDER'}
                         for provider_id in batch_ids
                     ],
                     'ConsistentRead': True,
@@ -349,7 +351,7 @@ class DataClient:
         logger.info('Getting top level provider record')
         provider = self.config.provider_table.get_item(
             Key={
-                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'pk': provider_pk(compact, provider_id),
                 'sk': f'{compact}#PROVIDER',
             },
             ConsistentRead=True,
@@ -512,7 +514,7 @@ class DataClient:
         try:
             provider_record = self.config.provider_table.get_item(
                 Key={
-                    'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
+                    'pk': provider_pk(adverse_action.compact, adverse_action.providerId),
                     'sk': f'{adverse_action.compact}#PROVIDER',
                 },
             )['Item']
@@ -637,9 +639,15 @@ class DataClient:
             try:
                 license_record = self.config.provider_table.get_item(
                     Key={
-                        'pk': f'{adverse_action.compact}#PROVIDER#{adverse_action.providerId}',
+                        'pk': provider_pk(adverse_action.compact, adverse_action.providerId),
                         'sk': f'{adverse_action.compact}#PROVIDER#license/'
-                        f'{adverse_action.jurisdiction}/{adverse_action.licenseTypeAbbreviation}#',
+                        f'{
+                            license_sk_suffix(
+                                adverse_action.jurisdiction,
+                                adverse_action.licenseTypeAbbreviation,
+                                adverse_action.licenseScope,
+                            )
+                        }#',
                     },
                 )['Item']
             except KeyError as e:
@@ -678,6 +686,7 @@ class DataClient:
                     'compact': adverse_action.compact,
                     'jurisdiction': adverse_action.jurisdiction,
                     'licenseType': license_data.licenseType,
+                    'licenseScope': license_data.licenseScope,
                     'createDate': now,
                     'effectiveDate': effective_date_time,
                     'previous': {
@@ -751,7 +760,9 @@ class DataClient:
             # put investigation + license update record + update license.
             if investigation.investigationAgainst == InvestigationAgainstEnum.LICENSE:
                 record = provider_records.get_specific_license_record(
-                    investigation.jurisdiction, investigation.licenseTypeAbbreviation
+                    investigation.jurisdiction,
+                    investigation.licenseTypeAbbreviation,
+                    investigation.licenseScope,
                 )
                 if not record:
                     message = f'{record_type.title()} not found for jurisdiction'
@@ -773,6 +784,7 @@ class DataClient:
                         'createDate': investigation.creationDate,
                         'effectiveDate': investigation.creationDate,
                         'licenseType': investigation.licenseType,
+                        'licenseScope': investigation.licenseScope,
                         'previous': record.to_dict(),
                         'updatedValues': {
                             'investigationStatus': InvestigationStatusEnum.UNDER_INVESTIGATION,
@@ -819,6 +831,7 @@ class DataClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         investigation_id: UUID,
         closing_user: str,
         close_date: datetime,
@@ -834,6 +847,7 @@ class DataClient:
         :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction
         :param license_type_abbreviation: The license type abbreviation
+        :param license_scope: The license scope (single-state or multi-state)
         :param investigation_id: The investigation ID
         :param closing_user: The user who closed the investigation
         :param close_date: The date that the investigation was closed
@@ -856,7 +870,9 @@ class DataClient:
 
             # Find the investigation to close and count other open investigations
             if investigation_against == InvestigationAgainstEnum.LICENSE:
-                record = provider_records.get_specific_license_record(jurisdiction, license_type_abbreviation)
+                record = provider_records.get_specific_license_record(
+                    jurisdiction, license_type_abbreviation, license_scope
+                )
                 if not record:
                     message = f'{record_type.title()} not found for jurisdiction'
                     logger.info(message)
@@ -865,6 +881,7 @@ class DataClient:
                 open_investigations = provider_records.get_investigation_records_for_license(
                     jurisdiction,
                     license_type_abbreviation,
+                    license_scope,
                     filter_condition=lambda inv: inv.investigationId != investigation_id,
                 )
                 investigation = next(
@@ -873,6 +890,7 @@ class DataClient:
                         for inv in provider_records.get_investigation_records_for_license(
                             jurisdiction,
                             license_type_abbreviation,
+                            license_scope,
                             filter_condition=lambda inv: inv.investigationId == investigation_id,
                         )
                     ),
@@ -947,6 +965,7 @@ class DataClient:
                         'createDate': close_date,
                         'effectiveDate': close_date,
                         'licenseType': record.licenseType,
+                        'licenseScope': record.licenseScope,
                         'previous': record.to_dict(),
                         'updatedValues': {},
                         'removedValues': ['investigationStatus'],
@@ -1065,6 +1084,7 @@ class DataClient:
         provider_id: UUID,
         jurisdiction: str,
         license_type_abbreviation: str,
+        license_scope: str,
         adverse_action_id: UUID,
         effective_lift_date: date,
         lifting_user: str,
@@ -1077,6 +1097,7 @@ class DataClient:
         :param UUID provider_id: The provider ID
         :param str jurisdiction: The jurisdiction
         :param str license_type_abbreviation: The license type abbreviation
+        :param str license_scope: The license scope (single-state or multi-state)
         :param UUID adverse_action_id: The adverse action ID to lift
         :param date effective_lift_date: The effective date when the encumbrance is lifted
         :param str lifting_user: The cognito sub of the user lifting the encumbrance
@@ -1105,6 +1126,7 @@ class DataClient:
             adverse_action_records = provider_user_records.get_adverse_action_records_for_license(
                 license_jurisdiction=jurisdiction,
                 license_type_abbreviation=license_type_abbreviation,
+                license_scope=license_scope,
             )
 
             # Find the specific adverse action record to lift
@@ -1113,7 +1135,9 @@ class DataClient:
             # Get the license record
             license_records = provider_user_records.get_license_records(
                 filter_condition=lambda record: (
-                    record.jurisdiction == jurisdiction and record.licenseType == license_type_name
+                    record.jurisdiction == jurisdiction
+                    and record.licenseType == license_type_name
+                    and record.licenseScope == license_scope
                 )
             )
 
@@ -1164,6 +1188,7 @@ class DataClient:
                         'compact': compact,
                         'jurisdiction': jurisdiction,
                         'licenseType': license_data.licenseType,
+                        'licenseScope': license_data.licenseScope,
                         'createDate': now,
                         'effectiveDate': effective_date_time,
                         'previous': license_data.to_dict(),

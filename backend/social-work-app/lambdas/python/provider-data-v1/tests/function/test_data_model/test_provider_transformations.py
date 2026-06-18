@@ -30,56 +30,59 @@ class TestTransformations(TstFunction):
         # license data as it comes in from a board, in this case, as POSTed through the API
         with open('../common/tests/resources/api/license-post.json') as f:
             license_post = json.load(f)
+        with open('../common/tests/resources/api/license-post-multi-state.json') as f:
+            multi_state_license_post = json.load(f)
         license_ssn = license_post['ssn']
 
-        # The API Gateway event, as it is presented to the API lambda
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
+        for license_record in (license_post, multi_state_license_post):
+            # The API Gateway event, as it is presented to the API lambda
+            with open('../common/tests/resources/api-event.json') as f:
+                event = json.load(f)
 
-        # Pack an array of one license into the request body
-        event['body'] = json.dumps([license_post])
+            # Pack an array of one license into the request body
+            event['body'] = json.dumps([license_record])
 
-        # Compact and jurisdiction are provided via path parameters
-        event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
-        # Authorize ourselves to write the license
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.write'
+            # Compact and jurisdiction are provided via path parameters
+            event['pathParameters'] = {'compact': 'socw', 'jurisdiction': 'oh'}
+            # Authorize ourselves to write the license
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/socw.write'
 
-        from handlers.licenses import post_licenses
+            from handlers.licenses import post_licenses
 
-        # POST the license via the API
-        post_licenses(event, self.mock_context)
+            # POST the license via the API
+            post_licenses(event, self.mock_context)
 
-        # Capture the message sent to the preprocessing queue
-        preprocessing_message = json.loads(
-            mock_license_preprocessing_queue.send_messages.call_args.kwargs['Entries'][0]['MessageBody']
-        )
+            # Capture the message sent to the preprocessing queue
+            preprocessing_message = json.loads(
+                mock_license_preprocessing_queue.send_messages.call_args.kwargs['Entries'][0]['MessageBody']
+            )
 
-        # Now we need to simulate the preprocessing step
-        # Mock EventBatchWriter so we can intercept the EventBridge event
-        with patch('handlers.ingest.config.events_client', autospec=True) as mock_event_client:
-            from handlers.ingest import preprocess_license_ingest
+            # Now we need to simulate the preprocessing step
+            # Mock EventBatchWriter so we can intercept the EventBridge event
+            with patch('handlers.ingest.config.events_client', autospec=True) as mock_event_client:
+                from handlers.ingest import preprocess_license_ingest
 
-            # Create an SQS event with our preprocessing message
-            preprocess_event = {'Records': [{'messageId': '123', 'body': json.dumps(preprocessing_message)}]}
+                # Create an SQS event with our preprocessing message
+                preprocess_event = {'Records': [{'messageId': '123', 'body': json.dumps(preprocessing_message)}]}
 
-            # Run the preprocessing step
-            preprocess_license_ingest(preprocess_event, self.mock_context)
+                # Run the preprocessing step
+                preprocess_license_ingest(preprocess_event, self.mock_context)
 
-            # Capture the event the preprocessor will produce for the event bus
-            event_bridge_event = json.loads(mock_event_client.put_events.call_args.kwargs['Entries'][0]['Detail'])
+                # Capture the event the preprocessor will produce for the event bus
+                event_bridge_event = json.loads(mock_event_client.put_events.call_args.kwargs['Entries'][0]['Detail'])
 
-        # A sample SQS message from EventBridge
-        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
-            message = json.load(f)
+            # A sample SQS message from EventBridge
+            with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+                message = json.load(f)
 
-        # Pack our license.ingest event into the sample message
-        message['detail'] = event_bridge_event
-        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+            # Pack our license.ingest event into the sample message
+            message['detail'] = event_bridge_event
+            event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
-        from handlers.ingest import ingest_license_message
+            from handlers.ingest import ingest_license_message
 
-        # This should fully ingest the license, which will result in it being written to the DB
-        ingest_license_message(event, self.mock_context)
+            # This should fully ingest the license, which will result in it being written to the DB
+            ingest_license_message(event, self.mock_context)
 
         # We'll fetch the provider id from the ssn table
         provider_id = self._ssn_table.get_item(Key={'pk': f'socw#SSN#{license_ssn}', 'sk': f'socw#SSN#{license_ssn}'})[
@@ -92,9 +95,11 @@ class TestTransformations(TstFunction):
             compact='socw', provider_id=provider_id, include_update_tier=UpdateTierEnum.TIER_THREE
         )
 
-        # One record for each of: provider and license (no privileges inSocial Workmodel)
-        self.assertEqual(2, len(provider_user_records.provider_records))
-        records = {item['type']: item for item in provider_user_records.provider_records}
+        # One record for each of: provider and license (no privileges in Social Work model)
+        license_records = [r for r in provider_user_records.provider_records if r['type'] == 'license']
+        self.assertEqual(2, len(license_records))
+        records = {item['type']: item for item in provider_user_records.provider_records if item['type'] != 'license'}
+        records['license'] = next(r for r in license_records if r['licenseScope'] == 'single-state')
 
         # Expected representation of each record in the database
         with open('../common/tests/resources/dynamo/provider.json') as f:
@@ -110,7 +115,7 @@ class TestTransformations(TstFunction):
             expected_license['firstUploadDate'] = MOCK_CURRENT_DATETIME_STRING
             expected_license['licenseUploadDateGSIPK'] = 'C#socw#J#oh#D#2024-11'
             expected_license['licenseUploadDateGSISK'] = (
-                'TIME#1731110399#LT#cos#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
+                'TIME#1731110399#LT#lcsw#PID#89a6377e-c3a5-40e5-bca5-317ec854c570'
             )
 
         # each record has a dynamic dateOfUpdate field that we'll remove for comparison
@@ -150,9 +155,11 @@ class TestTransformations(TstFunction):
 
         # Drop dynamic fields from comparison
         del provider_data['dateOfUpdate']
-        del provider_data['licenses'][0]['dateOfUpdate']
         del expected_provider['dateOfUpdate']
-        del expected_provider['licenses'][0]['dateOfUpdate']
+        for license_data in provider_data['licenses']:
+            del license_data['dateOfUpdate']
+        for license_data in expected_provider['licenses']:
+            del license_data['dateOfUpdate']
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.maxDiff = None

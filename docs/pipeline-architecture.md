@@ -1,7 +1,5 @@
 # CDK Pipeline Architecture Design
 
-[View Pipeline Architecture (PDF)](./pipeline-architecture.pdf)
-
 ## Overview
 
 The CompactConnect CI/CD pipeline architecture implements an optimized deployment strategy built around AWS CDK
@@ -12,13 +10,12 @@ separate backend and frontend pipelines to improve deployment speed, reliability
 
 ### Backend Pipelines
 
-There are different backend pipelines for each environment, defined as part of this CDK app. Those pipelines deploy
-infrastructure resources and backend components to environment-specific application AWS accounts.
+There are different backend pipelines for each compact for each environment, defined as part of each respective CDK app (`compact-connect/pipeline`, `cosmetology-app/pipeline`, `social-work-app/pipeline`, etc). Those pipelines deploy infrastructure resources and backend components to environment-specific application AWS accounts.
 
 ### Frontend Pipelines
 
 There are also different frontend pipelines for each environment. These pipelines are defined as part of the separate
-[CompactConnect UI App](../../../compact-connect-ui-app/README.md). The frontend pipelines deploy application hosting
+[CompactConnect UI App](../backend/compact-connect-ui-app/README.md). The frontend pipelines deploy application hosting
 infrastructure to the environment-specific application AWS accounts, based on backend configuration values provided
 by the backend deploy process.
 
@@ -32,8 +29,13 @@ by the backend deploy process.
 Commits are pushed to the `main` branch, but no deployments are triggered by commits. Each pipeline has an associated
 git tag pattern, which will trigger the corresponding backend/frontend pipeline to the corresponding environment. The
 patterns are as follows:
-- CompactConnect backend pipeline: `cc-<test|prod>-*`
-- CompactConnect frontend pipeline: `ui-<test|prod>-*`
+- JCC backend pipeline: `cc-<test|prod>-*`
+- Cosmetology backend pipeline: `cosm-<test|prod>-*`
+- Social Work backend pipeline: `sw-<test|prod>-*` (compact abbreviation `socw`)
+
+- frontend pipeline: `ui-<test|prod>-*`
+
+`test` tags deploy to the test environment; `prod` tags deploy to beta and production.
 
 ## Self-Mutation Feature and Optimization
 
@@ -65,14 +67,13 @@ as lightweight placeholders during the synthesis process:
 1. During pipeline synthesis, we pass in cdk context variables to determine which specific pipeline is being
    synthesized.
 
-2. For any stage that isn't part of the current pipeline being synthesized, we replace it with a `SynthSubstituteStage`
-   containing a minimal `SynthSubstituteStack`.
+2. For any stage that isn't part of the current pipeline being synthesized, we replace it with a `SynthSubstituteStage` containing a minimal `SynthSubstituteStack`.
 
 3. The substitute stack synths a single SSM parameter resource, dramatically reducing synthesis time compared to full application stacks.
 
 ## Implementation Details
 
-The substitution mechanism relies on CDK context values which we pass in during the CDK synth step of the pipeline definition (see the [BackendPipeline](../backend_pipeline.py) and [FrontendPipeline](../frontend_pipeline.py) class constructors, specifically the `synth.commands` property):
+The substitution mechanism relies on CDK context values which we pass in during the CDK synth step of the pipeline definition (see the [BackendPipeline](../backend/compact-connect/pipeline/backend_pipeline.py) and [FrontendPipeline](../backend/compact-connect-ui-app/pipeline/frontend_pipeline.py) class constructors, specifically the `synth.commands` property):
 
 ```python
 commands=[
@@ -113,4 +114,6 @@ def _determine_backend_stage(self, construct_id, app_name, environment_name, env
 ```
 
 # Bootstrapping the piplines
-See this [README.md](../../README.md) for details on performing a bootstrap deployment of the pipelines.
+See the README in your compact's backend app directory (for example,
+[compact-connect](../backend/compact-connect/README.md)) for details on performing a bootstrap deployment of the
+pipelines.

@@ -7,7 +7,19 @@ from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import (
     Compact,
     Jurisdiction,
+    LicenseScopeField,
 )
+
+
+class InvestigationPostRequestSchema(ForgivingSchema):
+    """
+    Schema for license investigation POST requests.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
 
 
 class InvestigationPatchRequestSchema(ForgivingSchema):
@@ -25,6 +37,10 @@ class InvestigationPatchRequestSchema(ForgivingSchema):
     encumbrance = Nested(AdverseActionPostRequestSchema, required=False, allow_none=False)
 
 
+class LicenseInvestigationPatchRequestSchema(InvestigationPatchRequestSchema):
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
+
+
 class InvestigationGeneralResponseSchema(ForgivingSchema):
     """
     Schema for investigation general responses.
@@ -39,6 +55,7 @@ class InvestigationGeneralResponseSchema(ForgivingSchema):
     investigationId = Raw(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
 
     creationDate = Raw(required=True, allow_none=False)

@@ -48,20 +48,16 @@ The system implements strict controls for SSN access:
 
 1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and
    customer-managed KMS encryption.
-2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN`
-   scope.
-3. **Comprehensive Audit Logging**:
+2. **Comprehensive Audit Logging**:
    - All SSN data access through the application is logged with user identity, timestamp, and access context
    - Direct database access is independently tracked through our secure audit logging system (see
      [Audit Logging](#audit-logging))
-4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
+3. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
 
 #### SSN Role-Based Access
 Three specialized IAM roles control access to SSN data:
    - `license_upload_role`: Used by upload handlers to encrypt SSN data for the preprocessing queue.
    - `ingest_role`: Used by the license preprocessor to create and update SSN records in the SSN table.
-   - `api_query_role`: Used by the Get SSN API endpoint to allow staff users to read the SSN for an individual provider
-     per request (staff user must have the readSSN permission).
 
 ### Ingest Flow
 
@@ -152,10 +148,7 @@ Board ED level staff may be granted the following permissions at a jurisdiction 
 their permissions.
 - `write` - grants access to write data for their particular jurisdiction (ie uploading license information).
 - `readPrivate` - grants access to view all information for any licensee that has either a license or privilege within
-  their jurisdiction (except the full SSN, see `readSSN` permission below. This permission allows viewing the last 4
-  digits of the SSN).
-- `readSSN` - grants access to view the full SSN for any licensee that has either a license or privilege within their
-  jurisdiction.
+  their jurisdiction (except the full SSN. This permission allows viewing the last 4 digits of the SSN).
 
 #### Implementation of Scopes
 
@@ -176,15 +169,10 @@ different compacts. For example, the Kentucky (KY) resource server would have sc
 ky/cosm.admin
 ky/cosm.write
 ky/cosm.readPrivate
-ky/cosm.readSSN
-ky/octp.admin
-ky/octp.write
-ky/octp.readPrivate
-ky/octp.readSSN
 ```
 
-If a user has the `ky/aslp.admin` scope, for example, they will be able to perform any admin action within the Kentucky
-jurisdiction within the ASLP compact.
+If a user has the `ky/cosm.admin` scope, for example, they will be able to perform any admin action within the Kentucky
+jurisdiction within the Cosmetology compact.
 
 Each compact also has its own resource server with compact-wide scopes, which are used to control access to data across
 all jurisdictions within a compact:
@@ -193,10 +181,9 @@ all jurisdictions within a compact:
 cosm/admin
 cosm/readGeneral
 cosm/readPrivate
-cosm/readSSN
 ```
 
-If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
+If a user has the `cosm/admin` scope, for example, they will be able to perform any admin action for any jurisdiction
 within the compact.
 
 Staff users in a compact will also be implicitly granted the `readGeneral` scope for the associated compact,
@@ -283,15 +270,18 @@ adverse actions, and investigations.
 CompactConnect maintains a comprehensive historical record of each provider from their first addition to the system.
 Any change to a provider's status, dates, or demographic information creates a supporting record that tracks the change.
 
-For license changes, records use sort keys like `cosm#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This key
-contains:
-- The jurisdiction (e.g., "oh")
-- "UPDATE" indicator
-- POSIX timestamp of the change
-- A hash of the previous and updated values for uniqueness
+Update record sort keys are tiered to allow the system to query update records within certain tiers. By default,
+provider queries in the data client load only primary records (sort keys beginning with `{compact}#PROVIDER`); update history is excluded
+unless a caller explicitly requests it, using a tier limit to include provider updates (tier 2) or license updates
+(tier 3) as needed. This sort pattern was adapted from the original JCC model,
+which uses tier 1 for tracking privilege updates.
 
-This historical tracking allows authorized users to determine a provider's practice eligibility status in any member
-state for any point in time since they entered the system.
+For license changes, records use sort keys like
+`socw#UPDATE#3#license/oh/lcsw/2024-06-06T12:59:59+00:00/1a812bc8f`. This key contains:
+- Update tier (`3` for license updates, allows for querying specific update record types)
+- The jurisdiction and license type abbreviation
+- ISO timestamp of the change (`createDate`)
+- A hash of the previous and updated values for uniqueness
 
 ### Global Secondary Indexes (GSIs)
 
@@ -308,6 +298,10 @@ The provider table includes several GSIs to support different access patterns:
 3. **License GSI** (`licenseGSI`):
    - Facilitates finding licenses by jurisdiction and provider name
    - Supports compact and jurisdiction-specific queries
+
+4. **License Upload Date Index** (`licenseUploadDateGSI`):
+   - Supports querying licenses and license upload updates by compact, jurisdiction, and upload month
+   - Populated when a license record includes `firstUploadDate` or when a license update is tied to an upload event
 
 ### Security and Status Calculation
 
@@ -478,7 +472,7 @@ usage metrics to determine if the Domain needs to be scaled up:
 ## CI/CD Pipelines
 
 This project leverages AWS CodePipeline to deploy the backend and frontend infrastructure. See the
-[pipeline architecture docs](./pipeline-architecture.md) for detailed discussion.
+[pipeline architecture docs](../../../../docs/pipeline-architecture.md) for detailed discussion.
 
 ## Audit Logging
 [Back to top](#backend-design)

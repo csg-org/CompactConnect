@@ -2,7 +2,7 @@ from uuid import UUID
 
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderData, ProviderUserRecords
-from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum
+from cc_common.data_model.schema.common import LicenseEncumberedStatusEnum, LicenseScopeEnum
 from cc_common.data_model.schema.data_event.api import (
     EncumbranceEventDetailSchema,
 )
@@ -331,19 +331,33 @@ def privilege_encumbrance_lifting_notification_listener(message: dict, tracker: 
 
         # Get latest effective lift date for all adverse actions related to privilege/license
         # and determine the actual effective date when privilege was effectively unencumbered.
-        license_associated_with_privilege = provider_records.find_best_license_in_current_known_licenses(
-            license_type_abbreviation=license_type_abbreviation
+        multi_state_license_associated_with_privilege = provider_records.find_best_license_in_current_known_licenses(
+            license_type_abbreviation=license_type_abbreviation,
         )
-        if license_associated_with_privilege.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
+
+        # If the 'best' license associated with the license type is not found or is not a multi-state license,
+        # this is an unexpected state and results in an error.
+        if (
+            multi_state_license_associated_with_privilege is None
+            or multi_state_license_associated_with_privilege.licenseScope != LicenseScopeEnum.MULTI_STATE
+        ):
+            logger.error(
+                'No multi-state license associated with privilege.',
+                provider_home_jurisdiction=provider_record.licenseJurisdiction,
+            )
+            raise CCInternalException('No multi-state license associated with privilege.')
+
+        if multi_state_license_associated_with_privilege.encumberedStatus == LicenseEncumberedStatusEnum.ENCUMBERED:
             logger.info(
                 'License is still encumbered. Not sending privilege encumbrance lift notifications.',
-                jurisdiction=license_associated_with_privilege.jurisdiction,
+                jurisdiction=multi_state_license_associated_with_privilege.jurisdiction,
             )
             return
 
         latest_license_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
-            license_jurisdiction=license_associated_with_privilege.jurisdiction,
+            license_jurisdiction=multi_state_license_associated_with_privilege.jurisdiction,
             license_type_abbreviation=license_type_abbreviation,
+            license_scope=multi_state_license_associated_with_privilege.licenseScope,
         )
 
         latest_privilege_lift_date = provider_records.get_latest_effective_lift_date_for_privilege_adverse_actions(
@@ -417,6 +431,7 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    license_scope = detail['licenseScope']
     effective_date = detail['effectiveDate']
     event_time = detail['eventTime']
 
@@ -425,6 +440,7 @@ def license_encumbrance_notification_listener(message: dict, tracker: Notificati
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        license_scope=license_scope,
         event_time=event_time,
     ):
         logger.info('Processing license encumbrance notification event')
@@ -487,6 +503,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    license_scope = detail['licenseScope']
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -494,6 +511,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        license_scope=license_scope,
         event_time=event_time,
     ):
         logger.info('Processing license encumbrance lifting notification event')
@@ -505,7 +523,9 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         provider_records, provider_record = _get_provider_records(compact, provider_id)
 
         target_license = provider_records.get_specific_license_record(
-            jurisdiction=jurisdiction, license_abbreviation=license_type_abbreviation
+            jurisdiction=jurisdiction,
+            license_abbreviation=license_type_abbreviation,
+            license_scope=license_scope,
         )
 
         if target_license is None:
@@ -528,6 +548,7 @@ def license_encumbrance_lifting_notification_listener(message: dict, tracker: No
         latest_effective_lift_date = provider_records.get_latest_effective_lift_date_for_license_adverse_actions(
             license_jurisdiction=target_license.jurisdiction,
             license_type_abbreviation=target_license.licenseTypeAbbreviation,
+            license_scope=license_scope,
         )
 
         # State Notifications

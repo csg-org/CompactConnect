@@ -1061,7 +1061,7 @@ class TestStatSigClient(TstFunction):
         client = StatSigFeatureFlagClient(environment='test')
 
         result = client.upsert_flag(
-            'list-attrs-flag', auto_enable=False, custom_attributes={'licenseType': ['cos', 'esth']}
+            'list-attrs-flag', auto_enable=False, custom_attributes={'licenseType': ['lcsw', 'lmsw']}
         )
 
         # Verify result
@@ -1085,7 +1085,7 @@ class TestStatSigClient(TstFunction):
                         'conditions': [
                             {
                                 'type': 'custom_field',
-                                'targetValue': ['cos', 'esth'],
+                                'targetValue': ['lcsw', 'lmsw'],
                                 'field': 'licenseType',
                                 'operator': 'any',
                             }

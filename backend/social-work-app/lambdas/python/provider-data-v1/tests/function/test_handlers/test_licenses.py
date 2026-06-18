@@ -154,7 +154,14 @@ class TestLicenses(TstFunction):
         self.assertEqual(
             {
                 'message': 'Invalid license records in request. See errors for more detail.',
-                'errors': {'0': {'licenseType': ['Must be one of: cosmetologist, esthetician.']}},
+                'errors': {
+                    '0': {
+                        'licenseType': [
+                            'Must be one of: licensed clinical social worker, licensed master social worker, '
+                            'licensed bachelor social worker.'
+                        ]
+                    }
+                },
             },
             json.loads(resp['body']),
         )
@@ -234,6 +241,7 @@ class TestLicenses(TstFunction):
                         'homeAddressState': ['Missing data for required field.'],
                         'homeAddressStreet1': ['Missing data for required field.'],
                         'licenseNumber': ['Missing data for required field.'],
+                        'licenseScope': ['Missing data for required field.'],
                         'licenseStatus': ['Missing data for required field.'],
                         'licenseType': ['Missing data for required field.'],
                         'ssn': ['Missing data for required field.'],
@@ -393,8 +401,8 @@ class TestLicenses(TstFunction):
             {
                 'message': 'Invalid license records in request. See errors for more detail.',
                 'errors': {
-                    'SSN': 'Same SSN for the same license type detected on multiple rows. '
-                    'Every record must have a unique SSN per license type within the same request.',
+                    'SSN': 'Same SSN, license type, and license scope detected on multiple rows. '
+                    'Every record must have a unique SSN per license type and scope within the same request.',
                 },
             },
             json.loads(resp['body']),
@@ -415,8 +423,8 @@ class TestLicenses(TstFunction):
 
         # Create second license with same SSN but different license type
         license_data_2 = license_data_1.copy()
-        license_data_1['licenseType'] = 'esthetician'
-        license_data_2['licenseType'] = 'cosmetologist'
+        license_data_1['licenseType'] = 'licensed master social worker'
+        license_data_2['licenseType'] = 'licensed clinical social worker'
 
         event['body'] = json.dumps([license_data_1, license_data_2])
 

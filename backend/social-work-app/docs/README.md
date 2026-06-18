@@ -6,7 +6,7 @@ look [here](./design/README.md).
 
 ## Introduction
 
-TheSocial Workcompact commission is building a system to share professional licensure data between state licensing boards to facilitate participation in the occupational licensure compact.
+The Social Work compact commission is building a system to share professional licensure data between state licensing boards to facilitate participation in the occupational licensure compact.
 
 ## Table of Contents
 - **[How to use the API bulk-upload feature](#how-to-use-the-api-bulk-upload-feature)**
@@ -50,7 +50,8 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
 | licenseNumber* | License number | String (max 100 chars) | OT12345 |
-| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `cosmetologist`, `esthetician` | cosmetologist |
+| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `licensed clinical social worker`, `licensed master social worker`, `licensed bachelor social worker` | licensed clinical social worker |
+| licenseScope* | Whether the license is a single-state or multi-state license under the compact. Multi-state licenses in a provider's home jurisdiction can generate privileges to practice in other compact member states. | One of: `single-state`, `multi-state` | single-state |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
 | licenseStatus* | Current status of the license. "active" means they are allowed to practice their profession. *Note: licenses will automatically be displayed as `inactive` after their date of expiration, even if the last upload still showed them as `active`.* | One of: `active`, `inactive` | active |
 | licenseStatusName | An optional more descriptive name of the license status. | String (max 100 chars) | SUSPENDED |
@@ -62,12 +63,12 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |
 #### Example CSV
 ```csv
-dateOfIssuance,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,A0608337260,2024-06-30,cosmetologist,Guðmundsdóttir,Birmingham,Gunnar,active,ACTIVE,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
-2024-06-30,B0608337260,2024-06-30,esthetician,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
-2024-06-30,C0608337260,2024-06-30,cosmetologist,毛,Hoover,泽,active,ACTIVE,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
-2024-06-30,D0608337260,2024-06-30,cosmetologist,Adams,Tuscaloosa,Michael,inactive,EXPIRED,ineligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
-2024-06-30,E0608337260,2024-06-30,cosmetologist,Carreño Quiñones,Montgomery,José,active,ACTIVE_IN_RENEWAL,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
+dateOfIssuance,licenseNumber,dateOfBirth,licenseType,licenseScope,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
+2024-06-30,A0608337260,2024-06-30,licensed clinical social worker,single-state,Guðmundsdóttir,Birmingham,Gunnar,active,ACTIVE,eligible,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
+2024-06-30,B0608337260,2024-06-30,licensed master social worker,multi-state,Scott,Huntsville,Patricia,active,ACTIVE,eligible,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
+2024-06-30,C0608337260,2024-06-30,licensed clinical social worker,single-state,毛,Hoover,泽,active,ACTIVE,eligible,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
+2024-06-30,D0608337260,2024-06-30,licensed clinical social worker,single-state,Adams,Tuscaloosa,Michael,inactive,EXPIRED,ineligible,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
+2024-06-30,E0608337260,2024-06-30,licensed clinical social worker,single-state,Carreño Quiñones,Montgomery,José,active,ACTIVE_IN_RENEWAL,eligible,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
 ```
 
 ### Manual Uploads
@@ -93,8 +94,8 @@ If data is not available for an optional field, it must be left empty in the cas
 
 **CSV Example with missing optional fields:**
 ```csv
-dateOfIssuance,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,COS12345,2024-06-30,cosmetologist,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
+dateOfIssuance,licenseNumber,dateOfBirth,licenseType,licenseScope,familyName,homeAddressCity,middleName,licenseStatus,licenseStatusName,compactEligibility,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
+2024-06-30,COS12345,2024-06-30,licensed clinical social worker,single-state,Guðmundsdóttir,Birmingham,,active,,eligible,529-31-5408,123 A St.,,2024-06-30,oh,35004,Björk,
 ```
 
 ### What if we don't have data for a required field?

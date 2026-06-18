@@ -34,7 +34,8 @@ JURISDICTION = 'az'
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseRollback@smokeTestFakeEmail.com'
 TEST_APP_CLIENT_NAME = 'test-license-rollback-client'
 
-LICENSE_TYPE = 'cosmetologist'
+LICENSE_TYPE = 'licensed clinical social worker'
+LICENSE_UPLOAD_SCOPE = 'single-state'
 
 # Test configuration
 NUM_LICENSES_TO_UPLOAD = 100
@@ -83,6 +84,7 @@ def upload_test_license_batch(
             'dateOfIssuance': '2020-01-01',
             'ssn': f'555-50-{i:04d}',  # Incrementing SSN with padded zeros
             'licenseType': LICENSE_TYPE,
+            'licenseScope': LICENSE_UPLOAD_SCOPE,
             'dateOfExpiration': '2050-12-10',
             'homeAddressState': 'AZ',
             'homeAddressCity': 'Phoenix',
@@ -390,12 +392,12 @@ def create_encumbrance_update_for_provider(provider_id: str, compact: str, licen
     :param license_jurisdiction: The jurisdiction of the license
     """
 
-    license_type_abbr = 'cos'
+    license_type_abbr = 'lcsw'
     # Use current time or specified time
     now = datetime.now(tz=UTC)
 
     # First, query the actual license record to get the previous state
-    license_sk = f'{compact}#PROVIDER#license/{license_jurisdiction}/{license_type_abbr}#'
+    license_sk = f'{compact}#PROVIDER#license/{license_jurisdiction}/{license_type_abbr}/{LICENSE_UPLOAD_SCOPE}#'
 
     try:
         response = config.provider_user_dynamodb_table.get_item(
@@ -423,6 +425,7 @@ def create_encumbrance_update_for_provider(provider_id: str, compact: str, licen
             'compact': compact,
             'jurisdiction': license_jurisdiction,
             'licenseType': LICENSE_TYPE,
+            'licenseScope': license_record.licenseScope,
             'createDate': now,
             'effectiveDate': now,
             'previous': license_record.to_dict(),

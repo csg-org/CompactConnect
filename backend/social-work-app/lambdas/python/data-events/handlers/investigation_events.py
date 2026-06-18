@@ -128,6 +128,7 @@ def license_investigation_notification_listener(message: dict):
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    license_scope = detail.get('licenseScope')
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -135,6 +136,7 @@ def license_investigation_notification_listener(message: dict):
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        license_scope=license_scope,
         event_time=event_time,
     ):
         logger.info('Processing license investigation event')
@@ -189,6 +191,7 @@ def license_investigation_closed_notification_listener(message: dict):
     provider_id = detail['providerId']
     jurisdiction = detail['jurisdiction']
     license_type_abbreviation = detail['licenseTypeAbbreviation']
+    license_scope = detail.get('licenseScope')
     event_time = detail['eventTime']
 
     with logger.append_context_keys(
@@ -196,6 +199,7 @@ def license_investigation_closed_notification_listener(message: dict):
         provider_id=provider_id,
         jurisdiction=jurisdiction,
         license_type_abbreviation=license_type_abbreviation,
+        license_scope=license_scope,
         event_time=event_time,
     ):
         logger.info('Processing license investigation closed event')

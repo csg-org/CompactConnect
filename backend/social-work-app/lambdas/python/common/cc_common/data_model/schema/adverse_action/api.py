@@ -9,6 +9,7 @@ from cc_common.data_model.schema.fields import (
     Compact,
     EncumbranceTypeField,
     Jurisdiction,
+    LicenseScopeField,
 )
 
 
@@ -32,6 +33,10 @@ class AdverseActionPostRequestSchema(ForgivingSchema):
     )
 
 
+class LicenseEncumbrancePostRequestSchema(AdverseActionPostRequestSchema):
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
+
+
 class AdverseActionPatchRequestSchema(ForgivingSchema):
     """
     Schema for adverse action PATCH requests (encumbrance lifting).
@@ -44,6 +49,10 @@ class AdverseActionPatchRequestSchema(ForgivingSchema):
     """
 
     effectiveLiftDate = Date(required=True, allow_none=False)
+
+
+class LicenseEncumbrancePatchRequestSchema(AdverseActionPatchRequestSchema):
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
 
 
 class AdverseActionPublicResponseSchema(ForgivingSchema):
@@ -60,6 +69,7 @@ class AdverseActionPublicResponseSchema(ForgivingSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseTypeAbbreviation = String(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
+    licenseScope = LicenseScopeField(required=True, allow_none=False)
     actionAgainst = String(required=True, allow_none=False, validate=OneOf([e for e in AdverseActionAgainstEnum]))
 
     # Populated on creation
