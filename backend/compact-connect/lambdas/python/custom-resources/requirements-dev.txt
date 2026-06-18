@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/custom-resources/requirements-dev.in
 #
-boto3==1.43.18
+boto3==1.43.27
     # via moto
-botocore==1.43.18
+botocore==1.43.32
     # via
     #   boto3
     #   moto
@@ -17,7 +17,7 @@ cffi==2.0.0
     # via cryptography
 charset-normalizer==3.4.7
     # via requests
-cryptography==48.0.0
+cryptography==48.0.1
     # via moto
 docker==7.1.0
     # via moto
@@ -29,7 +29,7 @@ jmespath==1.1.0
     #   botocore
 markupsafe==3.0.3
     # via werkzeug
-moto[dynamodb,s3]==5.2.1
+moto[dynamodb,s3]==5.2.2
     # via -r requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
