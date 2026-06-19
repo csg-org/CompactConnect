@@ -1,18 +1,16 @@
 import csv
 import json
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 from botocore.exceptions import ClientError
+from common_test.test_constants import DEFAULT_DATE_OF_UPDATE_TIMESTAMP
 from moto import mock_aws
 
 from tests.function import TstFunction
 
 VALIDATION_ERROR_EVENT_TIME = '2024-11-08T23:59:59+00:00'
-
-mock_flag_client = MagicMock()
-mock_flag_client.return_value = True
 
 
 @mock_aws
@@ -46,7 +44,7 @@ class TestBulkUpload(TstFunction):
 
 
 @mock_aws
-@patch('cc_common.feature_flag_client.is_feature_enabled', mock_flag_client)
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(DEFAULT_DATE_OF_UPDATE_TIMESTAMP))
 class TestProcessObjects(TstFunction):
     def test_uploaded_csv(self):
         from handlers.bulk_upload import parse_bulk_upload_file
@@ -411,7 +409,7 @@ class TestProcessObjects(TstFunction):
                 'DetailType': 'license.validation-error',
                 'Detail': json.dumps(
                     {
-                        'eventTime': '1970-01-01T00:00:00+00:00',
+                        'eventTime': DEFAULT_DATE_OF_UPDATE_TIMESTAMP,
                         'compact': 'socw',
                         'jurisdiction': 'co',
                         'recordNumber': 1,
