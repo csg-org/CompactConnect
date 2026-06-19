@@ -95,6 +95,14 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.$store.getters.isAppModeCosmetology;
     }
 
+    get isAppModeSocialWork(): boolean {
+        return this.$store.getters.isAppModeSocialWork;
+    }
+
+    get isAppGroupModePrivilegePurchase(): boolean {
+        return this.$store.getters.isAppGroupModePrivilegePurchase;
+    }
+
     get currentUser(): StaffUser {
         return this.userStore.model;
     }
@@ -228,7 +236,7 @@ class PrivilegeCard extends mixins(MixinForm) {
             name: disciplineType.name,
         }));
 
-        if (this.isAppModeCosmetology) {
+        if (this.isAppModeCosmetology || this.isAppModeSocialWork) {
             const includeList = ['suspension', 'revocation', 'surrender of privilege'];
 
             options = options.filter((option) => includeList.includes(option.value));
@@ -247,7 +255,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
-        const { isAppModeJcc, isAppModeCosmetology } = this;
+        const { isAppModeJcc, isAppModeCosmetology, isAppModeSocialWork } = this;
         let options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
@@ -257,7 +265,7 @@ class PrivilegeCard extends mixins(MixinForm) {
             const excludeList = ['Consumer Harm'];
 
             options = options.filter((option) => !excludeList.includes(option.value));
-        } else if (isAppModeCosmetology) {
+        } else if (isAppModeCosmetology || isAppModeSocialWork) {
             const includeList = ['Fraud, Deception, or Misrepresentation', 'Consumer Harm', 'Other'];
 
             options = options.filter((option) => includeList.includes(option.value));

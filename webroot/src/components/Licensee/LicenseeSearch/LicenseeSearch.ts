@@ -114,6 +114,18 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.$store.getters.isAppModeCosmetology;
     }
 
+    get isAppModeSocialWork(): boolean {
+        return this.$store.getters.isAppModeSocialWork;
+    }
+
+    get isAppGroupModePrivilegePurchase(): boolean {
+        return this.$store.getters.isAppGroupModePrivilegePurchase;
+    }
+
+    get isAppGroupModeMultiState(): boolean {
+        return this.$store.getters.isAppGroupModeMultiState;
+    }
+
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
     }
@@ -444,6 +456,9 @@ class LicenseeSearch extends mixins(MixinForm) {
             this.formData.investigationStatus.value = 'underInvestigation';
             this.formData.npi.value = 'ABC123';
         } else if (this.isAppModeCosmetology) {
+            this.formData.licenseNumber.value = 'ABC123';
+            this.formData.dob.value = moment('1970-01-01').format('YYYY-MM-DD');
+        } else if (this.isAppModeSocialWork) {
             this.formData.licenseNumber.value = 'ABC123';
             this.formData.dob.value = moment('1970-01-01').format('YYYY-MM-DD');
         }

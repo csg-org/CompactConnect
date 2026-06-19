@@ -15,9 +15,11 @@
         <form v-else class="state-config-form" @submit.prevent="handleSubmit(false)">
             <div class="state-config-form-container">
                 <!-- Privilege fees -->
-                <h2 v-if="isAppModeJcc" class="form-section-title fees">{{ $t('compact.privilegeFees') }}</h2>
+                <h2 v-if="isAppGroupModePrivilegePurchase" class="form-section-title fees">
+                    {{ $t('compact.privilegeFees') }}
+                </h2>
                 <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                <template v-if="isAppModeJcc">
+                <template v-if="isAppGroupModePrivilegePurchase">
                     <InputText
                         v-for="(formInput) in feeInputs"
                         :key="formInput.id"
@@ -28,14 +30,16 @@
                     />
                 </template>
                 <!-- Jurisprudence -->
-                <h2 v-if="isAppModeJcc" class="form-section-title jurisprudence">{{ $t('compact.jurisprudence') }}</h2>
+                <h2 v-if="isAppGroupModePrivilegePurchase" class="form-section-title jurisprudence">
+                    {{ $t('compact.jurisprudence') }}
+                </h2>
                 <InputRadioGroup
-                    v-if="isAppModeJcc"
+                    v-if="isAppGroupModePrivilegePurchase"
                     :formInput="formData.isJurisprudenceExamRequired"
                     class="form-row"
                 />
                 <InputText
-                    v-if="isAppModeJcc"
+                    v-if="isAppGroupModePrivilegePurchase"
                     :formInput="formData.jurisprudenceInfoLink"
                     class="form-row jurisprudence-info-link"
                 />
@@ -43,7 +47,10 @@
                 <h2 class="form-section-title notifications">{{ $t('compact.notifications') }}</h2>
                 <InputEmailList :formInput="formData.opsNotificationEmails" />
                 <InputEmailList :formInput="formData.adverseActionNotificationEmails" />
-                <InputEmailList v-if="isAppModeJcc" :formInput="formData.summaryReportNotificationEmails" />
+                <InputEmailList
+                    v-if="isAppGroupModePrivilegePurchase"
+                    :formInput="formData.summaryReportNotificationEmails"
+                />
                 <button
                     class="btn-catch-email-lists"
                     @click.stop.prevent="() => null"

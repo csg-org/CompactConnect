@@ -78,8 +78,8 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.$store.getters.isAppModeJcc;
     }
 
-    get isAppModeCosmetology(): boolean {
-        return this.$store.getters.isAppModeCosmetology;
+    get isAppGroupModeMultiState(): boolean {
+        return this.$store.getters.isAppGroupModeMultiState;
     }
 
     get compactType(): CompactType | null {
@@ -229,11 +229,10 @@ class LicenseeSearch extends mixins(MixinForm) {
 
     // Last name is currently optional overall, but required if first name is included; therefore needs this non-trivial validation logic
     customValidateLastName(asTouched = true): void {
-        const { isAppModeJcc } = this;
         const { firstName, lastName } = this.formData;
         const shouldSkip = (asTouched) ? false : !lastName.isTouched;
 
-        if (isAppModeJcc) { // Currently only JCC requires this check
+        if (this.isAppModeJcc) { // Currently only JCC requires this check
             if (!shouldSkip && firstName.value && !lastName.value) {
                 lastName.isValid = false;
                 lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
@@ -265,9 +264,9 @@ class LicenseeSearch extends mixins(MixinForm) {
 
     async mockPopulate(): Promise<void> {
         if (this.enableCompactSelect) {
-            this.formData.compact.value = (this.isAppModeCosmetology)
-                ? CompactType.COSMETOLOGY
-                : CompactType.OT;
+            this.formData.compact.value = (this.isAppModeJcc)
+                ? CompactType.OT
+                : this.formData.compact.valueOptions[1];
 
             await this.updateCurrentCompact();
         }
@@ -276,7 +275,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.lastName.value = 'User';
         this.formData.state.value = 'co';
 
-        if (this.isAppModeCosmetology) {
+        if (this.isAppGroupModeMultiState) {
             this.formData.licenseNumber.value = 'ABC123';
         }
 

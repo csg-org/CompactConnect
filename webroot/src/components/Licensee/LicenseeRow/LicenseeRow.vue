@@ -63,7 +63,7 @@
             }"></span>
         </div>
         <div
-            v-if="isAppModeJcc"
+            v-if="isAppGroupModePrivilegePurchase"
             class="cell practicing-locations"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('practicingLocations') }"
             @click="isSortOptionEnabled('practicingLocations') && handleSortSelect('practicingLocations')"
@@ -80,7 +80,7 @@
             }"></span>
         </div>
         <div
-            v-if="isAppModeCosmetology"
+            v-if="isAppGroupModeMultiState"
             class="cell license-number"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('licenseNumber') }"
             @click="isSortOptionEnabled('licenseNumber') && handleSortSelect('licenseNumber')"
@@ -98,7 +98,7 @@
             }"></span>
         </div>
         <div
-            v-if="isAppModeCosmetology && (isPublicSearch || item.isPublicSearch)"
+            v-if="isAppGroupModeMultiState && (isPublicSearch || item.isPublicSearch)"
             class="cell license-eligibility"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('licenseEligibility') }"
             @click="isSortOptionEnabled('licenseEligibility') && handleSortSelect('licenseEligibility')"

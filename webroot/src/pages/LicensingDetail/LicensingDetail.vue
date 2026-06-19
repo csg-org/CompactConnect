@@ -91,7 +91,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="isAppModeJcc" class="info-item-container">
+                        <div v-if="isAppGroupModePrivilegePurchase" class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.registrationEmail')}}</div>
                             <div class="info-item email">{{registrationEmail}}</div>
                         </div>
@@ -203,7 +203,7 @@
                     </template>
                 </div>
             </div>
-            <div v-if="isAppModeCosmetology" class="discipline-section">
+            <div v-if="isAppGroupModeMultiState" class="discipline-section">
                 <div class="title-row">
                     <div class="title-info">
                         <div class="discipline-logo-container">

@@ -68,8 +68,12 @@ export default class LicensingDetail extends Vue {
         return this.$store.getters.isAppModeJcc;
     }
 
-    get isAppModeCosmetology(): boolean {
-        return this.$store.getters.isAppModeCosmetology;
+    get isAppGroupModePrivilegePurchase(): boolean {
+        return this.$store.getters.isAppGroupModePrivilegePurchase;
+    }
+
+    get isAppGroupModeMultiState(): boolean {
+        return this.$store.getters.isAppGroupModeMultiState;
     }
 
     get compact(): string {
@@ -90,12 +94,12 @@ export default class LicensingDetail extends Vue {
         const {
             compact,
             loggedInUser,
-            isAppModeCosmetology,
+            isAppModeJcc,
             licenseeStates
         } = this;
         let hasLoggedInReadSsnAccess = false;
 
-        if (compact && loggedInUser && !isAppModeCosmetology) {
+        if (compact && loggedInUser && isAppModeJcc) {
             hasLoggedInReadSsnAccess = licenseeStates.some((state) => loggedInUser.hasPermission(
                 Permission.READ_SSN,
                 this.compact as CompactType,

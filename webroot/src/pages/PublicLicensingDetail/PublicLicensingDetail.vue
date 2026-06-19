@@ -35,7 +35,7 @@
                     </div>
                 </div>
             </div>
-            <div v-if="isAppModeCosmetology" class="license-section">
+            <div v-if="isAppGroupModeMultiState" class="license-section">
                 <div class="title-row">
                     <div class="title-info">
                         <div class="license-logo-container">
