@@ -1,8 +1,9 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config
 from cc_common.data_model.provider_record_util import ProviderRecordUtility
+from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler, get_provider_user_attributes_from_authorizer_claims
+from cc_common.utils import api_handler, authorize_compact, get_provider_user_attributes_from_authorizer_claims
 
 
 @api_handler
@@ -32,16 +33,17 @@ def privilege_history_handler(event: dict, context: LambdaContext):
             'GET',
             '/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/history',
         ):
-            return _get_privilege_history_staff(event)
+            return _get_privilege_history_staff(event, context)
 
     # If we get here, the method/resource combination is not supported
     raise CCInvalidRequestException(f'Unsupported method or resource: {http_method} {resource_path}')
 
 
-def _get_privilege_history_staff(event: dict):
+@authorize_compact(action=CCPermissionsAction.READ_GENERAL)
+def _get_privilege_history_staff(event: dict, _context: LambdaContext):
     """Return the enriched and simplified privilege history for staff user front end consumption
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
-    :param LambdaContext context:
+    :param LambdaContext _context:
     """
     compact = event['pathParameters']['compact']
     provider_id = event['pathParameters']['providerId']

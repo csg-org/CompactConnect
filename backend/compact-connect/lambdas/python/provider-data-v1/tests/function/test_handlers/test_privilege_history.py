@@ -100,6 +100,7 @@ class TestGetProvider(TstFunction):
                 'compact': test_provider.compact,
                 'providerId': test_provider.providerId,
             }
+            event['requestContext']['authorizer']['claims']['scope'] = f'openid email {TEST_COMPACT}/readGeneral'
 
         return event
 
@@ -124,6 +125,18 @@ class TestGetProvider(TstFunction):
         resp = privilege_history_handler(event, self.mock_context)
 
         self.assertEqual(404, resp['statusCode'])
+
+    def test_staff_privilege_history_returns_unauthorized_if_user_not_in_same_compact(self):
+        from handlers.privilege_history import privilege_history_handler
+
+        event = self._when_testing_staff_endpoint()
+        # change the compact to a different compact
+        # to simulate a staff user attempting to access a different compact
+        event['pathParameters']['compact'] = 'coun'
+
+        resp = privilege_history_handler(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])
 
     def test_privilege_not_found_returns_404_staff(self):
         from handlers.privilege_history import privilege_history_handler
