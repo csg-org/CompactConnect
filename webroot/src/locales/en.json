@@ -510,6 +510,11 @@
             "name": "Cosmetology and Esthetics",
             "abbrev": "COSM",
             "key": "cosm"
+        },
+        {
+            "name": "Social Work",
+            "abbrev": "SOCW",
+            "key": "socw"
         }
     ],
     "compact": {
@@ -848,6 +853,24 @@
                 "key": "esthetician",
                 "compactKey": "cosm",
                 "abbrev": "esth"
+            },
+            {
+                "name": "Licensed Clinical Social Worker",
+                "key": "licensed clinical social worker",
+                "compactKey": "socw",
+                "abbrev": "lcsw"
+            },
+            {
+                "name": "Licensed Master Social Worker",
+                "key": "licensed master social worker",
+                "compactKey": "socw",
+                "abbrev": "lmsw"
+            },
+            {
+                "name": "Licensed Bachelor Social Worker",
+                "key": "licensed bachelor social worker",
+                "compactKey": "socw",
+                "abbrev": "lbsw"
             }
         ],
         "disciplineTypes": [

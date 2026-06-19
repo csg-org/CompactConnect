@@ -494,6 +494,11 @@
             "name": "Cosmetología y Estética",
             "abbrev": "COSM",
             "key": "cosm"
+        },
+        {
+            "name": "Trabajo Social",
+            "abbrev": "SOCW",
+            "key": "socw"
         }
     ],
     "compact": {
@@ -832,6 +837,24 @@
                 "key": "esthetician",
                 "compactKey": "cosm",
                 "abbrev": "esth"
+            },
+            {
+                "name": "Trabajador social clínico con licencia",
+                "key": "licensed clinical social worker",
+                "compactKey": "socw",
+                "abbrev": "lcsw"
+            },
+            {
+                "name": "Trabajador social titulado con maestría",
+                "key": "licensed master social worker",
+                "compactKey": "socw",
+                "abbrev": "lmsw"
+            },
+            {
+                "name": "Trabajador social titulado con licencia",
+                "key": "licensed bachelor social worker",
+                "compactKey": "socw",
+                "abbrev": "lbsw"
             }
         ],
         "disciplineTypes": [

@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 4/12/20.
 //
-import { AuthTypes, AppModes } from '@/app.config';
+import { AuthTypes, AppModes, AppGroupModes } from '@/app.config';
 import { AppMessage } from '@/models/AppMessage/AppMessage.model';
 
 export interface State {
@@ -15,6 +15,7 @@ export interface State {
     isModalLogoutOnly: boolean;
     appMode: AppModes;
     isAppModeDisplayed: boolean;
+    appGroupMode: AppGroupModes;
     authType: AuthTypes;
     isNavExpanded: boolean;
 }
@@ -27,6 +28,7 @@ export const state: State = {
     isModalLogoutOnly: false,
     appMode: AppModes.JCC,
     isAppModeDisplayed: false,
+    appGroupMode: AppGroupModes.PRIVILEGE_PURCHASE,
     authType: AuthTypes.PUBLIC,
     isNavExpanded: false,
 };

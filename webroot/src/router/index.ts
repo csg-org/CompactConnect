@@ -47,6 +47,8 @@ router.beforeEach(async (to, from, next) => {
         // Update the app mode based on attempted compact route, if needed
         if (routeParamCompactType === CompactType.COSMETOLOGY) {
             expectedAppMode = AppModes.COSMETOLOGY;
+        } else if (routeParamCompactType === CompactType.SOCIAL_WORK) {
+            expectedAppMode = AppModes.SOCIAL_WORK;
         }
 
         if (!appMode || appMode !== expectedAppMode) {

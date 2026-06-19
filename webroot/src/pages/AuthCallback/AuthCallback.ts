@@ -78,6 +78,11 @@ export default class AuthCallback extends Vue {
             await this.getTokensStaffCosmo().catch(() => {
                 this.isError = true;
             });
+        } else if (userType === CognitoStateTypes.STAFF_SOCIAL_WORK) {
+            this.$store.dispatch('setAppMode', AppModes.SOCIAL_WORK);
+            await this.getTokensStaffSw().catch(() => {
+                this.isError = true;
+            });
         } else {
             // If the state query param is absent or not matching we will
             // still try to get tokens, if the user just logged in one of the
@@ -105,6 +110,16 @@ export default class AuthCallback extends Vue {
             }
 
             if (errorCount > 1) {
+                await this.getTokensStaffSw()
+                    .then(() => {
+                        this.$store.dispatch('setAppMode', AppModes.SOCIAL_WORK);
+                    })
+                    .catch(() => {
+                        errorCount += 1;
+                    });
+            }
+
+            if (errorCount > 2) {
                 await this.getTokensLicenseeJcc()
                     .then(() => {
                         this.$store.dispatch('setAppMode', AppModes.JCC);
@@ -150,6 +165,21 @@ export default class AuthCallback extends Vue {
         params.append('code', this.authorizationCode);
 
         const { data } = await axios.post(`${cognitoAuthDomainStaffCosmo}/oauth2/token`, params);
+
+        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
+        await this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
+    }
+
+    async getTokensStaffSw(): Promise<void> {
+        const { domain, cognitoAuthDomainStaffSw, cognitoClientIdStaffSw } = this.$envConfig;
+        const params = new URLSearchParams();
+
+        params.append('grant_type', 'authorization_code');
+        params.append('client_id', cognitoClientIdStaffSw || '');
+        params.append('redirect_uri', `${domain}${this.$route.path}`);
+        params.append('code', this.authorizationCode);
+
+        const { data } = await axios.post(`${cognitoAuthDomainStaffSw}/oauth2/token`, params);
 
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         await this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);

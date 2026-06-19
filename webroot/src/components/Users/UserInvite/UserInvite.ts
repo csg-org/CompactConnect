@@ -137,17 +137,17 @@ class UserInvite extends mixins(MixinForm) {
     get userPermissionOptionsCompact(): Array<PermissionOption> {
         let permissionOptions: Array<PermissionOption> = [];
 
-        if (this.isAppModeCosmetology) {
+        if (this.isAppModeJcc) {
             permissionOptions = [
                 { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
                 { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
                 { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
             ];
         } else {
             permissionOptions = [
                 { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
                 { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
-                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
                 { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
             ];
         }
@@ -164,10 +164,11 @@ class UserInvite extends mixins(MixinForm) {
     get userPermissionOptionsState(): Array<PermissionOption> {
         let permissionOptions: Array<PermissionOption> = [];
 
-        if (this.isAppModeCosmetology) {
+        if (this.isAppModeJcc) {
             permissionOptions = [
                 { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
                 { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
+                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
                 { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
                 { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
             ];
@@ -175,7 +176,6 @@ class UserInvite extends mixins(MixinForm) {
             permissionOptions = [
                 { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
                 { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
-                { value: Permission.READ_SSN, name: this.$t('account.accessLevel.readSsn') },
                 { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
                 { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
             ];
@@ -421,7 +421,7 @@ class UserInvite extends mixins(MixinForm) {
             }
         }
 
-        if (this.isAppModeCosmetology) {
+        if (!this.isAppModeJcc) {
             delete response.isReadSsn;
         }
 
@@ -484,7 +484,7 @@ class UserInvite extends mixins(MixinForm) {
             break;
         }
 
-        if (this.isAppModeCosmetology) {
+        if (!this.isAppModeJcc) {
             delete response.isReadSsn;
         }
 
