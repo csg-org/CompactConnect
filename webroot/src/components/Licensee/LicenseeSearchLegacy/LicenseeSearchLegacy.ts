@@ -78,10 +78,14 @@ class LicenseeSearch extends mixins(MixinForm) {
     }
 
     get compactOptions(): Array<any> {
-        const options = this.$tm('compacts').map((compact) => ({
+        let options = this.$tm('compacts').map((compact) => ({
             value: compact.key,
             name: compact.name,
         }));
+
+        if (this.$envConfig.isAppProduction) { // @NOTE: Hide compacts that have no Prod infra
+            options = options.filter((option) => !['cosm', 'socw'].includes(option.value));
+        }
 
         options.unshift({
             value: '',
