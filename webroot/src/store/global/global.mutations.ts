@@ -57,6 +57,7 @@ export default {
         state.isModalOpen = false;
         state.isModalLogoutOnly = false;
         state.appMode = AppModes.JCC;
+        state.appGroupMode = AppGroupModes.PRIVILEGE_PURCHASE;
     },
     [MutationTypes.SET_APP_MODE]: (state: State, mode: AppModes) => {
         state.appMode = mode;

@@ -82,6 +82,7 @@ describe('Global Store Mutations', () => {
             isModalOpen: false,
             isModalLogoutOnly: false,
             appMode: AppModes.JCC,
+            appGroupMode: AppGroupModes.PRIVILEGE_PURCHASE,
         });
     });
     it('should successfully set modal open', () => {

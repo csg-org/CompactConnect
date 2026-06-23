@@ -13,7 +13,6 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed, nextTick } from 'vue';
-import { AppModes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
@@ -64,14 +63,6 @@ class LicenseeSearch extends mixins(MixinForm) {
 
     get userStore() {
         return this.$store.state.user;
-    }
-
-    get appMode(): AppModes {
-        return this.globalStore.appMode;
-    }
-
-    get AppModes(): typeof AppModes {
-        return AppModes;
     }
 
     get isAppModeJcc(): boolean {
@@ -216,7 +207,7 @@ class LicenseeSearch extends mixins(MixinForm) {
             ];
 
             // Per compact search props
-            if (this.appMode === AppModes.COSMETOLOGY) {
+            if (this.isAppGroupModeMultiState) {
                 allowedSearchProps.push('licenseNumber');
             }
 

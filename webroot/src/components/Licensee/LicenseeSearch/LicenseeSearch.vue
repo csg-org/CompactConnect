@@ -34,7 +34,7 @@
                     @input="updateCurrentCompact"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <InputRadioGroup
                     :formInput="formData.searchType"
                     class="search-input search-type-input"
@@ -111,7 +111,7 @@
                     aria-labelledby="privilege-purchase-dates-label"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <InputSelect
                     :formInput="formData.militaryStatus"
                     class="search-input military-status-select"
