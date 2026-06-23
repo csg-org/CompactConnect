@@ -149,7 +149,7 @@ class _Config:
             "socw": [
                 {"abbreviation": "lcsw", "name": "licensed clinical social worker"},
                 {"abbreviation": "lmsw", "name": "licensed master social worker"},
-                {"abbreviation": "lbsw", "name": "licensed bachelor social worker"}
+                {"abbreviation": "lbsw", "name": "licensed bachelors social worker"}
             ]
         }
         The returned format is:
@@ -157,7 +157,7 @@ class _Config:
             "socw": [
                 "licensed clinical social worker",
                 "licensed master social worker",
-                "licensed bachelor social worker"
+                "licensed bachelors social worker"
             ]
         }
         """
@@ -173,7 +173,7 @@ class _Config:
             "socw": {
                 "licensed clinical social worker": "lcsw",
                 "licensed master social worker": "lmsw",
-                "licensed bachelor social worker": "lbsw"
+                "licensed bachelors social worker": "lbsw"
             }
         }
         """

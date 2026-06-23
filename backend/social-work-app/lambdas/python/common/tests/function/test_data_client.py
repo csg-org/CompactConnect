@@ -153,7 +153,8 @@ class TestDataClient(TstFunction):
                     'providerId': provider_uuid,
                     'compact': 'socw',
                     'jurisdiction': jurisdiction,
-                    'licenseType': 'licensed master social worker',
+                    # LCSW is the only license type recognized in every jurisdiction
+                    'licenseType': 'licensed clinical social worker',
                 }
             )
 
