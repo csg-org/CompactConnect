@@ -31,6 +31,11 @@ const environmentValues = {
     searchApiCosmo: 'search.cosmetology.compactconnect.org',
     s3UploadUrlStateCosmo: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5j.s3.amazonaws.com',
     cognitoStaffCosmo: 'staff-auth.cosmetology.compactconnect.org',
+    // SOCIAL WORK
+    dataApiSw: 'api.socialwork.compactconnect.org',
+    searchApiSw: 'search.socialwork.compactconnect.org',
+    s3UploadUrlStateSw: 'prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5k.s3.amazonaws.com',
+    cognitoStaffSw: 'staff-auth.socialwork.compactconnect.org',
 };
 
 /**
@@ -64,6 +69,11 @@ const prepareLambdaForTest = () => {
         '##SEARCH_API_COSMO##': environmentValues.searchApiCosmo,
         '##S3_UPLOAD_URL_STATE_COSMO##': environmentValues.s3UploadUrlStateCosmo,
         '##COGNITO_STAFF_COSMO##': environmentValues.cognitoStaffCosmo,
+        // SOCIAL WORK
+        '##DATA_API_SW##': environmentValues.dataApiSw,
+        '##SEARCH_API_SW##': environmentValues.searchApiSw,
+        '##S3_UPLOAD_URL_STATE_SW##': environmentValues.s3UploadUrlStateSw,
+        '##COGNITO_STAFF_SW##': environmentValues.cognitoStaffSw,
     };
 
     // Apply all replacements to the Lambda code
@@ -95,6 +105,11 @@ const buildCspHeaders = (environment) => {
     const searchApiUrlCosmo = (environment?.searchApiCosmo) ? `https://${environment.searchApiCosmo}` : '';
     const s3UploadUrlStateCosmo = (environment?.s3UploadUrlStateCosmo) ? `https://${environment.s3UploadUrlStateCosmo}` : '';
     const cognitoStaffUrlCosmo = (environment?.cognitoStaffCosmo) ? `https://${environment.cognitoStaffCosmo}` : '';
+    // SOCIAL WORK
+    const dataApiUrlSw = (environment?.dataApiSw) ? `https://${environment.dataApiSw}` : '';
+    const searchApiUrlSw = (environment?.searchApiSw) ? `https://${environment.searchApiSw}` : '';
+    const s3UploadUrlStateSw = (environment?.s3UploadUrlStateSw) ? `https://${environment.s3UploadUrlStateSw}` : '';
+    const cognitoStaffUrlSw = (environment?.cognitoStaffSw) ? `https://${environment.cognitoStaffSw}` : '';
     // src configs are maintained here as arrays for ease of maintenance;
     // defining them as static strings could lead to long lines of code.
     const cspDefaultSrc = [
@@ -147,12 +162,14 @@ const buildCspHeaders = (environment) => {
         'data:',
         dataApiUrl,
         dataApiUrlCosmo,
+        dataApiUrlSw,
         'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspMediaSrc = [
         '\'self\'',
         dataApiUrl,
         dataApiUrlCosmo,
+        dataApiUrlSw,
     ].join(' ');
     const cspFrameSrc = [
         '\'self\'',
@@ -186,6 +203,11 @@ const buildCspHeaders = (environment) => {
         searchApiUrlCosmo,
         s3UploadUrlStateCosmo,
         cognitoStaffUrlCosmo,
+        // SOCIAL WORK
+        dataApiUrlSw,
+        searchApiUrlSw,
+        s3UploadUrlStateSw,
+        cognitoStaffUrlSw,
         // Begin Statsig domains
         'https://api.statsig.com/',
         'https://featuregates.org/',

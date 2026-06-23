@@ -45,6 +45,11 @@ class FrontendDeploymentStack(AppStack):
                 self, app_id=AppId.COSMETOLOGY
             )
         )
+        persistent_stack_frontend_app_config_values_socialwork = (
+            PersistentStackFrontendAppConfigValues.load_persistent_stack_values_from_ssm_parameter(
+                self, app_id=AppId.SOCIAL_WORK
+            )
+        )
         provider_users_stack_frontend_app_config_values = (
             ProviderUsersStackFrontendAppConfigValues.load_provider_users_stack_values_from_ssm_parameter(self)
         )
@@ -61,6 +66,12 @@ class FrontendDeploymentStack(AppStack):
             raise ValueError(
                 'Persistent Stack App Configuration (cosmetology) not found in SSM. '
                 'Make sure Cosmetology Persistent Stack resources have been deployed and the parameter '
+                'has been copied to this account.'
+            )
+        if persistent_stack_frontend_app_config_values_socialwork is None:
+            raise ValueError(
+                'Persistent Stack App Configuration (socialwork) not found in SSM. '
+                'Make sure Social Work Persistent Stack resources have been deployed and the parameter '
                 'has been copied to this account.'
             )
         if provider_users_stack_frontend_app_config_values is None:
@@ -113,6 +124,7 @@ class FrontendDeploymentStack(AppStack):
             environment_context=environment_context,
             persistent_stack_app_config_values=persistent_stack_frontend_app_config_values,
             persistent_stack_app_config_values_cosmetology=persistent_stack_frontend_app_config_values_cosmetology,
+            persistent_stack_app_config_values_socialwork=persistent_stack_frontend_app_config_values_socialwork,
             provider_users_stack_app_config_values=provider_users_stack_frontend_app_config_values,
         )
 
@@ -124,5 +136,6 @@ class FrontendDeploymentStack(AppStack):
             access_logs_bucket=self.frontend_access_logs_bucket,
             persistent_stack_frontend_app_config_values=persistent_stack_frontend_app_config_values,
             persistent_stack_frontend_app_config_values_cosmetology=persistent_stack_frontend_app_config_values_cosmetology,
+            persistent_stack_frontend_app_config_values_socialwork=persistent_stack_frontend_app_config_values_socialwork,
             provider_users_stack_frontend_app_config_values=provider_users_stack_frontend_app_config_values,
         )

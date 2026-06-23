@@ -25,6 +25,7 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
         environment_context: dict,
         persistent_stack_app_config_values: PersistentStackFrontendAppConfigValues,
         persistent_stack_app_config_values_cosmetology: PersistentStackFrontendAppConfigValues,
+        persistent_stack_app_config_values_socialwork: PersistentStackFrontendAppConfigValues,
         provider_users_stack_app_config_values: ProviderUsersStackFrontendAppConfigValues,
     ):
         stack = Stack.of(scope)
@@ -69,6 +70,10 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                                 'VUE_APP_API_LICENSE_ROOT_COSMO': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_cosmetology.api_domain_name}',
                                 'VUE_APP_API_SEARCH_ROOT_COSMO': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_cosmetology.search_api_domain_name}',
                                 'VUE_APP_API_USER_ROOT_COSMO': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_cosmetology.api_domain_name}',
+                                'VUE_APP_API_STATE_ROOT_SW': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_socialwork.api_domain_name}',
+                                'VUE_APP_API_LICENSE_ROOT_SW': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_socialwork.api_domain_name}',
+                                'VUE_APP_API_SEARCH_ROOT_SW': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_socialwork.search_api_domain_name}',
+                                'VUE_APP_API_USER_ROOT_SW': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_socialwork.api_domain_name}',
                                 'VUE_APP_COGNITO_REGION': 'us-east-1',
                                 'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF': f'{HTTPS_PREFIX}{persistent_stack_app_config_values.staff_cognito_domain}',
                                 'VUE_APP_COGNITO_CLIENT_ID_STAFF': persistent_stack_app_config_values.staff_cognito_client_id,
@@ -76,6 +81,8 @@ class CompactConnectUIBucketDeployment(BucketDeployment):
                                 'VUE_APP_COGNITO_CLIENT_ID_LICENSEE': provider_users_stack_app_config_values.provider_cognito_client_id,
                                 'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_COSMO': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_cosmetology.staff_cognito_domain}',
                                 'VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO': persistent_stack_app_config_values_cosmetology.staff_cognito_client_id,
+                                'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_SW': f'{HTTPS_PREFIX}{persistent_stack_app_config_values_socialwork.staff_cognito_domain}',
+                                'VUE_APP_COGNITO_CLIENT_ID_STAFF_SW': persistent_stack_app_config_values_socialwork.staff_cognito_client_id,
                                 'VUE_APP_RECAPTCHA_KEY': recaptcha_public_key,
                                 'VUE_APP_STATSIG_KEY': statsig_client_key,
                             },

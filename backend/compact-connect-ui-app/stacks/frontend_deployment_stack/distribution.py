@@ -38,6 +38,7 @@ S3_URL_SUFFIX = '.s3.amazonaws.com'
 def generate_csp_lambda_code(
     persistent_stack_values: PersistentStackFrontendAppConfigValues,
     persistent_stack_values_cosmetology: PersistentStackFrontendAppConfigValues,
+    persistent_stack_values_socialwork: PersistentStackFrontendAppConfigValues,
     provider_users_stack_values: ProviderUsersStackFrontendAppConfigValues,
 ) -> str:
     """
@@ -50,6 +51,7 @@ def generate_csp_lambda_code(
 
     :param persistent_stack_values: The values from the persistent stack
     :param persistent_stack_values_cosmetology: The values from the cosmetology persistent stack
+    :param persistent_stack_values_socialwork: The values from the social work persistent stack
     :param provider_users_stack_values: The values from the provider users stack
     :return: The generated Lambda function code
     """
@@ -73,6 +75,11 @@ def generate_csp_lambda_code(
         '##SEARCH_API_COSMO##': persistent_stack_values_cosmetology.search_api_domain_name,
         '##S3_UPLOAD_URL_STATE_COSMO##': f'{persistent_stack_values_cosmetology.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
         '##COGNITO_STAFF_COSMO##': persistent_stack_values_cosmetology.staff_cognito_domain,
+        # SOCIAL WORK
+        '##DATA_API_SW##': persistent_stack_values_socialwork.api_domain_name,
+        '##SEARCH_API_SW##': persistent_stack_values_socialwork.search_api_domain_name,
+        '##S3_UPLOAD_URL_STATE_SW##': f'{persistent_stack_values_socialwork.bulk_uploads_bucket_name}{S3_URL_SUFFIX}',
+        '##COGNITO_STAFF_SW##': persistent_stack_values_socialwork.staff_cognito_domain,
     }
 
     for placeholder, value in replacements.items():
@@ -92,6 +99,7 @@ class UIDistribution(Distribution):
         access_logs_bucket: AccessLogsBucket,
         persistent_stack_frontend_app_config_values: PersistentStackFrontendAppConfigValues,
         persistent_stack_frontend_app_config_values_cosmetology: PersistentStackFrontendAppConfigValues,
+        persistent_stack_frontend_app_config_values_socialwork: PersistentStackFrontendAppConfigValues,
         provider_users_stack_frontend_app_config_values: ProviderUsersStackFrontendAppConfigValues,
     ):
         stack: AppStack = AppStack.of(scope)
@@ -132,6 +140,7 @@ class UIDistribution(Distribution):
         csp_function_code = generate_csp_lambda_code(
             persistent_stack_frontend_app_config_values,
             persistent_stack_frontend_app_config_values_cosmetology,
+            persistent_stack_frontend_app_config_values_socialwork,
             provider_users_stack_frontend_app_config_values,
         )
 
