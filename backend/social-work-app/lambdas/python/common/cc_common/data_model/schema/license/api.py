@@ -6,7 +6,7 @@ Schema for API objects.
 from datetime import date
 
 from marshmallow import ValidationError, pre_load, validates_schema
-from marshmallow.fields import Date, Email, List, Nested, Raw, String
+from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -241,11 +241,16 @@ class LicenseOpenSearchDocumentSchema(LicenseGeneralResponseSchema):
     authorized staff users to search providers by date of birth. This schema
     is used only for indexing into OpenSearch, not for API responses.
 
+    Additionally, this schema includes the mostRecentLicenseForType field to indicate
+    the most recent multi-state license for the provider for a specific license type.
+    This allows filtering public search results to one multi-state license per type.
+
     Serialization direction:
     Python -> load() -> OpenSearch document
     """
 
     dateOfBirth = Raw(required=False, allow_none=False)
+    mostRecentLicenseForType = Boolean(required=False, allow_none=False, load_default=False)
 
 
 class LicensePublicResponseSchema(LicenseExpirationStatusMixin, ForgivingSchema):

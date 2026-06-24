@@ -132,6 +132,7 @@ class TestPopulateProviderDocuments(TstFunction):
                     'phoneNumber': '+13213214321',
                     'adverseActions': [],
                     'investigations': [],
+                    'mostRecentLicenseForType': False,
                 }
             ],
             'privileges': [],

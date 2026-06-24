@@ -818,6 +818,16 @@ class ProviderUserRecords:
             )
             for multi_state_home_license in self._find_multi_state_home_licenses_with_matching_single_state_licenses()
         }
+        most_recent_multi_state_licenses_for_public_search = {
+            (
+                most_recent_license.jurisdiction.lower(),
+                most_recent_license.licenseType,
+                most_recent_license.licenseScope,
+            )
+            for most_recent_license in self._find_most_recent_licenses_for_each_license_type(
+                LicenseScopeEnum.MULTI_STATE
+            )
+        }
 
         documents = []
         adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
@@ -841,11 +851,14 @@ class ProviderUserRecords:
                 )
             ]
 
-            is_most_recent_license_for_type = (
+            license_key = (
                 license_record.jurisdiction.lower(),
                 license_record.licenseType,
                 license_record.licenseScope,
-            ) in most_recent_multi_state_home_licenses
+            )
+            license_dict['mostRecentLicenseForType'] = license_key in most_recent_multi_state_licenses_for_public_search
+
+            is_most_recent_license_for_type = license_key in most_recent_multi_state_home_licenses
             license_privileges = (
                 [p for p in all_privileges if p['licenseType'] == license_record.licenseType]
                 if is_most_recent_license_for_type
