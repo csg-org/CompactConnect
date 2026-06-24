@@ -11,14 +11,14 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
+import { AppModes } from '@/app.config';
 import {
     authStorage,
-    AppModes,
     AuthTypes,
     getHostedLoginUri,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
-} from '@/app.config';
+} from '@utils/auth';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';

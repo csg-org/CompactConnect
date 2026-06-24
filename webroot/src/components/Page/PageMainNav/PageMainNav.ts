@@ -13,7 +13,7 @@ import {
     Raw
 } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import RegisterIcon from '@components/Icons/Register/Register.vue';
 import UploadIcon from '@components/Icons/Upload/Upload.vue';
 import UsersIcon from '@components/Icons/Users/Users.vue';

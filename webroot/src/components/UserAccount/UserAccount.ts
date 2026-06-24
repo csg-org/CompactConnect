@@ -12,7 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed, nextTick } from 'vue';
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';

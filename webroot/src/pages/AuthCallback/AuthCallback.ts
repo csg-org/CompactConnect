@@ -5,19 +5,19 @@
 //  Created by InspiringApps on 8/12/2024.
 //
 
-import { nextTick } from 'vue';
-import { Component, Vue } from 'vue-facing-decorator';
-import Section from '@components/Section/Section.vue';
-import Card from '@components/Card/Card.vue';
+import { AppModes } from '@/app.config';
 import {
     authStorage,
-    AppModes,
     CognitoStateTypes,
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
-} from '@/app.config';
+} from '@utils/auth';
+import { nextTick } from 'vue';
+import { Component, Vue } from 'vue-facing-decorator';
+import Section from '@components/Section/Section.vue';
+import Card from '@components/Card/Card.vue';
 import axios from 'axios';
 
 @Component({

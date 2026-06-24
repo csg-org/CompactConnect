@@ -6,15 +6,15 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { AppModes } from '@/app.config';
 import {
     authStorage,
-    AppModes,
     AuthTypes,
     getHostedLoginUri,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
-} from '@/app.config';
+} from '@utils/auth';
 import Card from '@components/Card/Card.vue';
 import SearchIcon from '@components/Icons/Search/Search.vue';
 import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';

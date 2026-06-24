@@ -13,7 +13,7 @@ import {
     tokens,
     AuthTypes,
     AUTH_TYPE
-} from '@/app.config';
+} from '@utils/auth';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 
 export interface State {

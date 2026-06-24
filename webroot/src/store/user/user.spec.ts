@@ -5,13 +5,8 @@
 //  Created by InspiringApps on 6/12/24.
 //
 
-import {
-    authStorage,
-    tokens,
-    FeeTypes,
-    AppModes,
-    AuthTypes
-} from '@/app.config';
+import { FeeTypes, AppModes } from '@/app.config';
+import { authStorage, tokens, AuthTypes } from '@utils/auth';
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
 import { Compact, CompactType } from '@models/Compact/Compact.model';

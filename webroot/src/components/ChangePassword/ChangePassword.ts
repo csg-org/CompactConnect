@@ -7,7 +7,7 @@
 
 import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
-import { authStorage, AuthTypes, tokens } from '@/app.config';
+import { authStorage, AuthTypes, tokens } from '@utils/auth';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputPassword from '@components/Forms/InputPassword/InputPassword.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';

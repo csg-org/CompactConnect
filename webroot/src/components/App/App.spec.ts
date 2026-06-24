@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import App from '@components/App/App.vue';

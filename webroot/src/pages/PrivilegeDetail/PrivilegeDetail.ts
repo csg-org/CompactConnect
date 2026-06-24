@@ -10,7 +10,7 @@ import {
     Vue,
     Watch
 } from 'vue-facing-decorator';
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import PrivilegeDetailBlock from '@components/PrivilegeDetailBlock/PrivilegeDetailBlock.vue';

@@ -7,12 +7,8 @@
 
 import { mountShallow } from '@tests/helpers/setup';
 import PublicDashboard from '@pages/PublicDashboard/PublicDashboard.vue';
-import {
-    AppModes,
-    AuthTypes,
-    getCognitoConfig,
-    getHostedLoginUri
-} from '@/app.config';
+import { AppModes } from '@/app.config';
+import { AuthTypes, getCognitoConfig, getHostedLoginUri } from '@utils/auth';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 
 const chaiMatchPattern = require('chai-match-pattern');

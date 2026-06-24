@@ -12,7 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { reactive, nextTick } from 'vue';
-import { autoLogoutConfig } from '@/app.config';
+import { autoLogoutConfig } from '@utils/auth';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Modal from '@components/Modal/Modal.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';

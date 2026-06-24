@@ -12,7 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { Compact } from '@models/Compact/Compact.model';
-import { AuthTypes, authStorage, AUTH_TYPE } from '@/app.config';
+import { AuthTypes, authStorage, AUTH_TYPE } from '@utils/auth';
 
 @Component({
     name: 'HomePage',

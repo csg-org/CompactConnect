@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 4/12/2020.
 //
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import {
     LicenseeUser,
     LicenseeUserSerializer,

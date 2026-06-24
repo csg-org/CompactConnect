@@ -6,15 +6,15 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { AppModes } from '@/app.config';
 import {
     authStorage,
-    AppModes,
+    tokens,
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
-    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
-    tokens
-} from '@/app.config';
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+} from '@utils/auth';
 
 @Component({
     name: 'Logout',

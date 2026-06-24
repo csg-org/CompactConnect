@@ -6,7 +6,8 @@
 //
 
 import { Component, Vue, Watch } from 'vue-facing-decorator';
-import { AppGroupModes, AuthTypes } from '@/app.config';
+import { AppGroupModes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import Section from '@components/Section/Section.vue';
 import PaymentProcessorConfig from '@components/PaymentProcessorConfig/PaymentProcessorConfig.vue';
 import CompactSettingsConfig from '@components/CompactSettingsConfig/CompactSettingsConfig.vue';
