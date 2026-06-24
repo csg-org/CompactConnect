@@ -234,6 +234,79 @@ export const staffAccount = {
                 },
             },
         },
+        socw: {
+            actions: {
+                admin: true,
+                readPrivate: true,
+                readSSN: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ne: {
+                    actions: {
+                        admin: false,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                oh: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                nv: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                ma: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+                wy: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                        readPrivate: true,
+                        readSSN: true,
+                    },
+                },
+            },
+        },
     },
 };
 

@@ -30,6 +30,11 @@ const environmentValues = {
     searchApiCosmo: `##SEARCH_API_COSMO##`,
     s3UploadUrlStateCosmo: `##S3_UPLOAD_URL_STATE_COSMO##`,
     cognitoStaffCosmo: `##COGNITO_STAFF_COSMO##`,
+    // SOCIAL WORK
+    dataApiSw: `##DATA_API_SW##`,
+    searchApiSw: `##SEARCH_API_SW##`,
+    s3UploadUrlStateSw: `##S3_UPLOAD_URL_STATE_SW##`,
+    cognitoStaffSw: `##COGNITO_STAFF_SW##`,
 };
 
 // ============================================================================
@@ -80,6 +85,11 @@ const getEnvironmentUrls = () => {
     environmentUrls.searchApiCosmo = getFullyQualified(environmentValues.searchApiCosmo);
     environmentUrls.s3UploadUrlStateCosmo = getFullyQualified(environmentValues.s3UploadUrlStateCosmo);
     environmentUrls.cognitoStaffCosmo = getFullyQualified(environmentValues.cognitoStaffCosmo);
+    // SOCIAL WORK
+    environmentUrls.dataApiSw = getFullyQualified(environmentValues.dataApiSw);
+    environmentUrls.searchApiSw = getFullyQualified(environmentValues.searchApiSw);
+    environmentUrls.s3UploadUrlStateSw = getFullyQualified(environmentValues.s3UploadUrlStateSw);
+    environmentUrls.cognitoStaffSw = getFullyQualified(environmentValues.cognitoStaffSw);
 
     return environmentUrls;
 };
@@ -227,12 +237,14 @@ const setCspHeader = (headers = {}) => {
                 'data:',
                 domains.dataApi,
                 domains.dataApiCosmo,
+                domains.dataApiSw,
                 'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('media-src', [
                 'self',
                 domains.dataApi,
                 domains.dataApiCosmo,
+                domains.dataApiSw,
             ]),
             buildSrcString('frame-src', [
                 'self',
@@ -266,6 +278,11 @@ const setCspHeader = (headers = {}) => {
                 domains.searchApiCosmo,
                 domains.s3UploadUrlStateCosmo,
                 domains.cognitoStaffCosmo,
+                // SOCIAL WORK
+                domains.dataApiSw,
+                domains.searchApiSw,
+                domains.s3UploadUrlStateSw,
+                domains.cognitoStaffSw,
                 // Begin Statsig domains
                 'https://api.statsig.com/',
                 'https://featuregates.org/',

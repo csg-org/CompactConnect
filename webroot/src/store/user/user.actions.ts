@@ -181,6 +181,8 @@ export default {
             // Set the AppMode based on compact
             if (compact.type === CompactType.COSMETOLOGY) {
                 dispatch('setAppMode', AppModes.COSMETOLOGY, { root: true });
+            } else if (compact.type === CompactType.SOCIAL_WORK) {
+                dispatch('setAppMode', AppModes.SOCIAL_WORK, { root: true });
             } else {
                 dispatch('setAppMode', AppModes.JCC, { root: true });
             }
@@ -256,6 +258,9 @@ export default {
             } else if (appMode === AppModes.COSMETOLOGY) {
                 cognitoClientId = config.cognitoClientIdStaffCosmo;
                 cognitoAuthDomain = config.cognitoAuthDomainStaffCosmo;
+            } else if (appMode === AppModes.SOCIAL_WORK) {
+                cognitoClientId = config.cognitoClientIdStaffSw;
+                cognitoAuthDomain = config.cognitoAuthDomainStaffSw;
             }
         } else if (authType === AuthTypes.LICENSEE) {
             cognitoClientId = config.cognitoClientIdLicensee;

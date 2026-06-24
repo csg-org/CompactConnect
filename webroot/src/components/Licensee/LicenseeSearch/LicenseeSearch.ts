@@ -18,7 +18,7 @@ import {
     ComputedRef,
     nextTick
 } from 'vue';
-import { AppModes, dateFormatPatterns } from '@/app.config';
+import { dateFormatPatterns } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -102,16 +102,12 @@ class LicenseeSearch extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get appMode(): AppModes {
-        return this.globalStore.appMode;
+    get isAppGroupModePrivilegePurchase(): boolean {
+        return this.$store.getters.isAppGroupModePrivilegePurchase;
     }
 
-    get isAppModeJcc(): boolean {
-        return this.$store.getters.isAppModeJcc;
-    }
-
-    get isAppModeCosmetology(): boolean {
-        return this.$store.getters.isAppModeCosmetology;
+    get isAppGroupModeMultiState(): boolean {
+        return this.$store.getters.isAppGroupModeMultiState;
     }
 
     get compactType(): CompactType | null {
@@ -385,20 +381,15 @@ class LicenseeSearch extends mixins(MixinForm) {
             ];
 
             // Per compact search props
-            switch (this.appMode) {
-            case AppModes.JCC:
+            if (this.isAppGroupModePrivilegePurchase) {
                 allowedSearchProps.push('privilegeState');
                 allowedSearchProps.push('privilegePurchaseStartDate');
                 allowedSearchProps.push('privilegePurchaseEndDate');
                 allowedSearchProps.push('militaryStatus');
                 allowedSearchProps.push('npi');
-                break;
-            case AppModes.COSMETOLOGY:
+            } else if (this.isAppGroupModeMultiState) {
                 allowedSearchProps.push('licenseNumber');
                 allowedSearchProps.push('dob');
-                break;
-            default:
-                break;
             }
 
             allowedSearchProps.forEach((searchProp) => { searchProps[searchProp] = this.formValues[searchProp]; });
@@ -436,14 +427,14 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.formData.encumberStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
         this.formData.encumberEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
 
-        if (this.isAppModeJcc) {
+        if (this.isAppGroupModePrivilegePurchase) {
             this.formData.privilegeState.value = 'co';
             this.formData.privilegePurchaseStartDate.value = moment().startOf('month').format('YYYY-MM-DD');
             this.formData.privilegePurchaseEndDate.value = moment().endOf('month').format('YYYY-MM-DD');
             this.formData.militaryStatus.value = 'approved';
             this.formData.investigationStatus.value = 'underInvestigation';
             this.formData.npi.value = 'ABC123';
-        } else if (this.isAppModeCosmetology) {
+        } else if (this.isAppGroupModeMultiState) {
             this.formData.licenseNumber.value = 'ABC123';
             this.formData.dob.value = moment('1970-01-01').format('YYYY-MM-DD');
         }

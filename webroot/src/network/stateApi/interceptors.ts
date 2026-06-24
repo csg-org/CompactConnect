@@ -27,6 +27,8 @@ export const requestSuccess = (store) => async (requestConfig) => {
     // Update base url for different compacts / app modes
     if (appMode === AppModes.COSMETOLOGY) {
         requestConfig.baseURL = envConfig.apiUrlStateCosmo;
+    } else if (appMode === AppModes.SOCIAL_WORK) {
+        requestConfig.baseURL = envConfig.apiUrlStateSw;
     }
 
     return requestConfig;

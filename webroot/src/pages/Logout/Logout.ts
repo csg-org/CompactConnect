@@ -49,7 +49,9 @@ export default class Logout extends Vue {
             cognitoAuthDomainStaff,
             cognitoClientIdStaff,
             cognitoAuthDomainStaffCosmo,
-            cognitoClientIdStaffCosmo
+            cognitoClientIdStaffCosmo,
+            cognitoAuthDomainStaffSw,
+            cognitoClientIdStaffSw
         } = this.$envConfig;
         let cognitoAuthDomain = cognitoAuthDomainStaff;
         let cognitoClientId = cognitoClientIdStaff;
@@ -58,6 +60,9 @@ export default class Logout extends Vue {
         if (this.appMode === AppModes.COSMETOLOGY) {
             cognitoAuthDomain = cognitoAuthDomainStaffCosmo;
             cognitoClientId = cognitoClientIdStaffCosmo;
+        } else if (this.appMode === AppModes.SOCIAL_WORK) {
+            cognitoAuthDomain = cognitoAuthDomainStaffSw;
+            cognitoClientId = cognitoClientIdStaffSw;
         }
 
         // Create the logout URI

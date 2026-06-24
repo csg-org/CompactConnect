@@ -53,12 +53,8 @@ export default class PublicLicensingDetail extends Vue {
         return this.$store.state.user;
     }
 
-    get isAppModeJcc(): boolean {
-        return this.$store.getters.isAppModeJcc;
-    }
-
-    get isAppModeCosmetology(): boolean {
-        return this.$store.getters.isAppModeCosmetology;
+    get isAppGroupModeMultiState(): boolean {
+        return this.$store.getters.isAppGroupModeMultiState;
     }
 
     get compact(): string {

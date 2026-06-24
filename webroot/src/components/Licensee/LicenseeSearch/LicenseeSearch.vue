@@ -34,7 +34,7 @@
                     @input="updateCurrentCompact"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <InputRadioGroup
                     :formInput="formData.searchType"
                     class="search-input search-type-input"
@@ -60,13 +60,13 @@
                     :title="(formData.homeState.isDisabled) ? $t('licensing.searchStateDisabled') : ''"
                 />
             </div>
-            <div v-if="isAppModeCosmetology" class="search-form-row">
+            <div v-if="isAppGroupModeMultiState" class="search-form-row">
                 <InputText
                     :formInput="formData.licenseNumber"
                     class="search-input license-number-input"
                 />
             </div>
-            <div v-if="isAppModeCosmetology" class="search-form-row">
+            <div v-if="isAppGroupModeMultiState" class="search-form-row">
                 <InputDate
                     class="search-input dob-input"
                     :formInput="formData.dob"
@@ -77,18 +77,18 @@
                     :startDate="new Date(1975, 0, 1)"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <InputSelect
                     :formInput="formData.privilegeState"
                     class="search-input privilege-state-select"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <div id="privilege-purchase-dates-label" class="date-section-label search-input">
                     {{ $t('licensing.privilegePurchased') }}
                 </div>
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row date-range">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row date-range">
                 <InputDate
                     class="search-input date-range-input"
                     :formInput="formData.privilegePurchaseStartDate"
@@ -111,13 +111,13 @@
                     aria-labelledby="privilege-purchase-dates-label"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <InputSelect
                     :formInput="formData.militaryStatus"
                     class="search-input military-status-select"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <InputSelect
                     :formInput="formData.investigationStatus"
                     class="search-input investigation-status-select"
@@ -151,7 +151,7 @@
                     aria-labelledby="encumber-dates-label"
                 />
             </div>
-            <div v-if="isAppModeJcc" class="search-form-row">
+            <div v-if="isAppGroupModePrivilegePurchase" class="search-form-row">
                 <InputText
                     :formInput="formData.npi"
                     class="search-input npi-input"

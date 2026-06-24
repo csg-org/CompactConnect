@@ -18,6 +18,7 @@ export enum CompactType {
     OT = 'octp',
     COUNSELING = 'coun',
     COSMETOLOGY = 'cosm',
+    SOCIAL_WORK = 'socw',
 }
 
 export interface PaymentProcessorConfig {

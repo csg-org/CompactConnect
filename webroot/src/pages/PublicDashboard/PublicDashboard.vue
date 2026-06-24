@@ -151,26 +151,52 @@
                         >
                             {{ getCompactDisplay(compactTypes.COUNSELING) }}
                         </div>
-                        <a
-                            v-if="!isUsingMockApi"
-                            :href="hostedLoginUriStaffCosmo"
-                            class="login-link small"
-                            rel="noopener noreferrer"
-                            @click="setGotoCompact(compactTypes.COSMETOLOGY)"
-                        >
-                            {{ getCompactDisplay(compactTypes.COSMETOLOGY) }}
-                        </a>
-                        <div
-                            v-else
-                            class="login-link small"
-                            @click="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
-                            @keyup.enter="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
-                            tabindex="0"
-                            role="button"
-                            :aria-label="getCompactDisplay(compactTypes.COSMETOLOGY)"
-                        >
-                            {{ getCompactDisplay(compactTypes.COSMETOLOGY) }}
-                        </div>
+                        <!-- @NOTE: Hide compacts that have no Prod infra -->
+                        <template v-if="!$envConfig.isAppProduction">
+                            <a
+                                v-if="!isUsingMockApi"
+                                :href="hostedLoginUriStaffCosmo"
+                                class="login-link small"
+                                rel="noopener noreferrer"
+                                @click="setGotoCompact(compactTypes.COSMETOLOGY)"
+                            >
+                                {{ getCompactDisplay(compactTypes.COSMETOLOGY) }}
+                            </a>
+                            <div
+                                v-else
+                                class="login-link small"
+                                @click="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
+                                @keyup.enter="bypassToStaffLoginCosmo(compactTypes.COSMETOLOGY)"
+                                tabindex="0"
+                                role="button"
+                                :aria-label="getCompactDisplay(compactTypes.COSMETOLOGY)"
+                            >
+                                {{ getCompactDisplay(compactTypes.COSMETOLOGY) }}
+                            </div>
+                        </template>
+                        <!-- @NOTE: Hide compacts that have no Prod infra -->
+                        <template v-if="!$envConfig.isAppProduction">
+                            <a
+                                v-if="!isUsingMockApi"
+                                :href="hostedLoginUriStaffSw"
+                                class="login-link small"
+                                rel="noopener noreferrer"
+                                @click="setGotoCompact(compactTypes.SOCIAL_WORK)"
+                            >
+                                {{ getCompactDisplay(compactTypes.SOCIAL_WORK) }}
+                            </a>
+                            <div
+                                v-else
+                                class="login-link small"
+                                @click="bypassToStaffLoginSw(compactTypes.SOCIAL_WORK)"
+                                @keyup.enter="bypassToStaffLoginSw(compactTypes.SOCIAL_WORK)"
+                                tabindex="0"
+                                role="button"
+                                :aria-label="getCompactDisplay(compactTypes.SOCIAL_WORK)"
+                            >
+                                {{ getCompactDisplay(compactTypes.SOCIAL_WORK) }}
+                            </div>
+                        </template>
                     </div>
                 </Card>
                 <Card class="dashboard-card privilege-search">

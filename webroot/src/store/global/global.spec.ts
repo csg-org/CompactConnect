@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { AuthTypes, AppModes } from '@/app.config';
+import { AuthTypes, AppModes, AppGroupModes } from '@/app.config';
 import mutations, { MutationTypes } from './global.mutations';
 import actions from './global.actions';
 
@@ -82,6 +82,7 @@ describe('Global Store Mutations', () => {
             isModalOpen: false,
             isModalLogoutOnly: false,
             appMode: AppModes.JCC,
+            appGroupMode: AppGroupModes.PRIVILEGE_PURCHASE,
         });
     });
     it('should successfully set modal open', () => {
@@ -198,14 +199,53 @@ describe('Global Store Actions', () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_MODAL_LOGOUT_ONLY, isLogoutOnly]);
     });
-    it('should successfully set app mode', () => {
+    it('should successfully set app mode (unknown)', () => {
         const commit = sinon.spy();
-        const appMode = AppModes.JCC;
+        const appMode = 'unknown';
 
         actions.setAppMode({ commit }, appMode);
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE, appMode]);
+    });
+    it('should successfully set app mode (jcc)', () => {
+        const commit = sinon.spy();
+        const appMode = AppModes.JCC;
+
+        actions.setAppMode({ commit }, appMode);
+
+        expect(commit.calledTwice).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE, appMode]);
+        expect(commit.secondCall.args).to.matchPattern([
+            MutationTypes.SET_APP_GROUP_MODE,
+            AppGroupModes.PRIVILEGE_PURCHASE,
+        ]);
+    });
+    it('should successfully set app mode (cosmetology)', () => {
+        const commit = sinon.spy();
+        const appMode = AppModes.COSMETOLOGY;
+
+        actions.setAppMode({ commit }, appMode);
+
+        expect(commit.calledTwice).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE, appMode]);
+        expect(commit.secondCall.args).to.matchPattern([
+            MutationTypes.SET_APP_GROUP_MODE,
+            AppGroupModes.MULTI_STATE,
+        ]);
+    });
+    it('should successfully set app mode (social-work)', () => {
+        const commit = sinon.spy();
+        const appMode = AppModes.SOCIAL_WORK;
+
+        actions.setAppMode({ commit }, appMode);
+
+        expect(commit.calledTwice).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE, appMode]);
+        expect(commit.secondCall.args).to.matchPattern([
+            MutationTypes.SET_APP_GROUP_MODE,
+            AppGroupModes.MULTI_STATE,
+        ]);
     });
     it('should successfully set app mode display', () => {
         const commit = sinon.spy();
@@ -214,6 +254,15 @@ describe('Global Store Actions', () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_MODE_DISPLAY, true]);
+    });
+    it('should successfully set app group mode', () => {
+        const commit = sinon.spy();
+        const appGroupMode = AppGroupModes.MULTI_STATE;
+
+        actions.setAppGroupMode({ commit }, appGroupMode);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_APP_GROUP_MODE, appGroupMode]);
     });
     it('should successfully set auth type', () => {
         const commit = sinon.spy();

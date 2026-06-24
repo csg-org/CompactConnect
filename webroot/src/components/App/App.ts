@@ -119,6 +119,8 @@ class App extends Vue {
         if (!appMode) {
             if (compact === CompactType.COSMETOLOGY) {
                 appMode = AppModes.COSMETOLOGY;
+            } else if (compact === CompactType.SOCIAL_WORK) {
+                appMode = AppModes.SOCIAL_WORK;
             } else {
                 appMode = AppModes.JCC;
             }

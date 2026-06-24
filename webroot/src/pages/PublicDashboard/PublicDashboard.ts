@@ -75,6 +75,10 @@ export default class DashboardPublic extends Vue {
         return getHostedLoginUri(AppModes.COSMETOLOGY, AuthTypes.STAFF, this.hostedLoginUriPath);
     }
 
+    get hostedLoginUriStaffSw(): string {
+        return getHostedLoginUri(AppModes.SOCIAL_WORK, AuthTypes.STAFF, this.hostedLoginUriPath);
+    }
+
     get hostedLoginUriLicensee(): string {
         return getHostedLoginUri(AppModes.JCC, AuthTypes.LICENSEE, this.hostedLoginUriPath);
     }
@@ -97,6 +101,9 @@ export default class DashboardPublic extends Vue {
             break;
         case 'login-staff-cosmo':
             this.bypassToStaffLoginCosmo();
+            break;
+        case 'login-staff-sw':
+            this.bypassToStaffLoginSw();
             break;
         case 'login-practitioner':
             this.bypassToLicenseeLogin();
@@ -130,6 +137,18 @@ export default class DashboardPublic extends Vue {
         } else {
             this.$store.dispatch('startLoading');
             window.location.replace(this.hostedLoginUriStaffCosmo);
+        }
+    }
+
+    bypassToStaffLoginSw(compactType?: CompactType): void {
+        if (this.isUsingMockApi) {
+            if (compactType) {
+                this.setGotoCompact(compactType);
+            }
+            this.mockStaffLogin(AppModes.SOCIAL_WORK);
+        } else {
+            this.$store.dispatch('startLoading');
+            window.location.replace(this.hostedLoginUriStaffSw);
         }
     }
 

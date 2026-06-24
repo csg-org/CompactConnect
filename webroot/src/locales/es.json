@@ -494,6 +494,11 @@
             "name": "Cosmetología y Estética",
             "abbrev": "COSM",
             "key": "cosm"
+        },
+        {
+            "name": "Trabajo Social",
+            "abbrev": "SOCW",
+            "key": "socw"
         }
     ],
     "compact": {
@@ -526,10 +531,10 @@
         "licenseRegistrationTitle": "Estado en vivo",
         "licenseRegistrationEnabled": "¿Está habilitado el registro de licencia?",
         "licenseRegistrationEnabledSubtext": "Esto habilita el estado en tiempo real para los privilegios de compra, y <em>esta acción es irreversible.</em>",
-        "licenseRegistrationEnabledSubtextCosm": "Esta medida otorga a todos los licenciatarios elegibles la capacidad de trabajar en otros estados miembros del pacto que también estén vigentes. <em>Esta medida es irreversible.</em>",
+        "licenseRegistrationEnabledSubtextMultiState": "Esta medida otorga a todos los licenciatarios elegibles la capacidad de trabajar en otros estados miembros del pacto que también estén vigentes. <em>Esta medida es irreversible.</em>",
         "privilegePurchaseEnabled": "El estado está en línea para la compra de privilegios compactos",
         "privilegePurchaseEnabledSubtext": "Esto habilita el estado en tiempo real para los privilegios de compra, y <em>esta acción es irreversible.</em>",
-        "privilegePurchaseEnabledSubtextCosm": "Esta acción otorga a todos los licenciatarios elegibles de su estado la capacidad de trabajar en otros estados miembros del acuerdo que también estén activos. Los licenciatarios de otros estados miembros del acuerdo que estén activos obtendrán automáticamente la capacidad de trabajar en su estado. <em>Esta acción es irreversible.</em>",
+        "privilegePurchaseEnabledSubtextMultiState": "Esta acción otorga a todos los licenciatarios elegibles de su estado la capacidad de trabajar en otros estados miembros del acuerdo que también estén activos. Los licenciatarios de otros estados miembros del acuerdo que estén activos obtendrán automáticamente la capacidad de trabajar en su estado. <em>Esta acción es irreversible.</em>",
         "confirmSaveCompactTitle": "¿Estás seguro de que deseas marcar este estado como activo?",
         "confirmSaveCompactYes": "Sí, marcar como en vivo",
         "saveSuccessfulCompact": "Los cambios compactos se guardaron correctamente",
@@ -571,7 +576,7 @@
     "licensing": {
         "licensingListTitle": "Datos de licencia",
         "licensingListDescription": "Haga clic en un licenciatario para ver el estado de sus privilegios. La columna “Privilegios” incluye tanto los privilegios anteriores como los vigentes.",
-        "licensingListDescriptionCosm": "Haz clic en un licenciatario para ver detalles sobre dónde puede trabajar en virtud del Acuerdo.",
+        "licensingListDescriptionMultiState": "Haz clic en un licenciatario para ver detalles sobre dónde puede trabajar en virtud del Acuerdo.",
         "searchTitle": "Iniciar una búsqueda",
         "searchTitlePublic": "Verificar un privilegio compacto",
         "attestation": "Atestación",
@@ -832,6 +837,24 @@
                 "key": "esthetician",
                 "compactKey": "cosm",
                 "abbrev": "esth"
+            },
+            {
+                "name": "Trabajador social clínico con licencia",
+                "key": "licensed clinical social worker",
+                "compactKey": "socw",
+                "abbrev": "lcsw"
+            },
+            {
+                "name": "Trabajador social titulado con maestría",
+                "key": "licensed master social worker",
+                "compactKey": "socw",
+                "abbrev": "lmsw"
+            },
+            {
+                "name": "Trabajador social titulado con licencia",
+                "key": "licensed bachelor social worker",
+                "compactKey": "socw",
+                "abbrev": "lbsw"
             }
         ],
         "disciplineTypes": [

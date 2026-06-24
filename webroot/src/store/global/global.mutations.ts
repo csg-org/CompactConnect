@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { AuthTypes, AppModes } from '@/app.config';
+import { AuthTypes, AppModes, AppGroupModes } from '@/app.config';
 import { AppMessage } from '@/models/AppMessage/AppMessage.model';
 import { State } from './global.state';
 
@@ -21,6 +21,7 @@ export enum MutationTypes {
     SET_MODAL_LOGOUT_ONLY = '[Global] Modal isLogoutOnly set',
     SET_APP_MODE = '[Global] App mode set',
     SET_APP_MODE_DISPLAY = '[Global] App mode displayed set',
+    SET_APP_GROUP_MODE = '[Global] App group mode set',
     SET_AUTH_TYPE = '[Global] Auth type set',
     EXPAND_NAV_MENU = '[Global] Expand nav menu',
     COLLAPSE_NAV_MENU = '[Global] Collapse nav menu',
@@ -56,12 +57,16 @@ export default {
         state.isModalOpen = false;
         state.isModalLogoutOnly = false;
         state.appMode = AppModes.JCC;
+        state.appGroupMode = AppGroupModes.PRIVILEGE_PURCHASE;
     },
     [MutationTypes.SET_APP_MODE]: (state: State, mode: AppModes) => {
         state.appMode = mode;
     },
     [MutationTypes.SET_APP_MODE_DISPLAY]: (state: State, isDisplayed: boolean) => {
         state.isAppModeDisplayed = isDisplayed;
+    },
+    [MutationTypes.SET_APP_GROUP_MODE]: (state: State, groupMode: AppGroupModes) => {
+        state.appGroupMode = groupMode;
     },
     [MutationTypes.SET_AUTH_TYPE]: (state: State, type: AuthTypes) => {
         state.authType = type;

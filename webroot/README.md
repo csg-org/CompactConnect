@@ -88,43 +88,75 @@
     - **`VUE_APP_API_USER_ROOT`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://api.test.jcc.iaapi.io`
-            - CSG Test: `TODO`
-            - Beta: `TODO`
-            - Prod: `TODO`
+            - CSG Test: `https://api.test.compactconnect.org`
+            - Beta: `https://api.beta.compactconnect.org`
+            - Prod: `https://api.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.jcc.iaapi.io`
     - **`VUE_APP_API_STATE_ROOT_COSMO`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://api.test.cosmetology.jcc.iaapi.io`
-            - CSG Test: `TODO`
-            - Beta: `TODO`
-            - Prod: `TODO`
+            - CSG Test: `https://api.test.cosmetology.compactconnect.org`
+            - Beta: `https://api.beta.cosmetology.compactconnect.org`
+            - Prod: `https://api.cosmetology.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.cosmetology.jcc.iaapi.io`
     - **`VUE_APP_API_LICENSE_ROOT_COSMO`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://api.test.cosmetology.jcc.iaapi.io`
-            - CSG Test: `TODO`
-            - Beta: `TODO`
-            - Prod: `TODO`
+            - CSG Test: `https://api.test.cosmetology.compactconnect.org`
+            - Beta: `https://api.beta.cosmetology.compactconnect.org`
+            - Prod: `https://api.cosmetology.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.cosmetology.jcc.iaapi.io`
     - **`VUE_APP_API_SEARCH_ROOT_COSMO`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://search.test.cosmetology.jcc.iaapi.io`
-            - CSG Test: `TODO`
-            - Beta: `TODO`
-            - Prod: `TODO`
+            - CSG Test: `https://search.test.cosmetology.compactconnect.org`
+            - Beta: `https://search.beta.cosmetology.compactconnect.org`
+            - Prod: `https://search.cosmetology.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://search.test.cosmetology.jcc.iaapi.io`
     - **`VUE_APP_API_USER_ROOT_COSMO`**
         - _Server_ :arrow_heading_up:
             - IA Test: `https://api.test.cosmetology.jcc.iaapi.io`
-            - CSG Test: `TODO`
-            - Beta: `TODO`
-            - Prod: `TODO`
+            - CSG Test: `https://api.test.cosmetology.compactconnect.org`
+            - Beta: `https://api.beta.cosmetology.compactconnect.org`
+            - Prod: `https://api.cosmetology.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.cosmetology.jcc.iaapi.io`
+    - **`VUE_APP_API_STATE_ROOT_SW`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://api.test.socialwork.jcc.iaapi.io`
+            - CSG Test: `https://api.test.socialwork.compactconnect.org`
+            - Beta: `https://api.beta.socialwork.compactconnect.org`
+            - Prod: `https://api.socialwork.compactconnect.org`
+        - _Local_ :arrow_heading_down:
+            - `https://api.test.socialwork.jcc.iaapi.io`
+    - **`VUE_APP_API_LICENSE_ROOT_SW`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://api.test.socialwork.jcc.iaapi.io`
+            - CSG Test: `https://api.test.socialwork.compactconnect.org`
+            - Beta: `https://api.beta.socialwork.compactconnect.org`
+            - Prod: `https://api.socialwork.compactconnect.org`
+        - _Local_ :arrow_heading_down:
+            - `https://api.test.socialwork.jcc.iaapi.io`
+    - **`VUE_APP_API_SEARCH_ROOT_SW`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://search.test.socialwork.jcc.iaapi.io`
+            - CSG Test: `https://search.test.socialwork.compactconnect.org`
+            - Beta: `https://search.beta.socialwork.compactconnect.org`
+            - Prod: `https://search.socialwork.compactconnect.org`
+        - _Local_ :arrow_heading_down:
+            - `https://search.test.socialwork.jcc.iaapi.io`
+    - **`VUE_APP_API_USER_ROOT_SW`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://api.test.socialwork.jcc.iaapi.io`
+            - CSG Test: `https://api.test.socialwork.compactconnect.org`
+            - Beta: `https://api.beta.socialwork.compactconnect.org`
+            - Prod: `https://api.socialwork.compactconnect.org`
+        - _Local_ :arrow_heading_down:
+            - `https://api.test.socialwork.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
             - IA Test: `us-east-1`
@@ -176,6 +208,22 @@
     - **`VUE_APP_COGNITO_CLIENT_ID_STAFF_COSMO`**
         - _Server_ :arrow_heading_up:
             - IA Test: `42km9ho786d28dp812j88kvscq`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `42km9ho786d28dp812j88kvscq`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF_SW`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `https://staff-auth.test.socialwork.jcc.iaapi.io`
+            - CSG Test: `TODO`
+            - Beta: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://staff-auth.test.socialwork.jcc.iaapi.io`
+    - **`VUE_APP_COGNITO_CLIENT_ID_STAFF_SW`**
+        - _Server_ :arrow_heading_up:
+            - IA Test: `4eh1uo803lckmmdgdou9la69s6`
             - CSG Test: `TODO`
             - Beta: `TODO`
             - Prod: `TODO`
