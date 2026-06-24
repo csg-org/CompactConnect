@@ -754,6 +754,8 @@ class ProviderUserRecords:
         if is_public_response:
             # only include the most recent multi-state license for each license type in the public response
             license_records = self._find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
+            if not license_records:
+                raise CCNotFoundException('Provider not found')
         else:
             license_records = self.get_license_records()
 

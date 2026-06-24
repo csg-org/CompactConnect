@@ -1403,6 +1403,25 @@ class TestGenerateApiResponseObject(TstLambdas):
         self.assertEqual('multi-state', api_response['licenses'][0]['licenseScope'])
         self.assertEqual('OH-licensed-cli-MS', api_response['licenses'][0]['licenseNumber'])
 
+    def test_generate_api_response_object_public_raises_when_no_multi_state_licenses(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+        from cc_common.exceptions import CCNotFoundException
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'licensed clinical social worker',
+                    'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                }
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            with self.assertRaises(CCNotFoundException):
+                provider_user_records.generate_api_response_object(is_public_response=True)
+
     @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
     def test_generate_api_response_object_marks_multi_state_ineligible_when_single_state_ineligible(self):
         """Displayed multi-state compactEligibility follows the paired single-state license."""

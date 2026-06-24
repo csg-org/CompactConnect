@@ -261,7 +261,10 @@ def _build_public_license_search_body(*, compact: str, body: dict, cursor: dict 
 
     search_after = cursor.get('search_after') if cursor else None
 
-    nested_must: list[dict] = []
+    nested_must: list[dict] = [
+        {'term': {'licenses.licenseScope': 'multi-state'}},
+        {'term': {'licenses.mostRecentLicenseForType': True}},
+    ]
     if query_obj.get('licenseNumber'):
         nested_must.append({'term': {'licenses.licenseNumber': query_obj['licenseNumber']}})
     if query_obj.get('jurisdiction'):
