@@ -7,7 +7,7 @@ POST /v1/public/compacts/{compact}/providers/query and GET /v1/public/compacts/{
 Uses CC_TEST_PROVIDER_ID and mutates the smoke license in DynamoDB; restores state in finally blocks.
 
 Prerequisites:
-- The test provider must have at least one multi-state license with a paired single-state license 
+- The test provider must have at least one multi-state license with a paired single-state license
 (public search and lookup only expose multi-state licenses).
 - For baseline eligible assertions to pass, both the multi-state and its paired single-state license
   must be eligible (e.g. not expired, not jurisdiction-marked ineligible, no blocking adverse actions).
