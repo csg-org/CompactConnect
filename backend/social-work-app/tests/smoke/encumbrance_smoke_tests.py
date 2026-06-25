@@ -5,13 +5,18 @@ Smoke tests for encumbrance functionality.
 This script tests the end-to-end encumbrance workflow for both licenses and privileges,
 including setting encumbrances and lifting them through the API endpoints.
 
-This script assumes your test environment has a live jurisdiction for generating at least one privilege
-record. You can set the value of the live jurisdiction in the LIVE_JURISDICTION constant
+This script assumes your test provider has a multi-state license that is eligible to generate
+privileges in every live state. The jurisdiction of the multi-state license must be
+something other than the privilege jurisdiction defined in the PRIVILEGE_JURISDICTION constant.
+
+Before running encumbrance tests, jurisdiction configuration smoke setup is run for the privilege and license
+jurisdictions to ensure both are live.
 """
 
 import time
 
 import requests
+from compact_configuration_smoke_tests import test_jurisdiction_configuration
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_details_endpoint,
@@ -27,7 +32,7 @@ from smoke_common import (
 )
 
 ENCUMBRANCE_SMOKE_COMPACT = 'socw'
-LIVE_JURISDICTION = 'az'
+PRIVILEGE_JURISDICTION = 'az'
 
 
 def clean_adverse_actions():
@@ -108,7 +113,7 @@ class EncumbranceTestHelper:
         if not provider_license:
             raise SmokeTestFailureException('License not found for provider')
 
-        self.privilege_jurisdiction = LIVE_JURISDICTION
+        self.privilege_jurisdiction = PRIVILEGE_JURISDICTION
         self.license_jurisdiction = provider_license.jurisdiction
         self.license_type = provider_license.licenseType
         self.license_type_abbreviation = provider_license.licenseTypeAbbreviation
@@ -776,5 +781,17 @@ if __name__ == '__main__':
     # Load environment variables from smoke_tests_env.json
     load_smoke_test_env()
 
-    # Run the complete test suite
+    provider_id = config.test_provider_id
+
+    # Get jurisdiction information from privilege
+    # Query database directly for privilege records
+    provider_user_records = get_provider_user_records(ENCUMBRANCE_SMOKE_COMPACT, provider_id)
+
+    # Get license record
+    provider_license = provider_user_records.find_best_license_in_current_known_licenses()
+
+    # Ensure az (privilege) and al (typical license jurisdiction) are live before encumbrance API calls.
+    test_jurisdiction_configuration(PRIVILEGE_JURISDICTION, recreate_compact_config=True)
+    test_jurisdiction_configuration(provider_license.jurisdiction)
+
     run_encumbrance_smoke_tests()
