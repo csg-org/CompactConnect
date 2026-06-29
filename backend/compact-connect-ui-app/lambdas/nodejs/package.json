@@ -19,16 +19,16 @@
     "chai": "^4.1.2",
     "chai-match-pattern": "^1.1.0",
     "chalk": "^4.1.2",
-    "esbuild": "0.28.0",
-    "eslint": "10.2.1",
+    "esbuild": "0.28.1",
+    "eslint": "10.5.0",
     "lambda-local": "^2.2.0",
-    "mocha": "^11.7.5"
+    "mocha": "^11.7.6"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^2.32.0",
-    "@aws-sdk/client-dynamodb": "^3.1029.0",
-    "@aws-sdk/client-s3": "^3.1029.0",
-    "@aws-sdk/util-dynamodb": "^3.996.2",
+    "@aws-lambda-powertools/logger": "^2.33.1",
+    "@aws-sdk/client-dynamodb": "^3.1073.0",
+    "@aws-sdk/client-s3": "^3.1073.0",
+    "@aws-sdk/util-dynamodb": "^3.996.5",
     "zod": "^3.23.8"
   },
   "resolutions": {
