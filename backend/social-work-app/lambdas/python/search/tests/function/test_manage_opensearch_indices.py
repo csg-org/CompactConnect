@@ -256,6 +256,7 @@ class TestOpenSearchIndexManager(TstFunction):
                                     'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
                                     'licenseNumber': {'type': 'keyword'},
                                     'licenseScope': {'type': 'keyword'},
+                                    'mostRecentLicenseForType': {'type': 'boolean'},
                                     'licenseStatus': {'type': 'keyword'},
                                     'licenseStatusName': {'type': 'keyword'},
                                     'licenseType': {'type': 'keyword'},

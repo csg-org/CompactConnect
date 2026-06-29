@@ -1403,6 +1403,25 @@ class TestGenerateApiResponseObject(TstLambdas):
         self.assertEqual('multi-state', api_response['licenses'][0]['licenseScope'])
         self.assertEqual('OH-licensed-cli-MS', api_response['licenses'][0]['licenseNumber'])
 
+    def test_generate_api_response_object_public_raises_when_no_multi_state_licenses(self):
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import LicenseScopeEnum
+        from cc_common.exceptions import CCNotFoundException
+
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': 'licensed clinical social worker',
+                    'licenseScope': LicenseScopeEnum.SINGLE_STATE,
+                }
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            with self.assertRaises(CCNotFoundException):
+                provider_user_records.generate_api_response_object(is_public_response=True)
+
     @patch('cc_common.config._Config.expiration_resolution_date', date(2025, 6, 1))
     def test_generate_api_response_object_marks_multi_state_ineligible_when_single_state_ineligible(self):
         """Displayed multi-state compactEligibility follows the paired single-state license."""
@@ -1978,3 +1997,84 @@ class TestGenerateOpenSearchDocuments(TstLambdas):
             docs = provider_user_records.generate_opensearch_documents()
 
         self.assertEqual([], docs)
+
+    def test_opensearch_most_recent_license_for_type_flags_newest_multi_state_per_type(self):
+        """Two multi-state licenses of the same type: only the most recent gets mostRecentLicenseForType true."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+        from cc_common.data_model.schema.common import CompactEligibilityStatus, LicenseScopeEnum
+
+        license_type = 'licensed clinical social worker'
+        records = self._make_provider_records(
+            license_overrides_list=[
+                {
+                    'jurisdiction': 'az',
+                    'licenseType': license_type,
+                    'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                    'licenseNumber': 'AZ-OLDER-MS',
+                    'dateOfIssuance': date(2010, 1, 1),
+                    'dateOfRenewal': date(2015, 1, 1),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+                {
+                    'jurisdiction': 'oh',
+                    'licenseType': license_type,
+                    'licenseScope': LicenseScopeEnum.MULTI_STATE,
+                    'licenseNumber': 'OH-NEWER-MS',
+                    'dateOfIssuance': date(2020, 1, 1),
+                    'dateOfRenewal': date(2024, 1, 1),
+                    'compactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                    'jurisdictionUploadedCompactEligibility': CompactEligibilityStatus.ELIGIBLE,
+                },
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
+
+        by_jurisdiction = {
+            doc['licenses'][0]['jurisdiction']: doc['licenses'][0]['mostRecentLicenseForType'] for doc in docs
+        }
+        self.assertFalse(by_jurisdiction['az'])
+        self.assertTrue(by_jurisdiction['oh'])
+
+    def test_opensearch_single_state_most_recent_license_for_type_always_false(self):
+        """Single-state license documents always have mostRecentLicenseForType false, since the
+        field is specifically used by multi-state licenses for public search filtering."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        license_type = 'licensed clinical social worker'
+        records = self._make_provider_records(license_overrides_list=_license_pair_overrides('oh', license_type))
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
+
+        for doc in docs:
+            if doc['licenses'][0]['licenseScope'] == 'single-state':
+                self.assertFalse(doc['licenses'][0]['mostRecentLicenseForType'])
+
+    def test_opensearch_most_recent_license_for_type_true_for_each_license_type(self):
+        """Each license type's winning multi-state document gets mostRecentLicenseForType true."""
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        lcsw = 'licensed clinical social worker'
+        lmsw = 'licensed master social worker'
+        records = self._make_provider_records(
+            license_overrides_list=[
+                *_license_pair_overrides('oh', lcsw),
+                *_license_pair_overrides('al', lmsw),
+            ]
+        )
+        with self._patch_config_for_privilege_generation():
+            provider_user_records = ProviderUserRecords(records)
+            docs = provider_user_records.generate_opensearch_documents()
+
+        multi_state_flags = {
+            (doc['licenses'][0]['licenseType'], doc['licenses'][0]['jurisdiction']): doc['licenses'][0][
+                'mostRecentLicenseForType'
+            ]
+            for doc in docs
+            if doc['licenses'][0]['licenseScope'] == 'multi-state'
+        }
+        self.assertTrue(multi_state_flags[(lcsw, 'oh')])
+        self.assertTrue(multi_state_flags[(lmsw, 'al')])

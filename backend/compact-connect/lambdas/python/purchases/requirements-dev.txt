@@ -12,11 +12,11 @@ aws-lambda-powertools==3.29.0
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
-boto3==1.43.18
+boto3==1.43.36
     # via
     #   -r requirements-dev.in
     #   moto
-botocore==1.43.18
+botocore==1.43.36
     # via
     #   boto3
     #   moto
@@ -27,7 +27,7 @@ cachecontrol[filecache]==0.14.4
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2026.5.20
+certifi==2026.6.17
     # via requests
 cffi==2.0.0
     # via
@@ -35,9 +35,9 @@ cffi==2.0.0
     #   cryptography
 charset-normalizer==3.4.7
     # via requests
-click==8.4.0
+click==8.4.1
     # via pip-tools
-coverage[toml]==7.14.1
+coverage[toml]==7.14.3
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -45,17 +45,17 @@ cryptography==48.0.1
     # via
     #   -r requirements-dev.in
     #   moto
-cyclonedx-python-lib==11.7.0
+cyclonedx-python-lib==11.11.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
 docker==7.1.0
     # via moto
-faker==40.19.1
+faker==40.23.0
     # via -r requirements-dev.in
-filelock==3.29.0
+filelock==3.29.4
     # via cachecontrol
-idna==3.15
+idna==3.18
     # via requests
 iniconfig==2.3.0
     # via pytest
@@ -74,9 +74,9 @@ marshmallow==4.3.0
     # via -r requirements-dev.in
 mdurl==0.1.2
     # via markdown-it-py
-moto[dynamodb,s3]==5.2.1
+moto[dynamodb,s3]==5.2.2
     # via -r requirements-dev.in
-msgpack==1.1.2
+msgpack==1.2.1
     # via cachecontrol
 packageurl-python==0.17.6
     # via cyclonedx-python-lib
@@ -89,13 +89,13 @@ packaging==26.2
     #   wheel
 pip-api==0.0.34
     # via pip-audit
-pip-audit==2.10.0
+pip-audit==2.10.1
     # via -r requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.5.3
     # via -r requirements-dev.in
-platformdirs==4.9.6
+platformdirs==4.10.0
     # via pip-audit
 pluggy==1.6.0
     # via
@@ -117,7 +117,7 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==9.0.3
+pytest==9.1.1
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -137,13 +137,13 @@ requests==2.34.2
     #   moto
     #   pip-audit
     #   responses
-responses==0.26.0
+responses==0.26.1
     # via moto
 rich==15.0.0
     # via pip-audit
-ruff==0.15.15
+ruff==0.15.19
     # via -r requirements-dev.in
-s3transfer==0.18.0
+s3transfer==0.19.0
     # via boto3
 six==1.17.0
     # via python-dateutil
