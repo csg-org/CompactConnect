@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/search/requirements-dev.in
 #
-boto3==1.43.18
+boto3==1.43.34
     # via moto
-botocore==1.43.18
+botocore==1.43.36
     # via
     #   boto3
     #   moto
@@ -29,7 +29,7 @@ jmespath==1.1.0
     #   botocore
 markupsafe==3.0.3
     # via werkzeug
-moto[dynamodb]==5.2.1
+moto[dynamodb]==5.2.2
     # via -r requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
@@ -46,7 +46,7 @@ requests==2.34.2
     #   responses
 responses==0.26.0
     # via moto
-s3transfer==0.18.0
+s3transfer==0.19.0
     # via boto3
 six==1.17.0
     # via python-dateutil
