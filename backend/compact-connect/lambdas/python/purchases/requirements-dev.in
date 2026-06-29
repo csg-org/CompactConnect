@@ -1,16 +1,16 @@
-moto[dynamodb, s3]>=5.0.12, <6
-pytest>=6.2.5
+moto[dynamodb, s3]>=5.2.2, <6
+pytest>=9.1.1
 pytest-cov
 coverage
 ruff
 pip-tools
 pip-audit
-Faker>=40.19.1, <41
+Faker>=40.23.0, <41
 
 # Dependencies normally provided via the common lambda layer
 argon2-cffi>=25.1.0, <26.0.0
 aws-lambda-powertools>=3.5.0, <4
-boto3>=1.43.18, <2
+boto3>=1.43.34, <2
 cryptography>=48.0.1, <49
 marshmallow>=4.3.0, <5.0.0
 requests>=2.31.0, <3.0.0
