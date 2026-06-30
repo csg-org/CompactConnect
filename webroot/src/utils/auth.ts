@@ -53,11 +53,11 @@ export type CognitoConfig = {
     state?: string;
 };
 
-export enum CognitoStateTypes {
-    STAFF_JCC = 'staff',
+export enum CognitoUserTypes {
+    STAFF_JCC = 'staff-jcc',
     STAFF_COSMETOLOGY = 'staff-cosmo',
     STAFF_SOCIAL_WORK = 'staff-social-work',
-    LICENSEE_JCC = 'licensee',
+    LICENSEE_JCC = 'licensee-jcc',
 }
 
 export const staffLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
@@ -75,15 +75,15 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         config.scopes = staffLoginScopes;
 
         if (appMode === AppModes.JCC) {
-            config.state = CognitoStateTypes.STAFF_JCC;
+            config.state = CognitoUserTypes.STAFF_JCC;
             config.clientId = envConfig.cognitoClientIdStaff;
             config.authDomain = envConfig.cognitoAuthDomainStaff;
         } else if (appMode === AppModes.COSMETOLOGY) {
-            config.state = CognitoStateTypes.STAFF_COSMETOLOGY;
+            config.state = CognitoUserTypes.STAFF_COSMETOLOGY;
             config.clientId = envConfig.cognitoClientIdStaffCosmo;
             config.authDomain = envConfig.cognitoAuthDomainStaffCosmo;
         } else if (appMode === AppModes.SOCIAL_WORK) {
-            config.state = CognitoStateTypes.STAFF_SOCIAL_WORK;
+            config.state = CognitoUserTypes.STAFF_SOCIAL_WORK;
             config.clientId = envConfig.cognitoClientIdStaffSw;
             config.authDomain = envConfig.cognitoAuthDomainStaffSw;
         }
@@ -91,7 +91,7 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         break;
     case AuthTypes.LICENSEE:
         config.scopes = licenseeLoginScopes;
-        config.state = CognitoStateTypes.LICENSEE_JCC;
+        config.state = CognitoUserTypes.LICENSEE_JCC;
         config.clientId = envConfig.cognitoClientIdLicensee;
         config.authDomain = envConfig.cognitoAuthDomainLicensee;
         break;
@@ -147,7 +147,7 @@ export default {
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT,
     AuthTypes,
-    CognitoStateTypes,
+    CognitoUserTypes,
     staffLoginScopes,
     licenseeLoginScopes,
     getCognitoConfig,

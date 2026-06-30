@@ -1,8 +1,8 @@
 <!--
-    AuthCallback.vue
+    StaffCosmo.vue
     CompactConnect
 
-    Created by InspiringApps on 8/12/2024.
+    Created by InspiringApps on 6/24/2026.
 -->
 
 <template>
@@ -19,5 +19,5 @@
     </Section>
 </template>
 
-<script lang="ts" src="./AuthCallback.ts"></script>
-<style scoped lang="less" src="./AuthCallback.less"></style>
+<script lang="ts" src="./StaffCosmo.ts"></script>
+<style scoped lang="less" src="./StaffCosmo.less"></style>
