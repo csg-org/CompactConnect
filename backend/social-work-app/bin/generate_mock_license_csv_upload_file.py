@@ -10,7 +10,8 @@
 # To generate practitioners with both a single-state and multi-state license (required for privilege generation),
 # use --linked-licenses. Each practitioner will appear twice: once with single-state and once with multi-state
 # license scope, sharing the same SSN and personal information but with distinct license numbers.
-# Note: when using --linked-licenses, --count specifies the number of practitioners, so total output rows will be 2x --count.
+# Note: when using --linked-licenses, --count specifies the number of practitioners, so total output rows will be
+# 2x --count.
 # bin/generate_mock_license_csv_upload_file.py --count 50 --compact socw --jurisdiction al --linked-licenses
 import json
 import os
@@ -383,7 +384,8 @@ if __name__ == '__main__':
             'Emit each practitioner twice: once with single-state and once with multi-state license scope. '
             'Both rows share the same SSN and personal information but have distinct license numbers. '
             'Required for privilege generation. Note: when using --linked-licenses, --count specifies '
-            'the number of practitioners, so total output rows will be 2x --count. (default: one row per count with random scope)'
+            'the number of practitioners, so total output rows will be 2x --count. '
+            '(default: one row per count with random scope)'
         ),
         action='store_true',
         required=False,
