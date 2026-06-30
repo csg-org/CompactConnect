@@ -281,10 +281,6 @@ class _Config:
         return datetime.now(tz=UTC).replace(microsecond=0)
 
     @property
-    def export_results_bucket_name(self):
-        return os.environ['EXPORT_RESULTS_BUCKET_NAME']
-
-    @property
     def rate_limiting_table_name(self):
         return os.environ['RATE_LIMITING_TABLE_NAME']
 
