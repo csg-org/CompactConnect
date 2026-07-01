@@ -8,7 +8,8 @@ erDiagram
         string sk "{compact}#PROVIDER"
         string type "provider"
         datetime dateOfUpdate
-        string providerId
+        uuid providerId "RID, UUID4, internal"
+        uuid publicCompactIdentifier "optional, CUID, UUID4, public"
         string compact
         string licenseJurisdiction "home jurisdiction"
         string jurisdictionUploadedLicenseStatus
