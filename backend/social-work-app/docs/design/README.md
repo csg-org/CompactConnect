@@ -8,14 +8,19 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[User Architecture](#user-architecture)**
 - **[Data Model](#data-model)**
 - **[Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)**
+- **[Notifications](#notifications)**
 - **[Advanced Data Search](#advanced-data-search)**
 - **[CI/CD Pipelines](#cicd-pipelines)**
 - **[Audit Logging](#audit-logging)**
 
 ## Compacts and Jurisdictions
 
-The CompactConnect system supports multiple licensure compacts and, within each compact, multiple jurisdictions. The
-jurisdictions it supports within each compact is all 50 states, Washington D.C., Puerto Rico, and the Virgin Islands.
+The CompactConnect system supports multiple licensure compacts and, within each compact, multiple jurisdictions. For
+the Social Work Compact specifically, the supported jurisdictions are the 50 states, the District of Columbia, Guam,
+the Commonwealth of the Northern Mariana Islands, and the U.S. Virgin Islands — see the jurisdiction-to-license-type
+recognition mapping in
+[license_recognition_util.py](../../lambdas/python/common/cc_common/license_recognition_util.py) for the authoritative
+list.
 
 ### Adding a compact to CompactConnect
 
@@ -96,16 +101,36 @@ same KMS key as the SSN table to invoke the license preprocessor Lambda function
 This architecture ensures that SSN data is protected throughout the ingest process while still allowing the system to
 associate licenses with the correct providers across jurisdictions.
 
-### Asynchronous validation feedback
-Asynchronous validation feedback for boards to review is not yet implemented.
+### All-Licensee Ingestion, Including Single-State Licensees
+
+The ingest pipeline described above processes **every uploaded licensee record identically**, regardless of the
+license's `licenseScope` (`single-state` or `multi-state`, see [License Scopes](#license-scopes)). A jurisdiction is
+not required to upload only its multi-state licensees; it is expected to upload data for **all** of its eligible
+licensees, including practitioners who hold only a **single-state** license and no multi-state license.
+
+Single-state-only licensees are fully ingested and stored as `license` records, and appear in the practitioner's
+provider record like any other license. However, because privilege generation requires a **paired** multi-state and
+single-state license in the same jurisdiction and license type (see
+[Privilege Runtime Generation for Multi-State Licenses](#privilege-runtime-generation-for-multi-state-licenses)), a
+single-state-only licensee will never have privileges generated for them. Their data is still valuable to the
+system and to other member states, since it establishes the practitioner's licensure record and status within the
+compact even though they are not (yet) authorized to practice in other jurisdictions.
+
+If a jurisdiction uploads a multi-state license as compact-eligible while its paired single-state license in the same jurisdiction is already ineligible (inactive, expired, or encumbered), the multi-state license is **still persisted** rather than rejected, and a
+`license.validation-error` event is published so the uploading jurisdiction can be notified of the mismatch (see
+`_check_for_multi_state_single_state_eligibility_validation_error` in
+[ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py)). This ensures that licensee data is always
+accepted and ingested even in cases where eligibility for compact privileges cannot yet be fully confirmed.
+
+Re-uploading that same license (determined by providerId, jurisdiction, licenseType, and licenseScope) updates the existing record in place (rather than creating a duplicate), and, when relevant fields changed, creates a `licenseUpdate` history record categorized as a `renewal` (when the expiration date moved forward), a `deactivation` (when the jurisdiction reports the license as inactive), or `other` (for any other changed field).
+
 
 ## User Architecture
 [Back to top](#backend-design)
 
-Authentication with the CompactConnect backend will be controlled through Oauth2 via
-[AWS Cognito User Pools](https://github.com/csg-org/CompactConnect). Clients will be divided into two groups, each
-represented by an independent User Pool: [Staff Users](#staff-users) and [Licensee Users](#licensee-users). See
-the accompanying [architecture diagram](./users-arch-diagram.pdf) for an illustration.
+Authentication with the CompactConnect backend is controlled through OAuth2 via
+[AWS Cognito User Pools](https://github.com/csg-org/CompactConnect). The Social Work application uses a single
+Cognito user pool for human access: [Staff Users](#staff-users). Jurisdiction license upload integrations use [machine-to-machine app clients](#machine-to-machine-app-clients).
 
 ### Staff Users
 
@@ -373,10 +398,40 @@ type (for example, an Ohio LCSW single-state license and an Ohio LCSW multi-stat
 How scopes are represented in DynamoDB sort keys and related record types is documented under
 [License Composite Identifier](#license-composite-identifier) in the Data Model section.
 
+### MSL Issuance and Home-State Confirmation
+
+When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type to determine what other jurisdictions a practitioner is authorized to practice in. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the practitioner to specify which state is their current home state. The home state license is automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that multi-state license has an active and eligible single-state license recorded in the system for the same jurisdiction and license type. Before a multi-state license (MSL) can generate remote-state privileges ("Multistate Authorization to Practice"),
+its compact eligibility must be confirmed, and the practitioner's home state for that license type must be determined. Both of these happen primarily at **ingest time** (see [Ingest Flow](#ingest-flow)).
+
+When a license is uploaded, the ingest handler checks whether the
+newly uploaded or renewed multi-state license (paired with a same-jurisdiction, same-type single-state license) is now more recently issued/renewed than the practitioner's current home license, and from a **different** jurisdiction. If so, the practitioner's home jurisdiction changes to the new state (see
+[Home State Changes](#home-state-changes) below). This check is run against the full set of the practitioner's known licenses each time a license is ingested, so it does not matter whether a jurisdiction uploads its multi-state license before or after the paired single-state license — the pairing will be detected as soon as both exist.
+
+
+It is important to note that there are **two distinct "home" concepts** in the system, which use different scopes:
+
+- **Per-license-type privilege home**: used for runtime privilege generation (see below). The home MSL is selected
+  independently **for each license type**, so in theory a practitioner could have their LCSW privileges generated from an Ohio
+  home license while their LMSW privileges are generated from a Kentucky home license. This is the same implementation in place for the Cosmetology compact.
+- **Provider-record home jurisdiction**: the single `licenseJurisdiction` value shown on the practitioner's top-level
+  provider record. This is chosen from whichever paired MSL is most recently issued/renewed **across all license
+  types** the practitioner holds, not on a per-type basis.
+
+In practice these usually agree (most practitioners hold only one license type), but they are calculated separately
+and in theory can diverge for practitioners holding multiple license types with different upload/renewal histories.
+
+**Eligibility confirmation:** When a jurisdiction uploads a license, its reported status and eligibility are
+persisted as-is (`jurisdictionUploadedLicenseStatus`, `jurisdictionUploadedCompactEligibility`). The system does not
+treat those jurisdiction-reported values as final; on every load, `licenseStatus` and `compactEligibility` are
+**recalculated** from the jurisdiction-reported values, the current date versus the expiration date, and the
+license's encumbrance state (see [Status Calculation](#security-and-status-calculation) in the Data Model section).
+An MSL is only eligible for privilege generation once its calculated `compactEligibility` is `eligible`.
+
+Once a home MSL is confirmed eligible for a given license type, remote-state Multistate Authorization to Practice (privileges) are generated for that license type as described next.
 
 ### Privilege Runtime Generation for Multi-State Licenses
 
-When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type to determine what other jurisdictions a practitioner is authorized to practice in. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the practitioner to specify which state is their current home state. It was determined that the home state license would be automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that multi-state license has an active and eligible single-state license in the same jurisdiction and license type. Privileges are then generated from that multi-state home license only when that pairing exists: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license is ineligible or its associated single-state license is ineligible, no privileges are generated for that license type (there is no fallback to an older jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is the one with the pairing.
+Privileges are generated from a multi-state home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license is ineligible or its associated single-state license is ineligible, no privileges are generated for that license type (there is no fallback to an older jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is the one with the pairing.
 
 The following flow describes how the home state license is assigned.
 
@@ -386,6 +441,32 @@ Each privilege’s status (active/inactive, under investigation) is derived from
 that privilege jurisdiction and license type. License-targeted adverse actions and investigations additionally specify
 which `licenseScope` they apply to.
 
+### Home State Changes
+
+A home jurisdiction change occurs when a newly ingested or renewed multi-state license, paired with a same-jurisdiction single-state license, is more recently dated than the practitioner's current home MSL and originates from a different jurisdiction. When this is detected:
+
+1. A `provider.homeStateChange` event is published to the data event bus (see [Notifications](#notifications)), which results in an email notification to the **former** home jurisdiction only.
+2. The practitioner's top-level provider record is rebuilt using the data from the new home license (name, contact information, `licenseJurisdiction`, etc.).
+3. A `providerUpdate` history record is written with `updateType: homeJurisdictionChange`, preserving the previous provider-record values.
+4. Because privileges are not stored and are instead generated fresh on every read (see
+   [Privilege Runtime Generation](#privilege-runtime-generation-for-multi-state-licenses)), privileges tied to the
+   **old** home jurisdiction stop being generated as soon as the change takes effect — there is no persisted privilege
+   record to separately deactivate, and no grace period.
+
+**One-home-state-per-license-type enforcement:** For a given license type, the home MSL is always the single most
+recently issued/renewed **paired** multi-state license (sorted by `dateOfRenewal`, falling back to `dateOfIssuance`,
+with `dateOfIssuance` as a final tiebreaker). Notably, this selection does **not** consider whether the candidate
+license is active or compact-eligible — the most recently dated paired MSL is selected as home for that license type
+even if it happens to be inactive or ineligible, and there is no fallback to an older, eligible jurisdiction's
+pairing. This is what keeps exactly one home MSL in effect per license type at any given time.
+
+**"One-active-MSL" is a selection rule, not a storage restriction:** The system does **not** prevent a practitioner,
+or a jurisdiction, from having multiple multi-state licenses stored concurrently across different jurisdictions —
+all uploaded MSLs remain in the database and are visible to staff users through the API regardless of whether they
+are "home." What is enforced is which **one** paired MSL per license type is treated as authoritative for privilege
+generation at any point in time, per the rules above. Once a newer paired MSL from another jurisdiction overtakes the
+old home, the old MSL record is untouched in storage, but it immediately stops contributing to privilege generation.
+
 ### Overview of Privilege System
 
 The privilege system is built around several core concepts:
@@ -394,10 +475,137 @@ The privilege system is built around several core concepts:
 2. **Privilege Jurisdictions**: Other compact member states where the provider can practice under the compact; one generated privilege per (jurisdiction, license type).
 3. **License-Based Eligibility**: Privileges are derived from stored licenses and are only generated when the chosen home license for that type is valid and compact-eligible. Status is then modified by adverse actions and investigations.
 
-#### Adverse Actions and Encumbrance
-The system supports encumbering privileges via **stored adverse action records**:
-- **Privilege-specific encumbrance**: An adverse action targets a privilege (jurisdiction + license type). The generated privilege for that jurisdiction/type shows as encumbered until the action is lifted.
-- **License-based encumbrance**: An adverse action targets a specific stored license (jurisdiction + license type + `licenseScope`). If the home-state multi-state license or its paired single-state license in the same jurisdiction is encumbered, that license is ineligible and privileges are not generated from it at runtime.
+### Deactivation Effects from Adverse Action Processing
+
+The system supports encumbering (taking adverse action against) both licenses and privileges. Encumbrance processing is split across two layers:
+
+1. **Synchronous data writes**: The staff admin API (`encumbrance.py`) validates the request and, through the data
+   access layer, writes an `adverseAction` record and updates the relevant `encumberedStatus` field(s) in DynamoDB.
+2. **Asynchronous notifications**: Once the write succeeds, an event is published to the data event bus. The
+   corresponding data-events handler (`encumbrance_events.py`) only sends email notifications to affected states
+   (see [Notifications](#notifications)) — it does not perform any further data mutation.
+
+`encumberedStatus` is the only value actually persisted by an encumbrance action. As described in
+[Status Calculation](#security-and-status-calculation), `licenseStatus` and `compactEligibility` are always
+**derived** from `encumberedStatus` (along with expiration and jurisdiction-reported status) at load time, rather
+than being written directly.
+
+The following four scenarios describe how encumbering a license or privilege affects deactivation, depending on what
+is targeted:
+
+| Scenario | Effect on generated privileges |
+|---|---|
+| Home-state **single-state** license encumbered | The paired home multi-state license is displayed as ineligible (its eligibility is inherited from the single-state license, see [Privilege Runtime Generation](#privilege-runtime-generation-for-multi-state-licenses)), so **all** privileges generated for that license type are suppressed |
+| Home-state **multi-state** license encumbered | The home multi-state license itself becomes ineligible. Because privilege generation requires **both** the home multi-state license and its paired single-state license to be eligible, the still-eligible single-state license cannot rescue privilege generation — **all** privileges for that license type are suppressed, the same as above |
+| **Remote** (non-home) state license encumbered | **No effect** on generated privileges. This is true regardless of whether the remote license's `licenseScope` is `single-state` or `multi-state` — both scopes are encumbered through the identical code path, so behavior is the same. The encumbrance is scoped to that one license record (and it flags the provider as encumbered compact-wide); it only starts to matter for privilege generation if that license later becomes the practitioner's home license |
+| **Privilege** encumbered directly | Only the **single** targeted privilege jurisdiction is shown as inactive; every other generated privilege for that practitioner (including other jurisdictions of the same license type) remains active, so long as the home licenses remain eligible |
+
+**Lifting an encumbrance:** Encumbrances are lifted through a `PATCH` request identifying the specific
+`adverseActionId`. For a license-based encumbrance, the license's `encumberedStatus` clears (and a
+`licenseUpdate` history record is written) only once the **last** unlifted adverse action against that specific
+license is lifted; other adverse actions against the same license keep it encumbered. Lifting a privilege
+encumbrance never touches any license record. In both cases, the provider-level `encumberedStatus` only clears once
+**all** adverse actions against that practitioner (any license, any privilege) have been lifted. Lift notifications
+are likewise deferred until the underlying license or privilege is fully clear of unlifted adverse actions.
+
+### Investigations
+
+In addition to encumbrances, state admins can flag a license or privilege as having **current significant
+investigative information** — an open investigation — and notify other compact member states of it. This is implemented as a separate, parallel workflow to encumbrance, using
+its own `investigation` record type (see [Investigation Record](#record-types-in-detail) in the Data Model section)
+and its own API endpoints and events, but following the same license-vs-privilege targeting pattern.
+
+Investigations can be opened and closed against either a license or a privilege. Opening or closing an investigation publishes an
+event to the data event bus (`license.investigation`/`license.investigationClosed` or
+`privilege.investigation`/`privilege.investigationClosed`), which triggers state email notifications exactly as
+described in [Notifications](#notifications) — the affected jurisdiction, plus other live compact jurisdictions that
+recognize the license type, are notified. Practitioners are never notified of investigations.
+
+**Investigations do not deactivate anything.** Opening an investigation against a license or privilege 
+does **not** change that license's or privilege's `licenseStatus`, `compactEligibility`, or `status`. 
+A practitioner's license or privilege remains fully usable while under investigation. `investigationStatus` is 
+purely an informational flag surfaced to staff users and other states, alongside the notification it triggers.
+
+An investigation can optionally be closed together with a new encumbrance in the same request (by including
+encumbrance details in the close request body), in which case the resulting `adverseActionId` is recorded on the
+investigation record, and the investigation-closed notification is suppressed in favor of the encumbrance
+notification that the same action generates (see [Notifications](#notifications)).
+
+## Notifications
+[Back to top](#backend-design)
+
+CompactConnect automates outbound notifications to the Compact Commission and member states so that adverse actions,
+investigations, home-state changes, and license data validation issues are surfaced without requiring anyone to
+actively poll the system. Notifications are built on two complementary mechanisms: an event-driven path using AWS
+EventBridge for near-real-time provider-domain events, and a scheduled, poll-based path for periodic ingest health
+reporting.
+
+### Architecture Overview
+
+All provider-domain business events (encumbrances, investigations, and home-state changes) are published to a
+shared, per-environment EventBridge bus (`{environment}-dataEventBus`, created in the persistent stack). The
+`NotificationStack` (see [notification_stack.py](../../stacks/notification_stack.py)) wires up one **EventBridge
+rule → SQS queue → Lambda function** per distinct event `detail_type`, using a shared
+`QueueEventListener` construct pattern. This gives each notification type its own dead-letter queue, retry
+behavior, and CloudWatch alarms, while keeping the wiring declarative and consistent across event types.
+
+Each notification Lambda (implemented in the `data-events` Lambda functions) determines who should be notified and
+then invokes a shared Node.js `EmailNotificationService` Lambda, which renders an HTML email (using
+`@csg-org/email-builder`) and sends it via Amazon SES.
+
+Independently of the per-event notification listeners, a catch-all EventBridge rule persists **every** event
+published to the bus into a `DataEventTable` in DynamoDB. This table is what powers the scheduled ingest reporting
+described in [License Ingest Failure Notifications](#license-ingest-failure-notifications).
+
+### Encumbrance Notifications
+
+When a license or privilege encumbrance is created or lifted, `encumbrance_events.py` (invoked via the EventBridge
+listeners above) determines recipients using a two-step recipient rule, rather than looking up which states
+currently have a privilege relationship with the practitioner:
+
+1. **Primary jurisdiction**: the jurisdiction named on the event — the state where the license or privilege was
+   encumbered/lifted — is always notified first.
+2. **Additional jurisdictions**: every other **live** jurisdiction within the compact that **recognizes the affected
+   license type** is also notified. "Live" jurisdictions are those that have marked themselves as live in the system. 
+   They are flagged `isLive: true` in their respective compact configuration;
+   license-type recognition is looked up per compact/jurisdiction/license-type combination.
+
+Notably, this means a state is notified because it participates in the compact and recognizes the license type —
+**not** specifically because the practitioner holds a privilege there. Lift notifications are only sent once a license or privilege is **fully** clear of unlifted adverse actions, and duplicate SQS deliveries are deduplicated via a notification tracker.
+
+### Investigation Notifications
+
+Investigation open/close events (`investigation_events.py`) use the identical primary-plus-recognizing-jurisdictions
+recipient rule described above for encumbrances. If an investigation is closed together with a new encumbrance (see [Investigations](#investigations)), the investigation-closed notification is suppressed, since the encumbrance notification triggered by the same action already communicates the outcome to the same set of states.
+
+### License Ingest Failure Notifications
+
+Unlike the event-driven notifications above, ingest health reporting is handled by a **scheduled** Lambda
+(`IngestEventCollector`, defined in [reporting_stack.py](../../stacks/reporting_stack.py)) that queries the
+`DataEventTable` rather than reacting to individual EventBridge events in real time.
+
+Every 15 minutes, the collector queries the prior 15-minute window, per compact and jurisdiction, for
+`license.ingest-failure` events (raised when a license record cannot be processed, e.g. an unparseable bulk-upload
+row) and `license.validation-error` events (raised for invalid license data values issues). If either type of event occurred in that window for a jurisdiction, a summary email listing the failures and validation errors is sent to that jurisdiction's operations team.
+
+### Weekly Missing-Upload Notifications
+
+The same scheduled collector also runs weekly, checking each jurisdiction for at least one successful
+`license.ingest` event in the trailing 7 days:
+
+- If a jurisdiction has had **no successful uploads in the last 7 days**, a "no license updates" email is sent to
+  **both** that jurisdiction's operations team **and** the compact's operations team. This is the only notification
+  path in the system that includes compact-level recipients alongside jurisdiction-level ones, reflecting that a
+  prolonged upload gap is a concern for the compact as a whole, not just the individual state.
+- If the jurisdiction had at least one successful upload and no failures or validation errors during the week, an
+  "all's well" summary email is sent to that jurisdiction's operations team only.
+
+### Home State Change Notifications
+
+As described under [Home State Changes](#home-state-changes), a `provider.homeStateChange`
+event is published whenever a practitioner's home jurisdiction changes. This event is handled by its own
+EventBridge listener, which emails only the **former** home jurisdiction to inform them that the practitioner's
+home license is now based in another state.
 
 ## Advanced Data Search
 [Back to top](#backend-design)
@@ -523,8 +731,7 @@ This project leverages AWS CodePipeline to deploy the backend and frontend infra
 ### Overview
 
 CompactConnect implements a comprehensive audit logging system using AWS CloudTrail to track access to sensitive data,
-particularly DynamoDB tables containing SSNs. This system provides accountability, supports audit requirements, and
-enables incident investigation when needed.
+particularly DynamoDB tables containing SSNs. This system provides accountability, supports audit requirements, and enables incident investigation when needed.
 
 ### Multi-Account Architecture
 
@@ -583,3 +790,34 @@ This audit logging architecture delivers several advantages:
 
 The system operates automatically in the background, requiring minimal day-to-day management while providing essential
 security and governance capabilities.
+
+### Authenticated Record Auditability
+
+The CloudTrail-based logging described above answers "who accessed sensitive data?" It is complemented by a
+separate, application-level mechanism that answers "what business data changed, when, and (where available) by
+whom?" — an append-only history of changes to a practitioner's licenses and provider record, stored directly in the
+provider DynamoDB table.
+
+Two kinds of records make up this history, both described in more detail under
+[Record Types in Detail](#record-types-in-detail):
+
+- **`licenseUpdate`** and **`providerUpdate`** records capture a `previous` snapshot, the `updatedValues` that
+  changed, and any `removedValues`, along with `createDate`/`effectiveDate` timestamps, whenever an existing license
+  or the top-level provider record changes (renewals, deactivations, encumbrances, investigations, home jurisdiction
+  changes, etc.).
+- **`adverseAction`** and **`investigation`** records capture the encumbrance and investigation actions described
+  under [Deactivation Effects from Adverse Action Processing](#deactivation-effects-from-adverse-action-processing)
+  and [Investigations](#investigations), and additionally identify the authenticated **staff user** who performed
+  the action: `submittingUser`/`liftingUser` on adverse actions, and `submittingUser`/`closingUser` on
+  investigations (each a Cognito user identifier).
+
+**Staff-initiated actions are attributable; jurisdiction license uploads are not.** Encumbrances and investigations
+are always initiated by an individually authenticated staff user through the staff admin API, so the resulting
+`adverseAction`/`investigation` records can capture exactly who took the action. License data ingested through the
+[License Ingest](#license-ingest) pipeline, by contrast, is authenticated using a
+[machine-to-machine (M2M) app client](../../app_clients/README.md) credential: each jurisdiction is issued a single
+shared M2M credential for its integration, rather than individual per-user credentials. Because the ingest pipeline
+authenticates the jurisdiction's system as a whole rather than an individual person, `licenseUpdate` and
+`providerUpdate` records produced by license uploads capture the **what** and **when** of a change with a full
+before/after snapshot, but do not capture an individual user identity as the actor — only the jurisdiction that
+submitted the upload can be determined.
