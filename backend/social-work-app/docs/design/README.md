@@ -122,7 +122,7 @@ If a jurisdiction uploads a multi-state license as compact-eligible while its pa
 [ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py)). This ensures that licensee data is always
 accepted and ingested even in cases where eligibility for compact privileges cannot yet be fully confirmed.
 
-Re-uploading that same license (determined by providerId, jurisdiction, licenseType, and licenseScope) updates the existing record in place (rather than creating a duplicate), and, when relevant fields changed, creates a `licenseUpdate` history record categorized as a `renewal` (when the expiration date moved forward), a `deactivation` (when the jurisdiction reports the license as inactive), or `other` (for any other changed field).
+Re-uploading that same license (determined by providerId, jurisdiction, licenseType, and licenseScope) updates the existing record in place (rather than creating a duplicate), and, when relevant fields changed, creates a `licenseUpdate` history record categorized as a `renewal` (when the expiration date moved forward — i.e., the jurisdiction reissued the license for a new term), a `deactivation` (when the jurisdiction reports the license as inactive), or `other` (for any other changed field).
 
 
 ## User Architecture
