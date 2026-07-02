@@ -436,12 +436,11 @@ How scopes are represented in DynamoDB sort keys and related record types is doc
 
 ### MSL Issuance and Home-State Confirmation
 
-When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type to determine what other jurisdictions a practitioner is authorized to practice in. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the practitioner to specify which state is their current home state. The home state license is automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that multi-state license has an active and eligible single-state license recorded in the system for the same jurisdiction and license type. Before a multi-state license (MSL) can generate remote-state privileges ("Multistate Authorization to Practice"),
+When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type to determine what other jurisdictions a practitioner is authorized to practice in. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the practitioner to specify which state is their current home state. The home state license is automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that multi-state license has a paired single-state license recorded in the system for the same jurisdiction and license type. Before a multi-state license (MSL) can generate remote-state privileges ("Multistate Authorization to Practice"),
 its compact eligibility must be confirmed, and the practitioner's home state for that license type must be determined. Both of these happen primarily at **ingest time** (see [Ingest Flow](#ingest-flow)).
 
-When a license is uploaded, the ingest handler checks whether the
-newly uploaded or renewed multi-state license (paired with a same-jurisdiction, same-type single-state license) is now more recently issued/renewed than the practitioner's current home license, and from a **different** jurisdiction. If so, the practitioner's home jurisdiction changes to the new state (see
-[Home State Changes](#home-state-changes) below). This check is run against the full set of the practitioner's known licenses each time a license is ingested, so it does not matter whether a jurisdiction uploads its multi-state license before or after the paired single-state license — the pairing will be detected as soon as both exist.
+When a license is uploaded, the ingest handler checks for which multi-state license is the most recent and has a paired single-state license. If the most recent multi-state license with a matching single-state license is from a **different** jurisdiction then the current home state as a result of the license upload, the practitioner's home jurisdiction changes to the new state (see
+[Home State Changes](#home-state-changes) below). This check is run against the full set of the practitioner's known licenses each time a license is ingested, so it does not matter whether a jurisdiction uploads its multi-state license before or after the paired single-state license. The pairing will be detected as soon as both exist.
 
 
 It is important to note that there are **two distinct "home" concepts** in the system, which use different scopes:
@@ -479,7 +478,7 @@ which `licenseScope` they apply to.
 
 ### Home State Changes
 
-A home jurisdiction change occurs when a newly ingested or renewed multi-state license, paired with a same-jurisdiction single-state license, is more recently dated than the practitioner's current home MSL and originates from a different jurisdiction. When this is detected:
+A home jurisdiction change occurs when, after a license is ingested, the most recent multi-state license with a paired single-state license is from a **different** jurisdiction than the practitioner's current home state on the provider record. When this is detected:
 
 1. A `provider.homeStateChange` event is published to the data event bus (see [Notifications](#notifications)), which results in an email notification to the **former** home jurisdiction only.
 2. The practitioner's top-level provider record is rebuilt using the data from the new home license (name, contact information, `licenseJurisdiction`, etc.).
