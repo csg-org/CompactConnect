@@ -347,15 +347,14 @@ first time a license is ingested for a practitioner (see [License Preprocessing]
 The CUID is the Compact's persistent, public-facing identifier for individuals who hold multistate
 authorization (i.e. at least one generated privilege — see [Multi-State License Model / Privilege
 Generation](#multi-state-license-model--privilege-generation)). Per Commission rule, the CUID will be:
-- **Issued only when the practitioner's home state authorizes a Multistate License** — i.e. generated the first time
-  a practitioner has an eligible multi-state license on file, rather than at first license ingestion in general (contrast with the RID, which is assigned on first license ingestion regardless of scope).
+- **Issued only when a state uploads a Multistate License** — i.e. generated the first time a practitioner has a multi-state license uploaded into the system, rather than at first license ingestion in general (contrast with the RID, which is assigned on first license ingestion regardless of scope).
 - **Public-facing**, unlike the RID, and required by Commission rule to be shown in public lookup.
 - **Person-based, not license-based**, and persistent for mobility: the CUID will remain the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
 - **Permanently linked to the practitioner's RID** (`providerId`), so historical and future records remain consistent regardless of any home-state changes.
 
 Once implemented, the CUID will be stored as the optional `publicCompactIdentifier` field on the top-level
 [Provider Record](#record-types-in-detail). Generation is planned as part of the license ingest flow in
-[ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py): whenever a license a multi-state license is uploaded for a practitioner, the ingest handler will check whether `publicCompactIdentifier` is already set on the practitioner's provider record. If it is not yet set, a new CUID will be generated at that point and written to the provider record. Because the check is against the existing value on the provider record, the CUID is generated exactly once and is never regenerated on subsequent multi-state license uploads, including after a [home state change](#home-state-changes). Because it will live on the top-level provider record rather than on an individual license, the CUID will also be added as a top-level field in the [OpenSearch index mapping](#index-mapping), making practitioners searchable by CUID (see [Advanced Data Search](#advanced-data-search)).
+[ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py): whenever a multi-state license is uploaded for a practitioner, the ingest handler will check whether `publicCompactIdentifier` is already set on the practitioner's provider record. If it is not yet set, a new CUID will be generated at that point and written to the provider record. Because the check is against the existing value on the provider record, the CUID is generated exactly once and is never regenerated on subsequent multi-state license uploads, including after a [home state change](#home-state-changes). Because it will live on the top-level provider record rather than on an individual license, the CUID will also be added as a top-level field in the [OpenSearch index mapping](#index-mapping), making practitioners searchable by CUID (see [Advanced Data Search](#advanced-data-search)).
 
 ### Historical Tracking
 
