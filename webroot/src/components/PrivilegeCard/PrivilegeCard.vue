@@ -13,7 +13,6 @@
         }">
             <div class="privilege-title-section">
                 <div class="privilege-title">{{stateContent}}</div>
-                <div class="license-type-abbrev">{{privilegeTypeAbbrev}}</div>
             </div>
             <div class="privilege-status" :class="{ 'active': isActive }">{{statusDisplay}}</div>
             <div v-if="isCurrentUserPrivilegeAdmin" class="privilege-actions">
@@ -87,6 +86,10 @@
                     </ul>
                 </transition>
             </div>
+        </div>
+        <div class="license-type" :class="{ 'active': isActive }">
+            <template v-if="isAppModeSocialWork">{{privilegeTypeDisplay}}</template>
+            <template v-else>{{privilegeTypeAbbrev}}</template>
         </div>
         <div class="privilege-info-grid">
             <div v-if="isAppGroupModePrivilegePurchase" class="info-item-container">

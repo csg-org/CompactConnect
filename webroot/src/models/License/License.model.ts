@@ -20,7 +20,7 @@ import { StatsigClient } from '@statsig/js-client';
 // ========================================================
 // =                       Interface                      =
 // ========================================================
-export enum LicenseType { // Temp server definition until server returns via endpoint
+export enum LicenseType {
     AUDIOLOGIST = 'audiologist',
     SPEECH_LANGUAGE_PATHOLOGIST = 'speech-language pathologist',
     SPEECH_AND_LANGUAGE_PATHOLOGIST = 'speech and language pathologist',
@@ -34,7 +34,12 @@ export enum LicenseType { // Temp server definition until server returns via end
     ESTHETICIAN = 'esthetician',
 }
 
-export enum LicenseStatus { // Temp server definition until server returns via endpoint
+export enum LicenseScope {
+    SINGLE_STATE = 'single-state',
+    MULTI_STATE = 'multi-state',
+}
+
+export enum LicenseStatus {
     ACTIVE = 'active',
     INACTIVE = 'inactive',
 }
@@ -62,6 +67,7 @@ export interface InterfaceLicense {
     licenseNumber?: string | null;
     privilegeId?: string | null;
     licenseType?: LicenseType | null,
+    licenseScope?: LicenseScope | null,
     history?: Array<LicenseHistoryItem>,
     status?: LicenseStatus,
     statusDescription?: string | null,
@@ -92,6 +98,7 @@ export class License implements InterfaceLicense {
     public privilegeId? = null;
     public expireDate? = null;
     public licenseType? = null;
+    public licenseScope? = null;
     public history? = [];
     public status? = LicenseStatus.INACTIVE;
     public statusDescription? = null;
@@ -148,6 +155,14 @@ export class License implements InterfaceLicense {
         return this.eligibility === EligibilityStatus.ELIGIBLE;
     }
 
+    public licenseTypeDisplay(): string {
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
+        const typeDisplay = licenseType?.name || '';
+
+        return typeDisplay;
+    }
+
     public licenseTypeAbbreviation(): string {
         const licenseTypes = this.$tm('licensing.licenseTypes') || [];
         const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
@@ -155,6 +170,14 @@ export class License implements InterfaceLicense {
         const upperCaseAbbrev = licenseTypeAbbrev.toUpperCase();
 
         return upperCaseAbbrev;
+    }
+
+    public licenseScopeDisplay(): string {
+        const licenseScopes = this.$tm('licensing.licenseScopes') || [];
+        const licenseScope = licenseScopes.find((translate) => translate.key === this.licenseScope);
+        const scopeDisplay = licenseScope?.name || '';
+
+        return scopeDisplay;
     }
 
     public displayName(delimiter = ' - ', displayAbbrev = false): string {
@@ -223,6 +246,7 @@ export class LicenseSerializer {
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
             licenseType: json.licenseType,
+            licenseScope: json.licenseScope,
             status: json.licenseStatus || json.status,
             statusDescription: json.licenseStatusName,
             eligibility: (json.type === 'license' || json.type === 'license-home')

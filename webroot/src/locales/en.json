@@ -867,10 +867,22 @@
                 "abbrev": "lmsw"
             },
             {
-                "name": "Licensed Bachelor Social Worker",
-                "key": "licensed bachelor social worker",
+                "name": "Licensed Bachelors Social Worker",
+                "key": "licensed bachelors social worker",
                 "compactKey": "socw",
                 "abbrev": "lbsw"
+            }
+        ],
+        "licenseScopes": [
+            {
+                "name": "Single state",
+                "key": "single-state",
+                "compactKey": "socw"
+            },
+            {
+                "name": "Multi state",
+                "key": "multi-state",
+                "compactKey": "socw"
             }
         ],
         "disciplineTypes": [
@@ -969,12 +981,20 @@
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
             },
             {
+                "name": "Fraud",
+                "key": "fraud"
+            },
+            {
                 "name": "Consumer harm",
-                "key": "Consumer Harm"
+                "key": "consumer harm"
             },
             {
                 "name": "Other",
                 "key": "Other"
+            },
+            {
+                "name": "Other",
+                "key": "other"
             }
         ],
         "privilegePurchaseTitle": "Privilege purchase",

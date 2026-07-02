@@ -10,6 +10,7 @@ import { serverDateFormat, displayDateFormat, serverDatetimeFormat } from '@/app
 import {
     License,
     LicenseType,
+    LicenseScope,
     LicenseStatus,
     EligibilityStatus,
     LicenseSerializer
@@ -61,6 +62,7 @@ describe('License model', () => {
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.email).to.equal(null);
         expect(license.licenseType).to.equal(null);
+        expect(license.licenseScope).to.equal(null);
         expect(license.history).to.matchPattern([]);
         expect(license.status).to.equal(LicenseStatus.INACTIVE);
         expect(license.statusDescription).to.equal(null);
@@ -76,7 +78,9 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(false);
         expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(false);
+        expect(license.licenseTypeDisplay()).to.equal('');
         expect(license.licenseTypeAbbreviation()).to.equal('');
+        expect(license.licenseScopeDisplay()).to.equal('');
         expect(license.displayName()).to.equal('Unknown');
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
@@ -99,6 +103,7 @@ describe('License model', () => {
             email: 'test@example.com',
             npi: 'test-npi',
             licenseType: LicenseType.AUDIOLOGIST,
+            licenseScope: LicenseScope.MULTI_STATE,
             history: [new LicenseHistoryItem()],
             status: LicenseStatus.ACTIVE,
             statusDescription: 'test-status-desc',
@@ -125,6 +130,7 @@ describe('License model', () => {
         expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.licenseType).to.equal(data.licenseType);
+        expect(license.licenseScope).to.equal(data.licenseScope);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.status).to.equal(data.status);
         expect(license.statusDescription).to.equal(data.statusDescription);
@@ -140,7 +146,9 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(false);
         expect(license.isAdminDeactivated()).to.equal(false);
         expect(license.isCompactEligible()).to.equal(true);
+        expect(license.licenseTypeDisplay()).to.equal('Audiologist');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
+        expect(license.licenseScopeDisplay()).to.equal('Multi state');
         expect(license.displayName()).to.equal('Unknown - audiologist');
         expect(license.displayName(', ', true)).to.equal('Unknown, AUD');
         expect(license.isEncumbered()).to.equal(false);
@@ -180,6 +188,7 @@ describe('License model', () => {
             homeAddressPostalCode: 'test-zip',
             emailAddress: 'test@example.com',
             licenseType: LicenseType.AUDIOLOGIST,
+            licenseScope: LicenseScope.SINGLE_STATE,
             history: [],
             licenseStatus: LicenseStatus.ACTIVE,
             licenseStatusName: 'test-status-desc',
@@ -220,6 +229,7 @@ describe('License model', () => {
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.activeFromDate).to.equal(data.activeSince);
         expect(license.licenseType).to.equal(data.licenseType);
+        expect(license.licenseScope).to.equal(data.licenseScope);
         expect(license.status).to.equal(data.licenseStatus);
         expect(license.statusDescription).to.equal(data.licenseStatusName);
         expect(license.eligibility).to.equal(data.compactEligibility);
@@ -243,7 +253,9 @@ describe('License model', () => {
         expect(license.isCompactEligible()).to.equal(true);
         expect(license.displayName()).to.equal('Alabama - audiologist');
         expect(license.displayName(', ', true)).to.equal('Alabama, AUD');
+        expect(license.licenseTypeDisplay()).to.equal('Audiologist');
         expect(license.licenseTypeAbbreviation()).to.equal('AUD');
+        expect(license.licenseScopeDisplay()).to.equal('Single state');
         expect(license.isEncumbered()).to.equal(true);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(false);
         expect(license.isUnderInvestigation()).to.equal(true);
@@ -257,6 +269,7 @@ describe('License model', () => {
             jurisdiction: 'ne',
             licenseJurisdiction: 'ky',
             licenseType: 'occupational therapy assistant',
+            licenseScope: 'multi-state',
             dateOfIssuance: '2022-03-19T21:51:26+00:00',
             dateOfRenewal: '2025-03-26T16:19:09+00:00',
             dateOfExpiration: '2025-02-12',
@@ -579,6 +592,7 @@ describe('License model', () => {
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.activeFromDate).to.equal(data.activeSince);
         expect(license.licenseType).to.equal(data.licenseType);
+        expect(license.licenseScope).to.equal(data.licenseScope);
         expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.status).to.equal(data.status);
         expect(license.statusDescription).to.equal(null);
@@ -607,7 +621,9 @@ describe('License model', () => {
         expect(license.isCompactEligible()).to.equal(false);
         expect(license.displayName()).to.equal('Nebraska - occupational therapy assistant');
         expect(license.displayName(', ', true)).to.equal('Nebraska, OTA');
+        expect(license.licenseTypeDisplay()).to.equal('Occupational Therapy Assistant');
         expect(license.licenseTypeAbbreviation()).to.equal('OTA');
+        expect(license.licenseScopeDisplay()).to.equal('Multi state');
         expect(license.history.length).to.equal(0);
         expect(license.isEncumbered()).to.equal(false);
         expect(license.isLatestLiftedEncumbranceWithinWaitPeriod()).to.equal(true);

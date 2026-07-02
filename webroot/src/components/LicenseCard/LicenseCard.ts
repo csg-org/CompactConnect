@@ -26,12 +26,14 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
 import LicenseHomeIcon from '@components/Icons/LicenseHome/LicenseHome.vue';
+import MapPinIcon from '@components/Icons/MapPin/MapPin.vue';
+import GlobeIcon from '@components/Icons/Globe/Globe.vue';
 import CheckCircleIcon from '@components/Icons/CheckCircle/CheckCircle.vue';
 import CloseXIcon from '@components/Icons/CloseX/CloseX.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { dateDisplay } from '@models/_formatters/date';
-import { License, LicenseStatus } from '@/models/License/License.model';
+import { License, LicenseStatus, LicenseScope } from '@/models/License/License.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
@@ -55,6 +57,8 @@ import moment from 'moment';
         Modal,
         LicenseIcon,
         LicenseHomeIcon,
+        MapPinIcon,
+        GlobeIcon,
         CheckCircleIcon,
         CloseXIcon,
     }
@@ -116,6 +120,10 @@ class LicenseCard extends mixins(MixinForm) {
         return this.$store.getters.isAppModeSocialWork;
     }
 
+    get isAppGroupModeMultiState(): boolean {
+        return this.$store.getters.isAppGroupModeMultiState;
+    }
+
     get currentUser(): StaffUser {
         return this.userStore.model;
     }
@@ -169,8 +177,28 @@ class LicenseCard extends mixins(MixinForm) {
         return this.license?.licenseNumber || '';
     }
 
+    get licenseTypeDisplay(): string {
+        return this.license?.licenseTypeDisplay() || '';
+    }
+
     get licenseTypeAbbrev(): string {
         return this.license?.licenseTypeAbbreviation() || '';
+    }
+
+    get licenseScope(): string {
+        return this.license?.licenseScope || '';
+    }
+
+    get licenseScopeDisplay(): string {
+        return this.license?.licenseScopeDisplay() || '';
+    }
+
+    get isLicenseScopeSingleState(): boolean {
+        return this.licenseScope === LicenseScope.SINGLE_STATE;
+    }
+
+    get isLicenseScopeMultiState(): boolean {
+        return this.licenseScope === LicenseScope.MULTI_STATE;
     }
 
     get isActive(): boolean {
@@ -281,24 +309,41 @@ class LicenseCard extends mixins(MixinForm) {
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
         const { isAppModeJcc, isAppModeCosmetology, isAppModeSocialWork } = this;
+        const includeList: Array<string> = [];
+        let isMultiSelect = true;
         let options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
         }));
 
+        // Define the included keys per compact
         if (isAppModeJcc) {
-            const excludeList = ['Consumer Harm'];
+            includeList.push('Non-compliance With Requirements');
+            includeList.push('Criminal Conviction or Adjudication');
+            includeList.push('Confidentiality, Consent or Disclosure Violations');
+            includeList.push('Misconduct or Abuse');
+            includeList.push('Fraud, Deception, or Misrepresentation');
+            includeList.push('Unsafe Practice or Substandard Care');
+            includeList.push('Improper Supervision or Allowing Unlicensed Practice');
+            includeList.push('Other');
+        } else if (isAppModeCosmetology) {
+            isMultiSelect = false;
+            includeList.push('fraud');
+            includeList.push('consumer harm');
+            includeList.push('other');
+        } else if (isAppModeSocialWork) {
+            isMultiSelect = false;
+            includeList.push('fraud');
+            includeList.push('consumer harm');
+            includeList.push('other');
+        }
 
-            options = options.filter((option) => !excludeList.includes(option.value));
-        } else if (isAppModeCosmetology || isAppModeSocialWork) {
-            const includeList = ['Fraud, Deception, or Misrepresentation', 'Consumer Harm', 'Other'];
+        // Filter the compact-specific options
+        options = options.filter((option) => includeList.includes(option.value) || option.value === '');
 
-            options = options.filter((option) => includeList.includes(option.value));
-
-            options.unshift({
-                value: '',
-                name: computed(() => this.$t('common.selectOption')),
-            });
+        // For a single-select, include the blank option
+        if (!isMultiSelect) {
+            options.unshift({ value: '', name: computed(() => this.$t('common.selectOption')) });
         }
 
         return options;
@@ -534,6 +579,7 @@ class LicenseCard extends mixins(MixinForm) {
                 licenseeId,
                 stateAbbrev,
                 licenseTypeAbbrev,
+                licenseScope,
                 formData
             } = this;
 
@@ -547,12 +593,14 @@ class LicenseCard extends mixins(MixinForm) {
                     licenseState: stateAbbrev,
                     licenseType: licenseTypeAbbrev.toLowerCase(),
                     investigationId,
+                    licenseScope,
                     encumbrance: {
                         encumbranceType: formData.encumberModalDisciplineAction.value,
                         npdbCategories: (Array.isArray(formData.encumberModalNpdbCategories.value))
                             ? formData.encumberModalNpdbCategories.value
                             : [formData.encumberModalNpdbCategories.value],
                         startDate: formData.encumberModalStartDate.value,
+                        licenseScope,
                     },
                 }).catch((err) => {
                     this.modalErrorMessage = err?.message || this.$t('common.error');
@@ -570,6 +618,7 @@ class LicenseCard extends mixins(MixinForm) {
                         ? formData.encumberModalNpdbCategories.value
                         : [formData.encumberModalNpdbCategories.value],
                     startDate: formData.encumberModalStartDate.value,
+                    licenseScope,
                 }).catch((err) => {
                     this.modalErrorMessage = err?.message || this.$t('common.error');
                     this.isFormError = true;
@@ -712,7 +761,8 @@ class LicenseCard extends mixins(MixinForm) {
                 currentCompactType: compactType,
                 licenseeId,
                 stateAbbrev,
-                licenseTypeAbbrev
+                licenseTypeAbbrev,
+                licenseScope
             } = this;
             const errorMessages: Array<string> = [];
 
@@ -726,6 +776,7 @@ class LicenseCard extends mixins(MixinForm) {
                     licenseType: licenseTypeAbbrev.toLowerCase(),
                     encumbranceId: adverseActionId,
                     endDate: this.formData[`adverse-action-end-date-${adverseActionId}`].value,
+                    licenseScope,
                 }).catch((err) => {
                     errorMessages.push(err?.message || this.$t('common.error'));
                 });
@@ -799,7 +850,8 @@ class LicenseCard extends mixins(MixinForm) {
                 currentCompactType: compactType,
                 licenseeId,
                 stateAbbrev,
-                licenseTypeAbbrev
+                licenseTypeAbbrev,
+                licenseScope
             } = this;
 
             await this.$store.dispatch(`users/createInvestigationLicenseRequest`, {
@@ -807,6 +859,7 @@ class LicenseCard extends mixins(MixinForm) {
                 licenseeId,
                 licenseState: stateAbbrev,
                 licenseType: licenseTypeAbbrev.toLowerCase(),
+                licenseScope,
             }).catch((err) => {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
@@ -955,6 +1008,7 @@ class LicenseCard extends mixins(MixinForm) {
                 licenseeId,
                 stateAbbrev,
                 licenseTypeAbbrev,
+                licenseScope
             } = this;
             const investigationId = this.selectedInvestigation?.id;
 
@@ -964,6 +1018,7 @@ class LicenseCard extends mixins(MixinForm) {
                 licenseState: stateAbbrev,
                 licenseType: licenseTypeAbbrev.toLowerCase(),
                 investigationId,
+                licenseScope
             }).catch((err) => {
                 this.modalErrorMessage = err?.message || this.$t('common.error');
                 this.isFormError = true;
