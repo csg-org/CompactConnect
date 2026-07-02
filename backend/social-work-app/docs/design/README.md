@@ -523,7 +523,8 @@ The system supports encumbering (taking adverse action against) both licenses an
 `encumberedStatus` is the only value actually persisted by an encumbrance action. As described in
 [Status Calculation](#security-and-status-calculation), `licenseStatus` and `compactEligibility` are always
 **derived** from `encumberedStatus` (along with expiration and jurisdiction-reported status) at load time, rather
-than being written directly.
+than being written directly. Encumbrance and lift actions each write a categorized `licenseUpdate` history record
+with `updateType: encumbrance` or `lifting_encumbrance`, respectively.
 
 The following four scenarios describe how encumbering a license or privilege affects deactivation, depending on what
 is targeted:
@@ -553,8 +554,7 @@ and its own API endpoints and events, but following the same license-vs-privileg
 Investigations can be opened and closed against either a license or a privilege. Opening or closing an investigation publishes an
 event to the data event bus (`license.investigation`/`license.investigationClosed` or
 `privilege.investigation`/`privilege.investigationClosed`), which triggers state email notifications exactly as
-described in [Notifications](#notifications) — the affected jurisdiction, plus other live compact jurisdictions that
-recognize the license type, are notified. Practitioners are never notified of investigations.
+described in [Notifications](#notifications) — the affected jurisdiction, plus other live compact jurisdictions that recognize the license type, are notified. Practitioners are never notified of investigations.
 
 **Investigations do not deactivate anything.** Opening an investigation against a license or privilege 
 does **not** change that license's or privilege's `licenseStatus`, `compactEligibility`, or `status`. 
@@ -565,6 +565,7 @@ An investigation can optionally be closed together with a new encumbrance in the
 encumbrance details in the close request body), in which case the resulting `adverseActionId` is recorded on the
 investigation record, and the investigation-closed notification is suppressed in favor of the encumbrance
 notification that the same action generates (see [Notifications](#notifications)).
+Investigation open/close actions on licenses create `licenseUpdate` records with `updateType: investigation` or `closingInvestigation`.
 
 ## Notifications
 [Back to top](#backend-design)
