@@ -6,9 +6,10 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[Compacts and Jurisdictions](#compacts-and-jurisdictions)**
 - **[License Ingest](#license-ingest)**
 - **[User Architecture](#user-architecture)**
-- **[Data Model](#data-model)**
+- **[Practitioner Data Model](#practitioner-data-model)**
 - **[Multi-State License Model / Privilege Generation](#multi-state-license-model--privilege-generation)**
 - **[Notifications](#notifications)**
+- **[DynamoDB Tables](#dynamodb-tables)**
 - **[Advanced Data Search](#advanced-data-search)**
 - **[CI/CD Pipelines](#cicd-pipelines)**
 - **[Audit Logging](#audit-logging)**
@@ -234,12 +235,13 @@ See README under the [app_clients](../../app_clients/README.md) directory for mo
 machine-to-machine app clients are configured and used in the system.
 
 
-## Data Model
+## Practitioner Data Model
 [Back to top](#backend-design)
 
 CompactConnect uses a single noSQL (DynamoDB) table design for storing provider (practitioner) data, following the
 [single table design](https://aws.amazon.com/blogs/database/single-table-vs-multi-table-design-in-amazon-dynamodb/)
-pattern. This approach optimizes for:
+pattern. While there are other DynamoDB tables used for tracking various information needed for the system to operate (see
+[DynamoDB Tables](#dynamodb-tables) for the full inventory), this particular section covers the **Provider Table** and the records stored related to practitioners. The Provider Table design optimizes for:
 
 1) **Compact-Level Partitioning**: Data is always partitioned by compact, ensuring that queries never return records
    from multiple compacts. This enforces a deliberate separation of data across all layers - UI, API, and database -
@@ -588,8 +590,9 @@ then invokes a shared Node.js `EmailNotificationService` Lambda, which renders a
 `@csg-org/email-builder`) and sends it via Amazon SES.
 
 Independently of the per-event notification listeners, a catch-all EventBridge rule persists **every** event
-published to the bus into a `DataEventTable` in DynamoDB. This table is what powers the scheduled ingest reporting
-described in [License Ingest Failure Notifications](#license-ingest-failure-notifications).
+published to the bus into a `DataEventTable` in DynamoDB (see [DynamoDB Tables](#dynamodb-tables)). This table is
+what powers the scheduled ingest reporting described in
+[License Ingest Failure Notifications](#license-ingest-failure-notifications).
 
 ### Encumbrance Notifications
 
@@ -640,6 +643,89 @@ As described under [Home State Changes](#home-state-changes), a `provider.homeSt
 event is published whenever a practitioner's home jurisdiction changes. This event is handled by its own
 EventBridge listener, which emails only the **former** home jurisdiction to inform them that the practitioner's
 home license is now based in another state.
+
+## DynamoDB Tables
+[Back to top](#backend-design)
+
+CompactConnect uses seven DynamoDB tables in total. Six are created in the `PersistentStack`
+(see [persistent_stack/\_\_init\_\_.py](../../stacks/persistent_stack/__init__.py)), and one in the Event State Stack. Each table is described below with its purpose and links to where it's defined and to the code that primarily reads and writes it.
+
+### SSN Table
+
+Stores full Social Security Numbers, keyed by `providerId`, in a dedicated table with its own KMS key and
+restrictive IAM roles (`ingest_role`, `license_upload_role`). This is the only place a full SSN is ever persisted;
+every other table and record only stores the last four digits. See [SSN Access Controls](#ssn-access-controls) for
+the security model built around this table.
+
+- Defined in [ssn_table.py](../../../common-cdk/common_constructs/ssn_table.py), instantiated at
+  [persistent_stack/\_\_init\_\_.py](../../stacks/persistent_stack/__init__.py) (`self.ssn_table = SSNTable(...)`)
+- Primary data client: [data_client.py](../../lambdas/python/common/cc_common/data_model/data_client.py) (`get_or_create_provider_id`), with writes also coming from the license preprocessor in
+  [ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py) (see [License Preprocessing](#ingest-flow))
+
+### Provider Table
+
+The core single-table-design store for provider, license, license-update, provider-update, adverse-action, and
+investigation records, following the DynamoDB single-table-design pattern described in [Practitioner Data Model](#practitioner-data-model).
+It has a DynamoDB Stream (`NEW_AND_OLD_IMAGES`) that feeds the OpenSearch indexing pipeline described in
+[Advanced Data Search](#advanced-data-search) below.
+
+- Defined in [provider_table.py](../../stacks/persistent_stack/provider_table.py), instantiated at
+  [persistent_stack/\_\_init\_\_.py](../../stacks/persistent_stack/__init__.py) (`self.provider_table = ProviderTable(...)`)
+- GSIs: `providerFamGivMid` (name search), `providerDateOfUpdate` (recently modified providers), `licenseGSI`
+  (license search by jurisdiction/provider name), `licenseUploadDateGSI` (licenses by upload month)
+- Primary data client: [data_client.py](../../lambdas/python/common/cc_common/data_model/data_client.py)
+
+### Compact Configuration Table
+
+Stores per-compact and per-jurisdiction configuration: which jurisdictions are live, which license types each
+jurisdiction recognizes, and other compact/board-level admin settings referenced throughout ingest, privilege
+generation, and notifications.
+
+- Defined in [compact_configuration_table.py](../../stacks/persistent_stack/compact_configuration_table.py),
+  instantiated at [persistent_stack/\_\_init\_\_.py](../../stacks/persistent_stack/__init__.py)
+  (`self.compact_configuration_table = CompactConfigurationTable(...)`)
+- Primary data client: [compact_configuration_client.py](../../lambdas/python/common/cc_common/data_model/compact_configuration_client.py)
+
+### Data Event Table
+
+Persists every event published to the shared data event bus (`{environment}-dataEventBus`), regardless of type,
+via a catch-all EventBridge rule. This is the durable store that powers the scheduled ingest health and
+missing-upload reporting described in [License Ingest Failure Notifications](#license-ingest-failure-notifications)
+and [Weekly Missing-Upload Notifications](#weekly-missing-upload-notifications).
+
+- Defined in [data_event_table.py](../../stacks/persistent_stack/data_event_table.py), instantiated at
+  [persistent_stack/\_\_init\_\_.py](../../stacks/persistent_stack/__init__.py) (`self.data_event_table = DataEventTable(...)`)
+- Primary data client: [data_events.py](../../lambdas/python/data-events/handlers/data_events.py) (`EventHandler` Lambda, which writes every received event to the table)
+
+### Staff Users Table
+
+Stores each staff user's permissions record (compact- and jurisdiction-level `admin`/`write`/`readPrivate`
+grants), which the Cognito pre-token-generation Lambda reads to translate into OAuth2 scopes at login (see
+[Implementation of Permissions](#implementation-of-permissions)).
+
+- Defined in [users_table.py](../../stacks/persistent_stack/users_table.py), instantiated inside the `StaffUsers`
+  construct at [staff_users.py](../../stacks/persistent_stack/staff_users.py) (`self.user_table = UsersTable(...)`)
+- GSI: `famGiv` (sort users by family/given name)
+- Primary data client: [user_client.py](../../lambdas/python/common/cc_common/data_model/user_client.py)
+
+### Rate Limiting Table
+
+This table is intended to be used by any endpoints where we need to implement specific rate limiting rules not covered by the WAF applied to the API. All records carry a `ttl` attribute and expire automatically after a few days; the table intentionally has no backup plan or point-in-time recovery, since its data is short-lived by design.
+
+- Defined in [rate_limiting_table.py](../../stacks/persistent_stack/rate_limiting_table.py), instantiated at
+  [persistent_stack/\_\_init\_\_.py](../../stacks/persistent_stack/__init__.py) (`self.rate_limiting_table = RateLimitingTable(...)`)
+
+### Event State Table
+
+Tracks the processing/delivery state of individual notification events across SQS retries, so that a redelivered
+message doesn't result in a duplicate notification being sent (referenced as the "notification tracker" in
+[Encumbrance Notifications](#encumbrance-notifications)). Like the Rate Limiting Table, records carry a `ttl` and
+expire automatically, so the table is excluded from backup.
+
+- Defined in [event_state_table.py](../../stacks/event_state_stack/event_state_table.py), instantiated in
+  [event_state_stack/\_\_init\_\_.py](../../stacks/event_state_stack/__init__.py) (`self.event_state_table = EventStateTable(...)`)
+- GSI: `providerId-eventTime-index`
+- Primary data client: [event_state_client.py](../../lambdas/python/common/cc_common/event_state_client.py)
 
 ## Advanced Data Search
 [Back to top](#backend-design)
