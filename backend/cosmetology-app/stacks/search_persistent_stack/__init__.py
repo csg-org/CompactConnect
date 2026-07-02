@@ -4,7 +4,6 @@ from common_constructs.stack import AppStack
 from constructs import Construct
 
 from stacks.persistent_stack import PersistentStack
-from stacks.search_persistent_stack.export_results_bucket import ExportResultsBucket
 from stacks.search_persistent_stack.index_manager import IndexManagerCustomResource
 from stacks.search_persistent_stack.populate_provider_documents_handler import PopulateProviderDocumentsHandler
 from stacks.search_persistent_stack.provider_search_domain import ProviderSearchDomain
@@ -82,14 +81,6 @@ class SearchPersistentStack(AppStack):
         self.domain = self.provider_search_domain.domain
         self.opensearch_encryption_key = self.provider_search_domain.encryption_key
 
-        # Create the export results bucket for temporary CSV files
-        self.export_results_bucket = ExportResultsBucket(
-            self,
-            'ExportResultsBucket',
-            access_logs_bucket=persistent_stack.access_logs_bucket,
-            encryption_key=persistent_stack.shared_encryption_key,
-        )
-
         # Create the index manager custom resource
         self.index_manager_custom_resource = IndexManagerCustomResource(
             self,
@@ -110,7 +101,6 @@ class SearchPersistentStack(AppStack):
             vpc_subnets=self.provider_search_domain.vpc_subnets,
             lambda_role=self.search_api_lambda_role,
             alarm_topic=persistent_stack.alarm_topic,
-            export_results_bucket=self.export_results_bucket,
         )
 
         # The public query providers route (POST /v1/public/.../providers/query) is wired to this

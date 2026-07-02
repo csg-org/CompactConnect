@@ -3,9 +3,16 @@
 # The CSV file can be uploaded into the system using the bulk upload process.
 # The JSON file can be used for API testing or other purposes.
 #
-# Run from 'backend/compact-connect' like:
+# Run from 'backend/social-work-app' like:
 # bin/generate_mock_license_csv_upload_file.py --count 100 --compact socw --jurisdiction al --format csv
 # bin/generate_mock_license_csv_upload_file.py --count 100 --compact socw --jurisdiction al --format json
+#
+# To generate practitioners with both a single-state and multi-state license (required for privilege generation),
+# use --linked-licenses. Each practitioner will appear twice: once with single-state and once with multi-state
+# license scope, sharing the same SSN and personal information but with distinct license numbers.
+# Note: when using --linked-licenses, --count specifies the number of practitioners, so total output rows will be
+# 2x --count.
+# bin/generate_mock_license_csv_upload_file.py --count 50 --compact socw --jurisdiction al --linked-licenses
 import json
 import os
 import sys
@@ -80,22 +87,39 @@ def generate_mock_data_file(
     file_format: str = 'csv',
     ssn_prefix: str,
     allow_inactive: bool = False,
+    linked_licenses: bool = False,
 ):
     """Generate mock license data and write it to a file in the specified format."""
     if file_format == 'csv':
         generate_mock_csv_file(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
+            count,
+            compact=compact,
+            jurisdiction=jurisdiction,
+            ssn_prefix=ssn_prefix,
+            allow_inactive=allow_inactive,
+            linked_licenses=linked_licenses,
         )
     elif file_format == 'json':
         generate_mock_json_file(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
+            count,
+            compact=compact,
+            jurisdiction=jurisdiction,
+            ssn_prefix=ssn_prefix,
+            allow_inactive=allow_inactive,
+            linked_licenses=linked_licenses,
         )
     else:
         raise ValueError(f'Unsupported format: {file_format}')
 
 
 def generate_mock_csv_file(
-    count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+    count,
+    *,
+    compact: str,
+    jurisdiction: str = None,
+    ssn_prefix: str,
+    allow_inactive: bool = False,
+    linked_licenses: bool = False,
 ):
     """Generate mock license data in CSV format."""
     filename = f'{compact}-{jurisdiction}-mock-data.csv'
@@ -103,18 +127,34 @@ def generate_mock_csv_file(
         writer = DictWriter(data_file, fieldnames=FIELDS)
         writer.writeheader()
         for row in generate_license_records(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
+            count,
+            compact=compact,
+            jurisdiction=jurisdiction,
+            ssn_prefix=ssn_prefix,
+            allow_inactive=allow_inactive,
+            linked_licenses=linked_licenses,
         ):
             writer.writerow(row)
 
 
 def generate_mock_json_file(
-    count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+    count,
+    *,
+    compact: str,
+    jurisdiction: str = None,
+    ssn_prefix: str,
+    allow_inactive: bool = False,
+    linked_licenses: bool = False,
 ):
     """Generate mock license data in JSON format."""
     licenses = list(
         generate_license_records(
-            count, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
+            count,
+            compact=compact,
+            jurisdiction=jurisdiction,
+            ssn_prefix=ssn_prefix,
+            allow_inactive=allow_inactive,
+            linked_licenses=linked_licenses,
         )
     )
     # Remove any fields that are None or empty strings, since API doesn't accept them
@@ -128,22 +168,59 @@ def generate_mock_json_file(
 
 
 def generate_license_records(
-    count, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+    count,
+    *,
+    compact: str,
+    jurisdiction: str = None,
+    ssn_prefix: str,
+    allow_inactive: bool = False,
+    linked_licenses: bool = False,
 ):
-    """Generate a specified number of mock license records."""
+    """Generate a specified number of mock license records.
+
+    When linked_licenses is True, each practitioner is emitted as a pair: one single-state row
+    followed by one multi-state row sharing the same personal information and SSN but with a
+    distinct license number. In this mode, count refers to the number of practitioners, so the
+    total number of output rows will be 2x count.
+    """
     i = 0
     while i < count:
-        yield get_mock_license(
-            i, compact=compact, jurisdiction=jurisdiction, ssn_prefix=ssn_prefix, allow_inactive=allow_inactive
+        single_state_row = get_mock_license(
+            i,
+            compact=compact,
+            jurisdiction=jurisdiction,
+            ssn_prefix=ssn_prefix,
+            allow_inactive=allow_inactive,
+            license_scope=LicenseScopeEnum.SINGLE_STATE.value if linked_licenses else None,
         )
+        yield single_state_row
+        if linked_licenses:
+            multi_state_row = {
+                **single_state_row,
+                'licenseScope': LicenseScopeEnum.MULTI_STATE.value,
+                'licenseNumber': generate_mock_license_number(),
+            }
+            yield multi_state_row
         i += 1
         if i % 1000 == 0:
-            sys.stdout.write(f'Generated {i} records\n')
-    sys.stdout.write(f'Final record count: {i}\n')
+            if linked_licenses:
+                sys.stdout.write(f'Generated {i} practitioners ({i * 2} records)\n')
+            else:
+                sys.stdout.write(f'Generated {i} records\n')
+    if linked_licenses:
+        sys.stdout.write(f'Final record count: {i * 2} ({i} practitioners with linked licenses)\n')
+    else:
+        sys.stdout.write(f'Final record count: {i}\n')
 
 
 def get_mock_license(
-    i: int, *, compact: str, jurisdiction: str = None, ssn_prefix: str, allow_inactive: bool = False
+    i: int,
+    *,
+    compact: str,
+    jurisdiction: str = None,
+    ssn_prefix: str,
+    allow_inactive: bool = False,
+    license_scope: str | None = None,
 ) -> dict:
     if jurisdiction is None:
         jurisdiction = faker.state_abbr().lower()
@@ -153,7 +230,7 @@ def get_mock_license(
         # licenseNumber is required
         'licenseNumber': generate_mock_license_number(),
         'licenseType': choice(LICENSE_TYPES[compact]),
-        'licenseScope': choice([e.value for e in LicenseScopeEnum]),
+        'licenseScope': license_scope or choice([e.value for e in LicenseScopeEnum]),
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),
         'familyName': name_faker.last_name(),
@@ -301,6 +378,18 @@ if __name__ == '__main__':
         action='store_true',
         required=False,
     )
+    parser.add_argument(
+        '--linked-licenses',
+        help=(
+            'Emit each practitioner twice: once with single-state and once with multi-state license scope. '
+            'Both rows share the same SSN and personal information but have distinct license numbers. '
+            'Required for privilege generation. Note: when using --linked-licenses, --count specifies '
+            'the number of practitioners, so total output rows will be 2x --count. '
+            '(default: one row per count with random scope)'
+        ),
+        action='store_true',
+        required=False,
+    )
 
     args = parser.parse_args()
     if len(args.ssn_prefix) != 3 or not args.ssn_prefix.isdigit():
@@ -315,4 +404,5 @@ if __name__ == '__main__':
         file_format=args.format,
         ssn_prefix=args.ssn_prefix,
         allow_inactive=args.allow_inactive,
+        linked_licenses=args.linked_licenses,
     )
