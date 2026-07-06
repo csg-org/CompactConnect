@@ -466,7 +466,7 @@ Once a home MSL is confirmed eligible for a given license type, remote-state Mul
 
 ### Privilege Runtime Generation for Multi-State Licenses
 
-Privileges are generated from a multi-state home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license is ineligible or its associated single-state license is ineligible, no privileges are generated for that license type (there is no fallback to an older jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is the one with the pairing.
+Privileges are generated from a multi-state home license: one privilege per compact member jurisdiction (other than the home jurisdiction) for that license type. If the most recent multi-state license is ineligible or its associated single-state license is ineligible, no privileges are generated for that license type (there is no fallback to an older multi-state license from another jurisdiction). This means that privileges are only returned from the API for a practitioner when the most recently issued or renewed multi-state license is eligible and paired with an eligible single-state license.
 
 The following flow describes how the home state license is assigned.
 
