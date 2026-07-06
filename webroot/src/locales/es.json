@@ -966,11 +966,11 @@
             },
             {
                 "name": "Fraude",
-                "key": "Fraud, Deception, or Misrepresentation"
+                "key": "fraud"
             },
             {
                 "name": "Daños al consumidor",
-                "key": "Consumer Harm"
+                "key": "consumer harm"
             },
             {
                 "name": "Otro",
