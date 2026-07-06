@@ -478,7 +478,7 @@ which `licenseScope` they apply to.
 
 ### Home State Changes
 
-A home jurisdiction change occurs when, after a license is ingested, the most recent multi-state license with a paired single-state license is from a **different** jurisdiction than the practitioner's current home state on the provider record. When this is detected:
+A provider's home jurisdiction change occurs when, after a license is ingested, the most recent multi-state license (across all license types) with a paired single-state license is from a **different** jurisdiction than the practitioner's current home state on the provider record. When this is detected:
 
 1. A `provider.homeStateChange` event is published to the data event bus (see [Notifications](#notifications)), which results in an email notification to the **former** home jurisdiction only.
 2. The practitioner's top-level provider record is rebuilt using the data from the new home license (name, contact information, `licenseJurisdiction`, etc.).
