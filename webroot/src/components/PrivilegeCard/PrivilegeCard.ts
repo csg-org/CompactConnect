@@ -294,7 +294,6 @@ class PrivilegeCard extends mixins(MixinForm) {
 
         // For a single-select, include the blank option
         if (!isMultiSelect) {
-            console.log('???');
             options.unshift({ value: '', name: computed(() => this.$t('common.selectOption')) });
         }
 
