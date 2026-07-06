@@ -105,12 +105,9 @@ associate licenses with the correct providers across jurisdictions.
 ### All-Licensee Ingestion, Including Single-State Licensees
 
 The ingest pipeline described above processes **every uploaded licensee record identically**, regardless of the
-license's `licenseScope` (`single-state` or `multi-state`, see [License Scopes](#license-scopes)). A jurisdiction is
-not required to upload only its multi-state licensees; it is expected to upload data for **all** of its eligible
-licensees, including practitioners who hold only a **single-state** license and no multi-state license.
+license's `licenseScope` (`single-state` or `multi-state`, see [License Scopes](#license-scopes)). It is expected that jurisdictions will upload all single-state and multi-state licenses associated with each provider that they intend to upload data for.
 
-Single-state-only licensees are fully ingested and stored as `license` records, and appear in the practitioner's
-provider record like any other license. However, because privilege generation requires a **paired** multi-state and
+Single-state-only licensees are fully ingested and stored as `license` records. However, because privilege generation requires a **paired** multi-state and
 single-state license in the same jurisdiction and license type (see
 [Privilege Runtime Generation for Multi-State Licenses](#privilege-runtime-generation-for-multi-state-licenses)), a
 single-state-only licensee will never have privileges generated for them. Their data is still valuable to the
@@ -485,8 +482,7 @@ A provider's home jurisdiction change occurs when, after a license is ingested, 
 3. A `providerUpdate` history record is written with `updateType: homeJurisdictionChange`, preserving the previous provider-record values.
 4. Because privileges are not stored and are instead generated fresh on every read (see
    [Privilege Runtime Generation](#privilege-runtime-generation-for-multi-state-licenses)), privileges tied to the
-   **old** home jurisdiction stop being generated as soon as the change takes effect — there is no persisted privilege
-   record to separately deactivate, and no grace period.
+   former home jurisdiction license for that license type stop being generated as soon as the change takes effect. There is no persisted privilege record to separately deactivate, and no grace period.
 
 **One-home-state-per-license-type enforcement:** For a given license type, the home MSL is always the single most
 recently issued/renewed **paired** multi-state license (sorted by `dateOfRenewal`, if the `dateOfRenewal` is the same 
