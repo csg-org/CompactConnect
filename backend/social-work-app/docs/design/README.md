@@ -350,8 +350,8 @@ The CUID is the Compact's persistent, public-facing identifier for individuals w
 authorization (i.e. at least one generated privilege — see [Multi-State License Model / Privilege
 Generation](#multi-state-license-model--privilege-generation)). Per Commission rule, the CUID will be:
 - **Issued only when a state uploads a Multistate License** — i.e. generated the first time a practitioner has a multi-state license uploaded into the system, rather than at first license ingestion in general (contrast with the RID, which is assigned on first license ingestion regardless of scope).
-- **Public-facing**, unlike the RID, and required by Commission rule to be shown in public lookup.
-- **Person-based, not license-based**, and persistent for mobility: the CUID will remain the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
+- **Public-facing**, unlike the RID, required by Commission rule to be shown in public lookup.
+- **Person-based, not license-based**, similar to the RID, persistent for mobility: the CUID will remain the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
 - **Permanently linked to the practitioner's RID** (`providerId`), so historical and future records remain consistent regardless of any home-state changes.
 
 Once implemented, the CUID will be stored as the optional `publicCompactIdentifier` field on the top-level
@@ -434,7 +434,7 @@ type (for example, an Ohio LCSW single-state license and an Ohio LCSW multi-stat
 How scopes are represented in DynamoDB sort keys and related record types is documented under
 [License Composite Identifier](#license-composite-identifier) in the Data Model section.
 
-### MSL Issuance and Home-State Confirmation
+### Multi-State License Issuance and Home-State Confirmation
 
 When a practitioner has licenses uploaded by multiple states, the system must choose a **home state license** per license type to determine what other jurisdictions a practitioner is authorized to practice in. Unlike the JCC model, where practitioners register under a specific home state, this Social Work system does not currently allow the practitioner to specify which state is their current home state. The home state license is automatically selected based on which **multi-state** license was issued or renewed most recently, but only when that multi-state license has a paired single-state license recorded in the system for the same jurisdiction and license type. Before a multi-state license (MSL) can generate remote-state privileges ("Multistate Authorization to Practice"),
 its compact eligibility must be confirmed, and the practitioner's home state for that license type must be determined. Both of these happen primarily at **ingest time** (see [Ingest Flow](#ingest-flow)).
@@ -489,8 +489,8 @@ A home jurisdiction change occurs when, after a license is ingested, the most re
    record to separately deactivate, and no grace period.
 
 **One-home-state-per-license-type enforcement:** For a given license type, the home MSL is always the single most
-recently issued/renewed **paired** multi-state license (sorted by `dateOfRenewal`, falling back to `dateOfIssuance`,
-with `dateOfIssuance` as a final tiebreaker). Notably, this selection does **not** consider whether the candidate
+recently issued/renewed **paired** multi-state license (sorted by `dateOfRenewal`, if the `dateOfRenewal` is the same 
+on multiple records, the `dateOfIssuance` is the final tiebreaker). Notably, this selection does **not** consider whether the candidate
 license is active or compact-eligible — the most recently dated paired MSL is selected as home for that license type
 even if it happens to be inactive or ineligible, and there is no fallback to an older, eligible jurisdiction's
 pairing. This is what keeps exactly one home MSL in effect per license type at any given time.
@@ -520,11 +520,13 @@ The system supports encumbering (taking adverse action against) both licenses an
    corresponding data-events handler (`encumbrance_events.py`) only sends email notifications to affected states
    (see [Notifications](#notifications)) — it does not perform any further data mutation.
 
-`encumberedStatus` is the only value actually persisted by an encumbrance action. As described in
+`encumberedStatus` is the only field actually persisted in the target license record by an encumbrance action. As described in
 [Status Calculation](#security-and-status-calculation), `licenseStatus` and `compactEligibility` are always
 **derived** from `encumberedStatus` (along with expiration and jurisdiction-reported status) at load time, rather
 than being written directly. Encumbrance and lift actions each write a categorized `licenseUpdate` history record
 with `updateType: encumbrance` or `lifting_encumbrance`, respectively.
+
+In the case of privilege encumbrances, we do not track an 'encumberedStatus' field since there are no persistent privilege records in the DB. The privilege's status is determined by checking if there are any unlifted adverse actions against that jurisdiction for that privilege, since we do record `adverseAction` records in the DB with their respective starting and lift dates.
 
 The following four scenarios describe how encumbering a license or privilege affects deactivation, depending on what
 is targeted:
