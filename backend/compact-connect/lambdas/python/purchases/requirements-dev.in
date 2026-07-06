@@ -9,7 +9,7 @@ Faker>=40.19.1, <41
 
 # Dependencies normally provided via the common lambda layer
 argon2-cffi>=25.1.0, <26.0.0
-aws-lambda-powertools>=3.5.0, <4
+aws-lambda-powertools>=3.30.0, <4
 boto3>=1.43.18, <2
 cryptography>=48.0.1, <49
 marshmallow>=4.3.0, <5.0.0

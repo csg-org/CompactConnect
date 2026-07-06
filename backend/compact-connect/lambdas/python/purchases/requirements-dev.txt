@@ -8,7 +8,7 @@ argon2-cffi==25.1.0
     # via -r requirements-dev.in
 argon2-cffi-bindings==25.1.0
     # via argon2-cffi
-aws-lambda-powertools==3.29.0
+aws-lambda-powertools==3.30.0
     # via -r requirements-dev.in
 boolean-py==5.0
     # via license-expression
@@ -141,7 +141,7 @@ responses==0.26.1
     # via moto
 rich==15.0.0
     # via pip-audit
-ruff==0.15.19
+ruff==0.15.20
     # via -r requirements-dev.in
 s3transfer==0.19.0
     # via boto3
