@@ -22,7 +22,7 @@ cryptography==49.0.0
 docker==7.1.0
     # via moto
 faker==40.23.0
-    # via -r lambdas/python/provider-data-v1/requirements-dev.in
+    # via -r provider-data-v1/requirements-dev.in
 idna==3.18
     # via requests
 jmespath==1.1.0
@@ -32,7 +32,7 @@ jmespath==1.1.0
 markupsafe==3.0.3
     # via werkzeug
 moto[dynamodb,s3]==5.2.2
-    # via -r lambdas/python/provider-data-v1/requirements-dev.in
+    # via -r provider-data-v1/requirements-dev.in
 py-partiql-parser==0.6.3
     # via moto
 pycparser==3.0
