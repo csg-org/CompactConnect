@@ -327,15 +327,15 @@ License-related sort keys use a shared suffix of the form
 
 Two persistent identifiers track a practitioner across state submissions and Compact-level records: the **Record
 Identifier (RID)** and the **Compact Unique Identifier (CUID)**. Both identify the *individual* practitioner (not a
-specific license), both use [version 4 UUIDs](https://en.wikipedia.org/wiki/Universally_unique_identifier) (UUID4),
-and both are permanently linked to one another so a practitioner's records stay consistent across
+specific license), and both are permanently linked to one another so a practitioner's records stay consistent across
 [home state changes](#home-state-changes). Although the RID and CUID could be identical from a technical standpoint, Compact rules required them to be distinct.
 
 #### Record Identifier (RID)
 
 The RID is the Commission's internal person identifier. It is assigned to every unique individual represented in
 state submissions to the system, and maps directly to the system's `providerId` — the identifier generated the
-first time a license is ingested for a practitioner (see [License Preprocessing](#ingest-flow)). The RID
+first time a license is ingested for a practitioner (see [License Preprocessing](#ingest-flow)). The `providerId`
+uses a [version 4 UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) (UUID4). The RID
 (`providerId`) is:
 - **Immutable and internal only**: once assigned it never changes, and it is not displayed in the public lookup
   portal.
@@ -343,19 +343,51 @@ first time a license is ingested for a practitioner (see [License Preprocessing]
 
 #### Compact Unique Identifier (CUID) — Planned
 
-The CUID is the Compact's persistent, public-facing identifier for individuals who hold multistate
-authorization (i.e. at least one generated privilege — see [Multi-State License Model / Privilege
-Generation](#multi-state-license-model--privilege-generation)). Per Commission rule, the CUID will be:
-- **Issued only when a state uploads a Multistate License** — i.e. generated the first time a practitioner has a multi-state license uploaded into the system, rather than at first license ingestion in general (contrast with the RID, which is assigned on first license ingestion regardless of scope).
-- **Public-facing**, unlike the RID, required by Commission rule to be shown in public lookup.
+The CUID is the Compact's persistent, public-facing, human-shorthand identifier for individuals who hold
+multistate authorization (i.e. at least one generated privilege — see [Multi-State License Model / Privilege
+Generation](#multi-state-license-model--privilege-generation)). Unlike the RID, the CUID is designed to be
+short and easy for a member of the public to read, share, and search by. Per Commission rule, the CUID will be:
+- **Issued only once a practitioner has a paired multi-state and single-state license** — i.e. generated the first
+  time a practitioner has *both* a single-state and a multi-state license uploaded for the **same license type and
+  the same jurisdiction** (the same pairing concept used for privilege generation, see [License Composite
+  Identifier](#license-composite-identifier)), rather than at first multi-state license upload alone. A multi-state
+  license uploaded without its paired single-state license (or vice versa) does **not** trigger CUID generation
+  (contrast with the RID, which is assigned on first license ingestion regardless of scope or pairing).
+- **Public-facing**, unlike the RID, required by Commission rule to be shown in public lookup, and searchable by the public.
 - **Person-based, not license-based**, similar to the RID, persistent for mobility: the CUID will remain the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
 - **Permanently linked to the practitioner's RID** (`providerId`), so historical and future records remain consistent regardless of any home-state changes.
 
+**Format:** The CUID will use the format `SWC-<counter>`, where `<counter>` is a monotonically-increasing integer
+(e.g. `SWC-1`, `SWC-2`, `SWC-3`, ...). The counter will be tracked in a dedicated DynamoDB item keyed by
+`pk`/`sk` of `{compact}#CUID_COUNT`, and claimed atomically via a new `claim_cuid_number` method on the data
+client, following the same atomic-increment pattern used by `claim_privilege_number` for JCC privilege ID
+generation (see
+[`claim_privilege_number`](../../../compact-connect/lambdas/python/common/cc_common/data_model/data_client.py)).
+Each call to `claim_cuid_number` issues an `ADD`-based `UpdateItem` against the counter item, which DynamoDB
+guarantees to be atomic even under concurrent invocations, ensuring no two practitioners are ever issued the same
+CUID. Because the counter is only ever incremented and never read-then-written non-atomically, uniqueness is
+guaranteed regardless of concurrent ingest activity across jurisdictions.
+
+**Numbers may be skipped, but are never reused:** A counter value is atomically claimed *before* the rest of the
+CUID-assignment work (writing `publicCompactIdentifier` to the provider record) completes. If a failure occurs
+after a number is claimed but before it is successfully persisted to the provider record (for example, a
+transient network error or a Lambda retry), that claimed number is simply never used and no attempt is made to
+reclaim or reuse it. Consequently, CUIDs are guaranteed to be **unique** but not guaranteed to be **sequential** or
+**gap-free**. Consumers of the CUID (including the public) should not assume that `SWC-<n>` implies exactly `n`
+practitioners have been issued a CUID, only that each issued CUID is distinct.
+
 Once implemented, the CUID will be stored as the optional `publicCompactIdentifier` field on the top-level
 [Provider Record](#record-types-in-detail). Generation is planned as part of the license ingest flow in
-[ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py): whenever a multi-state license is uploaded for a practitioner, the ingest handler will check whether `publicCompactIdentifier` is already set on the practitioner's provider record. If it is not yet set, a new CUID will be generated at that point and written to the provider record. Because the check is against the existing value on the provider record, the CUID is generated exactly once and is never regenerated on subsequent multi-state license uploads, including after a [home state change](#home-state-changes). Because it will live on the top-level provider record rather than on an individual license, the CUID will also be added as a top-level field in the [OpenSearch index mapping](#index-mapping), making practitioners searchable by CUID (see [Advanced Data Search](#advanced-data-search)).
+[ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py): whenever **either** a single-state or a
+multi-state license is uploaded for a practitioner, the ingest handler will check whether the practitioner now
+has at least one paired single-state/multi-state license (matching jurisdiction and license type) across their
+full set of stored licenses. If a pairing exists and `publicCompactIdentifier` is not yet set, a new CUID will be generated at that point
+(via `claim_cuid_number`) and written to the provider record. Because the check is against the existing value on the
+provider record, the CUID is generated exactly once and is never regenerated on subsequent license uploads, including after a [home state change](#home-state-changes). Because it will live on the top-level provider record rather than on an individual
+license, the CUID will also be added as a top-level field in the [OpenSearch index mapping](#index-mapping), making
+practitioners searchable by CUID (see [Advanced Data Search](#advanced-data-search)).
 
-The intent is to only use the CUID specifically for display in the public search UI. It should never be used for partitioning DynamoDB records or for internal identification of records when performing operations in the system. The RID `providerId` field should be primarily used for all internal operations.
+The intent is to only use the CUID specifically for display and search in the public search UI. It should never be used for partitioning DynamoDB records or for internal identification of records when performing operations in the system. The RID `providerId` field should be primarily used for all internal operations.
 
 ### Historical Tracking
 
@@ -774,7 +806,7 @@ The index uses a custom ASCII-folding analyzer for name fields, which allows sea
 characters using their ASCII equivalents (e.g., searching "Jose" matches "José").
 
 **Planned:** once the Compact Unique Identifier (CUID) is implemented (see
-[Commission Unique Identifiers: RID and CUID](#commission-unique-identifiers-rid-and-cuid)), the index mapping will be updated to add `publicCompactIdentifier` as a top-level, searchable field. This will allow staff users and the public to search for a practitioner by their CUID.
+[Commission Unique Identifiers: RID and CUID](#commission-unique-identifiers-rid-and-cuid)), the index mapping will be updated to add `publicCompactIdentifier` as a top-level, searchable field. This will allow staff users and the public to search for a practitioner by their CUID. It will also be used to filter public search results — see [Public Provider Search](#public-provider-search) below.
 
 ### Search API Endpoints
 
@@ -786,6 +818,29 @@ POST /v1/compacts/{compact}/providers/search
 ```
 
 Returns one result row per indexed document (one per license). Each hit is a full provider-shaped document for that license row (including the single license in `licenses` and generated privileges as applicable).
+
+#### Public Provider Search
+```
+POST /v1/public/compacts/{compact}/providers/query
+```
+
+An unauthenticated endpoint (implemented in
+[public_search.py](../../lambdas/python/search/handlers/public_search.py)) that allows members of the public to
+search for practitioners by license number, jurisdiction, family name, and/or given name. Like Provider Search, it
+returns one result row per matching indexed document (one per license), sanitized down to only the fields intended
+for public display.
+
+The public query filters documents down to a practitioner's home multi-state license per license type
+(`licenses.licenseScope: multi-state` and `licenses.mostRecentLicenseForType: true`), consistent with the fact that
+only a home multi-state license can currently generate privileges.
+
+**Planned:** once the CUID is implemented (see [Commission Unique Identifiers: RID and
+CUID](#commission-unique-identifiers-rid-and-cuid)), the public query will add an additional filter requiring the
+top-level `publicCompactIdentifier` field to be populated (i.e. non-null/non-empty) on the document. Since the CUID
+is only generated once a practitioner has a paired single-state/multi-state license on file (see [Compact Unique
+Identifier (CUID)](#compact-unique-identifier-cuid--planned)), this filter has the effect of excluding practitioners
+who have not yet met that pairing requirement from public search results entirely. This ensures the public can only find and reference practitioners using a
+CUID that has actually been issued to them.
 
 ### Document Indexing
 
