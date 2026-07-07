@@ -504,8 +504,12 @@ The following flow describes how the home state license is assigned.
 ([Social Work Practitioner License Assignment Flow](./practitioner-home-state-assignment.pdf))
 
 Each privilege’s status (active/inactive, under investigation) is derived from adverse actions and investigations for
-that privilege jurisdiction and license type. License-targeted adverse actions and investigations additionally specify
-which `licenseScope` they apply to.
+that privilege jurisdiction and license type. This includes both adverse actions targeted directly at
+the privilege itself, and adverse actions targeted at **any** license (home or remote,
+`single-state` or `multi-state`) that shares the privilege's jurisdiction and license type. See [Deactivation
+Effects from Adverse Action Processing](#deactivation-effects-from-adverse-action-processing) for the full set of
+scenarios. License-targeted adverse actions and investigations additionally specify which `licenseScope` they apply
+to.
 
 ### Home State Changes
 
@@ -556,7 +560,7 @@ The system supports encumbering (taking adverse action against) both licenses an
 than being written directly. Encumbrance and lift actions each write a categorized `licenseUpdate` history record
 with `updateType: encumbrance` or `lifting_encumbrance`, respectively.
 
-In the case of privilege encumbrances, we do not track an 'encumberedStatus' field since there are no persistent privilege records in the DB. The privilege's status is determined by checking if there are any unlifted adverse actions against that jurisdiction for that privilege, since we do record `adverseAction` records in the DB with their respective starting and lift dates.
+In the case of privilege encumbrances, we do not track an 'encumberedStatus' field since there are no persistent privilege records in the DB. The privilege's status is determined by checking if there are any unlifted adverse actions against that jurisdiction for that privilege, since we do record `adverseAction` records in the DB with their respective starting and lift dates. This check considers unlifted adverse actions against the privilege itself **and** unlifted adverse actions against any license (`single-state` or `multi-state`) recorded in that same jurisdiction and license type, including a remote-state license (see the "Remote state license encumbered" scenario below).
 
 The following four scenarios describe how encumbering a license or privilege affects deactivation, depending on what
 is targeted:
@@ -565,7 +569,7 @@ is targeted:
 |---|---|
 | Home-state **single-state** license encumbered | The paired home multi-state license is displayed as ineligible (its eligibility is inherited from the single-state license, see [Privilege Runtime Generation](#privilege-runtime-generation-for-multi-state-licenses)), so **all** privileges generated for that license type are suppressed |
 | Home-state **multi-state** license encumbered | The home multi-state license itself becomes ineligible. Because privilege generation requires **both** the home multi-state license and its paired single-state license to be eligible, the still-eligible single-state license cannot rescue privilege generation — **all** privileges for that license type are suppressed, the same as above |
-| **Remote** (non-home) state license encumbered | **No effect** on generated privileges. This is true regardless of whether the remote license's `licenseScope` is `single-state` or `multi-state` — both scopes are encumbered through the identical code path, so behavior is the same. The encumbrance is scoped to that one license record (and it flags the provider as encumbered compact-wide); it only starts to matter for privilege generation if that license later becomes the practitioner's home license |
+| **Remote** (non-home) state license encumbered | If the practitioner has a **generated privilege for that same remote jurisdiction and license type** (via their home license), that privilege's `status` is set to **inactive**, exactly as if the privilege itself had been encumbered directly (see next row). The privilege is still **returned by the API** with `status: inactive` so it displays as inactive in the UI, rather than being omitted. This is true regardless of whether the remote license's `licenseScope` is `single-state` or `multi-state`. No other jurisdictions' privileges are affected |
 | **Privilege** encumbered directly | Only the **single** targeted privilege jurisdiction is shown as inactive; every other generated privilege for that practitioner (including other jurisdictions of the same license type) remains active, so long as the home licenses remain eligible |
 
 **Lifting an encumbrance:** Encumbrances are lifted through a `PATCH` request identifying the specific
@@ -575,6 +579,10 @@ license is lifted; other adverse actions against the same license keep it encumb
 encumbrance never touches any license record. In both cases, the provider-level `encumberedStatus` only clears once
 **all** adverse actions against that practitioner (any license, any privilege) have been lifted. Lift notifications
 are likewise deferred until the underlying license or privilege is fully clear of unlifted adverse actions.
+
+Because privilege `status` is always derived at read time rather than persisted (see above), lifting the last
+unlifted adverse action against a **remote-state license** automatically restores the `status` of any generated
+privilege for that same jurisdiction and license type back to active on the very next read. There is no separate step needed to "reactivate" the privilege itself.
 
 ### Investigations
 
