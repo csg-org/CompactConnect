@@ -328,7 +328,7 @@ License-related sort keys use a shared suffix of the form
 Two persistent identifiers track a practitioner across state submissions and Compact-level records: the **Record
 Identifier (RID)** and the **Compact Unique Identifier (CUID)**. Both identify the *individual* practitioner (not a
 specific license), and both are permanently linked to one another so a practitioner's records stay consistent across
-[home state changes](#home-state-changes). Although the RID and CUID could be identical from a technical standpoint, Compact rules required them to be distinct.
+[home state changes](#home-state-changes).
 
 #### Record Identifier (RID)
 
