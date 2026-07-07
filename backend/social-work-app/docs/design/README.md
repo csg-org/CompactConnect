@@ -107,7 +107,7 @@ associate licenses with the correct providers across jurisdictions.
 The ingest pipeline described above processes **every uploaded licensee record identically**, regardless of the
 license's `licenseScope` (`single-state` or `multi-state`, see [License Scopes](#license-scopes)). It is expected that jurisdictions will upload all single-state and multi-state licenses associated with each provider that they intend to upload data for.
 
-Single-state-only licensees are fully ingested and stored as `license` records. However, because privilege generation requires a **paired** multi-state and
+The system will process and record licensees with only single-state licenses. However, because privilege generation requires a **paired** multi-state and
 single-state license in the same jurisdiction and license type (see
 [Privilege Runtime Generation for Multi-State Licenses](#privilege-runtime-generation-for-multi-state-licenses)), a
 single-state-only licensee will never have privileges generated for them. Their data is still valuable to the
