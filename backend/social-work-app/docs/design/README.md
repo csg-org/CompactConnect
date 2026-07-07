@@ -834,21 +834,17 @@ POST /v1/public/compacts/{compact}/providers/query
 
 An unauthenticated endpoint (implemented in
 [public_search.py](../../lambdas/python/search/handlers/public_search.py)) that allows members of the public to
-search for practitioners by license number, jurisdiction, family name, and/or given name. Like Provider Search, it
-returns one result row per matching indexed document (one per license), sanitized down to only the fields intended
-for public display.
+search for practitioners by multi-state license number, jurisdiction, family name, and/or given name. Like the non-public provider search endpoint used by staff users, it returns one result row per matching indexed document (one per license), sanitized down to only the fields intended for public display.
 
 The public query filters documents down to a practitioner's home multi-state license per license type
-(`licenses.licenseScope: multi-state` and `licenses.mostRecentLicenseForType: true`), consistent with the fact that
-only a home multi-state license can currently generate privileges.
+(`licenses.licenseScope: multi-state` and `licenses.mostRecentLicenseForType: true`). It does not display any of their single-state licenses.
 
 **Planned:** once the CUID is implemented (see [Commission Unique Identifiers: RID and
 CUID](#commission-unique-identifiers-rid-and-cuid)), the public query will add an additional filter requiring the
 top-level `publicCompactIdentifier` field to be populated (i.e. non-null/non-empty) on the document. Since the CUID
 is only generated once a practitioner has a paired single-state/multi-state license on file (see [Compact Unique
 Identifier (CUID)](#compact-unique-identifier-cuid--planned)), this filter has the effect of excluding practitioners
-who have not yet met that pairing requirement from public search results entirely. This ensures the public can only find and reference practitioners using a
-CUID that has actually been issued to them.
+who do not have the needed license pairing for privileges from public search results entirely. This ensures the public can only find and reference practitioners using a CUID that has actually been issued to them.
 
 ### Document Indexing
 
