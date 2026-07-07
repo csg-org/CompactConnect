@@ -329,7 +329,7 @@ Two persistent identifiers track a practitioner across state submissions and Com
 Identifier (RID)** and the **Compact Unique Identifier (CUID)**. Both identify the *individual* practitioner (not a
 specific license), both use [version 4 UUIDs](https://en.wikipedia.org/wiki/Universally_unique_identifier) (UUID4),
 and both are permanently linked to one another so a practitioner's records stay consistent across
-[home state changes](#home-state-changes).
+[home state changes](#home-state-changes). Although the RID and CUID could be identical from a technical standpoint, Compact rules required them to be distinct.
 
 #### Record Identifier (RID)
 
@@ -354,6 +354,8 @@ Generation](#multi-state-license-model--privilege-generation)). Per Commission r
 Once implemented, the CUID will be stored as the optional `publicCompactIdentifier` field on the top-level
 [Provider Record](#record-types-in-detail). Generation is planned as part of the license ingest flow in
 [ingest.py](../../lambdas/python/provider-data-v1/handlers/ingest.py): whenever a multi-state license is uploaded for a practitioner, the ingest handler will check whether `publicCompactIdentifier` is already set on the practitioner's provider record. If it is not yet set, a new CUID will be generated at that point and written to the provider record. Because the check is against the existing value on the provider record, the CUID is generated exactly once and is never regenerated on subsequent multi-state license uploads, including after a [home state change](#home-state-changes). Because it will live on the top-level provider record rather than on an individual license, the CUID will also be added as a top-level field in the [OpenSearch index mapping](#index-mapping), making practitioners searchable by CUID (see [Advanced Data Search](#advanced-data-search)).
+
+The intent is to only use the CUID specifically for display in the public search UI. It should never be used for partitioning DynamoDB records or for internal identification of records when performing operations in the system. The RID `providerId` field should be primarily used for all internal operations.
 
 ### Historical Tracking
 
