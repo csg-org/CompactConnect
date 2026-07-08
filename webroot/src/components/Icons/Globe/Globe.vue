@@ -6,8 +6,8 @@
 -->
 
 <template>
-    <svg viewBox="0 0 11 11" class="icon globe-icon stroke-fill-type">
-        <g clip-path="url(#clip0_15420_117)">
+    <svg viewBox="0 0 11 11" class="icon globe-icon stroke-type">
+        <g>
             <path d="M5.21092 9.55336C7.60918 9.55336 9.55336 7.60918 9.55336 5.21092C9.55336 2.81265 7.60918 0.868469
                 5.21092 0.868469C2.81265 0.868469 0.868469 2.81265 0.868469 5.21092C0.868469 7.60918 2.81265 9.55336
                 5.21092 9.55336Z" stroke-width="0.86849" stroke-linecap="round" stroke-linejoin="round"
@@ -18,11 +18,6 @@
             />
             <path d="M0.868469 5.21094H9.55336" stroke-width="0.86849" stroke-linecap="round" stroke-linejoin="round"/>
         </g>
-        <defs>
-            <clipPath id="clip0_15420_117">
-                <rect width="10.4219" height="10.4219" class="custom-fill"/>
-            </clipPath>
-        </defs>
     </svg>
 
 </template>
