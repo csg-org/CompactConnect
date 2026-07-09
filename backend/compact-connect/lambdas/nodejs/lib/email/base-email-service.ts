@@ -67,6 +67,19 @@ export abstract class BaseEmailService {
         return `${environmentVariableService.getUiBasePathUrl()}/img/email`;
     }
 
+    protected maskEmail(email: string): string {
+        const at = email.indexOf('@');
+        if (at <= 0) {
+            return '***';
+        }
+
+        return `${email[0]}***${email.slice(at)}`;
+    }
+
+    protected maskEmails(emails: string[]): string[] {
+        return emails.map((email) => this.maskEmail(email));
+    }
+
     protected async sendEmail({ htmlContent, subject, recipients, errorMessage }:
          {htmlContent: string, subject: string, recipients: string[], errorMessage: string}) {
         try {

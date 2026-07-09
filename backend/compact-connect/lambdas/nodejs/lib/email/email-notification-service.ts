@@ -348,13 +348,14 @@ export class EmailNotificationService extends BaseEmailService {
         }[],
         specificEmails: string[] = []
     ): Promise<void> {
-        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails[0] });
-
+        
         const recipients = specificEmails;
-
+        
         if (recipients.length === 0) {
             throw new Error(`No recipients found`);
         }
+        
+        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: this.maskEmail(specificEmails[0]) });
 
         const emailContent = this.getNewEmailTemplate();
         const headerText = `Privilege Purchase Confirmation`;
@@ -405,7 +406,10 @@ export class EmailNotificationService extends BaseEmailService {
         compact: string,
         specificEmails: string[] = []
     ): Promise<void> {
-        this.logger.info('Sending multiple registration attempt notification email', { compact: compact, recipients: specificEmails });
+        this.logger.info('Sending multiple registration attempt notification email', {
+            compact: compact,
+            recipients: this.maskEmails(specificEmails),
+        });
 
         const recipients = specificEmails;
 
@@ -437,7 +441,10 @@ export class EmailNotificationService extends BaseEmailService {
         compact: string,
         specificEmails: string[] = []
     ): Promise<void> {
-        this.logger.info('Sending ssn correction reregistration notification email', { compact: compact, recipients: specificEmails });
+        this.logger.info('Sending ssn correction reregistration notification email', {
+            compact: compact,
+            recipients: this.maskEmails(specificEmails),
+        });
 
         const recipients = specificEmails;
 
@@ -470,7 +477,10 @@ export class EmailNotificationService extends BaseEmailService {
         providerEmail: string,
         verificationCode: string
     ): Promise<void> {
-        this.logger.info('Sending provider email verification code', { compact: compact, providerEmail: providerEmail });
+        this.logger.info('Sending provider email verification code', {
+            compact: compact,
+            providerEmail: this.maskEmail(providerEmail),
+        });
 
         const recipients = [providerEmail];
 
@@ -498,7 +508,10 @@ export class EmailNotificationService extends BaseEmailService {
         oldEmailAddress: string,
         newEmailAddress: string
     ): Promise<void> {
-        this.logger.info('Sending provider email change notification', { compact: compact, oldEmailAddress: oldEmailAddress });
+        this.logger.info('Sending provider email change notification', {
+            compact: compact,
+            oldEmailAddress: this.maskEmail(oldEmailAddress),
+        });
 
         const recipients = [oldEmailAddress];
 

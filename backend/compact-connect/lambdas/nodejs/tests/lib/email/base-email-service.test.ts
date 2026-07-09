@@ -25,6 +25,16 @@ class TestEmailService extends BaseEmailService {
     }
 }
 
+class MaskingTestEmailService extends BaseEmailService {
+    public testMaskEmail(email: string): string {
+        return this.maskEmail(email);
+    }
+
+    public testMaskEmails(emails: string[]): string[] {
+        return this.maskEmails(emails);
+    }
+}
+
 describe('BaseEmailService Environment Banner', () => {
     let emailService: TestEmailService;
     let mockSESClient: ReturnType<typeof mockClient>;
@@ -111,5 +121,34 @@ describe('BaseEmailService Environment Banner', () => {
         testEnvironment('test', true, 'should include environment banner and footer in test environment');
         testEnvironment('prod', false, 'should NOT include environment banner and footer in production environment');
         testEnvironment(undefined, false, 'should NOT include environment banner and footer when environment name is undefined');
+    });
+});
+
+describe('BaseEmailService email masking', () => {
+    let maskingService: MaskingTestEmailService;
+
+    beforeEach(() => {
+        maskingService = new MaskingTestEmailService({
+            logger: new Logger({ serviceName: 'test' }),
+            sesClient: asSESClient(mockClient(SESv2Client)),
+            s3Client: asS3Client(mockClient(S3Client)),
+            compactConfigurationClient: {} as any,
+            jurisdictionClient: {} as any
+        });
+    });
+
+    it('masks the local part of a valid email address', () => {
+        expect(maskingService.testMaskEmail('user@example.com')).toBe('u***@example.com');
+    });
+
+    it('returns a placeholder for invalid email addresses', () => {
+        expect(maskingService.testMaskEmail('invalid-email')).toBe('***');
+    });
+
+    it('masks each address in a recipient list', () => {
+        expect(maskingService.testMaskEmails(['user@example.com', 'admin@state.gov'])).toEqual([
+            'u***@example.com',
+            'a***@state.gov'
+        ]);
     });
 });
