@@ -74,6 +74,10 @@ class LicensePostRequestSchema(CCRequestSchema, StrictSchema):
     """
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
+    # If provided, the system will migrate any records associated with this SSN over to the provider
+    # associated with the `ssn` field, to correct a previously-uploaded incorrect SSN. This value is
+    # stripped out before the license data leaves the SSN-scoped preprocessing path and is never persisted.
+    previousSSN = SocialSecurityNumber(required=False, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))

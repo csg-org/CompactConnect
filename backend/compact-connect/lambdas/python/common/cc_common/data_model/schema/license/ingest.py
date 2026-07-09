@@ -25,6 +25,10 @@ class LicenseIngestSchema(LicenseCommonSchema):
 
     ssnLastFour = String(required=True, allow_none=False, validate=Length(equal=4))
     providerId = UUID(required=True, allow_none=False)
+    # Set by the license preprocessor when the upload carried a previousSSN that resolved to a different
+    # provider id. Its presence triggers an SSN-correction migration in the ingest handler; it is popped
+    # before the license record is persisted.
+    previousProviderId = UUID(required=False, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # This is used to calculate the actual 'licenseStatus' used by the system in addition

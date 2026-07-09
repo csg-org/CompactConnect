@@ -319,6 +319,8 @@ class UpdateCategory(CCEnum):
     # this is specific to privileges that are deactivated due to a state license deactivation
     LICENSE_DEACTIVATION = 'licenseDeactivation'
     EMAIL_CHANGE = 'emailChange'
+    # written when a state corrects a practitioner's SSN and their records are migrated to a new provider id
+    SSN_CORRECTION = 'ssnCorrection'
     # NOTE: this value should explicitly be used for license upload updates, not anywhere else
     # it is referenced in the event that an invalid license upload needs to be reverted.
     LICENSE_UPLOAD_UPDATE_OTHER = 'other'

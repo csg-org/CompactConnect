@@ -62,6 +62,7 @@ leave the field entirely empty. If some of your licenses are missing a required 
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
 | npi | National Provider Identifier (optional) | 10-digit number | 1234567890 |
 | phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
+| previousSSN | The incorrect Social Security Number previously uploaded for this license (optional). Provide this along with the corrected `ssn` to fix a license record that was uploaded with the wrong SSN: the system moves the license record and any privileges purchased against it over to the provider associated with the corrected SSN. If the corrected license was the only license under the incorrect SSN, that duplicate provider account is removed and the practitioner is emailed to register again. | Format: XXX-XX-XXXX | 123-45-6789 |
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |
 ** This field is required by compact commission rule, however, to avoid making a breaking change for states that are already integrated, the API does not enforce this rule. States are responsible for enforcing the compact rule themselves.
 #### Example CSV
