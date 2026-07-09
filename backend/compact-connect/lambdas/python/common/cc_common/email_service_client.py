@@ -297,6 +297,31 @@ class EmailServiceClient:
 
         return self._invoke_lambda(payload)
 
+    def send_provider_ssn_correction_reregistration_email(
+        self,
+        compact: str,
+        provider_email: str,
+    ) -> dict[str, str]:
+        """
+        Notify a practitioner that their state corrected the SSN on their license record and that they must
+        register again under the corrected record (their previous account was removed).
+
+        :param compact: Compact name
+        :param provider_email: Email address the provider had registered with
+        :return: Response from the email notification service
+        """
+        payload = {
+            'compact': compact,
+            'template': 'ssnCorrectionReregistrationNotification',
+            'recipientType': 'SPECIFIC',
+            'specificEmails': [
+                provider_email,
+            ],
+            'templateVariables': {},
+        }
+
+        return self._invoke_lambda(payload)
+
     def send_license_encumbrance_provider_notification_email(
         self,
         *,

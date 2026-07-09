@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass
 from datetime import date, datetime
 from datetime import time as dtime
 from urllib.parse import quote
@@ -51,6 +52,24 @@ from cc_common.exceptions import (
 )
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import logger_inject_kwargs
+
+
+@dataclass
+class SsnCorrectionMigrationResult:
+    """
+    Outcome of an SSN-correction migration.
+
+    :param migration_performed: False when there was nothing to migrate (spurious previousSSN or a replay of an
+        already-completed migration)
+    :param full_teardown: True when the corrected license was the old provider's only license, so the old
+        provider was deleted entirely. The caller must delete the old Cognito user and notify the practitioner.
+    :param old_provider_registered_email: The old provider's registered email address, present only on a full
+        teardown of a registered provider
+    """
+
+    migration_performed: bool
+    full_teardown: bool = False
+    old_provider_registered_email: str | None = None
 
 
 class DataClient:
@@ -2834,6 +2853,312 @@ class DataClient:
                 error=str(e),
             )
             raise CCInternalException('Failed to update provider home state jurisdiction') from e
+
+    @logger_inject_kwargs(logger, 'compact', 'previous_provider_id', 'new_provider_id', 'jurisdiction')
+    def migrate_provider_for_ssn_correction(
+        self,
+        *,
+        compact: str,
+        previous_provider_id: str,
+        new_provider_id: str,
+        jurisdiction: str,
+        license_type: str,
+        new_ssn_last_four: str,
+    ) -> 'SsnCorrectionMigrationResult':
+        """
+        Migrate a license (and its dependent records) from one provider id to another after a state corrected
+        the SSN on a license upload.
+
+        The migration is scoped to the single (jurisdiction, license type) license of the corrected upload row.
+        That license, the privileges purchased against it, and their adverse action / investigation / update
+        history records are always moved to the new provider id. Person-level records (military affiliations,
+        provider update history) are never carried over: the practitioner re-registers under the corrected
+        provider id and re-uploads any documents. What happens to the rest of the old provider depends on
+        whether the corrected license was its only license record:
+
+        - Full teardown (sole license): the old provider's entire partition, including its person-level records
+          and top-level provider record, is deleted. The caller is responsible for deleting the old Cognito
+          user and notifying the practitioner.
+        - Partial (other licenses remain): the old provider keeps its person-level records and its top-level
+          record is repopulated from its remaining licenses. The old provider id remains a valid (partial)
+          practitioner until its remaining licenses are also corrected.
+
+        Concurrency: the write against the old top-level provider record is conditioned on the dateOfUpdate
+        read at the start of the migration and executed in the first transaction batch. A concurrent migration
+        for the same old provider will fail that condition before writing anything, and its SQS retry re-reads
+        current state. The targeted license's delete is executed in the last batch so a crash mid-migration
+        leaves the license in place for the replay's idempotency guard to find; all other writes are idempotent.
+
+        Records already under the new provider id are never modified or deleted; a top-level provider record is
+        created for the new provider only when it does not already have one.
+
+        :param compact: The compact name
+        :param previous_provider_id: Provider id the incorrect SSN resolved to
+        :param new_provider_id: Provider id the corrected SSN resolved to
+        :param jurisdiction: Jurisdiction of the corrected license upload
+        :param license_type: License type of the corrected license upload
+        :param new_ssn_last_four: Last four digits of the corrected SSN
+        :return: SsnCorrectionMigrationResult describing what the migration did
+        """
+        try:
+            old_provider_records = self.get_provider_user_records(
+                compact=compact,
+                provider_id=previous_provider_id,
+                consistent_read=True,
+                include_update_tier=UpdateTierEnum.TIER_THREE,
+            )
+        except CCNotFoundException:
+            # The previousSSN resolved to a provider id with no records (e.g. it was never actually uploaded)
+            logger.info('Previous provider id has no records; nothing to migrate')
+            return SsnCorrectionMigrationResult(migration_performed=False)
+
+        # Idempotency guard: if the targeted license is not on the old provider, it was either never there or
+        # a previous run already migrated it
+        records_to_move = old_provider_records.get_records_associated_with_license(jurisdiction, license_type)
+        if not records_to_move:
+            logger.info('Previous provider has no license matching the corrected upload; nothing to migrate')
+            return SsnCorrectionMigrationResult(migration_performed=False)
+
+        try:
+            old_provider_data = old_provider_records.get_provider_record()
+        except CCInternalException:
+            # The top-level provider record was already deleted by a partially-completed teardown that is now
+            # being replayed; continue the migration without the concurrency fence
+            logger.warning('Old provider record not found; continuing replay of a partially-completed migration')
+            old_provider_data = None
+
+        # The corrected license was the old provider's only license: tear the old provider down entirely
+        full_teardown = len(old_provider_records.get_license_records()) == 1
+
+        target_license = next(record for record in records_to_move if record.type == ProviderRecordType.LICENSE)
+        target_license_key = self._provider_record_key(target_license)
+
+        transaction_items = []
+
+        # 1. The concurrency fence: a conditioned write against the old top-level provider record, executed in
+        # the first batch so a competing migration fails before writing anything
+        if old_provider_data is not None:
+            transaction_items.append(
+                self._build_conditioned_old_provider_transaction_item(
+                    old_provider_data=old_provider_data,
+                    old_provider_records=old_provider_records,
+                    full_teardown=full_teardown,
+                    jurisdiction=jurisdiction,
+                    license_type=license_type,
+                )
+            )
+
+        # 2. Re-keyed puts for every migrated record. The targeted license also picks up the corrected
+        # ssnLastFour so the new partition is internally consistent
+        rekeyed_target_license = None
+        rekeyed_privileges = []
+        for record in records_to_move:
+            extra_updates = {'ssnLastFour': new_ssn_last_four} if record is target_license else None
+            rekeyed_record = self._rekey_record_to_provider(record, new_provider_id, extra_updates)
+            if record is target_license:
+                rekeyed_target_license = rekeyed_record
+            elif record.type == ProviderRecordType.PRIVILEGE:
+                rekeyed_privileges.append(rekeyed_record)
+            transaction_items.append(self._build_put_transaction_item(rekeyed_record))
+
+        # 3. Deletes for the moved records, except the targeted license (deleted last) and the top-level
+        # provider record (handled by the fence above). On a full teardown the person-level records
+        # (military affiliations, provider update history) are deleted with the partition
+        records_to_delete = list(records_to_move)
+        if full_teardown:
+            records_to_delete.extend(old_provider_records.get_person_level_records())
+        for record in records_to_delete:
+            if record is target_license:
+                continue
+            transaction_items.append(self._build_delete_transaction_item(self._provider_record_key(record)))
+
+        # 4. The ssnCorrection provider update record, written on the new provider. Skipped on a replay that
+        # lost the old provider record: the run that deleted it already wrote this record
+        if old_provider_data is not None:
+            ssn_correction_update = ProviderUpdateData.create_new(
+                {
+                    'type': ProviderRecordType.PROVIDER_UPDATE,
+                    'updateType': UpdateCategory.SSN_CORRECTION,
+                    'providerId': new_provider_id,
+                    'compact': compact,
+                    'previous': old_provider_data.to_dict(),
+                    'createDate': config.current_standard_datetime,
+                    'updatedValues': {'ssnLastFour': new_ssn_last_four},
+                }
+            )
+            transaction_items.append(self._build_put_transaction_item(ssn_correction_update))
+
+        # 5. Create a top-level provider record for the new provider only if it does not already have one; a
+        # pre-existing record is never modified
+        new_provider_record = self._build_new_provider_record_if_absent(
+            compact=compact,
+            new_provider_id=new_provider_id,
+            rekeyed_target_license=rekeyed_target_license,
+            rekeyed_privileges=rekeyed_privileges,
+        )
+        if new_provider_record is not None:
+            transaction_items.append(self._build_put_transaction_item(new_provider_record))
+
+        # 6. The targeted license delete goes last: until it commits, a replay of this migration re-runs in full
+        transaction_items.append(self._build_delete_transaction_item(target_license_key))
+
+        self._execute_batched_transactions(transaction_items)
+
+        return SsnCorrectionMigrationResult(
+            migration_performed=True,
+            full_teardown=full_teardown,
+            old_provider_registered_email=(
+                old_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
+                if full_teardown and old_provider_data is not None
+                else None
+            ),
+        )
+
+    @staticmethod
+    def _provider_record_key(record: CCDataClass) -> dict[str, str]:
+        """Get the current pk/sk of a record, as regenerated by its schema."""
+        serialized = record.serialize_to_database_record()
+        return {'pk': serialized['pk'], 'sk': serialized['sk']}
+
+    def _build_put_transaction_item(self, record: CCDataClass) -> dict:
+        return {
+            'Put': {
+                'TableName': self.config.provider_table_name,
+                'Item': TypeSerializer().serialize(record.serialize_to_database_record())['M'],
+            }
+        }
+
+    def _build_delete_transaction_item(self, record_key: dict[str, str]) -> dict:
+        return {
+            'Delete': {
+                'TableName': self.config.provider_table_name,
+                'Key': {'pk': {'S': record_key['pk']}, 'sk': {'S': record_key['sk']}},
+            }
+        }
+
+    @staticmethod
+    def _rekey_record_to_provider(
+        record: CCDataClass, new_provider_id: str, extra_updates: dict | None = None
+    ) -> CCDataClass:
+        """
+        Build a copy of a record re-keyed under a new provider id.
+
+        Because the provider id appears only in the pk (and in derived GSI keys), re-serializing the record
+        with the new provider id regenerates all of its database keys. Update records embed a snapshot of the
+        record they describe, so any providerId inside 'previous' is re-keyed as well.
+        """
+        record_data = record.to_dict()
+        record_data['providerId'] = new_provider_id
+        if isinstance(record_data.get('previous'), dict) and 'providerId' in record_data['previous']:
+            record_data['previous']['providerId'] = new_provider_id
+        if extra_updates:
+            record_data.update(extra_updates)
+        return type(record).create_new(record_data)
+
+    def _build_conditioned_old_provider_transaction_item(
+        self,
+        *,
+        old_provider_data: ProviderData,
+        old_provider_records: ProviderUserRecords,
+        full_teardown: bool,
+        jurisdiction: str,
+        license_type: str,
+    ) -> dict:
+        """
+        Build the write against the old top-level provider record: a delete on full teardown, or a repopulation
+        from the remaining licenses on a partial migration. Either way the write is conditioned on the
+        dateOfUpdate read at the start of the migration, so concurrent migrations of the same old provider
+        serialize via SQS retry instead of both reading the same stale state.
+        """
+        condition = {
+            'ConditionExpression': 'attribute_exists(pk) AND dateOfUpdate = :dateOfUpdate',
+            'ExpressionAttributeValues': {':dateOfUpdate': {'S': old_provider_data.dateOfUpdate.isoformat()}},
+        }
+        if full_teardown:
+            old_provider_key = self._provider_record_key(old_provider_data)
+            return {
+                'Delete': {
+                    'TableName': self.config.provider_table_name,
+                    'Key': {'pk': {'S': old_provider_key['pk']}, 'sk': {'S': old_provider_key['sk']}},
+                    **condition,
+                }
+            }
+
+        repopulated_old_provider = self._repopulate_provider_record_from_remaining_records(
+            old_provider_data=old_provider_data,
+            old_provider_records=old_provider_records,
+            migrated_jurisdiction=jurisdiction,
+            migrated_license_type=license_type,
+        )
+        return {
+            'Put': {
+                'TableName': self.config.provider_table_name,
+                'Item': TypeSerializer().serialize(repopulated_old_provider.serialize_to_database_record())['M'],
+                **condition,
+            }
+        }
+
+    @staticmethod
+    def _repopulate_provider_record_from_remaining_records(
+        *,
+        old_provider_data: ProviderData,
+        old_provider_records: ProviderUserRecords,
+        migrated_jurisdiction: str,
+        migrated_license_type: str,
+    ) -> ProviderData:
+        """Rebuild the old top-level provider record from the licenses/privileges that are not being migrated."""
+        remaining_licenses = old_provider_records.get_license_records(
+            filter_condition=lambda license_data: (
+                not (
+                    license_data.jurisdiction == migrated_jurisdiction
+                    and license_data.licenseType == migrated_license_type
+                )
+            )
+        )
+        remaining_privileges = old_provider_records.get_privilege_records(
+            filter_condition=lambda privilege_data: (
+                not (
+                    privilege_data.licenseJurisdiction == migrated_jurisdiction
+                    and privilege_data.licenseType == migrated_license_type
+                )
+            )
+        )
+
+        best_remaining_license = ProviderRecordUtility.find_best_license(
+            [license_data.to_dict() for license_data in remaining_licenses],
+            old_provider_data.to_dict().get('currentHomeJurisdiction'),
+        )
+        # Strip privilegeJurisdictions from the current record so the utility only carries jurisdictions
+        # over from the privileges that actually remain
+        current_provider_dict = old_provider_data.to_dict()
+        current_provider_dict.pop('privilegeJurisdictions', None)
+        return ProviderRecordUtility.populate_provider_record(
+            current_provider_record=ProviderData.create_new(current_provider_dict),
+            license_record=best_remaining_license,
+            privilege_records=[privilege_data.to_dict() for privilege_data in remaining_privileges],
+        )
+
+    def _build_new_provider_record_if_absent(
+        self,
+        *,
+        compact: str,
+        new_provider_id: str,
+        rekeyed_target_license: LicenseData,
+        rekeyed_privileges: list[PrivilegeData],
+    ) -> ProviderData | None:
+        """
+        Build a top-level provider record for the new provider from the migrated license/privileges, or return
+        None if the new provider already has one (a pre-existing record is never modified).
+        """
+        try:
+            self.get_provider_top_level_record(compact=compact, provider_id=new_provider_id)
+            return None
+        except CCNotFoundException:
+            return ProviderRecordUtility.populate_provider_record(
+                current_provider_record=None,
+                license_record=rekeyed_target_license.to_dict(),
+                privilege_records=[privilege_data.to_dict() for privilege_data in rekeyed_privileges],
+            )
 
     def _execute_batched_transactions(self, transaction_items: list[dict]) -> None:
         """

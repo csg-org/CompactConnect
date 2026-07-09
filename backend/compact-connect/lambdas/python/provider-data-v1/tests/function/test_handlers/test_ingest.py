@@ -1,6 +1,6 @@
 import json
 from datetime import date, datetime
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from moto import mock_aws
@@ -897,3 +897,216 @@ class TestIngest(TstFunction):
         self.assertEqual('ky', provider_data['licenseJurisdiction'])
         self.assertEqual('Audrey', provider_data['givenName'])
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
+
+
+@mock_aws
+@patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+class TestIngestSsnCorrection(TstFunction):
+    """Function tests for the SSN-correction migration orchestration in ingest_license_message.
+
+    The old (incorrect-SSN) provider uses the test-data-generator default provider id; the corrected SSN
+    resolves to NEW_PROVIDER_ID.
+    """
+
+    OLD_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+    NEW_PROVIDER_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+    NEW_SSN_LAST_FOUR = '6789'
+    OLD_REGISTERED_EMAIL = 'old-provider@example.com'
+    # firstUploadDate tracks when a license was first uploaded; migration must carry it forward unchanged
+    LICENSE_FIRST_UPLOAD_DATE = datetime.fromisoformat('2020-01-01T00:00:00+00:00')
+
+    def setUp(self):
+        super().setUp()
+        # patch the email client method at class level: the handler module may hold a config instance from an
+        # earlier test module import, so instance-level mocking would not be seen
+        email_patcher = patch(
+            'cc_common.email_service_client.EmailServiceClient.send_provider_ssn_correction_reregistration_email',
+            MagicMock(return_value={'message': 'Email message sent'}),
+        )
+        self._mock_send_reregistration_email = email_patcher.start()
+        self.addCleanup(email_patcher.stop)
+
+    def _put_old_provider_records(self, *, with_second_license: bool = False) -> list:
+        """Store the old provider's records and return the stored data class instances."""
+        stored_records = [
+            self.test_data_generator.put_default_provider_record_in_provider_table(
+                {'compactConnectRegisteredEmailAddress': self.OLD_REGISTERED_EMAIL}
+            ),
+            self.test_data_generator.put_default_license_record_in_provider_table(
+                {'firstUploadDate': self.LICENSE_FIRST_UPLOAD_DATE}
+            ),
+            self.test_data_generator.put_default_privilege_record_in_provider_table(),
+            self.test_data_generator.put_default_military_affiliation_in_provider_table(),
+        ]
+        if with_second_license:
+            stored_records.append(
+                self.test_data_generator.put_default_license_record_in_provider_table({'licenseType': 'audiologist'})
+            )
+        return stored_records
+
+    def _create_old_cognito_user(self):
+        self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=self.OLD_REGISTERED_EMAIL,
+            UserAttributes=[{'Name': 'email', 'Value': self.OLD_REGISTERED_EMAIL}],
+        )
+
+    def _when_old_cognito_user_exists(self) -> bool:
+        from botocore.exceptions import ClientError
+
+        try:
+            self.config.cognito_client.admin_get_user(
+                UserPoolId=self.config.provider_user_pool_id,
+                Username=self.OLD_REGISTERED_EMAIL,
+            )
+            return True
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'UserNotFoundException':
+                return False
+            raise
+
+    def _run_ingest_with_previous_provider_id(self):
+        from handlers.ingest import ingest_license_message
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        message['detail']['providerId'] = self.NEW_PROVIDER_ID
+        message['detail']['previousProviderId'] = self.OLD_PROVIDER_ID
+        message['detail']['ssnLastFour'] = self.NEW_SSN_LAST_FOUR
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        return ingest_license_message(event, self.mock_context)
+
+    def _get_provider_records(self, provider_id: str) -> list[dict]:
+        from boto3.dynamodb.conditions import Key
+
+        return self.config.provider_table.query(KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}'))[
+            'Items'
+        ]
+
+    def _get_api_response_snapshot_for_provider(self, provider_id: str) -> dict:
+        """Load a provider's records and JSON-cast their api response object, matching the format of the
+        expected snapshots built by generate_default_provider_detail_response.
+        """
+        from cc_common.utils import ResponseEncoder
+
+        provider_user_records = self.config.data_client.get_provider_user_records(
+            compact='aslp',
+            provider_id=provider_id,
+        )
+        return json.loads(json.dumps(provider_user_records.generate_api_response_object(), cls=ResponseEncoder))
+
+    def test_full_teardown_migration_moves_records_under_new_provider_id(self):
+        old_provider_record_items = self._put_old_provider_records()
+        self._create_old_cognito_user()
+
+        # snapshot the old provider's full state before the migration runs
+        expected_old_provider_snapshot = self.test_data_generator.generate_default_provider_detail_response(
+            old_provider_record_items
+        )
+        self.assertEqual(
+            expected_old_provider_snapshot,
+            self._get_api_response_snapshot_for_provider(self.OLD_PROVIDER_ID),
+        )
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # the migrated license (refreshed by the ingested upload, carrying the corrected ssnLastFour) and its
+        # privilege now live under the new provider id, with a newly-created provider record. The new provider is
+        # not registered: the practitioner must register again under the corrected account
+        expected_new_provider_snapshot = self.test_data_generator.generate_default_provider_detail_response(
+            [
+                self.test_data_generator.generate_default_provider(
+                    value_overrides={
+                        'providerId': self.NEW_PROVIDER_ID,
+                        'ssnLastFour': self.NEW_SSN_LAST_FOUR,
+                    },
+                    is_registered=False,
+                ),
+                self.test_data_generator.generate_default_license(
+                    value_overrides={
+                        'providerId': self.NEW_PROVIDER_ID,
+                        'ssnLastFour': self.NEW_SSN_LAST_FOUR,
+                        'firstUploadDate': self.LICENSE_FIRST_UPLOAD_DATE,
+                    }
+                ),
+                self.test_data_generator.generate_default_privilege(
+                    value_overrides={'providerId': self.NEW_PROVIDER_ID}
+                ),
+            ]
+        )
+        self.assertEqual(
+            expected_new_provider_snapshot,
+            self._get_api_response_snapshot_for_provider(self.NEW_PROVIDER_ID),
+        )
+
+    def test_full_teardown_migration_deletes_cognito_user(self):
+        self._put_old_provider_records()
+        self._create_old_cognito_user()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        self.assertFalse(self._when_old_cognito_user_exists())
+
+    def test_full_teardown_migration_sends_reregistration_email(self):
+        self._put_old_provider_records()
+        self._create_old_cognito_user()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        self._mock_send_reregistration_email.assert_called_once_with(
+            compact='aslp',
+            provider_email=self.OLD_REGISTERED_EMAIL,
+        )
+
+    def test_partial_migration_keeps_cognito_user_and_sends_no_email(self):
+        self._put_old_provider_records(with_second_license=True)
+        self._create_old_cognito_user()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # the old provider still exists with its remaining license and its person-level records
+        old_records = self._get_provider_records(self.OLD_PROVIDER_ID)
+        old_record_types = {record['type'] for record in old_records}
+        self.assertIn('provider', old_record_types)
+        self.assertIn('license', old_record_types)
+        self.assertIn('militaryAffiliation', old_record_types)
+
+        # person-level records are not copied to the new provider
+        new_record_types = {record['type'] for record in self._get_provider_records(self.NEW_PROVIDER_ID)}
+        self.assertNotIn('militaryAffiliation', new_record_types)
+
+        # the old Cognito user remains and no re-registration email was sent
+        self.assertTrue(self._when_old_cognito_user_exists())
+        self._mock_send_reregistration_email.assert_not_called()
+
+    def test_no_op_migration_still_ingests_license_normally(self):
+        # the previousSSN resolved to a provider id with no records at all
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        new_records = self._get_provider_records(self.NEW_PROVIDER_ID)
+        new_record_types = {record['type'] for record in new_records}
+        self.assertEqual({'license', 'provider'}, new_record_types)
+
+        # previousProviderId is transient migration routing data and must never be persisted
+        for record in new_records:
+            self.assertNotIn('previousProviderId', record)
+
+        self._mock_send_reregistration_email.assert_not_called()
+
+    def test_full_teardown_with_unregistered_old_provider_sends_no_email(self):
+        # the old provider never registered: no Cognito user, no registered email on the provider record
+        self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=False)
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        self.assertEqual([], self._get_provider_records(self.OLD_PROVIDER_ID))
+        self._mock_send_reregistration_email.assert_not_called()
