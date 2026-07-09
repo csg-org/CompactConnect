@@ -11,6 +11,10 @@ from moto import mock_aws
 
 from . import TstFunction
 
+_MULTI_STATE_SCOPE_TERM = {'term': {'licenses.licenseScope': 'multi-state'}}
+_MOST_RECENT_LICENSE_FOR_TYPE_TERM = {'term': {'licenses.mostRecentLicenseForType': True}}
+_PUBLIC_SEARCH_BASE_MUST = [_MULTI_STATE_SCOPE_TERM, _MOST_RECENT_LICENSE_FOR_TYPE_TERM]
+
 _DEFAULT_PUBLIC_SEARCH_SORT_FAMILY_NAME_ASC = [
     {'licenses.familyName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
     {'licenses.givenName.keyword': {'order': 'asc', 'nested': {'path': 'licenses'}}},
@@ -46,6 +50,7 @@ class TestPublicSearchProviders(TstFunction):
         search_after: list | None = None,
     ) -> dict:
         """Full OpenSearch search body for public license query (must stay aligned with public_search handler)."""
+        nested_must = _PUBLIC_SEARCH_BASE_MUST + list(licenses_nested_must)
         body: dict = {
             'query': {
                 'bool': {
@@ -54,7 +59,7 @@ class TestPublicSearchProviders(TstFunction):
                         {
                             'nested': {
                                 'path': 'licenses',
-                                'query': {'bool': {'must': licenses_nested_must}},
+                                'query': {'bool': {'must': nested_must}},
                             }
                         },
                     ]
@@ -129,7 +134,8 @@ class TestPublicSearchProviders(TstFunction):
             'compact': compact,
             'jurisdiction': jurisdiction,
             'licenseType': license_type,
-            'licenseScope': 'single-state',
+            'licenseScope': 'multi-state',
+            'mostRecentLicenseForType': True,
             'licenseStatusName': 'OK',
             'licenseStatus': license_status,
             'jurisdictionUploadedLicenseStatus': 'active',

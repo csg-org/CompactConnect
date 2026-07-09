@@ -20,16 +20,12 @@
       "service": "socialwork"
     },
     "jurisdictions": [
-      "al",
-      "az",
-      "co",
-      "ks",
-      "ky",
-      "md",
-      "oh",
-      "tn",
-      "va",
-      "wa"
+      "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",
+      "ga", "gu", "hi", "id", "il", "in", "ia", "ks", "ky", "la",
+      "me", "md", "ma", "mi", "mn", "ms", "mo", "mt", "mp", "ne",
+      "nv", "nh", "nj", "nm", "ny", "nc", "nd", "oh", "ok", "or",
+      "pa", "ri", "sc", "sd", "tn", "tx", "ut", "vt", "va", "vi",
+      "wa", "wv", "wi", "wy"
     ],
     "license_types": {
       "socw": [
@@ -43,16 +39,12 @@
     ],
     "active_compact_member_jurisdictions": {
       "socw": [
-        "al",
-        "az",
-        "co",
-        "ks",
-        "ky",
-        "md",
-        "oh",
-        "tn",
-        "va",
-        "wa"
+        "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",
+        "ga", "gu", "hi", "id", "il", "in", "ia", "ks", "ky", "la",
+        "me", "md", "ma", "mi", "mn", "ms", "mo", "mt", "mp", "ne",
+        "nv", "nh", "nj", "nm", "ny", "nc", "nd", "oh", "ok", "or",
+        "pa", "ri", "sc", "sd", "tn", "tx", "ut", "vt", "va", "vi",
+        "wa", "wv", "wi", "wy"
       ]
     },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
@@ -90,6 +82,7 @@
     "@aws-cdk/aws-kms:aliasNameRef": true,
     "@aws-cdk/aws-autoscaling:generateLaunchTemplateInsteadOfLaunchConfig": true,
     "@aws-cdk/core:includePrefixInUniqueNameGeneration": true,
+    "@aws-cdk/core:defaultCrossStackReferences": "strong",
     "@aws-cdk/aws-efs:denyAnonymousAccess": true,
     "@aws-cdk/aws-opensearchservice:enableOpensearchMultiAzWithStandby": true,
     "@aws-cdk/aws-lambda-nodejs:useLatestRuntimeVersion": true,

@@ -6,8 +6,16 @@ Smoke tests for public license search (unauthenticated).
 POST /v1/public/compacts/{compact}/providers/query and GET /v1/public/compacts/{compact}/providers/{providerId}.
 Uses CC_TEST_PROVIDER_ID and mutates the smoke license in DynamoDB; restores state in finally blocks.
 
-This test assumes the test provider has no existing license in TEST_JURISDICTION. If this is not the case,
-you can change the TEST_JURISDICTION variable to a jurisdiction where the test provider does not have a license.
+Prerequisites:
+- The test provider must have at least one multi-state license with a paired single-state license
+(public search and lookup only expose multi-state licenses).
+- For baseline eligible assertions to pass, both the multi-state and its paired single-state license
+  must be eligible (e.g. not expired, not jurisdiction-marked ineligible, no blocking adverse actions).
+- The test provider must have no existing license in TEST_JURISDICTION. If this is not the case,
+  change TEST_JURISDICTION to a jurisdiction where the test provider does not have a license.
+
+After deploying public-search indexing changes (mostRecentLicenseForType), re-index or run populate
+so OpenSearch documents include the new field before running these tests.
 
 Run from repo root with social-work-app cwd, or set paths like other smoke scripts:
 
@@ -25,7 +33,6 @@ from smoke_common import (
     call_public_query_providers,
     get_all_provider_database_records,
     get_license_type_abbreviation,
-    get_most_recently_issued_or_renewed_license,
     get_provider_user_dynamodb_table,
     load_smoke_test_env,
     wait_for_opensearch_sync,
@@ -38,6 +45,48 @@ TEST_DATE_OF_ISSUANCE = '2013-05-05'
 TEST_DATE_OF_RENEWAL = '2014-05-05'
 TEST_JURISDICTION = 'az'
 TEST_LICENSE_NUMBER = 'SMOKE-TEST-LICENSE'
+
+
+def _get_smoke_multi_state_license(license_records: list[dict]) -> dict:
+    """
+    Return the most recently issued/renewed multi-state license for smoke tests.
+
+    The caller must also verify a paired single-state license exists in the same jurisdiction and
+    license type before asserting eligible compactEligibility / licenseEligibility.
+    """
+    from cc_common.data_model.provider_record_util import ProviderRecordUtility
+    from cc_common.data_model.schema.common import LicenseScopeEnum
+
+    smoke_license_record = ProviderRecordUtility.find_most_recently_issued_or_renewed_license(
+        license_records, LicenseScopeEnum.MULTI_STATE
+    )
+    if smoke_license_record is None:
+        raise SmokeTestFailureException(
+            'Smoke test prerequisite failed: the configured test provider must have at least one '
+            'multi-state license for public search smoke tests.'
+        )
+    return smoke_license_record
+
+
+def _ensure_smoke_multi_state_has_paired_single_state_license(
+    license_records: list[dict], smoke_license_record: dict
+) -> None:
+    """Multi-state compact eligibility follows the paired single-state license in the same jurisdiction."""
+    jurisdiction = str(smoke_license_record.get('jurisdiction', '')).lower()
+    license_type = smoke_license_record.get('licenseType')
+    has_paired_single_state = any(
+        record.get('licenseScope') == 'single-state'
+        and str(record.get('jurisdiction', '')).lower() == jurisdiction
+        and record.get('licenseType') == license_type
+        for record in license_records
+    )
+    if not has_paired_single_state:
+        raise SmokeTestFailureException(
+            'Smoke test prerequisite failed: the smoke multi-state license must have a paired '
+            f'single-state license in jurisdiction {jurisdiction!r} for license type {license_type!r}. '
+            'A multi-state license is only displayed as eligible when that paired single-state license '
+            'is eligible.'
+        )
 
 
 def _ensure_no_existing_license_in_test_jurisdiction(license_records: list[dict]) -> None:
@@ -56,7 +105,12 @@ def _assert_license_eligibility_for_smoke_license(
     license_number: str,
     expected_license_eligibility: str,
 ) -> None:
-    """Public query by license number; assert ``licenseEligibility`` for the smoke provider's row."""
+    """
+    Public query by license number; assert ``licenseEligibility`` for the smoke provider's row.
+
+    Eligibility is derived from the indexed multi-state license, whose displayed compactEligibility
+    follows the paired single-state license in the same jurisdiction and license type when present.
+    """
     matching_license_rows = call_public_query_providers(
         COMPACT,
         license_number_filter=license_number,
@@ -68,6 +122,10 @@ def _assert_license_eligibility_for_smoke_license(
             f'Public query returned no rows for provider {provider_id} (licenseNumber={license_number!r})'
         )
     license_row = matching_license_rows[0]
+    if license_row.get('licenseScope') != 'multi-state':
+        raise SmokeTestFailureException(
+            f'Expected licenseScope multi-state for provider {provider_id}, got {license_row.get("licenseScope")!r}'
+        )
     actual_eligibility = license_row.get('licenseEligibility')
     if actual_eligibility != expected_license_eligibility:
         raise SmokeTestFailureException(
@@ -78,15 +136,19 @@ def _assert_license_eligibility_for_smoke_license(
 
 def test_public_search_endpoints_returns_details_of_provider() -> dict:
     """
-    Public query by smoke license number for the configured test provider; verify eligible search row
-    and public GET license compactEligibility.
+    Public query by smoke multi-state license number; verify eligible search row and public GET
+    compactEligibility.
+
+    Requires a paired single-state license in the same jurisdiction and license type; the multi-state
+    license is only eligible when that single-state license is eligible.
     """
     provider_id = config.test_provider_id
     database_records = get_all_provider_database_records(COMPACT, provider_id)
     license_records = [record for record in database_records if record.get('type') == 'license']
     logger.info(f'License record count: {len(license_records)}')
     _ensure_no_existing_license_in_test_jurisdiction(license_records)
-    smoke_license_record = get_most_recently_issued_or_renewed_license(license_records)
+    smoke_license_record = _get_smoke_multi_state_license(license_records)
+    _ensure_smoke_multi_state_has_paired_single_state_license(license_records, smoke_license_record)
     license_number = smoke_license_record.get('licenseNumber')
     if not license_number:
         raise SmokeTestFailureException('Smoke license record has no licenseNumber for public query')
@@ -102,6 +164,10 @@ def test_public_search_endpoints_returns_details_of_provider() -> dict:
             f'Public query returned no rows for provider {provider_id} (licenseNumber={license_number})'
         )
     license_row = matching_license_rows[0]
+    if license_row.get('licenseScope') != 'multi-state':
+        raise SmokeTestFailureException(
+            f'Expected licenseScope multi-state for provider {provider_id}, got {license_row.get("licenseScope")!r}'
+        )
     if license_row.get('licenseEligibility') != 'eligible':
         raise SmokeTestFailureException(
             f'Expected licenseEligibility eligible for provider {provider_id}, '
@@ -124,6 +190,11 @@ def test_public_search_endpoints_returns_details_of_provider() -> dict:
         raise SmokeTestFailureException(
             f'Matching license not found for provider {provider_id} from public GET response'
         )
+    if matching_license_from_detail_response.get('licenseScope') != 'multi-state':
+        raise SmokeTestFailureException(
+            f'Expected licenseScope multi-state on public GET license, got '
+            f'{matching_license_from_detail_response.get("licenseScope")!r}'
+        )
     if matching_license_from_detail_response.get('compactEligibility') != 'eligible':
         raise SmokeTestFailureException(
             f'Expected compactEligibility eligible on public GET license, got '
@@ -145,6 +216,7 @@ def test_public_search_endpoints_returns_details_of_provider() -> dict:
 
 
 def test_public_query_endpoint_returns_ineligible_license_if_license_is_expired(provider_context: dict) -> None:
+    """Mutates the smoke multi-state license expiration; row remains visible with ineligible eligibility."""
     provider_user_table = get_provider_user_dynamodb_table()
     license_partition_and_sort_key = {'pk': provider_context['license_pk'], 'sk': provider_context['license_sk']}
     original_date_of_expiration = provider_context['original_date_of_expiration']
@@ -182,6 +254,7 @@ def test_public_query_endpoint_returns_ineligible_license_if_license_is_expired(
 def test_public_query_endpoint_returns_ineligible_license_if_license_is_marked_by_jurisdiction_as_ineligible(
     provider_context: dict,
 ) -> None:
+    """Mutates jurisdictionUploadedCompactEligibility on the smoke multi-state license record."""
     provider_user_table = get_provider_user_dynamodb_table()
     license_partition_and_sort_key = {'pk': provider_context['license_pk'], 'sk': provider_context['license_sk']}
     original_jurisdiction_uploaded_compact_eligibility = provider_context[
@@ -235,7 +308,8 @@ def test_public_lookup_does_not_match_against_old_license_records(provider_conte
     clone['licenseNumber'] = TEST_LICENSE_NUMBER
     clone['jurisdiction'] = TEST_JURISDICTION
 
-    clone['sk'] = f'{COMPACT}#PROVIDER#license/{TEST_JURISDICTION}/{license_type_abbr}#'
+    license_scope = clone['licenseScope']
+    clone['sk'] = f'{COMPACT}#PROVIDER#license/{TEST_JURISDICTION}/{license_type_abbr}/{license_scope}#'
 
     new_key: dict[str, str] | None = None
     try:

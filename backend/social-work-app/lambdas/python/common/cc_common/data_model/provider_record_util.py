@@ -754,6 +754,8 @@ class ProviderUserRecords:
         if is_public_response:
             # only include the most recent multi-state license for each license type in the public response
             license_records = self._find_most_recent_licenses_for_each_license_type(LicenseScopeEnum.MULTI_STATE)
+            if not license_records:
+                raise CCNotFoundException('Provider not found')
         else:
             license_records = self.get_license_records()
 
@@ -818,6 +820,16 @@ class ProviderUserRecords:
             )
             for multi_state_home_license in self._find_multi_state_home_licenses_with_matching_single_state_licenses()
         }
+        most_recent_multi_state_licenses_for_public_search = {
+            (
+                most_recent_license.jurisdiction.lower(),
+                most_recent_license.licenseType,
+                most_recent_license.licenseScope,
+            )
+            for most_recent_license in self._find_most_recent_licenses_for_each_license_type(
+                LicenseScopeEnum.MULTI_STATE
+            )
+        }
 
         documents = []
         adverse_actions = [rec.to_dict() for rec in self.get_adverse_action_records()]
@@ -841,11 +853,14 @@ class ProviderUserRecords:
                 )
             ]
 
-            is_most_recent_license_for_type = (
+            license_key = (
                 license_record.jurisdiction.lower(),
                 license_record.licenseType,
                 license_record.licenseScope,
-            ) in most_recent_multi_state_home_licenses
+            )
+            license_dict['mostRecentLicenseForType'] = license_key in most_recent_multi_state_licenses_for_public_search
+
+            is_most_recent_license_for_type = license_key in most_recent_multi_state_home_licenses
             license_privileges = (
                 [p for p in all_privileges if p['licenseType'] == license_record.licenseType]
                 if is_most_recent_license_for_type

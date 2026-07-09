@@ -1,6 +1,4 @@
-# Keep attrs on 25.x to match root requirements.txt (jsii/cattrs); avoids pip-sync conflicts.
-attrs>=25.4,<26
-moto[all]>=5.0.12, <6
+moto[all]>=5.2.2, <6
 boto3-stubs[full]
 Faker>=40.19.1, <41
-cryptography>=48, <49
+cryptography>=49, <50

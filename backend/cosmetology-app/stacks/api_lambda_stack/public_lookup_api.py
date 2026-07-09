@@ -56,7 +56,6 @@ class PublicLookupApiLambdas:
         )
         api_lambda_stack.log_groups.append(self.query_providers_handler.log_group)
 
-
     def _get_provider_handler(
         self,
         scope: Construct,

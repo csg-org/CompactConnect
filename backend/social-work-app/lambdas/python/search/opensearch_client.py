@@ -253,6 +253,7 @@ class OpenSearchClient:
             'jurisdiction': {'type': 'keyword'},
             'licenseType': {'type': 'keyword'},
             'licenseScope': {'type': 'keyword'},
+            'mostRecentLicenseForType': {'type': 'boolean'},
             'licenseStatusName': {'type': 'keyword'},
             'licenseStatus': {'type': 'keyword'},
             'jurisdictionUploadedLicenseStatus': {'type': 'keyword'},
