@@ -800,6 +800,57 @@ describe('EmailNotificationServiceLambda', () => {
         });
     });
 
+    describe('SSN Correction Reregistration Notification', () => {
+        const SAMPLE_SSN_CORRECTION_REREGISTRATION_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'ssnCorrectionReregistrationNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['user@example.com'],
+            templateVariables: {}
+        };
+
+        it('should successfully send ssn correction reregistration notification email', async () => {
+            const response = await lambda.handler(SAMPLE_SSN_CORRECTION_REREGISTRATION_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['user@example.com']
+                },
+                Content: {
+                    Simple: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Action Required: Registration Update - CompactConnect'
+                        }
+                    }
+                },
+                FromEmailAddress: 'CompactConnect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when no recipients found', async () => {
+            const eventWithNoRecipients: EmailNotificationEvent = {
+                ...SAMPLE_SSN_CORRECTION_REREGISTRATION_NOTIFICATION_EVENT,
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithNoRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients found for ssn correction reregistration notification email');
+        });
+    });
+
     describe('License Encumbrance Provider Notification', () => {
         const SAMPLE_LICENSE_ENCUMBRANCE_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
             template: 'licenseEncumbranceProviderNotification',

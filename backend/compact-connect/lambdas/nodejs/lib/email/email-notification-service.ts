@@ -428,6 +428,38 @@ export class EmailNotificationService extends BaseEmailService {
     }
 
     /**
+     * Sends an email notification to a practitioner whose state corrected the SSN on their license record,
+     * letting them know their previous account was removed and they need to register again
+     * @param compact - The compact name
+     * @param specificEmails - The email address the practitioner had registered with
+     */
+    public async sendSsnCorrectionReregistrationNotificationEmail(
+        compact: string,
+        specificEmails: string[] = []
+    ): Promise<void> {
+        this.logger.info('Sending ssn correction reregistration notification email', { compact: compact, recipients: specificEmails });
+
+        const recipients = specificEmails;
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for ssn correction reregistration notification email`);
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = `Action Required: Registration Update - CompactConnect`;
+        const registrationUrl = `${environmentVariableService.getUiBasePathUrl()}/register`;
+        const bodyText = `Your state licensing board recently corrected the information on one of your license records in the CompactConnect system. As part of this correction, your previous CompactConnect account was removed.\n\nTo continue using CompactConnect, please register again using the link below:\n\n${registrationUrl}\n\nIf you have any questions, please contact your state licensing board.`;
+
+        this.insertHeader(report, 'Registration Update Required');
+        this.insertBody(report, bodyText, 'center', true);
+        this.insertFooter(report);
+
+        const htmlContent = this.renderTemplate(report);
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send ssn correction reregistration notification email' });
+    }
+
+    /**
      * Sends a verification code to a provider's new email address during email change process
      * @param compact - The compact name
      * @param providerEmail - The new email address to send the verification code to
