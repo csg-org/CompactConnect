@@ -5,17 +5,26 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestCustomResponseException, CCInvalidRequestException
 from cc_common.signature_auth import optional_signature_auth
-from cc_common.utils import api_handler, authorize_compact_jurisdiction, send_licenses_to_preprocessing_queue
+from cc_common.utils import (
+    api_handler,
+    authorize_compact_jurisdiction,
+    send_licenses_to_preprocessing_queue,
+    strip_previous_ssn_if_migration_disabled,
+)
 from marshmallow import ValidationError
 
 schema = LicensePostRequestSchema()
 
-# initialize flag outside of handler so the flag is cached for the lifecycle of the execution environment
+# initialize flags outside of handler so the flags are cached for the lifecycle of the execution environment
 from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled  # noqa: E402
 
 # low risk flag, so we default to enabled if failure detected
 duplicate_ssn_check_flag_enabled = is_feature_enabled(
     FeatureFlagEnum.DUPLICATE_SSN_UPLOAD_CHECK_FLAG, fail_default=True
+)
+# this flag gates a record migration that deletes records, so we fail closed if the flag cannot be checked
+ssn_correction_migration_flag_enabled = is_feature_enabled(
+    FeatureFlagEnum.LICENSE_SSN_CORRECTION_MIGRATION_FLAG, fail_default=False
 )
 
 
@@ -53,7 +62,12 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
         else:
             license_entry = {**license_record, 'compact': compact, 'jurisdiction': jurisdiction}
             try:
-                licenses.append(schema.load(license_entry))
+                licenses.append(
+                    strip_previous_ssn_if_migration_disabled(
+                        schema.load(license_entry),
+                        migration_flag_enabled=ssn_correction_migration_flag_enabled,
+                    )
+                )
             except ValidationError as e:
                 logger.debug(
                     'invalid license record detected',
