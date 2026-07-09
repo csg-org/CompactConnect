@@ -558,6 +558,39 @@ class TestRollbackLicenseUpload(TstFunction):
         license_updates = provider_records.get_all_license_update_records()
         self.assertEqual(len(license_updates), 0, 'License update records should be deleted')
 
+    def test_provider_found_when_start_time_of_day_is_after_end_time_of_day(self):
+        """
+        Regression test for a bug where _query_gsi_for_affected_providers computed the year-month range
+        to query by calling datetime.replace(day=1) without also zeroing out the time-of-day components.
+
+        This meant that whenever startDateTime's time-of-day was later than endDateTime's time-of-day
+        (e.g. start='...T21:09:55Z', end='...T12:00:00Z'), the initial current_date <= end_month comparison
+        would incorrectly evaluate to False even though both timestamps fell within the same month, causing
+        the loop to produce zero year-months and silently skip the GSI query entirely (0 providers found).
+        """
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # start and end are in the same month, but start's time-of-day is later than end's time-of-day
+        start_datetime = datetime.fromisoformat('2025-10-20T21:09:55+00:00')
+        end_datetime = datetime.fromisoformat('2025-10-23T07:00:00+00:00')
+        upload_datetime = datetime.fromisoformat('2025-10-22T10:00:00+00:00')
+
+        # Setup: License was updated during upload, but was first uploaded well before the window
+        self._when_provider_had_license_updated_from_upload(
+            upload_datetime=upload_datetime,
+            license_upload_datetime=start_datetime - timedelta(days=30),
+        )
+
+        event = self._generate_test_event()
+        event['startDateTime'] = start_datetime.isoformat()
+        event['endDateTime'] = end_datetime.isoformat()
+
+        result = rollback_license_upload(event, Mock())
+
+        # Assert: Rollback still found and reverted the affected provider
+        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(1, result['providersReverted'])
+
     def test_provider_license_record_reverted_to_earliest_update_previous_values_when_multiple_updates(self):
         from handlers.rollback_license_upload import rollback_license_upload
 

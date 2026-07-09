@@ -429,9 +429,14 @@ def _query_gsi_for_affected_providers(
     """
     affected_provider_ids = set()
 
-    # Generate list of year-month strings to query
-    current_date = start_datetime.replace(day=1)
-    end_month = end_datetime.replace(day=1)
+    # Generate list of year-month strings to query.
+    # NOTE: We must zero out the time-of-day components here, not just the day. Otherwise, if
+    # start_datetime's time-of-day is later than end_datetime's time-of-day (e.g. start=21:09:55,
+    # end=12:00:00), the initial current_date <= end_month comparison below can incorrectly evaluate
+    # to False even though both timestamps fall within the same month, causing this loop to produce
+    # zero year-months and silently skip the GSI query entirely.
+    current_date = start_datetime.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    end_month = end_datetime.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     year_months = []
     while current_date <= end_month:
