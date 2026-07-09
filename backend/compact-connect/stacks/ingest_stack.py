@@ -15,6 +15,7 @@ from common_constructs.stack import AppStack, Stack
 from constructs import Construct
 
 from stacks import persistent_stack as ps
+from stacks.provider_users import ProviderUsersStack
 
 
 class IngestStack(AppStack):
@@ -25,14 +26,20 @@ class IngestStack(AppStack):
         *,
         environment_name: str,
         persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
         **kwargs,
     ):
         super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         # We explicitly get the event bus arn from parameter store, to avoid issues with cross stack updates
         data_event_bus = SSMParameterUtility.load_data_event_bus_from_ssm_parameter(self)
-        self._add_v1_ingest_chain(persistent_stack, data_event_bus)
+        self._add_v1_ingest_chain(persistent_stack, provider_users_stack, data_event_bus)
 
-    def _add_v1_ingest_chain(self, persistent_stack: ps.PersistentStack, data_event_bus: EventBus):
+    def _add_v1_ingest_chain(
+        self,
+        persistent_stack: ps.PersistentStack,
+        provider_users_stack: ProviderUsersStack,
+        data_event_bus: EventBus,
+    ):
         ingest_handler = PythonFunction(
             self,
             'V1IngestHandler',
@@ -44,12 +51,20 @@ class IngestStack(AppStack):
             environment={
                 'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+                'PROVIDER_USER_POOL_ID': provider_users_stack.provider_users.user_pool_id,
+                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': (
+                    persistent_stack.email_notification_service_lambda.function_name
+                ),
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
         )
         persistent_stack.provider_table.grant_read_write_data(ingest_handler)
         data_event_bus.grant_put_events_to(ingest_handler)
+        # The SSN-correction migration deletes the old provider's Cognito account on a full teardown and
+        # notifies the practitioner to re-register
+        provider_users_stack.provider_users.grant(ingest_handler, 'cognito-idp:AdminDeleteUser')
+        persistent_stack.email_notification_service_lambda.grant_invoke(ingest_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(ingest_handler.role),
@@ -59,7 +74,8 @@ class IngestStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                     This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key and Table that this lambda specifically needs access to.
+                    specific actions, KMS key, Table, user pool, and lambda that this handler specifically
+                    needs access to.
                     """,
                 },
             ],

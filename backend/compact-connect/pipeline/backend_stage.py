@@ -118,6 +118,7 @@ class BackendStage(Stage):
             environment_name=environment_name,
             standard_tags=standard_tags,
             persistent_stack=self.persistent_stack,
+            provider_users_stack=self.provider_users_stack,
         )
 
         self.api_lambda_stack = ApiLambdaStack(
