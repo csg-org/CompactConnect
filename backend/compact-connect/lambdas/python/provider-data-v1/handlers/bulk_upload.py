@@ -27,9 +27,6 @@ from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
 from marshmallow.exceptions import SCHEMA
 
-duplicate_ssn_check_flag_enabled = is_feature_enabled(
-    FeatureFlagEnum.DUPLICATE_SSN_UPLOAD_CHECK_FLAG, fail_default=True
-)
 # this flag gates a record migration that deletes records, so we fail closed if the flag cannot be checked
 ssn_correction_migration_flag_enabled = is_feature_enabled(
     FeatureFlagEnum.LICENSE_SSN_CORRECTION_MIGRATION_FLAG, fail_default=False
@@ -167,21 +164,20 @@ def process_bulk_upload_file(
                     validated_license = schema.load(dict(compact=compact, jurisdiction=jurisdiction, **raw_license))
                     # verify that this ssn/licenseType combination has not been used previously in the same batch
                     ssn_key = (validated_license['ssn'], validated_license['licenseType'])
-                    if duplicate_ssn_check_flag_enabled:
-                        matched_ssn_index = ssns_in_file_upload.get(ssn_key)
-                        if matched_ssn_index:
-                            # format the validation error as dict so it can be processed by email handler downstream
-                            raise ValidationError(
-                                {
-                                    SCHEMA: [
-                                        f'Duplicate License SSN detected for license type '
-                                        f'{validated_license["licenseType"]}. SSN matches with record '
-                                        f'{matched_ssn_index}. Every record must have a unique SSN per license type '
-                                        f'within the same file.'
-                                    ]
-                                }
-                            )
-                        ssns_in_file_upload.update({ssn_key: i + 1})
+                    matched_ssn_index = ssns_in_file_upload.get(ssn_key)
+                    if matched_ssn_index:
+                        # format the validation error as dict so it can be processed by email handler downstream
+                        raise ValidationError(
+                            {
+                                SCHEMA: [
+                                    f'Duplicate License SSN detected for license type '
+                                    f'{validated_license["licenseType"]}. SSN matches with record '
+                                    f'{matched_ssn_index}. Every record must have a unique SSN per license type '
+                                    f'within the same file.'
+                                ]
+                            }
+                        )
+                    ssns_in_file_upload.update({ssn_key: i + 1})
                 except TypeError as e:
                     # This will be raised, if `raw_license` includes compact and/or jurisdiction fields
                     logger.error('License contains unsupported fields', fields=list(raw_license.keys()), exc_info=e)
