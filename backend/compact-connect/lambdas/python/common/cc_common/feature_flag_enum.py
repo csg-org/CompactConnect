@@ -11,5 +11,4 @@ class FeatureFlagEnum(StrEnum):
     # flag used by internal testing
     TEST_FLAG = 'test-flag'
     # runtime flags
-    HOME_JURISDICTION_CHANGE_NOTIFICATION_FLAG = 'home-jurisdiction-change-notification-flag'
     LICENSE_SSN_CORRECTION_MIGRATION_FLAG = 'license-ssn-correction-migration-flag'
