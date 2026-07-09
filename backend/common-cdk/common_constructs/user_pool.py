@@ -256,6 +256,7 @@ class UserPool(CdkUserPool):
         read_attributes: ClientAttributes,
         write_attributes: ClientAttributes,
         ui_scopes: list[OAuthScope] = None,
+        callback_path: str = '/auth/callback',
     ):
         """
         Creates an app client for the UI to authenticate with the user pool.
@@ -265,15 +266,17 @@ class UserPool(CdkUserPool):
         :param read_attributes: The attributes that the UI can read.
         :param write_attributes: The attributes that the UI can write.
         :param ui_scopes: OAuth scopes that are allowed with this client
+        :param callback_path: The OAuth redirect path the UI uses for this client. Each user scope/compact has its own
+            callback page (e.g. '/auth/callback/staff/jcc'), so this must match the redirect_uri the UI sends.
         """
         callback_urls = []
         if ui_domain_name is not None:
-            callback_urls.append(f'https://{ui_domain_name}/auth/callback')
+            callback_urls.append(f'https://{ui_domain_name}{callback_path}')
         # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
         # authenticated actions.
         if environment_context.get('allow_local_ui', False):
             local_ui_port = environment_context.get('local_ui_port', '3018')
-            callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
+            callback_urls.append(f'http://localhost:{local_ui_port}{callback_path}')
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "

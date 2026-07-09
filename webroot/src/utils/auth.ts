@@ -110,12 +110,43 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
         authDomain,
         state
     } = getCognitoConfig(appMode, authType);
+    const getCallbackPath = () => {
+        let userScopePath = ``;
+        let compactScopePath = ``;
+
+        switch (authType) {
+        case AuthTypes.STAFF:
+            userScopePath += `/staff`;
+            break;
+        case AuthTypes.LICENSEE:
+            userScopePath += `/licensee`;
+            break;
+        default:
+            break;
+        }
+
+        switch (appMode) {
+        case AppModes.JCC:
+            compactScopePath += `/jcc`;
+            break;
+        case AppModes.COSMETOLOGY:
+            compactScopePath += `/cosmo`;
+            break;
+        case AppModes.SOCIAL_WORK:
+            compactScopePath += `/socialwork`;
+            break;
+        default:
+            break;
+        }
+
+        return `/auth/callback${userScopePath}${compactScopePath}`;
+    };
     const loginUriQuery = [
         `?client_id=${clientId}`,
         `&response_type=code`,
         `&scope=${encodeURIComponent(scopes || '')}`,
         `&state=${state}`,
-        `&redirect_uri=${encodeURIComponent(`${domain}/auth/callback`)}`,
+        `&redirect_uri=${encodeURIComponent(`${domain}${getCallbackPath()}`)}`,
     ].join('');
     const loginUri = `${authDomain}${hostedIdpPath}${loginUriQuery}`;
 

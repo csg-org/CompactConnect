@@ -92,6 +92,7 @@ class StaffUsers(UserPool, ResourceScopeMixin):
         self.ui_client = self.add_ui_client(
             ui_domain_name=stack.ui_domain_name,
             environment_context=environment_context,
+            callback_path='/auth/callback/staff/cosmo',
             # We have to provide one True value or CFn will make every attribute writeable
             write_attributes=ClientAttributes().with_standard_attributes(email=True),
             # We want to limit the attributes that this app can read and write so only email is visible.

@@ -158,11 +158,11 @@ class TstAppABC(ABC):
 
             callbacks = []
             if ui_domain_name is not None:
-                callbacks.append(f'https://{ui_domain_name}/auth/callback')
+                callbacks.append(f'https://{ui_domain_name}/auth/callback/staff/socialwork')
             if allow_local_ui:
                 # 3018 is default
                 local_ui_port = '3018' if not local_ui_port else local_ui_port
-                callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
+                callbacks.append(f'http://localhost:{local_ui_port}/auth/callback/staff/socialwork')
 
             # ensure we have one user pool defined in persistent stack for staff users
             persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 1)

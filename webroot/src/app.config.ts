@@ -12,8 +12,6 @@ export enum AppModes {
     JCC = 'jcc',
     COSMETOLOGY = 'cosmo',
     SOCIAL_WORK = 'social-work',
-    PRIVILEGE_PURCHASE = 'privilege-purchase',
-    MULTI_STATE = 'multi-state',
 }
 
 export enum AppGroupModes {

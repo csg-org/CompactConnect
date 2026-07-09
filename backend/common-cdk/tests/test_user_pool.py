@@ -297,6 +297,47 @@ class TestUserPool(TestCase):
                 write_attributes=None,
             )
 
+    def test_ui_client_uses_default_callback_path(self):
+        pool = _make_pool(self.stack)
+        pool.add_ui_client(
+            ui_domain_name='app.example.com',
+            environment_context={'allow_local_ui': True, 'local_ui_port': '3000'},
+            read_attributes=None,
+            write_attributes=None,
+        )
+
+        template = Template.from_stack(self.stack)
+        template.has_resource_properties(
+            CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+            {
+                'CallbackURLs': [
+                    'https://app.example.com/auth/callback',
+                    'http://localhost:3000/auth/callback',
+                ],
+            },
+        )
+
+    def test_ui_client_uses_custom_callback_path(self):
+        pool = _make_pool(self.stack)
+        pool.add_ui_client(
+            ui_domain_name='app.example.com',
+            environment_context={'allow_local_ui': True, 'local_ui_port': '3000'},
+            read_attributes=None,
+            write_attributes=None,
+            callback_path='/auth/callback/staff/jcc',
+        )
+
+        template = Template.from_stack(self.stack)
+        template.has_resource_properties(
+            CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+            {
+                'CallbackURLs': [
+                    'https://app.example.com/auth/callback/staff/jcc',
+                    'http://localhost:3000/auth/callback/staff/jcc',
+                ],
+            },
+        )
+
     def test_add_default_app_client_domain_creates_cognito_domain(self):
         pool = _make_pool(self.stack)
         pool.add_default_app_client_domain('testprefix')
