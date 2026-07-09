@@ -13,3 +13,4 @@ class FeatureFlagEnum(StrEnum):
     # runtime flags
     DUPLICATE_SSN_UPLOAD_CHECK_FLAG = 'duplicate-ssn-upload-check-flag'
     HOME_JURISDICTION_CHANGE_NOTIFICATION_FLAG = 'home-jurisdiction-change-notification-flag'
+    LICENSE_SSN_CORRECTION_MIGRATION_FLAG = 'license-ssn-correction-migration-flag'

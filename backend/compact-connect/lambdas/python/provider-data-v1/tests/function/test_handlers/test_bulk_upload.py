@@ -115,6 +115,55 @@ class TestProcessObjects(TstFunction):
             message_data = json.loads(message.body)
             self.assertEqual(csv_licenses[message_data['licenseNumber']], message_data)
 
+    def _process_csv_with_previous_ssn(self) -> list:
+        """Upload a single-row CSV that carries a previousSSN column and return the resulting queue messages."""
+        from handlers.bulk_upload import parse_bulk_upload_file
+
+        csv_content = (
+            'ssn,previousSSN,licenseNumber,givenName,familyName,dateOfBirth,dateOfIssuance'
+            ',dateOfExpiration,licenseStatus,compactEligibility,homeAddressStreet1'
+            ',homeAddressCity,homeAddressState,homeAddressPostalCode,licenseType\n'
+            '123-45-6789,123-45-9876,LICENSE123,John,Doe,1990-01-01,2020-01-01'
+            ',2030-01-01,active,eligible,123 Main St'
+            ',Columbus,OH,43215,audiologist'
+        )
+
+        object_key = f'aslp/oh/{uuid4().hex}'
+        self._bucket.put_object(Key=object_key, Body=csv_content)
+
+        with open('../common/tests/resources/put-event.json') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {'principalId': 'ASDFG123'},
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        parse_bulk_upload_file(event, self.mock_context)
+
+        return self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
+
+    def test_bulk_upload_passes_previous_ssn_through_when_flag_enabled(self):
+        # patch the module-level cached flag value directly, so this test is independent of module import order
+        with patch('handlers.bulk_upload.ssn_correction_migration_flag_enabled', True):
+            messages = self._process_csv_with_previous_ssn()
+
+        self.assertEqual(1, len(messages))
+        message_data = json.loads(messages[0].body)
+        self.assertEqual('123-45-9876', message_data['previousSSN'])
+
+    def test_bulk_upload_strips_previous_ssn_when_flag_disabled(self):
+        with patch('handlers.bulk_upload.ssn_correction_migration_flag_enabled', False):
+            messages = self._process_csv_with_previous_ssn()
+
+        self.assertEqual(1, len(messages))
+        message_data = json.loads(messages[0].body)
+        self.assertNotIn('previousSSN', message_data)
+        # the rest of the license data must be unaffected
+        self.assertEqual('123-45-6789', message_data['ssn'])
+
     def test_bulk_upload_strips_whitespace_from_string_fields(self):
         """Test that whitespace is stripped from all string fields in CSV data."""
         from handlers.bulk_upload import parse_bulk_upload_file
