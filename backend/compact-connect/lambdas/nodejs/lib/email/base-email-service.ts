@@ -69,6 +69,7 @@ export abstract class BaseEmailService {
 
     protected maskEmail(email: string): string {
         const at = email.indexOf('@');
+
         if (at <= 0) {
             return '***';
         }
