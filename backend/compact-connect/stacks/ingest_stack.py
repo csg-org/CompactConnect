@@ -52,6 +52,7 @@ class IngestStack(AppStack):
                 'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'PROVIDER_USER_POOL_ID': provider_users_stack.provider_users.user_pool_id,
+                'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': (
                     persistent_stack.email_notification_service_lambda.function_name
                 ),
@@ -61,9 +62,12 @@ class IngestStack(AppStack):
         )
         persistent_stack.provider_table.grant_read_write_data(ingest_handler)
         data_event_bus.grant_put_events_to(ingest_handler)
-        # The SSN-correction migration deletes the old provider's Cognito account on a full teardown and
-        # notifies the practitioner to re-register
+        # The SSN-correction migration deletes the old provider's Cognito account on a full teardown, moves
+        # the practitioner's documents from the old provider id's keyspace to the new one in the provider
+        # users bucket, and notifies the practitioner to re-register
         provider_users_stack.provider_users.grant(ingest_handler, 'cognito-idp:AdminDeleteUser')
+        persistent_stack.provider_users_bucket.grant_read_write(ingest_handler)
+        persistent_stack.provider_users_bucket.grant_delete(ingest_handler)
         persistent_stack.email_notification_service_lambda.grant_invoke(ingest_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
@@ -74,8 +78,8 @@ class IngestStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                     This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key, Table, user pool, and lambda that this handler specifically
-                    needs access to.
+                    specific actions, KMS key, Table, user pool, bucket, and lambda that this handler
+                    specifically needs access to.
                     """,
                 },
             ],

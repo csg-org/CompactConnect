@@ -926,6 +926,19 @@ class TestIngestSsnCorrection(TstFunction):
         self._mock_send_reregistration_email = email_patcher.start()
         self.addCleanup(email_patcher.stop)
 
+    def build_resources(self):
+        import os
+
+        import boto3
+
+        super().build_resources()
+        self._provider_user_bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['PROVIDER_USER_BUCKET_NAME'])
+
+    def delete_resources(self):
+        self._provider_user_bucket.objects.delete()
+        self._provider_user_bucket.delete()
+        super().delete_resources()
+
     def _put_old_provider_records(self, *, with_second_license: bool = False) -> list:
         """Store the old provider's records and return the stored data class instances."""
         stored_records = [
@@ -1013,9 +1026,11 @@ class TestIngestSsnCorrection(TstFunction):
         resp = self._run_ingest_with_previous_provider_id()
         self.assertEqual({'batchItemFailures': []}, resp)
 
-        # the migrated license (refreshed by the ingested upload, carrying the corrected ssnLastFour) and its
-        # privilege now live under the new provider id, with a newly-created provider record. The new provider is
-        # not registered: the practitioner must register again under the corrected account
+        # the migrated license (refreshed by the ingested upload, carrying the corrected ssnLastFour), its
+        # privilege, and the person-level military affiliation record now live under the new provider id, with
+        # a newly-created provider record. The new provider is not registered: the practitioner must register
+        # again under the corrected account
+        default_military_affiliation = self.test_data_generator.generate_default_military_affiliation()
         expected_new_provider_snapshot = self.test_data_generator.generate_default_provider_detail_response(
             [
                 self.test_data_generator.generate_default_provider(
@@ -1034,6 +1049,16 @@ class TestIngestSsnCorrection(TstFunction):
                 ),
                 self.test_data_generator.generate_default_privilege(
                     value_overrides={'providerId': self.NEW_PROVIDER_ID}
+                ),
+                self.test_data_generator.generate_default_military_affiliation(
+                    value_overrides={
+                        'providerId': self.NEW_PROVIDER_ID,
+                        # the migration re-points document keys at the new provider id's keyspace
+                        'documentKeys': [
+                            document_key.replace(self.OLD_PROVIDER_ID, self.NEW_PROVIDER_ID)
+                            for document_key in default_military_affiliation.documentKeys
+                        ],
+                    }
                 ),
             ]
         )
@@ -1110,3 +1135,87 @@ class TestIngestSsnCorrection(TstFunction):
 
         self.assertEqual([], self._get_provider_records(self.OLD_PROVIDER_ID))
         self._mock_send_reregistration_email.assert_not_called()
+
+    def _s3_object_body(self, key: str) -> bytes | None:
+        """Return the body of an object in the provider user bucket, or None if it does not exist."""
+        from botocore.exceptions import ClientError
+
+        try:
+            return self._provider_user_bucket.Object(key).get()['Body'].read()
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'NoSuchKey':
+                return None
+            raise
+
+    def test_full_teardown_migration_moves_military_documents_to_new_provider_keyspace(self):
+        # the old provider has two military affiliation records, each with a document stored under the old
+        # provider id's keyspace in the provider user bucket
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'compactConnectRegisteredEmailAddress': self.OLD_REGISTERED_EMAIL}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        old_documents = {
+            f'compact/aslp/provider/{self.OLD_PROVIDER_ID}/document-type/military-affiliations'
+            f'/2024-07-08T23:59:59+00:00/1234#military-waiver.pdf': b'waiver-document-content',
+            f'compact/aslp/provider/{self.OLD_PROVIDER_ID}/document-type/military-affiliations'
+            f'/2024-08-08T23:59:59+00:00/5678#military-orders.pdf': b'orders-document-content',
+        }
+        for date_of_upload, (document_key, document_body) in zip(
+            ['2024-07-08T23:59:59+00:00', '2024-08-08T23:59:59+00:00'], old_documents.items(), strict=True
+        ):
+            self.test_data_generator.put_default_military_affiliation_in_provider_table(
+                {
+                    'dateOfUpload': datetime.fromisoformat(date_of_upload),
+                    'documentKeys': [document_key],
+                }
+            )
+            self._provider_user_bucket.put_object(Key=document_key, Body=document_body)
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # the old partition is gone; both military affiliation records now live under the new provider id,
+        # with their document keys re-pointed at the new provider's keyspace
+        self.assertEqual([], self._get_provider_records(self.OLD_PROVIDER_ID))
+        new_military_records = [
+            record
+            for record in self._get_provider_records(self.NEW_PROVIDER_ID)
+            if record['type'] == 'militaryAffiliation'
+        ]
+        self.assertEqual(2, len(new_military_records))
+        for record in new_military_records:
+            self.assertEqual(self.NEW_PROVIDER_ID, record['providerId'])
+        self.assertEqual(
+            sorted(key.replace(self.OLD_PROVIDER_ID, self.NEW_PROVIDER_ID) for key in old_documents),
+            sorted(key for record in new_military_records for key in record['documentKeys']),
+        )
+
+        # the documents were moved in S3: old objects deleted, new objects present with the same content
+        for old_key, document_body in old_documents.items():
+            self.assertIsNone(self._s3_object_body(old_key))
+            new_key = old_key.replace(self.OLD_PROVIDER_ID, self.NEW_PROVIDER_ID)
+            self.assertEqual(document_body, self._s3_object_body(new_key))
+
+    def test_full_teardown_migration_moves_all_objects_under_old_provider_keyspace(self):
+        """The S3 move must be driven by listing the old provider id's keyspace directly, not by walking
+        DynamoDB records for known document types. This way any file under a provider's keyspace is carried
+        over on a full teardown, including document types the migration logic doesn't know about.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'compactConnectRegisteredEmailAddress': self.OLD_REGISTERED_EMAIL}
+        )
+        self.test_data_generator.put_default_license_record_in_provider_table()
+
+        # an object under the old provider's keyspace with no corresponding DynamoDB record referencing it
+        # (e.g. a future/unsupported document type)
+        untracked_key = f'compact/aslp/provider/{self.OLD_PROVIDER_ID}/document-type/some-future-type/file.pdf'
+        self._provider_user_bucket.put_object(Key=untracked_key, Body=b'untracked-document-content')
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # only the provider id segment of the keyspace changes; everything after it is preserved verbatim
+        new_key = f'compact/aslp/provider/{self.NEW_PROVIDER_ID}/document-type/some-future-type/file.pdf'
+        self.assertIsNone(self._s3_object_body(untracked_key))
+        self.assertEqual(b'untracked-document-content', self._s3_object_body(new_key))

@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 
 from boto3.dynamodb.types import TypeSerializer
+from botocore.exceptions import ClientError
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema import LicenseRecordSchema
@@ -383,9 +384,10 @@ def _perform_ssn_correction_migration(
     """
     Orchestrate the migration of a practitioner's records after a state corrected the SSN on a license upload.
 
-    The DynamoDB migration runs first; the Cognito user deletion and re-registration email follow, each
-    idempotent so an SQS retry of a partially-completed migration converges. A concurrency conflict inside the
-    migration raises, letting SQS redeliver the message after the visibility timeout.
+    The DynamoDB migration runs first; on a full teardown the S3 document move, Cognito user deletion, and
+    re-registration email follow, each idempotent so an SQS retry of a partially-completed migration converges.
+    A concurrency conflict inside the migration raises, letting SQS redeliver the message after the visibility
+    timeout.
     """
     logger.info('Performing SSN correction migration', previous_provider_id=previous_provider_id)
 
@@ -401,11 +403,57 @@ def _perform_ssn_correction_migration(
         logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
         return
 
-    if result.full_teardown and result.old_provider_registered_email is not None:
-        _delete_old_cognito_user_and_send_reregistration_email(
+    if result.full_teardown:
+        _move_provider_documents_to_new_keyspace(
             compact=compact,
-            old_registered_email=result.old_provider_registered_email,
+            previous_provider_id=previous_provider_id,
+            new_provider_id=new_provider_id,
         )
+        if result.old_provider_registered_email is not None:
+            _delete_old_cognito_user_and_send_reregistration_email(
+                compact=compact,
+                old_registered_email=result.old_provider_registered_email,
+            )
+
+
+def _move_provider_documents_to_new_keyspace(*, compact: str, previous_provider_id: str, new_provider_id: str):
+    """Move every object under the old provider id's S3 keyspace to the new provider id's.
+
+    Rather than relying on any single record type's tracked document keys, this lists everything under the
+    old provider's keyspace prefix (`compact/{compact}/provider/{provider_id}/`) and moves it, changing only
+    the provider id segment of each key. This picks up every document type a provider might have uploaded,
+    including ones this migration logic has no other knowledge of.
+
+    Runs after the DynamoDB migration (whose migrated militaryAffiliation records already reference the new
+    keys). Best-effort per object: a copy/delete failure is logged and skipped rather than failing the
+    migration, and re-running against an already-moved key is a no-op (the source object is simply absent).
+    """
+    old_prefix = f'compact/{compact}/provider/{previous_provider_id}/'
+    new_prefix = f'compact/{compact}/provider/{new_provider_id}/'
+
+    paginator = config.s3_client.get_paginator('list_objects_v2')
+    for page in paginator.paginate(Bucket=config.provider_user_bucket_name, Prefix=old_prefix):
+        for s3_object in page.get('Contents', []):
+            old_key = s3_object['Key']
+            new_key = new_prefix + old_key[len(old_prefix) :]
+            _move_s3_object(old_key=old_key, new_key=new_key)
+
+
+def _move_s3_object(*, old_key: str, new_key: str):
+    try:
+        config.s3_client.copy_object(
+            Bucket=config.provider_user_bucket_name,
+            CopySource={'Bucket': config.provider_user_bucket_name, 'Key': old_key},
+            Key=new_key,
+        )
+        config.s3_client.delete_object(Bucket=config.provider_user_bucket_name, Key=old_key)
+    except ClientError as e:
+            logger.error(
+                'Failed to move provider document to the new keyspace',
+                old_key=old_key,
+                new_key=new_key,
+                error=str(e),
+            )
 
 
 def _delete_old_cognito_user_and_send_reregistration_email(*, compact: str, old_registered_email: str):

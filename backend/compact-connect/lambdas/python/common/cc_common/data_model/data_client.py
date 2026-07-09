@@ -2871,14 +2871,15 @@ class DataClient:
 
         The migration is scoped to the single (jurisdiction, license type) license of the corrected upload row.
         That license, the privileges purchased against it, and their adverse action / investigation / update
-        history records are always moved to the new provider id. Person-level records (military affiliations,
-        provider update history) are never carried over: the practitioner re-registers under the corrected
-        provider id and re-uploads any documents. What happens to the rest of the old provider depends on
-        whether the corrected license was its only license record:
+        history records are always moved to the new provider id. What happens to the rest of the old provider
+        depends on whether the corrected license was its only license record:
 
-        - Full teardown (sole license): the old provider's entire partition, including its person-level records
-          and top-level provider record, is deleted. The caller is responsible for deleting the old Cognito
-          user and notifying the practitioner.
+        - Full teardown (sole license): the person-level records (military affiliations, provider update
+          history) are moved to the new provider id as well, with military document keys re-pointed at the new
+          provider id's keyspace, and the old provider's partition, including its top-level provider record, is
+          deleted. The caller is responsible for moving the practitioner's S3 documents (by listing the old
+          provider id's keyspace directly, not by relying on any single record type's tracked keys), deleting
+          the old Cognito user, and notifying the practitioner.
         - Partial (other licenses remain): the old provider keeps its person-level records and its top-level
           record is repopulated from its remaining licenses. The old provider id remains a valid (partial)
           practitioner until its remaining licenses are also corrected.
@@ -2930,6 +2931,12 @@ class DataClient:
         # The corrected license was the old provider's only license: tear the old provider down entirely
         full_teardown = len(old_provider_records.get_license_records()) == 1
 
+        # Person-level records (military affiliations, provider update history) follow the practitioner only
+        # when the old provider is torn down entirely; on a partial migration they stay with the old provider,
+        # which still represents them for their remaining licenses
+        person_level_records = old_provider_records.get_person_level_records() if full_teardown else []
+        records_to_move = [*records_to_move, *person_level_records]
+
         target_license = next(record for record in records_to_move if record.type == ProviderRecordType.LICENSE)
         target_license_key = self._provider_record_key(target_license)
 
@@ -2949,11 +2956,21 @@ class DataClient:
             )
 
         # 2. Re-keyed puts for every migrated record. The targeted license also picks up the corrected
-        # ssnLastFour so the new partition is internally consistent
+        # ssnLastFour, and military affiliation records pick up document keys under the new provider id, so
+        # the new partition is internally consistent. The caller is responsible for moving the S3 objects
         rekeyed_target_license = None
         rekeyed_privileges = []
         for record in records_to_move:
-            extra_updates = {'ssnLastFour': new_ssn_last_four} if record is target_license else None
+            extra_updates = None
+            if record is target_license:
+                extra_updates = {'ssnLastFour': new_ssn_last_four}
+            elif record.type == ProviderRecordType.MILITARY_AFFILIATION:
+                extra_updates = {
+                    'documentKeys': [
+                        document_key.replace(str(previous_provider_id), str(new_provider_id))
+                        for document_key in record.documentKeys
+                    ]
+                }
             rekeyed_record = self._rekey_record_to_provider(record, new_provider_id, extra_updates)
             if record is target_license:
                 rekeyed_target_license = rekeyed_record
@@ -2962,12 +2979,8 @@ class DataClient:
             transaction_items.append(self._build_put_transaction_item(rekeyed_record))
 
         # 3. Deletes for the moved records, except the targeted license (deleted last) and the top-level
-        # provider record (handled by the fence above). On a full teardown the person-level records
-        # (military affiliations, provider update history) are deleted with the partition
-        records_to_delete = list(records_to_move)
-        if full_teardown:
-            records_to_delete.extend(old_provider_records.get_person_level_records())
-        for record in records_to_delete:
+        # provider record (handled by the fence above)
+        for record in records_to_move:
             if record is target_license:
                 continue
             transaction_items.append(self._build_delete_transaction_item(self._provider_record_key(record)))
