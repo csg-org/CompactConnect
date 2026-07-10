@@ -22,7 +22,12 @@ import {
     dateFormatPatterns,
     AppModes
 } from '@/app.config';
-import { AuthTypes, getHostedLoginUri, createAuthCsrfState } from '@utils/auth';
+import {
+    AuthTypes,
+    getHostedLoginUri,
+    createAuthCsrfState,
+    createPkceChallenge
+} from '@utils/auth';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
@@ -71,16 +76,18 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     isFinalError = false;
     isConfirmationScreen = false;
     csrfState = '';
+    pkceChallenge = '';
 
     //
     // Lifecycle
     //
-    created() {
+    async created(): Promise<void> {
         this.csrfState = createAuthCsrfState();
+        this.pkceChallenge = await createPkceChallenge();
         this.initFormInputs();
     }
 
-    mounted() {
+    mounted(): void {
         this.initExtraFields();
         this.initRecaptcha();
     }
@@ -179,7 +186,13 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     }
 
     get hostedForgotPasswordUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/forgotPassword', this.csrfState);
+        return getHostedLoginUri(
+            this.appMode,
+            AuthTypes.LICENSEE,
+            '/forgotPassword',
+            this.csrfState,
+            this.pkceChallenge
+        );
     }
 
     get isUsingMockApi(): boolean {

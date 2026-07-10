@@ -17,6 +17,7 @@ import {
     AuthTypes,
     getHostedLoginUri,
     createAuthCsrfState,
+    createPkceChallenge,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
 } from '@utils/auth';
@@ -48,12 +49,14 @@ class MfaResetConfirmLicensee extends Vue {
     isSuccess = false;
     serverMessage = '';
     csrfState = '';
+    pkceChallenge = '';
 
     //
     // Lifecycle
     //
-    created(): void {
+    async created(): Promise<void> {
         this.csrfState = createAuthCsrfState();
+        this.pkceChallenge = await createPkceChallenge();
     }
 
     mounted(): void {
@@ -86,7 +89,7 @@ class MfaResetConfirmLicensee extends Vue {
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login', this.csrfState);
+        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
     }
 
     get isUsingMockApi(): boolean {

@@ -36,6 +36,7 @@ export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
 export const AUTH_LOGIN_GOTO_COMPACT = 'login_goto_compact';
 export const AUTH_CSRF_STATE = 'auth_csrf_state';
+export const AUTH_PKCE_CODE_VERIFIER = 'auth_pkce_code_verifier';
 
 // =========================
 // =  Authorization Types  =
@@ -74,8 +75,61 @@ export const consumeAuthCsrfState = (): string | null => {
     return state;
 };
 
+// ============================
+// =           PKCE           =
+// ============================
+const base64UrlEncode = (bytes: Uint8Array): string => {
+    let binary = '';
+
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+
+    return btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+};
+
+const generatePkceCodeVerifier = (): string => {
+    const randomBytes = new Uint8Array(32);
+
+    crypto.getRandomValues(randomBytes);
+
+    return base64UrlEncode(randomBytes);
+};
+
+const generatePkceCodeChallenge = async (codeVerifier: string): Promise<string> => {
+    const data = new TextEncoder().encode(codeVerifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+
+    return base64UrlEncode(new Uint8Array(digest));
+};
+
+export const createPkceChallenge = async (): Promise<string> => {
+    const codeVerifier = generatePkceCodeVerifier();
+    const codeChallenge = await generatePkceCodeChallenge(codeVerifier);
+
+    sessionStorage.setItem(AUTH_PKCE_CODE_VERIFIER, codeVerifier); // Specifically using sessionStorage for PKCE
+
+    return codeChallenge;
+};
+
+export const consumePkceCodeVerifier = (): string | null => {
+    const codeVerifier = sessionStorage.getItem(AUTH_PKCE_CODE_VERIFIER);
+
+    sessionStorage.removeItem(AUTH_PKCE_CODE_VERIFIER);
+
+    return codeVerifier;
+};
+
+// ===========================
+// =      OAuth Scopes       =
+// ===========================
 export const staffLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
 export const licenseeLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
+
+// ===========================
+// =      Login URI Setup    =
+// ===========================
 export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): CognitoConfig => {
     const config: CognitoConfig = {
         scopes: '',
@@ -111,7 +165,7 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
     return config;
 };
 
-export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login', state = ''): string => {
+export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login', state = '', codeChallenge = ''): string => {
     const { domain } = envConfig;
     const {
         scopes,
@@ -154,6 +208,8 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
         `&response_type=code`,
         `&scope=${encodeURIComponent(scopes || '')}`,
         `&state=${encodeURIComponent(state)}`,
+        `&code_challenge=${encodeURIComponent(codeChallenge)}`,
+        `&code_challenge_method=S256`,
         `&redirect_uri=${encodeURIComponent(`${domain}${getCallbackPath()}`)}`,
     ].join('');
     const loginUri = `${authDomain}${hostedIdpPath}${loginUriQuery}`;
@@ -186,6 +242,7 @@ export default {
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT,
     AUTH_CSRF_STATE,
+    AUTH_PKCE_CODE_VERIFIER,
     AuthTypes,
     staffLoginScopes,
     licenseeLoginScopes,
@@ -193,5 +250,7 @@ export default {
     getHostedLoginUri,
     createAuthCsrfState,
     consumeAuthCsrfState,
+    createPkceChallenge,
+    consumePkceCodeVerifier,
     autoLogoutConfig,
 };

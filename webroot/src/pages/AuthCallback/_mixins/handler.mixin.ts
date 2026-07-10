@@ -12,7 +12,8 @@ import {
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
-    consumeAuthCsrfState
+    consumeAuthCsrfState,
+    consumePkceCodeVerifier
 } from '@utils/auth';
 import { nextTick } from 'vue';
 import { Component, Vue } from 'vue-facing-decorator';
@@ -104,6 +105,7 @@ class MixinAuthCallbackHandler extends Vue {
             params.append('client_id', cognitoClientId || '');
             params.append('redirect_uri', `${domain}${this.$route.path}`);
             params.append('code', this.authorizationCode);
+            params.append('code_verifier', consumePkceCodeVerifier() || '');
 
             const { data } = await axios.post(`${cognitoAuthDomain}/oauth2/token`, params);
 
