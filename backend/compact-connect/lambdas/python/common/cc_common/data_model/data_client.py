@@ -53,6 +53,9 @@ from cc_common.exceptions import (
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import logger_inject_kwargs
 
+# DynamoDB's hard limit on the number of items in a single TransactWriteItems call.
+MAX_DYNAMODB_TRANSACTION_ITEMS = 100
+
 
 @dataclass
 class SsnCorrectionMigrationResult:
@@ -2940,24 +2943,29 @@ class DataClient:
         target_license = next(record for record in records_to_move if record.type == ProviderRecordType.LICENSE)
         target_license_key = self._provider_record_key(target_license)
 
-        transaction_items = []
+        # The migration's writes are grouped so they can be committed atomically when small, and replay-safely
+        # when large. Three groups are built:
+        #
+        #   creates - put every migrated record (and the new top-level provider record) under the new provider
+        #             id. Idempotent puts (stable pk/sk), so re-running them on replay is harmless.
+        #   deletes - delete the moved records from the old provider, EXCEPT the target license and the old
+        #             top-level provider record. Deleting an already-deleted item is a no-op, so re-running
+        #             these on replay is also harmless.
+        #   final   - the ssnCorrection provider-update record, the conditioned teardown/repopulation of the
+        #             old top-level provider record (the concurrency fence), and the target license delete.
+        #
+        # When everything fits in one DynamoDB transaction it is committed atomically (all-or-nothing, so
+        # there is no partial-write replay window). Otherwise the groups run as ordered phases: creates, then
+        # deletes, then the atomic `final` group. Keeping the old provider record and target license together
+        # in the atomic `final` group is what makes the large-migration case replay-safe: until it commits, a
+        # replay always finds both records, so it can re-read the old provider (including its registered email)
+        # and reliably drive the Cognito-deletion / re-registration path. The idempotency guard above
+        # short-circuits once the target license is gone (the final group committed).
 
-        # 1. The concurrency fence: a conditioned write against the old top-level provider record, executed in
-        # the first batch so a competing migration fails before writing anything
-        if old_provider_data is not None:
-            transaction_items.append(
-                self._build_conditioned_old_provider_transaction_item(
-                    old_provider_data=old_provider_data,
-                    old_provider_records=old_provider_records,
-                    full_teardown=full_teardown,
-                    jurisdiction=jurisdiction,
-                    license_type=license_type,
-                )
-            )
-
-        # 2. Re-keyed puts for every migrated record. The targeted license also picks up the corrected
-        # ssnLastFour, and military affiliation records pick up document keys under the new provider id, so
-        # the new partition is internally consistent. The caller is responsible for moving the S3 objects
+        # creates: the migrated records + the new top-level provider record under the new provider id. The
+        # targeted license picks up the corrected ssnLastFour, and military affiliation records pick up
+        # document keys under the new provider id's keyspace, so the new partition is internally consistent.
+        create_transaction_items = []
         rekeyed_target_license = None
         rekeyed_privileges = []
         for record in records_to_move:
@@ -2976,17 +2984,32 @@ class DataClient:
                 rekeyed_target_license = rekeyed_record
             elif record.type == ProviderRecordType.PRIVILEGE:
                 rekeyed_privileges.append(rekeyed_record)
-            transaction_items.append(self._build_put_transaction_item(rekeyed_record))
+            create_transaction_items.append(self._build_put_transaction_item(rekeyed_record))
 
-        # 3. Deletes for the moved records, except the targeted license (deleted last) and the top-level
-        # provider record (handled by the fence above)
-        for record in records_to_move:
-            if record is target_license:
-                continue
-            transaction_items.append(self._build_delete_transaction_item(self._provider_record_key(record)))
+        # Create a top-level provider record for the new provider only if it does not already have one; a
+        # pre-existing record is never modified
+        new_provider_record = self._build_new_provider_record_if_absent(
+            compact=compact,
+            new_provider_id=new_provider_id,
+            rekeyed_target_license=rekeyed_target_license,
+            rekeyed_privileges=rekeyed_privileges,
+        )
+        if new_provider_record is not None:
+            create_transaction_items.append(self._build_put_transaction_item(new_provider_record))
 
-        # 4. The ssnCorrection provider update record, written on the new provider. Skipped on a replay that
-        # lost the old provider record: the run that deleted it already wrote this record
+        # deletes: the moved records on the old provider, except the target license and the top-level provider
+        # record (both handled in the final group).
+        delete_transaction_items = [
+            self._build_delete_transaction_item(self._provider_record_key(record))
+            for record in records_to_move
+            if record is not target_license
+        ]
+
+        # final: bounded to at most three items (ssnCorrection put, old provider fence, target license delete).
+        # On a defensive replay that already lost the old provider record, old_provider_data is None: the
+        # ssnCorrection record and fence are skipped (the run that deleted the record already wrote the
+        # ssnCorrection), leaving only the target license delete.
+        final_transaction_items = []
         if old_provider_data is not None:
             ssn_correction_update = ProviderUpdateData.create_new(
                 {
@@ -2999,23 +3022,37 @@ class DataClient:
                     'updatedValues': {'ssnLastFour': new_ssn_last_four},
                 }
             )
-            transaction_items.append(self._build_put_transaction_item(ssn_correction_update))
+            final_transaction_items.append(self._build_put_transaction_item(ssn_correction_update))
+            final_transaction_items.append(
+                self._build_conditioned_old_provider_transaction_item(
+                    old_provider_data=old_provider_data,
+                    old_provider_records=old_provider_records,
+                    full_teardown=full_teardown,
+                    jurisdiction=jurisdiction,
+                    license_type=license_type,
+                )
+            )
+        final_transaction_items.append(self._build_delete_transaction_item(target_license_key))
 
-        # 5. Create a top-level provider record for the new provider only if it does not already have one; a
-        # pre-existing record is never modified
-        new_provider_record = self._build_new_provider_record_if_absent(
-            compact=compact,
-            new_provider_id=new_provider_id,
-            rekeyed_target_license=rekeyed_target_license,
-            rekeyed_privileges=rekeyed_privileges,
-        )
-        if new_provider_record is not None:
-            transaction_items.append(self._build_put_transaction_item(new_provider_record))
-
-        # 6. The targeted license delete goes last: until it commits, a replay of this migration re-runs in full
-        transaction_items.append(self._build_delete_transaction_item(target_license_key))
-
-        self._execute_batched_transactions(transaction_items)
+        all_transaction_items = [
+            *create_transaction_items,
+            *delete_transaction_items,
+            *final_transaction_items,
+        ]
+        if len(all_transaction_items) <= MAX_DYNAMODB_TRANSACTION_ITEMS:
+            # Small migration: commit everything as one all-or-nothing transaction, with no cross-transaction
+            # replay window to reason about. The fence's dateOfUpdate condition failing rolls the whole
+            # transaction back and raises for SQS retry.
+            self._execute_batched_transactions(all_transaction_items)
+        else:
+            # Large migration: the operations cannot fit in a single atomic transaction, so run them as
+            # replay-safe phases. The final group is a single atomic transaction (<= 3 items) that can never
+            # split across a batch boundary, so the old provider record and target license are always torn
+            # down together. The fence's dateOfUpdate condition failing raises for SQS retry; the retry
+            # re-reads current state and takes the now-correct branch.
+            self._execute_batched_transactions(create_transaction_items)
+            self._execute_batched_transactions(delete_transaction_items)
+            self._execute_batched_transactions(final_transaction_items)
 
         return SsnCorrectionMigrationResult(
             migration_performed=True,
@@ -3186,8 +3223,7 @@ class DataClient:
 
         logger.info('Executing batched transactions', total_items=len(transaction_items))
 
-        # DynamoDB transaction limit is 100 items
-        batch_size = 100
+        batch_size = MAX_DYNAMODB_TRANSACTION_ITEMS
         processed_batches = []
 
         try:
