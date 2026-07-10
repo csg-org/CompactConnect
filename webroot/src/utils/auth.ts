@@ -6,7 +6,9 @@
 //
 import { AppModes } from '@/app.config';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import sessionStorage from '@store/session.storage';
 import localStorage from '@store/local.storage';
+import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
 
 // ====================
@@ -33,6 +35,7 @@ export const AUTH_TYPE = 'auth_type';
 export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 export const AUTH_LOGIN_GOTO_PATH_AUTH_TYPE = 'login_goto_auth_type';
 export const AUTH_LOGIN_GOTO_COMPACT = 'login_goto_compact';
+export const AUTH_CSRF_STATE = 'auth_csrf_state';
 
 // =========================
 // =  Authorization Types  =
@@ -50,15 +53,26 @@ export type CognitoConfig = {
     scopes?: string;
     clientId?: string;
     authDomain?: string;
-    state?: string;
 };
 
-export enum CognitoUserTypes {
-    STAFF_JCC = 'staff-jcc',
-    STAFF_COSMETOLOGY = 'staff-cosmo',
-    STAFF_SOCIAL_WORK = 'staff-social-work',
-    LICENSEE_JCC = 'licensee-jcc',
-}
+// ===========================
+// =       CSRF Tokens       =
+// ===========================
+export const createAuthCsrfState = (): string => {
+    const state = uuidv4();
+
+    sessionStorage.setItem(AUTH_CSRF_STATE, state); // Specifically using sessionStorage for CSRF tokens
+
+    return state;
+};
+
+export const consumeAuthCsrfState = (): string | null => {
+    const state = sessionStorage.getItem(AUTH_CSRF_STATE);
+
+    sessionStorage.removeItem(AUTH_CSRF_STATE);
+
+    return state;
+};
 
 export const staffLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
 export const licenseeLoginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
@@ -67,7 +81,6 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         scopes: '',
         clientId: '',
         authDomain: '',
-        state: '',
     };
 
     switch (authType) {
@@ -75,15 +88,12 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         config.scopes = staffLoginScopes;
 
         if (appMode === AppModes.JCC) {
-            config.state = CognitoUserTypes.STAFF_JCC;
             config.clientId = envConfig.cognitoClientIdStaff;
             config.authDomain = envConfig.cognitoAuthDomainStaff;
         } else if (appMode === AppModes.COSMETOLOGY) {
-            config.state = CognitoUserTypes.STAFF_COSMETOLOGY;
             config.clientId = envConfig.cognitoClientIdStaffCosmo;
             config.authDomain = envConfig.cognitoAuthDomainStaffCosmo;
         } else if (appMode === AppModes.SOCIAL_WORK) {
-            config.state = CognitoUserTypes.STAFF_SOCIAL_WORK;
             config.clientId = envConfig.cognitoClientIdStaffSw;
             config.authDomain = envConfig.cognitoAuthDomainStaffSw;
         }
@@ -91,7 +101,6 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
         break;
     case AuthTypes.LICENSEE:
         config.scopes = licenseeLoginScopes;
-        config.state = CognitoUserTypes.LICENSEE_JCC;
         config.clientId = envConfig.cognitoClientIdLicensee;
         config.authDomain = envConfig.cognitoAuthDomainLicensee;
         break;
@@ -102,13 +111,12 @@ export const getCognitoConfig = (appMode: AppModes, authType: AuthTypes): Cognit
     return config;
 };
 
-export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login'): string => {
+export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hostedIdpPath = '/login', state = ''): string => {
     const { domain } = envConfig;
     const {
         scopes,
         clientId,
-        authDomain,
-        state
+        authDomain
     } = getCognitoConfig(appMode, authType);
     const getCallbackPath = () => {
         let userScopePath = ``;
@@ -145,7 +153,7 @@ export const getHostedLoginUri = (appMode: AppModes, authType: AuthTypes, hosted
         `?client_id=${clientId}`,
         `&response_type=code`,
         `&scope=${encodeURIComponent(scopes || '')}`,
-        `&state=${state}`,
+        `&state=${encodeURIComponent(state)}`,
         `&redirect_uri=${encodeURIComponent(`${domain}${getCallbackPath()}`)}`,
     ].join('');
     const loginUri = `${authDomain}${hostedIdpPath}${loginUriQuery}`;
@@ -177,11 +185,13 @@ export default {
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT,
+    AUTH_CSRF_STATE,
     AuthTypes,
-    CognitoUserTypes,
     staffLoginScopes,
     licenseeLoginScopes,
     getCognitoConfig,
     getHostedLoginUri,
+    createAuthCsrfState,
+    consumeAuthCsrfState,
     autoLogoutConfig,
 };

@@ -11,6 +11,7 @@ import {
     authStorage,
     AuthTypes,
     getHostedLoginUri,
+    createAuthCsrfState,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
@@ -36,9 +37,16 @@ import { CompactType } from '@models/Compact/Compact.model';
 })
 export default class DashboardPublic extends Vue {
     //
+    // Data
+    //
+    csrfState = '';
+
+    //
     // Lifecycle
     //
     created(): void {
+        this.csrfState = createAuthCsrfState();
+
         if (this.bypassQuery) {
             this.bypassRedirect();
         }
@@ -68,19 +76,19 @@ export default class DashboardPublic extends Vue {
     }
 
     get hostedLoginUriStaff(): string {
-        return getHostedLoginUri(AppModes.JCC, AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(AppModes.JCC, AuthTypes.STAFF, this.hostedLoginUriPath, this.csrfState);
     }
 
     get hostedLoginUriStaffCosmo(): string {
-        return getHostedLoginUri(AppModes.COSMETOLOGY, AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(AppModes.COSMETOLOGY, AuthTypes.STAFF, this.hostedLoginUriPath, this.csrfState);
     }
 
     get hostedLoginUriStaffSw(): string {
-        return getHostedLoginUri(AppModes.SOCIAL_WORK, AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(AppModes.SOCIAL_WORK, AuthTypes.STAFF, this.hostedLoginUriPath, this.csrfState);
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(AppModes.JCC, AuthTypes.LICENSEE, this.hostedLoginUriPath);
+        return getHostedLoginUri(AppModes.JCC, AuthTypes.LICENSEE, this.hostedLoginUriPath, this.csrfState);
     }
 
     get compactTypes(): typeof CompactType {

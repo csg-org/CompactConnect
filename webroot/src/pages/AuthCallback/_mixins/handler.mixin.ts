@@ -11,7 +11,8 @@ import {
     AuthTypes,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_PATH,
-    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
+    AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
+    consumeAuthCsrfState
 } from '@utils/auth';
 import { nextTick } from 'vue';
 import { Component, Vue } from 'vue-facing-decorator';
@@ -47,6 +48,14 @@ class MixinAuthCallbackHandler extends Vue {
             cognitoClientId
         } = this;
 
+        // Verify the OAuth `state` param matches the CSRF token stored before redirecting to the hosted UI.
+        // If it doesn't match, abort before exchanging the authorization code (possible CSRF / forged callback).
+        if (!this.verifyCsrfState()) {
+            this.isError = true;
+
+            return;
+        }
+
         await this.getTokens(appMode, authType, cognitoAuthDomain, cognitoClientId);
     }
 
@@ -65,6 +74,12 @@ class MixinAuthCallbackHandler extends Vue {
     //
     // Methods
     //
+    verifyCsrfState(): boolean {
+        const storedState = consumeAuthCsrfState(); // Reads and removes the stored token (single-use)
+
+        return Boolean(storedState) && storedState === this.stateParam;
+    }
+
     async getTokens(appMode: AppModes, authType: AuthTypes, cognitoAuthDomain, cognitoClientId): Promise<void> {
         this.$store.dispatch('startLoading');
         this.$store.dispatch('setAppMode', appMode);

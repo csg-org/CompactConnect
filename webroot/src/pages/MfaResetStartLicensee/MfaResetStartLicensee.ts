@@ -22,7 +22,7 @@ import {
     dateFormatPatterns,
     AppModes
 } from '@/app.config';
-import { AuthTypes, getHostedLoginUri } from '@utils/auth';
+import { AuthTypes, getHostedLoginUri, createAuthCsrfState } from '@utils/auth';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
@@ -70,11 +70,13 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     //
     isFinalError = false;
     isConfirmationScreen = false;
+    csrfState = '';
 
     //
     // Lifecycle
     //
     created() {
+        this.csrfState = createAuthCsrfState();
         this.initFormInputs();
     }
 
@@ -177,7 +179,7 @@ class MfaResetStartLicensee extends mixins(MixinForm) {
     }
 
     get hostedForgotPasswordUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/forgotPassword');
+        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/forgotPassword', this.csrfState);
     }
 
     get isUsingMockApi(): boolean {

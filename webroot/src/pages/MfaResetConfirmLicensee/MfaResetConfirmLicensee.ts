@@ -16,6 +16,7 @@ import {
     authStorage,
     AuthTypes,
     getHostedLoginUri,
+    createAuthCsrfState,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
 } from '@utils/auth';
@@ -46,10 +47,15 @@ class MfaResetConfirmLicensee extends Vue {
     isLoading = true;
     isSuccess = false;
     serverMessage = '';
+    csrfState = '';
 
     //
     // Lifecycle
     //
+    created(): void {
+        this.csrfState = createAuthCsrfState();
+    }
+
     mounted(): void {
         this.initRecaptcha();
     }
@@ -80,7 +86,7 @@ class MfaResetConfirmLicensee extends Vue {
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login');
+        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login', this.csrfState);
     }
 
     get isUsingMockApi(): boolean {
