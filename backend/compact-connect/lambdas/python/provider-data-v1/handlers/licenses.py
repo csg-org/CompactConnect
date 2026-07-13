@@ -9,7 +9,6 @@ from cc_common.utils import (
     api_handler,
     authorize_compact_jurisdiction,
     send_licenses_to_preprocessing_queue,
-    strip_previous_ssn_if_migration_disabled,
 )
 from marshmallow import ValidationError
 
@@ -58,12 +57,13 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
         else:
             license_entry = {**license_record, 'compact': compact, 'jurisdiction': jurisdiction}
             try:
-                licenses.append(
-                    strip_previous_ssn_if_migration_disabled(
-                        schema.load(license_entry),
-                        migration_flag_enabled=ssn_correction_migration_flag_enabled,
+                # TODO - remove this flag once the feature is proven stable  # noqa: FIX002
+                if not ssn_correction_migration_flag_enabled:
+                    logger.info(
+                        'SSN-correction migration feature is disabled. Ignoring the previousSSN field if present'
                     )
-                )
+                    license_entry.pop('previousSSN', None)
+                licenses.append(schema.load(license_entry))
             except ValidationError as e:
                 logger.debug(
                     'invalid license record detected',

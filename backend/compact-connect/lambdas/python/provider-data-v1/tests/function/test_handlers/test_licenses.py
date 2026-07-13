@@ -116,6 +116,8 @@ class TestLicenses(TstFunction):
 
         return self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
 
+    # TODO - once LICENSE_SSN_CORRECTION_MIGRATION_FLAG is removed, remove the patch and rename test  # noqa: FIX002
+    # (previousSSN will always pass through) rather than removing this test outright
     def test_post_licenses_passes_previous_ssn_through_when_flag_enabled(self):
         # patch the module-level cached flag value directly, so this test is independent of module import order
         with patch('handlers.licenses.ssn_correction_migration_flag_enabled', True):
@@ -125,6 +127,7 @@ class TestLicenses(TstFunction):
         message = json.loads(queue_messages[0].body)
         self.assertEqual('123-12-9876', message['previousSSN'])
 
+    # TODO - remove this test once the LICENSE_SSN_CORRECTION_MIGRATION_FLAG scaffolding is removed # noqa: FIX002
     def test_post_licenses_strips_previous_ssn_when_flag_disabled(self):
         with patch('handlers.licenses.ssn_correction_migration_flag_enabled', False):
             queue_messages = self._post_license_with_previous_ssn()

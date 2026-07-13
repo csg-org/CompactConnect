@@ -145,6 +145,8 @@ class TestProcessObjects(TstFunction):
 
         return self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)
 
+    # TODO - once LICENSE_SSN_CORRECTION_MIGRATION_FLAG is removed, remove `patch(...)` and rename test  # noqa: FIX002
+    # (previousSSN will always pass through) rather than removing this test outright
     def test_bulk_upload_passes_previous_ssn_through_when_flag_enabled(self):
         # patch the module-level cached flag value directly, so this test is independent of module import order
         with patch('handlers.bulk_upload.ssn_correction_migration_flag_enabled', True):
@@ -154,6 +156,7 @@ class TestProcessObjects(TstFunction):
         message_data = json.loads(messages[0].body)
         self.assertEqual('123-45-9876', message_data['previousSSN'])
 
+    # TODO - remove this test once the LICENSE_SSN_CORRECTION_MIGRATION_FLAG scaffolding is removed # noqa: FIX002
     def test_bulk_upload_strips_previous_ssn_when_flag_disabled(self):
         with patch('handlers.bulk_upload.ssn_correction_migration_flag_enabled', False):
             messages = self._process_csv_with_previous_ssn()

@@ -21,7 +21,6 @@ from cc_common.utils import (
     api_handler,
     authorize_compact_jurisdiction,
     send_licenses_to_preprocessing_queue,
-    strip_previous_ssn_if_migration_disabled,
 )
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
@@ -182,10 +181,12 @@ def process_bulk_upload_file(
                     # This will be raised, if `raw_license` includes compact and/or jurisdiction fields
                     logger.error('License contains unsupported fields', fields=list(raw_license.keys()), exc_info=e)
                     raise ValidationError('License contains unsupported fields') from e
-                validated_license = strip_previous_ssn_if_migration_disabled(
-                    validated_license,
-                    migration_flag_enabled=ssn_correction_migration_flag_enabled,
-                )
+                # TODO - remove this flag once the feature is proven stable  # noqa: FIX002
+                if not ssn_correction_migration_flag_enabled:
+                    logger.info(
+                        'SSN-correction migration feature is disabled. Ignoring the previousSSN field if present'
+                    )
+                    validated_license.pop('previousSSN', None)
                 current_batch.append(schema.dump(validated_license))
 
                 # When batch is full, send to preprocessing queue

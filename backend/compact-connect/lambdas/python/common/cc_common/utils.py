@@ -861,22 +861,6 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     return provider_read_general_schema.load(provider)
 
 
-def strip_previous_ssn_if_migration_disabled(validated_license: dict, *, migration_flag_enabled: bool) -> dict:
-    """
-    Remove the previousSSN field from a validated license when the SSN-correction migration feature is disabled.
-
-    The presence of previousSSN downstream triggers a record migration, so the field must not leave the intake
-    layer (POST licenses / bulk upload) unless the feature flag is enabled.
-
-    :param dict validated_license: A license loaded by LicensePostRequestSchema
-    :param bool migration_flag_enabled: Cached value of LICENSE_SSN_CORRECTION_MIGRATION_FLAG
-    :return: The validated license, without previousSSN if the feature is disabled
-    """
-    if not migration_flag_enabled and validated_license.pop('previousSSN', None) is not None:
-        logger.info('previousSSN provided but the SSN-correction migration feature is disabled; ignoring the field')
-    return validated_license
-
-
 def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: str) -> list[str]:
     """
     Send license data to the preprocessing queue in batches.
