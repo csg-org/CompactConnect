@@ -89,7 +89,7 @@ class MfaResetConfirmLicensee extends Vue {
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
+        return getHostedLoginUri(AppModes.JCC, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
     }
 
     get isUsingMockApi(): boolean {
