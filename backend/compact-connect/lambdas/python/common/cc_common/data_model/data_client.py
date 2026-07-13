@@ -64,14 +64,14 @@ class SsnCorrectionMigrationResult:
 
     :param migration_performed: False when there was nothing to migrate (spurious previousSSN or a replay of an
         already-completed migration)
-    :param full_teardown: True when the corrected license was the old provider's only license, so the old
+    :param full_migration: True when the corrected license was the old provider's only license, so the old
         provider was deleted entirely. The caller must delete the old Cognito user and notify the practitioner.
     :param old_provider_registered_email: The old provider's registered email address, present only on a full
-        teardown of a registered provider
+        migration of a registered provider
     """
 
     migration_performed: bool
-    full_teardown: bool = False
+    full_migration: bool = False
     old_provider_registered_email: str | None = None
 
 
@@ -2877,7 +2877,7 @@ class DataClient:
         history records are always moved to the new provider id. What happens to the rest of the old provider
         depends on whether the corrected license was its only license record:
 
-        - Full teardown (sole license): the person-level records (military affiliations, provider update
+        - Full migration (sole license): the person-level records (military affiliations, provider update
           history) are moved to the new provider id as well, with military document keys re-pointed at the new
           provider id's keyspace, and the old provider's partition, including its top-level provider record, is
           deleted. The caller is responsible for moving the practitioner's S3 documents (by listing the old
@@ -2926,18 +2926,19 @@ class DataClient:
         try:
             old_provider_data = old_provider_records.get_provider_record()
         except CCInternalException:
-            # The top-level provider record was already deleted by a partially-completed teardown that is now
-            # being replayed; continue the migration without the concurrency fence
+            # The top-level provider record was already deleted by a partially-completed full migration that
+            # is now being replayed; continue the migration without the concurrency fence
             logger.warning('Old provider record not found; continuing replay of a partially-completed migration')
             old_provider_data = None
 
-        # The corrected license was the old provider's only license: tear the old provider down entirely
-        full_teardown = len(old_provider_records.get_license_records()) == 1
+        # The corrected license was the old provider's only license: this is a full migration of the old
+        # provider (everything moves, and the old provider is deleted), as opposed to a partial migration
+        full_migration = len(old_provider_records.get_license_records()) == 1
 
         # Person-level records (military affiliations, provider update history) follow the practitioner only
-        # when the old provider is torn down entirely; on a partial migration they stay with the old provider,
-        # which still represents them for their remaining licenses
-        person_level_records = old_provider_records.get_person_level_records() if full_teardown else []
+        # on a full migration; on a partial migration they stay with the old provider, which still represents
+        # them for their remaining licenses
+        person_level_records = old_provider_records.get_person_level_records() if full_migration else []
         records_to_move = [*records_to_move, *person_level_records]
 
         target_license = next(record for record in records_to_move if record.type == ProviderRecordType.LICENSE)
@@ -2951,8 +2952,9 @@ class DataClient:
         #   deletes - delete the moved records from the old provider, EXCEPT the target license and the old
         #             top-level provider record. Deleting an already-deleted item is a no-op, so re-running
         #             these on replay is also harmless.
-        #   final   - the ssnCorrection provider-update record, the conditioned teardown/repopulation of the
-        #             old top-level provider record (the concurrency fence), and the target license delete.
+        #   final   - the ssnCorrection provider-update record, the conditioned deletion (full migration) or
+        #             repopulation (partial migration) of the old top-level provider record (the concurrency
+        #             fence), and the target license delete.
         #
         # When everything fits in one DynamoDB transaction it is committed atomically (all-or-nothing, so
         # there is no partial-write replay window). Otherwise the groups run as ordered phases: creates, then
@@ -3027,7 +3029,7 @@ class DataClient:
                 self._build_conditioned_old_provider_transaction_item(
                     old_provider_data=old_provider_data,
                     old_provider_records=old_provider_records,
-                    full_teardown=full_teardown,
+                    full_migration=full_migration,
                     jurisdiction=jurisdiction,
                     license_type=license_type,
                 )
@@ -3056,10 +3058,10 @@ class DataClient:
 
         return SsnCorrectionMigrationResult(
             migration_performed=True,
-            full_teardown=full_teardown,
+            full_migration=full_migration,
             old_provider_registered_email=(
                 old_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
-                if full_teardown and old_provider_data is not None
+                if full_migration and old_provider_data is not None
                 else None
             ),
         )
@@ -3110,21 +3112,21 @@ class DataClient:
         *,
         old_provider_data: ProviderData,
         old_provider_records: ProviderUserRecords,
-        full_teardown: bool,
+        full_migration: bool,
         jurisdiction: str,
         license_type: str,
     ) -> dict:
         """
-        Build the write against the old top-level provider record: a delete on full teardown, or a repopulation
-        from the remaining licenses on a partial migration. Either way the write is conditioned on the
-        dateOfUpdate read at the start of the migration, so concurrent migrations of the same old provider
-        serialize via SQS retry instead of both reading the same stale state.
+        Build the write against the old top-level provider record: a delete on a full migration, or a
+        repopulation from the remaining licenses on a partial migration. Either way the write is conditioned
+        on the dateOfUpdate read at the start of the migration, so concurrent migrations of the same old
+        provider serialize via SQS retry instead of both reading the same stale state.
         """
         condition = {
             'ConditionExpression': 'attribute_exists(pk) AND dateOfUpdate = :dateOfUpdate',
             'ExpressionAttributeValues': {':dateOfUpdate': {'S': old_provider_data.dateOfUpdate.isoformat()}},
         }
-        if full_teardown:
+        if full_migration:
             old_provider_key = self._provider_record_key(old_provider_data)
             return {
                 'Delete': {

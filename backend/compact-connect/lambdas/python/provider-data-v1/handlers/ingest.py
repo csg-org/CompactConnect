@@ -384,7 +384,7 @@ def _perform_ssn_correction_migration(
     """
     Orchestrate the migration of a practitioner's records after a state corrected the SSN on a license upload.
 
-    The DynamoDB migration runs first; on a full teardown the S3 document move, Cognito user deletion, and
+    The DynamoDB migration runs first; on a full migration the S3 document move, Cognito user deletion, and
     re-registration email follow, each idempotent so an SQS retry of a partially-completed migration converges.
     A concurrency conflict inside the migration raises, letting SQS redeliver the message after the visibility
     timeout.
@@ -403,7 +403,7 @@ def _perform_ssn_correction_migration(
         logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
         return
 
-    if result.full_teardown:
+    if result.full_migration:
         _move_provider_documents_to_new_keyspace(
             compact=compact,
             previous_provider_id=previous_provider_id,
@@ -448,12 +448,12 @@ def _move_s3_object(*, old_key: str, new_key: str):
         )
         config.s3_client.delete_object(Bucket=config.provider_user_bucket_name, Key=old_key)
     except ClientError as e:
-            logger.error(
-                'Failed to move provider document to the new keyspace',
-                old_key=old_key,
-                new_key=new_key,
-                error=str(e),
-            )
+        logger.error(
+            'Failed to move provider document to the new keyspace',
+            old_key=old_key,
+            new_key=new_key,
+            error=str(e),
+        )
 
 
 def _delete_old_cognito_user_and_send_reregistration_email(*, compact: str, old_registered_email: str):

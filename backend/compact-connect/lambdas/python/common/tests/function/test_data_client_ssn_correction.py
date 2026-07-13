@@ -71,13 +71,13 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.test_data_generator.put_default_military_affiliation_in_provider_table()
         self.test_data_generator.put_default_provider_update_record_in_provider_table()
 
-    def test_full_teardown_migrates_all_records_and_empties_old_partition(self):
+    def test_full_migration_moves_all_records_and_empties_old_partition(self):
         self._put_full_old_provider_records()
 
         result = self._migrate()
 
         self.assertTrue(result.migration_performed)
-        self.assertTrue(result.full_teardown)
+        self.assertTrue(result.full_migration)
         self.assertEqual(DEFAULT_REGISTERED_EMAIL_ADDRESS, result.old_provider_registered_email)
 
         # the old partition must be completely empty
@@ -129,7 +129,7 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         result = self._migrate()
 
         self.assertTrue(result.migration_performed)
-        self.assertFalse(result.full_teardown)
+        self.assertFalse(result.full_migration)
         self.assertIsNone(result.old_provider_registered_email)
 
         # the targeted license and its dependent records moved off the old provider
@@ -171,7 +171,7 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         result = self._migrate()
 
         self.assertTrue(result.migration_performed)
-        self.assertFalse(result.full_teardown)
+        self.assertFalse(result.full_migration)
 
         # the ky license remains under the old provider, whose top-level record now reflects it
         old_licenses = self._get_records_of_type(DEFAULT_PROVIDER_ID, 'license')
@@ -203,7 +203,7 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         result = self._migrate()
 
         self.assertTrue(result.migration_performed)
-        self.assertTrue(result.full_teardown)
+        self.assertTrue(result.full_migration)
 
         # both licenses now live under the new provider; the pre-existing one is untouched
         new_licenses = self._get_records_of_type(NEW_PROVIDER_ID, 'license')
@@ -436,7 +436,7 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         """The core replay guarantee for large migrations: if the atomic final transaction fails after the
         create/delete phases have committed, the old top-level provider record and the target license must
         survive, so a replay can re-read the old provider (including its registered email) and complete the
-        teardown — including the Cognito/email path that depends on that email.
+        full migration — including the Cognito/email path that depends on that email.
         """
         self._put_full_old_provider_records()
 
@@ -473,6 +473,6 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         result = self._migrate()
 
         self.assertTrue(result.migration_performed)
-        self.assertTrue(result.full_teardown)
+        self.assertTrue(result.full_migration)
         self.assertEqual(DEFAULT_REGISTERED_EMAIL_ADDRESS, result.old_provider_registered_email)
         self.assertEqual([], self._get_all_records_for_provider(DEFAULT_PROVIDER_ID))

@@ -62,7 +62,7 @@ class IngestStack(AppStack):
         )
         persistent_stack.provider_table.grant_read_write_data(ingest_handler)
         data_event_bus.grant_put_events_to(ingest_handler)
-        # The SSN-correction migration deletes the old provider's Cognito account on a full teardown, moves
+        # The SSN-correction migration deletes the old provider's Cognito account on a full migration, moves
         # the practitioner's documents from the old provider id's keyspace to the new one in the provider
         # users bucket, and notifies the practitioner to re-register
         provider_users_stack.provider_users.grant(ingest_handler, 'cognito-idp:AdminDeleteUser')

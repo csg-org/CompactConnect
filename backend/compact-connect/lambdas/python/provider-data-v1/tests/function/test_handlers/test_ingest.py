@@ -1010,7 +1010,7 @@ class TestIngestSsnCorrection(TstFunction):
         )
         return json.loads(json.dumps(provider_user_records.generate_api_response_object(), cls=ResponseEncoder))
 
-    def test_full_teardown_migration_moves_records_under_new_provider_id(self):
+    def test_full_migration_moves_records_under_new_provider_id(self):
         old_provider_record_items = self._put_old_provider_records()
         self._create_old_cognito_user()
 
@@ -1067,7 +1067,7 @@ class TestIngestSsnCorrection(TstFunction):
             self._get_api_response_snapshot_for_provider(self.NEW_PROVIDER_ID),
         )
 
-    def test_full_teardown_migration_deletes_cognito_user(self):
+    def test_full_migration_deletes_cognito_user(self):
         self._put_old_provider_records()
         self._create_old_cognito_user()
 
@@ -1076,7 +1076,7 @@ class TestIngestSsnCorrection(TstFunction):
 
         self.assertFalse(self._when_old_cognito_user_exists())
 
-    def test_full_teardown_migration_sends_reregistration_email(self):
+    def test_full_migration_sends_reregistration_email(self):
         self._put_old_provider_records()
         self._create_old_cognito_user()
 
@@ -1125,7 +1125,7 @@ class TestIngestSsnCorrection(TstFunction):
 
         self._mock_send_reregistration_email.assert_not_called()
 
-    def test_full_teardown_with_unregistered_old_provider_sends_no_email(self):
+    def test_full_migration_with_unregistered_old_provider_sends_no_email(self):
         # the old provider never registered: no Cognito user, no registered email on the provider record
         self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=False)
         self.test_data_generator.put_default_license_record_in_provider_table()
@@ -1147,7 +1147,7 @@ class TestIngestSsnCorrection(TstFunction):
                 return None
             raise
 
-    def test_full_teardown_migration_moves_military_documents_to_new_provider_keyspace(self):
+    def test_full_migration_moves_military_documents_to_new_provider_keyspace(self):
         # the old provider has two military affiliation records, each with a document stored under the old
         # provider id's keyspace in the provider user bucket
         self.test_data_generator.put_default_provider_record_in_provider_table(
@@ -1197,10 +1197,10 @@ class TestIngestSsnCorrection(TstFunction):
             new_key = old_key.replace(self.OLD_PROVIDER_ID, self.NEW_PROVIDER_ID)
             self.assertEqual(document_body, self._s3_object_body(new_key))
 
-    def test_full_teardown_migration_moves_all_objects_under_old_provider_keyspace(self):
+    def test_full_migration_moves_all_objects_under_old_provider_keyspace(self):
         """The S3 move must be driven by listing the old provider id's keyspace directly, not by walking
         DynamoDB records for known document types. This way any file under a provider's keyspace is carried
-        over on a full teardown, including document types the migration logic doesn't know about.
+        over on a full migration, including document types the migration logic doesn't know about.
         """
         self.test_data_generator.put_default_provider_record_in_provider_table(
             {'compactConnectRegisteredEmailAddress': self.OLD_REGISTERED_EMAIL}
