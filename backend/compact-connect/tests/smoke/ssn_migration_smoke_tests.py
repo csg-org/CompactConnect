@@ -55,7 +55,6 @@ from smoke_common import (
     wait_for_provider_creation,
 )
 
-
 # If you test provider is in a different compact, change this value
 TEST_COMPACT = 'coun'
 # The corrected SSN the test provider is temporarily migrated to during the full migration roundtrip
@@ -480,9 +479,7 @@ def _recover_stranded_test_provider():
         for record in _get_provider_dynamo_records(TEST_COMPACT, config.test_provider_original_provider_id)
         if record['type'] == 'provider'
     )
-    _restore_test_provider_account(
-        TEST_COMPACT, config.test_provider_original_provider_id, recovered_provider_record
-    )
+    _restore_test_provider_account(TEST_COMPACT, config.test_provider_original_provider_id, recovered_provider_record)
     print('Recovery complete: records and Cognito account are back under the original provider id.')
 
 
