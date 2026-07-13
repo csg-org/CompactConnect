@@ -151,7 +151,8 @@ export default {
         encumbranceType,
         npdbCategory,
         npdbCategories,
-        startDate
+        startDate,
+        licenseScope
     }: any) => {
         commit(MutationTypes.ENCUMBER_LICENSE_REQUEST);
         return dataApi.encumberLicense(
@@ -162,7 +163,8 @@ export default {
             encumbranceType,
             npdbCategory,
             npdbCategories,
-            startDate
+            startDate,
+            licenseScope
         ).then(async (response) => {
             dispatch('encumberLicenseSuccess');
 
@@ -185,7 +187,8 @@ export default {
         licenseState,
         licenseType,
         encumbranceId,
-        endDate
+        endDate,
+        licenseScope
     }: any) => {
         commit(MutationTypes.UNENCUMBER_LICENSE_REQUEST);
         return dataApi.unencumberLicense(
@@ -194,7 +197,8 @@ export default {
             licenseState,
             licenseType,
             encumbranceId,
-            endDate
+            endDate,
+            licenseScope
         ).then(async (response) => {
             dispatch('unencumberLicenseSuccess');
 
@@ -216,13 +220,15 @@ export default {
         licenseeId,
         licenseState,
         licenseType,
+        licenseScope,
     }: any) => {
         commit(MutationTypes.CREATE_INVESTIGATION_LICENSE_REQUEST);
         return dataApi.createLicenseInvestigation(
             compact,
             licenseeId,
             licenseState,
-            licenseType
+            licenseType,
+            licenseScope
         ).then(async (response) => {
             dispatch('createInvestigationLicenseSuccess');
 
@@ -245,6 +251,7 @@ export default {
         licenseState,
         licenseType,
         investigationId,
+        licenseScope,
         encumbrance
     }: any) => {
         commit(MutationTypes.UPDATE_INVESTIGATION_LICENSE_REQUEST);
@@ -254,6 +261,7 @@ export default {
             licenseState,
             licenseType,
             investigationId,
+            licenseScope,
             encumbrance
         ).then(async (response) => {
             dispatch('updateInvestigationLicenseSuccess');

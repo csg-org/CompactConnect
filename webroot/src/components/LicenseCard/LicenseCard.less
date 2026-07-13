@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 10/8/2024.
 //
 .license-card-container {
-    width: 30rem;
+    width: 36rem;
     padding: 2rem 2rem 1.6rem 2rem;
     border-radius: 2rem;
     color: @white;
@@ -171,6 +171,51 @@
                         }
                     }
                 }
+            }
+        }
+    }
+
+    .license-scope-container {
+        display: flex;
+
+        .license-scope {
+            display: flex;
+            align-items: center;
+            padding: 0.3rem 0.8rem 0.3rem 0.6rem;
+            border-radius: @borderRadiusPillShape;
+            font-weight: @fontWeightBold;
+            font-size: @fontSizeSmaller;
+
+            &.single-state {
+                color: @white;
+                background-color: @midBlue;
+            }
+
+            &.multi-state {
+                color: @fontColor;
+                background-color: @altBlue1;
+            }
+        }
+
+        .scope-icon {
+            height: 1.2rem;
+            margin-right: 0.2rem;
+            fill: none;
+            stroke: @white;
+
+            &.fill-type {
+                &:deep(.custom-fill) {
+                    fill: @white;
+                }
+            }
+
+            &.stroke-fill-type,
+            &.stroke-type {
+                stroke: @white;
+            }
+
+            &.globe-icon {
+                stroke: @fontColor;
             }
         }
     }
