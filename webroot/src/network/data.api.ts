@@ -181,6 +181,7 @@ export class DataApi {
      * @param  {string}           npdbCategory    The NPDB category name.
      * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
+     * @param  {string}           [licenseScope]  The license scope.
      * @return {Promise<object>}                  The server response.
      */
     public encumberLicense(
@@ -191,7 +192,8 @@ export class DataApi {
         encumbranceType,
         npdbCategory,
         npdbCategories,
-        startDate
+        startDate,
+        licenseScope
     ) {
         return licenseDataApi.encumberLicense(
             compact,
@@ -201,50 +203,56 @@ export class DataApi {
             encumbranceType,
             npdbCategory,
             npdbCategories,
-            startDate
+            startDate,
+            licenseScope
         );
     }
 
     /**
      * PATCH Un-encumber License for a licensee.
-     * @param  {string}           compact       The compact string ID (aslp, octp, coun).
-     * @param  {string}           licenseeId    The Licensee ID.
-     * @param  {string}           licenseState  The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType   The license type.
-     * @param  {string}           encumbranceId The Encumbrance ID.
-     * @param  {string}           endDate       The encumber end date.
-     * @return {Promise<object>}                The server response.
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           licenseState   The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           encumbranceId  The Encumbrance ID.
+     * @param  {string}           endDate        The encumber end date.
+     * @param  {string}           [licenseScope] The license scope.
+     * @return {Promise<object>}                 The server response.
      */
-    public unencumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceId, endDate) {
+    public unencumberLicense(compact, licenseeId, licenseState, licenseType, encumbranceId, endDate, licenseScope) {
         return licenseDataApi.unencumberLicense(
             compact,
             licenseeId,
             licenseState,
             licenseType,
             encumbranceId,
-            endDate
+            endDate,
+            licenseScope
         );
     }
 
     /**
      * POST Create License Investigation for a licensee.
-     * @param  {string}           compact      The compact string ID (aslp, octp, coun).
-     * @param  {string}           licenseeId   The Licensee ID.
-     * @param  {string}           licenseState The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType  The license type.
-     * @return {Promise<object>}               The server response.
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           licenseState   The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           [licenseScope] The license scope.
+     * @return {Promise<object>}                 The server response.
      */
     public createLicenseInvestigation(
         compact,
         licenseeId,
         licenseState,
-        licenseType
+        licenseType,
+        licenseScope
     ) {
         return licenseDataApi.createLicenseInvestigation(
             compact,
             licenseeId,
             licenseState,
-            licenseType
+            licenseType,
+            licenseScope
         );
     }
 
@@ -255,16 +263,26 @@ export class DataApi {
      * @param  {string}           licenseState    The 2-character state abbreviation for the License.
      * @param  {string}           licenseType     The license type.
      * @param  {string}           investigationId The Investigation ID.
+     * @param  {string}           [licenseScope]  The license scope.
      * @param  {object}           [encumbrance]   Optional encumbrance config to add to the privilege.
      * @return {Promise<object>}                  The server response.
      */
-    public updateLicenseInvestigation(compact, licenseeId, licenseState, licenseType, investigationId, encumbrance) {
+    public updateLicenseInvestigation(
+        compact,
+        licenseeId,
+        licenseState,
+        licenseType,
+        investigationId,
+        licenseScope,
+        encumbrance
+    ) {
         return licenseDataApi.updateLicenseInvestigation(
             compact,
             licenseeId,
             licenseState,
             licenseType,
             investigationId,
+            licenseScope,
             encumbrance
         );
     }

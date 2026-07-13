@@ -282,6 +282,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           npdbCategory    The NPDB category name.
      * @param  {Array<string>}    npdbCategories  The NPDB category list.
      * @param  {string}           startDate       The encumber start date.
+     * @param  {string}           [licenseScope]  The license scope.
      * @return {Promise<object>}                  The server response.
      */
     public async encumberLicense(
@@ -292,12 +293,14 @@ export class LicenseDataApi implements DataApiInterface {
         encumbranceType: string,
         npdbCategory: string,
         npdbCategories: Array<string>,
-        startDate: string
+        startDate: string,
+        licenseScope?: string
     ) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance`, {
             encumbranceType,
             clinicalPrivilegeActionCategories: npdbCategories,
             encumbranceEffectiveDate: startDate,
+            ...(licenseScope && { licenseScope }),
         });
 
         return serverResponse;
@@ -305,13 +308,14 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * PATCH Un-encumber License for a licensee.
-     * @param  {string}           compact       The compact string ID (aslp, octp, coun).
-     * @param  {string}           licenseeId    The Licensee ID.
-     * @param  {string}           licenseState  The 2-character state abbreviation for the License.
-     * @param  {string}           licenseType   The license type.
-     * @param  {string}           encumbranceId The Encumbrance ID.
-     * @param  {string}           endDate       The encumber end date.
-     * @return {Promise<object>}                The server response.
+     * @param  {string}           compact        The compact string ID (aslp, octp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           licenseState   The 2-character state abbreviation for the License.
+     * @param  {string}           licenseType    The license type.
+     * @param  {string}           encumbranceId  The Encumbrance ID.
+     * @param  {string}           endDate        The encumber end date.
+     * @param  {string}           [licenseScope] The license scope.
+     * @return {Promise<object>}                 The server response.
      */
     public async unencumberLicense(
         compact: string,
@@ -319,10 +323,12 @@ export class LicenseDataApi implements DataApiInterface {
         licenseState: string,
         licenseType: string,
         encumbranceId: string,
-        endDate: string
+        endDate: string,
+        licenseScope?: string
     ) {
         const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/encumbrance/${encumbranceId}`, {
             effectiveLiftDate: endDate,
+            ...(licenseScope && { licenseScope }),
         });
 
         return serverResponse;
@@ -334,15 +340,19 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           licenseeId      The Licensee ID.
      * @param  {string}           licenseState    The 2-character state abbreviation for the License.
      * @param  {string}           licenseType     The license type.
+     * @param  {string}           [licenseScope]  The license scope.
      * @return {Promise<object>}                  The server response.
      */
     public async createLicenseInvestigation(
         compact: string,
         licenseeId: string,
         licenseState: string,
-        licenseType: string
+        licenseType: string,
+        licenseScope?: string
     ) {
-        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation`, {});
+        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation`, {
+            ...(licenseScope && { licenseScope }),
+        });
 
         return serverResponse;
     }
@@ -354,11 +364,13 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}        licenseState    The 2-character state abbreviation for the License.
      * @param  {string}        licenseType     The license type.
      * @param  {string}        investigationId The Investigation ID.
+     * @param  {string}        [licenseScope]  The license scope.
      * @param  {object}        [encumbrance]   Optional encumbrance config to add to the license.
      *   @param  {string}        encumbranceType The discipline action type.
      *   @param  {string}        npdbCategory    The NPDB category name.
      *   @param  {Array<string>} npdbCategories  The NPDB category list.
      *   @param  {string}        startDate       The encumber start date.
+     *   @param  {string}        [licenseScope]  The license scope.
      * @return {Promise<object>}               The server response.
      */
     public async updateLicenseInvestigation(
@@ -367,21 +379,25 @@ export class LicenseDataApi implements DataApiInterface {
         licenseState: string,
         licenseType: string,
         investigationId: string,
+        licenseScope?: string,
         encumbrance?: {
             encumbranceType: string,
             npdbCategory: string,
             npdbCategories: Array<string>,
-            startDate: string
+            startDate: string,
+            licenseScope?: string,
         }
     ) {
         const serverResponse: any = await this.api.patch(`/v1/compacts/${compact}/providers/${licenseeId}/licenses/jurisdiction/${licenseState}/licenseType/${licenseType}/investigation/${investigationId}`, {
             action: 'close',
+            ...(licenseScope && { licenseScope }),
             ...(encumbrance
                 ? {
                     encumbrance: {
                         encumbranceType: encumbrance.encumbranceType,
                         clinicalPrivilegeActionCategories: encumbrance.npdbCategories,
                         encumbranceEffectiveDate: encumbrance.startDate,
+                        ...(licenseScope && { licenseScope }),
                     },
                 }
                 : {}

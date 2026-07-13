@@ -152,6 +152,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.licensee?.nameDisplay() || '';
     }
 
+    get privilegeTypeDisplay(): string {
+        return this.privilege?.licenseTypeDisplay() || '';
+    }
+
     get privilegeTypeAbbrev(): string {
         return this.privilege?.licenseTypeAbbreviation() || '';
     }
@@ -256,24 +260,41 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     get npdbCategoryOptions(): Array<{ value: string, name: string | ComputedRef<string> }> {
         const { isAppModeJcc, isAppModeCosmetology, isAppModeSocialWork } = this;
+        const includeList: Array<string> = [];
+        let isMultiSelect = true;
         let options = this.$tm('licensing.npdbTypes').map((npdbType) => ({
             value: npdbType.key,
             name: npdbType.name,
         }));
 
+        // Define the included keys per compact
         if (isAppModeJcc) {
-            const excludeList = ['Consumer Harm'];
+            includeList.push('Non-compliance With Requirements');
+            includeList.push('Criminal Conviction or Adjudication');
+            includeList.push('Confidentiality, Consent or Disclosure Violations');
+            includeList.push('Misconduct or Abuse');
+            includeList.push('Fraud, Deception, or Misrepresentation');
+            includeList.push('Unsafe Practice or Substandard Care');
+            includeList.push('Improper Supervision or Allowing Unlicensed Practice');
+            includeList.push('Other');
+        } else if (isAppModeCosmetology) {
+            isMultiSelect = false;
+            includeList.push('fraud');
+            includeList.push('consumer harm');
+            includeList.push('other');
+        } else if (isAppModeSocialWork) {
+            isMultiSelect = false;
+            includeList.push('fraud');
+            includeList.push('consumer harm');
+            includeList.push('other');
+        }
 
-            options = options.filter((option) => !excludeList.includes(option.value));
-        } else if (isAppModeCosmetology || isAppModeSocialWork) {
-            const includeList = ['Fraud, Deception, or Misrepresentation', 'Consumer Harm', 'Other'];
+        // Filter the compact-specific options
+        options = options.filter((option) => includeList.includes(option.value) || option.value === '');
 
-            options = options.filter((option) => includeList.includes(option.value));
-
-            options.unshift({
-                value: '',
-                name: computed(() => this.$t('common.selectOption')),
-            });
+        // For a single-select, include the blank option
+        if (!isMultiSelect) {
+            options.unshift({ value: '', name: computed(() => this.$t('common.selectOption')) });
         }
 
         return options;

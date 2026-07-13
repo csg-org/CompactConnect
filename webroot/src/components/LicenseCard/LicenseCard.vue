@@ -79,13 +79,26 @@
             </div>
         </div>
         <div class="license-heading-row">
-            <div class="license-type-abbrev">{{licenseTypeAbbrev}}</div>
+            <div class="license-type-abbrev">
+                <template v-if="isAppModeSocialWork">{{ licenseTypeDisplay }}</template>
+                <template v-else>{{ licenseTypeAbbrev }}</template>
+            </div>
             <div
                 v-if="!isPublicSearch"
                 class="license-status-description"
                 ref="statusDescription"
             >
                 {{statusDescriptionDisplay}}
+            </div>
+        </div>
+        <div v-if="isAppGroupModeMultiState" class="license-scope-container">
+            <div v-if="licenseScopeDisplay" class="license-scope" :class="{
+                    'single-state': isLicenseScopeSingleState,
+                    'multi-state': isLicenseScopeMultiState,
+                }">
+                <MapPinIcon v-if="isLicenseScopeSingleState" class="scope-icon map-pin-icon" />
+                <GlobeIcon v-else-if="isLicenseScopeMultiState" class="scope-icon globe-icon" />
+                <span>{{licenseScopeDisplay }}</span>
             </div>
         </div>
         <div class="license-info-grid">

@@ -852,9 +852,21 @@
             },
             {
                 "name": "Trabajador social titulado con licencia",
-                "key": "licensed bachelor social worker",
+                "key": "licensed bachelors social worker",
                 "compactKey": "socw",
                 "abbrev": "lbsw"
+            }
+        ],
+        "licenseScopes": [
+            {
+                "name": "Estado único",
+                "key": "single-state",
+                "compactKey": "socw"
+            },
+            {
+                "name": "Estado múltiple",
+                "key": "multi-state",
+                "compactKey": "socw"
             }
         ],
         "disciplineTypes": [
@@ -953,12 +965,20 @@
                 "key": "Improper Supervision or Allowing Unlicensed Practice"
             },
             {
+                "name": "Fraude",
+                "key": "fraud"
+            },
+            {
                 "name": "Daños al consumidor",
-                "key": "Consumer Harm"
+                "key": "consumer harm"
             },
             {
                 "name": "Otro",
                 "key": "Other"
+            },
+            {
+                "name": "Otro",
+                "key": "other"
             }
         ],
         "privilegePurchaseTitle": "Compra privada",
