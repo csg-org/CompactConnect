@@ -62,6 +62,9 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
             Username=email,
             UserAttributes=[{'Name': 'email', 'Value': email}],
             TemporaryPassword=_TEMP_STAFF_PASSWORD,
+            # these are fake test addresses (e.g. @smokeTestFakeEmail.com); suppress Cognito's welcome
+            # message so we don't send mail to (and bounce against) addresses that can't receive it
+            MessageAction='SUPPRESS',
         )
         logger.info(f"Created staff user, '{email}'. Setting password.")
         # set this to simplify login flow for user
