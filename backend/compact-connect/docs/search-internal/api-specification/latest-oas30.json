@@ -2,17 +2,28 @@
   "openapi": "3.0.1",
   "info": {
     "title": "SearchApi",
-    "version": "2025-12-02T19:49:45Z"
+    "version": "2026-04-06T22:57:43Z"
   },
   "servers": [
     {
-      "url": "https://search.beta.compactconnect.org"
+      "url": "https://search.beta.compactconnect.org",
+      "x-amazon-apigateway-endpoint-configuration": {
+        "disableExecuteApiEndpoint": true
+      }
     }
   ],
   "paths": {
-    "/v1/compacts/{compact}/providers/search": {
+    "/v1/compacts/{compact}/privileges/export": {
       "post": {
         "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "compact",
             "in": "path",
@@ -26,7 +37,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SandboSearctZ4sfzliddmr"
+                "$ref": "#/components/schemas/TestSSearcRYf5G4aSTDXd"
               }
             }
           },
@@ -38,18 +49,115 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SandboSearcRcmFGOzNZ5TZ"
+                  "$ref": "#/components/schemas/TestSSearcGlPW7cNyzeqp"
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "TestBackendPipelineStackTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer39D6272D": [
+              "aslp/readGeneral",
+              "octp/readGeneral",
+              "coun/readGeneral"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/providers/search": {
+      "post": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestSSearcu4mL449iif5D"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSSearcIjL4O2X3Q6NH"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TestBackendPipelineStackTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer39D6272D": [
+              "aslp/readGeneral",
+              "octp/readGeneral",
+              "coun/readGeneral"
+            ]
+          }
+        ]
       }
     }
   },
   "components": {
     "schemas": {
-      "SandboSearcRcmFGOzNZ5TZ": {
+      "TestSSearcu4mL449iif5D": {
+        "required": [
+          "query"
+        ],
+        "type": "object",
+        "properties": {
+          "search_after": {
+            "type": "array",
+            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
+          },
+          "size": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer",
+            "description": "Number of results to return"
+          },
+          "query": {
+            "type": "object",
+            "description": "The OpenSearch query body"
+          },
+          "from": {
+            "minimum": 0,
+            "type": "integer",
+            "description": "Starting document offset for pagination"
+          },
+          "sort": {
+            "type": "array",
+            "description": "Sort order for results (required for search_after pagination)",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "TestSSearcIjL4O2X3Q6NH": {
         "required": [
           "providers",
           "total"
@@ -1399,40 +1507,38 @@
           }
         }
       },
-      "SandboSearctZ4sfzliddmr": {
+      "TestSSearcGlPW7cNyzeqp": {
+        "required": [
+          "fileUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "fileUrl": {
+            "type": "string",
+            "description": "Presigned URL to download the CSV file containing the export results"
+          }
+        }
+      },
+      "TestSSearcRYf5G4aSTDXd": {
         "required": [
           "query"
         ],
         "type": "object",
         "properties": {
-          "search_after": {
-            "type": "array",
-            "description": "Sort values from the last hit of the previous page for cursor-based pagination"
-          },
-          "size": {
-            "maximum": 100,
-            "minimum": 1,
-            "type": "integer",
-            "description": "Number of results to return"
-          },
           "query": {
             "type": "object",
             "description": "The OpenSearch query body"
-          },
-          "from": {
-            "minimum": 0,
-            "type": "integer",
-            "description": "Starting document offset for pagination"
-          },
-          "sort": {
-            "type": "array",
-            "description": "Sort order for results (required for search_after pagination)",
-            "items": {
-              "type": "object"
-            }
           }
         },
         "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "TestBackendPipelineStackTestSearchAPIStackSearchApiStaffUsersPoolAuthorizer39D6272D": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "x-amazon-apigateway-authtype": "cognito_user_pools"
       }
     }
   },
