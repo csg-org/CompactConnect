@@ -4,7 +4,7 @@ from datetime import date, datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
-from cc_common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from common_test.test_constants import *
 from moto import mock_aws
 
@@ -381,6 +381,41 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         # creates one when none exists
         new_provider_record = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')[0]
         self.assertEqual(pre_existing_provider.serialize_to_database_record(), new_provider_record)
+
+    def test_migration_raises_when_new_provider_record_created_concurrently(self):
+        """The absent-check for the new provider's top-level record and the Put that creates one are not
+        atomic with each other. If a concurrent write creates that record in between, the Put must be
+        conditioned on the record still being absent so it fails instead of silently overwriting the
+        concurrently-created record.
+        """
+        self._put_full_old_provider_records()
+
+        # a competing write creates the new provider's top-level record after this migration's absent-check
+        # would have run, but before its transaction commits
+        pre_existing_provider = self.test_data_generator.put_default_provider_record_in_provider_table(
+            {'providerId': NEW_PROVIDER_ID, 'licenseJurisdiction': 'ky', 'privilegeJurisdictions': set()}
+        )
+
+        real_get_provider_top_level_record = self.config.data_client.get_provider_top_level_record
+
+        def _stale_absent_check_for_new_provider(*, compact, provider_id):
+            if str(provider_id) == NEW_PROVIDER_ID:
+                raise CCNotFoundException('Provider not found')
+            return real_get_provider_top_level_record(compact=compact, provider_id=provider_id)
+
+        with patch.object(
+            self.config.data_client, 'get_provider_top_level_record', side_effect=_stale_absent_check_for_new_provider
+        ):
+            with self.assertRaises(CCInternalException):
+                self._migrate()
+
+        # the conditioned Put failed, so nothing was written or deleted: the old provider is intact and the
+        # concurrently-created new provider record is untouched
+        self.assertEqual(1, len(self._get_records_of_type(DEFAULT_PROVIDER_ID, 'provider')))
+        self.assertEqual(1, len(self._get_records_of_type(DEFAULT_PROVIDER_ID, 'license')))
+        new_provider_records = self._get_records_of_type(NEW_PROVIDER_ID, 'provider')
+        self.assertEqual(1, len(new_provider_records))
+        self.assertEqual(pre_existing_provider.serialize_to_database_record(), new_provider_records[0])
 
     def test_no_op_when_old_provider_has_no_matching_license(self):
         self.test_data_generator.put_default_provider_record_in_provider_table()

@@ -2995,7 +2995,10 @@ class DataClient:
             create_transaction_items.append(self._build_put_transaction_item(rekeyed_record))
 
         # Create a top-level provider record for the new provider only if it does not already have one; a
-        # pre-existing record is never modified
+        # pre-existing record is never modified. The existence check and this Put are not atomic with each
+        # other, so the Put is conditioned on the record still being absent: if a concurrent write (e.g. a
+        # different migration into the same new provider id) creates one in between, this Put fails instead of
+        # silently clobbering it, and the transaction raises for SQS retry to re-read the now-current state.
         new_provider_record = self._build_new_provider_record_if_absent(
             compact=compact,
             new_provider_id=new_provider_id,
@@ -3003,7 +3006,11 @@ class DataClient:
             rekeyed_privileges=rekeyed_privileges,
         )
         if new_provider_record is not None:
-            create_transaction_items.append(self._build_put_transaction_item(new_provider_record))
+            create_transaction_items.append(
+                self._build_put_transaction_item(
+                    new_provider_record, condition={'ConditionExpression': 'attribute_not_exists(pk)'}
+                )
+            )
 
         # deletes: the moved records on the old provider, except the target license and the top-level provider
         # record (both handled in the final group).
@@ -3143,11 +3150,12 @@ class DataClient:
             deleting_items={pk: sorted(sks) for pk, sks in deleted_sks_by_pk.items()},
         )
 
-    def _build_put_transaction_item(self, record: CCDataClass) -> dict:
+    def _build_put_transaction_item(self, record: CCDataClass, condition: dict | None = None) -> dict:
         return {
             'Put': {
                 'TableName': self.config.provider_table_name,
                 'Item': TypeSerializer().serialize(record.serialize_to_database_record())['M'],
+                **(condition or {}),
             }
         }
 
