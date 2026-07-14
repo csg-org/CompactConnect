@@ -457,7 +457,7 @@ class SSNTable(Table):
             index=os.path.join('handlers', 'ingest.py'),
             handler='preprocess_license_ingest',
             role=self.ingest_role,
-            timeout=Duration.minutes(1),
+            timeout=Duration.minutes(2),
             environment={
                 'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 'SSN_TABLE_NAME': self.table_name,
@@ -487,9 +487,12 @@ class SSNTable(Table):
             self,
             'LicenseQueuePreprocessor',
             process_function=preprocess_handler,
-            visibility_timeout=Duration.minutes(5),
+            # SQS visibility timeout is set to 4x the function timeout,
+            # so a message stays invisible long enough to cover the full batch's processing before it can be
+            # redelivered. See https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html
+            visibility_timeout=Duration.minutes(8),
             retention_period=Duration.hours(12),
-            max_batching_window=Duration.minutes(5),
+            max_batching_window=Duration.minutes(1),
             max_receive_count=3,
             batch_size=50,
             # Use the SSN key for encryption to protect sensitive data

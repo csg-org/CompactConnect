@@ -47,7 +47,7 @@ class IngestStack(AppStack):
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'ingest.py'),
             handler='ingest_license_message',
-            timeout=Duration.minutes(1),
+            timeout=Duration.minutes(5),
             environment={
                 'EVENT_BUS_NAME': data_event_bus.event_bus_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
@@ -101,9 +101,12 @@ class IngestStack(AppStack):
             self,
             'V1Ingest',
             process_function=ingest_handler,
-            visibility_timeout=Duration.minutes(5),
+            # SQS visibility timeout is set to 4x the function timeout,
+            # so a message stays invisible long enough to cover the full batch's processing before it can be
+            # redelivered. See https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html
+            visibility_timeout=Duration.minutes(20),
             retention_period=Duration.hours(12),
-            max_batching_window=Duration.minutes(5),
+            max_batching_window=Duration.minutes(1),
             max_receive_count=3,
             batch_size=50,
             encryption_key=persistent_stack.shared_encryption_key,
