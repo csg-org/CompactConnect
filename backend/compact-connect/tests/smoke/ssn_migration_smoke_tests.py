@@ -126,12 +126,21 @@ def _upload_license_records(client_headers: dict, compact: str, jurisdiction: st
 
 
 def _create_test_app_client_headers(client_name: str, compact: str, jurisdiction: str) -> tuple[dict, str]:
-    """Create a state IT-system test app client and return (auth headers, client_id) for later cleanup."""
+    """Create a state IT-system test app client and return (auth headers, client_id) for later cleanup.
+
+    If token acquisition fails after the app client was created, the app client is deleted before the
+    error propagates - otherwise a caller would never receive a client_id to clean it up with.
+    """
     client_credentials = create_test_app_client(client_name, compact, jurisdiction)
-    client_headers = get_client_auth_headers(
-        client_credentials['client_id'], client_credentials['client_secret'], compact, jurisdiction
-    )
-    return client_headers, client_credentials['client_id']
+    client_id = client_credentials['client_id']
+    try:
+        client_headers = get_client_auth_headers(
+            client_id, client_credentials['client_secret'], compact, jurisdiction
+        )
+    except Exception:
+        delete_test_app_client(client_id)
+        raise
+    return client_headers, client_id
 
 
 def _get_provider_dynamo_records(compact: str, provider_id: str) -> list[dict]:
