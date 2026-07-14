@@ -487,9 +487,9 @@ class SSNTable(Table):
             self,
             'LicenseQueuePreprocessor',
             process_function=preprocess_handler,
-            # SQS visibility timeout is set to 4x the function timeout,
-            # so a message stays invisible long enough to cover the full batch's processing before it can be
-            # redelivered. See https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html
+            # SQS visibility timeout is larger than the function timeout,
+            # so a message stays invisible long enough to cover the full batch's processing, plus potential retries,
+            # before it can be redelivered. See https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html
             visibility_timeout=Duration.minutes(8),
             retention_period=Duration.hours(12),
             max_batching_window=Duration.minutes(1),
