@@ -108,7 +108,9 @@ If data is not available for a required field, that particular license record ca
 
 ### Can we upload the same licenses multiple times? What if their information changes?
 
-Yes. CompactConnect is designed to automatically detect and track changes to license records over time. When you upload a license record, CompactConnect will determine if the record currently exists in the CompactConnect database using the provided SSN to match with any existing licensee in the system, and create the record if not found. If the license record already exists, CompactConnect will check the differences between the existing record in the system and changes uploaded by the state, and apply the changes accordingly.
+Yes. CompactConnect is designed to automatically detect and track changes to license records over time. The Social Security Number (SSN) is the unique identifier CompactConnect uses to create and match individual practitioner accounts. When you upload a license record, CompactConnect uses the provided SSN to determine whether that practitioner already has an account in the system, creating one if not found. If the practitioner's account already exists, CompactConnect will check the differences between the existing license record and the changes uploaded by the state, and apply the changes accordingly.
+
+Because accounts are matched on SSN, simply changing the SSN in your state's system and then uploading the corrected license will **not** update the practitioner's existing CompactConnect account. It will create a brand new, separate account under the new SSN and leave the original account (and any privileges tied to it) unchanged. If a license was previously uploaded with an incorrect SSN, use the `previousSSN` field (see the field table above) when uploading the corrected SSN so CompactConnect can migrate the practitioner's existing account instead of creating a duplicate.
 
 ### Which of these license values will be publicly visible?
 
