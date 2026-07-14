@@ -7,6 +7,7 @@ from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, Tre
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus, EventPattern, Rule
 from aws_cdk.aws_events_targets import SqsQueue
+from aws_cdk.aws_logs import FilterPattern, MetricFilter
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
@@ -93,6 +94,33 @@ class IngestStack(AppStack):
             threshold=1,
             actions_enabled=True,
             alarm_description=f'{ingest_handler.node.path} failed to process a message batch',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+        # The invocation-error alarm above only catches failures that escape the handler. The sqs_handler
+        # reports per-message failures as batch item failures (the invocation still succeeds), and some paths
+        # (e.g. the best-effort S3 document move during an SSN-correction migration) log an ERROR without
+        # raising, so we also alarm directly on ERROR-level log lines to catch those.
+        error_log_metric = MetricFilter(
+            self,
+            'V1IngestErrorLogMetric',
+            log_group=ingest_handler.log_group,
+            metric_namespace='CompactConnect/Ingest',
+            metric_name='V1IngestErrors',
+            filter_pattern=FilterPattern.string_value(json_field='$.level', comparison='=', value='ERROR'),
+            metric_value='1',
+            default_value=0,
+        )
+        Alarm(
+            self,
+            'V1IngestErrorLogAlarm',
+            metric=error_log_metric.metric(statistic='Sum'),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'The ingest handler Lambda logged an ERROR level message. Investigate the logs '
+            f'for the {ingest_handler.function_name} lambda to determine the cause.',
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
