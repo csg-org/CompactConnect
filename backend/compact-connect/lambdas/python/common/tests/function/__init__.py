@@ -44,6 +44,7 @@ class TstFunction(TstLambdas):
         self.create_license_preprocessing_queue()
         self.create_rate_limiting_table()
         self.create_event_state_table()
+        self.create_provider_users_bucket()
 
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._compact_configuration_table.meta.client.get_waiter('table_exists')
@@ -204,6 +205,8 @@ class TstFunction(TstLambdas):
         os.environ['LICENSE_PREPROCESSING_QUEUE_URL'] = self._license_preprocessing_queue.url
 
     def delete_resources(self):
+        self._provider_user_bucket.objects.delete()
+        self._provider_user_bucket.delete()
         self._compact_configuration_table.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
@@ -366,6 +369,10 @@ class TstFunction(TstLambdas):
     @staticmethod
     def _create_write_permissions(jurisdiction: str):
         return {'actions': {'read'}, 'jurisdictions': {jurisdiction: {'write'}}}
+
+    def create_provider_users_bucket(self):
+        """Create the provider users S3 bucket, used by the SSN-correction migration to move documents."""
+        self._provider_user_bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['PROVIDER_USER_BUCKET_NAME'])
 
     def create_rate_limiting_table(self):
         """Create the rate limiting table for testing."""

@@ -17,6 +17,7 @@ class TstLambdas(TestCase):
                 'ALLOWED_ORIGINS': '["https://example.org", "http://localhost:1234"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
+                'PROVIDER_USER_BUCKET_NAME': 'provider-users-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
                 'EVENT_STATE_TABLE_NAME': 'event-state-table',
                 'PROVIDER_TABLE_NAME': 'provider-table',

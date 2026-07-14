@@ -2880,9 +2880,10 @@ class DataClient:
         - Full migration (sole license): the person-level records (military affiliations, provider update
           history) are moved to the new provider id as well, with military document keys re-pointed at the new
           provider id's keyspace, and the old provider's partition, including its top-level provider record, is
-          deleted. The caller is responsible for moving the practitioner's S3 documents (by listing the old
-          provider id's keyspace directly, not by relying on any single record type's tracked keys), deleting
-          the old Cognito user, and notifying the practitioner.
+          deleted. The practitioner's S3 documents are moved here as well (by listing the old provider id's
+          keyspace directly, not by relying on any single record type's tracked keys), before the DynamoDB
+          migration commits so the move is replay-safe. The caller is responsible for deleting the old Cognito
+          user and notifying the practitioner.
         - Partial (other licenses remain): the old provider keeps its person-level records and its top-level
           record is repopulated from its remaining licenses. The old provider id remains a valid (partial)
           practitioner until its remaining licenses are also corrected.
@@ -3049,6 +3050,18 @@ class DataClient:
             )
         final_transaction_items.append(self._build_delete_transaction_item(target_license_key))
 
+        # Move the practitioner's S3 documents to the new provider id's keyspace before committing the DynamoDB
+        # migration. Doing this before the commit (the point at which the idempotency guard flips, since the
+        # target license leaves the old partition) keeps the move replay-safe: a crash before the commit leaves
+        # the old provider intact so a retry re-detects the migration and re-runs the move (already-moved
+        # objects are a no-op), and a crash after the commit means the move already completed.
+        if full_migration:
+            self._move_provider_documents_to_new_keyspace(
+                compact=compact,
+                previous_provider_id=previous_provider_id,
+                new_provider_id=new_provider_id,
+            )
+
         all_transaction_items = [
             *create_transaction_items,
             *delete_transaction_items,
@@ -3149,6 +3162,46 @@ class DataClient:
             creating_items={pk: sorted(sks) for pk, sks in created_sks_by_pk.items()},
             deleting_items={pk: sorted(sks) for pk, sks in deleted_sks_by_pk.items()},
         )
+
+    def _move_provider_documents_to_new_keyspace(
+        self, *, compact: str, previous_provider_id: str, new_provider_id: str
+    ):
+        """Move every object under the old provider id's S3 keyspace to the new provider id's.
+
+        Rather than relying on any single record type's tracked document keys, this lists everything under the
+        old provider's keyspace prefix (`compact/{compact}/provider/{provider_id}/`) and moves it, changing only
+        the provider id segment of each key. This picks up every document type a provider might have uploaded,
+        including ones this migration logic has no other knowledge of.
+
+        Runs before the DynamoDB migration commits. Best-effort per object: a copy/delete failure is logged and
+        skipped rather than failing the migration, and re-running against an already-moved key is a no-op (the
+        source object is simply absent).
+        """
+        old_prefix = f'compact/{compact}/provider/{previous_provider_id}/'
+        new_prefix = f'compact/{compact}/provider/{new_provider_id}/'
+
+        paginator = self.config.s3_client.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=self.config.provider_user_bucket_name, Prefix=old_prefix):
+            for s3_object in page.get('Contents', []):
+                old_key = s3_object['Key']
+                new_key = new_prefix + old_key[len(old_prefix) :]
+                self._move_s3_object(old_key=old_key, new_key=new_key)
+
+    def _move_s3_object(self, *, old_key: str, new_key: str):
+        try:
+            self.config.s3_client.copy_object(
+                Bucket=self.config.provider_user_bucket_name,
+                CopySource={'Bucket': self.config.provider_user_bucket_name, 'Key': old_key},
+                Key=new_key,
+            )
+            self.config.s3_client.delete_object(Bucket=self.config.provider_user_bucket_name, Key=old_key)
+        except ClientError as e:
+            logger.error(
+                'Failed to move provider document to the new keyspace',
+                old_key=old_key,
+                new_key=new_key,
+                error=str(e),
+            )
 
     def _build_put_transaction_item(self, record: CCDataClass, condition: dict | None = None) -> dict:
         return {
