@@ -123,10 +123,12 @@ class TstAppABC(ABC):
             callbacks = []
             if domain_name is not None:
                 callbacks.append(f'https://{domain_name}/auth/callback/licensee/jcc')
+                callbacks.append(f'https://{domain_name}/auth/callback')
             if allow_local_ui:
                 # 3018 is default
                 local_ui_port = '3018' if not local_ui_port else local_ui_port
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback/licensee/jcc')
+                callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
             # Ensure our provider user pool is created with expected custom attributes
             provider_users_user_pool = self.get_resource_properties_by_logical_id(
@@ -210,10 +212,12 @@ class TstAppABC(ABC):
             callbacks = []
             if domain_name is not None:
                 callbacks.append(f'https://{domain_name}/auth/callback/staff/jcc')
+                callbacks.append(f'https://{domain_name}/auth/callback')
             if allow_local_ui:
                 # 3018 is default
                 local_ui_port = '3018' if not local_ui_port else local_ui_port
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback/staff/jcc')
+                callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
             # ensure we have one user pool defined in persistent stack for staff users (provider user pool defined in
             # provider users stack)

@@ -273,12 +273,16 @@ class UserPool(CdkUserPool):
         if ui_domain_name is not None:
             callback_urls.append(f'https://{ui_domain_name}{callback_path}')
             # TODO - remove after cutover to custom callback paths is deployed #noqa: FIX002
-            callback_urls.append(f'https://{ui_domain_name}/auth/callback')
+            if callback_path != '/auth/callback':
+                callback_urls.append(f'https://{ui_domain_name}/auth/callback')
         # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
         # authenticated actions.
         if environment_context.get('allow_local_ui', False):
             local_ui_port = environment_context.get('local_ui_port', '3018')
             callback_urls.append(f'http://localhost:{local_ui_port}{callback_path}')
+            # TODO - remove after cutover to custom callback paths is deployed #noqa: FIX002
+            if callback_path != '/auth/callback':
+                callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "

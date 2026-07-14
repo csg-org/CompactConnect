@@ -333,7 +333,9 @@ class TestUserPool(TestCase):
             {
                 'CallbackURLs': [
                     'https://app.example.com/auth/callback/staff/jcc',
+                    'https://app.example.com/auth/callback',
                     'http://localhost:3000/auth/callback/staff/jcc',
+                    'http://localhost:3000/auth/callback',
                 ],
             },
         )
