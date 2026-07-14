@@ -1,4 +1,5 @@
 # ruff: noqa: F403, F405 star import of test constants file
+from collections import Counter
 from datetime import date, datetime
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ NEW_PROVIDER_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 NEW_SSN_LAST_FOUR = '6789'
 # aslp compact license type that is not the default 'speech-language pathologist'
 OTHER_LICENSE_TYPE = 'audiologist'
+OTHER_LICENSE_TYPE_ABBREVIATION = 'aud'
 
 
 @mock_aws
@@ -121,6 +123,123 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
             self.assertIn(NEW_PROVIDER_ID, document_key)
             self.assertNotIn(DEFAULT_PROVIDER_ID, document_key)
 
+    def _put_records_associated_with_remaining_license(self):
+        """Store a second license of another type for the old provider, along with its own full set of
+        dependent records: a privilege, license/privilege update history, and adverse actions and
+        investigations against both the license and the privilege. In a partial migration targeting the
+        default license, none of these records may move.
+        """
+        self.test_data_generator.put_default_license_record_in_provider_table({'licenseType': OTHER_LICENSE_TYPE})
+        self.test_data_generator.put_default_privilege_record_in_provider_table({'licenseType': OTHER_LICENSE_TYPE})
+        self.test_data_generator.put_default_license_update_record_in_provider_table(
+            {'licenseType': OTHER_LICENSE_TYPE}
+        )
+        self.test_data_generator.put_default_privilege_update_record_in_provider_table(
+            {'licenseType': OTHER_LICENSE_TYPE}
+        )
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {
+                'actionAgainst': 'license',
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': OTHER_LICENSE_TYPE,
+                'licenseTypeAbbreviation': OTHER_LICENSE_TYPE_ABBREVIATION,
+                'adverseActionId': '11111111-1111-1111-1111-111111111111',
+            }
+        )
+        self.test_data_generator.put_default_adverse_action_record_in_provider_table(
+            {
+                'actionAgainst': 'privilege',
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'licenseType': OTHER_LICENSE_TYPE,
+                'licenseTypeAbbreviation': OTHER_LICENSE_TYPE_ABBREVIATION,
+                'adverseActionId': '22222222-2222-2222-2222-222222222222',
+            }
+        )
+        self.test_data_generator.put_default_investigation_record_in_provider_table(
+            {
+                'investigationAgainst': 'license',
+                'jurisdiction': DEFAULT_LICENSE_JURISDICTION,
+                'licenseType': OTHER_LICENSE_TYPE,
+                'licenseTypeAbbreviation': OTHER_LICENSE_TYPE_ABBREVIATION,
+                'investigationId': '33333333-3333-3333-3333-333333333333',
+            }
+        )
+        self.test_data_generator.put_default_investigation_record_in_provider_table(
+            {
+                'investigationAgainst': 'privilege',
+                'jurisdiction': DEFAULT_PRIVILEGE_JURISDICTION,
+                'licenseType': OTHER_LICENSE_TYPE,
+                'licenseTypeAbbreviation': OTHER_LICENSE_TYPE_ABBREVIATION,
+                'investigationId': '44444444-4444-4444-4444-444444444444',
+            }
+        )
+
+    def test_partial_migration_moves_only_records_associated_with_target_license(self):
+        """A partial migration must move ONLY the corrected license and its dependent records: the privileges
+        purchased against it, and the adverse action / investigation / update history records of the license
+        and those privileges. The remaining license's dependent records and the person-level records must all
+        stay in the old partition and must not be copied to the new one.
+        """
+        self._put_full_old_provider_records()
+        self._put_records_associated_with_remaining_license()
+
+        result = self._migrate()
+
+        self.assertTrue(result.migration_performed)
+        self.assertFalse(result.full_migration)
+
+        # the old provider keeps exactly the remaining license's records plus the person-level records
+        old_records = self._get_all_records_for_provider(DEFAULT_PROVIDER_ID)
+        expected_old_counts = {
+            'provider': 1,
+            'license': 1,
+            'privilege': 1,
+            'licenseUpdate': 1,
+            'privilegeUpdate': 1,
+            'adverseAction': 2,
+            'investigation': 2,
+            'militaryAffiliation': 1,
+            'providerUpdate': 1,
+        }
+        self.assertEqual(expected_old_counts, Counter(record['type'] for record in old_records))
+        # every license-scoped record left behind belongs to the remaining audiologist license
+        for record in old_records:
+            if 'licenseType' in record:
+                self.assertEqual(
+                    OTHER_LICENSE_TYPE,
+                    record['licenseType'],
+                    f'{record["type"]} record for the target license was left behind: {record["sk"]}',
+                )
+
+        # the new provider received exactly the target license's records, a newly-created top-level provider
+        # record, and the ssnCorrection update; no audiologist-license or person-level record was copied over
+        new_records = self._get_all_records_for_provider(NEW_PROVIDER_ID)
+        expected_new_counts = {
+            'provider': 1,
+            'license': 1,
+            'privilege': 1,
+            'licenseUpdate': 1,
+            'privilegeUpdate': 1,
+            'adverseAction': 2,
+            'investigation': 2,
+            'providerUpdate': 1,
+        }
+        self.assertEqual(expected_new_counts, Counter(record['type'] for record in new_records))
+        for record in new_records:
+            if 'licenseType' in record:
+                self.assertEqual(
+                    DEFAULT_LICENSE_TYPE,
+                    record['licenseType'],
+                    f'{record["type"]} record not associated with the target license was moved: {record["sk"]}',
+                )
+
+        # only the migrated target license picks up the corrected ssnLastFour; the license remaining with the
+        # old provider still carries the last four of the (incorrect) SSN it was uploaded under
+        migrated_license = next(record for record in new_records if record['type'] == 'license')
+        self.assertEqual(NEW_SSN_LAST_FOUR, migrated_license['ssnLastFour'])
+        remaining_license = next(record for record in old_records if record['type'] == 'license')
+        self.assertEqual(DEFAULT_SSN_LAST_FOUR, remaining_license['ssnLastFour'])
+
     def test_partial_migration_when_another_license_type_remains_in_same_state(self):
         self._put_full_old_provider_records()
         # a second license of another type in the same jurisdiction, with no privileges
@@ -184,6 +303,52 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         new_licenses = self._get_records_of_type(NEW_PROVIDER_ID, 'license')
         self.assertEqual(1, len(new_licenses))
         self.assertEqual(DEFAULT_LICENSE_JURISDICTION, new_licenses[0]['jurisdiction'])
+
+    def test_partial_migration_repopulates_old_provider_record_from_remaining_license(self):
+        """On a partial migration the old top-level provider record must be rebuilt from the license that
+        remains: its demographic and status fields, its jurisdiction, and the privilege jurisdictions of the
+        privileges that remain with it, while the provider's registration fields are preserved.
+        """
+        self.test_data_generator.put_default_provider_record_in_provider_table()
+        # the target license (oh/slp) with a privilege in ne, both of which migrate
+        self.test_data_generator.put_default_license_record_in_provider_table()
+        self.test_data_generator.put_default_privilege_record_in_provider_table()
+        # the remaining license (oh/audiologist) carries different demographic/status values than the target
+        # license, and has its own privilege in ky that stays behind
+        self.test_data_generator.put_default_license_record_in_provider_table(
+            {
+                'licenseType': OTHER_LICENSE_TYPE,
+                'givenName': 'Remaininggivenname',
+                'familyName': 'Remainingfamilyname',
+                'dateOfExpiration': date.fromisoformat('2035-01-01'),
+                'jurisdictionUploadedLicenseStatus': 'inactive',
+                'jurisdictionUploadedCompactEligibility': 'ineligible',
+            }
+        )
+        self.test_data_generator.put_default_privilege_record_in_provider_table(
+            {'licenseType': OTHER_LICENSE_TYPE, 'jurisdiction': 'ky'}
+        )
+
+        result = self._migrate()
+
+        self.assertTrue(result.migration_performed)
+        self.assertFalse(result.full_migration)
+
+        # the old provider record was repopulated from the remaining audiologist license
+        old_provider_record = self._get_records_of_type(DEFAULT_PROVIDER_ID, 'provider')[0]
+        self.assertEqual(DEFAULT_LICENSE_JURISDICTION, old_provider_record['licenseJurisdiction'])
+        self.assertEqual('Remaininggivenname', old_provider_record['givenName'])
+        self.assertEqual('Remainingfamilyname', old_provider_record['familyName'])
+        self.assertEqual('2035-01-01', old_provider_record['dateOfExpiration'])
+        self.assertEqual('inactive', old_provider_record['jurisdictionUploadedLicenseStatus'])
+        self.assertEqual('ineligible', old_provider_record['jurisdictionUploadedCompactEligibility'])
+
+        # privilege jurisdictions reflect only the privilege that stayed behind (ky), not the migrated one (ne)
+        self.assertEqual({'ky'}, set(old_provider_record['privilegeJurisdictions']))
+
+        # the provider's registration state is preserved through the repopulation
+        self.assertEqual(DEFAULT_REGISTERED_EMAIL_ADDRESS, old_provider_record['compactConnectRegisteredEmailAddress'])
+        self.assertEqual(DEFAULT_LICENSE_JURISDICTION, old_provider_record['currentHomeJurisdiction'])
 
     def test_migration_leaves_new_provider_pre_existing_records_untouched(self):
         # the new provider already has records from another state
@@ -309,6 +474,90 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         # previous holds the snapshot of the old provider record, including the old ssnLastFour
         self.assertEqual(DEFAULT_SSN_LAST_FOUR, ssn_correction['previous']['ssnLastFour'])
         self.assertEqual(NEW_SSN_LAST_FOUR, ssn_correction['updatedValues']['ssnLastFour'])
+        # the 'previous' object is a verbatim snapshot of the old provider record, so it must retain the OLD
+        # provider id (unlike migrated update records, whose embedded snapshots are re-keyed)
+        self.assertEqual(DEFAULT_PROVIDER_ID, ssn_correction['previous']['providerId'])
+
+    @classmethod
+    def _find_paths_containing_value(cls, value, target: str, path: str = '') -> list[str]:
+        """Recursively find the paths of every string field within a record that contains the target value."""
+        paths = []
+        if isinstance(value, dict):
+            for key, nested_value in value.items():
+                paths.extend(cls._find_paths_containing_value(nested_value, target, f'{path}.{key}' if path else key))
+        elif isinstance(value, (list, set, tuple)):
+            for index, nested_value in enumerate(value):
+                paths.extend(cls._find_paths_containing_value(nested_value, target, f'{path}[{index}]'))
+        elif isinstance(value, str) and target in value:
+            paths.append(path)
+        return paths
+
+    def test_migration_rekeys_every_provider_id_reference_except_ssn_correction_previous_snapshot(self):
+        """Every provider id reference in the migrated records — including the 'previous' snapshots embedded
+        in update records and military affiliation document keys — must be re-keyed to the new provider id.
+        The single intentional exception is the ssnCorrection provider update record, whose 'previous' object
+        snapshots the old provider record verbatim, old provider id included.
+        """
+        self._put_full_old_provider_records()
+
+        self._migrate()
+
+        new_records = self._get_all_records_for_provider(NEW_PROVIDER_ID)
+
+        # every record carries the new provider id
+        for record in new_records:
+            self.assertEqual(NEW_PROVIDER_ID, record['providerId'], f'providerId not re-keyed on {record["sk"]}')
+
+        # of the update records, only provider updates embed a provider id in their 'previous' snapshot
+        # (license/privilege update snapshots do not include one); the migrated provider update history
+        # record's snapshot must be re-keyed
+        migrated_provider_updates = [
+            record
+            for record in new_records
+            if record['type'] == 'providerUpdate' and record['updateType'] != 'ssnCorrection'
+        ]
+        self.assertEqual(1, len(migrated_provider_updates))
+        self.assertEqual(
+            NEW_PROVIDER_ID,
+            migrated_provider_updates[0]['previous']['providerId'],
+            f'previous.providerId not re-keyed on {migrated_provider_updates[0]["sk"]}',
+        )
+
+        # catch-all regression net: scan every field of every migrated record for the old provider id. It may
+        # appear in exactly one place across the entire new partition: the ssnCorrection update's 'previous'
+        # snapshot. Anything else is a field the migration failed to re-key.
+        ssn_correction_sk = next(record['sk'] for record in new_records if record.get('updateType') == 'ssnCorrection')
+        old_provider_id_locations = {
+            (record['sk'], path)
+            for record in new_records
+            for path in self._find_paths_containing_value(record, DEFAULT_PROVIDER_ID)
+        }
+        self.assertEqual({(ssn_correction_sk, 'previous.providerId')}, old_provider_id_locations)
+
+    def test_full_migration_raises_when_old_partition_contains_record_migration_cannot_move(self):
+        """A full migration deletes the old top-level provider record, so any record the migration does not
+        know how to move (e.g. a record type introduced after the migration logic was written) would be left
+        orphaned in a partition with no provider record. The migration must detect this and fail before
+        writing anything, leaving the old provider fully intact for a retry after a code fix.
+        """
+        self._put_full_old_provider_records()
+        self.config.provider_table.put_item(
+            Item={
+                'pk': f'{DEFAULT_COMPACT}#PROVIDER#{DEFAULT_PROVIDER_ID}',
+                'sk': f'{DEFAULT_COMPACT}#PROVIDER#some-future-record-type#1',
+                'type': 'someFutureRecordType',
+                'providerId': DEFAULT_PROVIDER_ID,
+                'compact': DEFAULT_COMPACT,
+            }
+        )
+        old_records_before = self._get_all_records_for_provider(DEFAULT_PROVIDER_ID)
+
+        with self.assertRaises(CCInternalException):
+            self._migrate()
+
+        # nothing was written or deleted
+        self.assertEqual(old_records_before, self._get_all_records_for_provider(DEFAULT_PROVIDER_ID))
+        self.assertEqual([], self._get_all_records_for_provider(NEW_PROVIDER_ID))
 
     def test_migration_raises_when_old_provider_record_modified_concurrently(self):
         self._put_full_old_provider_records()

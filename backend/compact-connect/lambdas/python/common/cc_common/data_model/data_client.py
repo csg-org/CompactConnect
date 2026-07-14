@@ -2923,13 +2923,7 @@ class DataClient:
             logger.info('Previous provider has no license matching the corrected upload; nothing to migrate')
             return SsnCorrectionMigrationResult(migration_performed=False)
 
-        try:
-            old_provider_data = old_provider_records.get_provider_record()
-        except CCInternalException:
-            # The top-level provider record was already deleted by a partially-completed full migration that
-            # is now being replayed; continue the migration without the concurrency fence
-            logger.warning('Old provider record not found; continuing replay of a partially-completed migration')
-            old_provider_data = None
+        old_top_level_provider_data = old_provider_records.get_provider_record()
 
         # The corrected license was the old provider's only license: this is a full migration of the old
         # provider (everything moves, and the old provider is deleted), as opposed to a partial migration
@@ -2940,6 +2934,18 @@ class DataClient:
         # them for their remaining licenses
         person_level_records = old_provider_records.get_person_level_records() if full_migration else []
         records_to_move = [*records_to_move, *person_level_records]
+
+        if full_migration:
+            # A full migration deletes the old provider's top-level record, so every record in the old
+            # partition must be selected for migration; any record the selectors above don't recognize (e.g. a
+            # record type introduced after this migration logic was written) would otherwise be silently
+            # orphaned in a partition with no provider record. Fail before writing anything so the old
+            # provider stays intact and the message retries visibly instead.
+            self._verify_full_migration_accounts_for_all_old_provider_records(
+                old_provider_records=old_provider_records,
+                records_to_move=records_to_move,
+                old_provider_data=old_top_level_provider_data,
+            )
 
         target_license = next(record for record in records_to_move if record.type == ProviderRecordType.LICENSE)
         target_license_key = self._provider_record_key(target_license)
@@ -3012,14 +3018,14 @@ class DataClient:
         # ssnCorrection record and fence are skipped (the run that deleted the record already wrote the
         # ssnCorrection), leaving only the target license delete.
         final_transaction_items = []
-        if old_provider_data is not None:
+        if old_top_level_provider_data is not None:
             ssn_correction_update = ProviderUpdateData.create_new(
                 {
                     'type': ProviderRecordType.PROVIDER_UPDATE,
                     'updateType': UpdateCategory.SSN_CORRECTION,
                     'providerId': new_provider_id,
                     'compact': compact,
-                    'previous': old_provider_data.to_dict(),
+                    'previous': old_top_level_provider_data.to_dict(),
                     'createDate': config.current_standard_datetime,
                     'updatedValues': {'ssnLastFour': new_ssn_last_four},
                 }
@@ -3027,7 +3033,7 @@ class DataClient:
             final_transaction_items.append(self._build_put_transaction_item(ssn_correction_update))
             final_transaction_items.append(
                 self._build_conditioned_old_provider_transaction_item(
-                    old_provider_data=old_provider_data,
+                    old_provider_data=old_top_level_provider_data,
                     old_provider_records=old_provider_records,
                     full_migration=full_migration,
                     jurisdiction=jurisdiction,
@@ -3045,6 +3051,7 @@ class DataClient:
             # Small migration: commit everything as one all-or-nothing transaction, with no cross-transaction
             # replay window to reason about. The fence's dateOfUpdate condition failing rolls the whole
             # transaction back and raises for SQS retry.
+            self._log_ssn_migration_transaction_items('single-atomic-transaction', all_transaction_items)
             self._execute_batched_transactions(all_transaction_items)
         else:
             # Large migration: the operations cannot fit in a single atomic transaction, so run them as
@@ -3052,16 +3059,19 @@ class DataClient:
             # split across a batch boundary, so the old provider record and target license are always torn
             # down together. The fence's dateOfUpdate condition failing raises for SQS retry; the retry
             # re-reads current state and takes the now-correct branch.
+            self._log_ssn_migration_transaction_items('create', create_transaction_items)
             self._execute_batched_transactions(create_transaction_items)
+            self._log_ssn_migration_transaction_items('delete', delete_transaction_items)
             self._execute_batched_transactions(delete_transaction_items)
+            self._log_ssn_migration_transaction_items('final', final_transaction_items)
             self._execute_batched_transactions(final_transaction_items)
 
         return SsnCorrectionMigrationResult(
             migration_performed=True,
             full_migration=full_migration,
             old_provider_registered_email=(
-                old_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
-                if full_migration and old_provider_data is not None
+                old_top_level_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
+                if full_migration and old_top_level_provider_data is not None
                 else None
             ),
         )
@@ -3071,6 +3081,67 @@ class DataClient:
         """Get the current pk/sk of a record, as regenerated by its schema."""
         serialized = record.serialize_to_database_record()
         return {'pk': serialized['pk'], 'sk': serialized['sk']}
+
+    def _verify_full_migration_accounts_for_all_old_provider_records(
+        self,
+        *,
+        old_provider_records: ProviderUserRecords,
+        records_to_move: list[CCDataClass],
+        old_provider_data: ProviderData | None,
+    ) -> None:
+        """
+        Verify that a full migration will leave nothing behind in the old provider's partition.
+
+        Compares every record read from the old partition against the records selected for migration plus the
+        top-level provider record (deleted by the final transaction). Raises before any write if a record is
+        unaccounted for, since deleting the top-level provider record while leaving other records in the
+        partition would orphan them with no provider to belong to.
+
+        :raises CCInternalException: If the old partition contains a record the migration would not move
+        """
+        accounted_keys = {
+            (key['pk'], key['sk']) for key in (self._provider_record_key(record) for record in records_to_move)
+        }
+        if old_provider_data is not None:
+            old_provider_key = self._provider_record_key(old_provider_data)
+            accounted_keys.add((old_provider_key['pk'], old_provider_key['sk']))
+
+        unaccounted_keys = sorted(
+            (record['pk'], record['sk'])
+            for record in old_provider_records.provider_records
+            if (record['pk'], record['sk']) not in accounted_keys
+        )
+        if unaccounted_keys:
+            logger.error(
+                'Old provider partition contains records this migration does not know how to move; '
+                'aborting before any writes',
+                unaccounted_record_keys=unaccounted_keys,
+            )
+            raise CCInternalException(
+                'SSN correction migration aborted: the old provider has records the migration would orphan'
+            )
+
+    @staticmethod
+    def _log_ssn_migration_transaction_items(phase: str, transaction_items: list[dict]) -> None:
+        """
+        Log the pk and sorted sks of the records a migration phase is about to create and delete, so the exact
+        set of items migrated between the two provider partitions can be reconstructed from the logs.
+        """
+        created_sks_by_pk = {}
+        deleted_sks_by_pk = {}
+        for item in transaction_items:
+            if 'Put' in item:
+                record = item['Put']['Item']
+                created_sks_by_pk.setdefault(record['pk']['S'], []).append(record['sk']['S'])
+            elif 'Delete' in item:
+                record_key = item['Delete']['Key']
+                deleted_sks_by_pk.setdefault(record_key['pk']['S'], []).append(record_key['sk']['S'])
+        logger.info(
+            'Executing SSN correction migration transactions',
+            phase=phase,
+            creating_items={pk: sorted(sks) for pk, sks in created_sks_by_pk.items()},
+            deleting_items={pk: sorted(sks) for pk, sks in deleted_sks_by_pk.items()},
+        )
 
     def _build_put_transaction_item(self, record: CCDataClass) -> dict:
         return {
