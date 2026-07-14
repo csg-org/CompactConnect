@@ -223,6 +223,30 @@ def _verify_all_records_migrated(
     print(f'Verified all {len(source_normalized)} migratable records now exist under provider {target_provider_id}')
 
 
+def _verify_license_ssn_last_four(*, records: list[dict], expected_ssn_last_four: str, license_type: str | None = None):
+    """Verify every license record (optionally filtered to a single license type) carries the expected
+    ssnLastFour. This is checked separately from _verify_all_records_migrated because ssnLastFour is
+    deliberately excluded from that comparison (it legitimately differs before and after a migration).
+    """
+    license_records = [
+        record
+        for record in records
+        if record['type'] == 'license' and (license_type is None or record['licenseType'] == license_type)
+    ]
+    if not license_records:
+        raise SmokeTestFailureException('No license record found to verify ssnLastFour against')
+    mismatched = [
+        f'{record["licenseType"]}: {record["ssnLastFour"]}'
+        for record in license_records
+        if record['ssnLastFour'] != expected_ssn_last_four
+    ]
+    if mismatched:
+        raise SmokeTestFailureException(
+            f'Expected ssnLastFour {expected_ssn_last_four} on all license records; found: {mismatched}'
+        )
+    print(f'Verified ssnLastFour {expected_ssn_last_four} on {len(license_records)} license record(s)')
+
+
 def _verify_all_s3_objects_migrated(*, source_objects: dict[str, bytes], compact: str, target_provider_id: str):
     """Verify every S3 object captured from the source keyspace exists, byte-for-byte, under the target keyspace."""
     target_objects = _get_provider_s3_objects(compact, target_provider_id)
@@ -339,18 +363,35 @@ def _migrate_test_provider_to_ssn(
 def _restore_test_provider_account(compact: str, provider_id: str, baseline_provider_record: dict):
     """Restore the shared test provider account after a full migration deleted its Cognito user.
 
-    Recreates the provider Cognito user pointed at the given provider id and restores the registration
-    fields on the top-level provider record, which are intentionally dropped by the migration (in real
-    usage the practitioner re-registers).
+    Recreates the provider Cognito user pointed at the given provider id (if it does not already exist) and
+    restores the registration fields on the top-level provider record (if they are not already present),
+    which are intentionally dropped by the migration (in real usage the practitioner re-registers). The two
+    are independent: either can already be in place (e.g. a previous restore attempt partially completed)
+    while the other still needs restoring, so each is checked and repaired on its own.
 
-    If the Cognito user already exists, this is a no-op: 'custom:compact' and 'custom:providerId' are
-    immutable Cognito custom attributes, so an existing user cannot be re-pointed at a different provider
-    id. A pre-existing user only happens when the full migration never actually deleted it (e.g. the test
-    failed before reaching that step, or this is being called defensively after a failure), in which case
-    the account is already valid and does not need restoring.
+    If the Cognito user already exists, its 'custom:providerId' attribute (immutable once set) is validated
+    against the expected provider id. A match means the account is already valid and is left as-is. A
+    mismatch means a stray user from an unrelated run is bound to the wrong provider id; since the attribute
+    cannot be repointed, this is raised for manual cleanup rather than silently left in a broken state.
     """
     username = config.test_provider_user_username
-    try:
+
+    if _cognito_user_exists(username):
+        existing_user = config.cognito_client.admin_get_user(
+            UserPoolId=config.cognito_provider_user_pool_id, Username=username
+        )
+        bound_provider_id = next(
+            (attr['Value'] for attr in existing_user['UserAttributes'] if attr['Name'] == 'custom:providerId'),
+            None,
+        )
+        if bound_provider_id != provider_id:
+            raise SmokeTestFailureException(
+                f'Test provider Cognito user already exists but is bound to provider id {bound_provider_id}, '
+                f'not the expected {provider_id}. custom:providerId is immutable, so this cannot be '
+                f'auto-repaired: manually delete the Cognito user {username} and re-run.'
+            )
+        print(f'Test provider Cognito user already exists and is correctly bound to provider id {provider_id}')
+    else:
         config.cognito_client.admin_create_user(
             UserPoolId=config.cognito_provider_user_pool_id,
             Username=username,
@@ -363,38 +404,35 @@ def _restore_test_provider_account(compact: str, provider_id: str, baseline_prov
             MessageAction='SUPPRESS',
         )
         print(f'Recreated test provider Cognito user, pointed at provider id {provider_id}')
-    except ClientError as e:
-        if e.response['Error']['Code'] != 'UsernameExistsException':
-            raise
-        print(
-            f'Test provider Cognito user already exists; leaving it as-is (custom:providerId is immutable, '
-            f'so it cannot be re-pointed at provider id {provider_id})'
+
+        config.cognito_client.admin_set_user_password(
+            UserPoolId=config.cognito_provider_user_pool_id,
+            Username=username,
+            Password=config.test_provider_user_password,
+            Permanent=True,
         )
-        return
+        # clear the cached provider token so the next /me call performs a fresh login against the restored user
+        os.environ.pop('TEST_PROVIDER_USER_ID_TOKEN', None)
 
-    config.cognito_client.admin_set_user_password(
-        UserPoolId=config.cognito_provider_user_pool_id,
-        Username=username,
-        Password=config.test_provider_user_password,
-        Permanent=True,
-    )
-    # clear the cached provider token so the next /me call performs a fresh login against the restored user
-    os.environ.pop('TEST_PROVIDER_USER_ID_TOKEN', None)
-
-    # restore the registration fields on the provider record, which populate_provider_record does not carry over
+    # restore the registration fields on the provider record, which populate_provider_record does not carry
+    # over, if they are not already present - independent of whether the Cognito user needed recreating
+    provider_key = {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'}
+    current_provider_record = get_provider_user_dynamodb_table().get_item(Key=provider_key).get('Item', {})
     registration_fields = {
         field: baseline_provider_record[field]
         for field in ('compactConnectRegisteredEmailAddress', 'currentHomeJurisdiction')
-        if field in baseline_provider_record
+        if field in baseline_provider_record and current_provider_record.get(field) != baseline_provider_record[field]
     }
     if registration_fields:
         get_provider_user_dynamodb_table().update_item(
-            Key={'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
+            Key=provider_key,
             UpdateExpression='SET ' + ', '.join(f'#{i} = :{i}' for i in range(len(registration_fields))),
             ExpressionAttributeNames={f'#{i}': field for i, field in enumerate(registration_fields)},
             ExpressionAttributeValues={f':{i}': value for i, value in enumerate(registration_fields.values())},
         )
         print(f'Restored registration fields on provider record {provider_id}: {sorted(registration_fields)}')
+    else:
+        print(f'Registration fields on provider record {provider_id} are already up to date; nothing to restore')
 
 
 def _cognito_user_exists(username: str) -> bool:
@@ -541,6 +579,14 @@ def test_full_ssn_migration_roundtrip():
     )
     staff_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
     client_headers, test_app_client_id = _create_test_app_client_headers(TEST_APP_CLIENT_NAME, compact, jurisdiction)
+    # Tracks the provider id that currently holds the test provider's records, so the 'finally' block below
+    # can restore the Cognito account against it no matter where in the test a failure occurs.
+    # _migrate_test_provider_to_ssn only returns a provider id after polling DynamoDB to confirm records
+    # actually live there, so this is always accurate: it starts at original_provider_id, and advances only
+    # when a migration step below actually completes (not merely gets attempted). Named distinctly from
+    # _migrate_test_provider_to_ssn's 'current_provider_id' parameter, which is an unrelated per-call
+    # argument (the id being migrated FROM), not this function-scoped tracker.
+    last_known_provider_id = original_provider_id
     try:
         # Step 3 + 4: migrate to the corrected SSN and verify everything moved
         migrated_provider_id = _migrate_test_provider_to_ssn(
@@ -552,6 +598,7 @@ def test_full_ssn_migration_roundtrip():
             corrected_ssn=FULL_MIGRATION_CORRECTED_SSN,
             previous_ssn=config.test_provider_mock_ssn,
         )
+        last_known_provider_id = migrated_provider_id
         migrated_records = _get_provider_dynamo_records(compact, migrated_provider_id)
         _verify_all_records_migrated(
             source_records=pre_migration_records,
@@ -564,6 +611,11 @@ def test_full_ssn_migration_roundtrip():
             for record in migrated_records
         ):
             raise SmokeTestFailureException('No ssnCorrection provider update record found after migration')
+        # ssnLastFour is deliberately excluded from _verify_all_records_migrated's record comparison (it
+        # legitimately differs pre/post migration), so it must be checked explicitly here
+        _verify_license_ssn_last_four(
+            records=migrated_records, expected_ssn_last_four=FULL_MIGRATION_CORRECTED_SSN[-4:]
+        )
         _verify_all_s3_objects_migrated(
             source_objects=pre_migration_s3_objects, compact=compact, target_provider_id=migrated_provider_id
         )
@@ -583,11 +635,16 @@ def test_full_ssn_migration_roundtrip():
                 f'Roundtrip migration did not return to the original provider id. '
                 f'Expected {original_provider_id}, got {returned_provider_id}'
             )
+        last_known_provider_id = returned_provider_id
+        returned_records = _get_provider_dynamo_records(compact, original_provider_id)
         _verify_all_records_migrated(
             source_records=pre_migration_records,
             source_provider_id=original_provider_id,
-            target_records=_get_provider_dynamo_records(compact, original_provider_id),
+            target_records=returned_records,
             target_provider_id=original_provider_id,
+        )
+        _verify_license_ssn_last_four(
+            records=returned_records, expected_ssn_last_four=config.test_provider_mock_ssn[-4:]
         )
         _verify_all_s3_objects_migrated(
             source_objects=pre_migration_s3_objects, compact=compact, target_provider_id=original_provider_id
@@ -595,12 +652,9 @@ def test_full_ssn_migration_roundtrip():
         print('Roundtrip migration completed; all records and documents are back under the original provider id')
     finally:
         # Restore the shared test provider account no matter what state the test failed in: point the
-        # Cognito user at whichever provider id currently holds the provider's records
-        current_ids = _query_provider_ids_by_name(
-            staff_headers, compact, provider_data['givenName'], provider_data['familyName']
-        )
-        restore_provider_id = current_ids[0] if current_ids else original_provider_id
-        _restore_test_provider_account(compact, restore_provider_id, baseline_provider_record)
+        # Cognito user at whichever provider id currently holds the provider's records (last_known_provider_id,
+        # tracked above - see its comment for why this is reliable without an extra lookup here).
+        _restore_test_provider_account(compact, last_known_provider_id, baseline_provider_record)
         delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_staff_user_sub, compact=compact)
         delete_test_app_client(test_app_client_id)
 
@@ -726,6 +780,12 @@ def test_partial_ssn_migration():
             raise SmokeTestFailureException(
                 f'Expected only the OTA license to remain under the old provider id; found: {old_license_types}'
             )
+        # the OTA license was never touched by the correction, so it must still carry the original SSN
+        _verify_license_ssn_last_four(
+            records=old_provider_records,
+            expected_ssn_last_four=PARTIAL_MIGRATION_ORIGINAL_SSN[-4:],
+            license_type=OTA_LICENSE_TYPE,
+        )
         print(f'Verified the OTA license and provider record remain under old provider {old_provider_id}')
 
         new_provider_records = _get_provider_dynamo_records(PARTIAL_MIGRATION_COMPACT, new_provider_id)
@@ -737,6 +797,12 @@ def test_partial_ssn_migration():
             raise SmokeTestFailureException(
                 f'Expected only the OT license under the new provider id; found: {new_license_types}'
             )
+        # the OT license was migrated with the corrected SSN, so it must carry the corrected last four
+        _verify_license_ssn_last_four(
+            records=new_provider_records,
+            expected_ssn_last_four=PARTIAL_MIGRATION_CORRECTED_SSN[-4:],
+            license_type=OT_LICENSE_TYPE,
+        )
         print(f'Verified the OT license and a new provider record exist under new provider {new_provider_id}')
         print('Partial migration smoke test passed.')
     finally:
