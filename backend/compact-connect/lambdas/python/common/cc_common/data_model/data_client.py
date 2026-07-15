@@ -3021,34 +3021,31 @@ class DataClient:
             if record is not target_license
         ]
 
-        # final: bounded to at most three items (ssnCorrection put, old provider fence, target license delete).
-        # On a defensive replay that already lost the old provider record, old_provider_data is None: the
-        # ssnCorrection record and fence are skipped (the run that deleted the record already wrote the
-        # ssnCorrection), leaving only the target license delete.
-        final_transaction_items = []
-        if old_top_level_provider_data is not None:
-            ssn_correction_update = ProviderUpdateData.create_new(
-                {
-                    'type': ProviderRecordType.PROVIDER_UPDATE,
-                    'updateType': UpdateCategory.SSN_CORRECTION,
-                    'providerId': new_provider_id,
-                    'compact': compact,
-                    'previous': old_top_level_provider_data.to_dict(),
-                    'createDate': config.current_standard_datetime,
-                    'updatedValues': {'ssnLastFour': new_ssn_last_four},
-                }
-            )
-            final_transaction_items.append(self._build_put_transaction_item(ssn_correction_update))
-            final_transaction_items.append(
-                self._build_conditioned_old_provider_transaction_item(
-                    old_provider_data=old_top_level_provider_data,
-                    old_provider_records=old_provider_records,
-                    full_migration=full_migration,
-                    jurisdiction=jurisdiction,
-                    license_type=license_type,
-                )
-            )
-        final_transaction_items.append(self._build_delete_transaction_item(target_license_key))
+        # final: exactly three items — the ssnCorrection provider-update record, the conditioned deletion
+        # (full migration) or repopulation (partial migration) of the old top-level provider record (the
+        # concurrency fence), and the target license delete.
+        ssn_correction_update = ProviderUpdateData.create_new(
+            {
+                'type': ProviderRecordType.PROVIDER_UPDATE,
+                'updateType': UpdateCategory.SSN_CORRECTION,
+                'providerId': new_provider_id,
+                'compact': compact,
+                'previous': old_top_level_provider_data.to_dict(),
+                'createDate': config.current_standard_datetime,
+                'updatedValues': {'ssnLastFour': new_ssn_last_four},
+            }
+        )
+        final_transaction_items = [
+            self._build_put_transaction_item(ssn_correction_update),
+            self._build_conditioned_old_provider_transaction_item(
+                old_provider_data=old_top_level_provider_data,
+                old_provider_records=old_provider_records,
+                full_migration=full_migration,
+                jurisdiction=jurisdiction,
+                license_type=license_type,
+            ),
+            self._build_delete_transaction_item(target_license_key),
+        ]
 
         # Move the practitioner's S3 documents to the new provider id's keyspace before committing the DynamoDB
         # migration. Doing this before the commit (the point at which the idempotency guard flips, since the
@@ -3091,7 +3088,7 @@ class DataClient:
             full_migration=full_migration,
             old_provider_registered_email=(
                 old_top_level_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
-                if full_migration and old_top_level_provider_data is not None
+                if full_migration
                 else None
             ),
         )
