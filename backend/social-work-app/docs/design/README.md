@@ -370,7 +370,9 @@ guarantees to be atomic even under concurrent invocations, ensuring no two pract
 counter value. Because the counter is only ever incremented and never read-then-written non-atomically, uniqueness
 is guaranteed regardless of concurrent ingest activity across jurisdictions.
 
-**Random segment:** The four-digit `<random>` segment is generated at CUID-assignment time and prepended to the
+##### Random segment
+
+The four-digit `<random>` segment is generated at CUID-assignment time and prepended to the
 claimed counter value. Its purpose is to make it harder for a member of the public to accidentally land on a
 *different* valid, issued CUID when a value is mis-keyed — for example when digits of the counter are transposed or
 mistyped. Because the counter alone is a short, dense, monotonically-increasing sequence, most nearby integers
