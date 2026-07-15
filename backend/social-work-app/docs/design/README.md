@@ -357,24 +357,41 @@ short and easy for a member of the public to read, share, and search by. Per Com
 - **Person-based, not license-based**, similar to the RID, persistent for mobility: the CUID will remain the same even if the practitioner's home state later changes under Compact rules (see [Home State Changes](#home-state-changes)).
 - **Permanently linked to the practitioner's RID** (`providerId`), so historical and future records remain consistent regardless of any home-state changes.
 
-**Format:** The CUID will use the format `SWC-<counter>`, where `<counter>` is a monotonically-increasing integer
-(e.g. `SWC-1`, `SWC-2`, `SWC-3`, ...). The counter will be tracked in a dedicated DynamoDB item keyed by
-`pk`/`sk` of `{compact}#CUID_COUNT`, and claimed atomically via a new `claim_cuid_number` method on the data
-client, following the same atomic-increment pattern used by `claim_privilege_number` for JCC privilege ID
+**Format:** The CUID will use the format `SWC-<random>-<counter>`, where `<random>` is a four-digit random segment
+(`0000`–`9999`) and `<counter>` is a monotonically-increasing integer (e.g. `SWC-4548-1`, `SWC-5126-2`,
+`SWC-8219-3`, ...). The `<counter>` segment is what guarantees uniqueness; the `<random>` segment is an additional
+guard described under [Random segment](#random-segment) below. The counter will be tracked in a dedicated DynamoDB
+item keyed by `pk`/`sk` of `{compact}#CUID_COUNT`, and claimed atomically via a new `claim_cuid_number` method on
+the data client, following the same atomic-increment pattern used by `claim_privilege_number` for JCC privilege ID
 generation (see
 [`claim_privilege_number`](../../../compact-connect/lambdas/python/common/cc_common/data_model/data_client.py)).
 Each call to `claim_cuid_number` issues an `ADD`-based `UpdateItem` against the counter item, which DynamoDB
 guarantees to be atomic even under concurrent invocations, ensuring no two practitioners are ever issued the same
-CUID. Because the counter is only ever incremented and never read-then-written non-atomically, uniqueness is
-guaranteed regardless of concurrent ingest activity across jurisdictions.
+counter value. Because the counter is only ever incremented and never read-then-written non-atomically, uniqueness
+is guaranteed regardless of concurrent ingest activity across jurisdictions.
+
+**Random segment:** The four-digit `<random>` segment is generated at CUID-assignment time and prepended to the
+claimed counter value. Its purpose is to make it harder for a member of the public to accidentally land on a
+*different* valid, issued CUID when a value is mis-keyed — for example when digits of the counter are transposed or
+mistyped. Because the counter alone is a short, dense, monotonically-increasing sequence, most nearby integers
+correspond to real CUIDs, so a simple typo can silently resolve to the wrong practitioner. Interposing four random
+digits means a transposition or single-character error must *also* match the random segment to collide with a real
+record, which is far less likely.
+
+The random segment is generated using Python's standard-library
+[`secrets`](https://docs.python.org/3/library/secrets.html) module — specifically `secrets.randbelow(10000)`,
+zero-padded to four digits (`f"{secrets.randbelow(10000):04d}"`). No third-party library is required.
+The random segment is **not** relied on for uniqueness (it is not checked for collisions and two
+practitioners may legitimately share the same four digits). Uniqueness is provided solely by the atomically-claimed
+`<counter>`. It is purely a defense against accidental mis-entry resolving to an unrelated practitioner.
 
 **Numbers may be skipped, but are never reused:** A counter value is atomically claimed *before* the rest of the
 CUID-assignment work (writing `publicCompactIdentifier` to the provider record) completes. If a failure occurs
 after a number is claimed but before it is successfully persisted to the provider record (for example, a
 transient network error or a Lambda retry), that claimed number is simply never used and no attempt is made to
 reclaim or reuse it. Consequently, CUIDs are guaranteed to be **unique** but not guaranteed to be **sequential** or
-**gap-free**. Consumers of the CUID (including the public) should not assume that `SWC-<n>` implies exactly `n`
-practitioners have been issued a CUID, only that each issued CUID is distinct.
+**gap-free**. Consumers of the CUID (including the public) should not assume that a CUID whose counter segment is
+`<n>` implies exactly `n` practitioners have been issued a CUID, only that each issued CUID is distinct.
 
 Once implemented, the CUID will be stored as the optional `publicCompactIdentifier` field on the top-level
 [Provider Record](#record-types-in-detail). Generation is planned as part of the license ingest flow in
