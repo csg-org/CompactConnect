@@ -376,7 +376,8 @@ claimed counter value. Its purpose is to make it harder for a member of the publ
 mistyped. Because the counter alone is a short, dense, monotonically-increasing sequence, most nearby integers
 correspond to real CUIDs, so a simple typo can silently resolve to the wrong practitioner. Interposing four random
 digits means a transposition or single-character error must *also* match the random segment to collide with a real
-record, which is far less likely.
+record, which is far less likely. This protection depends on CUID lookups always matching the **full** CUID string.
+partial or counter-only matches will not be supported.
 
 The random segment is generated using Python's standard-library
 [`secrets`](https://docs.python.org/3/library/secrets.html) module — specifically `secrets.randbelow(10000)`,
