@@ -134,9 +134,7 @@ def _create_test_app_client_headers(client_name: str, compact: str, jurisdiction
     client_credentials = create_test_app_client(client_name, compact, jurisdiction)
     client_id = client_credentials['client_id']
     try:
-        client_headers = get_client_auth_headers(
-            client_id, client_credentials['client_secret'], compact, jurisdiction
-        )
+        client_headers = get_client_auth_headers(client_id, client_credentials['client_secret'], compact, jurisdiction)
     except Exception:
         delete_test_app_client(client_id)
         raise
@@ -285,13 +283,27 @@ def _wait_until(description: str, predicate: Callable, max_wait_seconds: int = _
 
 
 def _query_provider_ids_by_name(staff_headers: dict, compact: str, given_name: str, family_name: str) -> list[str]:
-    """Query the providers endpoint by name and return all matching provider ids."""
-    query_response = requests.post(
-        url=f'{get_api_base_url()}/v1/compacts/{compact}/providers/query',
-        headers=staff_headers,
-        json={'query': {'familyName': family_name, 'givenName': given_name}},
-        timeout=10,
-    )
+    """Query the providers endpoint by name and return all matching provider ids.
+
+    The migration waits below poll this endpoint for many minutes - long enough for the staff user's access
+    token to expire, after which the endpoint returns 401. On a 401 we refresh the token (mutating
+    staff_headers in place so every caller holding this dict picks up the new token) and retry once, so the
+    long-running polling loops don't fail spuriously.
+    """
+
+    def _post():
+        return requests.post(
+            url=f'{get_api_base_url()}/v1/compacts/{compact}/providers/query',
+            headers=staff_headers,
+            json={'query': {'familyName': family_name, 'givenName': given_name}},
+            timeout=10,
+        )
+
+    query_response = _post()
+    if query_response.status_code == 401:
+        logger.info('Staff auth token expired (401); refreshing and retrying provider query')
+        staff_headers.update(get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL))
+        query_response = _post()
     if query_response.status_code != 200:
         logger.warning(f'Provider query failed with status {query_response.status_code}')
         return []
@@ -747,7 +759,11 @@ def test_partial_ssn_migration():
             ],
         )
         old_provider_id = wait_for_provider_creation(
-            staff_headers, PARTIAL_MIGRATION_COMPACT, PARTIAL_MIGRATION_GIVEN_NAME, PARTIAL_MIGRATION_FAMILY_NAME
+            staff_headers,
+            PARTIAL_MIGRATION_COMPACT,
+            PARTIAL_MIGRATION_GIVEN_NAME,
+            PARTIAL_MIGRATION_FAMILY_NAME,
+            staff_user_email=TEST_STAFF_USER_EMAIL,
         )
         _wait_until(
             f'both license records to exist under provider {old_provider_id}',
