@@ -4,4 +4,4 @@ coverage
 ruff
 pip-tools
 pip-audit
-Faker>=40.19.1, <41
+Faker>=40.28.1, <41
