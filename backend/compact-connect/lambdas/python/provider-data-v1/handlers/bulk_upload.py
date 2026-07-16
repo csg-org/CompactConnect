@@ -182,11 +182,12 @@ def process_bulk_upload_file(
                     logger.error('License contains unsupported fields', fields=list(raw_license.keys()), exc_info=e)
                     raise ValidationError('License contains unsupported fields') from e
                 # TODO - remove this flag once the feature is proven stable  # noqa: FIX002
-                if not ssn_correction_migration_flag_enabled:
-                    logger.info(
-                        'SSN-correction migration feature is disabled. Ignoring the previousSSN field if present'
+                if not ssn_correction_migration_flag_enabled and validated_license.get('previousSSN'):
+                    logger.warning(
+                        'SSN-correction migration feature is disabled. Skipping record with previousSSN',
+                        record_number=i + 1,
                     )
-                    validated_license.pop('previousSSN', None)
+                    continue
                 current_batch.append(schema.dump(validated_license))
 
                 # When batch is full, send to preprocessing queue

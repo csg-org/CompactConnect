@@ -58,11 +58,8 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
             license_entry = {**license_record, 'compact': compact, 'jurisdiction': jurisdiction}
             try:
                 # TODO - remove this flag once the feature is proven stable  # noqa: FIX002
-                if not ssn_correction_migration_flag_enabled:
-                    logger.info(
-                        'SSN-correction migration feature is disabled. Ignoring the previousSSN field if present'
-                    )
-                    license_entry.pop('previousSSN', None)
+                if not ssn_correction_migration_flag_enabled and license_entry.get('previousSSN'):
+                    raise CCInvalidRequestException('The previousSSN feature is not currently enabled')
                 licenses.append(schema.load(license_entry))
             except ValidationError as e:
                 logger.debug(

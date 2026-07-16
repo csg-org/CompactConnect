@@ -128,15 +128,28 @@ class TestLicenses(TstFunction):
         self.assertEqual('123-12-9876', message['previousSSN'])
 
     # TODO - remove this test once the LICENSE_SSN_CORRECTION_MIGRATION_FLAG scaffolding is removed # noqa: FIX002
-    def test_post_licenses_strips_previous_ssn_when_flag_disabled(self):
-        with patch('handlers.licenses.ssn_correction_migration_flag_enabled', False):
-            queue_messages = self._post_license_with_previous_ssn()
+    def test_post_licenses_rejects_previous_ssn_when_flag_disabled(self):
+        from handlers.licenses import post_licenses
 
-        self.assertEqual(1, len(queue_messages))
-        message = json.loads(queue_messages[0].body)
-        self.assertNotIn('previousSSN', message)
-        # the rest of the license data must be unaffected
-        self.assertEqual('123-12-1234', message['ssn'])
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.write'
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
+        with open('../common/tests/resources/api/license-post.json') as f:
+            license_data = json.load(f)
+        license_data['previousSSN'] = '123-12-9876'
+        event['body'] = json.dumps([license_data])
+
+        event = self._create_signed_event(event)
+
+        with patch('handlers.licenses.ssn_correction_migration_flag_enabled', False):
+            resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertEqual('The previousSSN feature is not currently enabled', body['message'])
+        self.assertEqual(0, len(self._license_preprocessing_queue.receive_messages(MaxNumberOfMessages=10)))
 
     def test_post_licenses_does_not_let_request_body_override_path_parameters(self):
         from handlers.licenses import post_licenses

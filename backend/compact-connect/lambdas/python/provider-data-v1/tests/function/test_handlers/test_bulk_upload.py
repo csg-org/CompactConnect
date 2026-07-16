@@ -157,15 +157,11 @@ class TestProcessObjects(TstFunction):
         self.assertEqual('123-45-9876', message_data['previousSSN'])
 
     # TODO - remove this test once the LICENSE_SSN_CORRECTION_MIGRATION_FLAG scaffolding is removed # noqa: FIX002
-    def test_bulk_upload_strips_previous_ssn_when_flag_disabled(self):
+    def test_bulk_upload_skips_record_with_previous_ssn_when_flag_disabled(self):
         with patch('handlers.bulk_upload.ssn_correction_migration_flag_enabled', False):
             messages = self._process_csv_with_previous_ssn()
 
-        self.assertEqual(1, len(messages))
-        message_data = json.loads(messages[0].body)
-        self.assertNotIn('previousSSN', message_data)
-        # the rest of the license data must be unaffected
-        self.assertEqual('123-45-6789', message_data['ssn'])
+        self.assertEqual(0, len(messages))
 
     def test_bulk_upload_strips_whitespace_from_string_fields(self):
         """Test that whitespace is stripped from all string fields in CSV data."""
