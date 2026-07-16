@@ -455,7 +455,7 @@ export class EmailNotificationService extends BaseEmailService {
         const report = this.getNewEmailTemplate();
         const subject = `Action Required: Registration Update - CompactConnect`;
         const registrationUrl = `${environmentVariableService.getUiBasePathUrl()}/register`;
-        const bodyText = `Your state licensing board recently corrected the information on one of your license records in the CompactConnect system. As part of this correction, you will need to register again with your license record.\n\nAny active privileges you currently hold remain active and unaffected by this change, so you may continue practicing under them.\n\nTo continue using CompactConnect, please register again using the link below:\n\n${registrationUrl}\n\nIf you have any questions, please contact your state licensing board.`;
+        const bodyText = `Your state licensing board recently corrected the information on one of your license records in the CompactConnect system. As part of this correction, you will need to register again with your license record.\n\nAny active compact privileges to practice you currently hold remain active and unaffected by this change, so you may continue practicing under them.\n\nTo continue using CompactConnect, please register again using the link below:\n\n${registrationUrl}\n\nIf you have any questions, please contact your state licensing board.`;
 
         this.insertHeader(report, 'Registration Update Required');
         this.insertBody(report, bodyText, 'center', true);
