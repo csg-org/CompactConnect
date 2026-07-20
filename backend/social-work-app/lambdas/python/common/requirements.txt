@@ -10,7 +10,7 @@ argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 aws-lambda-powertools==3.31.0
     # via -r requirements.in
-boto3==1.43.40
+boto3==1.43.46
     # via -r requirements.in
 botocore==1.43.46
     # via

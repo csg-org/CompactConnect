@@ -4,9 +4,9 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --no-emit-index-url --pip-args=None compact-connect/lambdas/python/feature-flag/requirements-dev.in
 #
-boto3==1.43.40
+boto3==1.43.46
     # via moto
-botocore==1.43.40
+botocore==1.43.51
     # via
     #   boto3
     #   moto
