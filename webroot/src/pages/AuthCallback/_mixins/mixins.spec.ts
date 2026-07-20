@@ -46,6 +46,7 @@ describe('AuthCallbackHandler mixin', async () => {
 
         await component.getTokens(AppModes.JCC, AuthTypes.STAFF, 'http://localhost', 'abc');
 
+        // If the tokens flow is successful then it ends by redirecting the user with a replaced router history state
         expect(component.$router.options.history.state.replaced).to.equal(true);
     });
     it('should verify a matching csrf state param', async () => {

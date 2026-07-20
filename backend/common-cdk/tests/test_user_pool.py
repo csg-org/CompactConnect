@@ -340,6 +340,42 @@ class TestUserPool(TestCase):
             },
         )
 
+    def test_ui_client_raises_when_local_ui_allowed_in_prod(self):
+        # A production environment must never enable localhost redirects. If an SSM parameter is accidentally set to
+        # 'allow_local_ui: true' for prod, synthesis should fail loudly rather than register a localhost callback.
+        pool = _make_pool(self.stack, environment_name='prod')
+        with self.assertRaisesRegex(ValueError, 'allow_local_ui'):
+            pool.add_ui_client(
+                ui_domain_name='app.example.com',
+                environment_context={'allow_local_ui': True, 'local_ui_port': '3000'},
+                read_attributes=None,
+                write_attributes=None,
+                callback_path='/auth/callback/staff/jcc',
+            )
+
+    def test_ui_client_prod_excludes_localhost(self):
+        # Even when the guard is not tripped (flag absent), prod must only ever register its hosted-domain redirects,
+        # never localhost.
+        pool = _make_pool(self.stack, environment_name='prod')
+        pool.add_ui_client(
+            ui_domain_name='app.example.com',
+            environment_context={},
+            read_attributes=None,
+            write_attributes=None,
+            callback_path='/auth/callback/staff/jcc',
+        )
+
+        template = Template.from_stack(self.stack)
+        template.has_resource_properties(
+            CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+            {
+                'CallbackURLs': [
+                    'https://app.example.com/auth/callback/staff/jcc',
+                    'https://app.example.com/auth/callback',
+                ],
+            },
+        )
+
     def test_add_default_app_client_domain_creates_cognito_domain(self):
         pool = _make_pool(self.stack)
         pool.add_default_app_client_domain('testprefix')
