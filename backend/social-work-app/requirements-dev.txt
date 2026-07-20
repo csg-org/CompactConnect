@@ -18,7 +18,7 @@ charset-normalizer==3.4.7
     # via requests
 click==8.4.1
     # via pip-tools
-coverage[toml]==7.15.0
+coverage[toml]==7.15.1
     # via
     #   -r requirements-dev.in
     #   pytest-cov
@@ -89,7 +89,7 @@ requests==2.34.2
     #   pip-audit
 rich==15.0.0
     # via pip-audit
-ruff==0.15.20
+ruff==0.15.21
     # via -r requirements-dev.in
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
