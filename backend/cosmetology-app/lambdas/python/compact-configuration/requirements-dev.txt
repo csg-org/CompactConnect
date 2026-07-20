@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url --no-strip-extras lambdas/python/compact-configuration/requirements-dev.in
 #
-boto3==1.43.40
+boto3==1.43.46
     # via moto
 botocore==1.43.46
     # via
