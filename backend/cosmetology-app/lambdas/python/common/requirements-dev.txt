@@ -17,11 +17,11 @@ aws-sam-translator==1.110.0
     # via cfn-lint
 aws-xray-sdk==2.15.0
     # via moto
-boto3==1.43.40
+boto3==1.43.46
     # via
     #   aws-sam-translator
     #   moto
-boto3-stubs[full]==1.43.40
+boto3-stubs[full]==1.43.46
     # via -r requirements-dev.in
 boto3-stubs-full==1.43.36
     # via boto3-stubs
