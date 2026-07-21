@@ -5,7 +5,8 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { AuthTypes, AppModes, AppGroupModes } from '@/app.config';
+import { AppModes, AppGroupModes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import mutations, { MutationTypes } from './global.mutations';
 import actions from './global.actions';
 

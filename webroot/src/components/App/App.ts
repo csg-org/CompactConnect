@@ -12,14 +12,13 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { RouteRecordName } from 'vue-router';
+import { AppModes, relativeTimeFormats } from '@/app.config';
 import {
     authStorage,
-    AppModes,
     AuthTypes,
-    relativeTimeFormats,
     AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
-} from '@/app.config';
+} from '@utils/auth';
 import { CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';

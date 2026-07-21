@@ -7,14 +7,14 @@
 
 import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
+import { AppModes } from '@/app.config';
 import {
     authStorage,
-    AppModes,
     AuthTypes,
     tokens,
     AUTH_TYPE,
     autoLogoutConfig
-} from '@/app.config';
+} from '@utils/auth';
 import localStorage from '@store/local.storage';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';

@@ -8,12 +8,8 @@
 import { createRouter, createWebHistory, RouteLocationNormalized as Route } from 'vue-router';
 import routes from '@router/routes';
 import store from '@/store';
-import {
-    AppModes,
-    authStorage,
-    AUTH_TYPE,
-    AuthTypes
-} from '@/app.config';
+import { AppModes } from '@/app.config';
+import { authStorage, AUTH_TYPE, AuthTypes } from '@utils/auth';
 import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 
 const router = createRouter({

@@ -316,6 +316,7 @@ module.exports = {
                 '@router': path.join(__dirname, '/src/router'),
                 '@store': path.join(__dirname, '/src/store'),
                 '@styles.common': path.join(__dirname, '/src/styles.common/'),
+                '@utils': path.join(__dirname, '/src/utils'),
                 '@tests': path.join(__dirname, '/tests'),
             },
         },

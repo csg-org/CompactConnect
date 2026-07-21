@@ -6,7 +6,7 @@
 //
 
 /* eslint-disable max-classes-per-file */
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import { deleteUndefinedProperties } from '@models/_helpers';
 import { StatsigClient } from '@statsig/js-client';
 

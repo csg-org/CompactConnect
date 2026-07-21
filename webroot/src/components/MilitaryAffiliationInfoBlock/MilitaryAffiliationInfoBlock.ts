@@ -12,7 +12,8 @@ import {
     mixins
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
-import { AuthTypes, MilitaryAuditStatusTypes } from '@/app.config';
+import { MilitaryAuditStatusTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';

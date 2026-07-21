@@ -20,6 +20,7 @@ import moment from 'moment';
 import momentTz from 'moment-timezone';
 import sinon from 'sinon';
 import { VirtualConsole } from 'jsdom';
+import * as nodeCrypto from 'crypto';
 
 // Stabilize browser language default for tests
 try {
@@ -56,6 +57,17 @@ window.matchMedia = sinon.stub().callsFake((query) => ({
     removeEventListener: sinon.spy(),
     dispatchEvent: sinon.spy(),
 }));
+
+// Polyfill WebCrypto SubtleCrypto for tests (jsdom does not implement crypto.subtle, used for PKCE hashing)
+try {
+    const { webcrypto } = (nodeCrypto as any);
+
+    if (!globalThis.crypto?.subtle && webcrypto) {
+        Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true, writable: true });
+    }
+} catch (err) {
+    // ignore if not configurable in this environment
+}
 
 // Silence JSDOM bug of not implementing navigation but also not supporting config or suppression
 // https://github.com/jsdom/jsdom/issues/2112#issuecomment-673540137

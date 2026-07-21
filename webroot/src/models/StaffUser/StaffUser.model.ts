@@ -8,7 +8,8 @@
 /* eslint-disable max-classes-per-file */
 
 import { deleteUndefinedProperties } from '@models/_helpers';
-import { AuthTypes, Permission } from '@/app.config';
+import { Permission } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import { Compact, CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { User, InterfaceUserCreate } from '@models/User/User.model';

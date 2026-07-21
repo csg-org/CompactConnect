@@ -7,13 +7,11 @@
 
 import { mountShallow } from '@tests/helpers/setup';
 import PublicDashboard from '@pages/PublicDashboard/PublicDashboard.vue';
-import {
-    AppModes,
-    AuthTypes,
-    getCognitoConfig,
-    getHostedLoginUri
-} from '@/app.config';
+import { AppModes } from '@/app.config';
+import { AuthTypes, getCognitoConfig, getHostedLoginUri } from '@utils/auth';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { nextTick } from 'vue';
+import { flushPromises } from '@vue/test-utils';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
@@ -53,30 +51,77 @@ describe('PublicDashboard page', async () => {
             scopes: '',
             clientId: '',
             authDomain: '',
-            state: '',
         });
     });
     it('should use fallback idp path in app.config', async () => {
         expect(getHostedLoginUri(AuthTypes.LICENSEE)).to.contain('/login');
     });
-    it('should get correct hosted login uri config for staff', async () => {
+    it('should get correct hosted login uri config for staff (jcc)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
         const component = wrapper.vm;
 
+        await nextTick();
+        await flushPromises();
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
         expect(component.hostedLoginUriStaff).to.contain('/login');
         expect(component.hostedLoginUriStaff).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
-        expect(component.hostedLoginUriStaff).to.contain('&state=staff');
+        expect(component.hostedLoginUriStaff).to.contain(`&state=${component.csrfState}`);
+        expect(component.hostedLoginUriStaff).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(component.hostedLoginUriStaff).to.contain('&code_challenge_method=S256');
         expect(component.hostedLoginUriStaff).to.contain('&response_type=code');
-        expect(component.hostedLoginUriStaff).to.contain('%2Fauth%2Fcallback');
+        expect(component.hostedLoginUriStaff).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fjcc');
     });
-    it('should get correct hosted login uri config for licensee', async () => {
+    it('should get correct hosted login uri config for staff (cosmetology)', async () => {
         const wrapper = await mountShallow(PublicDashboard);
         const component = wrapper.vm;
 
+        await nextTick();
+        await flushPromises();
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
+        expect(component.hostedLoginUriStaffCosmo).to.contain('/login');
+        expect(component.hostedLoginUriStaffCosmo).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(component.hostedLoginUriStaffCosmo).to.contain(`&state=${component.csrfState}`);
+        expect(component.hostedLoginUriStaffCosmo).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(component.hostedLoginUriStaffCosmo).to.contain('&code_challenge_method=S256');
+        expect(component.hostedLoginUriStaffCosmo).to.contain('&response_type=code');
+        expect(component.hostedLoginUriStaffCosmo).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fcosmo');
+    });
+    it('should get correct hosted login uri config for staff (social work)', async () => {
+        const wrapper = await mountShallow(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
+        expect(component.hostedLoginUriStaffSw).to.contain('/login');
+        expect(component.hostedLoginUriStaffSw).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
+        expect(component.hostedLoginUriStaffSw).to.contain(`&state=${component.csrfState}`);
+        expect(component.hostedLoginUriStaffSw).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(component.hostedLoginUriStaffSw).to.contain('&code_challenge_method=S256');
+        expect(component.hostedLoginUriStaffSw).to.contain('&response_type=code');
+        expect(component.hostedLoginUriStaffSw).to.contain('%2Fauth%2Fcallback%2Fstaff%2Fsocialwork');
+    });
+    it('should get correct hosted login uri config for licensee (jcc)', async () => {
+        const wrapper = await mountShallow(PublicDashboard);
+        const component = wrapper.vm;
+
+        await nextTick();
+        await flushPromises();
+
+        expect(component.csrfState).to.be.a('string').with.length.above(0);
+        expect(component.pkceChallenge).to.be.a('string').with.length.above(0);
         expect(component.hostedLoginUriLicensee).to.contain('/login');
         expect(component.hostedLoginUriLicensee).to.contain('scope=email%20openid%20phone%20profile%20aws.cognito.signin.user.admin');
-        expect(component.hostedLoginUriLicensee).to.contain('&state=licensee');
+        expect(component.hostedLoginUriLicensee).to.contain(`&state=${component.csrfState}`);
+        expect(component.hostedLoginUriLicensee).to.contain(`&code_challenge=${component.pkceChallenge}`);
+        expect(component.hostedLoginUriLicensee).to.contain('&code_challenge_method=S256');
         expect(component.hostedLoginUriLicensee).to.contain('&response_type=code');
-        expect(component.hostedLoginUriLicensee).to.contain('%2Fauth%2Fcallback');
+        expect(component.hostedLoginUriLicensee).to.contain('%2Fauth%2Fcallback%2Flicensee%2Fjcc');
     });
 });

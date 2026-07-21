@@ -4,7 +4,8 @@
 //
 //  Created by InspiringApps on 4/12/2020.
 //
-import { AuthTypes, Permission } from '@/app.config';
+import { Permission } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import { StaffUser, StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';

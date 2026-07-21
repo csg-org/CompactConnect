@@ -108,6 +108,7 @@ class UserPool(CdkUserPool):
         )
 
         self.security_profile = security_profile
+        self.environment_name = environment_name
 
         # Configure notification emails if provided
         self.notification_from_email = notification_from_email
@@ -256,6 +257,7 @@ class UserPool(CdkUserPool):
         read_attributes: ClientAttributes,
         write_attributes: ClientAttributes,
         ui_scopes: list[OAuthScope] = None,
+        callback_path: str = '/auth/callback',
     ):
         """
         Creates an app client for the UI to authenticate with the user pool.
@@ -265,15 +267,31 @@ class UserPool(CdkUserPool):
         :param read_attributes: The attributes that the UI can read.
         :param write_attributes: The attributes that the UI can write.
         :param ui_scopes: OAuth scopes that are allowed with this client
+        :param callback_path: The OAuth redirect path the UI uses for this client. Each user scope/compact has its own
+            callback page (e.g. '/auth/callback/staff/jcc'), so this must match the redirect_uri the UI sends.
         """
+        # localhost redirects are only ever appropriate for non-production environments. Fail loudly if a production
+        # environment is misconfigured (e.g. an SSM parameter accidentally set to 'allow_local_ui: true') rather than
+        # silently registering a localhost URL on the production app client.
+        if self.environment_name == 'prod' and environment_context.get('allow_local_ui', False):
+            raise ValueError("'allow_local_ui' must not be enabled in the production environment")
+        # Defensive fallback: even if the guard above is ever refactored, never allow localhost redirects in production.
+        allow_local_ui = environment_context.get('allow_local_ui', False) and self.environment_name != 'prod'
+
         callback_urls = []
         if ui_domain_name is not None:
-            callback_urls.append(f'https://{ui_domain_name}/auth/callback')
+            callback_urls.append(f'https://{ui_domain_name}{callback_path}')
+            # TODO - remove after cutover to custom callback paths is deployed #noqa: FIX002
+            if callback_path != '/auth/callback':
+                callback_urls.append(f'https://{ui_domain_name}/auth/callback')
         # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
         # authenticated actions.
-        if environment_context.get('allow_local_ui', False):
+        if allow_local_ui:
             local_ui_port = environment_context.get('local_ui_port', '3018')
-            callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
+            callback_urls.append(f'http://localhost:{local_ui_port}{callback_path}')
+            # TODO - remove after cutover to custom callback paths is deployed #noqa: FIX002
+            if callback_path != '/auth/callback':
+                callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
@@ -287,7 +305,7 @@ class UserPool(CdkUserPool):
             logout_urls.append(f'https://{ui_domain_name}/Logout')
         # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
         # authenticated actions.
-        if environment_context.get('allow_local_ui', False):
+        if allow_local_ui:
             local_ui_port = environment_context.get('local_ui_port', '3018')
             logout_urls.append(f'http://localhost:{local_ui_port}/Login')
             logout_urls.append(f'http://localhost:{local_ui_port}/Dashboard')

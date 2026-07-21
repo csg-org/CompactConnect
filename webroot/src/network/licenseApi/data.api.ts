@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 6/18/24.
 //
 
-import { authStorage, tokens } from '@/app.config';
+import { authStorage, tokens } from '@utils/auth';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import {
     requestError,

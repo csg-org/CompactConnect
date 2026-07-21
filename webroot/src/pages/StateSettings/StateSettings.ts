@@ -6,7 +6,7 @@
 //
 
 import { Component, Vue, Watch } from 'vue-facing-decorator';
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 import Section from '@components/Section/Section.vue';
 import StateSettingsConfig from '@components/StateSettingsConfig/StateSettingsConfig.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';

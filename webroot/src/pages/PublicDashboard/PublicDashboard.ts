@@ -6,15 +6,17 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { AppModes } from '@/app.config';
 import {
     authStorage,
-    AppModes,
     AuthTypes,
     getHostedLoginUri,
+    createAuthCsrfState,
+    createPkceChallenge,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE,
     AUTH_LOGIN_GOTO_COMPACT
-} from '@/app.config';
+} from '@utils/auth';
 import Card from '@components/Card/Card.vue';
 import SearchIcon from '@components/Icons/Search/Search.vue';
 import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
@@ -36,9 +38,18 @@ import { CompactType } from '@models/Compact/Compact.model';
 })
 export default class DashboardPublic extends Vue {
     //
+    // Data
+    //
+    csrfState = '';
+    pkceChallenge = '';
+
+    //
     // Lifecycle
     //
-    created(): void {
+    async created(): Promise<void> {
+        this.csrfState = createAuthCsrfState();
+        this.pkceChallenge = await createPkceChallenge();
+
         if (this.bypassQuery) {
             this.bypassRedirect();
         }
@@ -68,19 +79,43 @@ export default class DashboardPublic extends Vue {
     }
 
     get hostedLoginUriStaff(): string {
-        return getHostedLoginUri(AppModes.JCC, AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(
+            AppModes.JCC,
+            AuthTypes.STAFF,
+            this.hostedLoginUriPath,
+            this.csrfState,
+            this.pkceChallenge
+        );
     }
 
     get hostedLoginUriStaffCosmo(): string {
-        return getHostedLoginUri(AppModes.COSMETOLOGY, AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(
+            AppModes.COSMETOLOGY,
+            AuthTypes.STAFF,
+            this.hostedLoginUriPath,
+            this.csrfState,
+            this.pkceChallenge
+        );
     }
 
     get hostedLoginUriStaffSw(): string {
-        return getHostedLoginUri(AppModes.SOCIAL_WORK, AuthTypes.STAFF, this.hostedLoginUriPath);
+        return getHostedLoginUri(
+            AppModes.SOCIAL_WORK,
+            AuthTypes.STAFF,
+            this.hostedLoginUriPath,
+            this.csrfState,
+            this.pkceChallenge
+        );
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(AppModes.JCC, AuthTypes.LICENSEE, this.hostedLoginUriPath);
+        return getHostedLoginUri(
+            AppModes.JCC,
+            AuthTypes.LICENSEE,
+            this.hostedLoginUriPath,
+            this.csrfState,
+            this.pkceChallenge
+        );
     }
 
     get compactTypes(): typeof CompactType {

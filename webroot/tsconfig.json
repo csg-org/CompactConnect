@@ -32,6 +32,7 @@
             "@router/*": [ "src/router/*" ],
             "@store/*": [ "src/store/*" ],
             "@styles.common/*": [ "src/styles.common/*" ],
+            "@utils/*": [ "src/utils/*" ],
             "@tests/*": [ "tests/*" ],
         },
         "lib": [

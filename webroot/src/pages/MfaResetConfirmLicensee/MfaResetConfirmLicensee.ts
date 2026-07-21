@@ -11,14 +11,16 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
+import { AppModes } from '@/app.config';
 import {
     authStorage,
-    AppModes,
     AuthTypes,
     getHostedLoginUri,
+    createAuthCsrfState,
+    createPkceChallenge,
     AUTH_LOGIN_GOTO_PATH,
     AUTH_LOGIN_GOTO_PATH_AUTH_TYPE
-} from '@/app.config';
+} from '@utils/auth';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -46,10 +48,17 @@ class MfaResetConfirmLicensee extends Vue {
     isLoading = true;
     isSuccess = false;
     serverMessage = '';
+    csrfState = '';
+    pkceChallenge = '';
 
     //
     // Lifecycle
     //
+    async created(): Promise<void> {
+        this.csrfState = createAuthCsrfState();
+        this.pkceChallenge = await createPkceChallenge();
+    }
+
     mounted(): void {
         this.initRecaptcha();
     }
@@ -80,7 +89,7 @@ class MfaResetConfirmLicensee extends Vue {
     }
 
     get hostedLoginUriLicensee(): string {
-        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login');
+        return getHostedLoginUri(this.appMode, AuthTypes.LICENSEE, '/login', this.csrfState, this.pkceChallenge);
     }
 
     get isUsingMockApi(): boolean {

@@ -161,10 +161,10 @@
                                 },
                                 {
                                     "key": "redirect_uri",
-                                    "value": "http://localhost:3018/auth/callback"
+                                    "value": "http://localhost:3018/auth/callback/staff/socialwork"
                                 }
                             ],
-                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=f23723c3-1d21-40e1-89ec-64807d2d658d&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:3018/auth/callback"
+                            "raw": "{{staffUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=f23723c3-1d21-40e1-89ec-64807d2d658d&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:3018/auth/callback/staff/socialwork"
                         }
                     },
                     "response": []
@@ -237,14 +237,14 @@
                                 },
                                 {
                                     "key": "redirect_uri",
-                                    "value": "http://localhost:3018/auth/callback"
+                                    "value": "http://localhost:3018/auth/callback/staff/socialwork"
                                 },
                                 {
                                     "key": "scope",
                                     "value": "openid"
                                 }
                             ],
-                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback&scope=openid"
+                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback/staff/socialwork&scope=openid"
                         }
                     },
                     "response": []
@@ -309,14 +309,14 @@
                                 },
                                 {
                                     "key": "redirect_uri",
-                                    "value": "http://localhost:3018/auth/callback"
+                                    "value": "http://localhost:3018/auth/callback/staff/socialwork"
                                 },
                                 {
                                     "key": "identity_provider",
                                     "value": "COGNITO"
                                 }
                             ],
-                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?scope=openid&response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback&identity_provider=COGNITO"
+                            "raw": "{{staffUserPoolUrl}}/oauth2/authorize?scope=openid&response_type=code&client_id={{clientId}}&redirect_uri=http://localhost:3018/auth/callback/staff/socialwork&identity_provider=COGNITO"
                         }
                     },
                     "response": []

@@ -8,7 +8,7 @@ import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
-import { AuthTypes } from '@/app.config';
+import { AuthTypes } from '@utils/auth';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',

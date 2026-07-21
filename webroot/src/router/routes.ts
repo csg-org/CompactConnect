@@ -64,9 +64,27 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
-        path: '/auth/callback',
-        name: 'AuthCallback',
-        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/AuthCallback.vue'),
+        path: '/auth/callback/staff/jcc',
+        name: 'AuthCallbackStaffJcc',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/StaffJcc/StaffJcc.vue'),
+        meta: { skipTransition: true },
+    },
+    {
+        path: '/auth/callback/staff/cosmo',
+        name: 'AuthCallbackStaffCosmo',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/StaffCosmo/StaffCosmo.vue'),
+        meta: { skipTransition: true },
+    },
+    {
+        path: '/auth/callback/staff/socialwork',
+        name: 'AuthCallbackStaffSocialWork',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/StaffSocialWork/StaffSocialWork.vue'),
+        meta: { skipTransition: true },
+    },
+    {
+        path: '/auth/callback/licensee/jcc',
+        name: 'AuthCallbackLicenseeJcc',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/LicenseeJcc/LicenseeJcc.vue'),
         meta: { skipTransition: true },
     },
     {
