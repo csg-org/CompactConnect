@@ -100,7 +100,7 @@ class _Config:
 
     @property
     def provider_user_bucket_name(self):
-        """The provider users S3 bucket, which holds practitioner-uploaded documents."""
+        """The provider users' S3 bucket, which holds practitioner-uploaded documents."""
         return os.environ['CC_TEST_PROVIDER_USER_BUCKET_NAME']
 
     @property

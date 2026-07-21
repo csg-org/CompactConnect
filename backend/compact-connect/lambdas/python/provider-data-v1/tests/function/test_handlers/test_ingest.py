@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, patch
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from moto import mock_aws
 
+from common_test.test_constants import DEFAULT_PROVIDER_ID
+
 from .. import TstFunction
 
 
@@ -908,7 +910,7 @@ class TestIngestSsnCorrection(TstFunction):
     resolves to NEW_PROVIDER_ID.
     """
 
-    OLD_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+    OLD_PROVIDER_ID = DEFAULT_PROVIDER_ID
     NEW_PROVIDER_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
     NEW_SSN_LAST_FOUR = '6789'
     OLD_REGISTERED_EMAIL = 'old-provider@example.com'
@@ -964,7 +966,7 @@ class TestIngestSsnCorrection(TstFunction):
             UserAttributes=[{'Name': 'email', 'Value': self.OLD_REGISTERED_EMAIL}],
         )
 
-    def _when_old_cognito_user_exists(self) -> bool:
+    def _does_old_cognito_user_exists(self) -> bool:
         from botocore.exceptions import ClientError
 
         try:
@@ -1074,7 +1076,7 @@ class TestIngestSsnCorrection(TstFunction):
         resp = self._run_ingest_with_previous_provider_id()
         self.assertEqual({'batchItemFailures': []}, resp)
 
-        self.assertFalse(self._when_old_cognito_user_exists())
+        self.assertFalse(self._does_old_cognito_user_exists())
 
     def test_full_migration_sends_reregistration_email(self):
         self._put_old_provider_records()
@@ -1107,7 +1109,7 @@ class TestIngestSsnCorrection(TstFunction):
         self.assertNotIn('militaryAffiliation', new_record_types)
 
         # the old Cognito user remains and no re-registration email was sent
-        self.assertTrue(self._when_old_cognito_user_exists())
+        self.assertTrue(self._does_old_cognito_user_exists())
         self._mock_send_reregistration_email.assert_not_called()
 
     def test_no_op_migration_still_ingests_license_normally(self):
