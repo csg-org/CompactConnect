@@ -112,6 +112,10 @@ Yes. CompactConnect is designed to automatically detect and track changes to lic
 
 Because accounts are matched on SSN, simply changing the SSN in your state's system and then uploading the corrected license will **not** update the practitioner's existing CompactConnect account. It will create a brand new, separate account under the new SSN and leave the original account (and any privileges tied to it) unchanged. If a license was previously uploaded with an incorrect SSN, use the `previousSSN` field (see the field table above) when uploading the corrected SSN so CompactConnect can migrate the practitioner's existing account instead of creating a duplicate.
 
+> **⚠️ Verify SSNs before you upload.** The SSN is the sole identifier CompactConnect uses to match a license to a practitioner's account, and every downstream consequence of an upload (account creation, privilege eligibility, public lookup, etc.) follows from it. Uploading an incorrect SSN is not a low-risk mistake to leave unaddressed, as it silently creates or attaches records to the wrong account, fragmenting the practitioner's licensure history and leaving privileges tied to whichever account was in place at the time they were purchased.
+>
+> Correcting an SSN with `previousSSN` is itself a significant action which migrates (moves) the affected license and any privileges purchased against it to the account associated with the corrected SSN and forces the practitioner to re-register if they have already registered under the account with the incorrect SSN. Because of this, during onboarding testing before a state begins uploading licenses into the production account, it is imperative that the state verify there is no issue with the internal process or data pipeline that sends licensure data to CompactConnect which could result in incorrect or inconsistent SSNs being uploaded, so that this feature is not relied upon to routinely correct otherwise avoidable upload errors.
+
 ### Which of these license values will be publicly visible?
 
 The following license fields are publicly visible through CompactConnect's public lookup endpoints:
