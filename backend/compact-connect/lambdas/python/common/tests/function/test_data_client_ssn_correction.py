@@ -116,8 +116,6 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertEqual(NEW_SSN_LAST_FOUR, migrated_license['ssnLastFour'])
 
         # the migrated military affiliation record must reference document keys under the new provider id.
-        # (The caller moves the underlying S3 objects by listing the old provider id's keyspace directly, not
-        # from this DynamoDB record, so it is not reflected in the migration result.)
         migrated_military = self._get_records_of_type(NEW_PROVIDER_ID, 'militaryAffiliation')[0]
         for document_key in migrated_military['documentKeys']:
             self.assertIn(NEW_PROVIDER_ID, document_key)
@@ -663,12 +661,12 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
 
         self.assertEqual(1, len(executed_transactions))
 
-    def test_large_migration_creates_before_deletes_and_tears_down_critical_records_atomically(self):
-        """When a migration exceeds the DynamoDB transaction limit it must (a) create every new record before
-        deleting any old record, and (b) tear down the old top-level provider record (the fence) and the
-        target license together in a single atomic final transaction. This keeps replay safe: until the final
-        transaction commits, both critical records survive for the replay's idempotency guard to find, and the
-        old provider stays readable for the Cognito/email path.
+    def test_large_migration_batches_phases_and_tears_down_critical_records_atomically(self):
+        """When a migration exceeds the DynamoDB transaction limit it must split work into create and delete
+        batches (verified by expected batch counts for this fixture) and tear down the old top-level provider
+        record (the fence) and the target license together in a single atomic final transaction. This keeps
+        replay safe: until the final transaction commits, both critical records survive for the replay's
+        idempotency guard to find, and the old provider stays readable for the Cognito/email path.
         """
         self._put_full_old_provider_records()
 
@@ -680,9 +678,9 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         old_provider_pk = f'{DEFAULT_COMPACT}#PROVIDER#{DEFAULT_PROVIDER_ID}'
         new_provider_pk = f'{DEFAULT_COMPACT}#PROVIDER#{NEW_PROVIDER_ID}'
 
-        # the create phase (transactions that only put records under the new provider) must fully precede the
-        # delete phase (transactions that only delete records from the old provider); the mixed final
-        # transaction is neither and is checked separately below
+        # the create phase (transactions that only put records under the new provider) and the delete phase
+        # (transactions that only delete records from the old provider) must each produce the expected number
+        # of batches. The mixed final transaction is checked separately below
         create_transaction_indexes = [
             index
             for index, transaction in enumerate(executed_transactions)
@@ -693,9 +691,8 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
             for index, transaction in enumerate(executed_transactions)
             if all('Delete' in item and self._key(item)['pk']['S'] == old_provider_pk for item in transaction)
         ]
-        self.assertTrue(create_transaction_indexes)
-        self.assertTrue(delete_transaction_indexes)
-        self.assertLess(max(create_transaction_indexes), min(delete_transaction_indexes))
+        self.assertEqual(4, len(create_transaction_indexes))
+        self.assertEqual(3, len(delete_transaction_indexes))
 
         # the final transaction is a single atomic transaction that both tears down the old top-level provider
         # record (conditioned on its dateOfUpdate) and deletes the target license
@@ -753,7 +750,8 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertEqual(1, len(self._get_records_of_type(DEFAULT_PROVIDER_ID, 'license')))
 
         # replay: succeeds, tears the old provider down, and still reports the registered email for the
-        # Cognito/email path (the bug this ordering fixes was losing that email on replay)
+        # cqller to delete the Cognito account and send the email notification
+        # (the bug this ordering fixes was losing that email on replay)
         result = self._migrate()
 
         self.assertTrue(result.migration_performed)

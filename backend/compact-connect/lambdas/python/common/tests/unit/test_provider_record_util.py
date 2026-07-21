@@ -1341,9 +1341,8 @@ class TestGetRecordsAssociatedWithLicense(TstLambdas):
     """Coverage for ProviderUserRecords.get_records_associated_with_license.
 
     The SSN-correction migration (migrate_provider_for_ssn_correction) relies on this method to return the
-    target license together with EVERY record that depends on it across MULTIPLE privileges and multiples
-    of each dependent record type so nothing is silently left behind on the old provider. Each test asserts
-    that one record type comes back in full.
+    target license together with EVERY record that depends on it across MULTIPLE privileges so nothing is 
+    silently left behind on the old provider. Each test asserts that one record type comes back in full.
 
     A single rich record set is generated once in setUp: the target license (oh / slp) with two privileges
     purchased against it (in ne and ky), two of every dependent record type for the license and for each
