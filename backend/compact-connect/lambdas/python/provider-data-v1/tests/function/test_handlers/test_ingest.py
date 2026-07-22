@@ -965,7 +965,7 @@ class TestIngestSsnCorrection(TstFunction):
             UserAttributes=[{'Name': 'email', 'Value': self.OLD_REGISTERED_EMAIL}],
         )
 
-    def _does_old_cognito_user_exists(self) -> bool:
+    def _does_old_cognito_user_exist(self) -> bool:
         from botocore.exceptions import ClientError
 
         try:
@@ -1075,7 +1075,7 @@ class TestIngestSsnCorrection(TstFunction):
         resp = self._run_ingest_with_previous_provider_id()
         self.assertEqual({'batchItemFailures': []}, resp)
 
-        self.assertFalse(self._does_old_cognito_user_exists())
+        self.assertFalse(self._does_old_cognito_user_exist())
 
     def test_full_migration_sends_reregistration_email(self):
         self._put_old_provider_records()
@@ -1108,7 +1108,7 @@ class TestIngestSsnCorrection(TstFunction):
         self.assertNotIn('militaryAffiliation', new_record_types)
 
         # the old Cognito user remains and no re-registration email was sent
-        self.assertTrue(self._does_old_cognito_user_exists())
+        self.assertTrue(self._does_old_cognito_user_exist())
         self._mock_send_reregistration_email.assert_not_called()
 
     def test_no_op_migration_still_ingests_license_normally(self):
