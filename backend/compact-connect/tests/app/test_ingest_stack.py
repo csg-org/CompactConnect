@@ -64,8 +64,23 @@ class TestIngestStack(TstAppABC, TestCase):
         self.assertEqual(alarm['ComparisonOperator'], 'GreaterThanOrEqualToThreshold')
         self.assertEqual(alarm['TreatMissingData'], 'notBreaching')
 
+    def test_no_migration_metric_alarm_configured(self):
+        """The no-migration alarm should fire when previousSSN yields no records to migrate within 24 hours."""
+        alarm = self._get_ssn_correction_alarm_properties('SsnCorrectionNoMigrationAlarm')
+
+        self.assertEqual(alarm['Namespace'], 'compact-connect')
+        self.assertEqual(alarm['MetricName'], 'ssn-correction-no-migration')
+        self.assertEqual(alarm['Dimensions'], [{'Name': 'service', 'Value': 'common'}])
+        self.assertEqual(alarm['Statistic'], 'Sum')
+        # 24-hour period, so at most one alert per day for this category
+        self.assertEqual(alarm['Period'], 86400)
+        self.assertEqual(alarm['EvaluationPeriods'], 1)
+        self.assertEqual(alarm['Threshold'], 1)
+        self.assertEqual(alarm['ComparisonOperator'], 'GreaterThanOrEqualToThreshold')
+        self.assertEqual(alarm['TreatMissingData'], 'notBreaching')
+
     def test_migration_alarms_notify_the_shared_alarm_topic(self):
-        """Both alarms should notify devops support via the shared alarm topic, at most 2 alerts/day total."""
+        """All three alarms should notify devops support via the shared alarm topic, at most 3 alerts/day total."""
         ingest_stack = self.app.sandbox_backend_stage.ingest_stack
         ingest_template = Template.from_stack(ingest_stack)
         alarms = ingest_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
@@ -82,6 +97,8 @@ class TestIngestStack(TstAppABC, TestCase):
 
         full_migration_alarm = self._get_ssn_correction_alarm_properties('SsnCorrectionFullMigrationAlarm')
         partial_migration_alarm = self._get_ssn_correction_alarm_properties('SsnCorrectionPartialMigrationAlarm')
+        no_migration_alarm = self._get_ssn_correction_alarm_properties('SsnCorrectionNoMigrationAlarm')
 
         self.assertEqual(expected_actions, full_migration_alarm['AlarmActions'])
         self.assertEqual(expected_actions, partial_migration_alarm['AlarmActions'])
+        self.assertEqual(expected_actions, no_migration_alarm['AlarmActions'])

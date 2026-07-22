@@ -178,10 +178,11 @@ class IngestStack(AppStack):
     ):
         """
         Alarm whenever a state relies on the previousSSN last-resort correction feature (see
-        handlers/ingest.py::_perform_ssn_correction_migration), split by whether the correction fully or only
-        partially migrated the affected practitioner. Each metric/alarm pair uses a 24-hour period with a
-        threshold of 1, so devops support sees at most one notification per category (2 total) per day this
-        feature is used, regardless of how many corrections occurred that day.
+        handlers/ingest.py::_perform_ssn_correction_migration), split by whether the correction fully
+        migrated, partially migrated, or found nothing to migrate for the affected practitioner. Each
+        metric/alarm pair uses a 24-hour period with a threshold of 1, so devops support sees at most one
+        notification per category (3 total) per day this feature is used, regardless of how many
+        corrections occurred that day.
         """
         full_migration_metric = Metric(
             namespace='compact-connect',
@@ -226,5 +227,28 @@ class IngestStack(AppStack):
                 'the last 24 hours. This is a last-resort correction feature (see the previousSSN field '
                 'documentation) and should be rare; investigate with the reporting state to confirm the '
                 'correction was warranted and to help prevent recurring upload errors.'
+            ),
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+        no_migration_metric = Metric(
+            namespace='compact-connect',
+            metric_name='ssn-correction-no-migration',
+            dimensions_map={'service': 'common'},
+            statistic=Stats.SUM,
+            period=Duration.days(1),
+        )
+        Alarm(
+            ingest_handler,
+            'SsnCorrectionNoMigrationAlarm',
+            metric=no_migration_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                'A state uploaded a previousSSN that resulted in no migration within the last 24 hours '
+                '(e.g. the previous SSN had no matching license records, or the correction had already '
+                'been applied). Investigate with the reporting state to confirm the previousSSN value was '
+                'correct and to help prevent recurring upload errors.'
             ),
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))

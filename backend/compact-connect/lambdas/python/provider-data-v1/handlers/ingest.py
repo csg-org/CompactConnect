@@ -19,10 +19,12 @@ license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
 
 # Custom metrics tracking how often states rely on the previousSSN last-resort correction feature, split by
-# whether the correction fully migrated the practitioner (old provider had no other licenses) or only partially
-# migrated them (other licenses remained on the old provider id). Each is alarmed on separately in the CDK stack.
+# whether the correction fully migrated the practitioner (old provider had no other licenses), only partially
+# migrated them (other licenses remained on the old provider id), or found nothing to migrate (spurious
+# previousSSN or an already-migrated replay). Each is alarmed on separately in the CDK stack.
 SSN_CORRECTION_FULL_MIGRATION_METRIC = 'ssn-correction-full-migration'
 SSN_CORRECTION_PARTIAL_MIGRATION_METRIC = 'ssn-correction-partial-migration'
+SSN_CORRECTION_NO_MIGRATION_METRIC = 'ssn-correction-no-migration'
 
 
 @sqs_handler
@@ -406,6 +408,7 @@ def _perform_ssn_correction_migration(
     )
     if not result.migration_performed:
         logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
+        metrics.add_metric(name=SSN_CORRECTION_NO_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
         return
 
     if result.full_migration:

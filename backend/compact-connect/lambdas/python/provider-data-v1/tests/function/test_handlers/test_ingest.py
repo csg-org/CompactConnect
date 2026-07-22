@@ -1152,8 +1152,10 @@ class TestIngestSsnCorrection(TstFunction):
 
         self._mock_send_reregistration_email.assert_not_called()
 
-        # a no-op migration is not a real correction, so neither migration metric should fire
-        mock_metrics.add_metric.assert_not_called()
+        # a no-op previousSSN path still emits a metric so we can detect spurious or already-migrated corrections
+        mock_metrics.add_metric.assert_called_once_with(
+            name='ssn-correction-no-migration', unit=MetricUnit.Count, value=1
+        )
 
     def test_full_migration_with_unregistered_old_provider_sends_no_email(self):
         # the old provider never registered: no Cognito user, no registered email on the provider record
