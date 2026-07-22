@@ -750,7 +750,7 @@ class TestMigrateProviderForSsnCorrection(TstFunction):
         self.assertEqual(1, len(self._get_records_of_type(DEFAULT_PROVIDER_ID, 'license')))
 
         # replay: succeeds, tears the old provider down, and still reports the registered email for the
-        # cqller to delete the Cognito account and send the email notification
+        # caller to delete the Cognito account and send the email notification
         # (the bug this ordering fixes was losing that email on replay)
         result = self._migrate()
 
