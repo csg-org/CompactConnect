@@ -61,6 +61,8 @@ class IngestStack(AppStack):
             },
             alarm_topic=persistent_stack.alarm_topic,
         )
+        # Stored for test accessibility
+        self.ingest_handler = ingest_handler
         persistent_stack.provider_table.grant_read_write_data(ingest_handler)
         data_event_bus.grant_put_events_to(ingest_handler)
         # The SSN-correction migration deletes the old provider's Cognito account on a full migration, moves
@@ -125,6 +127,8 @@ class IngestStack(AppStack):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
+        self._add_ssn_correction_migration_alarms(ingest_handler, persistent_stack)
+
         processor = QueuedLambdaProcessor(
             self,
             'V1Ingest',
@@ -167,4 +171,60 @@ class IngestStack(AppStack):
             threshold=1,
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+    def _add_ssn_correction_migration_alarms(
+        self, ingest_handler: PythonFunction, persistent_stack: ps.PersistentStack
+    ):
+        """
+        Alarm whenever a state relies on the previousSSN last-resort correction feature (see
+        handlers/ingest.py::_perform_ssn_correction_migration), split by whether the correction fully or only
+        partially migrated the affected practitioner. Each metric/alarm pair uses a 24-hour period with a
+        threshold of 1, so devops support sees at most one notification per category (2 total) per day this
+        feature is used, regardless of how many corrections occurred that day.
+        """
+        full_migration_metric = Metric(
+            namespace='compact-connect',
+            metric_name='ssn-correction-full-migration',
+            dimensions_map={'service': 'common'},
+            statistic=Stats.SUM,
+            period=Duration.days(1),
+        )
+        Alarm(
+            ingest_handler,
+            'SsnCorrectionFullMigrationAlarm',
+            metric=full_migration_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                'A state has used the previousSSN field to fully migrate a practitioner record within the '
+                'last 24 hours. This is a last-resort correction feature (see the previousSSN field '
+                'documentation) and should be rare; investigate with the reporting state to confirm the '
+                'correction was warranted and to help prevent recurring upload errors.'
+            ),
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+
+        partial_migration_metric = Metric(
+            namespace='compact-connect',
+            metric_name='ssn-correction-partial-migration',
+            dimensions_map={'service': 'common'},
+            statistic=Stats.SUM,
+            period=Duration.days(1),
+        )
+        Alarm(
+            ingest_handler,
+            'SsnCorrectionPartialMigrationAlarm',
+            metric=partial_migration_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                'A state has used the previousSSN field to partially migrate a practitioner record within '
+                'the last 24 hours. This is a last-resort correction feature (see the previousSSN field '
+                'documentation) and should be rare; investigate with the reporting state to confirm the '
+                'correction was warranted and to help prevent recurring upload errors.'
+            ),
         ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))

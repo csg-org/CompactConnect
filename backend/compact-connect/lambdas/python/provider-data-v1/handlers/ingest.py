@@ -1,8 +1,9 @@
 import json
 from copy import deepcopy
 
+from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.types import TypeSerializer
-from cc_common.config import config, logger
+from cc_common.config import config, logger, metrics
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
@@ -16,6 +17,12 @@ from cc_common.utils import sqs_handler
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
+
+# Custom metrics tracking how often states rely on the previousSSN last-resort correction feature, split by
+# whether the correction fully migrated the practitioner (old provider had no other licenses) or only partially
+# migrated them (other licenses remained on the old provider id). Each is alarmed on separately in the CDK stack.
+SSN_CORRECTION_FULL_MIGRATION_METRIC = 'ssn-correction-full-migration'
+SSN_CORRECTION_PARTIAL_MIGRATION_METRIC = 'ssn-correction-partial-migration'
 
 
 @sqs_handler
@@ -400,6 +407,11 @@ def _perform_ssn_correction_migration(
     if not result.migration_performed:
         logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
         return
+
+    if result.full_migration:
+        metrics.add_metric(name=SSN_CORRECTION_FULL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
+    else:
+        metrics.add_metric(name=SSN_CORRECTION_PARTIAL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
 
     if result.full_migration and result.old_provider_registered_email is not None:
         _delete_old_cognito_user_and_send_reregistration_email(
