@@ -51,6 +51,31 @@ class TestEmailServiceClient(TstLambdas):
             ),
         )
 
+    def test_ssn_correction_reregistration_notification_should_invoke_lambda_client_with_expected_parameters(self):
+        mock_lambda_client = MagicMock()
+        test_model = self._generate_test_model(mock_lambda_client)
+
+        test_model.send_provider_ssn_correction_reregistration_email(
+            compact=TEST_COMPACT,
+            provider_email='test@test.com',
+        )
+
+        mock_lambda_client.invoke.assert_called_once_with(
+            FunctionName='test-lambda-name',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(
+                {
+                    'compact': TEST_COMPACT,
+                    'template': 'ssnCorrectionReregistrationNotification',
+                    'recipientType': 'SPECIFIC',
+                    'specificEmails': [
+                        'test@test.com',
+                    ],
+                    'templateVariables': {},
+                }
+            ),
+        )
+
     def test_privilege_deactivation_jurisdiction_notification_should_invoke_lambda_client_with_expected_parameters(
         self,
     ):

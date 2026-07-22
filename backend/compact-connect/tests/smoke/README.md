@@ -115,6 +115,10 @@ Some tests require manual interaction:
 
 - **`practitioner_email_update_smoke_tests.py`**: Requires you to manually enter email verification codes sent to your email address.
 
+### Tests With Account Requirements
+
+- **`ssn_migration_smoke_tests.py`**: Requires the `CC_TEST_PROVIDER_MOCK_SSN` and `CC_TEST_PROVIDER_ORIGINAL_PROVIDER_ID` env vars set to the SSN the test provider's records are currently stored under, and the `CC_TEST_PROVIDER_USER_BUCKET_NAME` env var set to the provider users S3 bucket name. The full migration test temporarily deletes and then restores the test provider's Cognito account (Cognito account deletion is part of the feature under test), so avoid running other provider-user tests concurrently.
+
 ### Tests Creating Test Data
 
 Many tests create temporary test data (staff users, configurations, etc.) and clean it up automatically. However, if a test fails partway through, you may need to manually clean up test data.

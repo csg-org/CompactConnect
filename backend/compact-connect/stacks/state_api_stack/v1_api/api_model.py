@@ -207,6 +207,13 @@ class ApiModel:
                             description="The provider's social security number",
                             pattern=cc_api.SSN_FORMAT,
                         ),
+                        'previousSSN': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='The incorrect social security number previously uploaded for this '
+                            'license. When provided, the system migrates the records uploaded under it over '
+                            'to the provider associated with the corrected ssn.',
+                            pattern=cc_api.SSN_FORMAT,
+                        ),
                         **self._common_license_properties,
                     },
                 ),

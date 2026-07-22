@@ -561,6 +561,35 @@ class TestRollbackLicenseUpload(TstFunction):
             'In-window provider update history records should be deleted by rollback',
         )
 
+    def test_provider_found_when_start_time_of_day_is_after_end_time_of_day(self):
+        """
+        Regression test: _query_gsi_for_affected_providers must zero out the time-of-day when
+        computing year-month boundaries, not only the day-of-month. Without this fix, whenever
+        startDateTime's time-of-day is later than endDateTime's time-of-day within the same month
+        (e.g. start=21:09:55Z, end=12:00:00Z), the loop exits immediately and produces an empty
+        year-months list, causing the GSI to be skipped and 0 providers found.
+        """
+        from handlers.rollback_license_upload import rollback_license_upload
+
+        # start and end fall in the same month, but start's time-of-day is later than end's
+        start_datetime = datetime.fromisoformat('2025-10-20T21:09:55+00:00')
+        end_datetime = datetime.fromisoformat('2025-10-23T07:00:00+00:00')
+        upload_datetime = datetime.fromisoformat('2025-10-22T10:00:00+00:00')
+
+        self._when_provider_had_license_updated_from_upload(
+            upload_datetime=upload_datetime,
+            license_upload_datetime=start_datetime - timedelta(days=30),
+        )
+
+        event = self._generate_test_event()
+        event['startDateTime'] = start_datetime.isoformat()
+        event['endDateTime'] = end_datetime.isoformat()
+
+        result = rollback_license_upload(event, Mock())
+
+        self.assertEqual(result['rollbackStatus'], 'COMPLETE')
+        self.assertEqual(1, result['providersReverted'])
+
     def test_provider_top_level_record_reset_to_prior_values_when_upload_reverted(self):
         """Test that provider top-level record is reset to values before upload."""
         from handlers.rollback_license_upload import rollback_license_upload

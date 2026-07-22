@@ -348,13 +348,14 @@ export class EmailNotificationService extends BaseEmailService {
         }[],
         specificEmails: string[] = []
     ): Promise<void> {
-        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: specificEmails[0] });
-
+        
         const recipients = specificEmails;
-
+        
         if (recipients.length === 0) {
             throw new Error(`No recipients found`);
         }
+        
+        this.logger.info('Sending provider privilege purchase notification email', { providerEmail: this.maskEmail(specificEmails[0]) });
 
         const emailContent = this.getNewEmailTemplate();
         const headerText = `Privilege Purchase Confirmation`;
@@ -405,7 +406,10 @@ export class EmailNotificationService extends BaseEmailService {
         compact: string,
         specificEmails: string[] = []
     ): Promise<void> {
-        this.logger.info('Sending multiple registration attempt notification email', { compact: compact, recipients: specificEmails });
+        this.logger.info('Sending multiple registration attempt notification email', {
+            compact: compact,
+            recipients: this.maskEmails(specificEmails),
+        });
 
         const recipients = specificEmails;
 
@@ -428,6 +432,41 @@ export class EmailNotificationService extends BaseEmailService {
     }
 
     /**
+     * Sends an email notification to a practitioner whose state corrected the SSN on their license record,
+     * letting them know their previous account was removed and they need to register again
+     * @param compact - The compact name
+     * @param specificEmails - The email address the practitioner had registered with
+     */
+    public async sendSsnCorrectionReregistrationNotificationEmail(
+        compact: string,
+        specificEmails: string[] = []
+    ): Promise<void> {
+        this.logger.info('Sending ssn correction reregistration notification email', {
+            compact: compact,
+            recipients: this.maskEmails(specificEmails),
+        });
+
+        const recipients = specificEmails;
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for ssn correction reregistration notification email`);
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = `Action Required: Registration Update - CompactConnect`;
+        const registrationUrl = `${environmentVariableService.getUiBasePathUrl()}/register`;
+        const bodyText = `Your state licensing board recently corrected the information on one of your license records in the CompactConnect system. As part of this correction, you will need to register again with your license record.\n\nAny active compact privileges to practice you currently hold remain active and unaffected by this change, so you may continue practicing under them.\n\nTo continue using CompactConnect, please register again using the link below:\n\n${registrationUrl}\n\nIf you have any questions, please contact your state licensing board.`;
+
+        this.insertHeader(report, 'Registration Update Required');
+        this.insertBody(report, bodyText, 'center', true);
+        this.insertFooter(report);
+
+        const htmlContent = this.renderTemplate(report);
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send ssn correction reregistration notification email' });
+    }
+
+    /**
      * Sends a verification code to a provider's new email address during email change process
      * @param compact - The compact name
      * @param providerEmail - The new email address to send the verification code to
@@ -438,7 +477,10 @@ export class EmailNotificationService extends BaseEmailService {
         providerEmail: string,
         verificationCode: string
     ): Promise<void> {
-        this.logger.info('Sending provider email verification code', { compact: compact, providerEmail: providerEmail });
+        this.logger.info('Sending provider email verification code', {
+            compact: compact,
+            providerEmail: this.maskEmail(providerEmail),
+        });
 
         const recipients = [providerEmail];
 
@@ -466,7 +508,10 @@ export class EmailNotificationService extends BaseEmailService {
         oldEmailAddress: string,
         newEmailAddress: string
     ): Promise<void> {
-        this.logger.info('Sending provider email change notification', { compact: compact, oldEmailAddress: oldEmailAddress });
+        this.logger.info('Sending provider email change notification', {
+            compact: compact,
+            oldEmailAddress: this.maskEmail(oldEmailAddress),
+        });
 
         const recipients = [oldEmailAddress];
 

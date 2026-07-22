@@ -62,6 +62,9 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
             Username=email,
             UserAttributes=[{'Name': 'email', 'Value': email}],
             TemporaryPassword=_TEMP_STAFF_PASSWORD,
+            # these are fake test addresses (e.g. @smokeTestFakeEmail.com); suppress Cognito's welcome
+            # message so we don't send mail to (and bounce against) addresses that can't receive it
+            MessageAction='SUPPRESS',
         )
         logger.info(f"Created staff user, '{email}'. Setting password.")
         # set this to simplify login flow for user
@@ -359,23 +362,36 @@ def upload_license_record(staff_headers: dict, compact: str, jurisdiction: str, 
     return post_response.json()
 
 
-def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, family_name: str):
+def query_provider_by_name(
+    staff_headers: dict, compact: str, given_name: str, family_name: str, staff_user_email: str | None = None
+):
     """Query for a provider by name and return the provider ID if found.
 
     :param staff_headers: Authentication headers for staff user
     :param compact: The compact abbreviation
     :param given_name: Provider's given name
     :param family_name: Provider's family name
+    :param staff_user_email: If provided, the staff user's email to re-authenticate with when the access token
+        has expired. On a 401 the token is refreshed (mutating staff_headers in place so callers holding this
+        dict pick up the new token) and the query retried once. Callers polling this endpoint across long
+        waits should pass this so the loop doesn't fail once the token expires.
     :return: The provider ID if found, None otherwise
     """
     query_body = {'query': {'familyName': family_name, 'givenName': given_name}}
 
-    query_response = requests.post(
-        url=f'{config.api_base_url}/v1/compacts/{compact}/providers/query',
-        headers=staff_headers,
-        json=query_body,
-        timeout=10,
-    )
+    def _post():
+        return requests.post(
+            url=f'{config.api_base_url}/v1/compacts/{compact}/providers/query',
+            headers=staff_headers,
+            json=query_body,
+            timeout=10,
+        )
+
+    query_response = _post()
+    if query_response.status_code == 401 and staff_user_email is not None:
+        logger.info('Staff auth token expired (401); refreshing and retrying provider query')
+        staff_headers.update(get_staff_user_auth_headers(staff_user_email))
+        query_response = _post()
 
     if query_response.status_code != 200:
         logger.warning(f'Query failed with status {query_response.status_code}')
@@ -390,7 +406,12 @@ def query_provider_by_name(staff_headers: dict, compact: str, given_name: str, f
 
 
 def wait_for_provider_creation(
-    staff_headers: dict, compact: str, given_name: str, family_name: str, max_wait_time: int = 300
+    staff_headers: dict,
+    compact: str,
+    given_name: str,
+    family_name: str,
+    max_wait_time: int = 300,
+    staff_user_email: str | None = None,
 ):
     """Poll for provider creation after license upload.
 
@@ -399,6 +420,8 @@ def wait_for_provider_creation(
     :param given_name: Provider's given name
     :param family_name: Provider's family name
     :param max_wait_time: Maximum time to wait in seconds (default: 300 = 5 minutes)
+    :param staff_user_email: If provided, the staff user's email to re-authenticate with when the access token
+        expires mid-poll (long waits can outlast the token). Passed through to query_provider_by_name.
     :return: The provider ID when found
     :raises SmokeTestFailureException: If provider not found within max_wait_time
     """
@@ -414,7 +437,9 @@ def wait_for_provider_creation(
     while attempts < max_attempts:
         attempts += 1
 
-        provider_id = query_provider_by_name(staff_headers, compact, given_name, family_name)
+        provider_id = query_provider_by_name(
+            staff_headers, compact, given_name, family_name, staff_user_email=staff_user_email
+        )
         if provider_id:
             elapsed_time = time.time() - start_time
             logger.info(f'✅ Provider found after {elapsed_time:.1f} seconds. Provider ID: {provider_id}')

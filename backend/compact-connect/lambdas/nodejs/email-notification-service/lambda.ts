@@ -327,6 +327,15 @@ export class Lambda implements LambdaInterface {
                 event.specificEmails
             );
             break;
+        case 'ssnCorrectionReregistrationNotification':
+            if (!event.specificEmails?.length) {
+                throw new Error('No recipients found for ssn correction reregistration notification email');
+            }
+            await this.emailService.sendSsnCorrectionReregistrationNotificationEmail(
+                event.compact,
+                event.specificEmails
+            );
+            break;
         case 'providerEmailVerificationCode':
             if (!event.specificEmails?.length) {
                 throw new Error('No recipients found for provider email verification code email');

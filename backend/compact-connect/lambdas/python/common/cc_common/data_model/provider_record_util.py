@@ -13,6 +13,7 @@ from cc_common.data_model.schema.adverse_action import AdverseActionData
 from cc_common.data_model.schema.common import (
     ActiveInactiveStatus,
     AdverseActionAgainstEnum,
+    CCDataClass,
     CompactEligibilityStatus,
     HomeJurisdictionChangeStatusEnum,
     PrivilegeEncumberedStatusEnum,
@@ -903,6 +904,62 @@ class ProviderUserRecords:
             and record.licenseType == license_type
             and (filter_condition is None or filter_condition(record))
         ]
+
+    def get_records_associated_with_license(self, jurisdiction: str, license_type: str) -> list[CCDataClass]:
+        """
+        Get the license record for the given jurisdiction/license type along with every record that depends on it:
+        the privileges whose home license it is, and the adverse action, investigation, and update history
+        records for both the license and those privileges.
+
+        Returns an empty list if this provider has no license for the given jurisdiction/license type.
+
+        :param jurisdiction: The jurisdiction of the license
+        :param license_type: The license type (full name, not abbreviation)
+        :return: The license record and all of its dependent records
+        """
+        license_record = next(
+            (
+                record
+                for record in self._license_records
+                if record.jurisdiction == jurisdiction and record.licenseType == license_type
+            ),
+            None,
+        )
+        if license_record is None:
+            return []
+
+        license_type_abbreviation = license_record.licenseTypeAbbreviation
+
+        associated_records: list[CCDataClass] = [license_record]
+        associated_records.extend(self.get_adverse_action_records_for_license(jurisdiction, license_type_abbreviation))
+        associated_records.extend(
+            self.get_investigation_records_for_license(jurisdiction, license_type_abbreviation, include_closed=True)
+        )
+        associated_records.extend(self.get_update_records_for_license(jurisdiction, license_type))
+
+        privileges = self.get_privileges_associated_with_license(jurisdiction, license_type_abbreviation)
+        associated_records.extend(privileges)
+        for privilege in privileges:
+            associated_records.extend(
+                self.get_adverse_action_records_for_privilege(privilege.jurisdiction, license_type_abbreviation)
+            )
+            associated_records.extend(
+                self.get_investigation_records_for_privilege(
+                    privilege.jurisdiction, license_type_abbreviation, include_closed=True
+                )
+            )
+            associated_records.extend(
+                self.get_update_records_for_privilege(privilege.jurisdiction, privilege.licenseType)
+            )
+
+        return associated_records
+
+    def get_person_level_records(self) -> list[CCDataClass]:
+        """
+        Get the records tied to the person rather than to any particular license: military affiliation records
+        and provider update history records.
+        """
+        return [*self._military_affiliation_records, *self._provider_update_records]
 
     def generate_api_response_object(self) -> dict:
         """

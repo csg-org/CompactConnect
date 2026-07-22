@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass
 from datetime import date, datetime
 from datetime import time as dtime
 from urllib.parse import quote
@@ -51,6 +52,27 @@ from cc_common.exceptions import (
 )
 from cc_common.license_util import LicenseUtility
 from cc_common.utils import logger_inject_kwargs
+
+# DynamoDB's hard limit on the number of items in a single TransactWriteItems call.
+MAX_DYNAMODB_TRANSACTION_ITEMS = 100
+
+
+@dataclass
+class SsnCorrectionMigrationResult:
+    """
+    Outcome of an SSN-correction migration.
+
+    :param migration_performed: False when there was nothing to migrate (spurious previousSSN or a replay of an
+        already-completed migration)
+    :param full_migration: True when the corrected license was the old provider's only license, so the old
+        provider was deleted entirely. The caller must delete the old Cognito user and notify the practitioner.
+    :param old_provider_registered_email: The old provider's registered email address, present only on a full
+        migration of a registered provider
+    """
+
+    migration_performed: bool
+    full_migration: bool = False
+    old_provider_registered_email: str | None = None
 
 
 class DataClient:
@@ -2835,6 +2857,490 @@ class DataClient:
             )
             raise CCInternalException('Failed to update provider home state jurisdiction') from e
 
+    @logger_inject_kwargs(logger, 'compact', 'previous_provider_id', 'new_provider_id', 'jurisdiction')
+    def migrate_provider_for_ssn_correction(
+        self,
+        *,
+        compact: str,
+        previous_provider_id: str,
+        new_provider_id: str,
+        jurisdiction: str,
+        license_type: str,
+        new_ssn_last_four: str,
+    ) -> 'SsnCorrectionMigrationResult':
+        """
+        Migrate a license (and its dependent records) from one provider id to another after a state corrected
+        the SSN on a license upload.
+
+        The migration is scoped to the single (jurisdiction, license type) license of the corrected upload row.
+        That license, the privileges purchased against it, and their adverse action / investigation / update
+        history records are always moved to the new provider id. What happens to the rest of the old provider
+        depends on whether the corrected license was its only license record:
+
+        - Full migration (sole license): the person-level records (military affiliations, provider update
+          history) are moved to the new provider id as well, with military document keys re-pointed at the new
+          provider id's keyspace, and the old provider's partition, including its top-level provider record, is
+          deleted. The practitioner's S3 documents are moved here as well (by listing the old provider id's
+          keyspace directly, not by relying on any single record type's tracked keys), before the DynamoDB
+          migration commits so the move is replay-safe. The caller is responsible for deleting the old Cognito
+          user and notifying the practitioner.
+        - Partial (other licenses remain): the old provider keeps its person-level records and its top-level
+          record is repopulated from its remaining licenses. The old provider id remains a valid (partial)
+          practitioner until its remaining licenses are also corrected.
+
+        Concurrency: the write against the old top-level provider record is conditioned on the dateOfUpdate
+        read at the start of the migration and executed in the first transaction batch. A concurrent migration
+        for the same old provider will fail that condition before writing anything, and its SQS retry re-reads
+        current state. The targeted license's delete is executed in the last batch so a crash mid-migration
+        leaves the license in place for the replay's idempotency guard to find; all other writes are idempotent.
+
+        Records already under the new provider id are never modified or deleted; a top-level provider record is
+        created for the new provider only when it does not already have one.
+
+        :param compact: The compact name
+        :param previous_provider_id: Provider id the incorrect SSN resolved to
+        :param new_provider_id: Provider id the corrected SSN resolved to
+        :param jurisdiction: Jurisdiction of the corrected license upload
+        :param license_type: License type of the corrected license upload
+        :param new_ssn_last_four: Last four digits of the corrected SSN
+        :return: SsnCorrectionMigrationResult describing what the migration did
+        """
+        try:
+            old_provider_records = self.get_provider_user_records(
+                compact=compact,
+                provider_id=previous_provider_id,
+                consistent_read=True,
+                include_update_tier=UpdateTierEnum.TIER_THREE,
+            )
+        except CCNotFoundException:
+            # The previousSSN resolved to a provider id with no records (e.g. it was never actually uploaded)
+            logger.info('Previous provider id has no records; nothing to migrate')
+            return SsnCorrectionMigrationResult(migration_performed=False)
+
+        # Idempotency guard: if the targeted license is not on the old provider, it was either never there or
+        # a previous run already migrated it
+        records_to_move = old_provider_records.get_records_associated_with_license(jurisdiction, license_type)
+        if not records_to_move:
+            logger.info('Previous provider has no license matching the corrected upload; nothing to migrate')
+            return SsnCorrectionMigrationResult(migration_performed=False)
+
+        old_top_level_provider_data = old_provider_records.get_provider_record()
+
+        # The corrected license was the old provider's only license: this is a full migration of the old
+        # provider (everything moves, and the old provider is deleted), as opposed to a partial migration
+        full_migration = len(old_provider_records.get_license_records()) == 1
+
+        # Person-level records (military affiliations, provider update history) follow the practitioner only
+        # on a full migration; on a partial migration they stay with the old provider, which still represents
+        # them for their remaining licenses
+        person_level_records = old_provider_records.get_person_level_records() if full_migration else []
+        records_to_move = [*records_to_move, *person_level_records]
+
+        if full_migration:
+            # A full migration deletes the old provider's top-level record, so every record in the old
+            # partition must be selected for migration; any record the selectors above don't recognize (e.g. a
+            # record type introduced after this migration logic was written) would otherwise be silently
+            # orphaned in a partition with no provider record. Fail before writing anything so the old
+            # provider stays intact and the message retries visibly instead.
+            self._verify_full_migration_accounts_for_all_old_provider_records(
+                old_provider_records=old_provider_records,
+                records_to_move=records_to_move,
+                old_provider_data=old_top_level_provider_data,
+            )
+
+        target_license = next(record for record in records_to_move if record.type == ProviderRecordType.LICENSE)
+        target_license_key = self._provider_record_key(target_license)
+
+        # The migration's writes are grouped so they can be committed atomically when small, and replay-safely
+        # when large. Three groups are built:
+        #
+        #   creates - put every migrated record (and the new top-level provider record) under the new provider
+        #             id. Idempotent puts (stable pk/sk), so re-running them on replay is harmless.
+        #   deletes - delete the moved records from the old provider, EXCEPT the target license and the old
+        #             top-level provider record. Deleting an already-deleted item is a no-op, so re-running
+        #             these on replay is also harmless.
+        #   final   - the ssnCorrection provider-update record, the conditioned deletion (full migration) or
+        #             repopulation (partial migration) of the old top-level provider record (the concurrency
+        #             fence), and the target license delete.
+        #
+        # When everything fits in one DynamoDB transaction it is committed atomically (all-or-nothing, so
+        # there is no partial-write replay window). Otherwise the groups run as ordered phases: creates, then
+        # deletes, then the atomic `final` group. Keeping the old provider record and target license together
+        # in the atomic `final` group is what makes the large-migration case replay-safe: until it commits, a
+        # replay always finds both records, so it can re-read the old provider (including its registered email)
+        # and reliably drive the Cognito-deletion / re-registration path. The idempotency guard above
+        # short-circuits once the target license is gone (the final group committed).
+
+        # creates: the migrated records + the new top-level provider record under the new provider id. The
+        # targeted license picks up the corrected ssnLastFour, and military affiliation records pick up
+        # document keys under the new provider id's keyspace, so the new partition is internally consistent.
+        create_transaction_items = []
+        rekeyed_target_license = None
+        rekeyed_privileges = []
+        for record in records_to_move:
+            extra_updates = None
+            if record is target_license:
+                extra_updates = {'ssnLastFour': new_ssn_last_four}
+            elif record.type == ProviderRecordType.MILITARY_AFFILIATION:
+                extra_updates = {
+                    'documentKeys': [
+                        document_key.replace(str(previous_provider_id), str(new_provider_id))
+                        for document_key in record.documentKeys
+                    ]
+                }
+            rekeyed_record = self._rekey_record_to_provider(record, new_provider_id, extra_updates)
+            if record is target_license:
+                rekeyed_target_license = rekeyed_record
+            elif record.type == ProviderRecordType.PRIVILEGE:
+                rekeyed_privileges.append(rekeyed_record)
+            create_transaction_items.append(self._build_put_transaction_item(rekeyed_record))
+
+        # Create a top-level provider record for the new provider only if it does not already have one; a
+        # pre-existing record is never modified. The existence check and this Put are not atomic with each
+        # other, so the Put is conditioned on the record still being absent: if a concurrent write (e.g. a
+        # different migration into the same new provider id) creates one in between, this Put fails instead of
+        # silently clobbering it, and the transaction raises for SQS retry to re-read the now-current state.
+        new_provider_record = self._build_new_provider_record_if_absent(
+            compact=compact,
+            new_provider_id=new_provider_id,
+            rekeyed_target_license=rekeyed_target_license,
+            rekeyed_privileges=rekeyed_privileges,
+        )
+        if new_provider_record is not None:
+            create_transaction_items.append(
+                self._build_put_transaction_item(
+                    new_provider_record, condition={'ConditionExpression': 'attribute_not_exists(pk)'}
+                )
+            )
+
+        # deletes: the moved records on the old provider, except the target license and the top-level provider
+        # record (both handled in the final group).
+        delete_transaction_items = [
+            self._build_delete_transaction_item(self._provider_record_key(record))
+            for record in records_to_move
+            if record is not target_license
+        ]
+
+        # final: exactly three items — the ssnCorrection provider-update record, the conditioned deletion
+        # (full migration) or repopulation (partial migration) of the old top-level provider record (the
+        # concurrency fence), and the target license delete.
+        ssn_correction_update = ProviderUpdateData.create_new(
+            {
+                'type': ProviderRecordType.PROVIDER_UPDATE,
+                'updateType': UpdateCategory.SSN_CORRECTION,
+                'providerId': new_provider_id,
+                'compact': compact,
+                'previous': old_top_level_provider_data.to_dict(),
+                'createDate': config.current_standard_datetime,
+                'updatedValues': {'ssnLastFour': new_ssn_last_four},
+            }
+        )
+        final_transaction_items = [
+            self._build_put_transaction_item(ssn_correction_update),
+            self._build_conditioned_old_provider_transaction_item(
+                old_provider_data=old_top_level_provider_data,
+                old_provider_records=old_provider_records,
+                full_migration=full_migration,
+                jurisdiction=jurisdiction,
+                license_type=license_type,
+            ),
+            self._build_delete_transaction_item(target_license_key),
+        ]
+
+        # Move the practitioner's S3 documents to the new provider id's keyspace before committing the DynamoDB
+        # migration. Doing this before the commit (the point at which the idempotency guard flips, since the
+        # target license leaves the old partition) keeps the move replay-safe: a crash before the commit leaves
+        # the old provider intact so a retry re-detects the migration and re-runs the move (already-moved
+        # objects are a no-op), and a crash after the commit means the move already completed.
+        if full_migration:
+            self._move_provider_documents_to_new_keyspace(
+                compact=compact,
+                previous_provider_id=previous_provider_id,
+                new_provider_id=new_provider_id,
+            )
+
+        all_transaction_items = [
+            *create_transaction_items,
+            *delete_transaction_items,
+            *final_transaction_items,
+        ]
+        if len(all_transaction_items) <= MAX_DYNAMODB_TRANSACTION_ITEMS:
+            # Small migration: commit everything as one all-or-nothing transaction, with no cross-transaction
+            # replay window to reason about. The fence's dateOfUpdate condition failing rolls the whole
+            # transaction back and raises for SQS retry.
+            self._log_ssn_migration_transaction_items('single-atomic-transaction', all_transaction_items)
+            self._execute_batched_transactions(all_transaction_items)
+        else:
+            # Large migration: the operations cannot fit in a single atomic transaction, so run them as
+            # replay-safe phases. The final group is a single atomic transaction (<= 3 items) that can never
+            # split across a batch boundary, so the old provider record and target license are always torn
+            # down together. The fence's dateOfUpdate condition failing raises for SQS retry; the retry
+            # re-reads current state and takes the now-correct branch.
+            self._log_ssn_migration_transaction_items('create', create_transaction_items)
+            self._execute_batched_transactions(create_transaction_items)
+            self._log_ssn_migration_transaction_items('delete', delete_transaction_items)
+            self._execute_batched_transactions(delete_transaction_items)
+            self._log_ssn_migration_transaction_items('final', final_transaction_items)
+            self._execute_batched_transactions(final_transaction_items)
+
+        return SsnCorrectionMigrationResult(
+            migration_performed=True,
+            full_migration=full_migration,
+            old_provider_registered_email=(
+                old_top_level_provider_data.to_dict().get('compactConnectRegisteredEmailAddress')
+                if full_migration
+                else None
+            ),
+        )
+
+    @staticmethod
+    def _provider_record_key(record: CCDataClass) -> dict[str, str]:
+        """Get the current pk/sk of a record, as regenerated by its schema."""
+        serialized = record.serialize_to_database_record()
+        return {'pk': serialized['pk'], 'sk': serialized['sk']}
+
+    def _verify_full_migration_accounts_for_all_old_provider_records(
+        self,
+        *,
+        old_provider_records: ProviderUserRecords,
+        records_to_move: list[CCDataClass],
+        old_provider_data: ProviderData | None,
+    ) -> None:
+        """
+        Verify that a full migration will leave nothing behind in the old provider's partition.
+
+        Compares every record read from the old partition against the records selected for migration plus the
+        top-level provider record (deleted by the final transaction). Raises before any write if a record is
+        unaccounted for, since deleting the top-level provider record while leaving other records in the
+        partition would orphan them with no provider to belong to.
+
+        :raises CCInternalException: If the old partition contains a record the migration would not move
+        """
+        accounted_keys = {
+            (key['pk'], key['sk']) for key in (self._provider_record_key(record) for record in records_to_move)
+        }
+        if old_provider_data is not None:
+            old_provider_key = self._provider_record_key(old_provider_data)
+            accounted_keys.add((old_provider_key['pk'], old_provider_key['sk']))
+
+        unaccounted_keys = sorted(
+            (record['pk'], record['sk'])
+            for record in old_provider_records.provider_records
+            if (record['pk'], record['sk']) not in accounted_keys
+        )
+        if unaccounted_keys:
+            logger.error(
+                'Old provider partition contains records this migration does not know how to move; '
+                'aborting before any writes',
+                unaccounted_record_keys=unaccounted_keys,
+            )
+            raise CCInternalException(
+                'SSN correction migration aborted: the old provider has records the migration would orphan'
+            )
+
+    @staticmethod
+    def _log_ssn_migration_transaction_items(phase: str, transaction_items: list[dict]) -> None:
+        """
+        Log the pk and sorted sks of the records a migration phase is about to create and delete, so the exact
+        set of items migrated between the two provider partitions can be reconstructed from the logs.
+        """
+        created_sks_by_pk = {}
+        deleted_sks_by_pk = {}
+        for item in transaction_items:
+            if 'Put' in item:
+                record = item['Put']['Item']
+                created_sks_by_pk.setdefault(record['pk']['S'], []).append(record['sk']['S'])
+            elif 'Delete' in item:
+                record_key = item['Delete']['Key']
+                deleted_sks_by_pk.setdefault(record_key['pk']['S'], []).append(record_key['sk']['S'])
+        logger.info(
+            'Executing SSN correction migration transactions',
+            phase=phase,
+            creating_items={pk: sorted(sks) for pk, sks in created_sks_by_pk.items()},
+            deleting_items={pk: sorted(sks) for pk, sks in deleted_sks_by_pk.items()},
+        )
+
+    def _move_provider_documents_to_new_keyspace(
+        self, *, compact: str, previous_provider_id: str, new_provider_id: str
+    ):
+        """Move every object under the old provider id's S3 keyspace to the new provider id's.
+
+        Rather than relying on any single record type's tracked document keys, this lists everything under the
+        old provider's keyspace prefix (`compact/{compact}/provider/{provider_id}/`) and moves it, changing only
+        the provider id segment of each key. This picks up every document type a provider might have uploaded,
+        including ones this migration logic has no other knowledge of.
+
+        Runs before the DynamoDB migration commits. Best-effort per object: a copy/delete failure is logged and
+        skipped rather than failing the migration, and re-running against an already-moved key is a no-op (the
+        source object is simply absent).
+        """
+        old_prefix = f'compact/{compact}/provider/{previous_provider_id}/'
+        new_prefix = f'compact/{compact}/provider/{new_provider_id}/'
+
+        paginator = self.config.s3_client.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=self.config.provider_user_bucket_name, Prefix=old_prefix):
+            for s3_object in page.get('Contents', []):
+                old_key = s3_object['Key']
+                new_key = new_prefix + old_key[len(old_prefix) :]
+                self._move_s3_object(old_key=old_key, new_key=new_key)
+
+    def _move_s3_object(self, *, old_key: str, new_key: str):
+        try:
+            self.config.s3_client.copy_object(
+                Bucket=self.config.provider_user_bucket_name,
+                CopySource={'Bucket': self.config.provider_user_bucket_name, 'Key': old_key},
+                Key=new_key,
+            )
+            self.config.s3_client.delete_object(Bucket=self.config.provider_user_bucket_name, Key=old_key)
+        except ClientError as e:
+            logger.error(
+                'Failed to move provider document to the new keyspace',
+                old_key=old_key,
+                new_key=new_key,
+                error=str(e),
+            )
+
+    def _build_put_transaction_item(self, record: CCDataClass, condition: dict | None = None) -> dict:
+        return {
+            'Put': {
+                'TableName': self.config.provider_table_name,
+                'Item': TypeSerializer().serialize(record.serialize_to_database_record())['M'],
+                **(condition or {}),
+            }
+        }
+
+    def _build_delete_transaction_item(self, record_key: dict[str, str]) -> dict:
+        return {
+            'Delete': {
+                'TableName': self.config.provider_table_name,
+                'Key': {'pk': {'S': record_key['pk']}, 'sk': {'S': record_key['sk']}},
+            }
+        }
+
+    @staticmethod
+    def _rekey_record_to_provider(
+        record: CCDataClass, new_provider_id: str, extra_updates: dict | None = None
+    ) -> CCDataClass:
+        """
+        Build a copy of a record re-keyed under a new provider id.
+
+        Because the provider id appears only in the pk (and in derived GSI keys), re-serializing the record
+        with the new provider id regenerates all of its database keys. Update records embed a snapshot of the
+        record they describe, so any providerId inside 'previous' is re-keyed as well.
+        """
+        record_data = record.to_dict()
+        record_data['providerId'] = new_provider_id
+        if isinstance(record_data.get('previous'), dict) and 'providerId' in record_data['previous']:
+            record_data['previous']['providerId'] = new_provider_id
+        if extra_updates:
+            record_data.update(extra_updates)
+        return type(record).create_new(record_data)
+
+    def _build_conditioned_old_provider_transaction_item(
+        self,
+        *,
+        old_provider_data: ProviderData,
+        old_provider_records: ProviderUserRecords,
+        full_migration: bool,
+        jurisdiction: str,
+        license_type: str,
+    ) -> dict:
+        """
+        Build the write against the old top-level provider record: a delete on a full migration, or a
+        repopulation from the remaining licenses on a partial migration. Either way the write is conditioned
+        on the dateOfUpdate read at the start of the migration, so concurrent migrations of the same old
+        provider serialize via SQS retry instead of both reading the same stale state.
+        """
+        condition = {
+            'ConditionExpression': 'attribute_exists(pk) AND dateOfUpdate = :dateOfUpdate',
+            'ExpressionAttributeValues': {':dateOfUpdate': {'S': old_provider_data.dateOfUpdate.isoformat()}},
+        }
+        if full_migration:
+            old_provider_key = self._provider_record_key(old_provider_data)
+            return {
+                'Delete': {
+                    'TableName': self.config.provider_table_name,
+                    'Key': {'pk': {'S': old_provider_key['pk']}, 'sk': {'S': old_provider_key['sk']}},
+                    **condition,
+                }
+            }
+
+        repopulated_old_provider = self._repopulate_provider_record_from_remaining_records(
+            old_provider_data=old_provider_data,
+            old_provider_records=old_provider_records,
+            migrated_jurisdiction=jurisdiction,
+            migrated_license_type=license_type,
+        )
+        return {
+            'Put': {
+                'TableName': self.config.provider_table_name,
+                'Item': TypeSerializer().serialize(repopulated_old_provider.serialize_to_database_record())['M'],
+                **condition,
+            }
+        }
+
+    @staticmethod
+    def _repopulate_provider_record_from_remaining_records(
+        *,
+        old_provider_data: ProviderData,
+        old_provider_records: ProviderUserRecords,
+        migrated_jurisdiction: str,
+        migrated_license_type: str,
+    ) -> ProviderData:
+        """Rebuild the old top-level provider record from the licenses/privileges that are not being migrated."""
+        remaining_licenses = old_provider_records.get_license_records(
+            filter_condition=lambda license_data: (
+                not (
+                    license_data.jurisdiction == migrated_jurisdiction
+                    and license_data.licenseType == migrated_license_type
+                )
+            )
+        )
+        remaining_privileges = old_provider_records.get_privilege_records(
+            filter_condition=lambda privilege_data: (
+                not (
+                    privilege_data.licenseJurisdiction == migrated_jurisdiction
+                    and privilege_data.licenseType == migrated_license_type
+                )
+            )
+        )
+
+        best_remaining_license = ProviderRecordUtility.find_best_license(
+            [license_data.to_dict() for license_data in remaining_licenses],
+            old_provider_data.to_dict().get('currentHomeJurisdiction'),
+        )
+        # Strip privilegeJurisdictions from the current record so the utility only carries jurisdictions
+        # over from the privileges that actually remain
+        current_provider_dict = old_provider_data.to_dict()
+        current_provider_dict.pop('privilegeJurisdictions', None)
+        return ProviderRecordUtility.populate_provider_record(
+            current_provider_record=ProviderData.create_new(current_provider_dict),
+            license_record=best_remaining_license,
+            privilege_records=[privilege_data.to_dict() for privilege_data in remaining_privileges],
+        )
+
+    def _build_new_provider_record_if_absent(
+        self,
+        *,
+        compact: str,
+        new_provider_id: str,
+        rekeyed_target_license: LicenseData,
+        rekeyed_privileges: list[PrivilegeData],
+    ) -> ProviderData | None:
+        """
+        Build a top-level provider record for the new provider from the migrated license/privileges, or return
+        None if the new provider already has one (a pre-existing record is never modified).
+        """
+        try:
+            self.get_provider_top_level_record(compact=compact, provider_id=new_provider_id)
+            return None
+        except CCNotFoundException:
+            return ProviderRecordUtility.populate_provider_record(
+                current_provider_record=None,
+                license_record=rekeyed_target_license.to_dict(),
+                privilege_records=[privilege_data.to_dict() for privilege_data in rekeyed_privileges],
+            )
+
     def _execute_batched_transactions(self, transaction_items: list[dict]) -> None:
         """
         Execute transaction items in batches of 100 (DynamoDB limit).
@@ -2848,8 +3354,7 @@ class DataClient:
 
         logger.info('Executing batched transactions', total_items=len(transaction_items))
 
-        # DynamoDB transaction limit is 100 items
-        batch_size = 100
+        batch_size = MAX_DYNAMODB_TRANSACTION_ITEMS
         processed_batches = []
 
         try:

@@ -1335,3 +1335,243 @@ class TestProviderRecordUtilityActiveSinceCalculation(TstLambdas):
         )
 
         self.assertEqual(datetime.fromisoformat('2098-04-04T12:59:59+00:00'), active_since)
+
+
+class TestGetRecordsAssociatedWithLicense(TstLambdas):
+    """Coverage for ProviderUserRecords.get_records_associated_with_license.
+
+    The SSN-correction migration (migrate_provider_for_ssn_correction) relies on this method to return the
+    target license together with EVERY record that depends on it across MULTIPLE privileges so nothing is
+    silently left behind on the old provider. Each test asserts that one record type comes back in full.
+
+    A single rich record set is generated once in setUp: the target license (oh / slp) with two privileges
+    purchased against it (in ne and ky), two of every dependent record type for the license and for each
+    privilege, plus noise that must be excluded (a different license type in the same jurisdiction with its
+    own dependents, and person-level records).
+    """
+
+    # The two jurisdictions the privileges purchased against the target license live in.
+    PRIVILEGE_JURISDICTIONS = ('ne', 'ky')
+
+    def setUp(self):
+        from common_test import test_constants as constants
+        from common_test.test_data_generator import TestDataGenerator
+
+        gen = TestDataGenerator
+        self.target_jurisdiction = constants.DEFAULT_LICENSE_JURISDICTION
+        self.target_license_type = constants.DEFAULT_LICENSE_TYPE
+        abbr = constants.DEFAULT_LICENSE_TYPE_ABBREVIATION
+
+        # --- target license and the two privileges purchased against it (home license oh/slp) ---
+        self.target_license = gen.generate_default_license()
+        self.associated_privileges = [
+            gen.generate_default_privilege(
+                {'jurisdiction': jurisdiction, 'privilegeId': f'{abbr.upper()}-{jurisdiction.upper()}-1'}
+            )
+            for jurisdiction in self.PRIVILEGE_JURISDICTIONS
+        ]
+
+        # --- two of every dependent record type for the LICENSE itself ---
+        self.license_adverse_actions = [
+            gen.generate_default_adverse_action(
+                {'actionAgainst': 'license', 'jurisdiction': self.target_jurisdiction, 'adverseActionId': aa_id}
+            )
+            for aa_id in ('11111111-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000002')
+        ]
+        # one open and one closed - the method requests include_closed=True, so BOTH must come back
+        self.license_investigations = [
+            gen.generate_default_investigation(
+                {
+                    'investigationAgainst': 'license',
+                    'jurisdiction': self.target_jurisdiction,
+                    'investigationId': '22222222-0000-0000-0000-000000000001',
+                }
+            ),
+            gen.generate_default_investigation(
+                {
+                    'investigationAgainst': 'license',
+                    'jurisdiction': self.target_jurisdiction,
+                    'investigationId': '22222222-0000-0000-0000-000000000002',
+                    'closeDate': datetime.fromisoformat('2024-06-01T00:00:00+00:00'),
+                }
+            ),
+        ]
+        self.license_updates = [
+            gen.generate_default_license_update({'createDate': datetime.fromisoformat(create_date)})
+            for create_date in ('2024-01-01T00:00:00+00:00', '2024-02-01T00:00:00+00:00')
+        ]
+
+        # --- two of every dependent record type for EACH privilege (the multi-privilege path) ---
+        self.privilege_adverse_actions = []
+        self.privilege_investigations = []
+        self.privilege_updates = []
+        for index, jurisdiction in enumerate(self.PRIVILEGE_JURISDICTIONS):
+            for n in (1, 2):
+                self.privilege_adverse_actions.append(
+                    gen.generate_default_adverse_action(
+                        {
+                            'actionAgainst': 'privilege',
+                            'jurisdiction': jurisdiction,
+                            'adverseActionId': f'33333333-000{index}-0000-0000-00000000000{n}',
+                        }
+                    )
+                )
+                self.privilege_investigations.append(
+                    gen.generate_default_investigation(
+                        {
+                            'investigationAgainst': 'privilege',
+                            'jurisdiction': jurisdiction,
+                            'investigationId': f'44444444-000{index}-0000-0000-00000000000{n}',
+                        }
+                    )
+                )
+                self.privilege_updates.append(
+                    gen.generate_default_privilege_update(
+                        {
+                            'jurisdiction': jurisdiction,
+                            'createDate': datetime.fromisoformat(f'2024-0{n}-1{index}T00:00:00+00:00'),
+                        }
+                    )
+                )
+
+        # --- noise: a different license type (oh / audiologist) with its own full set of dependents ---
+        other_type, other_abbr = 'audiologist', 'aud'
+        self.other_license_records = [
+            gen.generate_default_license({'licenseType': other_type}),
+            gen.generate_default_privilege(
+                {'licenseType': other_type, 'jurisdiction': 'ne', 'privilegeId': 'AUD-NE-1'}
+            ),
+            gen.generate_default_adverse_action(
+                {
+                    'actionAgainst': 'license',
+                    'jurisdiction': self.target_jurisdiction,
+                    'licenseType': other_type,
+                    'licenseTypeAbbreviation': other_abbr,
+                    'adverseActionId': '99999999-0000-0000-0000-000000000001',
+                }
+            ),
+            gen.generate_default_investigation(
+                {
+                    'investigationAgainst': 'license',
+                    'jurisdiction': self.target_jurisdiction,
+                    'licenseType': other_type,
+                    'licenseTypeAbbreviation': other_abbr,
+                    'investigationId': '99999999-0000-0000-0000-000000000002',
+                }
+            ),
+            gen.generate_default_license_update({'licenseType': other_type}),
+            gen.generate_default_adverse_action(
+                {
+                    'actionAgainst': 'privilege',
+                    'jurisdiction': 'ne',
+                    'licenseType': other_type,
+                    'licenseTypeAbbreviation': other_abbr,
+                    'adverseActionId': '99999999-0000-0000-0000-000000000003',
+                }
+            ),
+            gen.generate_default_investigation(
+                {
+                    'investigationAgainst': 'privilege',
+                    'jurisdiction': 'ne',
+                    'licenseType': other_type,
+                    'licenseTypeAbbreviation': other_abbr,
+                    'investigationId': '99999999-0000-0000-0000-000000000004',
+                }
+            ),
+            gen.generate_default_privilege_update({'jurisdiction': 'ne', 'licenseType': other_type}),
+        ]
+        # --- noise: person-level records, never associated with any single license ---
+        self.person_level_records = [
+            gen.generate_default_military_affiliation(),
+            gen.generate_default_provider_update(),
+            gen.generate_default_provider(),
+        ]
+
+        self.all_associated_records = [
+            self.target_license,
+            *self.associated_privileges,
+            *self.license_adverse_actions,
+            *self.license_investigations,
+            *self.license_updates,
+            *self.privilege_adverse_actions,
+            *self.privilege_investigations,
+            *self.privilege_updates,
+        ]
+
+        from cc_common.data_model.provider_record_util import ProviderUserRecords
+
+        self.records = ProviderUserRecords(
+            [
+                record.serialize_to_database_record()
+                for record in [*self.all_associated_records, *self.other_license_records, *self.person_level_records]
+            ]
+        )
+        self.result = self.records.get_records_associated_with_license(
+            self.target_jurisdiction, self.target_license_type
+        )
+
+    @staticmethod
+    def _keys(records):
+        """Reduce records to their unique (pk, sk) identity for order-independent set comparison."""
+        return {(rec.serialize_to_database_record()['pk'], rec.serialize_to_database_record()['sk']) for rec in records}
+
+    def _returned(self, record_type, predicate=None):
+        return [
+            record for record in self.result if record.type == record_type and (predicate is None or predicate(record))
+        ]
+
+    def test_returns_empty_list_when_provider_has_no_matching_license(self):
+        # 'ky' holds a privilege but no license, so there is no license to anchor the association
+        self.assertEqual([], self.records.get_records_associated_with_license('ky', self.target_license_type))
+
+    def test_includes_the_target_license_record(self):
+        self.assertEqual(self._keys([self.target_license]), self._keys(self._returned('license')))
+
+    def test_includes_all_privileges_associated_with_the_license(self):
+        self.assertEqual(self._keys(self.associated_privileges), self._keys(self._returned('privilege')))
+
+    def test_includes_all_adverse_actions_against_the_license(self):
+        self.assertEqual(
+            self._keys(self.license_adverse_actions),
+            self._keys(self._returned('adverseAction', lambda r: r.actionAgainst == 'license')),
+        )
+
+    def test_includes_all_adverse_actions_against_every_associated_privilege(self):
+        # multi-privilege path: two privileges, two adverse actions each -> all four must return
+        self.assertEqual(
+            self._keys(self.privilege_adverse_actions),
+            self._keys(self._returned('adverseAction', lambda r: r.actionAgainst == 'privilege')),
+        )
+
+    def test_includes_all_investigations_against_the_license_including_closed(self):
+        self.assertEqual(
+            self._keys(self.license_investigations),
+            self._keys(self._returned('investigation', lambda r: r.investigationAgainst == 'license')),
+        )
+
+    def test_includes_all_investigations_against_every_associated_privilege(self):
+        # multi-privilege path: two privileges, two investigations each -> all four must return
+        self.assertEqual(
+            self._keys(self.privilege_investigations),
+            self._keys(self._returned('investigation', lambda r: r.investigationAgainst == 'privilege')),
+        )
+
+    def test_includes_all_license_update_records(self):
+        self.assertEqual(self._keys(self.license_updates), self._keys(self._returned('licenseUpdate')))
+
+    def test_includes_all_privilege_update_records_for_every_associated_privilege(self):
+        # multi-privilege path: two privileges, two update records each -> all four must return
+        self.assertEqual(self._keys(self.privilege_updates), self._keys(self._returned('privilegeUpdate')))
+
+    def test_excludes_records_belonging_to_a_different_license_type(self):
+        returned_keys = self._keys(self.result)
+        leaked = self._keys(self.other_license_records) & returned_keys
+        self.assertEqual(set(), leaked, f'records for a different license type leaked into the result: {leaked}')
+
+    def test_excludes_person_level_records(self):
+        returned_keys = self._keys(self.result)
+        leaked = self._keys(self.person_level_records) & returned_keys
+        self.assertEqual(set(), leaked, f'person-level records leaked into the result: {leaked}')
+
+    def test_returns_only_the_expected_records_and_nothing_else(self):
+        self.assertEqual(self._keys(self.all_associated_records), self._keys(self.result))

@@ -85,6 +85,25 @@ class _Config:
         return os.environ['CC_TEST_PROVIDER_USER_PASSWORD']
 
     @property
+    def test_provider_mock_ssn(self):
+        """The mock SSN the test provider user's license records are currently stored under."""
+        return os.environ['CC_TEST_PROVIDER_MOCK_SSN']
+
+    @property
+    def test_provider_original_provider_id(self):
+        """The provider id the test provider's records live under when their SSN is CC_TEST_PROVIDER_MOCK_SSN.
+
+        Used by the full migration smoke test to detect and recover from a prior run that was interrupted
+        after migrating the test provider off of this provider id but before migrating it back.
+        """
+        return os.environ['CC_TEST_PROVIDER_ORIGINAL_PROVIDER_ID']
+
+    @property
+    def provider_user_bucket_name(self):
+        """The provider users' S3 bucket, which holds practitioner-uploaded documents."""
+        return os.environ['CC_TEST_PROVIDER_USER_BUCKET_NAME']
+
+    @property
     def sandbox_authorize_net_api_login_id(self):
         return os.environ['SANDBOX_AUTHORIZE_NET_API_LOGIN_ID']
 

@@ -126,17 +126,13 @@ def _put_provider_home_jurisdiction(event: dict, context: LambdaContext):  # noq
     # this is a no-op and we skip sending notifications
     if previous_home_jurisdiction != selected_jurisdiction:
         try:
-            # Publish event for notification processing if feature flag is enabled
-            from cc_common.feature_flag_client import FeatureFlagEnum, is_feature_enabled
-
-            if is_feature_enabled(FeatureFlagEnum.HOME_JURISDICTION_CHANGE_NOTIFICATION_FLAG, fail_default=False):
-                config.event_bus_client.publish_home_jurisdiction_change_event(
-                    source='org.compactconnect.provider-data',
-                    compact=compact,
-                    provider_id=provider_id,
-                    previous_home_jurisdiction=previous_home_jurisdiction,
-                    new_home_jurisdiction=selected_jurisdiction,
-                )
+            config.event_bus_client.publish_home_jurisdiction_change_event(
+                source='org.compactconnect.provider-data',
+                compact=compact,
+                provider_id=provider_id,
+                previous_home_jurisdiction=previous_home_jurisdiction,
+                new_home_jurisdiction=selected_jurisdiction,
+            )
         except ClientError as e:
             # Log the error and continue
             logger.error(

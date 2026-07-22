@@ -113,25 +113,11 @@ class FeatureFlagStack(AppStack):
             environment_name=environment_name,
         )
 
-        self.duplicate_ssn_upload_check_flag = FeatureFlagResource(
+        self.license_ssn_correction_migration_flag = FeatureFlagResource(
             self,
-            'DuplicateSsnUploadCheckFlag',
+            'LicenseSsnCorrectionMigrationFlag',
             provider=self.provider,  # Shared provider
-            flag_name='duplicate-ssn-upload-check-flag',
-            # Low risk update, we will automatically enable for every environment
-            auto_enable_envs=[
-                FeatureFlagEnvironmentName.TEST,
-                FeatureFlagEnvironmentName.BETA,
-                FeatureFlagEnvironmentName.PROD,
-            ],
-            environment_name=environment_name,
-        )
-
-        self.home_jurisdiction_change_notification_flag = FeatureFlagResource(
-            self,
-            'HomeJurisdictionChangeNotificationFlag',
-            provider=self.provider,  # Shared provider
-            flag_name='home-jurisdiction-change-notification-flag',
+            flag_name='license-ssn-correction-migration-flag',
             # Automatically enable for every environment
             auto_enable_envs=[
                 FeatureFlagEnvironmentName.TEST,

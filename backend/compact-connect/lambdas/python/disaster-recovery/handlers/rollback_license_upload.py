@@ -429,18 +429,23 @@ def _query_gsi_for_affected_providers(
     """
     affected_provider_ids = set()
 
-    # Generate list of year-month strings to query
-    current_date = start_datetime.replace(day=1)
-    end_month = end_datetime.replace(day=1)
+    # Generate list of year-month strings to query.
+    # NOTE: We must zero out the time-of-day components here, not just the day. Otherwise, if
+    # start_datetime's time-of-day is later than end_datetime's time-of-day (e.g. start=21:09:55,
+    # end=12:00:00), the initial current_month <= end_month comparison below can incorrectly evaluate
+    # to False even though both timestamps fall within the same month, causing this loop to produce
+    # zero year-months and silently skip the GSI query entirely.
+    current_month = start_datetime.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    end_month = end_datetime.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     year_months = []
-    while current_date <= end_month:
-        year_months.append(current_date.strftime('%Y-%m'))
+    while current_month <= end_month:
+        year_months.append(current_month.strftime('%Y-%m'))
         # Move to next month
-        if current_date.month == 12:
-            current_date = current_date.replace(year=current_date.year + 1, month=1)
+        if current_month.month == 12:
+            current_month = current_month.replace(year=current_month.year + 1, month=1)
         else:
-            current_date = current_date.replace(month=current_date.month + 1)
+            current_month = current_month.replace(month=current_month.month + 1)
 
     start_epoch = int(start_datetime.timestamp())
     end_epoch = int(end_datetime.timestamp())

@@ -25,16 +25,19 @@ def preprocess_license_ingest(message: dict):
     This reduces the attack surface by ensuring full SSNs don't reach the event bus.
 
     For each message:
-    1. Extract the SSN
+    1. Extract the SSN (and previousSSN, if the upload is an SSN correction)
     2. Get or create the provider ID using the SSN
     3. Replace the full SSN with just the last 4 digits
-    4. Send the modified message to the event bus
+    4. If a previousSSN resolves to a different provider id, forward that id as previousProviderId
+    5. Send the modified message to the event bus
     """
 
     # Extract necessary fields
     compact = message['compact']
     jurisdiction = message['jurisdiction']
     ssn = message.pop('ssn')  # Remove SSN from the detail
+    # Remove previousSSN (if present) from the detail; it must never reach the event bus
+    previous_ssn = message.pop('previousSSN', None)
 
     with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
         try:
@@ -44,8 +47,24 @@ def preprocess_license_ingest(message: dict):
 
             # Add the last 4 digits of SSN to the detail
             message['ssnLastFour'] = ssn[-4:]
-            # delete the ssn value from memory so it can be cleaned up as soon as we are done with it
+
+            if previous_ssn is not None and previous_ssn != ssn:
+                # The state is correcting a previously-uploaded SSN. Resolve the previous SSN to its provider id
+                # so the ingest handler (which has no SSN access) can migrate that provider's records. If the
+                # previous SSN was never uploaded, this creates a mapping that simply resolves to a provider with
+                # no records, which the ingest handler treats as a no-op.
+                previous_provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=previous_ssn)
+                if previous_provider_id != provider_id:
+                    message['previousProviderId'] = previous_provider_id
+                    logger.info(
+                        'SSN correction detected; forwarding previous provider id',
+                        new_provider_id=provider_id,
+                        previous_provider_id=previous_provider_id,
+                    )
+
+            # delete the ssn values from memory so they can be cleaned up as soon as we are done with them
             del ssn
+            del previous_ssn
 
             # Send the sanitized license data to the event bus
             with logger.append_context_keys(provider_id=provider_id):
@@ -99,10 +118,24 @@ def ingest_license_message(message: dict):
     compact = license_ingest_message['compact']
     jurisdiction = license_ingest_message['jurisdiction']
     provider_id = license_ingest_message['providerId']
+    # Transient migration routing data set by the preprocessor for SSN corrections; must never be persisted
+    previous_provider_id = license_ingest_message.pop('previousProviderId', None)
 
     with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
         with logger.append_context_keys(provider_id=provider_id):
             logger.info('Ingesting license data')
+
+            if previous_provider_id is not None and previous_provider_id != provider_id:
+                # The state corrected this practitioner's SSN: move the records uploaded under the
+                # incorrect SSN's provider id over to this one before the normal license write below
+                _perform_ssn_correction_migration(
+                    compact=compact,
+                    previous_provider_id=str(previous_provider_id),
+                    new_provider_id=str(provider_id),
+                    jurisdiction=jurisdiction,
+                    license_type=license_ingest_message['licenseType'],
+                    new_ssn_last_four=license_ingest_message['ssnLastFour'],
+                )
 
             # Start preparing our db transactions
             data_events = []
@@ -335,4 +368,63 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             # We'll only include the removed values field if there are some
             **({'removedValues': sorted(removed_values)} if removed_values else {}),
         }
+    )
+
+
+def _perform_ssn_correction_migration(
+    *,
+    compact: str,
+    previous_provider_id: str,
+    new_provider_id: str,
+    jurisdiction: str,
+    license_type: str,
+    new_ssn_last_four: str,
+):
+    """
+    Orchestrate the migration of a practitioner's records after a state corrected the SSN on a license upload.
+
+    The data client performs the DynamoDB migration and the S3 document move together; on a full migration the
+    old Cognito user deletion and re-registration email follow here. A concurrency conflict inside the
+    migration raises, letting SQS redeliver the message after the visibility timeout.
+    """
+    logger.info('Performing SSN correction migration', previous_provider_id=previous_provider_id)
+
+    result = config.data_client.migrate_provider_for_ssn_correction(
+        compact=compact,
+        previous_provider_id=previous_provider_id,
+        new_provider_id=new_provider_id,
+        jurisdiction=jurisdiction,
+        license_type=license_type,
+        new_ssn_last_four=new_ssn_last_four,
+    )
+    if not result.migration_performed:
+        logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
+        return
+
+    if result.full_migration and result.old_provider_registered_email is not None:
+        _delete_old_cognito_user_and_send_reregistration_email(
+            compact=compact,
+            old_registered_email=result.old_provider_registered_email,
+        )
+
+
+def _delete_old_cognito_user_and_send_reregistration_email(*, compact: str, old_registered_email: str):
+    """Delete the old provider's Cognito user and email the practitioner to re-register.
+
+    The email is only sent when a user was actually deleted in this run, so an SQS retry of a
+    partially-completed migration does not send a duplicate notification.
+    """
+    try:
+        config.cognito_client.admin_delete_user(
+            UserPoolId=config.provider_user_pool_id,
+            Username=old_registered_email,
+        )
+    except config.cognito_client.exceptions.UserNotFoundException:
+        logger.info('Old Cognito user not found (already deleted); skipping re-registration email')
+        return
+
+    logger.info('Deleted old Cognito user after SSN correction; sending re-registration email')
+    config.email_service_client.send_provider_ssn_correction_reregistration_email(
+        compact=compact,
+        provider_email=old_registered_email,
     )
