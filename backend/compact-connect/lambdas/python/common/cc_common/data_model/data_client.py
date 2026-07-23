@@ -3192,7 +3192,7 @@ class DataClient:
                 Key=new_key,
             )
         except ClientError as e:
-            # we intentionally log the keys here so technical support staff 
+            # we intentionally log the keys here so technical support staff
             # can recover the document if the move fails.
             logger.error(
                 'Failed to move provider document to the new keyspace',
@@ -3205,7 +3205,7 @@ class DataClient:
             self.config.s3_client.delete_object(Bucket=self.config.provider_user_bucket_name, Key=old_key)
             logger.info('Moved provider document to new keyspace')
         except ClientError as e:
-            # we intentionally log the key here so technical support staff 
+            # we intentionally log the key here so technical support staff
             # can complete cleanup of the document if the delete fails.
             logger.error(
                 'Failed to delete provider document from the old keyspace',
