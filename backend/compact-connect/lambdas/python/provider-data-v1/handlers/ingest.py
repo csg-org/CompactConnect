@@ -396,31 +396,32 @@ def _perform_ssn_correction_migration(
     old Cognito user deletion and re-registration email follow here. A concurrency conflict inside the
     migration raises, letting SQS redeliver the message after the visibility timeout.
     """
-    logger.info('Performing SSN correction migration', previous_provider_id=previous_provider_id)
+    with logger.append_context_keys(previous_provider_id=previous_provider_id):
+        logger.info('Performing SSN correction migration')
 
-    result = config.data_client.migrate_provider_for_ssn_correction(
-        compact=compact,
-        previous_provider_id=previous_provider_id,
-        new_provider_id=new_provider_id,
-        jurisdiction=jurisdiction,
-        license_type=license_type,
-        new_ssn_last_four=new_ssn_last_four,
-    )
-    if not result.migration_performed:
-        logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
-        metrics.add_metric(name=SSN_CORRECTION_NO_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
-        return
-
-    if result.full_migration:
-        metrics.add_metric(name=SSN_CORRECTION_FULL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
-    else:
-        metrics.add_metric(name=SSN_CORRECTION_PARTIAL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
-
-    if result.full_migration and result.old_provider_registered_email is not None:
-        _delete_old_cognito_user_and_send_reregistration_email(
+        result = config.data_client.migrate_provider_for_ssn_correction(
             compact=compact,
-            old_registered_email=result.old_provider_registered_email,
+            previous_provider_id=previous_provider_id,
+            new_provider_id=new_provider_id,
+            jurisdiction=jurisdiction,
+            license_type=license_type,
+            new_ssn_last_four=new_ssn_last_four,
         )
+        if not result.migration_performed:
+            logger.info('No records to migrate for previous provider id; proceeding with normal ingest')
+            metrics.add_metric(name=SSN_CORRECTION_NO_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
+            return
+
+        if result.full_migration:
+            metrics.add_metric(name=SSN_CORRECTION_FULL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
+        else:
+            metrics.add_metric(name=SSN_CORRECTION_PARTIAL_MIGRATION_METRIC, unit=MetricUnit.Count, value=1)
+
+        if result.full_migration and result.old_provider_registered_email is not None:
+            _delete_old_cognito_user_and_send_reregistration_email(
+                compact=compact,
+                old_registered_email=result.old_provider_registered_email,
+            )
 
 
 def _delete_old_cognito_user_and_send_reregistration_email(*, compact: str, old_registered_email: str):
@@ -439,7 +440,10 @@ def _delete_old_cognito_user_and_send_reregistration_email(*, compact: str, old_
         return
 
     logger.info('Deleted old Cognito user after SSN correction; sending re-registration email')
-    config.email_service_client.send_provider_ssn_correction_reregistration_email(
-        compact=compact,
-        provider_email=old_registered_email,
-    )
+    try:
+        config.email_service_client.send_provider_ssn_correction_reregistration_email(
+            compact=compact,
+            provider_email=old_registered_email,
+        )
+    except Exception as e:  # noqa: BLE001 - best-effort notification. Should not cause batch to fail.
+        logger.error('Failed to send re-registration email after SSN correction migration', error=str(e))

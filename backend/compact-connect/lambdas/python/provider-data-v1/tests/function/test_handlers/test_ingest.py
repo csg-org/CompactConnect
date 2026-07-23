@@ -1157,6 +1157,27 @@ class TestIngestSsnCorrection(TstFunction):
             name='ssn-correction-no-migration', unit=MetricUnit.Count, value=1
         )
 
+    def test_full_migration_still_succeeds_when_reregistration_email_fails(self):
+        """A re-registration email failure must not fail the ingest record: the DynamoDB/S3 migration and the
+        old Cognito user deletion have already completed by the time the email is sent, so retrying this record
+        would only redeliver a message that no longer has anything left to migrate."""
+        from cc_common.exceptions import CCInternalException
+
+        self._mock_send_reregistration_email.side_effect = CCInternalException('email service unavailable')
+        self._put_old_provider_records()
+        self._create_old_cognito_user()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        self._mock_send_reregistration_email.assert_called_once_with(
+            compact='aslp',
+            provider_email=self.OLD_REGISTERED_EMAIL,
+        )
+        # the migration itself still completed, despite the email failure
+        self.assertFalse(self._does_old_cognito_user_exist())
+        self.assertEqual([], self._get_provider_records(self.OLD_PROVIDER_ID))
+
     def test_full_migration_with_unregistered_old_provider_sends_no_email(self):
         # the old provider never registered: no Cognito user, no registered email on the provider record
         self.test_data_generator.put_default_provider_record_in_provider_table(is_registered=False)
