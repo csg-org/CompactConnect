@@ -26,7 +26,6 @@ def process_provider_s3_events(event: dict, context: LambdaContext):  # noqa: AR
             if event_name.startswith('ObjectCreated:Copy'):
                 logger.info(
                     'Ignoring S3 object copy event; records already migrated',
-                    s3_url=f's3://{bucket_name}/{key}',
                     event_name=event_name,
                 )
                 continue
