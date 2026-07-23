@@ -34,7 +34,7 @@ describe('AdverseAction model', () => {
                 }
             }
         };
-        i18n.global.locale = 'en';
+        i18n.global.locale.value = 'en';
     });
     it('should create an AdverseAction model with expected defaults', () => {
         const adverseAction = new AdverseAction();
