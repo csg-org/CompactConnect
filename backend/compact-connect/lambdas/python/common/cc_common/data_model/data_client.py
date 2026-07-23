@@ -3192,6 +3192,7 @@ class DataClient:
                 Key=new_key,
             )
             self.config.s3_client.delete_object(Bucket=self.config.provider_user_bucket_name, Key=old_key)
+            logger.info('Moved provider document to new keyspace', old_key=old_key, new_key=new_key)
         except ClientError as e:
             logger.error(
                 'Failed to move provider document to the new keyspace',
