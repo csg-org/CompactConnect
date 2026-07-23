@@ -29,7 +29,7 @@ describe('Investigation model', () => {
                 }
             }
         };
-        i18n.global.locale = 'en';
+        i18n.global.locale.value = 'en';
     });
     it('should create an Investigation model with expected defaults', () => {
         const investigation = new Investigation();

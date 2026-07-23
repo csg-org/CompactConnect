@@ -27,7 +27,7 @@ describe('PrivilegePurchaseOption model', () => {
                 }
             }
         };
-        i18n.global.locale = 'en';
+        i18n.global.locale.value = 'en';
     });
     it('should create a PrivilegePurchaseOption with expected defaults', () => {
         const privilegePurchaseOption = new PrivilegePurchaseOption();
