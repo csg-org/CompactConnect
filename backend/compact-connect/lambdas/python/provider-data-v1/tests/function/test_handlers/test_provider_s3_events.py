@@ -1,5 +1,6 @@
 import json
 from datetime import UTC, datetime, timedelta
+from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
@@ -10,6 +11,61 @@ TEST_COMPACT = 'aslp'
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 MOCK_SSN = '123-12-1234'
 MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
+
+# A real-world S3 "ObjectCreated:Copy" event, as emitted when the SSN-correction migration copies a
+# practitioner's documents from the old provider id's keyspace to the new one (see
+# DataClient.migrate_provider_for_ssn_correction). The DynamoDB records are already fully migrated by that
+# point, so this event must be treated as a no-op rather than re-processed as a fresh upload.
+MOCK_MILITARY_AFFILIATION_S3_COPY_EVENT = {
+    'Records': [
+        {
+            'eventVersion': '2.5',
+            'eventSource': 'aws:s3',
+            'awsRegion': 'us-east-1',
+            'eventTime': '2026-07-23T15:47:16.822Z',
+            'eventName': 'ObjectCreated:Copy',
+            'userIdentity': {
+                'principalId': 'AWS:AROA3FLD54XO75CUFS6OJ:Test-IngestStack-V1IngestHandlerDDBAB1AF-b1PElCTmSnHX'
+            },
+            'requestParameters': {'sourceIPAddress': '44.202.75.55'},
+            'responseElements': {
+                'x-amz-request-id': 'J2Y0GRMF3W65RCDA',
+                'x-amz-id-2': (
+                    'wf+oj1VbuoeY1Tf4CgIWTX6B8kuXxkPZh69x5GrMgKZmUwBcN5BxI+TFLX033phnfgfSa7lYWi3+zgOQTOPCPogOprAR4ABC'
+                ),
+            },
+            's3': {
+                's3SchemaVersion': '1.0',
+                'configurationId': 'NDJlM2YwOTUtMzc4ZC00NGUzLWI5ZDQtODY3MzM0ODZjNGE5',
+                'bucket': {
+                    'name': 'test-persistentstack-providerusersbucket5c7b202b-sgh3k0h87td2',
+                    'ownerIdentity': {'principalId': 'A1D527R6C66693'},
+                    'arn': 'arn:aws:s3:::test-persistentstack-providerusersbucket5c7b202b-sgh3k0h87td2',
+                    'awsGeneratedTags': {
+                        'aws:cloudformation:stack-id': (
+                            'arn:aws:cloudformation:us-east-1:767398110685:stack/Test-PersistentStack/'
+                            'a6b4e9c0-45eb-11ef-84ee-0affdd7bca67'
+                        ),
+                        'aws:cloudformation:stack-name': 'Test-PersistentStack',
+                        'aws:cloudformation:logical-id': 'ProviderUsersBucket5C7B202B',
+                    },
+                },
+                'object': {
+                    'key': (
+                        'compact/coun/provider/64ddb6f5-8710-49b5-bc41-43d37e392a85/document-type/'
+                        'military-affiliations/2026-07-15T04%3A19%3A32%2B00%3A00/'
+                        'b05a9032-3eda-4006-a5a6-9de4ace8f1c7%23military_affiliation.pdf'
+                    ),
+                    'size': 24457,
+                    'eTag': '42fbe81fd83d6fa627caade914bf4aef',
+                    'versionId': 'gZrjnhjYN7C6BC5_.qxpsNQX_ohvHT_N',
+                    'sequencer': '006A623784C006934E',
+                    'hasObjectAnnotation': False,
+                },
+            },
+        }
+    ]
+}
 
 
 @mock_aws
@@ -67,6 +123,19 @@ class TestProviderUserBucketS3Events(TstFunction):
                 f'{TEST_COMPACT}#PROVIDER#military-affiliation#',
             )
         )['Items']
+
+    def test_provider_user_bucket_event_handler_ignores_object_copy_events(self):
+        """S3 "ObjectCreated:Copy" events fire when the SSN-correction migration copies a practitioner's
+        documents to a new provider id's keyspace. By that point, the DynamoDB records have already been
+        fully migrated, so this event must be a no-op rather than being processed as a fresh upload (which
+        would fail since there is no initializing military affiliation record to complete)."""
+        from handlers.provider_s3_events import process_provider_s3_events
+
+        with patch.object(self.config.data_client, 'complete_military_affiliation_initialization') as mock_complete:
+            # should not raise, even though no military affiliation record exists for this provider/key
+            process_provider_s3_events(MOCK_MILITARY_AFFILIATION_S3_COPY_EVENT, self.mock_context)
+
+        mock_complete.assert_not_called()
 
     def test_provider_user_bucket_event_handler_sets_military_affiliation_status_to_active(self):
         from handlers.provider_s3_events import process_provider_s3_events
