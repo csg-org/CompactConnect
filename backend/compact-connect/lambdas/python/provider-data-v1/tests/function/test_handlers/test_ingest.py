@@ -2,6 +2,7 @@ import json
 from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
+from aws_lambda_powertools.metrics import MetricUnit
 from cc_common.data_model.update_tier_enum import UpdateTierEnum
 from common_test.test_constants import DEFAULT_PROVIDER_ID
 from moto import mock_aws
@@ -1111,7 +1112,32 @@ class TestIngestSsnCorrection(TstFunction):
         self.assertTrue(self._does_old_cognito_user_exist())
         self._mock_send_reregistration_email.assert_not_called()
 
-    def test_no_op_migration_still_ingests_license_normally(self):
+    @patch('handlers.ingest.metrics')
+    def test_full_migration_emits_full_migration_metric(self, mock_metrics):
+        self._put_old_provider_records()
+        self._create_old_cognito_user()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        mock_metrics.add_metric.assert_called_once_with(
+            name='ssn-correction-full-migration', unit=MetricUnit.Count, value=1
+        )
+
+    @patch('handlers.ingest.metrics')
+    def test_partial_migration_emits_partial_migration_metric(self, mock_metrics):
+        self._put_old_provider_records(with_second_license=True)
+        self._create_old_cognito_user()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        mock_metrics.add_metric.assert_called_once_with(
+            name='ssn-correction-partial-migration', unit=MetricUnit.Count, value=1
+        )
+
+    @patch('handlers.ingest.metrics')
+    def test_no_op_migration_still_ingests_license_normally(self, mock_metrics):
         # the previousSSN resolved to a provider id with no records at all
         resp = self._run_ingest_with_previous_provider_id()
         self.assertEqual({'batchItemFailures': []}, resp)
@@ -1125,6 +1151,32 @@ class TestIngestSsnCorrection(TstFunction):
             self.assertNotIn('previousProviderId', record)
 
         self._mock_send_reregistration_email.assert_not_called()
+
+        # a no-op previousSSN path still emits a metric so we can detect spurious or already-migrated corrections
+        mock_metrics.add_metric.assert_called_once_with(
+            name='ssn-correction-no-migration', unit=MetricUnit.Count, value=1
+        )
+
+    def test_full_migration_still_succeeds_when_reregistration_email_fails(self):
+        """A re-registration email failure must not fail the ingest record: the DynamoDB/S3 migration and the
+        old Cognito user deletion have already completed by the time the email is sent, so retrying this record
+        would only redeliver a message that no longer has anything left to migrate."""
+        from cc_common.exceptions import CCInternalException
+
+        self._mock_send_reregistration_email.side_effect = CCInternalException('email service unavailable')
+        self._put_old_provider_records()
+        self._create_old_cognito_user()
+
+        resp = self._run_ingest_with_previous_provider_id()
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        self._mock_send_reregistration_email.assert_called_once_with(
+            compact='aslp',
+            provider_email=self.OLD_REGISTERED_EMAIL,
+        )
+        # the migration itself still completed, despite the email failure
+        self.assertFalse(self._does_old_cognito_user_exist())
+        self.assertEqual([], self._get_provider_records(self.OLD_PROVIDER_ID))
 
     def test_full_migration_with_unregistered_old_provider_sends_no_email(self):
         # the old provider never registered: no Cognito user, no registered email on the provider record

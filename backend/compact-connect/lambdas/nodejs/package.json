@@ -5,7 +5,7 @@
   "description": "NodeJS lambdas for CompactConnect",
   "resolutions": {
     "fast-xml-parser": "5.7.3",
-    "postcss": "8.5.10"
+    "postcss": "8.5.12"
   },
   "scripts": {
     "build": "tsc",
